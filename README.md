@@ -12,4 +12,10 @@ OrientDB docker для версии 3.0.0RC1:
 
 `docker run -d --name orientdb -p 2424:2424 -p 2480:2480   -e ORIENTDB_ROOT_PASSWORD= <пароль> orientdb:3.0.0RC1`
 
- 
+application.properties файл должен быть в папке с backend.jar (или в user.dir)
+
+backend run: 
+`gradle bootRun` 
+
+frontend run: 
+`npm run serve` 
