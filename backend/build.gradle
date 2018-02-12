@@ -28,6 +28,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
 
@@ -38,6 +39,12 @@ dependencies {
     compile group: 'com.orientechnologies', name: 'orientdb-client', version: '3.0.0RC1'
 
     compile group: 'ch.qos.logback', name: 'logback-classic'
+
+    compile group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwt_version"
+
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4"
+
+    expectedBy project(":common")
 
     testCompile group: 'junit', name: 'junit'
 }

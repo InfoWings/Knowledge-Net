@@ -1,0 +1,93 @@
+apply plugin: 'kotlin-platform-js'
+apply plugin: "kotlin2js"
+apply plugin: "kotlin-dce-js"
+apply plugin: "com.moowork.node"
+
+buildscript {
+
+    ext {
+        gradle_node_plugin_version = '1.2.0'
+    }
+
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "http://dl.bintray.com/kotlin/kotlin-dev" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_plugin_version"
+    }
+}
+
+ext {
+    kotlinx_html_version = 'latest-1.2.30-dev-132-242'
+    wrapper_react_version='16.2.0-pre.19-kotlin-1.2.20'
+    wrapper_extentions_version = '1.0.0-pre.19-kotlin-1.2.20'
+    wrapper_mocha_version = '3.0.0-pre.19-kotlin-1.2.20'
+}
+
+node {
+    download = true
+}
+
+repositories {
+    maven { url "http://dl.bintray.com/kotlin/kotlin-dev" }
+    maven { url "http://dl.bintray.com/kotlin/kotlin-js-wrappers/" }
+    maven { url  "http://dl.bintray.com/kotlin/kotlinx.html/" }
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlin_coroutine_version"
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
+
+    compile "org.jetbrains:kotlin-extensions:$wrapper_extentions_version"
+    compile "org.jetbrains:kotlin-react:$wrapper_react_version"
+    compile "org.jetbrains:kotlin-react-dom:$wrapper_react_version"
+    compile "org.jetbrains:kotlin-mocha:$wrapper_mocha_version"
+
+
+    testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+    expectedBy project(":common")
+}
+
+compileKotlin2Js {
+    kotlinOptions {
+        sourceMap = true
+        sourceMapEmbedSources = "always"
+        moduleKind = 'commonjs'
+        metaInfo = false
+    }
+}
+
+task copyCss(type: Copy) {
+    from ("$project.projectDir/src/main/kotlin") {
+        include '**/*.css'
+    }
+    into "$buildDir/web/css"
+}
+
+task copyStatic(type: Copy, dependsOn: copyCss) {
+    from "$project.projectDir/src/main/web"
+    into "$buildDir/web"
+}
+
+task buildBundle(type: NpmTask, dependsOn: [npmInstall, runDceKotlinJs, copyStatic]) {
+    args = ["run", "dist"]
+}
+
+task devBuild(dependsOn: [npmInstall, copyStatic, runDceKotlinJs])
+
+assemble.dependsOn buildBundle, copyStatic
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
