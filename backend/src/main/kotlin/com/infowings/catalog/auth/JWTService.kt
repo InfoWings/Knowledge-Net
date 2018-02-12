@@ -30,11 +30,11 @@ class JWTService {
     lateinit var PREFIX: String
 
     @Autowired
-    lateinit var userRepository: UserRepository
+    lateinit var userAcceptService: UserAcceptService
 
 
     fun createJwtToken(username: String): JwtToken {
-        val user = userRepository.findByUsername(username)
+        val user = userAcceptService.findByUsername(username)
         val jwtInfo = JwtInfo(user!!.username, user.role)
         val accessToken = createTokenString(jwtInfo, ACCESS_TIME.toLong())
         val refreshToken = createTokenString(jwtInfo, REFRESH_TIME.toLong())

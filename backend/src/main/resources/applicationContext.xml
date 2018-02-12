@@ -6,6 +6,10 @@
 
     <tx:annotation-driven/>
 
+    <bean id="userAcceptService" class="com.infowings.catalog.auth.UserAcceptService">
+        <constructor-arg ref="orientDatabase"/>
+    </bean>
+
     <bean id="orientDatabase" class="com.infowings.catalog.storage.OrientDatabase">
         <constructor-arg name="url" value="${orient.url}"/>
         <constructor-arg name="database" value="${orient.database}"/>

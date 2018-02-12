@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 
 @Controller
 @RequestMapping("/api/access")
-class UserAccessController(var userRepository: UserRepository, var jwtService: JWTService) {
+class UserAccessController(var userAcceptService: UserAcceptService, var jwtService: JWTService) {
 
     @Value("\${spring.security.header.refresh}")
     lateinit var REFRESH_HEADER: String
 
     @PostMapping("signIn")
     fun signIn(@RequestBody user: UserDto): ResponseEntity<*> {
-        val userEntity = userRepository.findByUsername(user.username)
+        val userEntity = userAcceptService.findByUsername(user.username)
         if (userEntity == null || userEntity.password != user.password) {
             return ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
         }
@@ -47,9 +47,9 @@ class UserAccessController(var userRepository: UserRepository, var jwtService: J
 }
 
 @Service
-class UserDetailsServiceImpl(var userRepository: UserRepository) : UserDetailsService {
+class UserDetailsServiceImpl(var userAcceptService: UserAcceptService) : UserDetailsService {
     override fun loadUserByUsername(username: String?): UserDetails? {
-        val user = userRepository.findByUsername(username!!) ?: return null
+        val user = userAcceptService.findByUsername(username!!) ?: return null
         return User(user.username, user.password, mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name)))
     }
 }
