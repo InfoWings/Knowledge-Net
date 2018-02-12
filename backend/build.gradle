@@ -1,0 +1,59 @@
+apply plugin: 'kotlin-platform-jvm'
+apply plugin: "kotlin-spring"
+apply plugin: "kotlin-jpa"
+apply plugin: 'org.springframework.boot'
+
+buildscript {
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlin_version"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlin_coroutine_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutine_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
+
+    compile group: 'org.springframework', name: 'spring-orm'
+
+    compile group: 'postgresql', name: 'postgresql', version: '9.1-901.jdbc4'
+
+    compile group: 'com.orientechnologies', name: 'orientdb-client', version: '3.0.0RC1'
+
+    compile group: 'ch.qos.logback', name: 'logback-classic'
+
+    testCompile group: 'junit', name: 'junit'
+}
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+springBoot {
+    mainClass = "com.infowings.catalog.MasterCatalogKt"
+    executable = true
+}

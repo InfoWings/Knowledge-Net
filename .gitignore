@@ -1,0 +1,9 @@
+.idea/
+build/
+classes/
+.gradle/
+backend/out/
+catalog/out/
+logs
+.DS_Store
+.run

@@ -1,0 +1,45 @@
+group 'cyber'
+version '1-SNAPSHOT'
+
+buildscript {
+
+    ext {
+        kotlin_coroutine_version = '0.22.1'
+        kotlin_version = '1.2.21'
+        serialization_version = '0.4'
+        spring_boot_version = "1.5.2.RELEASE"
+        postgresql_version = "9.1-901.jdbc4"
+    }
+
+    repositories {
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+        maven { url "https://kotlin.bintray.com/kotlinx" }
+        maven { url 'https://maven.google.com' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+    }
+}
+
+
+subprojects {
+    apply plugin: 'kotlinx-serialization'
+
+    ext['hibernate.version'] = '5.2.9.Final'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+        maven { url "https://kotlin.bintray.com/kotlinx" }
+        maven { url 'https://maven.google.com' }
+
+        maven { url "https://raw.github.com/XeroAPI/Xero-Java/mvn-repo/" }
+        maven { url "https://raw.github.com/XeroAPI/XeroAPI-Schemas/mvn-repo/" }
+        maven { url "http://172.31.5.10:8010/content/repositories/iwings-repo/" }
+    }
+}
+
