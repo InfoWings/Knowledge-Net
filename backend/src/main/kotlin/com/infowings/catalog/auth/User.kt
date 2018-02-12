@@ -3,25 +3,18 @@ package com.infowings.catalog.auth
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.infowings.common.UserRole
-import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.sql.executor.OResult
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JSON
 
 val admin = UserEntity("admin", "admin", UserRole.ADMIN)
 val user = UserEntity("user", "user", UserRole.USER)
 val poweredUser = UserEntity("powereduser", "powereduser", UserRole.POWERED_USER)
 
+@Serializable
 data class UserEntity(var username: String,
                       var password: String,
-                      var role: UserRole) {
-    companion object {
-        fun fromOrient(element: OElement): UserEntity {
-            return UserEntity(
-                    element.getProperty("username"),
-                    element.getProperty("password"),
-                    UserRole.valueOf(element.getProperty("role")))
-        }
-    }
-}
+                      var role: UserRole)
 
 class UserAcceptService(var database: OrientDatabase) {
     fun findByUsername(username: String): UserEntity? {
@@ -30,7 +23,7 @@ class UserAcceptService(var database: OrientDatabase) {
             it.query(query, username).use {
                 if (it.hasNext()) {
                     val row: OResult = it.next()
-                    return UserEntity.fromOrient(row.toElement())
+                    return JSON.nonstrict.parse(row.toJSON())
                 }
             }
         }

@@ -4,7 +4,6 @@ import com.orientechnologies.orient.core.db.ODatabasePool
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
-import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.tx.OTransaction
 import javax.annotation.PreDestroy
 
@@ -19,20 +18,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         val session = dbPool.acquire()
         session.createClassIfNotExist("Aspect")
-        var userClass = session.getClass("User")
-        if (userClass == null) {
-            userClass = session.createVertexClass("User")
-            session.createClassIfNotExist("User")
-            if (!userClass.existsProperty("username")) {
-                userClass.createProperty("username", OType.STRING)
-            }
-            if (!userClass.existsProperty("password")) {
-                userClass.createProperty("password", OType.STRING)
-            }
-            if (!userClass.existsProperty("role")) {
-                userClass.createProperty("role", OType.STRING)
-            }
-        }
         session.close()
     }
 
