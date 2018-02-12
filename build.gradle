@@ -29,8 +29,6 @@ buildscript {
 subprojects {
     apply plugin: 'kotlinx-serialization'
 
-    ext['hibernate.version'] = '5.2.9.Final'
-
     repositories {
         mavenCentral()
         jcenter()

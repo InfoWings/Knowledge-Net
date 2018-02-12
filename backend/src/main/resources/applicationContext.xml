@@ -1,43 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
-
-
-    <jpa:repositories base-package="com.infowings"
-                      factory-class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean"
-                      transaction-manager-ref="transactionManager"
-                      entity-manager-factory-ref="entityManagerFactory"/>
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <tx:annotation-driven/>
-
-    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-        <constructor-arg ref="entityManagerFactory"/>
-    </bean>
-
-    <bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
-
-    <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource">
-        <property name="driverClassName" value="${jdbc.driverClassName}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
-        <property name="testOnBorrow" value="true"/>
-        <property name="validationQuery" value="SELECT 1"/>
-        <property name="validationInterval" value="0"/>
-    </bean>
-
-    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter"/>
-        <property name="packagesToScan" value="com.infowings"/>
-        <property name="jpaPropertyMap">
-            <map>
-                <entry key="javax.persistence.validation.mode" value="none"/>
-            </map>
-        </property>
-    </bean>
 
     <bean id="orientDatabase" class="com.infowings.catalog.storage.OrientDatabase">
         <constructor-arg name="url" value="${orient.url}"/>
