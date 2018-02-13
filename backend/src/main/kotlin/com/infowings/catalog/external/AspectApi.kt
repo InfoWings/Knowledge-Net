@@ -17,11 +17,12 @@ class AspectApi(val aspectService: AspectService) {
         return aspectService.createAspect(name, measureUnit, baseType)
     }
 
-    @PostMapping("create/property")
-    fun createPropertyForAspect(aspectId: Long, name: String, propertyAspect: String, propertyPower: String): Aspect {
-        logger.info("Create property for aspect: $aspectId, $name, $propertyAspect, $propertyPower")
-        return aspectService.createPropertyForAspect(aspectId, name, propertyAspect, propertyPower)
-    }
+//    @PostMapping("create/property")
+//    fun createPropertyForAspect(aspectId: Long, name: String, propertyAspect: String, propertyPower: String): Aspect {
+//        logger.info("Create property for aspect: $aspectId, $name, $propertyAspect, $propertyPower")
+//        return aspectService.createPropertyForAspect(aspectId, name, propertyAspect, propertyPower)
+
+//    }
 
 
     @GetMapping("get/{name}")
