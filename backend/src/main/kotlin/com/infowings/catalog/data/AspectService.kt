@@ -14,13 +14,6 @@ class AspectService(private val database: OrientDatabase) {
         val measureUnit = restoreMeasureUnit(measureUnitString)
 
         val save: OElement = transaction(database) { db ->
-            val statement = "SELECT FROM Aspect where name = ? ";
-            val rs: OResultSet = db.query(statement, name);
-            while (rs.hasNext()) {
-                val row: OResult = rs.next()
-                println(row)
-            }
-            rs.close()
 
             val doc: OElement = db.newInstance("Aspect")
             doc.setProperty("name", name)
@@ -41,12 +34,32 @@ class AspectService(private val database: OrientDatabase) {
 
     fun createAspect(name: String, measureUnit: String?, baseType: String?): Aspect {
         if (findByName(name) != null)
-            throw DataTypeAlreadyExist
+            throw AspectAlreadyExist
 
         return save(name, measureUnit, baseType)
     }
 
-    fun findByName(name: String): Aspect? = TODO()
+    fun findByName(name: String): Aspect? {
+        val statement = "SELECT FROM Aspect where name = ? ";
+
+        return transaction(database) { db ->
+            val rs: OResultSet = db.query(statement, name);
+            if (rs.hasNext()) {
+                val row: OResult = rs.next()
+                val baseType = BaseType.restoreBaseType(row.getProperty("baseType"))
+                val measureUnit = restoreMeasureUnit(row.getProperty("measureUnit"))
+                return@transaction Aspect(
+                    id = row.identity.toString(),
+                    name = row.getProperty("name"),
+                    measureUnit = measureUnit,
+                    baseType = baseType,
+                    domain = OpenDomain(baseType)
+                )
+            }
+            return@transaction null
+        }
+    }
+
     fun findById(id: Long): Aspect? = TODO()
 
 //    fun createPropertyForAspect(aspectId: Long, name: String, propertyAspect: String, propertyPower: String): Aspect {
@@ -63,7 +76,7 @@ class AspectService(private val database: OrientDatabase) {
 }
 
 
-object DataTypeAlreadyExist : Throwable()
+object AspectAlreadyExist : Throwable()
 
 class AspectDoesNotExistId(id: Long) : Throwable()
 class AspectDoesNotExistName(name: String) : Throwable()

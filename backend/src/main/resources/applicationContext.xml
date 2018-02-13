@@ -23,7 +23,7 @@
         <constructor-arg ref="orientDatabase"/>
     </bean>
 
-    <bean id="metadataApi" class="com.infowings.catalog.external.AspectApi">
+    <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
         <constructor-arg ref="metadataService"/>
     </bean>
 </beans>
