@@ -13,9 +13,9 @@ import kotlin.browser.localStorage
 class HomeComponent : RComponent<RProps, RState>() {
 
     override fun RBuilder.render() {
-        div("navbar navbar-default") {
-            div("container-fluid") {
-                ul("nav navbar-nav navbar-right") {
+        div(classes = "navbar navbar-default") {
+            div(classes = "container-fluid") {
+                ul(classes = "nav navbar-nav navbar-right") {
                     li {
                         wrappers.reactRouter.Link {
                             attrs {
