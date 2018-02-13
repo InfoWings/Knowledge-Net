@@ -1,5 +1,6 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -12,10 +13,6 @@ import javax.annotation.PreDestroy
 
 
 class OrientDatabase(url: String, database: String, user: String, password: String) {
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(OrientDatabase::class.java)
-    }
 
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
@@ -95,3 +92,5 @@ inline fun <U> transaction(
     }
     lastException?.let { throw it } ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
+
+private val logger = loggerFor<OrientDatabase>()
