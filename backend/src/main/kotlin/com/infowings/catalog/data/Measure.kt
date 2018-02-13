@@ -14,7 +14,7 @@ import java.math.BigDecimal
  */
 sealed class BaseMeasureUnit<T, in U> {
 
-    abstract val linkedTypes: List<BaseMeasureUnit<*, *>>
+    abstract val linkedTypes: Set<BaseMeasureUnit<*, *>>
 
     abstract val baseType: BaseType
     /**
@@ -31,7 +31,7 @@ sealed class BaseMeasureUnit<T, in U> {
 
 
 object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.LengthUnit>() {
-    override val linkedTypes: List<BaseMeasureUnit<*, *>> by lazy { listOf(SpeedMeasure) }
+    override val linkedTypes: Set<BaseMeasureUnit<*, *>> by lazy { setOf(SpeedMeasure) }
     override val baseType: BaseType = BaseType.Decimal
     override fun toBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.toBase(value)
     override fun fromBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.fromBase(value)
@@ -48,17 +48,17 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.LengthUnit>() {
         Mile(BigDecimal(1609.34)),
         Inch(BigDecimal(0.0253999368683));
 
-        override fun toString(): String {
-            return "LengthMeasure"
-        }
-
         fun toBase(value: BigDecimal): BigDecimal = value * toBaseCoefficient
         fun fromBase(value: BigDecimal): BigDecimal = value / toBaseCoefficient
+    }
+
+    override fun toString(): String {
+        return "LengthMeasure"
     }
 }
 
 object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.SpeedUnit>() {
-    override val linkedTypes: List<BaseMeasureUnit<*, *>> by lazy { listOf(LengthMeasure) }
+    override val linkedTypes: Set<BaseMeasureUnit<*, *>> by lazy { setOf(LengthMeasure) }
     override val baseType: BaseType = BaseType.Decimal
     override fun toBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.toBase(value)
     override fun fromBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.fromBase(value)
@@ -73,6 +73,10 @@ object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.SpeedUnit>() {
 
         fun toBase(value: BigDecimal): BigDecimal = value * toBaseCoefficient
         fun fromBase(value: BigDecimal): BigDecimal = value / toBaseCoefficient
+    }
+
+    override fun toString(): String {
+        return "SpeedMeasure"
     }
 }
 //object MassMeasure : BaseMeasureUnit<BigDecimal, MassMeasure.Unit>() {
@@ -94,7 +98,8 @@ object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.SpeedUnit>() {
 
 fun restoreMeasureUnit(measureUnit: String?): BaseMeasureUnit<*, *>? =
     when (measureUnit) {
-        "LengthMeasure" -> LengthMeasure
+        LengthMeasure.toString() -> LengthMeasure
+        SpeedMeasure.toString() -> SpeedMeasure
     //"MassMeasure" -> MassMeasure
         "" -> null
         null -> null
