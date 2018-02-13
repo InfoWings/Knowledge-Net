@@ -1,20 +1,22 @@
 package com.infowings.catalog.storage
 
-import com.orientechnologies.orient.core.db.ODatabasePool
-import com.orientechnologies.orient.core.db.OrientDB
-import com.orientechnologies.orient.core.db.OrientDBConfig
+import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.tx.OTransaction
 import javax.annotation.PreDestroy
 
 
-class OrientDatabase(url: String, database: String, user: String, password: String) {
+class OrientDatabase(val url: String, val database: String, user: String, password: String) {
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
 
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
+        // злой хак для тестов
+        if (url == "memory")
+            orientDB.create(database, ODatabaseType.MEMORY)
+
         // создаем необходимые классы
         val session = dbPool.acquire()
         session.createClassIfNotExist("Aspect")
@@ -26,6 +28,8 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         dbPool.close()
         orientDB.close()
     }
+
+    fun close() = orientDB.close()
 }
 
 inline fun <U> transaction(

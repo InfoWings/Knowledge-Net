@@ -44,7 +44,7 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
         Nanometre;
 
         override fun toString(): String {
-            return "LengthMeasure"
+            return "Length"
         }
     }
 }
@@ -68,8 +68,8 @@ object MassMeasure : BaseMeasureUnit<BigDecimal, MassMeasure.Unit>() {
 
 fun restoreMeasureUnit(measureUnit: String?): BaseMeasureUnit<*, *>? =
     when (measureUnit) {
-        "LengthMeasure" -> LengthMeasure
-        "MassMeasure" -> MassMeasure
+        "Length" -> LengthMeasure
+        "Mass" -> MassMeasure
         "" -> null
         null -> null
         else -> throw IllegalStateException("Wrong measure unit $measureUnit")
