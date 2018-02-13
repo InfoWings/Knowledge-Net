@@ -2,7 +2,6 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
-import org.junit.AfterClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +20,6 @@ class AspectServiceTest {
     fun testAddAspect() {
         val aspectService = AspectService(database)
 
-        aspectService.createAspect("newAspect", "Length", null)
+        aspectService.createAspect("newAspect", LengthMeasure.toString(), null)
     }
 }
