@@ -13,6 +13,9 @@ import java.math.BigDecimal
  * U - тип данных для единиц измерения
  */
 sealed class BaseMeasureUnit<T, in U> {
+
+    abstract val linkedTypes: List<BaseMeasureUnit<*, *>>
+
     abstract val baseType: BaseType
     /**
      * приводим значение к базовой форме (для физических величин - единицы СИ)
@@ -27,15 +30,13 @@ sealed class BaseMeasureUnit<T, in U> {
 }
 
 
-//todo: конверсия в СИ
-object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
-    override val baseType: BaseType
-        get() = BaseType.Decimal
+object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.LengthUnit>() {
+    override val linkedTypes: List<BaseMeasureUnit<*, *>> by lazy { listOf(SpeedMeasure) }
+    override val baseType: BaseType = BaseType.Decimal
+    override fun toBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.toBase(value)
+    override fun fromBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.fromBase(value)
 
-    override fun toBase(value: BigDecimal, unit: Unit): BigDecimal = unit.toBase(value)
-    override fun fromBase(value: BigDecimal, unit: Unit): BigDecimal = unit.fromBase(value)
-
-    enum class Unit(private val toBaseCoefficient: BigDecimal) {
+    enum class LengthUnit(private val toBaseCoefficient: BigDecimal) {
         Kilometre(BigDecimal(1000)),
         Metre(BigDecimal.ONE),
         Decimetre(BigDecimal(0.1)),
@@ -56,7 +57,24 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
     }
 }
 
+object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.SpeedUnit>() {
+    override val linkedTypes: List<BaseMeasureUnit<*, *>> by lazy { listOf(LengthMeasure) }
+    override val baseType: BaseType = BaseType.Decimal
+    override fun toBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.toBase(value)
+    override fun fromBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.fromBase(value)
 
+    enum class SpeedUnit(private val toBaseCoefficient: BigDecimal) {
+        KilometrePerSecond(BigDecimal(1000)),
+        MilePerHour(BigDecimal(0.44704)),
+        InchPerSecond(BigDecimal(0.3048)),
+        MetrePerSecond(BigDecimal.ONE),
+        KilometrePerHour(BigDecimal(0.277778)),
+        Knot(BigDecimal(0.514444));
+
+        fun toBase(value: BigDecimal): BigDecimal = value * toBaseCoefficient
+        fun fromBase(value: BigDecimal): BigDecimal = value / toBaseCoefficient
+    }
+}
 //object MassMeasure : BaseMeasureUnit<BigDecimal, MassMeasure.Unit>() {
 //    override val baseType: BaseType
 //        get() = BaseType.Decimal
