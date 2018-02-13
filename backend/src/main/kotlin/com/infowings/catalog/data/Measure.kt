@@ -12,17 +12,17 @@ import java.math.BigDecimal
  * T - тип данных для хранения значение
  * U - тип данных для единиц измерения
  */
-sealed class BaseMeasureUnit<T, U> {
+sealed class BaseMeasureUnit<T, in U> {
     abstract val baseType: BaseType
     /**
-     * приводим значение к нормальной форме (для физических величин - единицы СИ)
+     * приводим значение к базовой форме (для физических величин - единицы СИ)
      */
-    abstract fun normalize(value: T, unit: U): T
+    abstract fun toBase(value: T, unit: U): T
 
     /**
-     * конвертируем значение в заданное измерение (например из мм в метры)
+     * конвертируем значение из базовой формы измерения в указанную (например из мм в метры)
      */
-    abstract fun restore(value: T, unit: U): T
+    abstract fun fromBase(value: T, unit: U): T
 
 }
 
@@ -32,44 +32,52 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
     override val baseType: BaseType
         get() = BaseType.Decimal
 
-    override fun normalize(value: BigDecimal, unit: Unit): BigDecimal = BigDecimal.ZERO
-    override fun restore(value: BigDecimal, unit: Unit): BigDecimal = BigDecimal.ZERO
+    override fun toBase(value: BigDecimal, unit: Unit): BigDecimal = unit.toBase(value)
+    override fun fromBase(value: BigDecimal, unit: Unit): BigDecimal = unit.fromBase(value)
 
-    enum class Unit {
-        Kilometre,
-        Decimetre,
-        Centimetre,
-        Millimetre,
-        Micrometre,
-        Nanometre;
+    enum class Unit(private val toBaseCoefficient: BigDecimal) {
+        Kilometre(BigDecimal(1000)),
+        Metre(BigDecimal.ONE),
+        Decimetre(BigDecimal(0.1)),
+        Centimetre(BigDecimal(0.01)),
+        Millimetre(BigDecimal(0.001)),
+        Micrometre(BigDecimal(0.000001)),
+        Nanometre(BigDecimal(0.000000001)),
+        Yard(BigDecimal(0.9144)),
+        Mile(BigDecimal(1609.34)),
+        Inch(BigDecimal(0.0253999368683));
 
         override fun toString(): String {
             return "LengthMeasure"
         }
+
+        fun toBase(value: BigDecimal): BigDecimal = value * toBaseCoefficient
+        fun fromBase(value: BigDecimal): BigDecimal = value / toBaseCoefficient
     }
 }
 
-object MassMeasure : BaseMeasureUnit<BigDecimal, MassMeasure.Unit>() {
-    override val baseType: BaseType
-        get() = BaseType.Decimal
 
-    override fun normalize(value: BigDecimal, unit: MassMeasure.Unit): BigDecimal = BigDecimal.ZERO
-    override fun restore(value: BigDecimal, unit: MassMeasure.Unit): BigDecimal = BigDecimal.ZERO
-
-    enum class Unit {
-        Milligram,
-        Microgram,
-        Nanogram,
-        Picogram,
-        Kilogram
-    }
-}
+//object MassMeasure : BaseMeasureUnit<BigDecimal, MassMeasure.Unit>() {
+//    override val baseType: BaseType
+//        get() = BaseType.Decimal
+//
+//    override fun normalize(value: BigDecimal, unit: MassMeasure.Unit): BigDecimal = BigDecimal.ZERO
+//    override fun restore(value: BigDecimal, unit: MassMeasure.Unit): BigDecimal = BigDecimal.ZERO
+//
+//    enum class Unit {
+//        Milligram,
+//        Microgram,
+//        Nanogram,
+//        Picogram,
+//        Kilogram
+//    }
+//}
 
 
 fun restoreMeasureUnit(measureUnit: String?): BaseMeasureUnit<*, *>? =
     when (measureUnit) {
         "LengthMeasure" -> LengthMeasure
-        "MassMeasure" -> MassMeasure
+    //"MassMeasure" -> MassMeasure
         "" -> null
         null -> null
         else -> throw IllegalStateException("Wrong measure unit $measureUnit")
