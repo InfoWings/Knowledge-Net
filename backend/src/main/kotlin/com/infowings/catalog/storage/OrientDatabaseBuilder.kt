@@ -11,12 +11,10 @@ import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
-class OrientDatabaseBuilder(private val session: ODatabaseSession) {
+private const val MEASURE_VERTEX_CLASS = "Measure"
+private const val MEASURE_EDGE_CLASS = "LinkedBy"
 
-    companion object {
-        const val MEASURE_VERTEX_CLASS = "Measure"
-        const val MEASURE_EDGE_CLASS = "LinkedBy"
-    }
+class OrientDatabaseBuilder(private val session: ODatabaseSession) {
 
     fun initUsers(): OrientDatabaseBuilder {
         if (session.getClass("User") == null) {
@@ -75,7 +73,7 @@ class OrientDatabaseBuilder(private val session: ODatabaseSession) {
                     it.to.getProperty<String>("name") == childVertex.getProperty<String>("name")
                 }
                 if (!addedBefore) {
-                    measureVertex.addEdge(childVertex, MEASURE_EDGE_CLASS)
+                    measureVertex.addEdge(childVertex, MEASURE_EDGE_CLASS).save<ORecord>()
                 }
             }
             return measureVertex
