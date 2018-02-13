@@ -22,6 +22,19 @@ class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
 
         return false
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as OpenDomain
+
+        return this.baseType == other.baseType
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
 }
 
 //todo: пока для простоты
