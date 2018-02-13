@@ -21,7 +21,7 @@ class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
         }
 
         return false
-    }
+
 }
 
 //todo: пока для простоты

@@ -2,7 +2,10 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
+import junit.framework.Assert.assertNotNull
+import org.hamcrest.core.Is
 import org.junit.AfterClass
+import org.junit.Assert.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +24,14 @@ class AspectServiceTest {
     fun testAddAspect() {
         val aspectService = AspectService(database)
 
-        aspectService.createAspect("newAspect", "Length", null)
+        val aspect = Aspect("", "newAspect", LengthMeasure)
+
+        val createAspect: Aspect = aspectService.createAspect(aspect.name, aspect.measureUnit.toString(), null)
+        val saved = aspect.copy(id = createAspect.id)
+
+        val load = aspectService.findByName("newAspect")
+
+        assertNotNull(load)
+        assertThat("aspect should be saved and restored", load, Is.`is`(saved))
     }
 }

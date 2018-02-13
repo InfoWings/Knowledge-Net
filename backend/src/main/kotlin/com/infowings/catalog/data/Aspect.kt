@@ -53,8 +53,8 @@ data class Aspect(
     val id: String,
     val name: String,
     val measureUnit: BaseMeasureUnit<*, *>?,
-    val domain: AspectDomain = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-    val baseType: BaseType = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
+    val domain: AspectDomain? = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
+    val baseType: BaseType? = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
 )
 
 // todo: должны ли самые базовые типы лежать в БД или в коде?

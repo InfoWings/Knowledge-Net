@@ -42,10 +42,10 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
         Millimetre,
         Micrometre,
         Nanometre;
+    }
 
-        override fun toString(): String {
-            return "Length"
-        }
+    override fun toString(): String {
+        return "Length"
     }
 }
 

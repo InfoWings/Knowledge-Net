@@ -10,14 +10,21 @@ import com.orientechnologies.orient.core.sql.executor.OResultSet
 class AspectService(private val database: OrientDatabase) {
 
     private fun save(name: String, measureUnitString: String?, baseTypeString: String?): Aspect {
-        val baseType = BaseType.restoreBaseType(baseTypeString)
         val measureUnit = restoreMeasureUnit(measureUnitString)
+        val baseType: BaseType? = when {
+            baseTypeString != null -> BaseType.restoreBaseType(baseTypeString)
+            measureUnit != null -> measureUnit.baseType
+            else -> null
+        }
+
+        if (baseType != null && measureUnit != null && baseType != measureUnit.baseType)
+            throw IllegalArgumentException("Base type and measure base type should be the same")
 
         val save: OElement = transaction(database) { db ->
 
             val doc: OElement = db.newInstance("Aspect")
             doc.setProperty("name", name)
-            baseTypeString?.let { doc.setProperty("dataType", baseTypeString) }
+            doc.setProperty("baseType", baseType?.name ?: measureUnit?.baseType?.name)
             measureUnit?.let { doc.setProperty("measureUnit", measureUnit.toString()) }
 
             return@transaction doc.save()
@@ -27,7 +34,7 @@ class AspectService(private val database: OrientDatabase) {
             name = name,
             measureUnit = measureUnit,
             baseType = baseType,
-            domain = OpenDomain(baseType)
+            domain = baseType?.let { OpenDomain(baseType) }
         )
 
     }
@@ -49,7 +56,7 @@ class AspectService(private val database: OrientDatabase) {
                 val baseType = BaseType.restoreBaseType(row.getProperty("baseType"))
                 val measureUnit = restoreMeasureUnit(row.getProperty("measureUnit"))
                 return@transaction Aspect(
-                    id = row.identity.toString(),
+                    id = row.identity.get().toString(),
                     name = row.getProperty("name"),
                     measureUnit = measureUnit,
                     baseType = baseType,
