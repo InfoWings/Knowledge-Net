@@ -1,4 +1,4 @@
-package com.infowings.catalog.metadata
+package com.infowings.catalog.data
 
 /**
  * домен аспекта - допустимое множество значений (например может быть аспект длина с типом вещественное число и доменом значение > 0

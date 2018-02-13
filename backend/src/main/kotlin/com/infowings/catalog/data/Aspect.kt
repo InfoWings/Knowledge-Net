@@ -1,7 +1,7 @@
-package com.infowings.catalog.metadata
+package com.infowings.catalog.data
 
 import com.infowings.catalog.Property
-import com.infowings.catalog.metadata.BaseType.Directory
+import com.infowings.catalog.data.BaseType.Directory
 import java.math.BigDecimal
 import kotlin.reflect.KClass
 
@@ -54,8 +54,7 @@ data class Aspect(
     val name: String,
     val measureUnit: BaseMeasureUnit<*, *>?,
     val domain: AspectDomain = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-    val baseType: BaseType = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
-    val properties: List<Property> = emptyList()
+    val baseType: BaseType = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
 )
 
 // todo: должны ли самые базовые типы лежать в БД или в коде?
