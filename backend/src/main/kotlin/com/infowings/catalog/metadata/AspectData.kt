@@ -1,5 +1,9 @@
 package com.infowings.catalog.metadata
 
+import com.infowings.catalog.data.Aspect
+import com.infowings.catalog.data.BaseType
+import com.infowings.catalog.data.OpenDomain
+import com.infowings.catalog.data.restoreMeasureUnit
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.OElement

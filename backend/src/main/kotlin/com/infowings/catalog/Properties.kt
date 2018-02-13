@@ -1,6 +1,6 @@
 package com.infowings.catalog
 
-import com.infowings.catalog.metadata.Aspect
+import com.infowings.catalog.data.Aspect
 
 enum class PropertyPower {
     ZERO,

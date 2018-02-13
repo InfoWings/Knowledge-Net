@@ -1,4 +1,4 @@
-package com.infowings.catalog.metadata
+package com.infowings.catalog.data
 
 import com.infowings.catalog.PropertyPower
 
