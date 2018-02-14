@@ -2,7 +2,8 @@ package catalog.app
 
 import catalog.auth.AuthComponent
 import catalog.auth.privateRoute
-import catalog.home.HomeComponent
+import catalog.aspects.AspectsPage
+import catalog.measurements.MeasurementsPage
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -19,12 +20,12 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
                     component = ::AuthComponent
                 }
             }
-            privateRoute("/home", renderFunction = { child(HomeComponent::class) {} })
+            privateRoute("/aspects", renderFunction = { rprops -> child(AspectsPage::class) { attrs { location = rprops.location; history = rprops.history; match = rprops.match } } })
+            privateRoute("/measures", renderFunction = { rprops -> child(MeasurementsPage::class) { attrs { location = rprops.location; history = rprops.history; match = rprops.match } } })
             reactRouter.Route {
                 attrs {
                     path = "/"
-                    exact = true
-                    render = { reactRouter.Redirect { attrs.to = "/home" } }
+                    render = { reactRouter.Redirect { attrs.to = "/aspects" } }
                 }
             }
         }
