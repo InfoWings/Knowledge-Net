@@ -46,8 +46,9 @@ dependencies {
 
     expectedBy project(":common")
 
-    testCompile group: 'junit', name: 'junit'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testCompile "org.jetbrains.kotlin:kotlin-test"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit"
 }
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"

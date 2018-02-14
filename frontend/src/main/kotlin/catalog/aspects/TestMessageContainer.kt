@@ -1,4 +1,4 @@
-package catalog.home
+package catalog.aspects
 
 import com.infowings.common.UserRole
 import kotlinx.coroutines.experimental.launch
@@ -19,7 +19,6 @@ class TestMessageContainer : RComponent<RProps, RMessageState>() {
 
     override fun componentDidMount() {
         launch {
-            console.log(localStorage["auth-role"])
             val newMessage = when (localStorage["auth-role"]) {
                 UserRole.ADMIN.name -> getRequest("/api/admin")
                 UserRole.POWERED_USER.name -> getRequest("/api/powereduser")
