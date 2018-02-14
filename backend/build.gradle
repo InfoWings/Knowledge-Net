@@ -17,11 +17,6 @@ buildscript {
     }
 }
 
-test {
-    jvmArgs "-Djna.nosys=true"
-    reports.junitXml.destination = file("$buildDir/../test-reports")
-}
-
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
@@ -39,6 +34,9 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-orm'
 
     compile group: 'com.orientechnologies', name: 'orientdb-client', version: '3.0.0RC1'
+    // нужно для работы тестов в докере
+    compile group: 'net.java.dev.jna', name: 'jna-platform', version: '4.5.1'
+    compile group: 'net.java.dev.jna', name: 'jna', version: '4.5.1'
 
     compile group: 'ch.qos.logback', name: 'logback-classic'
 
