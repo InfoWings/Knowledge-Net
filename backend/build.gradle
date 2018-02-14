@@ -18,7 +18,7 @@ buildscript {
 }
 
 test {
-    jvmArgs "Djna.nosys=true"
+    jvmArgs "-Djna.nosys=true"
     reports.junitXml.destination = file("$buildDir/../test-reports")
 }
 

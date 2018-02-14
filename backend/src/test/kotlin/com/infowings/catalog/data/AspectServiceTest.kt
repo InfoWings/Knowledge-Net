@@ -2,7 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
-import junit.framework.Assert.assertNotNull
+import org.junit.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Test
