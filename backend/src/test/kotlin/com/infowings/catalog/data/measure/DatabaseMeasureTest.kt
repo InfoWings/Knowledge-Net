@@ -3,6 +3,7 @@ package com.infowings.catalog.data.measure
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.data.BaseMeasureUnit
 import com.infowings.catalog.data.LengthMeasure
+import com.infowings.catalog.data.SpeedMeasure
 import com.infowings.catalog.data.restoreMeasureUnit
 import com.infowings.catalog.storage.MEASURE_EDGE_CLASS
 import com.infowings.catalog.storage.MEASURE_VERTEX_CLASS
@@ -34,12 +35,12 @@ class DatabaseMeasureTest {
 
     @Test
     fun findSpeedMeasureDependencies() {
-        findMeasureDependencies(LengthMeasure)
+        findMeasureDependencies(SpeedMeasure)
     }
 
     private fun findMeasureDependencies(baseUnit: BaseMeasureUnit<*, *>) {
         val query = "SELECT expand(out('$MEASURE_EDGE_CLASS')) from $MEASURE_VERTEX_CLASS where name = ?"
-        database.acquire().query(query, LengthMeasure.toString()).use {
+        database.acquire().query(query, baseUnit.toString()).use {
 
             val dependenciesFromBd = it.elementStream()
                     .map { restoreMeasureUnit(it.getProperty<String>("name")) }
