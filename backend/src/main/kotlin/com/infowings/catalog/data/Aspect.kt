@@ -1,6 +1,5 @@
 package com.infowings.catalog.data
 
-import com.infowings.catalog.Property
 import com.infowings.catalog.data.BaseType.Directory
 import java.math.BigDecimal
 import kotlin.reflect.KClass
@@ -15,7 +14,6 @@ import kotlin.reflect.KClass
 sealed class BaseType(val name: String, val clazz: KClass<*>?) {
 
     object Nothing : BaseType("Composite Aspect", Any::class)
-
     object Integer : BaseType("Integer", Int::class)
     object Long : BaseType("Long", Long::class)
     object Decimal : BaseType("Decimal", BigDecimal::class)
@@ -38,7 +36,6 @@ sealed class BaseType(val name: String, val clazz: KClass<*>?) {
                 BaseType.Boolean.name -> BaseType.Boolean
                 BaseType.Text.name -> BaseType.Text
                 BaseType.Binary.name -> BaseType.Binary
-
 
                 else -> TODO("реализовать хранение сложных типов")
             }

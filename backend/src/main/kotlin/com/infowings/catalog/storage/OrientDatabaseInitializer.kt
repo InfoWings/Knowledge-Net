@@ -13,43 +13,30 @@ import com.orientechnologies.orient.core.record.OVertex
 
 private const val MEASURE_VERTEX_CLASS = "Measure"
 private const val MEASURE_EDGE_CLASS = "LinkedBy"
+private const val USER_CLASS = "User"
+private const val ASPECT_CLASS = "Aspect"
 
-class OrientDatabaseBuilder(private val session: ODatabaseSession) {
+/** Initialization default db values, every method executes only in case describing part of db is empty. */
+class OrientDatabaseInitializer(private val session: ODatabaseSession) {
 
-    fun initUsers(): OrientDatabaseBuilder {
+    /** Executes only if there is no Class $USER_CLASS in db */
+    fun initUsers(): OrientDatabaseInitializer {
         if (session.getClass("User") == null) {
-            val userClass = session.createClass("User")
-            userClass.createProperty("username", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
-            userClass.createProperty("password", OType.STRING)
-            userClass.createProperty("role", OType.STRING)
-
-            val user: OElement = session.newInstance("User")
-            user.setProperty("username", "user")
-            user.setProperty("password", "user")
-            user.setProperty("role", "USER")
-            user.save<ORecord>()
-
-            val admin: OElement = session.newInstance("User")
-            admin.setProperty("username", "admin")
-            admin.setProperty("password", "admin")
-            admin.setProperty("role", "ADMIN")
-            admin.save<ORecord>()
-
-            val poweredUser: OElement = session.newInstance("USER")
-            poweredUser.setProperty("username", "powereduser")
-            poweredUser.setProperty("password", "powereduser")
-            poweredUser.setProperty("role", "POWERED_USER")
-            poweredUser.save<ORecord>()
+            initUser("user", "user", "USER")
+            initUser("admin", "admin", "ADMIN")
+            initUser("powereduser", "powereduser", "POWERED_USER")
         }
         return this
     }
 
-    fun initAspects(): OrientDatabaseBuilder {
-        session.createClassIfNotExist("Aspect")
+    /** Executes only if there is no Class Aspect in db */
+    fun initAspects(): OrientDatabaseInitializer {
+        session.createClassIfNotExist(ASPECT_CLASS)
         return this
     }
 
-    fun initMeasures(): OrientDatabaseBuilder {
+    /** Initializes measures. Executes only if there is no Class $MEASURE_VERTEX_CLASS in db */
+    fun initMeasures(): OrientDatabaseInitializer {
         if (session.getClass(MEASURE_VERTEX_CLASS) == null) {
             val measureClass = session.createVertexClass(MEASURE_VERTEX_CLASS)
             measureClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
@@ -61,6 +48,16 @@ class OrientDatabaseBuilder(private val session: ODatabaseSession) {
         return this
     }
 
+    /** Create user in database */
+    private fun initUser(username: String, password: String, role: String) {
+        val user: OElement = session.newInstance(USER_CLASS)
+        user.setProperty("username", username)
+        user.setProperty("password", password)
+        user.setProperty("role", role)
+        user.save<ORecord>()
+    }
+
+    /** Init measure and all linked measures */
     private fun initMeasureVertex(measure: BaseMeasureUnit<*, *>, initializedVertex: MutableMap<String, OVertex>): OVertex {
         if (initializedVertex[measure.toString()] == null) {
             val measureVertex: OVertex = session.newVertex(MEASURE_VERTEX_CLASS)

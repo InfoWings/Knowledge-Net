@@ -1,13 +1,12 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.loggerFor
-import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.ODatabasePool
+import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.tx.OTransaction
-import org.slf4j.LoggerFactory
 import javax.annotation.PreDestroy
 
 
@@ -25,7 +24,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
         // создаем необходимые классы
         dbPool.acquire().use {
-            OrientDatabaseBuilder(it)
+            OrientDatabaseInitializer(it)
                     .initAspects()
                     .initUsers()
                     .initMeasures()
