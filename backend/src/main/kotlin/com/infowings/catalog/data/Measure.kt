@@ -45,7 +45,7 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
         Micrometre(BigDecimal(0.000001)),
         Nanometre(BigDecimal(0.000000001)),
         Yard(BigDecimal(0.9144)),
-        Mile(BigDecimal(1609.34)),
+        Mile(BigDecimal(1609.344)),
         Inch(BigDecimal(0.0253999368683));
 
         fun toBase(value: BigDecimal): BigDecimal = value * toBaseCoefficient
