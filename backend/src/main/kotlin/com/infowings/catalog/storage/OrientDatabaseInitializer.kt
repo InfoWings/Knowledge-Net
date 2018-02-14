@@ -3,6 +3,7 @@ package com.infowings.catalog.storage
 import com.infowings.catalog.data.BaseMeasureUnit
 import com.infowings.catalog.data.LengthMeasure
 import com.infowings.catalog.data.SpeedMeasure
+import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.ODatabaseSession
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
@@ -11,10 +12,12 @@ import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
-private const val MEASURE_VERTEX_CLASS = "Measure"
-private const val MEASURE_EDGE_CLASS = "LinkedBy"
-private const val USER_CLASS = "User"
-private const val ASPECT_CLASS = "Aspect"
+const val MEASURE_VERTEX_CLASS = "Measure"
+const val MEASURE_EDGE_CLASS = "LinkedBy"
+const val USER_CLASS = "User"
+const val ASPECT_CLASS = "Aspect"
+
+private val logger = loggerFor<OrientDatabaseInitializer>()
 
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
 class OrientDatabaseInitializer(private val session: ODatabaseSession) {
@@ -22,6 +25,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer {
         if (session.getClass("User") == null) {
+            logger.info("Init users")
             initUser("user", "user", "USER")
             initUser("admin", "admin", "ADMIN")
             initUser("powereduser", "powereduser", "POWERED_USER")
@@ -31,6 +35,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
 
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer {
+        logger.info("Init aspects")
         session.createClassIfNotExist(ASPECT_CLASS)
         return this
     }
@@ -38,6 +43,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     /** Initializes measures. Executes only if there is no Class $MEASURE_VERTEX_CLASS in db */
     fun initMeasures(): OrientDatabaseInitializer {
         if (session.getClass(MEASURE_VERTEX_CLASS) == null) {
+            logger.info("Init measures")
             val measureClass = session.createVertexClass(MEASURE_VERTEX_CLASS)
             measureClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
             session.createEdgeClass(MEASURE_EDGE_CLASS)

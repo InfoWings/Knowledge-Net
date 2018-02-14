@@ -30,13 +30,13 @@ sealed class BaseMeasureUnit<T, in U> {
 }
 
 
-object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.LengthUnit>() {
+object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.Unit>() {
     override val linkedTypes: Set<BaseMeasureUnit<*, *>> by lazy { setOf(SpeedMeasure) }
     override val baseType: BaseType = BaseType.Decimal
-    override fun toBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.toBase(value)
-    override fun fromBase(value: BigDecimal, unit: LengthUnit): BigDecimal = unit.fromBase(value)
+    override fun toBase(value: BigDecimal, unit: Unit): BigDecimal = unit.toBase(value)
+    override fun fromBase(value: BigDecimal, unit: Unit): BigDecimal = unit.fromBase(value)
 
-    enum class LengthUnit(private val toBaseCoefficient: BigDecimal) {
+    enum class Unit(private val toBaseCoefficient: BigDecimal) {
         Kilometre(BigDecimal(1000)),
         Metre(BigDecimal.ONE),
         Decimetre(BigDecimal(0.1)),
@@ -57,13 +57,13 @@ object LengthMeasure : BaseMeasureUnit<BigDecimal, LengthMeasure.LengthUnit>() {
     }
 }
 
-object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.SpeedUnit>() {
+object SpeedMeasure : BaseMeasureUnit<BigDecimal, SpeedMeasure.Unit>() {
     override val linkedTypes: Set<BaseMeasureUnit<*, *>> by lazy { setOf(LengthMeasure) }
     override val baseType: BaseType = BaseType.Decimal
-    override fun toBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.toBase(value)
-    override fun fromBase(value: BigDecimal, unit: SpeedUnit): BigDecimal = unit.fromBase(value)
+    override fun toBase(value: BigDecimal, unit: Unit): BigDecimal = unit.toBase(value)
+    override fun fromBase(value: BigDecimal, unit: Unit): BigDecimal = unit.fromBase(value)
 
-    enum class SpeedUnit(private val toBaseCoefficient: BigDecimal) {
+    enum class Unit(private val toBaseCoefficient: BigDecimal) {
         KilometrePerSecond(BigDecimal(1000)),
         MilePerHour(BigDecimal(0.44704)),
         InchPerSecond(BigDecimal(0.3048)),
