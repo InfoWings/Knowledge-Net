@@ -12,13 +12,14 @@ import org.w3c.dom.get
 import react.*
 import react.dom.*
 import utils.login
+import wrappers.RouteSuppliedProps
 import wrappers.reactRouter
 import kotlin.browser.localStorage
 import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
 
-class AuthComponent : RComponent<RProps, AuthState>() {
+class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
 
     lateinit var loginInput: HTMLInputElement
     lateinit var passwordInput: HTMLInputElement
@@ -28,7 +29,14 @@ class AuthComponent : RComponent<RProps, AuthState>() {
         launch {
             val success = login("/api/access/signIn", UserDto(loginInput.value, passwordInput.value))
             setState {
-                if (success) authorized = localStorage["auth-role"] != null else wrongAuth = true
+                if (success) {
+                    authorized = localStorage["auth-role"] != null
+                    if (authorized) {
+                        props.history.push("/")
+                    }
+                } else {
+                    wrongAuth = true
+                }
             }
         }
     }
