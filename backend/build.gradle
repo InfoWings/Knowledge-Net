@@ -18,6 +18,7 @@ buildscript {
 }
 
 test {
+    jvmArgs "Djna.nosys=true"
     reports.junitXml.destination = file("$buildDir/../test-reports")
 }
 
@@ -49,8 +50,6 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    testCompile "org.jetbrains.kotlin:kotlin-test"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit"
 }
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
