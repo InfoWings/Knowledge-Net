@@ -18,7 +18,7 @@ buildscript {
 }
 
 test {
-    reports.junitXml.destination = file("$buildDir/../../test-reports")
+    reports.junitXml.destination = file("$buildDir/../test-reports")
 }
 
 dependencies {
