@@ -11,14 +11,14 @@ class AspectService(private val database: OrientDatabase) {
 
     private fun save(name: String, measureUnitString: String?, baseTypeString: String?): Aspect {
         val baseType = BaseType.restoreBaseType(baseTypeString)
-        val measureUnit = restoreMeasureUnit(measureUnitString)
+        val measureUnit = Kilometre//restoreMeasureUnit(measureUnitString)
 
         val save: OElement = transaction(database) { db ->
 
             val doc: OElement = db.newInstance("Aspect")
             doc.setProperty("name", name)
             baseTypeString?.let { doc.setProperty("dataType", baseTypeString) }
-            measureUnit?.let { doc.setProperty("measureUnit", measureUnit.toString()) }
+            measureUnit?.let { doc.setProperty("measureUnit", measureUnit.name) }
 
             return@transaction doc.save()
         }
@@ -47,11 +47,11 @@ class AspectService(private val database: OrientDatabase) {
             if (rs.hasNext()) {
                 val row: OResult = rs.next()
                 val baseType = BaseType.restoreBaseType(row.getProperty("baseType"))
-                val measureUnit = restoreMeasureUnit(row.getProperty("measureUnit"))
+                // val measureUnit = //restoreMeasureUnit(row.getProperty("measureUnit"))
                 return@transaction Aspect(
                     id = row.identity.toString(),
                     name = row.getProperty("name"),
-                    measureUnit = measureUnit,
+                        measureUnit = Kilometre,
                     baseType = baseType,
                     domain = OpenDomain(baseType)
                 )

@@ -20,6 +20,6 @@ class AspectServiceTest {
     fun testAddAspect() {
         val aspectService = AspectService(database)
 
-        aspectService.createAspect("newAspect", LengthMeasure.toString(), null)
+        //aspectService.createAspect("newAspect", LengthMeasure.name(), null)
     }
 }

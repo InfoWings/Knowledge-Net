@@ -47,15 +47,17 @@ sealed class BaseType(val name: String, val clazz: KClass<*>?) {
  * Аспект - https://iwings.atlassian.net/wiki/spaces/CHR/pages/219217938
  */
 data class Aspect(
-    val id: String,
-    val name: String,
-    val measureUnit: BaseMeasureUnit<*, *>?,
-    val domain: AspectDomain = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-    val baseType: BaseType = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
+        val id: String,
+        val name: String,
+        val measureUnit: Measure<*>,
+        val domain: AspectDomain = OpenDomain(null
+                ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
+        val baseType: BaseType = null
+                ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
 )
 
-// todo: должны ли самые базовые типы лежать в БД или в коде?
+//todo: должны ли самые базовые типы лежать в БД или в коде?
 //val Length = Aspect(1, "Length", LengthMeasure, OpenDomain(LengthMeasure.baseType))
 //val Mass = Aspect(2, "Mass", MassMeasure, OpenDomain(MassMeasure.baseType))
-//
+
 //val RawString = Aspect(3, "String", null, OpenDomain(BaseType.Text), BaseType.Text)

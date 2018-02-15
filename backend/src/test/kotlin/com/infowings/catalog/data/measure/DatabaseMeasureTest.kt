@@ -1,14 +1,11 @@
 package com.infowings.catalog.data.measure
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.data.BaseMeasureUnit
-import com.infowings.catalog.data.LengthMeasure
-import com.infowings.catalog.data.restoreMeasureUnit
-import com.infowings.catalog.storage.MEASURE_EDGE_CLASS
-import com.infowings.catalog.storage.MEASURE_VERTEX_CLASS
+import com.infowings.catalog.data.LengthGroup
+import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.SpeedGroup
 import com.infowings.catalog.storage.OrientDatabase
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.util.stream.Collectors
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -25,35 +21,65 @@ import java.util.stream.Collectors
 class DatabaseMeasureTest {
 
     @Autowired
+    lateinit var measureService: MeasureService
+
+    @Autowired
     lateinit var database: OrientDatabase
 
     @Test
-    fun findLengthMeasureDependencies() {
-        findMeasureDependencies(LengthMeasure)
+    fun lengthGroupExist() = database.acquire().use {
+        assertTrue("Length group must exist", measureService.findMeasureGroup(LengthGroup, it) != null)
     }
 
     @Test
-    fun findSpeedMeasureDependencies() {
-        findMeasureDependencies(LengthMeasure)
+    fun speedGroupExist() = database.acquire().use {
+        assertTrue("Speed group must exist", measureService.findMeasureGroup(SpeedGroup, it) != null)
     }
 
-    private fun findMeasureDependencies(baseUnit: BaseMeasureUnit<*, *>) {
-        val query = "SELECT expand(out('$MEASURE_EDGE_CLASS')) from $MEASURE_VERTEX_CLASS where name = ?"
-        database.acquire().query(query, LengthMeasure.toString()).use {
+    @Test
+    fun lengthGroupBaseMeasureExist() = database.acquire().use {
+        val baseVertex = measureService.findMeasure(LengthGroup.base, it)
+        val groupVertex = measureService.findMeasureGroup(LengthGroup, it)
+        assertTrue("Length base measure must exist", baseVertex != null)
+        assertTrue("Length base measure must be linked with Length group",
+                baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
+    }
 
-            val dependenciesFromBd = it.elementStream()
-                    .map { restoreMeasureUnit(it.getProperty<String>("name")) }
-                    .collect(Collectors.toSet())
 
-            assertThat("Size of dependency set of measure should be the same in database and in memory",
-                    baseUnit.linkedTypes.size,
-                    equalTo(dependenciesFromBd.size))
+    @Test
+    fun speedGroupBaseMeasureExist() = database.acquire().use {
+        val baseVertex = measureService.findMeasure(SpeedGroup.base, it)
+        val groupVertex = measureService.findMeasureGroup(SpeedGroup, it)
+        assertTrue("Speed base measure must exist", baseVertex != null)
+        assertTrue("Speed base measure must be linked with Speed group",
+                baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
+    }
 
-            for (type in baseUnit.linkedTypes) {
-                assertTrue("Dependency of measure in memory " +
-                        "should be included in the set of dependencies of measure in database",
-                        dependenciesFromBd.contains(type))
-            }
+    @Test
+    fun lengthGroupContainsAllTheirMeasures() = database.acquire().use { db ->
+        val baseVertex = measureService.findMeasure(LengthGroup.base, db)
+        LengthGroup.measureList.forEach {
+            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it, db) != null)
+            assertTrue("Measure ${it.name} must be linked with ${LengthGroup.base.name}",
+                    measureService.findMeasure(it, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
         }
+    }
+
+    @Test
+    fun speedGroupContainsAllTheirMeasures() = database.acquire().use { db ->
+        val baseVertex = measureService.findMeasure(SpeedGroup.base, db)
+        SpeedGroup.measureList.forEach {
+            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it, db) != null)
+            assertTrue("Measure ${it.name} must be linked with ${SpeedGroup.base.name}",
+                    measureService.findMeasure(it, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
+        }
+    }
+
+    @Test
+    fun measureDependencies() = database.acquire().use {
+        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup, it)
+        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup, it)
+        assertTrue("Length group must be linked with Speed group",
+                lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!))
     }
 }
