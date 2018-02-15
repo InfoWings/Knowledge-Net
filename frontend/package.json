@@ -26,14 +26,15 @@
   "devDependencies": {
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.6",
+    "npm-run": "^4.1.2",
     "npm-run-all": "4.1.1",
     "style-loader": "^0.19.1",
     "webpack-dev-server": "2.8.2"
   },
   "scripts": {
     "devServer": "webpack-dev-server --open --config webpack.dev.js",
-    "gradleBuild": "../gradlew devBuild --continuous",
-    "serve": "../gradlew buildBundle && run-p gradleBuild devServer",
+    "gradleBuild": "npm-run ../gradlew devBuild --continuous",
+    "serve": "npm-run ../gradlew buildBundle && run-p gradleBuild devServer",
     "dist": "webpack"
   }
 }
