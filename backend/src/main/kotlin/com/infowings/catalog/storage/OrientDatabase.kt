@@ -39,28 +39,28 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         orientDB.close()
     }
 }
-//todo: сделать вложенные транзакции (например через ThreadLocal)
+//todo: сделать вложенные транзакции (например через ThreadLocal), проверить работу repeat -  возможно не стоит закрывать [session]
 inline fun <U> transaction(
     database: OrientDatabase,
     retryOnFailure: Int = 0,
     txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
     block: (db: ODatabaseDocument) -> U
 ): U {
-    val db = database.acquire()
     var lastException: Exception? = null
 
     repeat(times = retryOnFailure + 1) {
+        val session = database.acquire()
         try {
-            db.begin(txtype)
-            val u = block(db)
-            db.commit()
+            session.begin(txtype)
+            val u = block(session)
+            session.commit()
 
             return u
         } catch (e: Exception) {
             lastException = e
-            db.rollback()
+            session.rollback()
         } finally {
-            db.close()
+            session.close()
         }
     }
     lastException?.let { throw it } ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")

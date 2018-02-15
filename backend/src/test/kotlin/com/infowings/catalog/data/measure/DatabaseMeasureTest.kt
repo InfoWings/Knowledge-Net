@@ -28,18 +28,18 @@ class DatabaseMeasureTest {
 
     @Test
     fun lengthGroupExist() = database.acquire().use {
-        assertTrue("Length group must exist", measureService.findMeasureGroup(LengthGroup, it) != null)
+        assertTrue("Length group must exist", measureService.findMeasureGroup(LengthGroup.name, it) != null)
     }
 
     @Test
     fun speedGroupExist() = database.acquire().use {
-        assertTrue("Speed group must exist", measureService.findMeasureGroup(SpeedGroup, it) != null)
+        assertTrue("Speed group must exist", measureService.findMeasureGroup(SpeedGroup.name, it) != null)
     }
 
     @Test
     fun lengthGroupBaseMeasureExist() = database.acquire().use {
-        val baseVertex = measureService.findMeasure(LengthGroup.base, it)
-        val groupVertex = measureService.findMeasureGroup(LengthGroup, it)
+        val baseVertex = measureService.findMeasure(LengthGroup.base.name, it)
+        val groupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
         assertTrue("Length base measure must exist", baseVertex != null)
         assertTrue("Length base measure must be linked with Length group",
                 baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
@@ -48,8 +48,8 @@ class DatabaseMeasureTest {
 
     @Test
     fun speedGroupBaseMeasureExist() = database.acquire().use {
-        val baseVertex = measureService.findMeasure(SpeedGroup.base, it)
-        val groupVertex = measureService.findMeasureGroup(SpeedGroup, it)
+        val baseVertex = measureService.findMeasure(SpeedGroup.base.name, it)
+        val groupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
         assertTrue("Speed base measure must exist", baseVertex != null)
         assertTrue("Speed base measure must be linked with Speed group",
                 baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
@@ -57,28 +57,28 @@ class DatabaseMeasureTest {
 
     @Test
     fun lengthGroupContainsAllTheirMeasures() = database.acquire().use { db ->
-        val baseVertex = measureService.findMeasure(LengthGroup.base, db)
+        val baseVertex = measureService.findMeasure(LengthGroup.base.name, db)
         LengthGroup.measureList.forEach {
-            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it, db) != null)
+            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it.name, db) != null)
             assertTrue("Measure ${it.name} must be linked with ${LengthGroup.base.name}",
-                    measureService.findMeasure(it, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
+                    measureService.findMeasure(it.name, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
         }
     }
 
     @Test
     fun speedGroupContainsAllTheirMeasures() = database.acquire().use { db ->
-        val baseVertex = measureService.findMeasure(SpeedGroup.base, db)
+        val baseVertex = measureService.findMeasure(SpeedGroup.base.name, db)
         SpeedGroup.measureList.forEach {
-            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it, db) != null)
+            assertTrue("Measure ${it.name} must exist", measureService.findMeasure(it.name, db) != null)
             assertTrue("Measure ${it.name} must be linked with ${SpeedGroup.base.name}",
-                    measureService.findMeasure(it, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
+                    measureService.findMeasure(it.name, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
         }
     }
 
     @Test
     fun measureDependencies() = database.acquire().use {
-        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup, it)
-        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup, it)
+        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
+        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
         assertTrue("Length group must be linked with Speed group",
                 lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!))
     }

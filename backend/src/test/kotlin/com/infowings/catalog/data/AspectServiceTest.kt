@@ -18,19 +18,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 class AspectServiceTest {
     @Autowired
     lateinit var database: OrientDatabase
+    @Autowired
+    lateinit var measureService: MeasureService
 
     @Test
     fun testAddAspect() {
-        val aspectService = AspectService(database)
+        val aspectService = AspectService(database, measureService)
 
-//        val aspect = Aspect("", "newAspect", LengthMeasure)
-//
-//        val createAspect: Aspect = aspectService.createAspect(aspect.name, aspect.measureUnit.toString(), null)
-//        val saved = aspect.copy(id = createAspect.id)
-//
-//        val load = aspectService.findByName("newAspect")
-//
-//        assertNotNull(load)
-//        assertThat("aspect should be saved and restored", load, Is.`is`(saved))
+        val aspect = Aspect("", "newAspect", Kilometre)
+
+        val createAspect: Aspect = aspectService.createAspect(aspect.name, aspect.measureUnit?.name, null)
+        val saved = aspect.copy(id = createAspect.id)
+
+        val load = aspectService.findByName("newAspect")
+
+        assertNotNull(load)
+        assertThat("aspect should be saved and restored", load, Is.`is`(saved))
     }
 }

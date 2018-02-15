@@ -19,6 +19,7 @@
 
     <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
         <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="measuerService"/>
     </bean>
 
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
