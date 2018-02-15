@@ -1,6 +1,18 @@
 .Units-table {
-    margin: auto;
-    width: 50%;
-    border: 3px solid green;
+    margin-left: 50px;
+    width: 20%;
     padding: 10px;
+}
+
+.Units-row {
+    text-align: left;
+}
+
+.Units-cell {
+    padding-top: 2px;
+    padding-left: 10px;
+}
+
+.Units-header {
+    color: blue;
 }

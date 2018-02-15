@@ -4,12 +4,16 @@ import catalog.layout.Header
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.dom.*
+import react.dom.h1
 import wrappers.RouteSuppliedProps
 
 class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
-
-    var units: List<String> = listOf("m", "cm", "mm", "kg")
+    val data = mapOf(
+        "Length" to listOf("Metre", "Cantimetre", "Millimetre", "Inch", "Mile"),
+        "Mass" to listOf("Kilogram", "Milligram", "Pound"),
+        "Time" to listOf("Second", "Millisecond", "Minute", "Hour"),
+        "Speed" to listOf("KilometrePerSecond", "MilePerHour", "InchPerSecond", "MetrePerSecond", "KilometrePerHour")
+    )
 
     override fun RBuilder.render() {
         child(Header::class) {
@@ -18,11 +22,9 @@ class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
 
         h1 { +"Units Page" }
 
-        div("Units-table") {
-
-            table {
-                tr { th { +"Unit" } }
-                units.map { tr { td { +it } } }
+        child(UnitsTable::class) {
+            attrs {
+                units = data
             }
         }
     }
