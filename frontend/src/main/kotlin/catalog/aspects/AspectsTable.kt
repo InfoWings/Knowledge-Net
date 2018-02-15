@@ -1,6 +1,7 @@
 package catalog.aspects
 
 import kotlinx.coroutines.experimental.launch
+import org.w3c.dom.events.Event
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -14,7 +15,8 @@ data class GridProps(var stateKey: String = "tree-grid-1",
                      var showTreeRootNode: Boolean = false,
                      var columns: Array<Column>,
                      var data: AspectRoot,
-                     var plugins: dynamic) : RProps
+                     var plugins: dynamic,
+                     var events: dynamic) : RProps
 
 private val aspectData = AspectRoot(arrayOf(
         AspectNode(1, name = "Name1", measureUnit = "MU1", type = "type1", domain = "domain1", editable = true, children = arrayOf(
@@ -28,6 +30,11 @@ private val aspectData = AspectRoot(arrayOf(
                 AspectNode(7, name = "Name2.2", measureUnit = "MU3", type = "type3", domain = "domain", editable = true, leaf = true, children = emptyArray())
         ))
 ))
+
+fun handleAfter(state: dynamic, e: Event) {
+    println(state)
+    println(e)
+}
 
 class AspectsTable : RComponent<RProps, RState>() {
 
@@ -64,6 +71,12 @@ class AspectsTable : RComponent<RProps, RState>() {
                             val type = "inline"
                             val enabled = true
                             val focusOnEdit = true
+                        }
+                    }
+                    this.events = object {
+                        fun HANDLE_AFTER_INLINE_EDITOR_SAVE(state: dynamic, e: Event) {
+                            println(state)
+                            println(e)
                         }
                     }
                 }

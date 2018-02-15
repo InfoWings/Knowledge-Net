@@ -4,6 +4,7 @@ import kotlinext.js.Object
 import kotlinext.js.js
 import react.RElementBuilder
 import react.RProps
+import kotlin.reflect.KFunction
 
 fun <T : RProps> RElementBuilder<T>.plainObj(handler: T.() -> Unit) {
     attrs.handler()
@@ -21,7 +22,7 @@ fun plain(obj: Any?): dynamic {
     val assigned: MutableSet<Any> = mutableSetOf()
 
     fun toPlain(obj: Any?): dynamic =
-            if (obj == null || assigned.contains(obj) || isPrimitive(obj)) obj
+            if (obj == null || assigned.contains(obj) || isPrimitive(obj) || obj is KFunction<*>) obj
             else if (obj is Map<*, *>) {
                 val result = js("{}")
                 for (entry in obj.entries) {
