@@ -29,9 +29,9 @@ class Header : RComponent<HeaderProps, RState>() {
                     li(classes = if (props.location == "/measures") "active" else "") {
                         reactRouter.Link {
                             attrs {
-                                to = "/measures"
+                                to = "/units"
                             }
-                            +"Measures"
+                            +"Units"
                         }
                     }
                 }

@@ -3,7 +3,7 @@ package catalog.app
 import catalog.auth.AuthComponent
 import catalog.auth.privateRoute
 import catalog.aspects.AspectsPage
-import catalog.measurements.MeasurementsPage
+import catalog.units.UnitsPage
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -21,7 +21,7 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
                 }
             }
             privateRoute("/aspects", renderFunction = { rprops -> child(AspectsPage::class) { attrs { location = rprops.location; history = rprops.history; match = rprops.match } } })
-            privateRoute("/measures", renderFunction = { rprops -> child(MeasurementsPage::class) { attrs { location = rprops.location; history = rprops.history; match = rprops.match } } })
+            privateRoute("/units", renderFunction = { rprops -> child(UnitsPage::class) { attrs { location = rprops.location; history = rprops.history; match = rprops.match } } })
             reactRouter.Route {
                 attrs {
                     path = "/"
