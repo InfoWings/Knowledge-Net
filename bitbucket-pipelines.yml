@@ -11,6 +11,7 @@ pipelines:
           caches:
             - gradle
             - maven
+            - node
           script:
              - chmod +x gradlew
              - ./gradlew build
@@ -20,6 +21,7 @@ pipelines:
            caches:
              - gradle
              - maven
+             - node
            script:
              - chmod +x gradlew
              - ./gradlew build
@@ -29,6 +31,7 @@ pipelines:
             caches:
              - gradle
              - maven
+             - node
             script:
              - chmod +x gradlew
              - ./gradlew build

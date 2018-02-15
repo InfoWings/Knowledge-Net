@@ -38,7 +38,7 @@ subprojects {
 
         maven { url "https://raw.github.com/XeroAPI/Xero-Java/mvn-repo/" }
         maven { url "https://raw.github.com/XeroAPI/XeroAPI-Schemas/mvn-repo/" }
-        maven { url "http://172.31.5.10:8010/content/repositories/iwings-repo/" }
+//        maven { url "http://172.31.5.10:8010/content/repositories/iwings-repo/" }
     }
 }
 
