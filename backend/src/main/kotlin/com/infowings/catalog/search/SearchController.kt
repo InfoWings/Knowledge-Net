@@ -19,5 +19,5 @@ class SearchController {
      * Полнотекстовый поиск по измеряемым величинам и единицам измерения
      */
     @GetMapping("/measure/suggestion")
-    fun find(user: String, text: String) : List<MeasureSuggestionDto> = suggestionService.find(user, text)
+    fun measureSuggestion(user: String, text: String) : List<MeasureSuggestionDto> = suggestionService.find(user, text)
 }
