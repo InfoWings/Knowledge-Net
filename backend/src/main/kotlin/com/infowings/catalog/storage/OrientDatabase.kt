@@ -6,6 +6,8 @@ import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.tx.OTransaction
 import javax.annotation.PreDestroy
 
@@ -25,9 +27,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         dbPool.acquire().use {
             OrientDatabaseInitializer(it)
-                    .initAspects()
-                    .initUsers()
-                    .initMeasures()
+                .initAspects()
+                .initUsers()
+                .initMeasures()
         }
     }
 
@@ -37,7 +39,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         orientDB.close()
     }
 }
-
+//todo: сделать вложенные транзакции (например через ThreadLocal)
 inline fun <U> transaction(
     database: OrientDatabase,
     retryOnFailure: Int = 0,
@@ -65,3 +67,11 @@ inline fun <U> transaction(
 }
 
 private val logger = loggerFor<OrientDatabase>()
+
+operator fun <T> OVertex.get(name: String): T = getProperty(name)
+operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
+
+val OResult.toVertex: OVertex
+    get() = vertex.orElse(null) ?: throw OrientException("Not a vertex")
+
+class OrientException(reason: String) : Throwable(reason)
