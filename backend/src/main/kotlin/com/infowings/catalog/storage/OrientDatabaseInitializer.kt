@@ -16,6 +16,7 @@ const val MEASURE_VERTEX_CLASS = "Measure"
 const val MEASURE_EDGE_CLASS = "LinkedBy"
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
+const val MEASURE_ASPECT_CLASS = "AspectToMeasure"
 
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
@@ -36,7 +37,10 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer {
         logger.info("Init aspects")
-        session.createClassIfNotExist(ASPECT_CLASS)
+        if (session.getClass(ASPECT_CLASS) == null) {
+            session.createVertexClass(ASPECT_CLASS)
+            session.createEdgeClass(MEASURE_ASPECT_CLASS)
+        }
         return this
     }
 

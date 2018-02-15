@@ -1,8 +1,11 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.storage.MEASURE_ASPECT_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OElement
+import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 
@@ -21,10 +24,18 @@ class AspectService(private val database: OrientDatabase) {
             throw IllegalArgumentException("Base type and measure base type should be the same")
 
         val save: OElement = transaction(database) { db ->
+            val statement = "SELECT FROM Measure where name = ? ";
+            val rs: OResultSet = db.query(statement, measureUnit.toString());
+            val row: OVertex = rs.next().vertex.orElse(null) ?: throw Exception()
 
-            val doc: OElement = db.newInstance("Aspect")
+
+
+
+
+            val doc: OVertex = db.newVertex("Aspect")
             doc.setProperty("name", name)
             doc.setProperty("baseType", baseType?.name ?: measureUnit?.baseType?.name)
+            doc.addEdge(row)
             measureUnit?.let { doc.setProperty("measureUnit", measureUnit.toString()) }
 
             return@transaction doc.save()
@@ -52,11 +63,12 @@ class AspectService(private val database: OrientDatabase) {
         return transaction(database) { db ->
             val rs: OResultSet = db.query(statement, name);
             if (rs.hasNext()) {
-                val row: OResult = rs.next()
+                val row: OVertex = rs.next().vertex.orElse(null) ?: throw Exception()
                 val baseType = BaseType.restoreBaseType(row.getProperty("baseType"))
                 val measureUnit = restoreMeasureUnit(row.getProperty("measureUnit"))
+                val edges = row.getEdges(ODirection.OUT)
                 return@transaction Aspect(
-                    id = row.identity.get().toString(),
+                    id = row.identity.toString(),
                     name = row.getProperty("name"),
                     measureUnit = measureUnit,
                     baseType = baseType,

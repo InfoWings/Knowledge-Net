@@ -17,8 +17,6 @@
         <constructor-arg name="password" value="${orient.password}"/>
     </bean>
 
-    <bean id="propertyService" class="com.infowings.catalog.data.PropertyService"/>
-
     <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
         <constructor-arg ref="orientDatabase"/>
     </bean>

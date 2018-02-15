@@ -7,24 +7,21 @@ import kotlin.reflect.KClass
 
 /**
  * низкоуровневый тип данных в котором хранится значение свойства, на уровне БД это не обязательно тот же тип (см. [Directory]
- *
- * todo: для сложных типов поле [clazz] == null надо добавить/переработать проверки для сложных типов
- *
- */
-sealed class BaseType(val name: String, val clazz: KClass<*>?) {
+ **/
+sealed class BaseType(val name: String) {
 
-    object Nothing : BaseType("Composite Aspect", Any::class)
-    object Integer : BaseType("Integer", Int::class)
-    object Long : BaseType("Long", Long::class)
-    object Decimal : BaseType("Decimal", BigDecimal::class)
-    object Boolean : BaseType("Boolean", kotlin.Boolean::class)
-    object Text : BaseType("String", String::class)
-    object Binary : BaseType("Binary", ByteArray::class)
+    object Nothing : BaseType("Composite Aspect")
+    object Integer : BaseType("Integer")
+    object Long : BaseType("Long")
+    object Decimal : BaseType("Decimal")
+    object Boolean : BaseType("Boolean")
+    object Text : BaseType("String")
+    object Binary : BaseType("Binary")
 
     //todo:
-    class Directory(val dName: String) : BaseType("", null) // временно
+    class Directory(val dName: String) : BaseType("") // временно
 
-    class Link : BaseType("", null)
+    class Link : BaseType("")
 
     companion object {
         fun restoreBaseType(name: String?): BaseType =
@@ -39,9 +36,25 @@ sealed class BaseType(val name: String, val clazz: KClass<*>?) {
 
                 else -> TODO("реализовать хранение сложных типов")
             }
+
+        fun getTypeClass(name: String): KClass<*> =
+            when (name) {
+                BaseType.Integer.name -> Int::class
+                BaseType.Long.name -> Long::class
+                BaseType.Decimal.name -> BigDecimal::class
+                BaseType.Boolean.name -> Boolean::class
+                BaseType.Text.name -> String::class
+                BaseType.Binary.name -> ByteArray::class
+
+                else -> TODO("реализовать хранение сложных типов")
+
+            }
     }
 }
 
+enum class AspectPropertyPower {
+    ZERO, ONE, INFINITY
+}
 
 /**
  * Аспект - https://iwings.atlassian.net/wiki/spaces/CHR/pages/219217938
@@ -51,11 +64,13 @@ data class Aspect(
     val name: String,
     val measureUnit: BaseMeasureUnit<*, *>?,
     val domain: AspectDomain? = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-    val baseType: BaseType? = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")
+    val baseType: BaseType? = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
+    val properties: Set<AspectProperty> = emptySet()
 )
 
-// todo: должны ли самые базовые типы лежать в БД или в коде?
-//val Length = Aspect(1, "Length", LengthMeasure, OpenDomain(LengthMeasure.baseType))
-//val Mass = Aspect(2, "Mass", MassMeasure, OpenDomain(MassMeasure.baseType))
-//
-//val RawString = Aspect(3, "String", null, OpenDomain(BaseType.Text), BaseType.Text)
+data class AspectProperty(
+    val id: String,
+    val name: String,
+    val aspect: Aspect,
+    val power: AspectPropertyPower
+)
