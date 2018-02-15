@@ -6,6 +6,7 @@ import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.sql.executor.OResultSet
 
 const val MEASURE_GROUP_VERTEX = "MeasureGroupVertex"
 const val MEASURE_VERTEX = "MeasureVertex"
@@ -26,40 +27,43 @@ class MeasureService(private val database: OrientDatabase) {
             }
         }
     }
+    
 
-    fun findMeasureGroup(group: MeasureGroup<*>, session: ODatabaseDocument): OVertex? {
+    fun findMeasureGroup(groupName: String, session: ODatabaseDocument): OVertex? {
         val query = "SELECT * from $MEASURE_GROUP_VERTEX where name = ?"
-        val records = session.query(query, group.name)
-        return if (records.hasNext()) records.next().vertex.orElse(null) else null
+        val records = session.query(query, groupName)
+        return records.getVertex()
     }
 
-    fun findMeasure(measure: Measure<*>, session: ODatabaseDocument): OVertex? {
+    fun findMeasure(measureName: String, session: ODatabaseDocument): OVertex? {
         val query = "SELECT * from $MEASURE_VERTEX where name = ?"
-        val records = session.query(query, measure.name)
-        return if (records.hasNext()) records.next().vertex.orElse(null) else null
+        val records = session.query(query, measureName)
+        return records.getVertex()
     }
 
     private fun saveGroup(group: MeasureGroup<*>, session: ODatabaseDocument): OVertex? {
-        if (findMeasureGroup(group, session) != null) {
+        if (findMeasureGroup(group.name, session) != null) {
             loggerFor<MeasureService>().info("Group with name ${group.name} already exist in db")
             return null
         }
         val groupVertex = session.newVertex(MEASURE_GROUP_VERTEX)
         groupVertex.setProperty("name", group.name)
-        val baseVertex = createMeasure(group.base, session)
+        val baseVertex = createMeasure(group.base.name, session)
         groupVertex.addEdge(baseVertex, MEASURE_BASE_AND_GROUP_EDGE)
         baseVertex.addEdge(groupVertex, MEASURE_BASE_AND_GROUP_EDGE)
         group.measureList.forEach {
-            createMeasure(it, session).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
+            createMeasure(it.name, session).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
         }
         baseVertex.save<ORecord>()
         return groupVertex.save()
     }
 
-    private fun createMeasure(measure: Measure<*>, session: ODatabaseDocument): OVertex {
-        findMeasure(measure, session).let { if (it != null) return it }
+    private fun createMeasure(measureName: String, session: ODatabaseDocument): OVertex {
+        findMeasure(measureName, session).let { if (it != null) return it }
         val groupVertex = session.newVertex(MEASURE_VERTEX)
-        groupVertex.setProperty("name", measure.name)
+        groupVertex.setProperty("name", measureName)
         return groupVertex
     }
+
+    private fun OResultSet.getVertex() = if (this.hasNext()) this.next().vertex.orElse(null) else null
 }
