@@ -15,5 +15,6 @@ class AspectsPage : RComponent<RouteSuppliedProps, RState>() {
             attrs { location = props.location.pathname }
         }
         h1 { +"Aspects Page" }
+        child(AspectsTable::class) {}
     }
 }
