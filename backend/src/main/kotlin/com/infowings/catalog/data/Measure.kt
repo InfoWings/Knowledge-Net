@@ -17,8 +17,8 @@ val Millimetre = Measure<BigDecimal>("Millimetre", "millimetre", { it * BigDecim
 val Micrometre = Measure<BigDecimal>("Micrometre", "micrometre", { it * BigDecimal(0.000001) }, { it / BigDecimal(0.000001) })
 val Nanometre = Measure<BigDecimal>("Nanometre", "nanometre", { it * BigDecimal(0.000000001) }, { it / BigDecimal(0.000000001) })
 val Yard = Measure<BigDecimal>("Yard", "yard", { it * BigDecimal(0.9144) }, { it / BigDecimal(0.9144) })
-val Inch = Measure<BigDecimal>("Inch", "inch", { it * BigDecimal(1609.344) }, { it / BigDecimal(1609.344) })
-val Mile = Measure<BigDecimal>("Mile", "mile", { it * BigDecimal(0.0253999368683) }, { it / BigDecimal(0.0253999368683) })
+val Inch = Measure<BigDecimal>("Inch", "inch", { it * BigDecimal(0.0253999368683) }, { it / BigDecimal(0.0253999368683) })
+val Mile = Measure<BigDecimal>("Mile", "mile", { it * BigDecimal(1609.344) }, { it / BigDecimal(1609.344) })
 
 val LengthGroup = MeasureGroup("Length", listOf(Kilometre, Metre, Decimetre, Centimetre, Millimetre, Micrometre, Nanometre, Yard, Inch, Mile), Metre)
 

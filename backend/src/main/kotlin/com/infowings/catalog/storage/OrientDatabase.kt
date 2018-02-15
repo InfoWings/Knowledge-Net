@@ -38,30 +38,35 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     }
 }
 
-inline fun <U> transaction(
-    database: OrientDatabase,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+inline fun <U> transactionUnsafe(
+        session: ODatabaseDocument,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        block: (db: ODatabaseDocument) -> U
 ): U {
-    val db = database.acquire()
     var lastException: Exception? = null
 
     repeat(times = retryOnFailure + 1) {
         try {
-            db.begin(txtype)
-            val u = block(db)
-            db.commit()
+            session.begin(txtype)
+            val u = block(session)
+            session.commit()
 
             return u
         } catch (e: Exception) {
             lastException = e
-            db.rollback()
-        } finally {
-            db.close()
+            session.rollback()
         }
     }
-    lastException?.let { throw it } ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
+    lastException?.let { throw it }
+            ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
+
+inline fun <U> transaction(
+        database: OrientDatabase,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        block: (db: ODatabaseDocument) -> U
+): U = database.acquire().use { transactionUnsafe(it, retryOnFailure, txtype, block) }
 
 private val logger = loggerFor<OrientDatabase>()
