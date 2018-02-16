@@ -27,9 +27,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         dbPool.acquire().use {
             OrientDatabaseInitializer(it)
-                .initAspects()
-                .initUsers()
-                .initMeasures()
+                    .initAspects()
+                    .initUsers()
+                    .initMeasures()
         }
     }
 
@@ -39,10 +39,8 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         orientDB.close()
     }
 }
-
-//todo: сделать вложенные транзакции (например через ThreadLocal), проверить работу repeat -  возможно не стоит закрывать [session]
-inline fun <U> transaction(
-    database: OrientDatabase,
+inline fun <U> transactionUnsafe(
+    session: ODatabaseDocument,
     retryOnFailure: Int = 0,
     txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
     block: (db: ODatabaseDocument) -> U
@@ -50,7 +48,6 @@ inline fun <U> transaction(
     var lastException: Exception? = null
 
     repeat(times = retryOnFailure + 1) {
-        val session = database.acquire()
         try {
             session.begin(txtype)
             val u = block(session)
@@ -60,12 +57,18 @@ inline fun <U> transaction(
         } catch (e: Exception) {
             lastException = e
             session.rollback()
-        } finally {
-            session.close()
         }
     }
-    lastException?.let { throw it } ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
+    lastException?.let { throw it }
+            ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
+
+inline fun <U> transaction(
+    database: OrientDatabase,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    block: (db: ODatabaseDocument) -> U
+): U = database.acquire().use { transactionUnsafe(it, retryOnFailure, txtype, block) }
 
 private val logger = loggerFor<OrientDatabase>()
 

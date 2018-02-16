@@ -61,6 +61,15 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         if (session.getClass(MEASURE_BASE_AND_GROUP_EDGE) == null) {
             session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
         }
+        /** Add initial measures to database */
+        val localMeasureService = MeasureService()
+        transactionUnsafe(session) { db ->
+            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, db) }
+//            if (lengthGroupVertex != null && speedGroupVertex != null) {
+//                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//            }
+        }
         return this
     }
 
@@ -72,25 +81,4 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         user.setProperty("role", role)
         user.save<ORecord>()
     }
-
-    /** Init measure and all linked measures */
-//    private fun initMeasureVertex(measure: BaseMeasureUnit<*, *>, initializedVertex: MutableMap<String, OVertex>): OVertex {
-//        if (initializedVertex[measure.toString()] == null) {
-//            val measureVertex: OVertex = session.newVertex(MEASURE_VERTEX_CLASS)
-//            initializedVertex[measure.toString()] = measureVertex
-//            measureVertex.setProperty("name", measure.name())
-//            measureVertex.save<ORecord>()
-//            measure.linkedTypes.forEach {
-//                val childVertex = initMeasureVertex(it, initializedVertex)
-//                val addedBefore = measureVertex.getEdges(ODirection.OUT).any {
-//                    it.to.getProperty<String>("name") == childVertex.getProperty<String>("name")
-//                }
-//                if (!addedBefore) {
-//                    measureVertex.addEdge(childVertex, MEASURE_EDGE_CLASS).save<ORecord>()
-//                }
-//            }
-//            return measureVertex
-//        }
-//        return initializedVertex[measure.toString()]!!
-//    }
 }
