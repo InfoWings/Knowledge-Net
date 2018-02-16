@@ -51,6 +51,10 @@ sealed class BaseType(val name: String) {
 
             }
     }
+
+    override fun toString(): String {
+        return "BaseType($name)"
+    }
 }
 
 enum class AspectPropertyPower {

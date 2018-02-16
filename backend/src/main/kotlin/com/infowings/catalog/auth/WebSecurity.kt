@@ -38,6 +38,8 @@ class WebSecurity() : WebSecurityConfigurerAdapter() {
                     .antMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.name)
                     .antMatchers("/api/powereduser/**").hasAuthority(UserRole.POWERED_USER.name)
                     .antMatchers("/api/user/**").hasAuthority(UserRole.USER.name)
+                .antMatchers("/aspect/**").hasAuthority(UserRole.POWERED_USER.name)
+                .antMatchers("/aspect/**").hasAuthority(UserRole.ADMIN.name)
                     .anyRequest().authenticated()
                     .and()
                     .addFilter(jWTAuthorizationFilter)

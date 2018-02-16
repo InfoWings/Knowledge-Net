@@ -10,6 +10,8 @@ import com.orientechnologies.orient.core.record.ORecord
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
+const val ASPECT_PROPERTY_CLASS = "AspectProperty"
+const val ASPECT_ASPECTPROPERTY_EDGE = "AspectPropertyEdge"
 const val MEASURE_ASPECT_CLASS = "AspectToMeasure"
 
 private val logger = loggerFor<OrientDatabaseInitializer>()
@@ -33,7 +35,9 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
+            session.createVertexClass(ASPECT_PROPERTY_CLASS)
             session.createEdgeClass(MEASURE_ASPECT_CLASS)
+            session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
         }
         return this
     }

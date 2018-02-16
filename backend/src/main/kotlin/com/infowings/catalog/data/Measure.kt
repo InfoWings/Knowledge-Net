@@ -2,7 +2,9 @@ package com.infowings.catalog.data
 
 import java.math.BigDecimal
 
-class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType)
+class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType) {
+    override fun toString(): String = "$name/$symbol"
+}
 
 class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()

@@ -39,6 +39,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         orientDB.close()
     }
 }
+
 //todo: сделать вложенные транзакции (например через ThreadLocal), проверить работу repeat -  возможно не стоит закрывать [session]
 inline fun <U> transaction(
     database: OrientDatabase,
@@ -71,7 +72,7 @@ private val logger = loggerFor<OrientDatabase>()
 operator fun <T> OVertex.get(name: String): T = getProperty(name)
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
 
-val OResult.toVertex: OVertex
-    get() = vertex.orElse(null) ?: throw OrientException("Not a vertex")
+fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
+fun OResult.toVertexOrNUll(): OVertex? = vertex.orElse(null)
 
 class OrientException(reason: String) : Throwable(reason)

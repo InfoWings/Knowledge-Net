@@ -19,6 +19,10 @@ class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
         return BaseType.getTypeClass(baseType.name) == BaseType.getTypeClass(value.name)
     }
 
+    override fun toString(): String {
+        return "OpenDomain of $baseType"
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -1,7 +1,8 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 
@@ -21,15 +22,27 @@ class AspectService(private val database: OrientDatabase, private val measureSer
 
             return@transaction aspectVertex.save()
         }
-        return Aspect(
-            id = save.id,
-            name = name,
-            measureUnit = measureUnit,
-            baseType = baseType,
-            domain = baseType?.let { OpenDomain(baseType) }
-        )
-
+        return save.toAspect()
     }
+
+    fun saveAspectProperty(property: AspectProperty, session: ODatabaseDocument): OVertex {
+        val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
+
+        aspectPropertyVertex["name"] = property.name
+        aspectPropertyVertex["aspectId"] = property.aspect.id
+        aspectPropertyVertex["power"] = property.power.name
+
+        val aspectVertex: OVertex = session.getVertexById(property.aspect.id) ?: throw IllegalStateException("No aspect with id: ${property.aspect.id}")
+
+        val saved = aspectPropertyVertex.save<OVertex>()
+        aspectVertex.addEdge(saved, ASPECT_ASPECTPROPERTY_EDGE)
+        aspectVertex.save<OVertex>()
+
+        return saved
+    }
+
+    fun loadAspectProperty(id: String, session: ODatabaseDocument): AspectProperty =
+        session.getVertexById(id)?.toAspectProperty(session) ?: throw IllegalArgumentException("No aspect property with id: $id")
 
     fun createAspect(name: String, measureName: String?, baseTypeString: String?): Aspect {
         if (findByName(name) != null)
@@ -55,16 +68,22 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         return transaction(database) { db ->
             val rs: OResultSet = db.query(statement, name);
             if (rs.hasNext()) {
-                val vertex: OVertex = rs.next().toVertex
-                return@transaction Aspect(
-                    id = vertex.id,
-                    name = vertex.name,
-                    measureUnit = vertex.measureName,
-                    baseType = vertex.baseType,
-                    domain = vertex.baseType?.let { OpenDomain(it) }
-                )
+                return@transaction rs.next().toVertex().toAspect()
             }
             return@transaction null
+        }
+    }
+
+    fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect()
+            ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
+
+    private fun ODatabaseDocument.getVertexById(id: String): OVertex? {
+        val statement = "SELECT FROM ?"
+        val rs: OResultSet = query(statement, ORecordId(id));
+        return if (rs.hasNext()) {
+            rs.next().toVertexOrNUll()
+        } else {
+            null
         }
     }
 
@@ -74,10 +93,17 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         get() = BaseType.restoreBaseType(this["baseType"])
     private val OVertex.name: String
         get() = this["name"]
+    private val OVertex.aspect: String
+        get() = this["aspectId"]
     private val OVertex.measureName: Measure<*>?
         get() = GlobalMeasureMap[this["measure"]]
     private val OVertex.id: String
         get() = identity.toString()
+
+    private fun OVertex.toAspect(): Aspect = Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType)
+
+    private fun OVertex.toAspectProperty(session: ODatabaseDocument): AspectProperty =
+        AspectProperty(id, name, findById(aspect, session), AspectPropertyPower.valueOf(this["power"]))
 }
 
 
