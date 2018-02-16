@@ -1,34 +1,22 @@
 {
   "dependencies": {
-    "bootstrap": "^4.0.0-beta.3",
-    "font-awesome": "^4.7.0",
-    "i": "^0.3.6",
-    "jquery": "^3.2.1",
-    "lodash": "^4.17.5",
-    "node-watch": "0.5.5",
-    "popper": "^1.0.1",
-    "popper.js": "^1.12.9",
     "react": "^16.2.0",
-    "react-dnd": "^2.5.4",
     "react-dom": "^16.2.0",
-    "react-redux": "^5.0.6",
-    "react-redux-grid": "^5.5.2",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
-    "react-sortable-tree": "^1.8.1",
-    "react-treeview": "^0.4.7",
-    "redux-thunk": "^2.2.0",
-    "source-map-loader": "0.2.1",
-    "webpack": "3.4.1",
-    "webpack-merge": "4.1.0",
-    "websocket": "1.0.24"
+    "react-table": "^6.7.6"
   },
   "devDependencies": {
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.6",
     "npm-run-all": "4.1.1",
     "style-loader": "^0.19.1",
-    "webpack-dev-server": "2.8.2"
+    "webpack-dev-server": "2.8.2",
+    "webpack": "3.4.1",
+    "webpack-merge": "4.1.0",
+    "websocket": "1.0.24",
+    "node-watch": "0.5.5",
+    "source-map-loader": "0.2.1"
   },
   "scripts": {
     "devServer": "webpack-dev-server --open --config webpack.dev.js",
