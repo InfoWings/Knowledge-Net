@@ -2,7 +2,6 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
-import org.junit.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -25,14 +24,35 @@ class AspectServiceTest {
     fun testAddAspect() {
         val aspectService = AspectService(database, measureService)
 
-        val aspect = Aspect("", "newAspect", Kilometre)
+        val createAspect: Aspect = aspectService.createAspect("newAspect", Kilometre.name, BaseType.Decimal.name)
 
-        val createAspect: Aspect = aspectService.createAspect(aspect.name, aspect.measureUnit?.name, null)
-        val saved = aspect.copy(id = createAspect.id)
+        assertThat("aspect should be saved and restored", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+    }
 
-        val load = aspectService.findByName("newAspect")
+    @Test
+    fun testAddAspectWithEmptyParams() {
+        val aspectService = AspectService(database, measureService)
 
-        assertNotNull(load)
-        assertThat("aspect should be saved and restored", load, Is.`is`(saved))
+        val createAspect: Aspect = aspectService.createAspect("newAspect", null, BaseType.Decimal.name)
+
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+    }
+
+    @Test
+    fun testAddAspectWithEmptyParams2() {
+        val aspectService = AspectService(database, measureService)
+
+        val createAspect: Aspect = aspectService.createAspect("newAspect", null, null)
+
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+    }
+
+    @Test
+    fun testAddAspectWithEmptyParams3() {
+        val aspectService = AspectService(database, measureService)
+
+        val createAspect: Aspect = aspectService.createAspect("newAspect", Kilometre.name, null)
+
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
     }
 }

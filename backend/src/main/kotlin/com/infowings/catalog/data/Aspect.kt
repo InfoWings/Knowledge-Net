@@ -27,6 +27,7 @@ sealed class BaseType(val name: String) {
         fun restoreBaseType(name: String?): BaseType =
             when (name) {
                 null -> BaseType.Nothing
+                BaseType.Nothing.name -> BaseType.Nothing
                 BaseType.Integer.name -> BaseType.Integer
                 BaseType.Long.name -> BaseType.Long
                 BaseType.Decimal.name -> BaseType.Decimal

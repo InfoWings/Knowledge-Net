@@ -40,7 +40,7 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         val baseType: BaseType? = when {
             baseTypeString != null -> BaseType.restoreBaseType(baseTypeString)
             measure != null -> measure.baseType
-            else -> null
+            else -> BaseType.Nothing
         }
 
         if (baseType != null && measure != null && baseType != measure.baseType)
