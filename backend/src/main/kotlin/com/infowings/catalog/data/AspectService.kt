@@ -22,17 +22,18 @@ class AspectService(private val database: OrientDatabase, private val measureSer
 
             return@transaction aspectVertex.save()
         }
-        return save.toAspect()
+        return findById(save.id)
     }
 
-    fun saveAspectProperty(property: AspectProperty, session: ODatabaseDocument): OVertex {
+    internal fun saveAspectProperty(property: AspectProperty, session: ODatabaseDocument): OVertex {
         val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
 
         aspectPropertyVertex["name"] = property.name
         aspectPropertyVertex["aspectId"] = property.aspect.id
         aspectPropertyVertex["power"] = property.power.name
 
-        val aspectVertex: OVertex = session.getVertexById(property.aspect.id) ?: throw IllegalStateException("No aspect with id: ${property.aspect.id}")
+        val aspectVertex: OVertex = session.getVertexById(property.aspect.id)
+                ?: throw IllegalStateException("No aspect with id: ${property.aspect.id}")
 
         val saved = aspectPropertyVertex.save<OVertex>()
         aspectVertex.addEdge(saved, ASPECT_ASPECTPROPERTY_EDGE)
@@ -42,7 +43,8 @@ class AspectService(private val database: OrientDatabase, private val measureSer
     }
 
     fun loadAspectProperty(id: String, session: ODatabaseDocument): AspectProperty =
-        session.getVertexById(id)?.toAspectProperty(session) ?: throw IllegalArgumentException("No aspect property with id: $id")
+        session.getVertexById(id)?.toAspectProperty(session)
+                ?: throw IllegalArgumentException("No aspect property with id: $id")
 
     fun createAspect(name: String, measureName: String?, baseTypeString: String?): Aspect {
         if (findByName(name) != null)
@@ -74,8 +76,13 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         }
     }
 
-    fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect()
+    private fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect()
             ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
+
+    private fun findById(id: String): Aspect = transaction(database) { session ->
+        return@transaction session.getVertexById(id)?.toAspect()
+                ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
+    }
 
     private fun ODatabaseDocument.getVertexById(id: String): OVertex? {
         val statement = "SELECT FROM ?"
