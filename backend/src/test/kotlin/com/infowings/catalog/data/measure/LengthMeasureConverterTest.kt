@@ -81,4 +81,12 @@ class LengthMeasureConverterTest {
         assertEquals("Converting inch to m fails", metreValue, BigDecimal(3.12419))
         assertEquals("Converting m to inch fails", inchValue, Inch.fromBase(metreValue))
     }
+
+    @Test
+    fun feetToMetreTest() {
+        val feetValue = BigDecimal(23.6)
+        val metreValue = Feet.toBase(feetValue)
+        assertEquals("Converting feet to m fails", metreValue, BigDecimal(7.19328))
+        assertEquals("Converting m to feet fails", feetValue, Feet.fromBase(metreValue))
+    }
 }
