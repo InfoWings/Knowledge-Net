@@ -40,7 +40,7 @@ val SquareMetre = createBigDecimalMeasure("SquareMetre", "m^2", 1.0)
 val Hectare = createBigDecimalMeasure("Hectare", "ha", 10000.0)
 val SquareInch = createBigDecimalMeasure("SquareInch", "inch^2", 0.00064516)
 
-val SquareGroup = MeasureGroup("Square", listOf(SquareMetre, Hectare, SquareInch), SquareMetre)
+val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), SquareMetre)
 
 /** Volume group */
 val CubicMetre = createBigDecimalMeasure("CubicMetre", "m^3", 1.0)
@@ -194,7 +194,7 @@ val EuroMoneyGroup = MeasureGroup("EuroMoneyGroup", listOf(CentEuropean, Euro), 
 val MeasureGroupMap = setOf<MeasureGroup<*>>(
         LengthGroup,
         SpeedGroup,
-        SquareGroup,
+        AreaGroup,
         VolumeGroup,
         MassGroup,
         PowerEnergyGroup,
@@ -222,4 +222,5 @@ val MeasureGroupMap = setOf<MeasureGroup<*>>(
         EuroMoneyGroup)
         .map { it.name to it }
         .toMap()
+
 val GlobalMeasureMap = MeasureGroupMap.values.flatMap { it.measureList.map { it.name to it } }.toMap()

@@ -56,12 +56,11 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         /** Add initial measures to database */
         val localMeasureService = MeasureService()
         transactionUnsafe(session) { db ->
-            val lengthGroupVertex = localMeasureService.saveGroup(LengthGroup, db)
-            val speedGroupVertex = localMeasureService.saveGroup(SpeedGroup, db)
-            if (lengthGroupVertex != null && speedGroupVertex != null) {
-                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
-                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
-            }
+            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, db) }
+//            if (lengthGroupVertex != null && speedGroupVertex != null) {
+//                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//            }
         }
         return this
     }
