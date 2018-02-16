@@ -10,22 +10,15 @@ import com.orientechnologies.orient.core.sql.executor.OResultSet
 class AspectService(private val database: OrientDatabase) {
 
     private fun save(name: String, measureUnitString: String?, baseTypeString: String?): Aspect {
-        val measureUnit = restoreMeasureUnit(measureUnitString)
-        val baseType: BaseType? = when {
-            baseTypeString != null -> BaseType.restoreBaseType(baseTypeString)
-            measureUnit != null -> measureUnit.baseType
-            else -> null
-        }
-
-        if (baseType != null && measureUnit != null && baseType != measureUnit.baseType)
-            throw IllegalArgumentException("Base type and measure base type should be the same")
+        val baseType = BaseType.restoreBaseType(baseTypeString)
+        val measureUnit = Kilometre//restoreMeasureUnit(measureUnitString)
 
         val save: OElement = transaction(database) { db ->
 
             val doc: OElement = db.newInstance("Aspect")
             doc.setProperty("name", name)
-            doc.setProperty("baseType", baseType?.name ?: measureUnit?.baseType?.name)
-            measureUnit?.let { doc.setProperty("measureUnit", measureUnit.toString()) }
+            baseTypeString?.let { doc.setProperty("dataType", baseTypeString) }
+            measureUnit?.let { doc.setProperty("measureUnit", measureUnit.name) }
 
             return@transaction doc.save()
         }
@@ -34,7 +27,7 @@ class AspectService(private val database: OrientDatabase) {
             name = name,
             measureUnit = measureUnit,
             baseType = baseType,
-            domain = baseType?.let { OpenDomain(baseType) }
+            domain = OpenDomain(baseType)
         )
 
     }
@@ -54,11 +47,11 @@ class AspectService(private val database: OrientDatabase) {
             if (rs.hasNext()) {
                 val row: OResult = rs.next()
                 val baseType = BaseType.restoreBaseType(row.getProperty("baseType"))
-                val measureUnit = restoreMeasureUnit(row.getProperty("measureUnit"))
+                // val measureUnit = //restoreMeasureUnit(row.getProperty("measureUnit"))
                 return@transaction Aspect(
-                    id = row.identity.get().toString(),
+                    id = row.identity.toString(),
                     name = row.getProperty("name"),
-                    measureUnit = measureUnit,
+                        measureUnit = Kilometre,
                     baseType = baseType,
                     domain = OpenDomain(baseType)
                 )
