@@ -55,4 +55,11 @@ class AspectServiceTest {
 
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testFailAddAspect() {
+        val aspectService = AspectService(database, measureService)
+
+        aspectService.createAspect("newAspect", Kilometre.name, BaseType.Boolean.name)
+    }
 }
