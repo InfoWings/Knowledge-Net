@@ -1,5 +1,6 @@
 package utils
 
+
 import com.infowings.common.JwtToken
 import com.infowings.common.UserDto
 import kotlinx.coroutines.experimental.await
@@ -12,17 +13,38 @@ import kotlin.browser.localStorage
 import kotlin.browser.window
 import kotlin.js.json
 
+val defaultHeaders = json(
+    "Accept" to "application/json",
+    "Content-Type" to "application/json;charset=UTF-8"
+)
 
-suspend fun login(url: String, body: UserDto): Boolean {
-    val response = request("POST", url, JSON.stringify(body))
-    if (response.ok) {
-        parseToken(response)
-    }
-    return response.ok
+suspend fun request(method: String, url: String, body: dynamic, headers: dynamic = defaultHeaders): Response {
+    val response = window.fetch(url, object : RequestInit {
+        override var method: String? = method
+        override var body: dynamic = body
+        override var credentials: RequestCredentials? = "same-origin".asDynamic()
+        override var headers: dynamic = headers
+    }).await()
+    return response
 }
 
-suspend fun refresh(): Boolean {
-    val response = request("GET", "/api/access/refresh", headers = getHeader())
+suspend fun post(url: String, body: dynamic, headers: dynamic) = request("POST", url, body, headers)
+
+suspend fun get(url: String, body: dynamic, headers: dynamic) = request("GET", url, body, headers)
+
+suspend fun <T> requestAndParseResult(method: String, url: String, body: dynamic, parse: (dynamic) -> T): T {
+    val response = request(method, url, body)
+    return parse(response.json().await())
+}
+
+suspend fun <T> postAndParseResult(url: String, body: dynamic, parse: (dynamic) -> T): T =
+    requestAndParseResult("POST", url, body, parse)
+
+suspend fun <T> getAndParseResult(url: String, body: dynamic, parse: (dynamic) -> T): T =
+    requestAndParseResult("GET", url, body, parse)
+
+suspend fun login(url: String, body: UserDto): Boolean {
+    val response = post(url, JSON.stringify(body), null)
     if (response.ok) {
         parseToken(response)
     }
@@ -37,24 +59,8 @@ suspend fun parseToken(response: Response) {
     localStorage.setItem("auth-role", jwtToken.role.name)
 }
 
-suspend fun request(method: String,
-                    url: String,
-                    body: dynamic = null,
-                    headers: dynamic = json(
-                            "Accept" to "application/json",
-                            "Content-Type" to "application/json;charset=UTF-8")): Response {
-
-    val response = window.fetch(url, object : RequestInit {
-        override var method: String? = method
-        override var body: dynamic = body
-        override var credentials: RequestCredentials? = "same-origin".asDynamic()
-        override var headers: dynamic = headers
-    }).await()
-    return response
-}
-
-suspend fun getRequest(url: String, body: dynamic = null): String {
-    var response = request("GET", url, body, getHeader())
+suspend fun getResponseText(url: String): String {
+    var response = get(url, null, headers)
     if (!response.ok) {
         try {
             refresh()
@@ -62,7 +68,7 @@ suspend fun getRequest(url: String, body: dynamic = null): String {
             removeTokenInfo()
             window.location.replace("/")
         }
-        response = request("GET", url, body, getHeader())
+        response = get(url, null, headers)
         if (response.status.toInt() == 403 || response.status.toInt() == 401) {
             removeTokenInfo()
             window.location.replace("/")
@@ -71,9 +77,17 @@ suspend fun getRequest(url: String, body: dynamic = null): String {
     return response.text().await()
 }
 
-fun getHeader(): dynamic {
-    return json("x-access-authorization" to "Bearer ${localStorage["auth-access-token"]}",
-            "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}")
+val headers = json(
+    "x-access-authorization" to "Bearer ${localStorage["auth-access-token"]}",
+    "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
+)
+
+suspend fun refresh(): Boolean {
+    val response = get("/api/access/refresh", null, headers)
+    if (response.ok) {
+        parseToken(response)
+    }
+    return response.ok
 }
 
 fun removeTokenInfo() {
