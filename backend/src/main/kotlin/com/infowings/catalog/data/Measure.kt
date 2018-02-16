@@ -2,9 +2,10 @@ package com.infowings.catalog.data
 
 import java.math.BigDecimal
 
-fun createBigDecimalMeasure(name: String, symbol: String, coefficient: Double) = Measure<BigDecimal>(name, symbol, { it * BigDecimal(coefficient) }, { it / BigDecimal(coefficient) })
+private fun createBigDecimalMeasure(name: String, symbol: String, coefficient: Double) =
+    Measure<BigDecimal>(name, symbol, { it * BigDecimal(coefficient) }, { it / BigDecimal(coefficient) }, BaseType.Decimal)
 
-class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T)
+class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType)
 
 class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
@@ -107,10 +108,12 @@ val ElectricalResistanceGroup = MeasureGroup("ElectricalResistance", listOf(Om, 
 /** Temperature group */
 val Celsius = createBigDecimalMeasure("Celsius", "c", 1.0)
 val Fahrenheit = Measure<BigDecimal>(
-        "Fahrenheit",
-        "f",
-        { (it - BigDecimal(32)) * (BigDecimal(5 / 9)) },
-        { it * BigDecimal(1.8) + BigDecimal(32) })
+    "Fahrenheit",
+    "f",
+    { (it - BigDecimal(32)) * (BigDecimal(5 / 9)) },
+    { it * BigDecimal(1.8) + BigDecimal(32) },
+    BaseType.Decimal
+)
 
 val TemperatureGroup = MeasureGroup("Temperature", listOf(Celsius, Fahrenheit), Celsius)
 
@@ -192,35 +195,36 @@ val EuroMoneyGroup = MeasureGroup("EuroMoneyGroup", listOf(CentEuropean, Euro), 
 
 /** Global */
 val MeasureGroupMap = setOf<MeasureGroup<*>>(
-        LengthGroup,
-        SpeedGroup,
-        AreaGroup,
-        VolumeGroup,
-        MassGroup,
-        PowerEnergyGroup,
-        VoltageGroup,
-        ReactivePowerGroup,
-        WorkEnergyGroup,
-        ElectricCurrentGroup,
-        ElectricalResistanceGroup,
-        TemperatureGroup,
-        PowerGroup,
-        FrequencyGroup,
-        PressureGroup,
-        DensityGroup,
-        RotationFrequencyGroup,
-        TorqueGroup,
-        AccelerationGroup,
-        InductionGroup,
-        MagneticFluxDensityGroup,
-        TimeGroup,
-        QuantityGroup,
-        PercentageGroup,
-        HumanGroup,
-        UKMoneyGroup,
-        USAMoneyGroup,
-        EuroMoneyGroup)
-        .map { it.name to it }
-        .toMap()
+    LengthGroup,
+    SpeedGroup,
+    AreaGroup,
+    VolumeGroup,
+    MassGroup,
+    PowerEnergyGroup,
+    VoltageGroup,
+    ReactivePowerGroup,
+    WorkEnergyGroup,
+    ElectricCurrentGroup,
+    ElectricalResistanceGroup,
+    TemperatureGroup,
+    PowerGroup,
+    FrequencyGroup,
+    PressureGroup,
+    DensityGroup,
+    RotationFrequencyGroup,
+    TorqueGroup,
+    AccelerationGroup,
+    InductionGroup,
+    MagneticFluxDensityGroup,
+    TimeGroup,
+    QuantityGroup,
+    PercentageGroup,
+    HumanGroup,
+    UKMoneyGroup,
+    USAMoneyGroup,
+    EuroMoneyGroup
+)
+    .map { it.name to it }
+    .toMap()
 
 val GlobalMeasureMap = MeasureGroupMap.values.flatMap { it.measureList.map { it.name to it } }.toMap()
