@@ -24,7 +24,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspect() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
         assertThat("aspect should be saved and restored", aspectService.findByName("newAspect"), Is.`is`(createAspect))
@@ -33,7 +33,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", null, null, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "newAspect", null, null, BaseType.Decimal.name, emptyList())
 
         val createAspect: Aspect = aspectService.createAspect(ad)
 
@@ -43,7 +43,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams2() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", null, null, null, emptySet())
+        val ad = AspectData("", "newAspect", null, null, null, emptyList())
 
         val createAspect: Aspect = aspectService.createAspect(ad)
 
@@ -53,7 +53,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams3() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
 
         val createAspect: Aspect = aspectService.createAspect(ad)
 
@@ -63,7 +63,7 @@ class AspectServiceTest {
     @Test(expected = IllegalArgumentException::class)
     fun testFailAddAspect() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", Kilometre.name, BaseType.Boolean.name, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "newAspect", Kilometre.name, BaseType.Boolean.name, BaseType.Decimal.name, emptyList())
 
         aspectService.createAspect(ad)
     }

@@ -27,7 +27,7 @@ class AspectServicePropertyTest {
     fun testAddAspectProperty() {
         val aspectService = AspectService(database, measureService)
 
-        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
 
         val createAspect: Aspect = aspectService.createAspect(ad)
 
@@ -46,17 +46,20 @@ class AspectServicePropertyTest {
     fun testAddAspectProperties() {
         val aspectService = AspectService(database, measureService)
 
-        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
         val property = AspectPropertyData("", "p", createAspect.id, AspectPropertyPower.INFINITY.name)
 
-        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, setOf(property))
+        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
         val createAspect2: Aspect = aspectService.createAspect(ad2)
 
         val loaded = aspectService.findById(createAspect2.id)
 
         assertThat("aspect property should be saved and restored", loaded, Is.`is`(createAspect2))
+
+        val all = aspectService.getAspects()
+        assertThat("There should be 2 aspects in db", all.size, Is.`is`(2))
     }
 
 

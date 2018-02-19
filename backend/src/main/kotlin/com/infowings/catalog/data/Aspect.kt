@@ -70,7 +70,7 @@ data class Aspect(
     val measure: Measure<*>?,
     val domain: AspectDomain? = OpenDomain(measure?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
     val baseType: BaseType? = measure?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
-    val properties: Set<AspectProperty> = emptySet()
+    val properties: List<AspectProperty> = emptyList()
 )
 
 data class AspectProperty(

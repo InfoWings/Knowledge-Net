@@ -10,7 +10,7 @@ data class AspectData(
     val measure: String?,
     val domain: String?,
     val baseType: String?,
-    val properties: Set<AspectPropertyData> = emptySet()
+    val properties: List<AspectPropertyData> = emptyList()
 )
 
 

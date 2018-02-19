@@ -1,9 +1,11 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.data.Aspect
+import com.infowings.catalog.data.AspectProperty
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
 import com.infowings.common.catalog.data.AspectData
+import com.infowings.common.catalog.data.AspectPropertyData
 import org.springframework.web.bind.annotation.*
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
@@ -32,10 +34,17 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("all")
-    fun getAspects(): List<Aspect> {
+    fun getAspects(): List<AspectData> {
         logger.debug("Get all aspects request")
-        return aspectService.getAspects()
+        return aspectService.getAspects().toAspectData()
     }
+
+    private fun List<Aspect>.toAspectData(): List<AspectData> = map {
+        AspectData(it.id, it.name, it.measure?.name, it.domain.toString(), it.baseType?.name, it.properties.toAspectPropertyData())
+    }
+
+    private fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { AspectPropertyData(it.id, it.name, it.aspect.id, it.power.name) }
+
 }
 
 private val logger = loggerFor<AspectApi>()

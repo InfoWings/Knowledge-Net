@@ -17,7 +17,7 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         name: String,
         measure: Measure<*>?,
         baseType: BaseType?,
-        properties: Set<AspectPropertyData>
+        properties: List<AspectPropertyData>
     ): Aspect {
         logger.debug("Adding aspect $name, $measure, $baseType, ${properties.size}")
         val save: OVertex = transaction(database) { session ->
@@ -113,7 +113,11 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         }
     }
 
-    fun getAspects(): List<Aspect> = TODO()
+    fun getAspects(): List<Aspect> = transaction(database) { session ->
+        val statement = "SELECT FROM Aspect"
+        val rs: OResultSet = session.query(statement);
+        return@transaction rs.asSequence().mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()
+    }
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])
@@ -129,10 +133,10 @@ class AspectService(private val database: OrientDatabase, private val measureSer
     private fun OVertex.toAspect(session: ODatabaseDocument): Aspect =
         Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this, session))
 
-    private fun loadProperties(oVertex: OVertex, session: ODatabaseDocument): Set<AspectProperty> {
+    private fun loadProperties(oVertex: OVertex, session: ODatabaseDocument): List<AspectProperty> {
         val vertexes = oVertex.getEdges(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).map { it.to }
 
-        return vertexes.map { loadAspectProperty(it.id, session) }.toSet()
+        return vertexes.map { loadAspectProperty(it.id, session) }
 
     }
 
