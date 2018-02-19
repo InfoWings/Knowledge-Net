@@ -6,6 +6,7 @@ import com.infowings.common.UserDto
 import kotlinx.coroutines.experimental.await
 import kotlinx.serialization.json.JSON
 import org.w3c.dom.get
+import org.w3c.dom.set
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
@@ -54,9 +55,9 @@ suspend fun login(url: String, body: UserDto): Boolean {
 suspend fun parseToken(response: Response) {
     val jwtToken = JSON.parse<JwtToken>(response.text().await())
     console.log("refresh: $jwtToken")
-    localStorage.setItem("auth-access-token", jwtToken.accessToken)
-    localStorage.setItem("auth-refresh-token", jwtToken.refreshToken)
-    localStorage.setItem("auth-role", jwtToken.role.name)
+    localStorage["auth-access-token"] = jwtToken.accessToken
+    localStorage["auth-refresh-token"] = jwtToken.refreshToken
+    localStorage["auth-role"] = jwtToken.role.name
 }
 
 suspend fun getResponseText(url: String): String {
