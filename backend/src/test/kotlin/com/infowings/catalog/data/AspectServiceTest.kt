@@ -63,7 +63,7 @@ class AspectServiceTest {
     @Test(expected = IllegalArgumentException::class)
     fun testFailAddAspect() {
         val aspectService = AspectService(database, measureService)
-        val ad = AspectData("", "newAspect", Kilometre.name, BaseType.Boolean.name, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", "newAspect", Kilometre.name, OpenDomain(BaseType.Boolean).toString(), BaseType.Boolean.name, emptyList())
 
         aspectService.createAspect(ad)
     }
