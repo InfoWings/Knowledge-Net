@@ -27,9 +27,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         dbPool.acquire().use {
             OrientDatabaseInitializer(it)
-                    .initAspects()
-                    .initUsers()
-                    .initMeasures()
+                .initAspects()
+                .initUsers()
+                .initMeasures()
         }
     }
 
@@ -38,7 +38,24 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         dbPool.close()
         orientDB.close()
     }
+
+    /**
+     * run specified query and process result in provided lambda
+     *
+     * usage example:
+     *
+     * database.query(selectFromAspect) { rs, session ->
+     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     */
+    fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>, ODatabaseDocument) -> T): T {
+        return this.acquire().use { session ->
+            val rs = session.query(query, args)
+            return@use block(rs.asSequence(), session)
+        }
+    }
 }
+
+
 inline fun <U> transactionUnsafe(
     session: ODatabaseDocument,
     retryOnFailure: Int = 0,

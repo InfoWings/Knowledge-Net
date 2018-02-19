@@ -2,7 +2,6 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.transaction
 import com.infowings.common.catalog.data.AspectData
 import com.infowings.common.catalog.data.AspectPropertyData
 import org.hamcrest.core.Is
@@ -22,25 +21,6 @@ class AspectServicePropertyTest {
     lateinit var database: OrientDatabase
     @Autowired
     lateinit var measureService: MeasureService
-
-    @Test
-    fun testAddAspectProperty() {
-        val aspectService = AspectService(database, measureService)
-
-        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-
-        val createAspect: Aspect = aspectService.createAspect(ad)
-
-        val aspectProperty = AspectProperty("", "property", createAspect, AspectPropertyPower.INFINITY)
-
-        val saved: String = transaction(database) { session ->
-            return@transaction aspectService.saveAspectProperty(aspectProperty, session)
-        }.identity.toString()
-
-        val loaded = transaction(database) { session -> aspectService.loadAspectProperty(saved, session) }
-
-        assertThat("aspect property should be saved and restored", loaded.id, Is.`is`(saved))
-    }
 
     @Test
     fun testAddAspectProperties() {

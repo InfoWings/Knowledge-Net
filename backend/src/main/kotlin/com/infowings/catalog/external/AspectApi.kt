@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
 @RestController
-@RequestMapping("/aspect")
+@RequestMapping("/api/aspect")
 class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
