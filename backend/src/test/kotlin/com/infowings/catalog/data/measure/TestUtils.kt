@@ -1,9 +1,13 @@
 package com.infowings.catalog.data.measure
 
+import org.junit.Assert
 import java.math.BigDecimal
+import java.math.RoundingMode
 
-const val EPS = 0.0001
-
-fun assertEquals(expected: BigDecimal, actual: BigDecimal, delta: Double): Boolean {
-    return (expected - actual) * (expected - actual) < BigDecimal(delta * delta)
+fun assertEquals(message: String, expected: BigDecimal, actual: BigDecimal) {
+    val scaledActual = actual.setScale(4, RoundingMode.HALF_UP)
+    val scaledExpected = expected.setScale(4, RoundingMode.HALF_UP)
+    if (scaledActual != scaledExpected) {
+        Assert.fail("$message, actual:$scaledActual, expected: $scaledExpected")
+    }
 }

@@ -1,14 +1,10 @@
 package com.infowings.catalog.data.measure
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.data.BaseMeasureUnit
-import com.infowings.catalog.data.LengthMeasure
-import com.infowings.catalog.data.restoreMeasureUnit
-import com.infowings.catalog.storage.MEASURE_EDGE_CLASS
-import com.infowings.catalog.storage.MEASURE_VERTEX_CLASS
+import com.infowings.catalog.data.MeasureGroupMap
+import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.storage.OrientDatabase
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.util.stream.Collectors
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -25,35 +20,47 @@ import java.util.stream.Collectors
 class DatabaseMeasureTest {
 
     @Autowired
+    lateinit var measureService: MeasureService
+
+    @Autowired
     lateinit var database: OrientDatabase
 
     @Test
-    fun findLengthMeasureDependencies() {
-        findMeasureDependencies(LengthMeasure)
+    fun everyGroupExist() = database.acquire().use { db ->
+        MeasureGroupMap.values.forEach {
+            assertTrue("${it.name} group must exist", measureService.findMeasureGroup(it.name, db) != null)
+        }
     }
 
     @Test
-    fun findSpeedMeasureDependencies() {
-        findMeasureDependencies(LengthMeasure)
+    fun everyGroupBaseMeasureExist() = database.acquire().use { db ->
+        MeasureGroupMap.values.forEach {
+            val baseVertex = measureService.findMeasure(it.base.name, db)
+            val groupVertex = measureService.findMeasureGroup(it.name, db)
+            assertTrue("${it.name} base measure must exist", baseVertex != null)
+            assertTrue("${it.name} base measure must be linked with ${it.name} group",
+                    baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
+        }
     }
 
-    private fun findMeasureDependencies(baseUnit: BaseMeasureUnit<*, *>) {
-        val query = "SELECT expand(out('$MEASURE_EDGE_CLASS')) from $MEASURE_VERTEX_CLASS where name = ?"
-        database.acquire().query(query, LengthMeasure.toString()).use {
-
-            val dependenciesFromBd = it.elementStream()
-                    .map { restoreMeasureUnit(it.getProperty<String>("name")) }
-                    .collect(Collectors.toSet())
-
-            assertThat("Size of dependency set of measure should be the same in database and in memory",
-                    baseUnit.linkedTypes.size,
-                    equalTo(dependenciesFromBd.size))
-
-            for (type in baseUnit.linkedTypes) {
-                assertTrue("Dependency of measure in memory " +
-                        "should be included in the set of dependencies of measure in database",
-                        dependenciesFromBd.contains(type))
+    @Test
+    fun everyGroupContainsAllTheirMeasures() = database.acquire().use { db ->
+        MeasureGroupMap.values.forEach { group ->
+            val baseVertex = measureService.findMeasure(group.base.name, db)
+            group.measureList.forEach { measure ->
+                assertTrue("Measure $measure must exist", measureService.findMeasure(measure.name, db) != null)
+                assertTrue("Measure ${measure.name} must be linked with ${group.base.name}",
+                        measureService.findMeasure(measure.name, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!))
             }
         }
+    }
+
+
+    @Test
+    fun measureDependencies() = database.acquire().use {
+        //        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
+//        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
+//        assertTrue("Length group must be linked with Speed group",
+//                lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!))
     }
 }
