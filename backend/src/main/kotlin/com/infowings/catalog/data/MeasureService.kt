@@ -23,6 +23,8 @@ const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureGroupEdge"
  * */
 class MeasureService {
 
+    /** Возвращает вершину типа {MeasureGroupVertex}, описывающую запрашиваемую группу измерений.
+     *  Если группа измерений с указанным именем не найдена, возвращает null. */
     fun findMeasureGroup(groupName: String, session: ODatabaseDocument): OVertex? {
         val query = "SELECT * from $MEASURE_GROUP_VERTEX where name = ?"
         val records = session.query(query, groupName)
@@ -31,6 +33,8 @@ class MeasureService {
         return vertex
     }
 
+    /** Возвращает вершину типа {MeasureVertex}, описывающую запрашиваемое измерение.
+     *  Если измерение с указанным именем не найдена, возвращает null. */
     fun findMeasure(measureName: String, session: ODatabaseDocument): OVertex? {
         val query = "SELECT * from $MEASURE_VERTEX where name = ?"
         val records = session.query(query, measureName)
@@ -39,6 +43,9 @@ class MeasureService {
         return vertex
     }
 
+    /** Сохраняет группу измерений и все измерения, которые в ней содержатся.
+     *  Возвращает ссылку на вершину, описывающую указанную группу.
+     *  Если группа уже существовала, возвращаем null. */
     fun saveGroup(group: MeasureGroup<*>, session: ODatabaseDocument): OVertex? = transactionUnsafe(session) {
         if (findMeasureGroup(group.name, session) != null) {
             loggerFor<MeasureService>().info("Group with name ${group.name} already exist in db")
@@ -56,11 +63,18 @@ class MeasureService {
         return groupVertex.save()
     }
 
+    /** Соединяем две вершины типа {MeasureGroupVertex} двусторонней связью типа {MeasureGroupEdge}.
+     *  Пример:   LengthGroup <----> SpeedGroup]
+     * */
     fun linkGroupsBidirectional(first: MeasureGroup<*>, second: MeasureGroup<*>, session: ODatabaseDocument) {
         linkGroups(first, second, session)
         linkGroups(second, first, session)
     }
 
+
+    /** Соединяем две вершины типа {MeasureGroupVertex} односторонней связью типа {MeasureGroupEdge}.
+     *  Пример:   LengthGroup ----> SpeedGroup]
+     * */
     fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>, session: ODatabaseDocument): OEdge? {
         val firstVertexGroup = findMeasureGroup(source.name, session) ?: return null
         val secondVertexGroup = findMeasureGroup(target.name, session) ?: return null
