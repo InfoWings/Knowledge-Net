@@ -6,11 +6,11 @@
 
     <tx:annotation-driven/>
 
-    <bean id="userAcceptService" class="com.infowings.catalog.auth.UserAcceptService">
+    <bean id="userAcceptService" class="com.infowings.common.catalog.auth.UserAcceptService">
         <constructor-arg ref="orientDatabase"/>
     </bean>
 
-    <bean id="orientDatabase" class="com.infowings.catalog.storage.OrientDatabase">
+    <bean id="orientDatabase" class="com.infowings.common.catalog.storage.OrientDatabase">
         <constructor-arg name="url" value="${orient.url}"/>
         <constructor-arg name="database" value="${orient.database}"/>
         <constructor-arg name="user" value="${orient.user}"/>
@@ -18,14 +18,14 @@
         <constructor-arg name="dropBefore" value="${orient.drop-before}"/>
     </bean>
 
-    <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
+    <bean id="metadataService" class="com.infowings.common.catalog.data.AspectService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="measuerService"/>
     </bean>
 
-    <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
+    <bean id="aspectApi" class="com.infowings.common.catalog.external.AspectApi">
         <constructor-arg ref="metadataService"/>
     </bean>
 
-    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService"/>
+    <bean id="measuerService" class="com.infowings.common.catalog.data.MeasureService"/>
 </beans>

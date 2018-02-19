@@ -1,6 +1,6 @@
 package core.process
 
-import com.infowings.common.SubjectInstanceDto
+import com.infowings.common.catalog.SubjectInstanceDto
 import core.process.tree.tree
 import react.RBuilder
 import react.RComponent

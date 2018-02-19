@@ -1,6 +1,6 @@
 package core.process.item
 
-import com.infowings.common.SubjectInstanceDto
+import com.infowings.common.catalog.SubjectInstanceDto
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.a

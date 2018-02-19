@@ -1,8 +1,8 @@
 package core.process.tree
 
+import com.infowings.common.catalog.utils.plainObj
 import react.RBuilder
 import react.RProps
-import utils.plainObj
 import wrappers.Grid
 
 
