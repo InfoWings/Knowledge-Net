@@ -4,6 +4,21 @@ import react.RClass
 import react.RProps
 import react.ReactElement
 
+
+/**
+ * Base interface representing "props" in ReactTable component.
+ *
+ * ReactTable component documentation on github: https://github.com/react-tools/react-table
+ * ReactTable typescript definitions on github: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-table
+ *
+ * Most of the props have defaults, so none of the props are mandatory except #data and #columns
+ *
+ * Note: Current implementation of external interface is not complete (regarding to library), so feel free to add new
+ * types (instead of dynamics) when it is needed
+ *
+ * Possible improvements: add specialization to interface (RTableProps<T>) where T is a type of a row (var data: Array<T>)
+ *
+ */
 external interface RTableProps : RProps {
     var data: Array<out Any>
     var loading: Boolean
@@ -111,6 +126,13 @@ external interface RTableProps : RProps {
     var rowsText: String     // Default: 'rows',
 }
 
+/**
+ * Descriptor of a column in RTableProps. Can describe column defaults in RTableProps#column prop or specific column
+ * in RTableProps#columns.
+ *
+ * Note: Current implementation of external interface is not complete (regarding to library), so feel free to add new
+ * types (instead of dynamics) when it is needed
+ */
 external interface RTableColumnDescriptor {
     //Renderers
     var Cell: RClass<RTableRendererProps>
@@ -161,7 +183,19 @@ external interface RTableColumnDescriptor {
     var defaultSortDesc: dynamic // Function signature ???
 }
 
-fun RTableColumnDescriptor(): RTableColumnDescriptor = js("({})")
+/**
+ * Creator function of a RTableColumnDescriptor.
+ * Motivation behind such implementation is that some properties may not be provided by the user of a library. In such
+ * case the default value will be substituted. In case of implementation of the external interface there are problems
+ * such as responsibility to implement all the methods declared in the interface, and also see issues with changed
+ * property names in implemented classes.
+ *
+ * Note: This function is safe for writing into newly created object but it is not safe for reading from it.
+ * So the intention is only to create new configuration of a column by writing in a builder (NOT to read from object)
+ */
+@Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+inline fun RTableColumnDescriptor(builder: RTableColumnDescriptor.() -> Unit): RTableColumnDescriptor =
+        (js("({})") as RTableColumnDescriptor).apply(builder)
 
 external interface RTableRendererProps : RProps {
     var row: dynamic // the materialized row of data

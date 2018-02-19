@@ -16,7 +16,7 @@ val cellComponent = rFunction<RTableRendererProps>("LoggingCell") { rTableRender
 }
 
 fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, cell: RClass<RTableRendererProps>) =
-        RTableColumnDescriptor().apply {
+        RTableColumnDescriptor {
             this.accessor = accessor
             this.Header = header
             this.Cell = cell
