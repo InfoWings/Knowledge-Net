@@ -67,7 +67,7 @@ val MassGroup = MeasureGroup("Mass", listOf(Gram, Milligram, Kilogram, Ton, Poun
 /** PowerEnergy group */
 val Watt = createBigDecimalMeasure("Watt", "W", 1.0)
 val Kilowatt = createBigDecimalMeasure("Kilowatt", "kW", 1000.0)
-val Horsepower = createBigDecimalMeasure("Horsepower", "hp", 745.7)
+val Horsepower = createBigDecimalMeasure("Horsepower", "hp", 745.699872)
 val VoltAmpere = createBigDecimalMeasure("Volt-ampere", "VA", 1.0)
 
 val PowerEnergyGroup = MeasureGroup("PowerEnergy", listOf(Watt, Kilowatt, Horsepower, VoltAmpere), Watt)
@@ -110,8 +110,8 @@ val Celsius = createBigDecimalMeasure("Celsius", "c", 1.0)
 val Fahrenheit = Measure<BigDecimal>(
     "Fahrenheit",
     "f",
-    { (it - BigDecimal(32)) * (BigDecimal(5 / 9)) },
-    { it * BigDecimal(1.8) + BigDecimal(32) },
+        { (it - BigDecimal(32)) * (BigDecimal(5.0 / 9.0)) },
+        { it * BigDecimal(1.8) + BigDecimal(32.0) },
     BaseType.Decimal
 )
 
@@ -181,7 +181,7 @@ val HumanGroup = MeasureGroup("Human", listOf(Human), Human)
 /** UK money group */
 val Penny = createBigDecimalMeasure("Penny", "p", 0.01)
 val PoundMoney = createBigDecimalMeasure("Pound(money)", "£", 1.0)
-val UKMoneyGroup = MeasureGroup("UKMoneyGroup", listOf(Penny, PoundMoney), PoundMass)
+val UKMoneyGroup = MeasureGroup("UKMoneyGroup", listOf(Penny, PoundMoney), PoundMoney)
 
 /** USA money group */
 val CentAmerican = createBigDecimalMeasure("Cent(USA)", "c", 0.01)

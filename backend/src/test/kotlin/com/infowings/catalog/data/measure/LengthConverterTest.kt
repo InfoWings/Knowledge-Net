@@ -8,7 +8,7 @@ import java.math.BigDecimal
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
-class LengthMeasureConverterTest {
+class LengthConverterTest {
 
     @Test
     fun kilometreToMetreAndViseVersaTest() = toMetreTest(120.0, 120000.0, Kilometre)

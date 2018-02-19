@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
-class SpeedMeasureConverterTest {
+class SpeedConverterTest {
     @Test
     fun kilometrePerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(14.3, 14300.0, KilometrePerSecond)
 

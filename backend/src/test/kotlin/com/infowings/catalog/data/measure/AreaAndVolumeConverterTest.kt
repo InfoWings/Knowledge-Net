@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
-class AreaAndVolumeMeasureConverterTest {
+class AreaAndVolumeConverterTest {
 
     @Test
     fun hectareToSquareMetreAndViseVersaTest() = toSquareMetreTest(120.0, 1200000.0, Hectare)

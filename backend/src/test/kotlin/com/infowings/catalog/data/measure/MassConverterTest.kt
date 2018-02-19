@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
-class MassMeasureConverterTest {
+class MassConverterTest {
 
     @Test
     fun gramToKilogramTest() = toKilogramTest(123.0, 0.123, Gram)
