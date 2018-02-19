@@ -1,5 +1,6 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.common.catalog.data.AspectData
 import com.infowings.common.catalog.data.AspectPropertyData
@@ -14,33 +15,36 @@ class AspectService(private val database: OrientDatabase, private val measureSer
 
     private fun save(
         name: String,
-        measureUnit: Measure<*>?,
+        measure: Measure<*>?,
         baseType: BaseType?,
         properties: Set<AspectPropertyData>
     ): Aspect {
+        logger.debug("Adding aspect $name, $measure, $baseType, ${properties.size}")
         val save: OVertex = transaction(database) { session ->
-            val measureVertex: OVertex? = measureUnit?.name?.let { measureService.findMeasure(it, session) }
+            val measureVertex: OVertex? = measure?.name?.let { measureService.findMeasure(it, session) }
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
             aspectVertex["name"] = name
-            aspectVertex["baseType"] = baseType?.name ?: measureUnit?.baseType?.name
-            aspectVertex["measure"] = measureUnit?.name
+            aspectVertex["baseType"] = baseType?.name ?: measure?.baseType?.name
+            aspectVertex["measure"] = measure?.name
             measureVertex?.let { aspectVertex.addEdge(it, MEASURE_ASPECT_CLASS) }
 
             val props: List<OVertex> = properties.map { vertex ->
                 saveAspectProperty(AspectProperty("", vertex.name, findById(vertex.aspectId, session), AspectPropertyPower.valueOf(vertex.power)), session)
             }
 
-//            for (prop in props) {
-//                aspectVertex.addEdge(prop, ASPECT_ASPECTPROPERTY_EDGE)
-//            }
+            for (prop in props) {
+                aspectVertex.addEdge(prop, ASPECT_ASPECTPROPERTY_EDGE)
+            }
 
             return@transaction aspectVertex.save()
         }
+        logger.trace("Aspect $name saved with id: ${save.id}")
         return findById(save.id)
     }
 
     internal fun saveAspectProperty(property: AspectProperty, session: ODatabaseDocument): OVertex {
+        logger.trace("Adding aspect property ${property.name} for aspect ${property.aspect.id}")
         val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
 
         aspectPropertyVertex["name"] = property.name
@@ -52,7 +56,9 @@ class AspectService(private val database: OrientDatabase, private val measureSer
 
         aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE)
 
-        return aspectPropertyVertex.save()
+        return aspectPropertyVertex.save<OVertex>().also {
+            logger.trace("Saved aspect property ${property.name} with temporary id: ${it.id}")
+        }
     }
 
     fun loadAspectProperty(id: String, session: ODatabaseDocument): AspectProperty =
@@ -134,6 +140,7 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         AspectProperty(id, name, findById(aspect, session), AspectPropertyPower.valueOf(this["power"]))
 }
 
+private val logger = loggerFor<AspectService>()
 
 object AspectAlreadyExist : Throwable()
 
