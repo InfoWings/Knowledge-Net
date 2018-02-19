@@ -60,7 +60,7 @@ val Gram = createBigDecimalMeasure("Gram", "g", 0.001)
 val Milligram = createBigDecimalMeasure("Milligram", "mg", 1e-6)
 val Kilogram = createBigDecimalMeasure("Kilogram", "kg", 1.0)
 val Ton = createBigDecimalMeasure("Ton", "tn", 1000.0)
-val PoundMass = createBigDecimalMeasure("Pound(mass)", "lb", 0.45359237)
+val PoundMass = createBigDecimalMeasure("Pound(mass)", "lb", 0.4535923)
 
 val MassGroup = MeasureGroup("Mass", listOf(Gram, Milligram, Kilogram, Ton, PoundMass), Kilogram)
 
