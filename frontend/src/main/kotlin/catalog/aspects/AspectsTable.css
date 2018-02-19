@@ -1,9 +1,14 @@
-.react-grid-edit {
-  color: black !important;
+.rtable-input {
+  outline: none;
+  border: none;
+  border-radius: 3px;
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  width: 100%;
 }
 
-.react-grid-edit input {
-  margin: 0;
-  border: 0;
-  background-color: transparent;
+.rtable-input:focus {
+  border: 1px solid darkgreen;
+
 }
