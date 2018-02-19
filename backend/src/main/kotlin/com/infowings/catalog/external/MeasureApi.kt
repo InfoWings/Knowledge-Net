@@ -1,6 +1,5 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.data.Measure
 import com.infowings.catalog.data.MeasureGroup
 import com.infowings.catalog.data.MeasureGroupMap
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/measure")
-class MeasureApi(val aspectService: AspectService) {
+class MeasureApi {
 
     @GetMapping("all")
     fun getAllMeasures(): List<MeasureGroupData> = MeasureGroupMap.values.map { it.toDto() }
