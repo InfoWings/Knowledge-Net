@@ -1,4 +1,4 @@
-package wrappers.table
+package com.infowings.common.catalog.wrappers.table
 
 import react.RClass
 import react.RProps
