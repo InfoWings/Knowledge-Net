@@ -13,6 +13,9 @@ import com.orientechnologies.orient.core.record.impl.ODocument
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
+const val ASPECT_PROPERTY_CLASS = "AspectProperty"
+const val ASPECT_ASPECTPROPERTY_EDGE = "AspectPropertyEdge"
+const val MEASURE_ASPECT_CLASS = "AspectToMeasure"
 
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
@@ -33,7 +36,12 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer {
         logger.info("Init aspects")
-        session.createClassIfNotExist(ASPECT_CLASS)
+        if (session.getClass(ASPECT_CLASS) == null) {
+            session.createVertexClass(ASPECT_CLASS)
+            session.createVertexClass(ASPECT_PROPERTY_CLASS)
+            session.createEdgeClass(MEASURE_ASPECT_CLASS)
+            session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+        }
         return this
     }
 
@@ -55,6 +63,15 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         }
         if (session.getClass(MEASURE_BASE_AND_GROUP_EDGE) == null) {
             session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
+        }
+        /** Add initial measures to database */
+        val localMeasureService = MeasureService()
+        transactionUnsafe(session) { db ->
+            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, db) }
+//            if (lengthGroupVertex != null && speedGroupVertex != null) {
+//                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
+//            }
         }
         return this
     }
@@ -79,25 +96,4 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         user.setProperty("role", role)
         user.save<ORecord>()
     }
-
-    /** Init measure and all linked measures */
-//    private fun initMeasureVertex(measure: BaseMeasureUnit<*, *>, initializedVertex: MutableMap<String, OVertex>): OVertex {
-//        if (initializedVertex[measure.toString()] == null) {
-//            val measureVertex: OVertex = session.newVertex(MEASURE_VERTEX_CLASS)
-//            initializedVertex[measure.toString()] = measureVertex
-//            measureVertex.setProperty("name", measure.name())
-//            measureVertex.save<ORecord>()
-//            measure.linkedTypes.forEach {
-//                val childVertex = initMeasureVertex(it, initializedVertex)
-//                val addedBefore = measureVertex.getEdges(ODirection.OUT).any {
-//                    it.to.getProperty<String>("name") == childVertex.getProperty<String>("name")
-//                }
-//                if (!addedBefore) {
-//                    measureVertex.addEdge(childVertex, MEASURE_EDGE_CLASS).save<ORecord>()
-//                }
-//            }
-//            return measureVertex
-//        }
-//        return initializedVertex[measure.toString()]!!
-//    }
 }

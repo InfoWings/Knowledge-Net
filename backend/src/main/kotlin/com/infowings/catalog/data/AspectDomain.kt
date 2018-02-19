@@ -13,14 +13,14 @@ sealed class AspectDomain(val baseType: BaseType) {
  */
 class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
     override fun contains(value: Any?): Boolean {
-        if (value == null)
+        if (value == null || value !is BaseType)
             return true
 
-        if (baseType.clazz != null) {
-            return value::class == baseType.clazz
-        }
+        return BaseType.getTypeClass(baseType.name) == BaseType.getTypeClass(value.name)
+    }
 
-        return false
+    override fun toString(): String {
+        return "OpenDomain of $baseType"
     }
 
     override fun equals(other: Any?): Boolean {
