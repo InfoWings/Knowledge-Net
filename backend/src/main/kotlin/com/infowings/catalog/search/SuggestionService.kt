@@ -12,21 +12,21 @@ import java.util.stream.Stream
  */
 class SuggestionService(val database: OrientDatabase) {
 
-    fun find(user: String, text: String): List<MeasureSuggestionDto> =
-            findInDb(user, text)
+    fun find(context: SearchContext, text: String): List<MeasureSuggestion> =
+            findInDb(context, text)
                     .map { toMeasureSuggestionDto(it) }
                     .collect(Collectors.toList())
 
-    private fun toMeasureSuggestionDto(oElement: OElement?): MeasureSuggestionDto =
+    private fun toMeasureSuggestionDto(oElement: OElement?): MeasureSuggestion =
             when (oElement) {
                 is OVertex -> vertexToMeasureSuggestionDto(oElement)
                 else -> throw IllegalStateException("Wrong measure unit $oElement")
             }
 
-    private fun vertexToMeasureSuggestionDto(oVertex: OVertex): MeasureSuggestionDto =
-            MeasureSuggestionDto(oVertex.getProperty("name"))
+    private fun vertexToMeasureSuggestionDto(oVertex: OVertex): MeasureSuggestion =
+            MeasureSuggestion(oVertex.getProperty("name"))
 
-    private fun findInDb(user: String, text: String): Stream<OElement> {
+    private fun findInDb(context: SearchContext, text: String): Stream<OElement> {
         val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
         database.acquire().query(q, "($text~) ($text*) (*$text*)").use {
             return it.elementStream()

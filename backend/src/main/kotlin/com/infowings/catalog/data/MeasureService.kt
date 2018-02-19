@@ -34,7 +34,7 @@ class MeasureService {
     fun saveGroup(group: MeasureGroup<*>, session: ODatabaseDocument): OVertex? = transactionUnsafe(session) {
         if (findMeasureGroup(group.name, session) != null) {
             loggerFor<MeasureService>().info("Group with name ${group.name} already exist in db")
-            return null
+            null
         }
         val groupVertex = session.newVertex(MEASURE_GROUP_VERTEX)
         groupVertex.setProperty("name", group.name)
@@ -45,7 +45,7 @@ class MeasureService {
             createMeasure(it.name, session).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
         }
         baseVertex.save<ORecord>()
-        return groupVertex.save()
+        groupVertex.save()
     }
 
     private fun createMeasure(measureName: String, session: ODatabaseDocument): OVertex {

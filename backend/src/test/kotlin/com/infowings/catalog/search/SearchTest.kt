@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-class SearchControllerTest {
+class SearchTest {
 
     @Autowired
     lateinit var suggestionService: SuggestionService;
@@ -21,7 +21,8 @@ class SearchControllerTest {
     @Test
     fun measureSuggestion() {
         val queryText = "metr"
-        val res = suggestionService.find("", queryText)
+        val context = SearchContext("", emptyList(), emptyList())
+        val res = suggestionService.find(context, queryText)
 
         println("find result size: ${res.size}")
         assertFalse(res.isEmpty())
