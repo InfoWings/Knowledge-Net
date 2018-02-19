@@ -10,14 +10,11 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/api/search")
-class SearchController {
-
-    @Autowired
-    lateinit var suggestionService: SuggestionService
+class SearchController(val suggestionService: SuggestionService) {
 
     /**
      * Полнотекстовый поиск по измеряемым величинам и единицам измерения
      */
     @GetMapping("/measure/suggestion")
-    fun measureSuggestion(user: String, text: String) : List<MeasureSuggestionDto> = suggestionService.find(user, text)
+    fun measureSuggestion(user: String, text: String): List<MeasureSuggestionDto> = suggestionService.find(user, text)
 }

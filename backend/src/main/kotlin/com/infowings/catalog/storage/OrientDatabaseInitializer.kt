@@ -2,11 +2,14 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
+import com.orientechnologies.common.listener.OProgressListener
 import com.orientechnologies.orient.core.db.ODatabaseSession
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
+import com.orientechnologies.orient.core.record.impl.ODocument
+
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
@@ -52,6 +55,18 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         }
         if (session.getClass(MEASURE_BASE_AND_GROUP_EDGE) == null) {
             session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
+        }
+        return this
+    }
+
+    /** Initializes measures */
+    fun initMeasuresSearch(): OrientDatabaseInitializer {
+        val iName = "$MEASURE_VERTEX.lucene.name"
+        val oClass = session.getClass(MEASURE_VERTEX)
+        if (oClass.getClassIndex(iName) == null) {
+            val metadata = ODocument()
+            metadata.setProperty("allowLeadingWildcard", true)
+            CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
         }
         return this
     }
