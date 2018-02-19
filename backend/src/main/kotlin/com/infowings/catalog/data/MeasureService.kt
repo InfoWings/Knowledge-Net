@@ -15,6 +15,12 @@ const val MEASURE_GROUP_EDGE = "MeasureGroupEdge"
 const val MEASURE_BASE_EDGE = "MeasureEdge"
 const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureGroupEdge"
 
+/**
+ * Измерения делятся на группы. Каждая группа имеет название и базовый элемент.
+ * Например для группы Длинна базовый элемент - 'метр'. 'Километр', 'сантиметр'
+ * и остальные элементы группы ссылаются на базовый. Связь измерение <-> базовый имеет тип {MEASURE_BASE_EDGE}
+ * Базовый <-> группа имеет тип {MEASURE_GROUP_EDGE}. Связь между группами - {MEASURE_GROUP_EDGE}
+ * */
 class MeasureService {
 
     fun findMeasureGroup(groupName: String, session: ODatabaseDocument): OVertex? {
