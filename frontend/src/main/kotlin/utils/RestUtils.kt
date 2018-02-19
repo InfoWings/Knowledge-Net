@@ -63,14 +63,16 @@ suspend fun parseToken(response: Response) {
 suspend fun getResponseText(url: String): String {
     var response = get(url, null, headers)
     if (!response.ok) {
+        var refreshed = false
         try {
-            refresh()
+            refreshed = refresh()
         } catch (e: Exception) {
             removeTokenInfo()
             window.location.replace("/")
         }
         response = get(url, null, headers)
-        if (response.status.toInt() == 403 || response.status.toInt() == 401) {
+        //if unauthorized or forbidden
+        if (!refreshed || response.status.toInt() in listOf(401, 403)) {
             removeTokenInfo()
             window.location.replace("/")
         }
@@ -83,11 +85,12 @@ val headers = json(
     "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
 )
 
-suspend fun refresh() {
+private suspend fun refresh(): Boolean {
     val response = get("/api/access/refresh", null, headers)
     if (response.ok) {
         parseToken(response)
     }
+    return response.ok
 }
 
 fun removeTokenInfo() {
