@@ -83,12 +83,11 @@ val headers = json(
     "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
 )
 
-suspend fun refresh(): Boolean {
+suspend fun refresh() {
     val response = get("/api/access/refresh", null, headers)
     if (response.ok) {
         parseToken(response)
     }
-    return response.ok
 }
 
 fun removeTokenInfo() {
