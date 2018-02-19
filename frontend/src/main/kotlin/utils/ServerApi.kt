@@ -4,7 +4,6 @@ package utils
 import com.infowings.common.JwtToken
 import com.infowings.common.UserDto
 import kotlinx.coroutines.experimental.await
-import kotlinx.serialization.json.JSON as KJSON
 import org.w3c.dom.get
 import org.w3c.dom.set
 import org.w3c.fetch.RequestCredentials
@@ -12,7 +11,9 @@ import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import kotlin.browser.localStorage
 import kotlin.browser.window
+import kotlin.js.JSON
 import kotlin.js.json
+import kotlinx.serialization.json.JSON as KJSON
 
 private const val POST = "POST"
 private const val GET = "GET"
@@ -21,16 +22,48 @@ private const val AUTH_ACCESS_TOKEN = "auth-access-token"
 private const val AUTH_REFRESH_TOKEN = "auth-refresh-token"
 private const val AUTH_ROLE = "auth-role"
 
+/**
+ * Http POST request to server.
+ * Return object of type T which is obtained by parsing response text.
+ */
+suspend fun <T> post(url: String, body: dynamic): T {
+    return JSON.parse(authorizedRequest(POST, url, body).text().await())
+}
+
+/**
+ * Http GET request to server.
+ * Return object of type T which is obtained by parsing response text.
+ */
+suspend fun <T> get(url: String, body: dynamic = null): T {
+    return JSON.parse(authorizedRequest(GET, url, body).text().await())
+}
+
+/**
+ * Http request to server with authorization headers.
+ */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body, authorizationHeaders)
 
     if (!response.ok) {
-        response = refreshAndRepeat(method, url, body, response)
+        response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
 
     return response
 }
 
+/**
+ * Authorization headers:
+ *  1. authorization access token
+ *  2. authorization refresh token
+ */
+private val authorizationHeaders = json(
+    "x-access-authorization" to "Bearer ${localStorage[AUTH_ACCESS_TOKEN]}",
+    "x-refresh-authorization" to "Bearer ${localStorage[AUTH_REFRESH_TOKEN]}"
+)
+
+/**
+ * Generic request to server with default headers.
+ */
 private suspend fun request(method: String, url: String, body: dynamic, headers: dynamic = defaultHeaders): Response =
     window.fetch(url, object : RequestInit {
         override var method: String? = method
@@ -39,18 +72,23 @@ private suspend fun request(method: String, url: String, body: dynamic, headers:
         override var headers: dynamic = headers
     }).await()
 
-private val authorizationHeaders = json(
-    "x-access-authorization" to "Bearer ${localStorage[AUTH_ACCESS_TOKEN]}",
-    "x-refresh-authorization" to "Bearer ${localStorage[AUTH_REFRESH_TOKEN]}"
-)
-
 private val defaultHeaders = json(
     "Accept" to "application/json",
     "Content-Type" to "application/json;charset=UTF-8"
 )
 
-private suspend fun refreshAndRepeat(method: String, url: String, body: dynamic, oldResponse: Response): Response {
-    val isRefreshed = refresh()
+/**
+ * Method that try to refresh token and repeat request.
+ * If refreshing was successful then return response to repeat request,
+ * else replace window location to root.
+ */
+private suspend fun refreshTokenAndRepeatRequest(
+    method: String,
+    url: String,
+    body: dynamic,
+    oldResponse: Response
+): Response {
+    val isRefreshed = refreshToken()
     if (isRefreshed) {
         return request(method, url, body, authorizationHeaders)
     }
@@ -59,25 +97,19 @@ private suspend fun refreshAndRepeat(method: String, url: String, body: dynamic,
     return oldResponse
 }
 
-suspend fun <T> post(url: String, body: dynamic): T {
-    return JSON.parse(authorizedRequest(POST, url, body).text().await())
+private suspend fun refreshToken(): Boolean {
+    val response = authorizedRequest(GET, "/api/access/refresh", null)
+    if (response.ok) {
+        val isParsed = parseToken(response)
+        return isParsed
+    }
+    return false
 }
 
-suspend fun <T> get(url: String, body: dynamic = null): T {
-    return JSON.parse(authorizedRequest(GET, url, body).text().await())
-}
-
-suspend fun <T> postAndParseResult(url: String, body: dynamic, parse: (dynamic) -> T): T =
-    requestAndParseResult(POST, url, body, parse)
-
-suspend fun <T> getAndParseResult(url: String, body: dynamic, parse: (dynamic) -> T): T =
-    requestAndParseResult(GET, url, body, parse)
-
-private suspend fun <T> requestAndParseResult(method: String, url: String, body: dynamic, parse: (dynamic) -> T): T {
-    val response = authorizedRequest(method, url, body)
-    return parse(response.json().await())
-}
-
+/**
+ * Method for login to server.
+ * After success login authorization token saved in local storage
+ */
 suspend fun login(body: UserDto): Boolean {
     val response = request(POST, "/api/access/signIn", JSON.stringify(body))
     if (response.ok) {
@@ -98,15 +130,6 @@ private suspend fun parseToken(response: Response): Boolean {
     } catch (e: Exception) {
         return false
     }
-}
-
-private suspend fun refresh(): Boolean {
-    val response = authorizedRequest(GET, "/api/access/refresh", null)
-    if (response.ok) {
-        val isParsed = parseToken(response)
-        return isParsed
-    }
-    return false
 }
 
 private fun removeTokenInfo() {
