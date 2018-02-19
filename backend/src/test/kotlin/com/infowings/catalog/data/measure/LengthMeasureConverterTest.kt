@@ -21,6 +21,7 @@ class LengthMeasureConverterTest {
 
     @Test
     fun millimetreToMetreAndViseVersaTest() = toMetreTest(0.1, 0.0001, Millimetre)
+
     @Test
     fun micrometreToMetreAndViseVersaTest() = toMetreTest(669.0, 0.000669, Micrometre)
 
@@ -39,10 +40,5 @@ class LengthMeasureConverterTest {
     @Test
     fun feetToMetreTest() = toMetreTest(23.6, 7.19328, Feet)
 
-    private fun toMetreTest(source: Double, sourceInMetre: Double, measure: Measure<BigDecimal>) {
-        val sourceBigDecimal = BigDecimal(source)
-        val metreValue = measure.toBase(sourceBigDecimal)
-        assertEquals("Converting ${measure.symbol} to m fails", metreValue, BigDecimal(sourceInMetre))
-        assertEquals("Converting m to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(metreValue))
-    }
+    private fun toMetreTest(source: Double, sourceInMetre: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInMetre, measure, LengthGroup.base)
 }

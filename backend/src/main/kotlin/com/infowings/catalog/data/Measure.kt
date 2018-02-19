@@ -47,10 +47,10 @@ val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), S
 val CubicMetre = createBigDecimalMeasure("CubicMetre", "m^3", 1.0)
 val CubicMillimetre = createBigDecimalMeasure("CubicMillimetre", "millimetre^3", 1E-9)
 val Litre = createBigDecimalMeasure("Litre", "litre", 0.001)
-val CubicDecimetre = createBigDecimalMeasure("CubicDecimetre", "dm^3", 1000.0)
+val CubicDecimetre = createBigDecimalMeasure("CubicDecimetre", "dm^3", 0.001)
 val CubicCentimetre = createBigDecimalMeasure("CubicCentimetre", "cm^3", 0.000001)
 val CubicInch = createBigDecimalMeasure("CubicInch", "inch^2", 1.6387e-5)
-val Pint = createBigDecimalMeasure("Pint", "pint", 0.0005682612)
+val Pint = createBigDecimalMeasure("Pint", "pint", 0.0004731765)
 val Gallon = createBigDecimalMeasure("Gallon", "gallon", 0.00378541178)
 
 val VolumeGroup = MeasureGroup("Volume", listOf(CubicMetre, CubicCentimetre, CubicDecimetre, CubicMillimetre, CubicInch, Litre, Pint, Gallon), CubicMetre)

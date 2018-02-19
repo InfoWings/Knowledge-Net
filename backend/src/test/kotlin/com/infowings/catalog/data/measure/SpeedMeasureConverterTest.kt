@@ -23,10 +23,5 @@ class SpeedMeasureConverterTest {
     @Test
     fun knotToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(13.0, 6.68777, Knot)
 
-    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) {
-        val sourceBigDecimal = BigDecimal(source)
-        val metrePerSecondValue = measure.toBase(sourceBigDecimal)
-        assertEquals("Converting ${measure.symbol} to m/s fails", metrePerSecondValue, BigDecimal(sourceInMetrePerSecond))
-        assertEquals("Converting m/s to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(metrePerSecondValue))
-    }
+    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInMetrePerSecond, measure, SpeedGroup.base)
 }
