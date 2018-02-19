@@ -1,8 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.data.Aspect
 import com.infowings.catalog.data.AspectService
+import com.infowings.catalog.loggerFor
+import com.infowings.common.catalog.data.AspectData
 import org.springframework.web.bind.annotation.*
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
@@ -12,9 +13,9 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(name: String, measureUnit: String?, baseType: String?): Aspect {
-        logger.info("New aspect create request: $name, $measureUnit, $baseType")
-        return aspectService.createAspect(name, measureUnit, baseType)
+    fun createAspect(aspectData: AspectData): Aspect {
+        logger.info("New aspect create request: $aspectData")
+        return aspectService.createAspect(aspectData)
     }
 
 //    @PostMapping("create/property")

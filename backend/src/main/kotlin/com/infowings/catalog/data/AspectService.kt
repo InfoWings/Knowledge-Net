@@ -1,17 +1,24 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.storage.*
+import com.infowings.common.catalog.data.AspectData
+import com.infowings.common.catalog.data.AspectPropertyData
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 
 
 class AspectService(private val database: OrientDatabase, private val measureService: MeasureService) {
 
-    private fun save(name: String, measureUnit: Measure<*>?, baseType: BaseType?): Aspect {
+    private fun save(
+        name: String,
+        measureUnit: Measure<*>?,
+        baseType: BaseType?,
+        properties: Set<AspectPropertyData>
+    ): Aspect {
         val save: OVertex = transaction(database) { session ->
-
             val measureVertex: OVertex? = measureUnit?.name?.let { measureService.findMeasure(it, session) }
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
@@ -19,6 +26,14 @@ class AspectService(private val database: OrientDatabase, private val measureSer
             aspectVertex["baseType"] = baseType?.name ?: measureUnit?.baseType?.name
             aspectVertex["measure"] = measureUnit?.name
             measureVertex?.let { aspectVertex.addEdge(it, MEASURE_ASPECT_CLASS) }
+
+            val props: List<OVertex> = properties.map { vertex ->
+                saveAspectProperty(AspectProperty("", vertex.name, findById(vertex.aspectId, session), AspectPropertyPower.valueOf(vertex.power)), session)
+            }
+
+//            for (prop in props) {
+//                aspectVertex.addEdge(prop, ASPECT_ASPECTPROPERTY_EDGE)
+//            }
 
             return@transaction aspectVertex.save()
         }
@@ -35,25 +50,23 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         val aspectVertex: OVertex = session.getVertexById(property.aspect.id)
                 ?: throw IllegalStateException("No aspect with id: ${property.aspect.id}")
 
-        val saved = aspectPropertyVertex.save<OVertex>()
-        aspectVertex.addEdge(saved, ASPECT_ASPECTPROPERTY_EDGE)
-        aspectVertex.save<OVertex>()
+        aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE)
 
-        return saved
+        return aspectPropertyVertex.save()
     }
 
     fun loadAspectProperty(id: String, session: ODatabaseDocument): AspectProperty =
         session.getVertexById(id)?.toAspectProperty(session)
                 ?: throw IllegalArgumentException("No aspect property with id: $id")
 
-    fun createAspect(name: String, measureName: String?, baseTypeString: String?): Aspect {
-        if (findByName(name) != null)
+    fun createAspect(aspectData: AspectData): Aspect {
+        if (findByName(aspectData.name) != null)
             throw AspectAlreadyExist
 
-        val measure: Measure<*>? = GlobalMeasureMap[measureName]
+        val measure: Measure<*>? = GlobalMeasureMap[aspectData.measure]
 
         val baseType: BaseType? = when {
-            baseTypeString != null -> BaseType.restoreBaseType(baseTypeString)
+            aspectData.baseType != null -> BaseType.restoreBaseType(aspectData.baseType)
             measure != null -> measure.baseType
             else -> BaseType.Nothing
         }
@@ -61,26 +74,26 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         if (baseType != null && measure != null && baseType != measure.baseType)
             throw IllegalArgumentException("Base type and measure base type should be the same")
 
-        return save(name, measure, baseType)
+        return save(aspectData.name, measure, baseType, aspectData.properties)
     }
 
     fun findByName(name: String): Aspect? {
         val statement = "SELECT FROM Aspect where name = ? ";
 
-        return transaction(database) { db ->
-            val rs: OResultSet = db.query(statement, name);
+        return transaction(database) { session ->
+            val rs: OResultSet = session.query(statement, name);
             if (rs.hasNext()) {
-                return@transaction rs.next().toVertex().toAspect()
+                return@transaction rs.next().toVertex().toAspect(session)
             }
             return@transaction null
         }
     }
 
-    private fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect()
+    private fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect(session)
             ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
 
-    private fun findById(id: String): Aspect = transaction(database) { session ->
-        return@transaction session.getVertexById(id)?.toAspect()
+    fun findById(id: String): Aspect = transaction(database) { session ->
+        return@transaction session.getVertexById(id)?.toAspect(session)
                 ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
     }
 
@@ -107,7 +120,15 @@ class AspectService(private val database: OrientDatabase, private val measureSer
     private val OVertex.id: String
         get() = identity.toString()
 
-    private fun OVertex.toAspect(): Aspect = Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType)
+    private fun OVertex.toAspect(session: ODatabaseDocument): Aspect =
+        Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this, session))
+
+    private fun loadProperties(oVertex: OVertex, session: ODatabaseDocument): Set<AspectProperty> {
+        val vertexes = oVertex.getEdges(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).map { it.to }
+
+        return vertexes.map { loadAspectProperty(it.id, session) }.toSet()
+
+    }
 
     private fun OVertex.toAspectProperty(session: ODatabaseDocument): AspectProperty =
         AspectProperty(id, name, findById(aspect, session), AspectPropertyPower.valueOf(this["power"]))

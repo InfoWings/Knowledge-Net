@@ -3,6 +3,8 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
+import com.infowings.common.catalog.data.AspectData
+import com.infowings.common.catalog.data.AspectPropertyData
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -25,7 +27,9 @@ class AspectServicePropertyTest {
     fun testAddAspectProperty() {
         val aspectService = AspectService(database, measureService)
 
-        val createAspect: Aspect = aspectService.createAspect("newAspect", Kilometre.name, BaseType.Decimal.name)
+        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+
+        val createAspect: Aspect = aspectService.createAspect(ad)
 
         val aspectProperty = AspectProperty("", "property", createAspect, AspectPropertyPower.INFINITY)
 
@@ -36,6 +40,23 @@ class AspectServicePropertyTest {
         val loaded = transaction(database) { session -> aspectService.loadAspectProperty(saved, session) }
 
         assertThat("aspect property should be saved and restored", loaded.id, Is.`is`(saved))
+    }
+
+    @Test
+    fun testAddAspectProperties() {
+        val aspectService = AspectService(database, measureService)
+
+        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptySet())
+        val createAspect: Aspect = aspectService.createAspect(ad)
+
+        val property = AspectPropertyData("", "p", createAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, setOf(property))
+        val createAspect2: Aspect = aspectService.createAspect(ad2)
+
+        val loaded = aspectService.findById(createAspect2.id)
+
+        assertThat("aspect property should be saved and restored", loaded, Is.`is`(createAspect2))
     }
 
 

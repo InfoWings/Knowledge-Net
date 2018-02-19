@@ -67,9 +67,9 @@ enum class AspectPropertyPower {
 data class Aspect(
     val id: String,
     val name: String,
-    val measureUnit: Measure<*>?,
-    val domain: AspectDomain? = OpenDomain(measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-    val baseType: BaseType? = measureUnit?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
+    val measure: Measure<*>?,
+    val domain: AspectDomain? = OpenDomain(measure?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
+    val baseType: BaseType? = measure?.baseType ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
     val properties: Set<AspectProperty> = emptySet()
 )
 
