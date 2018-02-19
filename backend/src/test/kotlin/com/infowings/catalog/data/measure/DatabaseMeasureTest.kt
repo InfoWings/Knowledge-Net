@@ -1,8 +1,7 @@
 package com.infowings.catalog.data.measure
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.data.MeasureGroupMap
-import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
@@ -57,10 +56,21 @@ class DatabaseMeasureTest {
 
 
     @Test
-    fun measureDependencies() = database.acquire().use {
-        //        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
-//        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
-//        assertTrue("Length group must be linked with Speed group",
-//                lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!))
+    fun measureDirectDependencies() = database.acquire().use {
+        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
+        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
+        assertTrue("Length group must be linked with Speed group",
+                lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!))
+    }
+
+
+    @Test
+    fun measureTransitiveDependencies() = database.acquire().use {
+        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
+        val pressureGroupVertex = measureService.findMeasureGroup(PressureGroup.name, it)
+        assertTrue("Length group must not be linked with Pressure group directly",
+                !lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(pressureGroupVertex!!))
+        assertTrue("Length group must be linked by another vertex with Pressure group",
+                lengthGroupVertex.getVertices(ODirection.BOTH).flatMap { it.getVertices(ODirection.BOTH) }.contains(pressureGroupVertex))
     }
 }

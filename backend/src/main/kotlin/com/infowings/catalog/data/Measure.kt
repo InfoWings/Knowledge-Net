@@ -130,7 +130,7 @@ val FrequencyGroup = MeasureGroup("Frequency", listOf(Hertz, Kilohertz), Hertz)
 /** Pressure group */
 val Pascal = createBigDecimalMeasure("Pascal", "Pa", 1.0)
 val Atmosphere = createBigDecimalMeasure("Atmosphere", "atm", 101325.0)
-val KilogramPerSquareMetre = createBigDecimalMeasure("KilogramPerSquareMetre", "kg/m^3", 9.80665)
+val KilogramPerSquareMetre = createBigDecimalMeasure("KilogramPerSquareMetre", "kg/m^2", 9.80665)
 
 val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Atmosphere, KilogramPerSquareMetre), Pascal)
 

@@ -65,10 +65,20 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         val localMeasureService = MeasureService()
         transactionUnsafe(session) { db ->
             MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, db) }
-//            if (lengthGroupVertex != null && speedGroupVertex != null) {
-//                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
-//                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
-//            }
+            localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup, db)
+            localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup, db)
+            localMeasureService.linkGroupsBidirectional(SpeedGroup, LengthGroup, db)
+            localMeasureService.linkGroupsBidirectional(TorqueGroup, LengthGroup, db)
+            localMeasureService.linkGroupsBidirectional(PressureGroup, AreaGroup, db)
+            localMeasureService.linkGroupsBidirectional(DensityGroup, VolumeGroup, db)
+            localMeasureService.linkGroupsBidirectional(PressureGroup, MassGroup, db)
+            localMeasureService.linkGroupsBidirectional(DensityGroup, MassGroup, db)
+            localMeasureService.linkGroupsBidirectional(WorkEnergyGroup, PowerEnergyGroup, db)
+            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, LengthGroup, db)
+            localMeasureService.linkGroupsBidirectional(TorqueGroup, PowerGroup, db)
+            localMeasureService.linkGroupsBidirectional(PowerEnergyGroup, TimeGroup, db)
+            localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup, db)
+            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup, db)
         }
         return this
     }

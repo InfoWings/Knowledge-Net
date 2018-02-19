@@ -5,7 +5,7 @@ import org.junit.Assert
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-fun assertEquals(message: String, actual: BigDecimal, expected: BigDecimal) {
+internal fun assertEquals(message: String, actual: BigDecimal, expected: BigDecimal) {
     val scaledActual = actual.setScale(4, RoundingMode.HALF_UP)
     val scaledExpected = expected.setScale(4, RoundingMode.HALF_UP)
     if (scaledActual != scaledExpected) {
@@ -13,7 +13,7 @@ fun assertEquals(message: String, actual: BigDecimal, expected: BigDecimal) {
     }
 }
 
-fun measureTest(source: Double, sourceInBase: Double, measure: Measure<BigDecimal>, baseMeasure: Measure<BigDecimal>) {
+internal fun measureTest(source: Double, sourceInBase: Double, measure: Measure<BigDecimal>, baseMeasure: Measure<BigDecimal>) {
     val sourceBigDecimal = BigDecimal(source)
     val baseValue = measure.toBase(sourceBigDecimal)
     assertEquals("Converting ${measure.symbol} to ${baseMeasure.symbol} fails", baseValue, BigDecimal(sourceInBase))

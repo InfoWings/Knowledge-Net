@@ -3,6 +3,8 @@ package com.infowings.catalog.data
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.transactionUnsafe
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResultSet
@@ -46,6 +48,21 @@ class MeasureService {
         }
         baseVertex.save<ORecord>()
         return groupVertex.save()
+    }
+
+    fun linkGroupsBidirectional(first: MeasureGroup<*>, second: MeasureGroup<*>, session: ODatabaseDocument) {
+        linkGroups(first, second, session)
+        linkGroups(second, first, session)
+    }
+
+    fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>, session: ODatabaseDocument): OEdge? {
+        val firstVertexGroup = findMeasureGroup(source.name, session) ?: return null
+        val secondVertexGroup = findMeasureGroup(target.name, session) ?: return null
+        val addedBefore = firstVertexGroup.getEdges(ODirection.OUT, MEASURE_GROUP_EDGE).find { it.to.identity == secondVertexGroup.identity }
+        if (addedBefore != null) {
+            return addedBefore
+        }
+        return firstVertexGroup.addEdge(secondVertexGroup, MEASURE_GROUP_EDGE).save()
     }
 
     private fun createMeasure(measureName: String, session: ODatabaseDocument): OVertex {
