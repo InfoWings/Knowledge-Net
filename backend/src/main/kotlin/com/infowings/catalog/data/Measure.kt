@@ -1,5 +1,6 @@
 package com.infowings.catalog.data
 
+import com.infowings.common.BaseType
 import java.math.BigDecimal
 
 private fun createBigDecimalMeasure(name: String, symbol: String, coefficient: Double) =
