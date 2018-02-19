@@ -11,82 +11,38 @@ import java.math.BigDecimal
 class LengthMeasureConverterTest {
 
     @Test
-    fun kilometreToMetreAndViseVersaTest() {
-        val kmValue = BigDecimal(120)
-        val metreValue = Kilometre.toBase(kmValue)
-        assertEquals("Converting km to m fails", metreValue, BigDecimal(120000))
-        assertEquals("Converting m to km fails", kmValue, Kilometre.fromBase(metreValue))
-    }
+    fun kilometreToMetreAndViseVersaTest() = toMetreTest(120.0, 120000.0, Kilometre)
 
     @Test
-    fun decimetreToMetreAndViseVersaTest() {
-        val decimetreValue = BigDecimal(11)
-        val metreValue = Decimetre.toBase(decimetreValue)
-        assertEquals("Converting dm to m fails", metreValue, BigDecimal(1.1))
-        assertEquals("Converting m to dm fails", decimetreValue, Decimetre.fromBase(metreValue))
-    }
+    fun decimetreToMetreAndViseVersaTest() = toMetreTest(11.0, 1.1, Decimetre)
 
     @Test
-    fun centimetreToMetreAndViseVersaTest() {
-        val centimetreValue = BigDecimal(10)
-        val metreValue = Centimetre.toBase(centimetreValue)
-        assertEquals("Converting cm to m fails", metreValue, BigDecimal(0.1))
-        assertEquals("Converting m to cm fails", centimetreValue, Centimetre.fromBase(metreValue))
-    }
+    fun centimetreToMetreAndViseVersaTest() = toMetreTest(10.0, 0.1, Centimetre)
 
     @Test
-    fun millimetreToMetreAndViseVersaTest() {
-        val millimetreValue = BigDecimal(0.1)
-        val metreValue = Millimetre.toBase(millimetreValue)
-        assertEquals("Converting millimetre to m fails", metreValue, BigDecimal(0.0001))
-        assertEquals("Converting m to millimetre fails", millimetreValue, Millimetre.fromBase(metreValue))
-    }
+    fun millimetreToMetreAndViseVersaTest() = toMetreTest(0.1, 0.0001, Millimetre)
+    @Test
+    fun micrometreToMetreAndViseVersaTest() = toMetreTest(669.0, 0.000669, Micrometre)
 
     @Test
-    fun micrometreToMetreAndViseVersaTest() {
-        val microValue = BigDecimal(669)
-        val metreValue = Micrometre.toBase(microValue)
-        assertEquals("Converting micrometre to m fails", metreValue, BigDecimal(0.000669))
-        assertEquals("Converting m to micrometre fails", microValue, Micrometre.fromBase(metreValue))
-    }
+    fun nanometreToMetreAndViseVersaTest() = toMetreTest(120000.0, 0.00012, Nanometre)
 
     @Test
-    fun nanometreToMetreAndViseVersaTest() {
-        val nanoValue = BigDecimal(120000)
-        val metreValue = Nanometre.toBase(nanoValue)
-        assertEquals("Converting nanometre to m fails", metreValue, BigDecimal(0.00012))
-        assertEquals("Converting m to nanometre fails", nanoValue, Nanometre.fromBase(metreValue))
-    }
+    fun yardToMetreAndViseVersaTest() = toMetreTest(3.456, 3.160166, Yard)
 
     @Test
-    fun yardToMetreAndViseVersaTest() {
-        val yardValue = BigDecimal(3.456)
-        val metreValue = Yard.toBase(yardValue)
-        assertEquals("Converting yard to m fails", metreValue, BigDecimal(3.160166))
-        assertEquals("Converting m to yard fails", yardValue, Yard.fromBase(metreValue))
-    }
+    fun mileToMetreAndViseVersaTest() = toMetreTest(2.71, 4361.32224, Mile)
 
     @Test
-    fun mileToMetreAndViseVersaTest() {
-        val mileValue = BigDecimal(2.71)
-        val metreValue = Mile.toBase(mileValue)
-        assertEquals("Converting mile to m fails", metreValue, BigDecimal(4361.32224))
-        assertEquals("Converting m to mile fails", mileValue, Mile.fromBase(metreValue))
-    }
+    fun inchToMetreAndViseVersaTest() = toMetreTest(123.0, 3.12419, Inch)
 
     @Test
-    fun inchToMetreAndViseVersaTest() {
-        val inchValue = BigDecimal(123)
-        val metreValue = Inch.toBase(inchValue)
-        assertEquals("Converting inch to m fails", metreValue, BigDecimal(3.12419))
-        assertEquals("Converting m to inch fails", inchValue, Inch.fromBase(metreValue))
-    }
+    fun feetToMetreTest() = toMetreTest(23.6, 7.19328, Feet)
 
-    @Test
-    fun feetToMetreTest() {
-        val feetValue = BigDecimal(23.6)
-        val metreValue = Feet.toBase(feetValue)
-        assertEquals("Converting feet to m fails", metreValue, BigDecimal(7.19328))
-        assertEquals("Converting m to feet fails", feetValue, Feet.fromBase(metreValue))
+    private fun toMetreTest(source: Double, sourceInMetre: Double, measure: Measure<BigDecimal>) {
+        val sourceBigDecimal = BigDecimal(source)
+        val metreValue = measure.toBase(sourceBigDecimal)
+        assertEquals("Converting ${measure.symbol} to m fails", metreValue, BigDecimal(sourceInMetre))
+        assertEquals("Converting m to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(metreValue))
     }
 }

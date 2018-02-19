@@ -9,42 +9,24 @@ import java.math.BigDecimal
 @RunWith(SpringJUnit4ClassRunner::class)
 class SpeedMeasureConverterTest {
     @Test
-    fun kilometrePerSecondToMetrePerSecAndViseVersaTest() {
-        val kmPerSec = BigDecimal(14.3)
-        val metrePerSec = KilometrePerSecond.toBase(kmPerSec)
-        assertEquals("Converting k/s to m/s fails", metrePerSec, BigDecimal(14300))
-        assertEquals("Converting m/s to k/s fails", kmPerSec, KilometrePerSecond.fromBase(metrePerSec))
-    }
+    fun kilometrePerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(14.3, 14300.0, KilometrePerSecond)
 
     @Test
-    fun milePerHourToMetrePerSecAndViseVersaTest() {
-        val milePerHour = BigDecimal(2.71)
-        val metrePerSec = MilePerHour.toBase(milePerHour)
-        assertEquals("Converting mile/h to m/s fails", metrePerSec, BigDecimal(1.2114784))
-        assertEquals("Converting m/s to mile/h fails", milePerHour, MilePerHour.fromBase(metrePerSec))
-    }
+    fun milePerHourToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(2.71, 1.2114784, MilePerHour)
 
     @Test
-    fun inchPerSecondToMetrePerSecAndViseVersaTest() {
-        val inchPerSecond = BigDecimal(3.24)
-        val metrePerSec = InchPerSecond.toBase(inchPerSecond)
-        assertEquals("Converting inch/s to m/s fails", metrePerSec, BigDecimal(0.98755))
-        assertEquals("Converting m/s to inch/s fails", inchPerSecond, InchPerSecond.fromBase(metrePerSec))
-    }
+    fun inchPerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(3.24, 0.98755, InchPerSecond)
 
     @Test
-    fun kilometrePerHourToMetrePerSecAndViseVersaTest() {
-        val kmPerHour = BigDecimal(123)
-        val metrePerSec = KilometrePerHour.toBase(kmPerHour)
-        assertEquals("Converting km/h to m/s fails", metrePerSec, BigDecimal(34.16669))
-        assertEquals("Converting m/s to km/h fails", kmPerHour, KilometrePerHour.fromBase(metrePerSec))
-    }
+    fun kilometrePerHourToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(123.0, 34.16669, KilometrePerHour)
 
     @Test
-    fun knotToMetrePerSecAndViseVersaTest() {
-        val knot = BigDecimal(13)
-        val metrePerSec = Knot.toBase(knot)
-        assertEquals("Converting knot to m/s fails", metrePerSec, BigDecimal(6.68777))
-        assertEquals("Converting m/s to knot fails", knot, Knot.fromBase(metrePerSec))
+    fun knotToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(13.0, 6.68777, Knot)
+
+    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) {
+        val sourceBigDecimal = BigDecimal(source)
+        val metrePerSecondValue = measure.toBase(sourceBigDecimal)
+        assertEquals("Converting ${measure.symbol} to m/s fails", metrePerSecondValue, BigDecimal(sourceInMetrePerSecond))
+        assertEquals("Converting m/s to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(metrePerSecondValue))
     }
 }
