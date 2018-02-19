@@ -63,19 +63,7 @@ private suspend fun parseToken(response: Response) {
 suspend fun getResponseText(url: String): String {
     var response = get(url, null, headers)
     if (!response.ok) {
-        var refreshed = false
-        try {
-            refreshed = refresh()
-        } catch (e: Exception) {
-            removeTokenInfo()
-            window.location.replace("/")
-        }
-        response = get(url, null, headers)
-        //if unauthorized or forbidden
-        if (!refreshed || response.status.toInt() in listOf(401, 403)) {
-            removeTokenInfo()
-            window.location.replace("/")
-        }
+        response = refreshAndGet(url) ?: response
     }
     return response.text().await()
 }
@@ -84,6 +72,19 @@ private val headers = json(
     "x-access-authorization" to "Bearer ${localStorage["auth-access-token"]}",
     "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
 )
+
+private suspend fun refreshAndGet(url: String): Response? {
+    try {
+        val refreshed = refresh()
+        if (refreshed) {
+            return get(url, null, headers)
+        }
+    } catch (ignored: Exception) {
+    }
+    removeTokenInfo()
+    window.location.replace("/")
+    return null
+}
 
 private suspend fun refresh(): Boolean {
     val response = get("/api/access/refresh", null, headers)
