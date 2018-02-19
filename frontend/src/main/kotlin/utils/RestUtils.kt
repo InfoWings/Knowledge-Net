@@ -14,7 +14,7 @@ import kotlin.browser.localStorage
 import kotlin.browser.window
 import kotlin.js.json
 
-val defaultHeaders = json(
+private val defaultHeaders = json(
     "Accept" to "application/json",
     "Content-Type" to "application/json;charset=UTF-8"
 )
@@ -52,7 +52,7 @@ suspend fun login(url: String, body: UserDto): Boolean {
     return response.ok
 }
 
-suspend fun parseToken(response: Response) {
+private suspend fun parseToken(response: Response) {
     val jwtToken = JSON.parse<JwtToken>(response.text().await())
     console.log("refresh: $jwtToken")
     localStorage["auth-access-token"] = jwtToken.accessToken
@@ -80,7 +80,7 @@ suspend fun getResponseText(url: String): String {
     return response.text().await()
 }
 
-val headers = json(
+private val headers = json(
     "x-access-authorization" to "Bearer ${localStorage["auth-access-token"]}",
     "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
 )
@@ -93,7 +93,7 @@ private suspend fun refresh(): Boolean {
     return response.ok
 }
 
-fun removeTokenInfo() {
+private fun removeTokenInfo() {
     localStorage.removeItem("auth-access-token")
     localStorage.removeItem("auth-refresh-token")
     localStorage.removeItem("auth-role")
