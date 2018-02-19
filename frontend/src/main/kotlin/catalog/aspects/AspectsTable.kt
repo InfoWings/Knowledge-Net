@@ -2,7 +2,6 @@ package catalog.aspects
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
-import org.w3c.dom.events.InputEvent
 import react.*
 import react.dom.input
 import react.dom.span
@@ -19,14 +18,12 @@ val cellComponent = rFunction<RTableRendererProps>("LoggingCell") { rTableRender
         attrs {
             value = rTableRendererProps.value.toString()
             onChangeFunction = { e ->
-                val inputEvent = e as InputEvent
-                console.log(inputEvent.data)
-                console.log(value)
-                console.log(rTableRendererProps.original)
+                console.log(e.asDynamic().target.value)
             }
         }
     }
 }
+
 
 fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, cell: RClass<RTableRendererProps>? = null) =
         RTableColumnDescriptor {
@@ -63,7 +60,7 @@ private val aspectData = arrayOf(
 /**
  * Use as: child(AspectsTable::class) {}
  */
-class AspectsTable : RComponent<RProps, RState>() {
+class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.State>(props) {
 
     override fun RBuilder.render() {
         ReactTable {
@@ -83,4 +80,11 @@ class AspectsTable : RComponent<RProps, RState>() {
             }
         }
     }
+
+    interface Props : RProps {
+        val data: Array<Aspect>
+        val onAspectUpdate: suspend (changed: Aspect) -> Aspect
+    }
+
+    class State(val pending: Map<String, Aspect?> = emptyMap()) : RState
 }
