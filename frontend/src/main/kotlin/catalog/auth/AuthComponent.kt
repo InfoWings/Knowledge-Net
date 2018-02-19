@@ -27,7 +27,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
     fun logIn(e: Event) {
         e.preventDefault()
         launch {
-            val success = login("/api/access/signIn", UserDto(loginInput.value, passwordInput.value))
+            val success = login(UserDto(loginInput.value, passwordInput.value))
             setState {
                 if (success) {
                     authorized = localStorage["auth-role"] != null

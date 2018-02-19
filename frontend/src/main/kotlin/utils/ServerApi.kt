@@ -19,22 +19,20 @@ private val defaultHeaders = json(
     "Content-Type" to "application/json;charset=UTF-8"
 )
 
-suspend fun request(method: String, url: String, body: dynamic, headers: dynamic = defaultHeaders): Response {
-    val response = window.fetch(url, object : RequestInit {
+suspend fun request(method: String, url: String, body: dynamic, headers: dynamic = defaultHeaders): Response =
+    window.fetch(url, object : RequestInit {
         override var method: String? = method
         override var body: dynamic = body
         override var credentials: RequestCredentials? = "same-origin".asDynamic()
         override var headers: dynamic = headers
     }).await()
-    return response
-}
 
-suspend fun post(url: String, body: dynamic, headers: dynamic) = request("POST", url, body, headers)
+suspend fun post(url: String, body: dynamic) = request("POST", url, body, authorizationHeaders)
 
-suspend fun get(url: String, body: dynamic, headers: dynamic) = request("GET", url, body, headers)
+suspend fun get(url: String, body: dynamic = null) = request("GET", url, body, authorizationHeaders)
 
 suspend fun <T> requestAndParseResult(method: String, url: String, body: dynamic, parse: (dynamic) -> T): T {
-    val response = request(method, url, body)
+    val response = request(method, url, body, authorizationHeaders)
     return parse(response.json().await())
 }
 
@@ -44,42 +42,45 @@ suspend fun <T> postAndParseResult(url: String, body: dynamic, parse: (dynamic) 
 suspend fun <T> getAndParseResult(url: String, body: dynamic, parse: (dynamic) -> T): T =
     requestAndParseResult("GET", url, body, parse)
 
-suspend fun login(url: String, body: UserDto): Boolean {
-    val response = post(url, JSON.stringify(body), null)
+suspend fun login(body: UserDto): Boolean {
+    val response = request("POST", "/api/access/signIn", JSON.stringify(body))
     if (response.ok) {
-        parseToken(response)
+        val isParsed = parseToken(response)
+        return isParsed
     }
-    return response.ok
+    return false
 }
 
-private suspend fun parseToken(response: Response) {
-    val jwtToken = JSON.parse<JwtToken>(response.text().await())
-    console.log("refresh: $jwtToken")
-    localStorage["auth-access-token"] = jwtToken.accessToken
-    localStorage["auth-refresh-token"] = jwtToken.refreshToken
-    localStorage["auth-role"] = jwtToken.role.name
+private suspend fun parseToken(response: Response): Boolean {
+    try {
+        val jwtToken = JSON.parse<JwtToken>(response.text().await())
+        console.log("refresh: $jwtToken")
+        localStorage["auth-access-token"] = jwtToken.accessToken
+        localStorage["auth-refresh-token"] = jwtToken.refreshToken
+        localStorage["auth-role"] = jwtToken.role.name
+        return true
+    } catch (e: Exception) {
+        return false
+    }
 }
 
 suspend fun getResponseText(url: String): String {
-    var response = get(url, null, headers)
+    var response = get(url)
     if (!response.ok) {
         response = refreshAndGet(url) ?: response
     }
     return response.text().await()
 }
 
-private val headers = json(
+private val authorizationHeaders = json(
     "x-access-authorization" to "Bearer ${localStorage["auth-access-token"]}",
     "x-refresh-authorization" to "Bearer ${localStorage["auth-refresh-token"]}"
 )
 
 private suspend fun refreshAndGet(url: String): Response? {
-    try {
-        val refreshed = refresh()
-        if (refreshed) {
-            return get(url, null, headers)
-        }
-    } catch (ignored: Exception) {
+    val isRefreshed = refresh()
+    if (isRefreshed) {
+        return get(url)
     }
     removeTokenInfo()
     window.location.replace("/")
@@ -87,11 +88,12 @@ private suspend fun refreshAndGet(url: String): Response? {
 }
 
 private suspend fun refresh(): Boolean {
-    val response = get("/api/access/refresh", null, headers)
+    val response = get("/api/access/refresh")
     if (response.ok) {
-        parseToken(response)
+        val isParsed = parseToken(response)
+        return isParsed
     }
-    return response.ok
+    return false
 }
 
 private fun removeTokenInfo() {
