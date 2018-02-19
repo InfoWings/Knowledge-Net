@@ -1,7 +1,7 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.data.MEASURE_VERTEX
-import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.common.catalog.data.MEASURE_VERTEX
+import com.infowings.common.catalog.storage.OrientDatabase
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.stream.Collectors

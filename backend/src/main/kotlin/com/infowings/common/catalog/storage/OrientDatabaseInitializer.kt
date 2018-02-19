@@ -1,5 +1,6 @@
 package com.infowings.common.catalog.storage
 
+import com.infowings.catalog.storage.CreateIndexWrapper
 import com.infowings.common.catalog.data.*
 import com.infowings.common.catalog.loggerFor
 import com.orientechnologies.orient.core.db.ODatabaseSession
@@ -7,6 +8,7 @@ import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
+import com.orientechnologies.orient.core.record.impl.ODocument
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
@@ -79,6 +81,18 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
             localMeasureService.linkGroupsBidirectional(PowerEnergyGroup, TimeGroup, db)
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup, db)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup, db)
+        }
+        return this
+    }
+
+    /** Initializes measures */
+    fun initMeasuresSearch(): OrientDatabaseInitializer {
+        val iName = "$MEASURE_VERTEX.lucene.name"
+        val oClass = session.getClass(MEASURE_VERTEX)
+        if (oClass.getClassIndex(iName) == null) {
+            val metadata = ODocument()
+            metadata.setProperty("allowLeadingWildcard", true)
+            CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
         }
         return this
     }
