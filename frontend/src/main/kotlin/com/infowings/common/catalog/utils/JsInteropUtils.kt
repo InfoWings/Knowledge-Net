@@ -1,4 +1,4 @@
-package com.infowings.common.catalog.utils
+package utils
 
 import kotlinext.js.Object
 import kotlinext.js.js

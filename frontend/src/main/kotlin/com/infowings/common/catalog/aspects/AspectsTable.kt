@@ -1,14 +1,14 @@
-package com.infowings.common.catalog.aspects
+package catalog.aspects
 
-import com.infowings.common.catalog.wrappers.table.RTableColumnDescriptor
-import com.infowings.common.catalog.wrappers.table.RTableRendererProps
-import com.infowings.common.catalog.wrappers.table.ReactTable
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.events.InputEvent
 import react.*
 import react.dom.input
 import react.dom.span
+import wrappers.table.RTableColumnDescriptor
+import wrappers.table.RTableRendererProps
+import wrappers.table.ReactTable
 
 fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("AspectHeader") {
     span {

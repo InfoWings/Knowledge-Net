@@ -1,6 +1,5 @@
 package com.infowings.common.catalog.layout
 
-import com.infowings.common.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -8,6 +7,7 @@ import react.RState
 import react.dom.div
 import react.dom.li
 import react.dom.ul
+import wrappers.reactRouter
 import kotlin.browser.localStorage
 
 class HeaderProps(var location: String) : RProps

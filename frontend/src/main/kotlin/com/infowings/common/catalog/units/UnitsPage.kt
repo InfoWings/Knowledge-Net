@@ -1,11 +1,11 @@
 package com.infowings.common.catalog.units
 
 import com.infowings.common.catalog.layout.Header
-import com.infowings.common.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.h1
+import wrappers.RouteSuppliedProps
 
 class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
     val data = mapOf(

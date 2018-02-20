@@ -1,10 +1,10 @@
 package com.infowings.common.catalog.auth
 
-import com.infowings.common.catalog.wrappers.RouteSuppliedProps
-import com.infowings.common.catalog.wrappers.reactRouter
 import org.w3c.dom.get
 import react.RBuilder
 import react.buildElements
+import wrappers.RouteSuppliedProps
+import wrappers.reactRouter
 import kotlin.browser.localStorage
 
 fun RBuilder.privateRoute(path: String, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {

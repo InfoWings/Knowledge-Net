@@ -3,8 +3,6 @@ package com.infowings.common.catalog.auth
 
 import com.infowings.common.catalog.UserDto
 import com.infowings.common.catalog.utils.login
-import com.infowings.common.catalog.wrappers.RouteSuppliedProps
-import com.infowings.common.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -18,6 +16,8 @@ import react.RComponent
 import react.RState
 import react.dom.*
 import react.setState
+import wrappers.RouteSuppliedProps
+import wrappers.reactRouter
 import kotlin.browser.localStorage
 import kotlinx.serialization.json.JSON as KJSON
 

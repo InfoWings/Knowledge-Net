@@ -4,11 +4,11 @@ import com.infowings.common.catalog.aspects.AspectsPage
 import com.infowings.common.catalog.auth.AuthComponent
 import com.infowings.common.catalog.auth.privateRoute
 import com.infowings.common.catalog.units.UnitsPage
-import com.infowings.common.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
+import wrappers.reactRouter
 
 class CatalogAppComponent : RComponent<RProps, RState>() {
 

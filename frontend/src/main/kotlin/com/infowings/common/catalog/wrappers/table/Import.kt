@@ -1,6 +1,6 @@
 @file:JsModule("react-table")
 
-package com.infowings.common.catalog.wrappers.table
+package wrappers.table
 
 import react.RClass
 

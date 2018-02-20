@@ -1,4 +1,4 @@
-package com.infowings.common.catalog.wrappers
+package wrappers
 
 import react.*
 
