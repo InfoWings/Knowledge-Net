@@ -7,4 +7,10 @@ enum class UserRole {
 }
 
 @Serializable
-data class JwtToken(val accessToken: String, val refreshToken: String, val role: UserRole, var expirationTime: Long)
+data class JwtToken(
+    val accessToken: String,
+    val refreshToken: String,
+    val role: UserRole,
+    var accessTokenExpirationTimeInMs: Long,
+    var refreshTokenExpirationTimeInMs: Long
+)

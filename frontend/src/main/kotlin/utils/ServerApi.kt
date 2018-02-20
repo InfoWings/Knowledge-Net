@@ -9,16 +9,14 @@ import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import kotlin.browser.document
 import kotlin.browser.window
+import kotlin.js.Date
 import kotlin.js.JSON
-import kotlin.js.Json
 import kotlin.js.json
 import kotlinx.serialization.json.JSON as KJSON
 
 private const val POST = "POST"
 private const val GET = "GET"
 
-private const val AUTH_ACCESS = "x-access-authorization"
-private const val AUTH_REFRESH = "x-refresh-authorization"
 private const val AUTH_ROLE = "auth-role"
 
 /**
@@ -38,30 +36,14 @@ suspend fun <T> get(url: String, body: dynamic = null): T {
 }
 
 /**
- * Http request to server with authorization headers.
+ * Http request to server after authorization.
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
-    var response = request(method, url, body, authorizationHeaders)
+    var response = request(method, url, body)
     if (!response.ok) {
         response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
     return response
-}
-
-/**
- * Authorization headers:
- *  1. authorization access token
- *  2. authorization refresh token
- */
-private val authorizationHeaders = getAuthorizationHeaders()
-
-private fun getAuthorizationHeaders(): Json {
-    val pairs = document.cookie.split(";")
-        .map { Pair(it.split("=")[0], it.split("=")[1]) }
-        .toTypedArray()
-    val json = json(*pairs)
-    console.log(json.toString())
-    return json
 }
 
 /**
@@ -93,7 +75,7 @@ private suspend fun refreshTokenAndRepeatRequest(
 ): Response {
     val isRefreshed = refreshToken()
     if (isRefreshed) {
-        return request(method, url, body, authorizationHeaders)
+        return request(method, url, body)
     }
     window.location.replace("/")
     return oldResponse
@@ -121,15 +103,36 @@ suspend fun login(body: UserDto): Boolean {
     return false
 }
 
+/**
+ * Parse token save in cookies
+ */
 private suspend fun parseToken(response: Response): Boolean {
-    try {
+    return try {
         val jwtToken = JSON.parse<JwtToken>(response.text().await())
-        document.cookie = "$AUTH_ACCESS=Bearer ${jwtToken.accessToken}"
-        document.cookie = "$AUTH_REFRESH=Bearer ${jwtToken.refreshToken}"
+        val nowInMs = Date().getMilliseconds()
+        val accessExpireDate = Date(nowInMs + jwtToken.accessTokenExpirationTimeInMs).toUTCString()
+        val refreshExpireDate = Date(nowInMs + jwtToken.refreshTokenExpirationTimeInMs).toUTCString()
+        document.cookie = "x-access-authorization=Bearer ${jwtToken.accessToken};expires=$accessExpireDate;path=/"
+        document.cookie = "x-refresh-authorization=Bearer ${jwtToken.refreshToken};expires=$refreshExpireDate;path=/"
         document.cookie = "$AUTH_ROLE=${jwtToken.role.name}"
-        console.log(document.cookie)
-        return true
+        true
     } catch (e: Exception) {
-        return false
+        false
     }
+}
+
+/**
+ * Return authorization role name that saved in cookies.
+ */
+fun getAuthorizationRole(): String? {
+    return document.cookie.split("; ")
+        .filter { it.startsWith(AUTH_ROLE) }
+        .map { it.split("=")[1] }
+        .filter { it.isNotEmpty() }
+        .getOrNull(0)
+}
+
+fun logout() {
+    document.cookie = "$AUTH_ROLE="
+    console.log(document.cookie)
 }

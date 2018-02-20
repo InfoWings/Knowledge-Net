@@ -1,12 +1,10 @@
 package catalog.auth
 
-import org.w3c.dom.get
 import react.RBuilder
-import react.RProps
 import react.buildElements
+import utils.getAuthorizationRole
 import wrappers.RouteSuppliedProps
 import wrappers.reactRouter
-import kotlin.browser.localStorage
 
 fun RBuilder.privateRoute(path: String, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {
     reactRouter.Route {
@@ -14,7 +12,7 @@ fun RBuilder.privateRoute(path: String, renderFunction: RBuilder.(props: RouteSu
             this.path = path
             this.exact = true
             this.render = { props: RouteSuppliedProps ->
-                if (localStorage["auth-role"] != null) {
+                if (getAuthorizationRole() != null) {
                     buildElements {
                         renderFunction(props)
                     }

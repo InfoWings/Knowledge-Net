@@ -7,8 +7,8 @@ import react.RState
 import react.dom.div
 import react.dom.li
 import react.dom.ul
+import utils.logout
 import wrappers.reactRouter
-import kotlin.browser.localStorage
 
 class HeaderProps(var location: String) : RProps
 
@@ -40,7 +40,7 @@ class Header : RComponent<HeaderProps, RState>() {
                         reactRouter.Link {
                             attrs {
                                 to = "/"
-                                onClick = { localStorage.removeItem("auth-role"); }
+                                onClick = { logout() }
                             }
                             +"Logout"
                         }

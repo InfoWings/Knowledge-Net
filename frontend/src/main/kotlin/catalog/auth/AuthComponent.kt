@@ -8,13 +8,15 @@ import kotlinx.html.id
 import kotlinx.html.js.onSubmitFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
-import org.w3c.dom.get
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RState
 import react.dom.*
+import react.setState
+import utils.getAuthorizationRole
 import utils.login
 import wrappers.RouteSuppliedProps
 import wrappers.reactRouter
-import kotlin.browser.localStorage
 import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
@@ -30,7 +32,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
             val success = login(UserDto(loginInput.value, passwordInput.value))
             setState {
                 if (success) {
-                    authorized = localStorage["auth-role"] != null
+                    authorized = getAuthorizationRole() != null
                     if (authorized) {
                         props.history.push("/")
                     }
@@ -43,7 +45,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
 
     override fun componentDidMount() {
         setState {
-            authorized = localStorage["auth-role"] != null
+            authorized = getAuthorizationRole() != null
             wrongAuth = false
         }
     }

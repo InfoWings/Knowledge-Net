@@ -38,7 +38,7 @@ class JWTService {
         val jwtInfo = JwtInfo(user!!.username, user.role)
         val accessToken = createTokenString(jwtInfo, ACCESS_TIME.toLong())
         val refreshToken = createTokenString(jwtInfo, REFRESH_TIME.toLong())
-        return JwtToken(accessToken, refreshToken, jwtInfo.role, ACCESS_TIME.toLong())
+        return JwtToken(accessToken, refreshToken, jwtInfo.role, ACCESS_TIME.toLong(), REFRESH_TIME.toLong())
     }
 
     fun parseTokenString(token: String): JwtInfo? {
