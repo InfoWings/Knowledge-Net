@@ -1,11 +1,14 @@
 package com.infowings.catalog.data
 
+import com.infowings.common.BaseType
 import java.math.BigDecimal
 
 private fun createBigDecimalMeasure(name: String, symbol: String, coefficient: Double) =
     Measure<BigDecimal>(name, symbol, { it * BigDecimal(coefficient) }, { it / BigDecimal(coefficient) }, BaseType.Decimal)
 
-class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType)
+class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType) {
+    override fun toString(): String = "$name/$symbol"
+}
 
 class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
@@ -47,10 +50,10 @@ val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), S
 val CubicMetre = createBigDecimalMeasure("CubicMetre", "m^3", 1.0)
 val CubicMillimetre = createBigDecimalMeasure("CubicMillimetre", "millimetre^3", 1E-9)
 val Litre = createBigDecimalMeasure("Litre", "litre", 0.001)
-val CubicDecimetre = createBigDecimalMeasure("CubicDecimetre", "dm^3", 1000.0)
+val CubicDecimetre = createBigDecimalMeasure("CubicDecimetre", "dm^3", 0.001)
 val CubicCentimetre = createBigDecimalMeasure("CubicCentimetre", "cm^3", 0.000001)
 val CubicInch = createBigDecimalMeasure("CubicInch", "inch^2", 1.6387e-5)
-val Pint = createBigDecimalMeasure("Pint", "pint", 0.0005682612)
+val Pint = createBigDecimalMeasure("Pint", "pint", 0.0004731765)
 val Gallon = createBigDecimalMeasure("Gallon", "gallon", 0.00378541178)
 
 val VolumeGroup = MeasureGroup("Volume", listOf(CubicMetre, CubicCentimetre, CubicDecimetre, CubicMillimetre, CubicInch, Litre, Pint, Gallon), CubicMetre)
@@ -60,14 +63,14 @@ val Gram = createBigDecimalMeasure("Gram", "g", 0.001)
 val Milligram = createBigDecimalMeasure("Milligram", "mg", 1e-6)
 val Kilogram = createBigDecimalMeasure("Kilogram", "kg", 1.0)
 val Ton = createBigDecimalMeasure("Ton", "tn", 1000.0)
-val PoundMass = createBigDecimalMeasure("Pound(mass)", "lb", 0.45359237)
+val PoundMass = createBigDecimalMeasure("Pound(mass)", "lb", 0.4535923)
 
 val MassGroup = MeasureGroup("Mass", listOf(Gram, Milligram, Kilogram, Ton, PoundMass), Kilogram)
 
 /** PowerEnergy group */
 val Watt = createBigDecimalMeasure("Watt", "W", 1.0)
 val Kilowatt = createBigDecimalMeasure("Kilowatt", "kW", 1000.0)
-val Horsepower = createBigDecimalMeasure("Horsepower", "hp", 745.7)
+val Horsepower = createBigDecimalMeasure("Horsepower", "hp", 745.699872)
 val VoltAmpere = createBigDecimalMeasure("Volt-ampere", "VA", 1.0)
 
 val PowerEnergyGroup = MeasureGroup("PowerEnergy", listOf(Watt, Kilowatt, Horsepower, VoltAmpere), Watt)
@@ -110,8 +113,8 @@ val Celsius = createBigDecimalMeasure("Celsius", "c", 1.0)
 val Fahrenheit = Measure<BigDecimal>(
     "Fahrenheit",
     "f",
-    { (it - BigDecimal(32)) * (BigDecimal(5 / 9)) },
-    { it * BigDecimal(1.8) + BigDecimal(32) },
+    { (it - BigDecimal(32)) * (BigDecimal(5.0 / 9.0)) },
+    { it * BigDecimal(1.8) + BigDecimal(32.0) },
     BaseType.Decimal
 )
 
@@ -130,7 +133,7 @@ val FrequencyGroup = MeasureGroup("Frequency", listOf(Hertz, Kilohertz), Hertz)
 /** Pressure group */
 val Pascal = createBigDecimalMeasure("Pascal", "Pa", 1.0)
 val Atmosphere = createBigDecimalMeasure("Atmosphere", "atm", 101325.0)
-val KilogramPerSquareMetre = createBigDecimalMeasure("KilogramPerSquareMetre", "kg/m^3", 9.80665)
+val KilogramPerSquareMetre = createBigDecimalMeasure("KilogramPerSquareMetre", "kg/m^2", 9.80665)
 
 val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Atmosphere, KilogramPerSquareMetre), Pascal)
 
@@ -181,7 +184,7 @@ val HumanGroup = MeasureGroup("Human", listOf(Human), Human)
 /** UK money group */
 val Penny = createBigDecimalMeasure("Penny", "p", 0.01)
 val PoundMoney = createBigDecimalMeasure("Pound(money)", "£", 1.0)
-val UKMoneyGroup = MeasureGroup("UKMoneyGroup", listOf(Penny, PoundMoney), PoundMass)
+val UKMoneyGroup = MeasureGroup("UKMoneyGroup", listOf(Penny, PoundMoney), PoundMoney)
 
 /** USA money group */
 val CentAmerican = createBigDecimalMeasure("Cent(USA)", "c", 0.01)

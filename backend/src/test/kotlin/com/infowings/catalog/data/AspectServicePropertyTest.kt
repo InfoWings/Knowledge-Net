@@ -2,7 +2,9 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.transaction
+import com.infowings.common.BaseType
+import com.infowings.common.catalog.data.AspectData
+import com.infowings.common.catalog.data.AspectPropertyData
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -22,20 +24,23 @@ class AspectServicePropertyTest {
     lateinit var measureService: MeasureService
 
     @Test
-    fun testAddAspectProperty() {
+    fun testAddAspectProperties() {
         val aspectService = AspectService(database, measureService)
 
-        val createAspect: Aspect = aspectService.createAspect("newAspect", Kilometre.name, BaseType.Decimal.name)
+        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val createAspect: Aspect = aspectService.createAspect(ad)
 
-        val aspectProperty = AspectProperty("", "property", createAspect, AspectPropertyPower.INFINITY)
+        val property = AspectPropertyData("", "p", createAspect.id, AspectPropertyPower.INFINITY.name)
 
-        val saved: String = transaction(database) { session ->
-            return@transaction aspectService.saveAspectProperty(aspectProperty, session)
-        }.identity.toString()
+        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
+        val createAspect2: Aspect = aspectService.createAspect(ad2)
 
-        val loaded = transaction(database) { session -> aspectService.loadAspectProperty(saved, session) }
+        val loaded = aspectService.findById(createAspect2.id)
 
-        assertThat("aspect property should be saved and restored", loaded.id, Is.`is`(saved))
+        assertThat("aspect property should be saved and restored", loaded, Is.`is`(createAspect2))
+
+        val all = aspectService.getAspects()
+        assertThat("There should be 2 aspects in db", all.size, Is.`is`(2))
     }
 
 

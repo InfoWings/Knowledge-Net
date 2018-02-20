@@ -11,6 +11,7 @@ fun <T : RProps> RElementBuilder<T>.plainObj(handler: T.() -> Unit) {
         val value = attrs.asDynamic()[key]
         attrs.asDynamic()[key] = plain(value)
     }
+    console.log(attrs)
 }
 
 fun isPrimitive(value: Any): Boolean {
@@ -21,7 +22,7 @@ fun plain(obj: Any?): dynamic {
     val assigned: MutableSet<Any> = mutableSetOf()
 
     fun toPlain(obj: Any?): dynamic =
-            if (obj == null || assigned.contains(obj) || isPrimitive(obj)) obj
+            if (obj == null || assigned.contains(obj) || isPrimitive(obj) || obj is Function2<*, *, *>) obj
             else if (obj is Map<*, *>) {
                 val result = js("{}")
                 for (entry in obj.entries) {
@@ -42,11 +43,13 @@ fun plain(obj: Any?): dynamic {
                     newArray[i++] = toPlain(elem)
                 }
                 newArray
-            } else js {
-                assigned.add(obj)
-                for (key in Object.keys(obj)) {
-                    val value = obj.asDynamic()[key]
-                    this[key] = toPlain(value)
+            } else {
+                js {
+                    assigned.add(obj)
+                    for (key in Object.keys(obj)) {
+                        val value = obj.asDynamic()[key]
+                        this[key] = toPlain(value)
+                    }
                 }
             }
 
