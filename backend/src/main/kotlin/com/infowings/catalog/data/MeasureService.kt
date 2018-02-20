@@ -1,7 +1,8 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.storage.transactionUnsafe
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
@@ -15,9 +16,9 @@ const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureGroupEdge"
 
 class MeasureService {
 
-    fun findMeasureGroup(groupName: String, session: ODatabaseDocument): OVertex? {
+    fun findMeasureGroup(groupName: String, database: OrientDatabase): OVertex? {
         val query = "SELECT * from $MEASURE_GROUP_VERTEX where name = ?"
-        val records = session.query(query, groupName)
+        val records = session(database) { it.query(query, groupName) }
         val vertex = records.getVertex()
         records.close()
         return vertex
@@ -31,10 +32,10 @@ class MeasureService {
         return vertex
     }
 
-    fun saveGroup(group: MeasureGroup<*>, session: ODatabaseDocument): OVertex? = transactionUnsafe(session) {
-        if (findMeasureGroup(group.name, session) != null) {
+    fun saveGroup(group: MeasureGroup<*>, database: OrientDatabase): OVertex? = session(database) { session ->
+        if (findMeasureGroup(group.name, database) != null) {
             loggerFor<MeasureService>().info("Group with name ${group.name} already exist in db")
-            return null
+            return@session null
         }
         val groupVertex = session.newVertex(MEASURE_GROUP_VERTEX)
         groupVertex.setProperty("name", group.name)
@@ -45,7 +46,7 @@ class MeasureService {
             createMeasure(it.name, session).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
         }
         baseVertex.save<ORecord>()
-        return groupVertex.save()
+        return@session groupVertex.save()
     }
 
     private fun createMeasure(measureName: String, session: ODatabaseDocument): OVertex {

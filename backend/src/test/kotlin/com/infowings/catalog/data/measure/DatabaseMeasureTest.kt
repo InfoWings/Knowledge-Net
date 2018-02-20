@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.data.MeasureGroupMap
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,17 +27,17 @@ class DatabaseMeasureTest {
     lateinit var database: OrientDatabase
 
     @Test
-    fun everyGroupExist() = database.acquire().use { db ->
+    fun everyGroupExist() = session(database) { db ->
         MeasureGroupMap.values.forEach {
-            assertTrue("${it.name} group must exist", measureService.findMeasureGroup(it.name, db) != null)
+            assertTrue("${it.name} group must exist", measureService.findMeasureGroup(it.name, database) != null)
         }
     }
 
     @Test
-    fun everyGroupBaseMeasureExist() = database.acquire().use { db ->
+    fun everyGroupBaseMeasureExist() = session(database) { db ->
         MeasureGroupMap.values.forEach {
             val baseVertex = measureService.findMeasure(it.base.name, db)
-            val groupVertex = measureService.findMeasureGroup(it.name, db)
+            val groupVertex = measureService.findMeasureGroup(it.name, database)
             assertTrue("${it.name} base measure must exist", baseVertex != null)
             assertTrue("${it.name} base measure must be linked with ${it.name} group",
                     baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!))
@@ -44,7 +45,7 @@ class DatabaseMeasureTest {
     }
 
     @Test
-    fun everyGroupContainsAllTheirMeasures() = database.acquire().use { db ->
+    fun everyGroupContainsAllTheirMeasures() = session(database) { db ->
         MeasureGroupMap.values.forEach { group ->
             val baseVertex = measureService.findMeasure(group.base.name, db)
             group.measureList.forEach { measure ->
@@ -57,7 +58,7 @@ class DatabaseMeasureTest {
 
 
     @Test
-    fun measureDependencies() = database.acquire().use {
+    fun measureDependencies() = session(database) {
         //        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
 //        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
 //        assertTrue("Length group must be linked with Speed group",

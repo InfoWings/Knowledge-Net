@@ -7,6 +7,7 @@ import com.infowings.common.catalog.data.AspectPropertyData
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /**
@@ -26,13 +27,13 @@ class AspectService(private val database: OrientDatabase, private val measureSer
             aspectVertex["name"] = name
             aspectVertex["baseType"] = baseType?.name ?: measure?.baseType?.name
             aspectVertex["measure"] = measure?.name
-            measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS) }
+            measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
 
             for (property in properties) {
                 val aspect = findById(property.aspectId, session)
                 val power = AspectPropertyPower.valueOf(property.power)
                 val aspectPropertyVertex = AspectProperty("", property.name, aspect, power).saveAspectProperty(session)
-                aspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE)
+                aspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
             }
 
             return@transaction aspectVertex.save()
@@ -51,7 +52,7 @@ class AspectService(private val database: OrientDatabase, private val measureSer
 
         val aspectVertex: OVertex = session.getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
-        aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE)
+        aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
         return aspectPropertyVertex.save<OVertex>().also {
             logger.trace("Saved aspect property $name with temporary id: ${it.id}")
@@ -94,6 +95,13 @@ class AspectService(private val database: OrientDatabase, private val measureSer
     fun findByName(name: String): Aspect? = database.query(selectAspectByName, name) { rs, session ->
         rs.map { it.toVertex().toAspect(session) }.firstOrNull()
     }
+//    fun findByName(name: String): Aspect? = transaction(database){session ->
+//        session.query(selectAspectByName, name).use { rs ->
+//            rs.asSequence()
+//                .map { it.toVertex().toAspect(session)  }
+//                .firstOrNull()
+//        }
+//    }
 
     fun getAspects(): List<Aspect> = database.query(selectFromAspect) { rs, session ->
         rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()
@@ -106,12 +114,14 @@ class AspectService(private val database: OrientDatabase, private val measureSer
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = database.acquire().use { findById(id, session = it) }
+    fun findById(id: String): Aspect = session(database) { findById(id, session = it) }
 
     private fun ODatabaseDocument.getVertexById(id: String): OVertex? =
-        query(selectById, ORecordId(id)).asSequence()
-            .map { it.toVertexOrNUll() }
-            .firstOrNull()
+        query(selectById, ORecordId(id)).use { rs ->
+            rs.asSequence()
+                .map { it.toVertexOrNUll() }
+                .firstOrNull()
+        }
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])

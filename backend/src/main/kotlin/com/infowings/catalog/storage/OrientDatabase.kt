@@ -1,6 +1,5 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.ODatabasePool
 import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
@@ -8,7 +7,9 @@ import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
+import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
+import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
 
@@ -17,6 +18,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
 
+    /**
+     * DO NOT use directly, use [transaction] and [session] instead
+     */
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
@@ -25,12 +29,10 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
             orientDB.create(database, ODatabaseType.MEMORY)
 
         // создаем необходимые классы
-        dbPool.acquire().use {
-            OrientDatabaseInitializer(it)
-                .initAspects()
-                .initUsers()
-                .initMeasures()
-        }
+        OrientDatabaseInitializer(this)
+            .initAspects()
+            .initUsers()
+            .initMeasures()
     }
 
     @PreDestroy
@@ -48,15 +50,19 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>, ODatabaseDocument) -> T): T {
-        return this.acquire().use { session ->
-            val rs = session.query(query, args)
-            return@use block(rs.asSequence(), session)
+        return transaction(database = this) { session ->
+            return@transaction session.query(query, *args)
+                .use { rs: OResultSet -> block(rs.asSequence(), session) }
         }
     }
 }
 
+val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
 
-inline fun <U> transactionUnsafe(
+/**
+ * DO NOT use directly, use [transaction] and [session] instead
+ */
+inline fun <U> transactionInner(
     session: ODatabaseDocument,
     retryOnFailure: Int = 0,
     txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
@@ -80,14 +86,53 @@ inline fun <U> transactionUnsafe(
             ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
 
+/**
+ * Use this function when you do not need database access to be transactional (reads or single document access are atomic)
+ *
+ * sessions can be nested but cannot be nested with transaction
+ */
+inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) -> U): U {
+    val session = sessionStore.get()
+
+    if (session != null && session.transaction !is OTransactionNoTx)
+        throw RuntimeException("Cannot use session inside transaction")
+
+    if (session != null)
+        return block(session)
+
+    val newSession = database.acquire()
+    try {
+        sessionStore.set(newSession)
+        return block(newSession)
+    } finally {
+        sessionStore.remove()
+        newSession.close()
+    }
+}
+
+/**
+ * use this to get transactional access
+ * transactions can be nested, sessions nested into transaction will become transaction
+ */
 inline fun <U> transaction(
     database: OrientDatabase,
     retryOnFailure: Int = 0,
     txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
     block: (db: ODatabaseDocument) -> U
-): U = database.acquire().use { transactionUnsafe(it, retryOnFailure, txtype, block) }
+): U {
+    val session = sessionStore.get()
+    if (session != null)
+        return transactionInner(session, retryOnFailure, txtype, block)
 
-private val logger = loggerFor<OrientDatabase>()
+    val newSession = database.acquire()
+    try {
+        sessionStore.set(newSession)
+        return transactionInner(newSession, retryOnFailure, txtype, block)
+    } finally {
+        sessionStore.remove()
+        newSession.close()
+    }
+}
 
 operator fun <T> OVertex.get(name: String): T = getProperty(name)
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)

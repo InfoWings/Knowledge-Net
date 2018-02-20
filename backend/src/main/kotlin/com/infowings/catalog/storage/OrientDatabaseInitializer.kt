@@ -2,7 +2,6 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
-import com.orientechnologies.orient.core.db.ODatabaseSession
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
@@ -17,10 +16,10 @@ const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
-class OrientDatabaseInitializer(private val session: ODatabaseSession) {
+class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     /** Executes only if there is no Class $USER_CLASS in db */
-    fun initUsers(): OrientDatabaseInitializer {
+    fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass("User") == null) {
             logger.info("Init users")
             initUser("user", "user", "USER")
@@ -31,7 +30,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     }
 
     /** Executes only if there is no Class Aspect in db */
-    fun initAspects(): OrientDatabaseInitializer {
+    fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
@@ -43,7 +42,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     }
 
     /** Initializes measures */
-    fun initMeasures(): OrientDatabaseInitializer {
+    fun initMeasures(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(MEASURE_GROUP_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_GROUP_VERTEX)
             vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
@@ -63,8 +62,8 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
         }
         /** Add initial measures to database */
         val localMeasureService = MeasureService()
-        transactionUnsafe(session) { db ->
-            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, db) }
+        session(database) {
+            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, database) }
 //            if (lengthGroupVertex != null && speedGroupVertex != null) {
 //                lengthGroupVertex.addEdge(speedGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
 //                speedGroupVertex.addEdge(lengthGroupVertex, MEASURE_GROUP_EDGE).save<ORecord>()
@@ -74,7 +73,7 @@ class OrientDatabaseInitializer(private val session: ODatabaseSession) {
     }
 
     /** Create user in database */
-    private fun initUser(username: String, password: String, role: String) {
+    private fun initUser(username: String, password: String, role: String) = session(database) { session ->
         val user: OElement = session.newInstance(USER_CLASS)
         user.setProperty("username", username)
         user.setProperty("password", password)
