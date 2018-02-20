@@ -1,9 +1,10 @@
-package com.infowings.catalog.search
+package com.infowings.common.catalog.search
 
 import com.infowings.common.catalog.data.MEASURE_VERTEX
 import com.infowings.common.catalog.storage.OrientDatabase
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -20,11 +21,15 @@ class SuggestionService(val database: OrientDatabase) {
     private fun toMeasureSuggestionDto(oElement: OElement?): MeasureSuggestion =
             when (oElement) {
                 is OVertex -> vertexToMeasureSuggestionDto(oElement)
+                is ODocument -> vertexToMeasureSuggestionDto(oElement)
                 else -> throw IllegalStateException("Wrong measure unit $oElement")
             }
 
     private fun vertexToMeasureSuggestionDto(oVertex: OVertex): MeasureSuggestion =
             MeasureSuggestion(oVertex.getProperty("name"))
+
+    private fun vertexToMeasureSuggestionDto(oDocument: ODocument): MeasureSuggestion =
+            MeasureSuggestion(oDocument.getProperty("name"))
 
     private fun findInDb(context: SearchContext, text: String): Stream<OElement> {
         val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"

@@ -1,4 +1,4 @@
-package com.infowings.catalog.search
+package com.infowings.common.catalog.search
 
 data class SearchContext(
         val user: String,
