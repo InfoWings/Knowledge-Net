@@ -5,7 +5,6 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertex
 import com.infowings.catalog.storage.transaction
-import com.infowings.common.MeasureGroup
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord

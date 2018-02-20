@@ -32,7 +32,7 @@ node {
 
 repositories {
     maven { url "http://dl.bintray.com/kotlin/kotlin-dev" }
-    maven { url "http://dl.bintray.com/kotlin/kotlin-js-wrappers/" }
+    maven { url "http://dl.bintray.com/kotlin/kotlin-js-com.infowings.catalog.wrappers/" }
     maven { url  "http://dl.bintray.com/kotlin/kotlinx.html/" }
     mavenCentral()
 }

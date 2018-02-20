@@ -7,10 +7,10 @@ import com.infowings.catalog.data.MEASURE_GROUP_EDGE
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
-import com.infowings.common.LengthGroup
-import com.infowings.common.MeasureGroupMap
-import com.infowings.common.PressureGroup
-import com.infowings.common.SpeedGroup
+import com.infowings.catalog.data.LengthGroup
+import com.infowings.catalog.data.MeasureGroupMap
+import com.infowings.catalog.data.PressureGroup
+import com.infowings.catalog.data.SpeedGroup
 import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -2,7 +2,7 @@ package com.infowings.catalog.auth
 
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
-import com.infowings.common.UserRole
+import com.infowings.catalog.UserRole
 import com.orientechnologies.orient.core.sql.executor.OResult
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JSON

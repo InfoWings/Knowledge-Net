@@ -1,7 +1,7 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.common.DecimalNumber
-import com.infowings.common.Measure
+import com.infowings.catalog.utils.DecimalNumber
+import com.infowings.catalog.data.Measure
 import org.junit.Assert
 import java.math.BigDecimal
 import java.math.RoundingMode

@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth
 
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.infowings.common.UserRole
+import com.infowings.catalog.UserRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment

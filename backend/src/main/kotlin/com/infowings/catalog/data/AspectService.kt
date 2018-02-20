@@ -2,11 +2,6 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.infowings.common.BaseType
-import com.infowings.common.GlobalMeasureMap
-import com.infowings.common.Measure
-import com.infowings.common.catalog.data.AspectData
-import com.infowings.common.catalog.data.AspectPropertyData
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge

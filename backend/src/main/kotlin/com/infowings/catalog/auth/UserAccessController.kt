@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth
 
-import com.infowings.common.JwtToken
-import com.infowings.common.UserDto
+import com.infowings.catalog.JwtToken
+import com.infowings.catalog.UserDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.RequestEntity

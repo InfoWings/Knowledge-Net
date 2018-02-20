@@ -2,7 +2,6 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
-import com.infowings.common.*
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
