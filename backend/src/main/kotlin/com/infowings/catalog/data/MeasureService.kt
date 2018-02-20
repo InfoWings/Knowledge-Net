@@ -1,5 +1,6 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.MeasureGroup
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session

@@ -1,6 +1,9 @@
 package com.infowings.catalog.auth
 
-import com.infowings.catalog.UserDto
+import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.utils.login
+import com.infowings.catalog.wrappers.RouteSuppliedProps
+import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -14,9 +17,6 @@ import react.RComponent
 import react.RState
 import react.dom.*
 import react.setState
-import com.infowings.catalog.utils.login
-import com.infowings.catalog.wrappers.RouteSuppliedProps
-import com.infowings.catalog.wrappers.reactRouter
 import kotlin.browser.localStorage
 import kotlinx.serialization.json.JSON as KJSON
 

@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth
 
-import com.infowings.catalog.JwtToken
-import com.infowings.catalog.UserRole
+import com.infowings.catalog.common.JwtToken
+import com.infowings.catalog.common.UserRole
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import kotlinx.serialization.Serializable

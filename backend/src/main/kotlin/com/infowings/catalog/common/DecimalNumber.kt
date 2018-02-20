@@ -1,7 +1,10 @@
-package com.infowings.catalog.utils
+package com.infowings.catalog.common
 
-actual class DecimalNumber actual constructor(val value: Double) {
-    actual constructor(value: Int) : this(value.toDouble())
+import java.math.BigDecimal
+
+actual class DecimalNumber(val value: BigDecimal) {
+    actual constructor(value: Double) : this(BigDecimal(value))
+    actual constructor(value: Int) : this(BigDecimal(value))
 
     actual operator fun minus(other: DecimalNumber): DecimalNumber = DecimalNumber(value - other.value)
     actual operator fun times(other: DecimalNumber): DecimalNumber = DecimalNumber(value * other.value)

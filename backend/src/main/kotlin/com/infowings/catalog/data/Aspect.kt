@@ -1,5 +1,8 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
+
 
 enum class AspectPropertyPower {
     ZERO, ONE, INFINITY

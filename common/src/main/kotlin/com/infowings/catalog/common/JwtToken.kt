@@ -1,4 +1,4 @@
-package com.infowings.catalog
+package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 

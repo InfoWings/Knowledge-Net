@@ -1,6 +1,13 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.common
 
-import com.infowings.catalog.utils.DecimalNumber
+expect class DecimalNumber(value: Double) {
+    constructor(value: Int)
+
+    operator fun minus(other: DecimalNumber): DecimalNumber
+    operator fun times(other: DecimalNumber): DecimalNumber
+    operator fun plus(other: DecimalNumber): DecimalNumber
+    operator fun div(other: DecimalNumber): DecimalNumber
+}
 
 /**
  * низкоуровневый тип данных в котором хранится значение свойства, на уровне БД это не обязательно тот же тип (см. [Directory]

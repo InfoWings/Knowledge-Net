@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.*
-import com.infowings.catalog.utils.DecimalNumber
+import com.infowings.catalog.common.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner

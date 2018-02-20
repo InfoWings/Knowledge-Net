@@ -1,7 +1,7 @@
 package com.infowings.catalog.utils
 
-import com.infowings.catalog.JwtToken
-import com.infowings.catalog.UserDto
+import com.infowings.catalog.common.JwtToken
+import com.infowings.catalog.common.UserDto
 import kotlinx.coroutines.experimental.await
 import kotlinx.serialization.json.JSON
 import org.w3c.dom.get
