@@ -38,7 +38,8 @@ class DatabaseMeasureTest {
             val groupVertex = measureService.findMeasureGroup(it.name, db)
             assertTrue("${it.name} base measure must exist", baseVertex != null)
             assertTrue("${it.name} base measure must be linked with ${it.name} group",
-                    baseVertex!!.getVertices(ODirection.BOTH, MEASURE_BASE_AND_GROUP_EDGE).contains(groupVertex!!))
+                baseVertex!!.getVertices(ODirection.BOTH).contains(groupVertex!!)
+            )
         }
     }
 
@@ -49,7 +50,8 @@ class DatabaseMeasureTest {
             group.measureList.forEach { measure ->
                 assertTrue("Measure $measure must exist", measureService.findMeasure(measure.name, db) != null)
                 assertTrue("Measure ${measure.name} must be linked with ${group.base.name}",
-                        measureService.findMeasure(measure.name, db)!!.getVertices(ODirection.OUT, MEASURE_BASE_EDGE).contains(baseVertex!!))
+                    measureService.findMeasure(measure.name, db)!!.getVertices(ODirection.OUT).contains(baseVertex!!)
+                )
             }
         }
     }
@@ -60,7 +62,8 @@ class DatabaseMeasureTest {
         val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
         val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name, it)
         assertTrue("Length group must be linked with Speed group",
-                lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(speedGroupVertex!!))
+            lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(speedGroupVertex!!)
+        )
     }
 
 
@@ -69,9 +72,10 @@ class DatabaseMeasureTest {
         val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name, it)
         val pressureGroupVertex = measureService.findMeasureGroup(PressureGroup.name, it)
         assertTrue("Length group must not be linked with Pressure group directly",
-                !lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(pressureGroupVertex!!))
+            !lengthGroupVertex!!.getVertices(ODirection.BOTH).contains(pressureGroupVertex!!)
+        )
         assertTrue("Length group must be linked by another vertex with Pressure group",
-                lengthGroupVertex.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).flatMap { it.getVertices(ODirection.BOTH) }
-                        .contains(pressureGroupVertex))
+            lengthGroupVertex.getVertices(ODirection.BOTH).flatMap { it.getVertices(ODirection.BOTH) }.contains(pressureGroupVertex)
+        )
     }
 }

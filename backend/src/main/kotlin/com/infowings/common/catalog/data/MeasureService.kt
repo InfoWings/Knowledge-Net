@@ -13,7 +13,7 @@ const val MEASURE_GROUP_VERTEX = "MeasureGroupVertex"
 const val MEASURE_VERTEX = "MeasureVertex"
 const val MEASURE_GROUP_EDGE = "MeasureGroupEdge"
 const val MEASURE_BASE_EDGE = "MeasureEdge"
-const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureBaseAndGroupEdge"
+const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureGroupEdge"
 
 /**
  * Измерения делятся на группы. Каждая группа имеет название и базовый элемент.
