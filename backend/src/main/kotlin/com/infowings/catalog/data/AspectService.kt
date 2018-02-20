@@ -1,10 +1,9 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.*
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.infowings.common.BaseType
-import com.infowings.common.catalog.data.AspectData
-import com.infowings.common.catalog.data.AspectPropertyData
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -21,7 +20,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
 
         val save: OVertex = transaction(db) { session ->
-            val measureVertex: OVertex? = measure?.name?.let { measureService.findMeasure(it, db) }
+            val measureVertex: OVertex? = measure?.name?.let { measureService.findMeasure(it) }
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
             aspectVertex["name"] = name

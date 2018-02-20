@@ -14,7 +14,7 @@
     </appender>
 
     <logger name="org.springframework" level="INFO"/>
-    <logger name="com.infowings.catalog" level="TRACE"/>
+    <logger name="com.infowings.com.infowings.catalog" level="TRACE"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>

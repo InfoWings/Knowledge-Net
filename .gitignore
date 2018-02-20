@@ -3,7 +3,7 @@ build/
 classes/
 .gradle/
 backend/out/
-catalog/out/
+com.infowings.catalog/out/
 logs
 .DS_Store
 .run

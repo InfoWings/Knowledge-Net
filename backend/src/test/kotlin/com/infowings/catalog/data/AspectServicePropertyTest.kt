@@ -1,10 +1,11 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Kilometre
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.common.BaseType
-import com.infowings.common.catalog.data.AspectData
-import com.infowings.common.catalog.data.AspectPropertyData
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Test
