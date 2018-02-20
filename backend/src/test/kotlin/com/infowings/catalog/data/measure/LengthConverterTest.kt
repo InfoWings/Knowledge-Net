@@ -1,10 +1,9 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.*
+import com.infowings.common.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.math.BigDecimal
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -40,5 +39,5 @@ class LengthConverterTest {
     @Test
     fun feetToMetreTest() = toMetreTest(23.6, 7.19328, Feet)
 
-    private fun toMetreTest(source: Double, sourceInMetre: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInMetre, measure, LengthGroup.base)
+    private fun toMetreTest(source: Double, sourceInMetre: Double, measure: Measure<DecimalNumber>) = measureTest(source, sourceInMetre, measure, LengthGroup.base)
 }

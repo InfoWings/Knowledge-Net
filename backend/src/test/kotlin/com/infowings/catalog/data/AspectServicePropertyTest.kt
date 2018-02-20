@@ -3,6 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.common.BaseType
+import com.infowings.common.Kilometre
 import com.infowings.common.catalog.data.AspectData
 import com.infowings.common.catalog.data.AspectPropertyData
 import org.hamcrest.core.Is

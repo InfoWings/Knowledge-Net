@@ -6,7 +6,6 @@ import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
 import com.infowings.common.catalog.data.AspectData
 import com.infowings.common.catalog.data.AspectPropertyData
-import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу

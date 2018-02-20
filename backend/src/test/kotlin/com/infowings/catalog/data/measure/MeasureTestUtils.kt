@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.Measure
+import com.infowings.common.DecimalNumber
+import com.infowings.common.Measure
 import org.junit.Assert
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -13,9 +14,9 @@ internal fun assertEquals(message: String, actual: BigDecimal, expected: BigDeci
     }
 }
 
-internal fun measureTest(source: Double, sourceInBase: Double, measure: Measure<BigDecimal>, baseMeasure: Measure<BigDecimal>) {
+internal fun measureTest(source: Double, sourceInBase: Double, measure: Measure<DecimalNumber>, baseMeasure: Measure<DecimalNumber>) {
     val sourceBigDecimal = BigDecimal(source)
-    val baseValue = measure.toBase(sourceBigDecimal)
-    assertEquals("Converting ${measure.symbol} to ${baseMeasure.symbol} fails", baseValue, BigDecimal(sourceInBase))
-    assertEquals("Converting ${baseMeasure.symbol} to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(baseValue))
+    val baseValue = measure.toBase(DecimalNumber(sourceBigDecimal))
+    assertEquals("Converting ${measure.symbol} to ${baseMeasure.symbol} fails", baseValue.value, BigDecimal(sourceInBase))
+    assertEquals("Converting ${baseMeasure.symbol} to ${measure.symbol} fails", sourceBigDecimal, measure.fromBase(baseValue).value)
 }

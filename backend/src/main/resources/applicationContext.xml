@@ -15,7 +15,6 @@
         <constructor-arg name="database" value="${orient.database}"/>
         <constructor-arg name="user" value="${orient.user}"/>
         <constructor-arg name="password" value="${orient.password}"/>
-        <constructor-arg name="dropBefore" value="${orient.drop-before}"/>
     </bean>
 
     <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
@@ -27,7 +26,9 @@
         <constructor-arg ref="metadataService"/>
     </bean>
 
-    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService"/>
+    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">
+        <constructor-arg name="database" ref="orientDatabase"/>
+    </bean>
 
     <bean id="suggestionService" class="com.infowings.common.catalog.search.SuggestionService">
         <constructor-arg ref="orientDatabase"/>

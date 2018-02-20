@@ -1,10 +1,9 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.*
+import com.infowings.common.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
 class MassConverterTest {
@@ -21,5 +20,5 @@ class MassConverterTest {
     @Test
     fun poundToKilogramTest() = toKilogramTest(45.5, 20.63845, PoundMass)
 
-    private fun toKilogramTest(source: Double, sourceInKilo: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInKilo, measure, MassGroup.base)
+    private fun toKilogramTest(source: Double, sourceInKilo: Double, measure: Measure<DecimalNumber>) = measureTest(source, sourceInKilo, measure, MassGroup.base)
 }
