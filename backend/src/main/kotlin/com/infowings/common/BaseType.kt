@@ -4,7 +4,9 @@ import java.math.BigDecimal
 import kotlin.reflect.KClass
 
 
-actual sealed class BaseType actual constructor(val name: String) {
+actual sealed class BaseType actual constructor(_name: String) {
+
+    actual val name = _name
 
     //todo:
     class Directory(val dName: String) : BaseType("") // временно

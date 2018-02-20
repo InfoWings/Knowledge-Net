@@ -1,10 +1,9 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.*
+import com.infowings.common.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
 class SpeedConverterTest {
@@ -23,6 +22,6 @@ class SpeedConverterTest {
     @Test
     fun knotToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(13.0, 6.68777, Knot)
 
-    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) =
-        measureTest(source, sourceInMetrePerSecond, measure, SpeedGroup.base)
+    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<DecimalNumber>) =
+            measureTest(source, sourceInMetrePerSecond, measure, SpeedGroup.base)
 }

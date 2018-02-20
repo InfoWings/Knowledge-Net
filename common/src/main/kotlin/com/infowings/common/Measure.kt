@@ -12,7 +12,10 @@ expect class DecimalNumber(value: Double) {
 /**
  * низкоуровневый тип данных в котором хранится значение свойства, на уровне БД это не обязательно тот же тип (см. [Directory]
  **/
-sealed expect class BaseType(name: String) {
+expect sealed class BaseType(_name: String) {
+
+    val name: String
+
     object Nothing : BaseType
     object Integer : BaseType
     object Long : BaseType

@@ -2,6 +2,7 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
+import com.infowings.common.*
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
@@ -61,23 +62,23 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
         }
         /** Add initial measures to database */
-        val localMeasureService = MeasureService()
+        val localMeasureService = MeasureService(database)
         session(database) {
-            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it, database) }
-            localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup, database)
-            localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup, database)
-            localMeasureService.linkGroupsBidirectional(SpeedGroup, LengthGroup, database)
-            localMeasureService.linkGroupsBidirectional(TorqueGroup, LengthGroup, database)
-            localMeasureService.linkGroupsBidirectional(PressureGroup, AreaGroup, database)
-            localMeasureService.linkGroupsBidirectional(DensityGroup, VolumeGroup, database)
-            localMeasureService.linkGroupsBidirectional(PressureGroup, MassGroup, database)
-            localMeasureService.linkGroupsBidirectional(DensityGroup, MassGroup, database)
-            localMeasureService.linkGroupsBidirectional(WorkEnergyGroup, PowerEnergyGroup, database)
-            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, LengthGroup, database)
-            localMeasureService.linkGroupsBidirectional(TorqueGroup, PowerGroup, database)
-            localMeasureService.linkGroupsBidirectional(PowerEnergyGroup, TimeGroup, database)
-            localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup, database)
-            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup, database)
+            MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it) }
+            localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup)
+            localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup)
+            localMeasureService.linkGroupsBidirectional(SpeedGroup, LengthGroup)
+            localMeasureService.linkGroupsBidirectional(TorqueGroup, LengthGroup)
+            localMeasureService.linkGroupsBidirectional(PressureGroup, AreaGroup)
+            localMeasureService.linkGroupsBidirectional(DensityGroup, VolumeGroup)
+            localMeasureService.linkGroupsBidirectional(PressureGroup, MassGroup)
+            localMeasureService.linkGroupsBidirectional(DensityGroup, MassGroup)
+            localMeasureService.linkGroupsBidirectional(WorkEnergyGroup, PowerEnergyGroup)
+            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, LengthGroup)
+            localMeasureService.linkGroupsBidirectional(TorqueGroup, PowerGroup)
+            localMeasureService.linkGroupsBidirectional(PowerEnergyGroup, TimeGroup)
+            localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
+            localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
         return this
     }

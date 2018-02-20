@@ -1,7 +1,7 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.Fahrenheit
-import com.infowings.catalog.data.TemperatureGroup
+import com.infowings.common.Fahrenheit
+import com.infowings.common.TemperatureGroup
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
