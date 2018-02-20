@@ -1,11 +1,14 @@
 package com.infowings.catalog.data
 
+import com.infowings.common.BaseType
 import java.math.BigDecimal
 
 private fun createBigDecimalMeasure(name: String, symbol: String, coefficient: Double) =
     Measure<BigDecimal>(name, symbol, { it * BigDecimal(coefficient) }, { it / BigDecimal(coefficient) }, BaseType.Decimal)
 
-class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType)
+class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType) {
+    override fun toString(): String = "$name/$symbol"
+}
 
 class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
@@ -110,8 +113,8 @@ val Celsius = createBigDecimalMeasure("Celsius", "c", 1.0)
 val Fahrenheit = Measure<BigDecimal>(
     "Fahrenheit",
     "f",
-        { (it - BigDecimal(32)) * (BigDecimal(5.0 / 9.0)) },
-        { it * BigDecimal(1.8) + BigDecimal(32.0) },
+    { (it - BigDecimal(32)) * (BigDecimal(5.0 / 9.0)) },
+    { it * BigDecimal(1.8) + BigDecimal(32.0) },
     BaseType.Decimal
 )
 

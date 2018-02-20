@@ -6,7 +6,9 @@ import org.w3c.dom.events.InputEvent
 import react.*
 import react.dom.input
 import react.dom.span
-import wrappers.table.*
+import wrappers.table.RTableColumnDescriptor
+import wrappers.table.RTableRendererProps
+import wrappers.table.ReactTable
 
 fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("AspectHeader") {
     span {

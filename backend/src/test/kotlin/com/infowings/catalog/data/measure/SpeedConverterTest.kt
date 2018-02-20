@@ -23,5 +23,6 @@ class SpeedConverterTest {
     @Test
     fun knotToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(13.0, 6.68777, Knot)
 
-    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInMetrePerSecond, measure, SpeedGroup.base)
+    private fun toMetrePerSecondTest(source: Double, sourceInMetrePerSecond: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInMetrePerSecond, measure, SpeedGroup.base)
 }

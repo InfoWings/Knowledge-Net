@@ -36,7 +36,9 @@ class AreaAndVolumeConverterTest {
     @Test
     fun gallonToMetreAndViseVersaTest() = toCubicMetreTest(123.0, 0.4656056, Gallon)
 
-    private fun toSquareMetreTest(source: Double, sourceInSquareMetre: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInSquareMetre, measure, AreaGroup.base)
+    private fun toSquareMetreTest(source: Double, sourceInSquareMetre: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInSquareMetre, measure, AreaGroup.base)
 
-    private fun toCubicMetreTest(source: Double, sourceInSquareMetre: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInSquareMetre, measure, VolumeGroup.base)
+    private fun toCubicMetreTest(source: Double, sourceInSquareMetre: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInSquareMetre, measure, VolumeGroup.base)
 }

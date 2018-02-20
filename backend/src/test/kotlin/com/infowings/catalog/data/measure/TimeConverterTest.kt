@@ -19,5 +19,6 @@ class TimeConverterTest {
     fun daysToSeconds() = toSecondsMeasureTest(1.53, 132192.0, Day)
 
 
-    private fun toSecondsMeasureTest(source: Double, sourceInSeconds: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInSeconds, measure, TimeGroup.base)
+    private fun toSecondsMeasureTest(source: Double, sourceInSeconds: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInSeconds, measure, TimeGroup.base)
 }

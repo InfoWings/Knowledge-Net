@@ -1,6 +1,9 @@
 package catalog.layout
 
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
 import react.dom.div
 import react.dom.li
 import react.dom.ul
