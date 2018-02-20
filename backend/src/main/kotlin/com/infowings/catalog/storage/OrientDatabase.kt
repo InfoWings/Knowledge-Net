@@ -9,7 +9,6 @@ import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
-import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
 
@@ -49,10 +48,10 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * database.query(selectFromAspect) { rs, session ->
      * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
      */
-    fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>, ODatabaseDocument) -> T): T {
+    fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, *args)
-                .use { rs: OResultSet -> block(rs.asSequence(), session) }
+                .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
 }
@@ -89,13 +88,10 @@ inline fun <U> transactionInner(
 /**
  * Use this function when you do not need database access to be transactional (reads or single document access are atomic)
  *
- * sessions can be nested but cannot be nested with transaction
+ * sessions can be nested
  */
 inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) -> U): U {
     val session = sessionStore.get()
-
-    if (session != null && session.transaction !is OTransactionNoTx)
-        throw RuntimeException("Cannot use session inside transaction")
 
     if (session != null)
         return block(session)

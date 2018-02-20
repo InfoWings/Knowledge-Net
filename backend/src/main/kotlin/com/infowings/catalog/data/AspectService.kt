@@ -4,7 +4,6 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.common.catalog.data.AspectData
 import com.infowings.common.catalog.data.AspectPropertyData
-import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -50,7 +49,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         aspectPropertyVertex["aspectId"] = aspect.id
         aspectPropertyVertex["power"] = power.name
 
-        val aspectVertex: OVertex = session.getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
+        val aspectVertex: OVertex = getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
         aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
@@ -59,10 +58,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
     }
 
-    private fun loadAspectProperty(id: String): AspectProperty = session(db) { session ->
-        session.getVertexById(id)?.toAspectProperty()
+    private fun loadAspectProperty(id: String): AspectProperty =
+        getVertexById(id)?.toAspectProperty()
                 ?: throw IllegalArgumentException("No aspect property with id: $id")
-    }
+
 
     /**
      * Creates new Aspect and saves it into DB
@@ -93,11 +92,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @return null if nothing's found
      * todo: немного неконсистентно где-то летит исключение, где-то null
      */
-    fun findByName(name: String): Aspect? = db.query(selectAspectByName, name) { rs, session ->
+    fun findByName(name: String): Aspect? = db.query(selectAspectByName, name) { rs ->
         rs.map { it.toVertex().toAspect() }.firstOrNull()
     }
 
-    fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs, session ->
+    fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
         rs.mapNotNull { it.toVertexOrNUll()?.toAspect() }.toList()
     }
 
@@ -105,16 +104,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = session(db) { session ->
-        session.getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
-    }
+    fun findById(id: String): Aspect = getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
-    private fun ODatabaseDocument.getVertexById(id: String): OVertex? =
-        query(selectById, ORecordId(id)).use { rs ->
-            rs.asSequence()
-                .map { it.toVertexOrNUll() }
-                .firstOrNull()
-        }
+
+    private fun getVertexById(id: String): OVertex? =
+        db.query(selectById, ORecordId(id)) { rs -> rs.map { it.toVertexOrNUll() }.firstOrNull() }
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])
@@ -130,11 +124,13 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     private fun OVertex.toAspect(): Aspect =
         Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this))
 
-    private fun loadProperties(oVertex: OVertex): List<AspectProperty> =
+
+    private fun loadProperties(oVertex: OVertex): List<AspectProperty> = session(db) {
         oVertex
             .getEdges(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE)
             .map { it.to }
             .map { loadAspectProperty(it.id) }
+    }
 
     private fun OVertex.toAspectProperty(): AspectProperty =
         AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]))
