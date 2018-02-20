@@ -23,7 +23,7 @@ class SearchTest {
     @Test
     fun measureSuggestion() {
         val queryText = "metr"
-        val context = SearchContext("", emptyList(), emptyList())
+        val context = SearchContext(emptyList(), emptyList())
         val res = suggestionService.find(context, queryText)
 
         println("find result size: ${res.size}")

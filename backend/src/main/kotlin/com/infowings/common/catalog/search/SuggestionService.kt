@@ -1,7 +1,8 @@
 package com.infowings.common.catalog.search
 
-import com.infowings.common.catalog.data.MEASURE_VERTEX
-import com.infowings.common.catalog.storage.OrientDatabase
+import com.infowings.catalog.data.MEASURE_VERTEX
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.record.impl.ODocument
@@ -33,9 +34,10 @@ class SuggestionService(val database: OrientDatabase) {
 
     private fun findInDb(context: SearchContext, text: String): Stream<OElement> {
         val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
-        database.acquire().query(q, "($text~) ($text*) (*$text*)").use {
-            return it.elementStream()
+        session(database) { session ->
+            session.query(q, "($text~) ($text*) (*$text*)").use {
+                return it.elementStream()
+            }
         }
     }
-
 }

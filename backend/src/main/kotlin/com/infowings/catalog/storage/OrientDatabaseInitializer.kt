@@ -1,8 +1,8 @@
 package com.infowings.catalog.storage
 
-import com.infowings.common.catalog.data.*
-import com.infowings.common.catalog.loggerFor
-import com.orientechnologies.orient.core.db.ODatabaseSession
+import com.infowings.catalog.data.*
+import com.infowings.catalog.loggerFor
+import com.infowings.common.*
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
@@ -86,14 +86,16 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     /** Initializes measures */
     fun initMeasuresSearch(): OrientDatabaseInitializer {
-        val iName = "$MEASURE_VERTEX.lucene.name"
-        val oClass = session.getClass(MEASURE_VERTEX)
-        if (oClass.getClassIndex(iName) == null) {
-            val metadata = ODocument()
-            metadata.setProperty("allowLeadingWildcard", true)
-            CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
+        session(database) { session ->
+            val iName = "$MEASURE_VERTEX.lucene.name"
+            val oClass = session.getClass(MEASURE_VERTEX)
+            if (oClass.getClassIndex(iName) == null) {
+                val metadata = ODocument()
+                metadata.setProperty("allowLeadingWildcard", true)
+                CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
+            }
+            return this
         }
-        return this
     }
 
     /** Create user in database */
