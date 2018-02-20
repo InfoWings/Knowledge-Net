@@ -1,8 +1,9 @@
 package com.infowings.catalog.search
 
-import com.infowings.common.catalog.MasterCatalog
-import com.infowings.common.catalog.search.SearchContext
-import com.infowings.common.catalog.search.SuggestionService
+
+import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,4 +1,4 @@
-package com.infowings.common.catalog.search
+package com.infowings.catalog.search
 
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.storage.OrientDatabase
@@ -14,10 +14,11 @@ import java.util.stream.Stream
  */
 class SuggestionService(val database: OrientDatabase) {
 
-    fun find(context: SearchContext, text: String): List<MeasureSuggestion> =
+    fun find(context: SearchContext, text: String): List<MeasureSuggestion> = session(database) {
             findInDb(context, text)
                     .map { toMeasureSuggestionDto(it) }
-                    .collect(Collectors.toList())
+                    .toList()
+    }
 
     private fun toMeasureSuggestionDto(oElement: OElement?): MeasureSuggestion =
             when (oElement) {
@@ -32,12 +33,11 @@ class SuggestionService(val database: OrientDatabase) {
     private fun vertexToMeasureSuggestionDto(oDocument: ODocument): MeasureSuggestion =
             MeasureSuggestion(oDocument.getProperty("name"))
 
-    private fun findInDb(context: SearchContext, text: String): Stream<OElement> {
+    private fun findInDb(context: SearchContext, text: String): Sequence<OElement> {
         val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
-        session(database) { session ->
-            session.query(q, "($text~) ($text*) (*$text*)").use {
-                return it.elementStream()
-            }
+        return database.query(q, "($text~) ($text*) (*$text*)") {
+            it.map { it.toElement() }
         }
+
     }
 }

@@ -1,4 +1,4 @@
-package com.infowings.common.catalog.search
+package com.infowings.catalog.search
 
 data class MeasureSuggestion(
         val name: String)
