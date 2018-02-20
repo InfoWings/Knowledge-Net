@@ -2,6 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.common.BaseType
 import com.infowings.common.catalog.data.AspectData
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
