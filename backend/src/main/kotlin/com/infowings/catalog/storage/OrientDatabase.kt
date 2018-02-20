@@ -13,7 +13,7 @@ import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
 
-class OrientDatabase(url: String, database: String, user: String, password: String) {
+class OrientDatabase(url: String, database: String, user: String, password: String, dropBefore: String = "false") {
 
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
@@ -24,9 +24,17 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
+
+        if (dropBefore.toBoolean()) {
+            orientDB.drop(database)
+        }
+
         // злой хак для тестов
-        if (url == "memory")
+        if (url == "memory") {
             orientDB.create(database, ODatabaseType.MEMORY)
+        } else {
+            orientDB.create(database, ODatabaseType.PLOCAL)
+        }
 
         // создаем необходимые классы
         OrientDatabaseInitializer(this)

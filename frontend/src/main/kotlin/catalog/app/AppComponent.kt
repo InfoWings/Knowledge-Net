@@ -1,8 +1,8 @@
 package catalog.app
 
+import catalog.aspects.AspectsPage
 import catalog.auth.AuthComponent
 import catalog.auth.privateRoute
-import catalog.aspects.AspectsPage
 import catalog.units.UnitsPage
 import react.RBuilder
 import react.RComponent

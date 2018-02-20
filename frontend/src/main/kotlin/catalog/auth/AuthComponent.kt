@@ -9,8 +9,11 @@ import kotlinx.html.js.onSubmitFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RState
 import react.dom.*
+import react.setState
 import utils.login
 import wrappers.RouteSuppliedProps
 import wrappers.reactRouter
