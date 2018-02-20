@@ -26,14 +26,14 @@ class DatabaseMeasureTest {
     lateinit var database: OrientDatabase
 
     @Test
-    fun everyGroupExist() = session(database) { db ->
+    fun everyGroupExist() = session(database) {
         MeasureGroupMap.values.forEach {
             assertTrue("${it.name} group must exist", measureService.findMeasureGroup(it.name, database) != null)
         }
     }
 
     @Test
-    fun everyGroupBaseMeasureExist() = session(database) { db ->
+    fun everyGroupBaseMeasureExist() = session(database) {
         MeasureGroupMap.values.forEach {
             val baseVertex = measureService.findMeasure(it.base.name, database)
             val groupVertex = measureService.findMeasureGroup(it.name, database)
@@ -45,7 +45,7 @@ class DatabaseMeasureTest {
     }
 
     @Test
-    fun everyGroupContainsAllTheirMeasures() = session(database) { db ->
+    fun everyGroupContainsAllTheirMeasures() = session(database) {
         MeasureGroupMap.values.forEach { group ->
             val baseVertex = measureService.findMeasure(group.base.name, database)
             group.measureList.forEach { measure ->
