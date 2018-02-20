@@ -12,7 +12,7 @@ import com.orientechnologies.orient.core.tx.OTransaction
 import javax.annotation.PreDestroy
 
 
-class OrientDatabase(url: String, database: String, user: String, password: String) {
+class OrientDatabase(url: String, database: String, user: String, password: String, dropBefore: String = "false") {
 
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
@@ -21,9 +21,15 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
     init {
 
+        if (dropBefore.toBoolean()) {
+            orientDB.drop(database)
+        }
+
         // злой хак для тестов
         if (url == "memory") {
             orientDB.create(database, ODatabaseType.MEMORY)
+        } else {
+            orientDB.create(database, ODatabaseType.PLOCAL)
         }
 
         // создаем необходимые классы
