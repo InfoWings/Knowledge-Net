@@ -4,22 +4,21 @@ package utils
 import com.infowings.common.JwtToken
 import com.infowings.common.UserDto
 import kotlinx.coroutines.experimental.await
-import org.w3c.dom.get
-import org.w3c.dom.set
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
-import kotlin.browser.localStorage
+import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.js.JSON
+import kotlin.js.Json
 import kotlin.js.json
 import kotlinx.serialization.json.JSON as KJSON
 
 private const val POST = "POST"
 private const val GET = "GET"
 
-private const val AUTH_ACCESS_TOKEN = "auth-access-token"
-private const val AUTH_REFRESH_TOKEN = "auth-refresh-token"
+private const val AUTH_ACCESS = "x-access-authorization"
+private const val AUTH_REFRESH = "x-refresh-authorization"
 private const val AUTH_ROLE = "auth-role"
 
 /**
@@ -43,11 +42,9 @@ suspend fun <T> get(url: String, body: dynamic = null): T {
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body, authorizationHeaders)
-
     if (!response.ok) {
         response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
-
     return response
 }
 
@@ -56,10 +53,16 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
  *  1. authorization access token
  *  2. authorization refresh token
  */
-private val authorizationHeaders = json(
-    "x-access-authorization" to "Bearer ${localStorage[AUTH_ACCESS_TOKEN]}",
-    "x-refresh-authorization" to "Bearer ${localStorage[AUTH_REFRESH_TOKEN]}"
-)
+private val authorizationHeaders = getAuthorizationHeaders()
+
+private fun getAuthorizationHeaders(): Json {
+    val pairs = document.cookie.split(";")
+        .map { Pair(it.split("=")[0], it.split("=")[1]) }
+        .toTypedArray()
+    val json = json(*pairs)
+    console.log(json.toString())
+    return json
+}
 
 /**
  * Generic request to server with default headers.
@@ -92,7 +95,6 @@ private suspend fun refreshTokenAndRepeatRequest(
     if (isRefreshed) {
         return request(method, url, body, authorizationHeaders)
     }
-    removeTokenInfo()
     window.location.replace("/")
     return oldResponse
 }
@@ -122,18 +124,12 @@ suspend fun login(body: UserDto): Boolean {
 private suspend fun parseToken(response: Response): Boolean {
     try {
         val jwtToken = JSON.parse<JwtToken>(response.text().await())
-        console.log("refresh: $jwtToken")
-        localStorage[AUTH_ACCESS_TOKEN] = jwtToken.accessToken
-        localStorage[AUTH_REFRESH_TOKEN] = jwtToken.refreshToken
-        localStorage[AUTH_ROLE] = jwtToken.role.name
+        document.cookie = "$AUTH_ACCESS=Bearer ${jwtToken.accessToken}"
+        document.cookie = "$AUTH_REFRESH=Bearer ${jwtToken.refreshToken}"
+        document.cookie = "$AUTH_ROLE=${jwtToken.role.name}"
+        console.log(document.cookie)
         return true
     } catch (e: Exception) {
         return false
     }
-}
-
-private fun removeTokenInfo() {
-    localStorage.removeItem(AUTH_ACCESS_TOKEN)
-    localStorage.removeItem(AUTH_REFRESH_TOKEN)
-    localStorage.removeItem(AUTH_ROLE)
 }
