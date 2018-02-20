@@ -9,6 +9,7 @@ import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
+import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
 
@@ -85,6 +86,7 @@ inline fun <U> transactionInner(
             ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
 
+//todo: test for transaction/session nesting
 /**
  * Use this function when you do not need database access to be transactional (reads or single document access are atomic)
  *
@@ -117,7 +119,10 @@ inline fun <U> transaction(
     block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
-    if (session != null)
+    if (session != null && session.transaction !is OTransactionNoTx)
+        return block(session)
+
+    if (session != null && session.transaction is OTransactionNoTx)
         return transactionInner(session, retryOnFailure, txtype, block)
 
     val newSession = database.acquire()

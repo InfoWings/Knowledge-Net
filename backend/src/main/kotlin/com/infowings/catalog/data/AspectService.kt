@@ -41,7 +41,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return findById(save.id)
     }
 
-    private fun AspectProperty.saveAspectProperty(): OVertex = session(db) { session ->
+    private fun AspectProperty.saveAspectProperty(): OVertex = transaction(db) { session ->
         logger.trace("Adding aspect property $name for aspect ${aspect.id}")
         val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
 
@@ -53,7 +53,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
-        return@session aspectPropertyVertex.save<OVertex>().also {
+        return@transaction aspectPropertyVertex.save<OVertex>().also {
             logger.trace("Saved aspect property $name with temporary id: ${it.id}")
         }
     }
