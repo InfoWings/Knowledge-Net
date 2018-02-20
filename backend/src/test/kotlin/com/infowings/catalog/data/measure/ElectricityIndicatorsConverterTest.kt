@@ -43,9 +43,11 @@ class ElectricityIndicatorsConverterTest {
     fun milliOmToOmTest() = measureTest(23.0, 0.023, MilliOm, ElectricCurrentGroup.base)
 
 
-    private fun toWattTest(source: Double, sourceInWatt: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInWatt, measure, PowerEnergyGroup.base)
+    private fun toWattTest(source: Double, sourceInWatt: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInWatt, measure, PowerEnergyGroup.base)
 
     private fun toVoltTest(source: Double, sourceInVolt: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInVolt, measure, VoltageGroup.base)
 
-    private fun toJouleTest(source: Double, sourceInJoule: Double, measure: Measure<BigDecimal>) = measureTest(source, sourceInJoule, measure, WorkEnergyGroup.base)
+    private fun toJouleTest(source: Double, sourceInJoule: Double, measure: Measure<BigDecimal>) =
+        measureTest(source, sourceInJoule, measure, WorkEnergyGroup.base)
 }

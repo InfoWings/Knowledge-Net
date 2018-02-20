@@ -2,7 +2,6 @@ package catalog.auth
 
 import org.w3c.dom.get
 import react.RBuilder
-import react.RProps
 import react.buildElements
 import wrappers.RouteSuppliedProps
 import wrappers.reactRouter
