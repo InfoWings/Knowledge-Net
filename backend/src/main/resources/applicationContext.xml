@@ -15,7 +15,6 @@
         <constructor-arg name="database" value="${orient.database}"/>
         <constructor-arg name="user" value="${orient.user}"/>
         <constructor-arg name="password" value="${orient.password}"/>
-        <constructor-arg name="dropBefore" value="${orient.drop-before}"/>
     </bean>
 
     <bean id="metadataService" class="com.infowings.common.catalog.data.AspectService">
