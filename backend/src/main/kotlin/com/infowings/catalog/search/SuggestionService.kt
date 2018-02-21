@@ -1,11 +1,12 @@
 package com.infowings.catalog.search
 
+import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
-import com.infowings.common.GlobalMeasureMap
-import com.infowings.common.Measure
+
 import com.infowings.common.search.SearchContext
 import com.orientechnologies.orient.core.record.OVertex
 

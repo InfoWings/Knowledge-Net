@@ -2,10 +2,9 @@ package com.infowings.catalog.search
 
 
 import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.Metre
 import com.infowings.catalog.loggerFor
-import com.infowings.common.GlobalMeasureMap
-import com.infowings.common.Measure
-import com.infowings.common.Metre
 import com.infowings.common.search.SearchContext
 import org.junit.Test
 import org.junit.runner.RunWith

@@ -1,6 +1,6 @@
 package com.infowings.catalog.search
 
-import com.infowings.common.Measure
+import com.infowings.catalog.common.Measure
 import com.infowings.common.search.SearchContext
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
