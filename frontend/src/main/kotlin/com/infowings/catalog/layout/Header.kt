@@ -1,5 +1,7 @@
 package com.infowings.catalog.layout
 
+import com.infowings.catalog.utils.logout
+import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -7,8 +9,6 @@ import react.RState
 import react.dom.div
 import react.dom.li
 import react.dom.ul
-import com.infowings.catalog.wrappers.reactRouter
-import kotlin.browser.localStorage
 
 class HeaderProps(var location: String) : RProps
 
@@ -40,7 +40,7 @@ class Header : RComponent<HeaderProps, RState>() {
                         reactRouter.Link {
                             attrs {
                                 to = "/"
-                                onClick = { localStorage.removeItem("auth-role"); }
+                                onClick = { logout() }
                             }
                             +"Logout"
                         }
