@@ -31,7 +31,11 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 pivotBy = arrayOf("measure")
                 columns = arrayOf(
                     column("measure", header("Measure")),
-                    column("name", header("Unit")),
+                    RTableColumnDescriptor {
+                        this.accessor = "name"
+                        this.Header = header("Unit")
+                        this.width = 300.0
+                    },
                     column("symbol", header("Symbol"))
                 )
                 data = props.data
@@ -39,6 +43,7 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 minRows = 2
                 sortable = false
                 showPageJump = false
+                resizable = false
             }
         })
     }
