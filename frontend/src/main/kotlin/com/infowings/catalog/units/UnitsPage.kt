@@ -1,20 +1,14 @@
 package com.infowings.catalog.units
 
+import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.layout.Header
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.h1
-import com.infowings.catalog.wrappers.RouteSuppliedProps
 
 class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
-    val data = mapOf(
-        "Length" to listOf("Metre", "Cantimetre", "Millimetre", "Inch", "Mile"),
-        "Mass" to listOf("Kilogram", "Milligram", "Pound"),
-        "Time" to listOf("Second", "Millisecond", "Minute", "Hour"),
-        "Speed" to listOf("KilometrePerSecond", "MilePerHour", "InchPerSecond", "MetrePerSecond", "KilometrePerHour")
-    )
-
     override fun RBuilder.render() {
         child(Header::class) {
             attrs { location = props.location.pathname }
@@ -24,7 +18,9 @@ class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
 
         child(UnitsTable::class) {
             attrs {
-                units = data
+                data = MeasureGroupMap.flatMap { it ->
+                    it.value.measureList.map { m -> UnitsTableRowData(it.key, m.name, m.symbol) }
+                }.toTypedArray()
             }
         }
     }
