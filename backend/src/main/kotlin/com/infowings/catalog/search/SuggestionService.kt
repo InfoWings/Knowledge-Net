@@ -4,6 +4,7 @@ import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
+import com.infowings.common.GlobalMeasureMap
 import com.infowings.common.Measure
 import com.infowings.common.search.SearchContext
 import com.orientechnologies.orient.core.record.OVertex
@@ -17,7 +18,7 @@ class SuggestionService(val database: OrientDatabase) {
 
     fun find(context: SearchContext, text: String): List<Measure<*>> = session(database) {
         findInDb(context, text)
-                .mapNotNull { Measure[it.getProperty("name")] }
+                .mapNotNull { GlobalMeasureMap[it.getProperty("name")] }
                 .toList()
     }
 

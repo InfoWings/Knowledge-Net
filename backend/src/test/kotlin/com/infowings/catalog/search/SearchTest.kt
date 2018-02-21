@@ -3,6 +3,7 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.loggerFor
+import com.infowings.common.GlobalMeasureMap
 import com.infowings.common.Measure
 import com.infowings.common.Metre
 import com.infowings.common.search.SearchContext
@@ -35,7 +36,8 @@ class SearchTest {
 
         logger.info("find result: $res")
         assertEquals("Metre",  res.first().name)
-        assertEquals(Measure[res.first().name], Metre)
+        val m = GlobalMeasureMap[res.first().name]
+        assertEquals(m, Metre)
 
         res.map { it.name }
                 .forEach {

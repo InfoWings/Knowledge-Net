@@ -27,18 +27,7 @@ expect sealed class BaseType(_name: String) {
 
 fun createDecimalMeasure(name: String, symbol: String, coefficient: Double): Measure<DecimalNumber> = Measure(name, symbol, { it * DecimalNumber(coefficient) }, { it / DecimalNumber(coefficient) }, BaseType.Decimal)
 
-class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType) {
-
-    companion object {
-        private val measureMap = HashMap<String,  Measure<*>>()
-        operator fun get(name: String) : Measure<*>? = measureMap[name]
-    }
-    init {
-       measureMap[name] = this
-    }
-
-}
-
+class Measure<T>(val name: String, val symbol: String, val toBase: (T) -> T, val fromBase: (T) -> T, val baseType: BaseType)
 
 class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
