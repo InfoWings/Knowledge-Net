@@ -3,7 +3,7 @@ package com.infowings.catalog.units
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
-import com.infowings.common.catalog.wrappers.table.treeTable
+import com.infowings.catalog.wrappers.table.treeTable
 import react.*
 import react.dom.span
 
@@ -28,7 +28,7 @@ class UnitsTable : RComponent<UnitsProps, RState>() {
     override fun RBuilder.render() {
         treeTable(ReactTable)({
             attrs {
-//                pivotBy = arrayOf("measure") //fixme
+                pivotBy = arrayOf("measure")
                 columns = arrayOf(
                     unitColumn("measure", headerComponent("Measure")),
                     unitColumn("name", headerComponent("Unit")),

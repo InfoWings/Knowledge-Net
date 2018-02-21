@@ -1,8 +1,7 @@
 @file:JsModule("react-table/lib/hoc/treeTable")
 
-package com.infowings.common.catalog.wrappers.table
+package com.infowings.catalog.wrappers.table
 
-import com.infowings.catalog.wrappers.table.RTableProps
 import react.RClass
 
 
