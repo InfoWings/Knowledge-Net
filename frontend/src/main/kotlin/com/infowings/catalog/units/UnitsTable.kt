@@ -7,32 +7,32 @@ import com.infowings.catalog.wrappers.table.treeTable
 import react.*
 import react.dom.span
 
-fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("UnitHeader") {
+private fun header(columnName: String) = rFunction<RTableRendererProps>("UnitsTableHeader") {
     span {
         +columnName
     }
 }
 
-fun unitColumn(accessor: String, header: RClass<RTableRendererProps>) =
+private fun column(accessor: String, header: RClass<RTableRendererProps>) =
     RTableColumnDescriptor {
         this.accessor = accessor
         this.Header = header
     }
 
-data class RowData(val measure: String, val name: String, val symbol: String)
+data class UnitsTableRowData(val measure: String, val name: String, val symbol: String)
 
-class UnitsProps(var data: Array<RowData>) : RProps
+class UnitsTableProperties(var data: Array<UnitsTableRowData>) : RProps
 
-class UnitsTable : RComponent<UnitsProps, RState>() {
+class UnitsTable : RComponent<UnitsTableProperties, RState>() {
 
     override fun RBuilder.render() {
         treeTable(ReactTable)({
             attrs {
                 pivotBy = arrayOf("measure")
                 columns = arrayOf(
-                    unitColumn("measure", headerComponent("Measure")),
-                    unitColumn("name", headerComponent("Unit")),
-                    unitColumn("symbol", headerComponent("Symbol"))
+                    column("measure", header("Measure")),
+                    column("name", header("Unit")),
+                    column("symbol", header("Symbol"))
                 )
                 data = props.data
                 showPagination = false

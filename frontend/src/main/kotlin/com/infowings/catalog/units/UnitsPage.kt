@@ -19,7 +19,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
         child(UnitsTable::class) {
             attrs {
                 data = MeasureGroupMap.flatMap { it ->
-                    it.value.measureList.map { m -> RowData(it.key, m.name, m.symbol) }
+                    it.value.measureList.map { m -> UnitsTableRowData(it.key, m.name, m.symbol) }
                 }.toTypedArray()
             }
         }
