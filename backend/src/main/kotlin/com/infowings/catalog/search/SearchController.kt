@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.data.Aspect
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.common.search.SearchContext
@@ -20,12 +21,12 @@ class SearchController(val suggestionService: SuggestionService) {
      */
     @GetMapping("/measure/suggestion")
     fun measureSuggestion(context: SearchContext, text: String): List<Measure<*>> =
-            suggestionService.find(MEASURE_VERTEX, context, text)
+            suggestionService.findMeasure(context, text)
 
     /**
      * Полнотекстовый поиск по аспектам
      */
     @GetMapping("/aspect/suggestion")
-    fun aspectSuggestion(context: SearchContext, text: String): List<Measure<*>> =
-            suggestionService.find(ASPECT_CLASS, context, text)
+    fun aspectSuggestion(context: SearchContext, text: String): List<Aspect> =
+            suggestionService.findAspect(context, text)
 }
