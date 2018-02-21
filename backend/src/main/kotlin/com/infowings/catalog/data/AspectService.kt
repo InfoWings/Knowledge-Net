@@ -1,57 +1,82 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.*
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-import com.orientechnologies.orient.core.sql.executor.OResultSet
 
+/**
+ * Data layer for Aspect & Aspect properties
+ * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
+ * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
+ */
+class AspectService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-class AspectService(private val database: OrientDatabase, private val measureService: MeasureService) {
+    private fun save(name: String, measure: Measure<*>?, baseType: BaseType?, properties: List<AspectPropertyData>): Aspect {
+        logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
 
-    private fun save(name: String, measureUnit: Measure<*>?, baseType: BaseType?): Aspect {
-        val save: OVertex = transaction(database) { session ->
-
-            val measureVertex: OVertex? = measureUnit?.name?.let { measureService.findMeasure(it, session) }
+        val save: OVertex = transaction(db) { session ->
+            val measureVertex: OVertex? = measure?.name?.let { measureService.findMeasure(it) }
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
             aspectVertex["name"] = name
-            aspectVertex["baseType"] = baseType?.name ?: measureUnit?.baseType?.name
-            aspectVertex["measure"] = measureUnit?.name
-            measureVertex?.let { aspectVertex.addEdge(it, MEASURE_ASPECT_CLASS) }
+            aspectVertex["baseType"] = baseType?.name ?: measure?.baseType?.name
+            aspectVertex["measure"] = measure?.name
+            measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
+
+            for (property in properties) {
+                val aspect = findById(property.aspectId)
+                val power = AspectPropertyPower.valueOf(property.power)
+                val aspectPropertyVertex = AspectProperty("", property.name, aspect, power).saveAspectProperty()
+                aspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
+            }
 
             return@transaction aspectVertex.save()
         }
-        return save.toAspect()
+        logger.trace("Aspect $name saved with id: ${save.id}")
+        return findById(save.id)
     }
 
-    fun saveAspectProperty(property: AspectProperty, session: ODatabaseDocument): OVertex {
+    private fun AspectProperty.saveAspectProperty(): OVertex = transaction(db) { session ->
+        logger.trace("Adding aspect property $name for aspect ${aspect.id}")
         val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
 
-        aspectPropertyVertex["name"] = property.name
-        aspectPropertyVertex["aspectId"] = property.aspect.id
-        aspectPropertyVertex["power"] = property.power.name
+        aspectPropertyVertex["name"] = name
+        aspectPropertyVertex["aspectId"] = aspect.id
+        aspectPropertyVertex["power"] = power.name
 
-        val aspectVertex: OVertex = session.getVertexById(property.aspect.id) ?: throw IllegalStateException("No aspect with id: ${property.aspect.id}")
+        val aspectVertex: OVertex = getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
-        val saved = aspectPropertyVertex.save<OVertex>()
-        aspectVertex.addEdge(saved, ASPECT_ASPECTPROPERTY_EDGE)
-        aspectVertex.save<OVertex>()
+        aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
-        return saved
+        return@transaction aspectPropertyVertex.save<OVertex>().also {
+            logger.trace("Saved aspect property $name with temporary id: ${it.id}")
+        }
     }
 
-    fun loadAspectProperty(id: String, session: ODatabaseDocument): AspectProperty =
-        session.getVertexById(id)?.toAspectProperty(session) ?: throw IllegalArgumentException("No aspect property with id: $id")
+    private fun loadAspectProperty(id: String): AspectProperty =
+        getVertexById(id)?.toAspectProperty()
+                ?: throw IllegalArgumentException("No aspect property with id: $id")
 
-    fun createAspect(name: String, measureName: String?, baseTypeString: String?): Aspect {
-        if (findByName(name) != null)
+
+    /**
+     * Creates new Aspect and saves it into DB
+     * @throws AspectAlreadyExist,
+     * @throws IllegalArgumentException in case of incorrect input data,
+     * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
+     */
+    fun createAspect(aspectData: AspectData): Aspect {
+        if (findByName(aspectData.name) != null)
             throw AspectAlreadyExist
 
-        val measure: Measure<*>? = GlobalMeasureMap[measureName]
+        val measure: Measure<*>? = GlobalMeasureMap[aspectData.measure]
 
         val baseType: BaseType? = when {
-            baseTypeString != null -> BaseType.restoreBaseType(baseTypeString)
+            aspectData.baseType != null -> BaseType.restoreBaseType(aspectData.baseType)
             measure != null -> measure.baseType
             else -> BaseType.Nothing
         }
@@ -59,35 +84,31 @@ class AspectService(private val database: OrientDatabase, private val measureSer
         if (baseType != null && measure != null && baseType != measure.baseType)
             throw IllegalArgumentException("Base type and measure base type should be the same")
 
-        return save(name, measure, baseType)
+        return save(aspectData.name, measure, baseType, aspectData.properties)
     }
 
-    fun findByName(name: String): Aspect? {
-        val statement = "SELECT FROM Aspect where name = ? ";
-
-        return transaction(database) { db ->
-            val rs: OResultSet = db.query(statement, name);
-            if (rs.hasNext()) {
-                return@transaction rs.next().toVertex().toAspect()
-            }
-            return@transaction null
-        }
+    /**
+     * Search [Aspect] by it's name
+     * @return null if nothing's found
+     * todo: немного неконсистентно где-то летит исключение, где-то null
+     */
+    fun findByName(name: String): Aspect? = db.query(selectAspectByName, name) { rs ->
+        rs.map { it.toVertex().toAspect() }.firstOrNull()
     }
 
-    fun findById(id: String, session: ODatabaseDocument): Aspect = (session.getVertexById(id))?.toAspect()
-            ?: throw IllegalStateException("Incorrect data: cannot load aspect $id")
-
-    private fun ODatabaseDocument.getVertexById(id: String): OVertex? {
-        val statement = "SELECT FROM ?"
-        val rs: OResultSet = query(statement, ORecordId(id));
-        return if (rs.hasNext()) {
-            rs.next().toVertexOrNUll()
-        } else {
-            null
-        }
+    fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
+        rs.mapNotNull { it.toVertexOrNUll()?.toAspect() }.toList()
     }
 
-    fun getAspects(): List<Aspect> = TODO()
+    /**
+     * Search [Aspect] by it's id
+     * @throws AspectDoesNotExist
+     */
+    fun findById(id: String): Aspect = getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+
+
+    private fun getVertexById(id: String): OVertex? =
+        db.query(selectById, ORecordId(id)) { rs -> rs.map { it.toVertexOrNUll() }.firstOrNull() }
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])
@@ -100,14 +121,26 @@ class AspectService(private val database: OrientDatabase, private val measureSer
     private val OVertex.id: String
         get() = identity.toString()
 
-    private fun OVertex.toAspect(): Aspect = Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType)
+    private fun OVertex.toAspect(): Aspect =
+        Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this))
 
-    private fun OVertex.toAspectProperty(session: ODatabaseDocument): AspectProperty =
-        AspectProperty(id, name, findById(aspect, session), AspectPropertyPower.valueOf(this["power"]))
+
+    private fun loadProperties(oVertex: OVertex): List<AspectProperty> = session(db) {
+        oVertex
+            .getEdges(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE)
+            .map { it.to }
+            .map { loadAspectProperty(it.id) }
+    }
+
+    private fun OVertex.toAspectProperty(): AspectProperty =
+        AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]))
 }
 
+private const val selectFromAspect = "SELECT FROM Aspect"
+private const val selectById = "SELECT FROM ?"
+private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
+
+private val logger = loggerFor<AspectService>()
 
 object AspectAlreadyExist : Throwable()
-
-class AspectDoesNotExistId(id: Long) : Throwable()
-class AspectDoesNotExistName(name: String) : Throwable()
+class AspectDoesNotExist(val id: String) : Throwable()

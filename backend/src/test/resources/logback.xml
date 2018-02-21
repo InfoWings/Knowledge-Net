@@ -14,13 +14,7 @@
     </appender>
 
     <logger name="org.springframework" level="INFO"/>
-    <logger name="org.hibernate" level="INFO"/>
-    <logger name="org.apache.http" level="INFO"/>
-    <logger name="net.sf.ehcache" level="INFO"/>
-    <logger name="org.camunda.bpm" level="INFO"/>
-    <logger name="org.apache.ibatis" level="INFO"/>
-    <logger name="net.sf.jsi.rtree" level="INFO"/>
-    <logger name="org.apache.pdfbox.pdfparser" level="INFO"/>
+    <logger name="com.infowings.com.infowings.catalog" level="TRACE"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>

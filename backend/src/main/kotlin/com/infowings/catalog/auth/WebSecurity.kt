@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth
 
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.infowings.common.UserRole
+import com.infowings.catalog.common.UserRole
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
@@ -38,8 +38,10 @@ class WebSecurity() : WebSecurityConfigurerAdapter() {
                     .antMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.name)
                     .antMatchers("/api/powereduser/**").hasAuthority(UserRole.POWERED_USER.name)
                     .antMatchers("/api/user/**").hasAuthority(UserRole.USER.name)
-                .antMatchers("/aspect/**").hasAuthority(UserRole.POWERED_USER.name)
-                .antMatchers("/aspect/**").hasAuthority(UserRole.ADMIN.name)
+                    .antMatchers("/api/aspect/**").hasAuthority(UserRole.POWERED_USER.name)
+                    .antMatchers("/api/aspect/**").hasAuthority(UserRole.ADMIN.name)
+                    .antMatchers("/api/measure/**").hasAuthority(UserRole.POWERED_USER.name)
+                    .antMatchers("/api/measure/**").hasAuthority(UserRole.ADMIN.name)
                     .anyRequest().authenticated()
                     .and()
                     .addFilter(jWTAuthorizationFilter)

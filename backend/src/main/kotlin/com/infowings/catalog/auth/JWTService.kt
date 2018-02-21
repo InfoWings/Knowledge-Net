@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth
 
-import com.infowings.common.JwtToken
-import com.infowings.common.UserRole
+import com.infowings.catalog.common.JwtToken
+import com.infowings.catalog.common.UserRole
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import kotlinx.serialization.Serializable
@@ -38,7 +38,7 @@ class JWTService {
         val jwtInfo = JwtInfo(user!!.username, user.role)
         val accessToken = createTokenString(jwtInfo, ACCESS_TIME.toLong())
         val refreshToken = createTokenString(jwtInfo, REFRESH_TIME.toLong())
-        return JwtToken(accessToken, refreshToken, jwtInfo.role, ACCESS_TIME.toLong())
+        return JwtToken(accessToken, refreshToken, jwtInfo.role, ACCESS_TIME.toLong(), REFRESH_TIME.toLong())
     }
 
     fun parseTokenString(token: String): JwtInfo? {

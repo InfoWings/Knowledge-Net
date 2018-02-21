@@ -26,5 +26,7 @@
         <constructor-arg ref="metadataService"/>
     </bean>
 
-    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService"/>
+    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">
+        <constructor-arg name="database" ref="orientDatabase"/>
+    </bean>
 </beans>
