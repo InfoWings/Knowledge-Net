@@ -108,13 +108,16 @@ suspend fun login(body: UserDto): Boolean {
  */
 private suspend fun parseToken(response: Response): Boolean {
     return try {
+        var ms: dynamic
         val jwtToken = JSON.parse<JwtToken>(response.text().await())
-        val nowInMs = Date().getMilliseconds()
-        val accessExpireDate = Date(nowInMs + jwtToken.accessTokenExpirationTimeInMs).toUTCString()
-        val refreshExpireDate = Date(nowInMs + jwtToken.refreshTokenExpirationTimeInMs).toUTCString()
+        val nowInMs = Date.now()
+        ms = jwtToken.accessTokenExpirationTimeInMs.asDynamic() + nowInMs
+        val accessExpireDate = Date(ms as Number).toUTCString()
+        ms = jwtToken.refreshTokenExpirationTimeInMs.asDynamic() + nowInMs
+        val refreshExpireDate = Date(ms as Number).toUTCString()
         document.cookie = "x-access-authorization=Bearer ${jwtToken.accessToken};expires=$accessExpireDate;path=/"
         document.cookie = "x-refresh-authorization=Bearer ${jwtToken.refreshToken};expires=$refreshExpireDate;path=/"
-        document.cookie = "$AUTH_ROLE=${jwtToken.role.name}"
+        document.cookie = "$AUTH_ROLE=${jwtToken.role}"
         true
     } catch (e: Exception) {
         false
@@ -134,5 +137,4 @@ fun getAuthorizationRole(): String? {
 
 fun logout() {
     document.cookie = "$AUTH_ROLE="
-    console.log(document.cookie)
 }
