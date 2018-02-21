@@ -1,6 +1,7 @@
 package com.infowings.catalog.auth
 
 import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.utils.getAuthorizationRole
 import com.infowings.catalog.utils.login
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
@@ -11,13 +12,11 @@ import kotlinx.html.id
 import kotlinx.html.js.onSubmitFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
-import org.w3c.dom.get
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.*
 import react.setState
-import kotlin.browser.localStorage
 import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
@@ -30,10 +29,10 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
     fun logIn(e: Event) {
         e.preventDefault()
         launch {
-            val success = login("/api/access/signIn", UserDto(loginInput.value, passwordInput.value))
+            val success = login(UserDto(loginInput.value, passwordInput.value))
             setState {
                 if (success) {
-                    authorized = localStorage["auth-role"] != null
+                    authorized = getAuthorizationRole() != null
                     if (authorized) {
                         props.history.push("/")
                     }
@@ -46,7 +45,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
 
     override fun componentDidMount() {
         setState {
-            authorized = localStorage["auth-role"] != null
+            authorized = getAuthorizationRole() != null
             wrongAuth = false
         }
     }
