@@ -15,17 +15,19 @@ import com.orientechnologies.orient.core.record.OVertex
  */
 class SuggestionService(val database: OrientDatabase) {
 
-    private val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
-
-    fun find(context: SearchContext, text: String): List<Measure<*>> = session(database) {
-        findInDb(context, text)
+    fun find(classType: String, context: SearchContext, text: String): List<Measure<*>> = session(database) {
+        findInDb(classType, context, text)
                 .mapNotNull { GlobalMeasureMap[it.getProperty("name")] }
                 .toList()
     }
 
-    private fun findInDb(context: SearchContext, text: String): Sequence<OVertex> =
-            database.query(q, "($text~) ($text*) (*$text*)") {
-                it.mapNotNull { it.toVertexOrNUll() }
-            }
+    private fun findInDb(classType: String, context: SearchContext, text: String): Sequence<OVertex> {
+        val q = "SELECT FROM $classType WHERE SEARCH_CLASS(?) = true"
+        return database.query(q, "($text~) ($text*) (*$text*)") {
+            it.mapNotNull { it.toVertexOrNUll() }
+        }
+    }
+
+
 }
 

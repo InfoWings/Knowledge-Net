@@ -36,11 +36,13 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-            session.createVertexClass(ASPECT_PROPERTY_CLASS)
-            session.createEdgeClass(ASPECT_MEASURE_CLASS)
-            session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+                    .createProperty("name", OType.STRING)
+                    .createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
-        return this
+        session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
+        session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
+        session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+        return initAspectSearch()
     }
 
     /** Initializes measures */
@@ -81,22 +83,31 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
+        return initMeasuresSearch()
+    }
+
+    /** Initializes measures search */
+    private fun initMeasuresSearch(): OrientDatabaseInitializer {
+        initLuceneIndex(MEASURE_VERTEX)
         return this
     }
 
-    /** Initializes measures */
-    fun initMeasuresSearch(): OrientDatabaseInitializer {
-        session(database) { session ->
-            val iName = "$MEASURE_VERTEX.lucene.name"
-            val oClass = session.getClass(MEASURE_VERTEX)
-            if (oClass.getClassIndex(iName) == null) {
-                val metadata = ODocument()
-                metadata.setProperty("allowLeadingWildcard", true)
-                CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
-            }
-            return this
-        }
+    /** Initializes aspect search */
+    private fun initAspectSearch(): OrientDatabaseInitializer {
+        initLuceneIndex(ASPECT_CLASS)
+        return this
     }
+
+    private fun initLuceneIndex(classType: String) =
+            session(database) { session ->
+                val iName = "$classType.lucene.name"
+                val oClass = session.getClass(classType)
+                if (oClass.getClassIndex(iName) == null) {
+                    val metadata = ODocument()
+                    metadata.setProperty("allowLeadingWildcard", true)
+                    CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
+                }
+            }
 
     /** Create user in database */
     private fun initUser(username: String, password: String, role: String) = session(database) { session ->

@@ -4,6 +4,7 @@ package com.infowings.catalog.search
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Metre
+import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.loggerFor
 import com.infowings.common.search.SearchContext
 import org.junit.Test
@@ -28,7 +29,7 @@ class SearchTest {
     fun measureSuggestion() {
         val queryText = "metre"
         val context = SearchContext(emptyList(), emptyList())
-        val res = suggestionService.find(context, queryText)
+        val res = suggestionService.find(MEASURE_VERTEX, context, queryText)
 
         logger.info("find result size: ${res.size}")
         assertFalse(res.isEmpty())

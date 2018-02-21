@@ -35,7 +35,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
             .initAspects()
             .initUsers()
             .initMeasures()
-            .initMeasuresSearch()
     }
 
     @PreDestroy
