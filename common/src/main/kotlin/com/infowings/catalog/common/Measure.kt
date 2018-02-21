@@ -190,7 +190,7 @@ val TimeGroup = MeasureGroup("Time", listOf(Second, Minute, Hour, Day), Second)
 
 /** Quantity group */
 val Thing = createDecimalMeasure("Thing", "thing", 1.0)
-val QuantityGroup = MeasureGroup("Quntity", listOf(Thing), Thing)
+val QuantityGroup = MeasureGroup("Quantity", listOf(Thing), Thing)
 
 /** Percentage group */
 val Percentage = createDecimalMeasure("Percentage", "%", 1.0)
