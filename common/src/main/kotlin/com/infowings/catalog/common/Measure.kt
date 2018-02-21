@@ -49,29 +49,29 @@ val Feet = createDecimalMeasure("Feet", "ft", 0.3048)
 val LengthGroup = MeasureGroup("Length", listOf(Kilometre, Metre, Decimetre, Centimetre, Millimetre, Micrometre, Nanometre, Yard, Inch, Mile, Feet), Metre)
 
 /** Speed group */
-val KilometrePerSecond = createDecimalMeasure("KilometrePerSecond", "km/s", 1000.0)
-val MilePerHour = createDecimalMeasure("MilePerHour", "mile/s", 0.44704)
-val InchPerSecond = createDecimalMeasure("InchPerSecond", "inch/s", 0.3048)
-val MetrePerSecond = createDecimalMeasure("MetrePerSecond", "m/s", 1.0)
-val KilometrePerHour = createDecimalMeasure("KilometrePerHour", "km/h", 0.277778)
+val KilometrePerSecond = createDecimalMeasure("Kilometre per Second", "km/s", 1000.0)
+val MilePerHour = createDecimalMeasure("Mile per Hour", "mile/s", 0.44704)
+val InchPerSecond = createDecimalMeasure("Inch per Second", "inch/s", 0.3048)
+val MetrePerSecond = createDecimalMeasure("Metre per Second", "m/s", 1.0)
+val KilometrePerHour = createDecimalMeasure("Kilometre per Hour", "km/h", 0.277778)
 val Knot = createDecimalMeasure("Knot", "knot", 0.514444)
 
 val SpeedGroup = MeasureGroup("Speed", listOf(KilometrePerSecond, MilePerHour, InchPerSecond, MetrePerSecond, KilometrePerHour, Knot), MetrePerSecond)
 
 /** Area group */
-val SquareMetre = createDecimalMeasure("SquareMetre", "m^2", 1.0)
+val SquareMetre = createDecimalMeasure("Square Metre", "m^2", 1.0)
 val Hectare = createDecimalMeasure("Hectare", "ha", 10000.0)
-val SquareInch = createDecimalMeasure("SquareInch", "inch^2", 0.00064516)
+val SquareInch = createDecimalMeasure("Square Inch", "inch^2", 0.00064516)
 
 val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), SquareMetre)
 
 /** Volume group */
-val CubicMetre = createDecimalMeasure("CubicMetre", "m^3", 1.0)
-val CubicMillimetre = createDecimalMeasure("CubicMillimetre", "millimetre^3", 1E-9)
+val CubicMetre = createDecimalMeasure("Cubic Metre", "m^3", 1.0)
+val CubicMillimetre = createDecimalMeasure("Cubic Millimetre", "millimetre^3", 1E-9)
 val Litre = createDecimalMeasure("Litre", "litre", 0.001)
-val CubicDecimetre = createDecimalMeasure("CubicDecimetre", "dm^3", 0.001)
-val CubicCentimetre = createDecimalMeasure("CubicCentimetre", "cm^3", 0.000001)
-val CubicInch = createDecimalMeasure("CubicInch", "inch^2", 1.6387e-5)
+val CubicDecimetre = createDecimalMeasure("Cubic Decimetre", "dm^3", 0.001)
+val CubicCentimetre = createDecimalMeasure("Cubic Centimetre", "cm^3", 0.000001)
+val CubicInch = createDecimalMeasure("Cubic Inch", "inch^2", 1.6387e-5)
 val Pint = createDecimalMeasure("Pint", "pint", 0.0004731765)
 val Gallon = createDecimalMeasure("Gallon", "gallon", 0.00378541178)
 
@@ -92,7 +92,7 @@ val Kilowatt = createDecimalMeasure("Kilowatt", "kW", 1000.0)
 val Horsepower = createDecimalMeasure("Horsepower", "hp", 745.699872)
 val VoltAmpere = createDecimalMeasure("Volt-ampere", "VA", 1.0)
 
-val PowerEnergyGroup = MeasureGroup("PowerEnergy", listOf(Watt, Kilowatt, Horsepower, VoltAmpere), Watt)
+val PowerEnergyGroup = MeasureGroup("Power Energy", listOf(Watt, Kilowatt, Horsepower, VoltAmpere), Watt)
 
 /** Voltage group */
 val Volt = createDecimalMeasure("Volt", "V", 1.0)
@@ -105,27 +105,27 @@ val VoltageGroup = MeasureGroup("Voltage", listOf(Volt, Millivolt, Kilovolt), Vo
 val Var = createDecimalMeasure("Var", "var", 1.0)
 val Kilovar = createDecimalMeasure("Kilovar", "kilovar", 1000.0)
 
-val ReactivePowerGroup = MeasureGroup("ReactivePower", listOf(Var, Kilovar), Var)
+val ReactivePowerGroup = MeasureGroup("Reactive Power", listOf(Var, Kilovar), Var)
 
 /** WorkEnergy group */
 val Joule = createDecimalMeasure("Joule", "J", 1.0)
 val Kilojoule = createDecimalMeasure("Kilojoule", "kJ", 1000.0)
-val WattHour = createDecimalMeasure("WattHour", "wh", 3600.0)
-val KilowattHour = createDecimalMeasure("KilowattHour", "kwh", 3_600_000.0)
+val WattHour = createDecimalMeasure("Watt-Hour", "wh", 3600.0)
+val KilowattHour = createDecimalMeasure("Kilowatt-Hour", "kwh", 3_600_000.0)
 
-val WorkEnergyGroup = MeasureGroup("WorkEnergy", listOf(Joule, Kilojoule, WattHour, KilowattHour), Joule)
+val WorkEnergyGroup = MeasureGroup("Work Energy", listOf(Joule, Kilojoule, WattHour, KilowattHour), Joule)
 
 /** ElectricCurrent group */
 val Ampere = createDecimalMeasure("Ampere", "A", 1.0)
-val MilliAmpere = createDecimalMeasure("MilliAmpere", "mA", 0.001)
+val MilliAmpere = createDecimalMeasure("Milliampere", "mA", 0.001)
 
-val ElectricCurrentGroup = MeasureGroup("ElectricCurrent", listOf(Ampere, MilliAmpere), Ampere)
+val ElectricCurrentGroup = MeasureGroup("Electric Current", listOf(Ampere, MilliAmpere), Ampere)
 
 /** ElectricalResistance group */
 val Om = createDecimalMeasure("Om", "Om", 1.0)
-val MilliOm = createDecimalMeasure("MilliOm", "mOm", 0.001)
+val MilliOm = createDecimalMeasure("Milliom", "mOm", 0.001)
 
-val ElectricalResistanceGroup = MeasureGroup("ElectricalResistance", listOf(Om, MilliOm), Om)
+val ElectricalResistanceGroup = MeasureGroup("Electrical Resistance", listOf(Om, MilliOm), Om)
 
 /** Temperature group */
 val Celsius = createDecimalMeasure("Celsius", "c", 1.0)
@@ -152,25 +152,25 @@ val FrequencyGroup = MeasureGroup("Frequency", listOf(Hertz, Kilohertz), Hertz)
 /** Pressure group */
 val Pascal = createDecimalMeasure("Pascal", "Pa", 1.0)
 val Atmosphere = createDecimalMeasure("Atmosphere", "atm", 101325.0)
-val KilogramPerSquareMetre = createDecimalMeasure("KilogramPerSquareMetre", "kg/m^2", 9.80665)
+val KilogramPerSquareMetre = createDecimalMeasure("Kilogram per Square Metre", "kg/m^2", 9.80665)
 
 val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Atmosphere, KilogramPerSquareMetre), Pascal)
 
 /** Density group */
-val KilogramPerCubicMetre = createDecimalMeasure("KilogramPerCubicMetre", "kg/m^3", 1.0)
+val KilogramPerCubicMetre = createDecimalMeasure("Kilogram per Cubic Metre", "kg/m^3", 1.0)
 val DensityGroup = MeasureGroup("Density", listOf(KilogramPerCubicMetre), KilogramPerCubicMetre)
 
 /** RotationFrequency group */
-val RevolutionsPerMinute = createDecimalMeasure("RevolutionsPerMinute", "rpm", 1.0)
-val RevolutionsPerSecond = createDecimalMeasure("RevolutionsPerSecond", "rps", 60.0)
-val RotationFrequencyGroup = MeasureGroup("RotationFrequency", listOf(RevolutionsPerMinute, RevolutionsPerSecond), RevolutionsPerMinute)
+val RevolutionsPerMinute = createDecimalMeasure("Revolutions per Minute", "rpm", 1.0)
+val RevolutionsPerSecond = createDecimalMeasure("Revolutions per Second", "rps", 60.0)
+val RotationFrequencyGroup = MeasureGroup("Rotation Frequency", listOf(RevolutionsPerMinute, RevolutionsPerSecond), RevolutionsPerMinute)
 
 /** Torque group */
-val NewtonMetre = createDecimalMeasure("NewtonMetre", "Nm", 1.0)
+val NewtonMetre = createDecimalMeasure("Newton-Metre", "Nm", 1.0)
 val TorqueGroup = MeasureGroup("Torque", listOf(NewtonMetre), NewtonMetre)
 
 /** Acceleration group */
-val MetrePerSquareSecond = createDecimalMeasure("MetrePerSquareSecond", "m/s^2", 1.0)
+val MetrePerSquareSecond = createDecimalMeasure("Metre per Square Second", "m/s^2", 1.0)
 val AccelerationGroup = MeasureGroup("Acceleration", listOf(MetrePerSquareSecond), MetrePerSquareSecond)
 
 /** Induction group */
@@ -179,7 +179,7 @@ val InductionGroup = MeasureGroup("Induction", listOf(Henry), Henry)
 
 /** MagneticFluxDensity group */
 val Tesla = createDecimalMeasure("Tesla", "T", 1.0)
-val MagneticFluxDensityGroup = MeasureGroup("MagneticFluxDensity", listOf(Tesla), Tesla)
+val MagneticFluxDensityGroup = MeasureGroup("Magnetic Flux Density", listOf(Tesla), Tesla)
 
 /** Time group */
 val Second = createDecimalMeasure("Second", "s", 1.0)
@@ -203,17 +203,17 @@ val HumanGroup = MeasureGroup("Human", listOf(Human), Human)
 /** UK money group */
 val Penny = createDecimalMeasure("Penny", "p", 0.01)
 val PoundMoney = createDecimalMeasure("Pound(money)", "£", 1.0)
-val UKMoneyGroup = MeasureGroup("UKMoneyGroup", listOf(Penny, PoundMoney), PoundMoney)
+val UKMoneyGroup = MeasureGroup("UK Money Group", listOf(Penny, PoundMoney), PoundMoney)
 
 /** USA money group */
 val CentAmerican = createDecimalMeasure("Cent(USA)", "c", 0.01)
 val Dollar = createDecimalMeasure("Dollar", "$", 1.0)
-val USAMoneyGroup = MeasureGroup("USAMoneyGroup", listOf(CentAmerican, Dollar), Dollar)
+val USAMoneyGroup = MeasureGroup("USA Money Group", listOf(CentAmerican, Dollar), Dollar)
 
 /** Euro money group */
 val CentEuropean = createDecimalMeasure("Cent(Europa)", "c", 0.01)
 val Euro = createDecimalMeasure("Euro", "€", 1.0)
-val EuroMoneyGroup = MeasureGroup("EuroMoneyGroup", listOf(CentEuropean, Euro), Euro)
+val EuroMoneyGroup = MeasureGroup("Euro Money Group", listOf(CentEuropean, Euro), Euro)
 
 /** Global */
 val MeasureGroupMap = setOf<MeasureGroup<*>>(
