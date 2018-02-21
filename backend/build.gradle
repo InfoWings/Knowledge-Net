@@ -63,6 +63,6 @@ kotlin {
 }
 
 springBoot {
-    mainClass = "com.infowings.com.infowings.catalog.MasterCatalogKt"
+    mainClass = "com.infowings.catalog.MasterCatalogKt"
     executable = true
 }
