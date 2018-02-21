@@ -1,10 +1,10 @@
 package com.infowings.catalog.auth
 
-import react.RBuilder
-import react.buildElements
+import com.infowings.catalog.utils.getAuthorizationRole
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
-import utils.getAuthorizationRole
+import react.RBuilder
+import react.buildElements
 
 fun RBuilder.privateRoute(path: String, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {
     reactRouter.Route {

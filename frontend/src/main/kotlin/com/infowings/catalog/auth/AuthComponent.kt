@@ -1,6 +1,8 @@
 package com.infowings.catalog.auth
 
 import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.utils.getAuthorizationRole
+import com.infowings.catalog.utils.login
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
@@ -15,8 +17,6 @@ import react.RComponent
 import react.RState
 import react.dom.*
 import react.setState
-import utils.getAuthorizationRole
-import utils.login
 import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState

@@ -1,5 +1,7 @@
 package com.infowings.catalog.layout
 
+import com.infowings.catalog.utils.logout
+import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -7,8 +9,6 @@ import react.RState
 import react.dom.div
 import react.dom.li
 import react.dom.ul
-import com.infowings.catalog.wrappers.reactRouter
-import utils.logout
 
 class HeaderProps(var location: String) : RProps
 

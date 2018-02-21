@@ -1,8 +1,8 @@
-package utils
+package com.infowings.catalog.utils
 
 
-import com.infowings.common.JwtToken
-import com.infowings.common.UserDto
+import com.infowings.catalog.common.JwtToken
+import com.infowings.catalog.common.UserDto
 import kotlinx.coroutines.experimental.await
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
