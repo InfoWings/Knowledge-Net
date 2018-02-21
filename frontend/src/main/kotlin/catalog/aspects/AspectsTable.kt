@@ -13,10 +13,10 @@ private fun headerComponent(columnName: String) = rFunction<RTableRendererProps>
     }
 }
 
-private fun cellComponent(onChangeHandler: (Aspect, String) -> Unit) = rFunction<RTableRendererProps>("LoggingCell") { rTableRendererProps ->
+private fun cellComponent(onChangeHandler: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("LoggingCell") { rTableRendererProps ->
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
-            value = rTableRendererProps.value.toString()
+            value = rTableRendererProps.value?.toString() ?: ""
             onChangeFunction = { e ->
                 onChangeHandler(rTableRendererProps.original.aspect, e.asDynamic().target.value)
             }
@@ -33,7 +33,7 @@ private fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, 
             }
         }
 
-private data class AspectRow(val aspect: Aspect, val pending: Boolean)
+private data class AspectRow(val aspect: AspectData, val pending: Boolean)
 
 private fun addNewAspectHeaderEnabled(onCreateNewAspect: () -> Unit): RClass<RTableRendererProps> = rFunction("CheckboxHeaderEnabled") {
     div(classes = "create-new-aspect-container") {
@@ -50,14 +50,17 @@ private val addNewAspectHeaderDisabled: RClass<RTableRendererProps> = rFunction(
     }
 }
 
-private val emptySubComponent: RClass<SubComponentProps> = rFunction("EmptySubComponent") { props ->
-    val aspectRow = props.original as AspectRow
-    div {
-        span {
-            +"Name:"
-        }
-        span {
-            +aspectRow.aspect.name
+private fun propertySubComponent(
+        aspectsMap: Map<String, AspectData>,
+        onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
+): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
+    val original = props.original as AspectRow
+    child(AspectPropertySubtable::class) {
+        attrs {
+            data = original.aspect.properties.map {
+                AspectPropertyRow(it, aspectsMap[it.aspectId] ?: AspectData("", "", "", "", ""))
+            }.toTypedArray()
+            onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
         }
     }
 }
@@ -67,96 +70,123 @@ private val emptySubComponent: RClass<SubComponentProps> = rFunction("EmptySubCo
  */
 class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.State>(props) {
 
+    private lateinit var subComponent: RClass<SubComponentProps>
+
+    override fun componentWillMount() {
+        subComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
+    }
+
     override fun State.init(props: Props) {
         pending = emptyMap()
         newAspect = null
     }
 
-    private fun onAspectNameChanged(changed: Aspect, name: String) {
+    private fun onAspectNameChanged(changed: AspectData, name: String) {
         setState {
             if (changed.id == "") {
-                newAspect = Aspect("", name, newAspect!!.measureUnit, newAspect!!.domain, newAspect!!.baseType)
+                newAspect = AspectData("", name, changed.measure, changed.domain, changed.baseType, changed.properties)
             } else {
                 val aspect = pending[changed.id]
                 pending = if (aspect != null) {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(aspect.id, name, aspect.measureUnit, aspect.domain, aspect.baseType)
+                            AspectData(aspect.id, name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties)
                     ))
                 } else {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(changed.id, name, changed.measureUnit, changed.domain, changed.baseType)
+                            AspectData(changed.id, name, changed.measure, changed.domain, changed.baseType, changed.properties)
                     ))
                 }
             }
         }
     }
 
-    private fun onAspectUnitChanged(changed: Aspect, unit: String) {
+    private fun onAspectUnitChanged(changed: AspectData, unit: String) {
         setState {
             if (changed.id == "") {
-                newAspect = Aspect("", newAspect!!.name, unit, newAspect!!.domain, newAspect!!.baseType)
+                newAspect = AspectData("", changed.name, unit, changed.domain, changed.baseType, changed.properties)
             } else {
                 val aspect = pending[changed.id]
                 pending = if (aspect != null) {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(aspect.id, aspect.name, unit, aspect.domain, aspect.baseType)
+                            AspectData(aspect.id, aspect.name, unit, aspect.domain, aspect.baseType, aspect.properties)
                     ))
                 } else {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(changed.id, changed.name, unit, changed.domain, changed.baseType)
+                            AspectData(changed.id, changed.name, unit, changed.domain, changed.baseType, changed.properties)
                     ))
                 }
             }
         }
     }
 
-    private fun onAspectDomainChanged(changed: Aspect, domain: String) {
+    private fun onAspectDomainChanged(changed: AspectData, domain: String) {
         setState {
             if (changed.id == "") {
-                newAspect = Aspect("", newAspect!!.name, newAspect!!.measureUnit, domain, newAspect!!.baseType)
+                newAspect = AspectData("", changed.name, changed.measure, domain, changed.baseType, changed.properties)
             } else {
                 val aspect = pending[changed.id]
                 pending = if (aspect != null) {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(aspect.id, aspect.name, aspect.measureUnit, domain, aspect.baseType)
+                            AspectData(aspect.id, aspect.name, aspect.measure, domain, aspect.baseType, aspect.properties)
                     ))
                 } else {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(changed.id, changed.name, changed.measureUnit, domain, changed.baseType)
+                            AspectData(changed.id, changed.name, changed.measure, domain, changed.baseType, changed.properties)
                     ))
                 }
             }
         }
     }
 
-    private fun onAspectBaseTypeChanged(changed: Aspect, baseType: String) {
+    private fun onAspectBaseTypeChanged(changed: AspectData, baseType: String) {
         setState {
             if (changed.id == "") {
-                newAspect = Aspect("", newAspect!!.name, newAspect!!.measureUnit, newAspect!!.domain, baseType)
+                newAspect = AspectData("", changed.name, changed.measure, changed.domain, baseType, changed.properties)
             } else {
                 val aspect = pending[changed.id]
                 pending = if (aspect != null) {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(aspect.id, aspect.name, aspect.measureUnit, aspect.domain, baseType)
+                            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, baseType, aspect.properties)
                     ))
                 } else {
                     pending.plus(Pair(
                             changed.id,
-                            Aspect(changed.id, changed.name, changed.measureUnit, changed.domain, baseType)
+                            AspectData(changed.id, changed.name, changed.measure, changed.domain, baseType, changed.properties)
                     ))
                 }
             }
         }
     }
 
-    private fun reduceRows(): Array<AspectRow> =
+    private fun onAspectPropertyChanged(changed: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) {
+        setState {
+            if (changed.id == "") {
+                newAspect = propertyChanger(changed)
+            } else {
+                val aspect = pending[changed.id]
+                pending = if (aspect != null) {
+                    pending.plus(Pair(
+                            changed.id,
+                            propertyChanger(aspect)
+                    ))
+                } else {
+                    pending.plus(Pair(
+                            changed.id,
+                            propertyChanger(changed)
+                    ))
+                }
+            }
+        }
+    }
+
+    private fun remapRows(): Array<AspectRow> =
             if (state.newAspect == null)
                 props.data.map {
                     val pending = state.pending[it.id]
@@ -192,7 +222,7 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
 
     private fun createNewAspect() {
         setState {
-            newAspect = Aspect("", "", "", "", "")
+            newAspect = AspectData("", "", null, null, null)
         }
     }
 
@@ -201,7 +231,7 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
             attrs {
                 columns = arrayOf(
                         aspectColumn("aspect.name", headerComponent("Name"), cellComponent(::onAspectNameChanged)),
-                        aspectColumn("aspect.measureUnit", headerComponent("Measure Unit"), cellComponent(::onAspectUnitChanged)),
+                        aspectColumn("aspect.measure", headerComponent("Measure Unit"), cellComponent(::onAspectUnitChanged)),
                         aspectColumn("aspect.domain", headerComponent("Domain"), cellComponent(::onAspectDomainChanged)),
                         aspectColumn("aspect.baseType", headerComponent("Base Type"), cellComponent(::onAspectBaseTypeChanged)),
                         checkboxColumn(
@@ -212,24 +242,27 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
                                 ::resetAspect
                         )
                 )
-                data = reduceRows()
-                SubComponent = emptySubComponent
+                data = remapRows()
+                SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
                 showPagination = false
                 minRows = 2
                 sortable = false
                 showPageJump = false
                 resizable = false
+                collapseOnDataChange = false
             }
         }
     }
 
     interface Props : RProps {
-        var data: Array<Aspect>
-        var onAspectUpdate: suspend (changed: Aspect) -> Aspect
+        var data: Array<AspectData>
+        var aspectsMap: Map<String, AspectData>
+        var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
+        var onAspectCreate: suspend (newAspect: AspectData) -> Unit
     }
 
     interface State : RState {
-        var pending: Map<String, Aspect?>
-        var newAspect: Aspect?
+        var pending: Map<String, AspectData?>
+        var newAspect: AspectData?
     }
 }

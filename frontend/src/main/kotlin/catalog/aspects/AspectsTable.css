@@ -52,3 +52,21 @@
   color: grey;
   cursor: default;
 }
+
+.subtable-wrapper {
+  padding-left: 35px;
+  border-top: 1px solid rgba(0, 0, 0, 0.02);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.new-property-button {
+  text-align: center;
+  font-size: 1.5em;
+  line-height: 1em;
+  color: darkgreen;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 7px 5px;
+}

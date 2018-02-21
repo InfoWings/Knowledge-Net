@@ -20,7 +20,7 @@ fun checkboxColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (Str
                     attrs {
                         onClickFunction = { onResetAspect(props.original.aspect.id) }
                     }
-                    i(classes = "far fa-arrow-alt-circle-left circle-red") {}
+                    i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
                     attrs {
@@ -35,7 +35,7 @@ fun checkboxColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (Str
                     attrs {
                         onClickFunction = { onResetAspect(props.original.aspect.id) }
                     }
-                    i(classes = "far fa-arrow-alt-circle-left circle-red") {}
+                    i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
                     attrs {
