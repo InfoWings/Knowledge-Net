@@ -1,10 +1,9 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.data.*
+import com.infowings.catalog.common.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.math.BigDecimal
 
 @RunWith(SpringJUnit4ClassRunner::class)
 class TimeConverterTest {
@@ -19,6 +18,6 @@ class TimeConverterTest {
     fun daysToSeconds() = toSecondsMeasureTest(1.53, 132192.0, Day)
 
 
-    private fun toSecondsMeasureTest(source: Double, sourceInSeconds: Double, measure: Measure<BigDecimal>) =
-        measureTest(source, sourceInSeconds, measure, TimeGroup.base)
+    private fun toSecondsMeasureTest(source: Double, sourceInSeconds: Double, measure: Measure<DecimalNumber>) =
+            measureTest(source, sourceInSeconds, measure, TimeGroup.base)
 }

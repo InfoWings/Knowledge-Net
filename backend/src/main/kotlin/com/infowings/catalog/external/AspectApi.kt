@@ -1,11 +1,8 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectProperty
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.data.AspectService
-import com.infowings.catalog.loggerFor
-import com.infowings.common.catalog.data.AspectData
-import com.infowings.common.catalog.data.AspectPropertyData
+import com.infowings.catalog.data.toAspectData
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 
@@ -16,9 +13,9 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(aspectData: AspectData): Aspect {
+    fun createAspect(aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
-        return aspectService.createAspect(aspectData)
+        return aspectService.createAspect(aspectData).toAspectData()
     }
 
 //    @PostMapping("create/property")
@@ -29,9 +26,9 @@ class AspectApi(val aspectService: AspectService) {
 
 
     @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): Aspect? {
+    fun getAspect(@PathVariable name: String): AspectData? {
         logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name)
+        return aspectService.findByName(name)?.toAspectData()
     }
 
     @GetMapping("all")
@@ -39,12 +36,6 @@ class AspectApi(val aspectService: AspectService) {
         logger.debug("Get all aspects request")
         return aspectService.getAspects().toAspectData()
     }
-
-    private fun List<Aspect>.toAspectData(): List<AspectData> = map {
-        AspectData(it.id, it.name, it.measure?.name, it.domain.toString(), it.baseType?.name, it.properties.toAspectPropertyData())
-    }
-
-    private fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { AspectPropertyData(it.id, it.name, it.aspect.id, it.power.name) }
 
 }
 

@@ -1,6 +1,6 @@
 package com.infowings.catalog.data
 
-import com.infowings.common.BaseType
+import com.infowings.catalog.common.BaseType
 
 /**
  * домен аспекта - допустимое множество значений (например может быть аспект длина с типом вещественное число и доменом значение > 0
