@@ -1,35 +1,50 @@
 package com.infowings.catalog.units
 
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.dom.*
+import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
+import com.infowings.catalog.wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.ReactTable
+import com.infowings.catalog.wrappers.table.treeTable
+import react.*
+import react.dom.span
 
-class UnitsProps(var units: Map<String, List<String>>) : RProps
+private fun header(columnName: String) = rFunction<RTableRendererProps>("UnitsTableHeader") {
+    span {
+        +columnName
+    }
+}
 
-class UnitsTable : RComponent<UnitsProps, RState>() {
+private fun column(accessor: String, header: RClass<RTableRendererProps>) =
+    RTableColumnDescriptor {
+        this.accessor = accessor
+        this.Header = header
+    }
+
+data class UnitsTableRowData(val measure: String, val name: String, val symbol: String)
+
+class UnitsTableProperties(var data: Array<UnitsTableRowData>) : RProps
+
+class UnitsTable : RComponent<UnitsTableProperties, RState>() {
 
     override fun RBuilder.render() {
-        div("Units-table") {
-            table {
-                tr {
-                    th(classes = "Units-cell Units-header") { +"Value" }
-                    th(classes = "Units-cell Units-header") { +"Unit" }
-                }
-                props.units.map { (valueName, valueUnits) ->
-                    tr("Units-row") {
-                        td("Units-cell") { b { +valueName } }
-                        td("Units-cell") {}
-                    }
-                    valueUnits.map {
-                        tr("Units-row") {
-                            td("Units-cell") {}
-                            td("Units-cell") { +it }
-                        }
-                    }
-                }
+        treeTable(ReactTable)({
+            attrs {
+                pivotBy = arrayOf("measure")
+                columns = arrayOf(
+                    column("measure", header("Measure")),
+                    RTableColumnDescriptor {
+                        this.accessor = "name"
+                        this.Header = header("Unit")
+                        this.width = 300.0
+                    },
+                    column("symbol", header("Symbol"))
+                )
+                data = props.data
+                showPagination = false
+                minRows = 2
+                sortable = false
+                showPageJump = false
+                resizable = false
             }
-        }
+        })
     }
 }
