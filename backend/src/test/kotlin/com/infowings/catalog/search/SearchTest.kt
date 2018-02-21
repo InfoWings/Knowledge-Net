@@ -2,8 +2,10 @@ package com.infowings.catalog.search
 
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
+import com.infowings.catalog.loggerFor
+import com.infowings.common.Measure
+import com.infowings.common.Metre
+import com.infowings.common.search.SearchContext
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,6 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+private val logger = loggerFor<SearchTest>()
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
@@ -27,15 +30,16 @@ class SearchTest {
         val context = SearchContext(emptyList(), emptyList())
         val res = suggestionService.find(context, queryText)
 
-        println("find result size: ${res.size}")
+        logger.info("find result size: ${res.size}")
         assertFalse(res.isEmpty())
 
-        println("find result: $res")
-        assertEquals("Metre", res.first().name)
+        logger.info("find result: $res")
+        assertEquals("Metre",  res.first().name)
+        assertEquals(Measure[res.first().name], Metre)
 
         res.map { it.name }
                 .forEach {
-                    println("name : $it")
+                    logger.info("name : $it")
                     assertTrue { it.toLowerCase().contains(queryText) }
                 }
     }
