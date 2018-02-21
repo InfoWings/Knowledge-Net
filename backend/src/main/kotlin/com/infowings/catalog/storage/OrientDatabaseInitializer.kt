@@ -83,6 +83,14 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         return this
     }
 
+    fun initReferenceBooks() = session(database) { session ->
+        logger.info("Init reference books")
+        if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
+            val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
+            vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        }
+    }
+
     /** Create user in database */
     private fun initUser(username: String, password: String, role: String) = session(database) { session ->
         val user: OElement = session.newInstance(USER_CLASS)

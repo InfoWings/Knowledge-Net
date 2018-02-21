@@ -29,4 +29,8 @@
     <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
+
+    <bean id="referenceBoolService" class="com.infowings.catalog.data.ReferenceBookServiceImpl">
+        <constructor-arg name="database" ref="orientDatabase"/>
+    </bean>
 </beans>
