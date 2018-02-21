@@ -1,35 +1,45 @@
 package com.infowings.catalog.units
 
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.dom.*
+import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
+import com.infowings.catalog.wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.ReactTable
+import com.infowings.common.catalog.wrappers.table.treeTable
+import react.*
+import react.dom.span
 
-class UnitsProps(var units: Map<String, List<String>>) : RProps
+fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("UnitHeader") {
+    span {
+        +columnName
+    }
+}
+
+fun unitColumn(accessor: String, header: RClass<RTableRendererProps>) =
+    RTableColumnDescriptor {
+        this.accessor = accessor
+        this.Header = header
+    }
+
+data class RowData(val measure: String, val name: String, val symbol: String)
+
+class UnitsProps(var data: Array<RowData>) : RProps
 
 class UnitsTable : RComponent<UnitsProps, RState>() {
 
     override fun RBuilder.render() {
-        div("Units-table") {
-            table {
-                tr {
-                    th(classes = "Units-cell Units-header") { +"Value" }
-                    th(classes = "Units-cell Units-header") { +"Unit" }
-                }
-                props.units.map { (valueName, valueUnits) ->
-                    tr("Units-row") {
-                        td("Units-cell") { b { +valueName } }
-                        td("Units-cell") {}
-                    }
-                    valueUnits.map {
-                        tr("Units-row") {
-                            td("Units-cell") {}
-                            td("Units-cell") { +it }
-                        }
-                    }
-                }
+        treeTable(ReactTable)({
+            attrs {
+//                pivotBy = arrayOf("measure") //fixme
+                columns = arrayOf(
+                    unitColumn("measure", headerComponent("Measure")),
+                    unitColumn("name", headerComponent("Unit")),
+                    unitColumn("symbol", headerComponent("Symbol"))
+                )
+                data = props.data
+                showPagination = false
+                minRows = 2
+                sortable = false
+                showPageJump = false
             }
-        }
+        })
     }
 }
