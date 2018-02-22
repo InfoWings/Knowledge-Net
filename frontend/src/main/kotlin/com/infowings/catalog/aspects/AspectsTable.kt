@@ -14,7 +14,7 @@ private fun headerComponent(columnName: String) = rFunction<RTableRendererProps>
     }
 }
 
-private fun cellComponent(onChangeHandler: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("LoggingCell") { rTableRendererProps ->
+private fun cellComponent(onChangeHandler: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("AspectInputCell") { rTableRendererProps ->
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
             value = rTableRendererProps.value?.toString() ?: ""
@@ -188,7 +188,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
         }
     }
 
-    private fun remapRows(): Array<AspectRow> =
+    private fun aspectsToRows(): Array<AspectRow> =
             if (state.newAspect == null)
                 props.data.map {
                     val pending = state.pending[it.id]
@@ -228,7 +228,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
         }
     }
 
-    private fun createNewAspect() {
+    private fun startCreatingNewAspect() {
         setState {
             newAspect = AspectData("", "", null, null, null)
         }
@@ -242,15 +242,15 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                         aspectColumn("aspect.measure", headerComponent("Measure Unit"), cellComponent(::onAspectUnitChanged)),
                         aspectColumn("aspect.domain", headerComponent("Domain"), cellComponent(::onAspectDomainChanged)),
                         aspectColumn("aspect.baseType", headerComponent("Base Type"), cellComponent(::onAspectBaseTypeChanged)),
-                        checkboxColumn(
+                        controlsColumn(
                                 if (state.newAspect == null)
-                                    addNewAspectHeaderEnabled(::createNewAspect)
+                                    addNewAspectHeaderEnabled(::startCreatingNewAspect)
                                 else addNewAspectHeaderDisabled,
                                 ::saveAspect,
                                 ::resetAspect
                         )
                 )
-                data = remapRows()
+                data = aspectsToRows()
                 loading = props.loading
                 SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
                 showPagination = false

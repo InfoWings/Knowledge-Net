@@ -8,7 +8,7 @@ import react.rFunction
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 
-fun checkboxColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
+fun controlsColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
     this.accessor = "pending"
     this.Header = columnHeader
     this.width = 55.0
