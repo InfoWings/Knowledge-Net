@@ -16,30 +16,22 @@ fun controlsColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (Str
         if (props.value as Boolean) {
             div(classes = "aspect-management-container") {
                 div(classes = "aspect-icon-container") {
-                    attrs {
-                        onClickFunction = { onResetAspect(props.original.aspect.id) }
-                    }
+                    attrs.onClickFunction = { onResetAspect(props.original.aspect.id) }
                     i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
-                    attrs {
-                        onClickFunction = { onSaveAspect(props.original.aspect.id) }
-                    }
+                    attrs.onClickFunction = { onSaveAspect(props.original.aspect.id) }
                     i(classes = "far fa-check-circle circle-green") {}
                 }
             }
         } else {
             div(classes = "aspect-management-container hidden") {
                 div(classes = "aspect-icon-container") {
-                    attrs {
-                        onClickFunction = { onResetAspect(props.original.aspect.id) }
-                    }
+                    attrs.onClickFunction = { onResetAspect(props.original.aspect.id) }
                     i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
-                    attrs {
-                        onClickFunction = { onSaveAspect(props.original.aspect.id) }
-                    }
+                    attrs.onClickFunction = { onSaveAspect(props.original.aspect.id) }
                     i(classes = "far fa-check-circle circle-green") {}
                 }
             }

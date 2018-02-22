@@ -93,9 +93,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>(
             }
             div(classes = "new-property-button") {
                 i(classes = "fas fa-plus") {}
-                attrs {
-                    onClickFunction = { onNewPropertyCreated() }
-                }
+                attrs.onClickFunction = { onNewPropertyCreated() }
             }
         }
     }

@@ -39,9 +39,7 @@ private data class AspectRow(val aspect: AspectData, val pending: Boolean)
 private fun addNewAspectHeaderEnabled(onCreateNewAspect: () -> Unit): RClass<RTableRendererProps> = rFunction("CheckboxHeaderEnabled") {
     div(classes = "create-new-aspect-container") {
         i(classes = "fas fa-plus") {}
-        attrs {
-            onClickFunction = { onCreateNewAspect() }
-        }
+        attrs.onClickFunction = { onCreateNewAspect() }
     }
 }
 
