@@ -7,7 +7,6 @@ import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.data.OpenDomain
 import com.infowings.catalog.storage.*
-import com.infowings.common.search.SearchContext
 import com.orientechnologies.orient.core.record.OVertex
 
 /**

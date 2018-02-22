@@ -1,4 +1,4 @@
-package com.infowings.common.search
+package com.infowings.catalog.search
 
 /**
  * Контекст поиска

@@ -8,7 +8,6 @@ import com.infowings.catalog.common.Metre
 import com.infowings.catalog.data.Aspect
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
-import com.infowings.common.search.SearchContext
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
