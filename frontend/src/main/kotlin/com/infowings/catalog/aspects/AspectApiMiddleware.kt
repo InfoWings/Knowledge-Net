@@ -27,7 +27,6 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
                 loading = false
             }
         }
-//        handleCreateNewAspect(AspectData("", "Aspects", "Millimetre", "", "Decimal"))
     }
 
     private fun handleCreateNewAspect(aspectData: AspectData) {
