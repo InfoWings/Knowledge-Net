@@ -37,6 +37,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
                     .createProperty("name", OType.STRING)
+                    .setMandatory(true)
                     .createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
@@ -49,11 +50,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initMeasures(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(MEASURE_GROUP_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_GROUP_VERTEX)
-            vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
         if (session.getClass(MEASURE_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_VERTEX)
-            vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
         if (session.getClass(MEASURE_GROUP_EDGE) == null) {
             session.createEdgeClass(MEASURE_GROUP_EDGE)
