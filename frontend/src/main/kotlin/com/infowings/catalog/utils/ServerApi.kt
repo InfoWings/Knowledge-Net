@@ -14,25 +14,27 @@ import kotlin.js.JSON
 import kotlin.js.json
 import kotlinx.serialization.json.JSON as KJSON
 
-private const val POST = "POST"
-private const val GET = "GET"
+const val POST = "POST"
+const val GET = "GET"
 
-private const val AUTH_ROLE = "auth-role"
+const val AUTH_ROLE = "auth-role"
+
+external fun encodeURIComponent(component: String): String = definedExternally
 
 /**
  * Http POST request to server.
  * Return object of type T which is obtained by parsing response text.
  */
-suspend fun <T> post(url: String, body: dynamic): T {
-    return JSON.parse(authorizedRequest(POST, url, body).text().await())
+suspend fun post(url: String, body: dynamic): String {
+    return authorizedRequest(POST, url, body).text().await()
 }
 
 /**
  * Http GET request to server.
  * Return object of type T which is obtained by parsing response text.
  */
-suspend fun <T> get(url: String, body: dynamic = null): T {
-    return JSON.parse(authorizedRequest(GET, url, body).text().await())
+suspend fun get(url: String, body: dynamic = null): String {
+    return authorizedRequest(GET, url, body).text().await()
 }
 
 /**
@@ -40,7 +42,7 @@ suspend fun <T> get(url: String, body: dynamic = null): T {
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body)
-    if (!response.ok) {
+    if (response.status.toInt() == 401) {
         response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
     return response
@@ -77,12 +79,11 @@ private suspend fun refreshTokenAndRepeatRequest(
     if (isRefreshed) {
         return request(method, url, body)
     }
-    window.location.replace("/")
     return oldResponse
 }
 
 private suspend fun refreshToken(): Boolean {
-    val response = authorizedRequest(GET, "/api/access/refresh", null)
+    val response = request(GET, "/api/access/refresh", null)
     if (response.ok) {
         val isParsed = parseToken(response)
         return isParsed
@@ -115,8 +116,8 @@ private suspend fun parseToken(response: Response): Boolean {
         val accessExpireDate = Date(ms as Number).toUTCString()
         ms = jwtToken.refreshTokenExpirationTimeInMs.asDynamic() + nowInMs
         val refreshExpireDate = Date(ms as Number).toUTCString()
-        document.cookie = "x-access-authorization=Bearer ${jwtToken.accessToken};expires=$accessExpireDate;path=/"
-        document.cookie = "x-refresh-authorization=Bearer ${jwtToken.refreshToken};expires=$refreshExpireDate;path=/"
+        document.cookie = "x-access-authorization=${encodeURIComponent("Bearer ${jwtToken.accessToken}")};expires=$accessExpireDate;path=/"
+        document.cookie = "x-refresh-authorization=${encodeURIComponent("Bearer ${jwtToken.refreshToken}")};expires=$refreshExpireDate;path=/"
         document.cookie = "$AUTH_ROLE=${jwtToken.role}"
         true
     } catch (e: Exception) {

@@ -84,7 +84,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         if (baseType != null && measure != null && baseType != measure.baseType)
             throw IllegalArgumentException("Base type and measure base type should be the same")
 
-        return save(aspectData.name, measure, baseType, aspectData.properties)
+        return save(aspectData.name, measure, baseType, aspectData.properties!!.toList())
     }
 
     /**

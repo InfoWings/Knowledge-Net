@@ -1,13 +1,12 @@
-package catalog.aspects
+package com.infowings.catalog.aspects
 
 import kotlinx.html.js.onClickFunction
 import react.RClass
 import react.dom.div
 import react.dom.i
-import react.dom.span
 import react.rFunction
-import wrappers.table.RTableColumnDescriptor
-import wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
+import com.infowings.catalog.wrappers.table.RTableRendererProps
 
 fun checkboxColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
     this.accessor = "pending"

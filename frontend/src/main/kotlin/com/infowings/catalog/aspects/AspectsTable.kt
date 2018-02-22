@@ -1,11 +1,12 @@
-package catalog.aspects
+package com.infowings.catalog.aspects
 
+import com.infowings.catalog.common.AspectData
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.*
-import wrappers.table.*
+import com.infowings.catalog.wrappers.table.*
 
 private fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("AspectHeader") {
     span {
@@ -57,9 +58,10 @@ private fun propertySubComponent(
     val original = props.original as AspectRow
     child(AspectPropertySubtable::class) {
         attrs {
-            data = original.aspect.properties.map {
-                AspectPropertyRow(it, aspectsMap[it.aspectId] ?: AspectData("", "", "", "", ""))
-            }.toTypedArray()
+            //            data = original.aspect.properties?.map {
+//                AspectPropertyRow(it, aspectsMap[it.aspectId]
+//                        ?: AspectData("", "", "", "", ""))
+//            }?.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
         }
     }
@@ -68,7 +70,7 @@ private fun propertySubComponent(
 /**
  * Use as: child(AspectsTable::class) {}
  */
-class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.State>(props) {
+class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiverProps, AspectsTable.State>(props) {
 
     private lateinit var subComponent: RClass<SubComponentProps>
 
@@ -76,7 +78,7 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
         subComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
     }
 
-    override fun State.init(props: Props) {
+    override fun State.init(props: AspectApiReceiverProps) {
         pending = emptyMap()
         newAspect = null
     }
@@ -217,7 +219,13 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
     }
 
     private fun saveAspect(aspectId: String) {
-
+        if (aspectId == "") {
+            val savedAspect = state.newAspect!!
+            setState {
+                newAspect = null
+            }
+            props.onAspectCreate(savedAspect)
+        }
     }
 
     private fun createNewAspect() {
@@ -243,6 +251,7 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
                         )
                 )
                 data = remapRows()
+                loading = props.loading
                 SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
                 showPagination = false
                 minRows = 2
@@ -252,13 +261,6 @@ class AspectsTable(props: Props) : RComponent<AspectsTable.Props, AspectsTable.S
                 collapseOnDataChange = false
             }
         }
-    }
-
-    interface Props : RProps {
-        var data: Array<AspectData>
-        var aspectsMap: Map<String, AspectData>
-        var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
-        var onAspectCreate: suspend (newAspect: AspectData) -> Unit
     }
 
     interface State : RState {

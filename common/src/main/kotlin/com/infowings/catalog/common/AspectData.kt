@@ -2,15 +2,19 @@ package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class AspectsList(
+        val aspects: Array<AspectData> = emptyArray()
+)
 
 @Serializable
 data class AspectData(
-    val id: String,
-    val name: String,
-    val measure: String?,
-    val domain: String?,
-    val baseType: String?,
-    val properties: List<AspectPropertyData> = emptyList()
+        var id: String,
+        var name: String,
+        var measure: String?,
+        var domain: String?,
+        var baseType: String?,
+        var properties: List<AspectPropertyData>? = null
 )
 
 

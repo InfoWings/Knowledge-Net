@@ -1,5 +1,6 @@
 package com.infowings.catalog.auth
 
+import com.sun.media.jfxmedia.logging.Logger
 import org.springframework.core.env.Environment
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -7,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+import java.net.URLDecoder
+import java.net.URLEncoder
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -20,12 +23,15 @@ class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Enviro
             chain?.doFilter(request, response)
             return
         }
-        val headerAccess = request.getHeader(env.getProperty("spring.security.header.access"))
-        if (headerAccess == null || !headerAccess.startsWith(env.getProperty("spring.security.prefix"))) {
+        val cookieAccess = URLDecoder.decode(request.cookies
+                .filter { it.name == env.getProperty("spring.security.header.access") }//getHeader(env.getProperty("spring.security.header.access"))
+                .getOrNull(0)
+                ?.value, "UTF-8")
+        if (cookieAccess == null || !cookieAccess.startsWith(env.getProperty("spring.security.prefix"))) {
             chain?.doFilter(request, response)
             return
         }
-        val authentication = getAuthentication(headerAccess)
+        val authentication = getAuthentication(cookieAccess)
 
         SecurityContextHolder.getContext().authentication = authentication
         chain?.doFilter(request, response)
