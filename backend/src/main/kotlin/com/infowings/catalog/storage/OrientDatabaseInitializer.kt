@@ -7,6 +7,7 @@ import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
+import com.orientechnologies.orient.core.record.impl.ODocument
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
@@ -81,6 +82,20 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
         return this
+    }
+
+    /** Initializes measures */
+    fun initMeasuresSearch(): OrientDatabaseInitializer {
+        session(database) { session ->
+            val iName = "$MEASURE_VERTEX.lucene.name"
+            val oClass = session.getClass(MEASURE_VERTEX)
+            if (oClass.getClassIndex(iName) == null) {
+                val metadata = ODocument()
+                metadata.setProperty("allowLeadingWildcard", true)
+                CreateIndexWrapper.createIndexWrapper(oClass, iName, "FULLTEXT", null, metadata, "LUCENE", arrayOf("name"))
+            }
+            return this
+        }
     }
 
     /** Create user in database */
