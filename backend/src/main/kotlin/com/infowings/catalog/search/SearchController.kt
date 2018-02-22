@@ -1,9 +1,7 @@
 package com.infowings.catalog.search
 
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Measure
-import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.MEASURE_VERTEX
-import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.common.search.SearchContext
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -27,6 +25,6 @@ class SearchController(val suggestionService: SuggestionService) {
      * Полнотекстовый поиск по аспектам
      */
     @GetMapping("/aspect/suggestion")
-    fun aspectSuggestion(context: SearchContext, text: String): List<Aspect> =
+    fun aspectSuggestion(context: SearchContext, text: String): List<AspectData> =
             suggestionService.findAspect(context, text)
 }

@@ -61,6 +61,7 @@
     <logger name="org.apache.ibatis" level="INFO"/>
     <logger name="net.sf.jsi.rtree" level="INFO"/>
     <logger name="org.apache.pdfbox.pdfparser" level="INFO"/>
+    <logger name="unknown.jul.logger" level="ERROR"/>
 
     <root level="debug">
         <appender-ref ref="STDOUT"/>
