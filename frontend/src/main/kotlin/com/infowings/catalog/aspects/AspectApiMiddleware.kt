@@ -12,6 +12,9 @@ interface AspectApiReceiverProps : RProps {
     var onAspectCreate: (newAspect: AspectData) -> Unit
 }
 
+/**
+ * Component that manages already fetched aspects and makes real requests to the server API
+ */
 class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
 
     override fun State.init() {
@@ -45,7 +48,7 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
             attrs {
                 data = state.data
                 loading = state.loading
-                aspectsMap = state.data.associate { Pair(it.id, it) }
+                aspectsMap = state.data.associate { Pair(it.id!!, it) }
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect
             }

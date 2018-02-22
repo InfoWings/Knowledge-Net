@@ -8,6 +8,10 @@ import react.rFunction
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 
+/**
+ * Component that represents a couple of icons (discard changes made to aspect or make request to server and save changes)
+ * If aspect is not changed, icons should not be displayed
+ */
 fun controlsColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
     this.accessor = "pending"
     this.Header = columnHeader

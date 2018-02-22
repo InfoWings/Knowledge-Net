@@ -13,29 +13,45 @@ import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 
+/**
+ * Compact column creator for immutable columns (aspect fields of the aspect property)
+ */
 private fun propertyColumn(accessor: String, headerName: String) = RTableColumnDescriptor {
     this.accessor = accessor
     this.Header = rFunction("PropertyHeader") { +headerName }
 }
 
+/**
+ * Compact column creator for mutable columns of aspect property (name, power)
+ */
 private fun mutablePropertyColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: String) -> Unit) = RTableColumnDescriptor {
     this.accessor = accessor
     this.Header = rFunction("Mutable Property Header") { +headerName }
     this.Cell = cellComponent(onPropertyValueChanged)
 }
 
+/**
+ * Creator of the mutable cells (name and power fields of AspectPropertyData)
+ */
 private fun cellComponent(onPropertyChanged: (index: Int, value: String) -> Unit) = rFunction<RTableRendererProps>("LoggingCell") { rTableRendererProps ->
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
             value = rTableRendererProps.value?.toString() ?: ""
-            onChangeFunction = { e ->
-                onPropertyChanged(rTableRendererProps.index, e.asDynamic().target.value)
-            }
+            onChangeFunction = { onPropertyChanged(rTableRendererProps.index, it.asDynamic().target.value) }
         }
     }
 }
 
-data class AspectPropertyRow(val property: AspectPropertyData, val aspect: AspectData)
+data class AspectPropertyRow(
+        /**
+         * Aspect Property displayed on the row
+         */
+        val property: AspectPropertyData,
+        /**
+         * Child aspect associated with aspect property (can be null when editing)
+         */
+        val aspect: AspectData?
+)
 
 class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>() {
 
@@ -55,9 +71,12 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>(
         }
     }
 
+    /**
+     * Callback to call when new property is created
+     */
     private fun onNewPropertyCreated() {
         props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties!! + AspectPropertyData("", "", "", ""))
+            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties + AspectPropertyData("", "", "", ""))
         }
     }
 
@@ -99,7 +118,13 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>(
     }
 
     interface Props : RProps {
+        /**
+         * Array of children aspect properties
+         */
         var data: Array<AspectPropertyRow>
+        /**
+         * Callback to call when property is changed or new property created (callback just marks aspect data as edited)
+         */
         var onPropertyChanged: (propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
     }
 }

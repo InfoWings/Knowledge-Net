@@ -14,12 +14,12 @@ import kotlin.js.JSON
 import kotlin.js.json
 import kotlinx.serialization.json.JSON as KJSON
 
-const val POST = "POST"
-const val GET = "GET"
+private const val POST = "POST"
+private const val GET = "GET"
 
-const val AUTH_ROLE = "auth-role"
+private const val AUTH_ROLE = "auth-role"
 
-external fun encodeURIComponent(component: String): String = definedExternally
+private external fun encodeURIComponent(component: String): String = definedExternally
 
 /**
  * Http POST request to server.
