@@ -66,8 +66,7 @@ private val defaultHeaders = json(
 
 /**
  * Method that try to refresh token and repeat request.
- * If refreshing was successful then return response to repeat request,
- * else replace window location to root.
+ * If refreshing was successful then return response to repeat request.
  */
 private suspend fun refreshTokenAndRepeatRequest(
     method: String,
