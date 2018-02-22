@@ -23,11 +23,11 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
         launch {
             val aspects = getAllAspects()
             setState {
-                data = aspects.aspects
+                data = aspects.aspects.toTypedArray()
                 loading = false
             }
         }
-        handleCreateNewAspect(AspectData("", "Aspects", "", "", ""))
+//        handleCreateNewAspect(AspectData("", "Aspects", "Millimetre", "", "Decimal"))
     }
 
     private fun handleCreateNewAspect(aspectData: AspectData) {
@@ -42,15 +42,15 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     private fun handleUpdateAspect(aspectData: AspectData) {}
 
     override fun RBuilder.render() {
-//        child(AspectsTable::class) {
-//            attrs {
-//                data = state.data
-//                loading = state.loading
-//                aspectsMap = state.data.associate { Pair(it.id, it) }
-//                onAspectCreate = ::handleCreateNewAspect
-//                onAspectUpdate = ::handleUpdateAspect
-//            }
-//        }
+        child(AspectsTable::class) {
+            attrs {
+                data = state.data
+                loading = state.loading
+                aspectsMap = state.data.associate { Pair(it.id, it) }
+                onAspectCreate = ::handleCreateNewAspect
+                onAspectUpdate = ::handleUpdateAspect
+            }
+        }
     }
 
     interface State : RState {

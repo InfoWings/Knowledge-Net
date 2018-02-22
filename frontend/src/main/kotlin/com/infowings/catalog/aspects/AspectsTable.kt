@@ -58,10 +58,10 @@ private fun propertySubComponent(
     val original = props.original as AspectRow
     child(AspectPropertySubtable::class) {
         attrs {
-            //            data = original.aspect.properties?.map {
-//                AspectPropertyRow(it, aspectsMap[it.aspectId]
-//                        ?: AspectData("", "", "", "", ""))
-//            }?.toTypedArray()
+            data = original.aspect.properties.map {
+                AspectPropertyRow(it, aspectsMap[it.aspectId]
+                        ?: AspectData("", "", "", "", ""))
+            }.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
         }
     }

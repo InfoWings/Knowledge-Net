@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AspectsList(
-        val aspects: Array<AspectData> = emptyArray()
+        val aspects: List<AspectData> = emptyList()
 )
 
 @Serializable
 data class AspectData(
-        var id: String,
-        var name: String,
-        var measure: String?,
-        var domain: String?,
-        var baseType: String?,
-        var properties: List<AspectPropertyData>? = null
+        val id: String,
+        val name: String,
+        val measure: String?,
+        val domain: String?,
+        val baseType: String?,
+        val properties: List<AspectPropertyData> = emptyList()
 )
 
 

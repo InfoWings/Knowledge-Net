@@ -14,7 +14,7 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(aspectData: AspectData): AspectData {
+    fun createAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
         return aspectService.createAspect(aspectData).toAspectData()
     }
@@ -35,7 +35,7 @@ class AspectApi(val aspectService: AspectService) {
     @GetMapping("all")
     fun getAspects(): AspectsList {
         logger.debug("Get all aspects request")
-        return AspectsList(aspectService.getAspects().toAspectData().toTypedArray())
+        return AspectsList(aspectService.getAspects().toAspectData())
     }
 
 }
