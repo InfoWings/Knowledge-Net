@@ -4,5 +4,5 @@ package com.infowings.catalog.search
  * Контекст поиска
  */
 data class SearchContext(
-        val aspects: List<String>,
-        val edgeTypes: List<String>)
+        var aspects: Array<String>? = null,
+        var edgeTypes: Array<String>? = null)
