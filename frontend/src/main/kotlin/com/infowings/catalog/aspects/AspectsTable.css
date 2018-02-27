@@ -70,3 +70,15 @@
   border-left: 1px solid rgba(0, 0, 0, 0.1);
   padding: 7px 5px;
 }
+
+.ReactTable .rt-td.aspect-cell {
+  overflow: visible;
+}
+
+.ReactTable.aspect-table .rt-table {
+  overflow: visible;
+}
+
+.ReactTable.aspect-table .rt-tbody {
+  overflow: visible
+}

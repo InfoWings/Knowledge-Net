@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.components.SuggestingInput
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
@@ -29,6 +30,15 @@ private fun cellComponent(onFieldChanged: (data: AspectData, value: String) -> U
     }
 }
 
+private fun selectComponent(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
+    child(SuggestingInput::class) {
+        attrs {
+            initialValue = props.value?.toString() ?: ""
+            onOptionSelected = { onFieldChanged(props.original.aspect as AspectData, it) }
+        }
+    }
+}
+
 /**
  * Compact method for creating aspect column
  */
@@ -36,6 +46,7 @@ private fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, 
         RTableColumnDescriptor {
             this.accessor = accessor
             this.Header = header
+            className = "aspect-cell"
             cell?.let {
                 this.Cell = cell
             }
@@ -177,7 +188,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
             attrs {
                 columns = arrayOf(
                         aspectColumn("aspect.name", headerComponent("Name"), cellComponent(fieldChangedHandler(AspectData::withName))),
-                        aspectColumn("aspect.measure", headerComponent("Measure Unit"), cellComponent(fieldChangedHandler(AspectData::withMeasure))),
+                        aspectColumn("aspect.measure", headerComponent("Measure Unit"), selectComponent(fieldChangedHandler(AspectData::withMeasure))),
                         aspectColumn("aspect.domain", headerComponent("Domain"), cellComponent(fieldChangedHandler(AspectData::withDomain))),
                         aspectColumn("aspect.baseType", headerComponent("Base Type"), cellComponent(fieldChangedHandler(AspectData::withBaseType))),
                         controlsColumn(
@@ -188,6 +199,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                                 ::resetAspect
                         )
                 )
+                className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
                 SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
