@@ -1,6 +1,7 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectsList
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.data.toAspectData
 import com.infowings.catalog.loggerFor
@@ -13,7 +14,7 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(aspectData: AspectData): AspectData {
+    fun createAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
         return aspectService.createAspect(aspectData).toAspectData()
     }
@@ -32,9 +33,9 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("all")
-    fun getAspects(): List<AspectData> {
+    fun getAspects(): AspectsList {
         logger.debug("Get all aspects request")
-        return aspectService.getAspects().toAspectData()
+        return AspectsList(aspectService.getAspects().toAspectData())
     }
 
 }
