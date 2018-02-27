@@ -30,7 +30,8 @@
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
-    <bean id="referenceBoolService" class="com.infowings.catalog.data.ReferenceBookServiceImpl">
+    <bean id="referenceBookService" class="com.infowings.catalog.data.DefaultReferenceBookService">
         <constructor-arg name="database" ref="orientDatabase"/>
+        <constructor-arg name="aspectService" ref="metadataService"/>
     </bean>
 </beans>

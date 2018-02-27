@@ -89,6 +89,16 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
             vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
+        if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
+            val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
+            vertexClass.createProperty("value", OType.STRING)
+        }
+        if (session.getClass(REFERENCE_BOOK_CHILD_EDGE) == null) {
+            session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
+        }
+        if (session.getClass(REFERENCE_BOOK_ASPECT_EDGE) == null) {
+            session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
+        }
     }
 
     /** Create user in database */

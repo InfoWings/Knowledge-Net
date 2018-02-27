@@ -106,8 +106,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      */
     fun findById(id: String): Aspect = getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
-
-    private fun getVertexById(id: String): OVertex? =
+    fun getVertexById(id: String): OVertex? =
         db.query(selectById, ORecordId(id)) { rs -> rs.map { it.toVertexOrNUll() }.firstOrNull() }
 
     private val OVertex.baseType: BaseType?

@@ -1,20 +1,20 @@
 package com.infowings.catalog.common
 
-import kotlinx.serialization.Optional
 import kotlinx.serialization.Serializable
 
-enum class ReferenceBookType { VERTEX, LEAF }
-
+/**
+ * [root] is a fake component. Just ignore this
+ * */
 @Serializable
-data class ReferenceBook(@Optional val id: String? = null, val name: String, val description: String, @Optional val children: List<ReferenceBookItem> = emptyList()) {
-    constructor(id: String? = null, name: String, description: String) : this(id, name, description, emptyList())
+data class ReferenceBook(val name: String, val aspectId: String, val root: ReferenceBookItem) {
+    val id: String = root.id
+    val children: List<ReferenceBookItem> = root.children
+    operator fun get(child: String): ReferenceBookItem? = root[child]
 }
 
-abstract class ReferenceBookItem(val id: String? = null, val type: ReferenceBookType, val name: String, val description: String? = null)
+@Serializable
+data class ReferenceBookItem(val id: String, val value: String, val children: List<ReferenceBookItem> = emptyList()) {
+    private val accessChildrenMap = children.map { it.value to it }.toMap()
 
-class ReferenceBookVertex(id: String? = null,
-                          name: String,
-                          description: String?,
-                          val children: List<ReferenceBookItem>) : ReferenceBookItem(id, ReferenceBookType.VERTEX, name, description)
-
-class ReferenceBookLeaf(id: String? = null, name: String, description: String) : ReferenceBookItem(id, ReferenceBookType.LEAF, name, description)
+    operator fun get(child: String): ReferenceBookItem? = accessChildrenMap[child]
+}
