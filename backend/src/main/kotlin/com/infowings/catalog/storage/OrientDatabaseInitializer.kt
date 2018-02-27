@@ -43,7 +43,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
-        return initAspectSearch()
+        return this
     }
 
     /** Initializes measures */
@@ -84,17 +84,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
-        return initMeasuresSearch()
+        return initSearch()
     }
 
     /** Initializes measures search */
-    private fun initMeasuresSearch(): OrientDatabaseInitializer {
+    private fun initSearch(): OrientDatabaseInitializer {
         initLuceneIndex(MEASURE_VERTEX)
-        return this
-    }
-
-    /** Initializes aspect search */
-    private fun initAspectSearch(): OrientDatabaseInitializer {
         initLuceneIndex(ASPECT_CLASS)
         return this
     }
