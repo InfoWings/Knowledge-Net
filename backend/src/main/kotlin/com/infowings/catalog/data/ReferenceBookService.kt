@@ -31,15 +31,28 @@ interface ReferenceBookService {
     /**
      * Change value of ReferenceBookItem with id [id]
      * @throws ReferenceBookException.ReferenceBookItemNotExist
+     * @throws ReferenceBookException.ChildAlreadyExist
      * */
     fun changeValue(id: String, value: String)
 
     /**
+     * Save ReferenceBook with name [name]
      * @throws ReferenceBookException.ReferenceBookAlreadyExist
      */
     fun createReferenceBook(name: String, aspectId: String): ReferenceBook
 
+    /**
+     * Add new item as a child to ReferenceBookItem
+     * @throws ReferenceBookException.ReferenceBookItemNotExist
+     * @throws ReferenceBookException.ChildAlreadyExist
+     */
     fun addReferenceBookItem(parentId: String, value: String): String
+
+    /**
+     * Make ReferenceBookItem with id [sourceId] to be a child of ReferenceBookItem with id [targetId]
+     * @throws ReferenceBookException.ReferenceBookItemNotExist
+     * @throws ReferenceBookException.MoveImpossible in case of [sourceId] is a parent pf [targetId]
+     */
     fun moveReferenceBookItem(sourceId: String, targetId: String)
 }
 
