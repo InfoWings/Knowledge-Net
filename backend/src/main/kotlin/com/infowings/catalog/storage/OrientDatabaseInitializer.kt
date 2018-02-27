@@ -53,15 +53,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             val vertexClass = session.createVertexClass(MEASURE_VERTEX)
             vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
-        if (session.getClass(MEASURE_GROUP_EDGE) == null) {
-            session.createEdgeClass(MEASURE_GROUP_EDGE)
-        }
-        if (session.getClass(MEASURE_BASE_EDGE) == null) {
-            session.createEdgeClass(MEASURE_BASE_EDGE)
-        }
-        if (session.getClass(MEASURE_BASE_AND_GROUP_EDGE) == null) {
-            session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
-        }
+        session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
+        session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
+        session.getClass(MEASURE_BASE_AND_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
+
         /** Add initial measures to database */
         val localMeasureService = MeasureService(database)
         session(database) {
@@ -84,7 +79,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         return this
     }
 
-    fun initReferenceBooks() = session(database) { session ->
+    fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
         if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
@@ -94,12 +89,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
             vertexClass.createProperty("value", OType.STRING)
         }
-        if (session.getClass(REFERENCE_BOOK_CHILD_EDGE) == null) {
-            session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
-        }
-        if (session.getClass(REFERENCE_BOOK_ASPECT_EDGE) == null) {
-            session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
-        }
+        
+        session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
+        session.getClass(REFERENCE_BOOK_ASPECT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
+        return this
     }
 
     /** Initializes measures */
