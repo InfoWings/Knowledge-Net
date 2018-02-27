@@ -45,6 +45,7 @@ external interface RTableProps : RProps {
     var defaultFilterMethod: (filter: dynamic, row: dynamic, column: dynamic) -> Boolean
     var defaultSortMethod: (firstRow: dynamic, secondRow: dynamic, desc: Boolean) -> Int
     var PadRowComponent: () -> ReactElement //() => <span>&nbsp;</span>, // the content rendered inside of a padding row
+    var SubComponent: RClass<SubComponentProps>
 
     // Controlled State Overrides (see Fully Controlled Component section)
     var page: Int
@@ -124,6 +125,20 @@ external interface RTableProps : RProps {
     var pageText: String     // Default: 'Page',
     var ofText: String       // Default: 'of',
     var rowsText: String     // Default: 'rows',
+}
+
+external interface SubComponentProps : RProps {
+    var aggregated: dynamic // Default: undefined, Type: ???
+    var groupedByPivot: dynamic // Default: undefined, Type: Maybe Boolean?
+    var index: Int // 0 based index of a row
+    var level: Int // 0 based nesting level
+    var nestingPath: Array<Int> // Default Array [ index ]
+    var original: dynamic // Original row in the data array
+    var page: Int
+    var pageSize: Int
+    var row: dynamic // Row in a table after processing
+    var subRows: dynamic // If row is aggregated, contains rows under aggregation
+    var viewIndex: Int // Index on current page ???? ( == index - page * pageSize)
 }
 
 /**

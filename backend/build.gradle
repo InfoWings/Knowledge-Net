@@ -35,6 +35,8 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-orm'
 
     compile group: 'com.orientechnologies', name: 'orientdb-client', version: '3.0.0RC1'
+    compile group: 'com.orientechnologies', name: 'orientdb-lucene', version: '3.0.0RC1'
+
     // нужно для работы тестов в докере
     compile group: 'net.java.dev.jna', name: 'jna-platform', version: '4.5.1'
     compile group: 'net.java.dev.jna', name: 'jna', version: '4.5.1'

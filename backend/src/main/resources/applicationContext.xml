@@ -34,4 +34,8 @@
         <constructor-arg name="database" ref="orientDatabase"/>
         <constructor-arg name="aspectService" ref="metadataService"/>
     </bean>
+
+    <bean id="suggestionService" class="com.infowings.catalog.search.SuggestionService">
+        <constructor-arg ref="orientDatabase"/>
+    </bean>
 </beans>
