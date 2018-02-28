@@ -55,6 +55,8 @@ class SearchTest {
 
     private lateinit var mockMvc: MockMvc
 
+    private val authorities = user("admin").authorities(SimpleGrantedAuthority("ADMIN"))
+
     @Before
     fun setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
@@ -103,8 +105,8 @@ class SearchTest {
     @Test
     fun measureSuggestionController() {
         mockMvc.perform(
-            get("/api/search/measure/suggestion?text=metr")
-                .with(user("admin1").authorities(SimpleGrantedAuthority("ADMIN")))
+            get("/api/search/measure/suggestion").with(authorities)
+                .param("text", "metr")
         ).andExpect(status().isOk)
             .andExpect(jsonPath("$[0]").value("Metre"))
     }
@@ -114,8 +116,8 @@ class SearchTest {
         val aspectName = "newAspectSuggestion"
         val aspect: Aspect = createTestAspect(aspectName)
         mockMvc.perform(
-            get("/api/search/aspect/suggestion?text=newAspectSuggestion")
-                .with(user("admin").authorities(SimpleGrantedAuthority("ADMIN")))
+            get("/api/search/aspect/suggestion").with(authorities)
+                .param("text", "newAspectSuggestion")
         ).andExpect(status().isOk)
             .andExpect(jsonPath("$[0].name").value(aspect.name))
     }
