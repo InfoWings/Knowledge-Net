@@ -53,7 +53,7 @@ class SearchTest {
     @Autowired
     private val wac: WebApplicationContext? = null
 
-    private var mockMvc: MockMvc? = null
+    private lateinit var mockMvc: MockMvc
 
     @Before
     fun setup() {
@@ -102,22 +102,22 @@ class SearchTest {
 
     @Test
     fun measureSuggestionController() {
-        mockMvc?.perform(
+        mockMvc.perform(
             get("/api/search/measure/suggestion?text=metr")
                 .with(user("admin1").authorities(SimpleGrantedAuthority("ADMIN")))
-        )?.andExpect(status().isOk)
-            ?.andExpect(jsonPath("$[0]").value("Metre"))
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("$[0]").value("Metre"))
     }
 
     @Test
     fun aspectSuggestionController() {
         val aspectName = "newAspectSuggestion"
         val aspect: Aspect = createTestAspect(aspectName)
-        mockMvc?.perform(
+        mockMvc.perform(
             get("/api/search/aspect/suggestion?text=newAspectSuggestion")
                 .with(user("admin").authorities(SimpleGrantedAuthority("ADMIN")))
-        )?.andExpect(status().isOk)
-            ?.andExpect(jsonPath("$[0].name").value(aspect.name))
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].name").value(aspect.name))
     }
 
 }
