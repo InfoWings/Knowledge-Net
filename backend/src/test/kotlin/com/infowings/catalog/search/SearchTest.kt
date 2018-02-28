@@ -8,17 +8,24 @@ import com.infowings.catalog.common.Metre
 import com.infowings.catalog.data.Aspect
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
-import io.restassured.RestAssured
-import io.restassured.RestAssured.given
-import org.hamcrest.Matchers.equalTo
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import kotlin.test.BeforeTest
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -43,9 +50,16 @@ class SearchTest {
     @Value("\${spring.security.prefix}")
     lateinit var securityPrefix: String
 
-    @BeforeTest
-    fun beforeTest() {
-        RestAssured.baseURI = "http://localhost:$port"
+    @Autowired
+    private val wac: WebApplicationContext? = null
+
+    private var mockMvc: MockMvc? = null
+
+    @Before
+    fun setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
+            .build()
     }
 
     @Test
@@ -86,56 +100,24 @@ class SearchTest {
         return aspectService.findByName(aspectName) ?: aspectService.createAspect(ad)
     }
 
-
     @Test
     fun measureSuggestionController() {
-        val response = given().log().all()
-            .contentType("application/json")
-            .header(headerAcess, signIn())
-            .`when`()
-            .get(
-                "/api/search/measure/suggestion?text=metr" +
-                        "&aspects=aspectTest1" +
-                        "&aspects=aspectTest2"
-            )
-
-        logger.info("measure suggestion result: ${response.body.print()}")
-
-        response.then()
-            .statusCode(200)
-            .body("[0]", equalTo("Metre"))
+        mockMvc?.perform(
+            get("/api/search/measure/suggestion?text=metr")
+                .with(user("admin1").authorities(SimpleGrantedAuthority("ADMIN")))
+        )?.andExpect(status().isOk)
+            ?.andExpect(jsonPath("$[0]").value("Metre"))
     }
 
     @Test
     fun aspectSuggestionController() {
         val aspectName = "newAspectSuggestion"
         val aspect: Aspect = createTestAspect(aspectName)
-        val response = given().log().all()
-            .contentType("application/json")
-            .header(headerAcess, signIn())
-            .`when`()
-            .get(
-                "/api/search/aspect/suggestion?text=newAspectSuggestion" +
-                        "&aspects=aspectTest1" +
-                        "&aspects=aspectTest2"
-            )
-
-        logger.info("aspect suggestion result: ${response.body.print()}")
-        response.then()
-            .statusCode(200)
-            .body("[0].name", equalTo(aspect.name))
+        mockMvc?.perform(
+            get("/api/search/aspect/suggestion?text=newAspectSuggestion")
+                .with(user("admin").authorities(SimpleGrantedAuthority("ADMIN")))
+        )?.andExpect(status().isOk)
+            ?.andExpect(jsonPath("$[0].name").value(aspect.name))
     }
 
-    private fun signIn(): String {
-        val response = given().log().all()
-            .contentType("application/json")
-            .body("{\"username\":\"admin\",\"password\":\"admin\"}")
-            .`when`()
-            .post("/api/access/signIn")
-
-        response.then().statusCode(200)
-        logger.info("signIn result: ${response.body.asString()}")
-
-        return securityPrefix + " " + response.jsonPath().get("accessToken")
-    }
 }
