@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
 @ImportResource("classpath:applicationContext.xml")
-@ComponentScan(basePackages = ["com.infowings"])
+@ComponentScan(basePackages = ["com.infowings.catalog"])
 @EnableAutoConfiguration
 @EnableScheduling
 class MasterCatalog
