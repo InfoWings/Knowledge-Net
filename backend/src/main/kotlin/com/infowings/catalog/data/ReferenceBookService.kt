@@ -9,6 +9,7 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
+
 const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
@@ -58,11 +59,16 @@ interface ReferenceBookService {
 
 class DefaultReferenceBookService(val database: OrientDatabase, val aspectService: AspectService) : ReferenceBookService {
 
+    override fun getReferenceBookItem(id: String): ReferenceBookItem {
+        val rootVertex = getVertexById(id) ?: throw ReferenceBookException.ReferenceBookItemNotExist(id)
+        return getReferenceBookItem(rootVertex)
+    }
+
     override fun getReferenceBook(name: String): ReferenceBook = session(database) {
         val referenceBookVertex = getReferenceBookVertexByName(name)
                 ?: throw ReferenceBookException.ReferenceBookNotExist(name)
         val rootVertex = referenceBookVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).first()
-        val root = getReferenceBookItem(rootVertex.identity.toString())
+        val root = getReferenceBookItem(rootVertex)
         val aspectId = referenceBookVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).first()
                 ?: throw ReferenceBookException.LinkedAspectNotExist(name)
         return@session ReferenceBook(name, aspectId.identity.toString(), root)
@@ -130,11 +136,10 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
     }.let { ReferenceBook(it.first["name"], aspectId, ReferenceBookItem(it.second.identity.toString(), it.second["value"])) }
 
 
-    override fun getReferenceBookItem(id: String): ReferenceBookItem = session(database) {
-        val rootVertex = getVertexById(id) ?: throw ReferenceBookException.ReferenceBookItemNotExist(id)
-        val value = rootVertex.get<String>("value")
-        val children = rootVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { getReferenceBookItem(it.identity.toString()) }
-        ReferenceBookItem(id, value, children)
+    private fun getReferenceBookItem(vertex: OVertex): ReferenceBookItem = session(database) {
+        val value = vertex.get<String>("value")
+        val children = vertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { getReferenceBookItem(it) }
+        ReferenceBookItem(vertex.identity.toString(), value, children)
     }
 
     private fun getVertexById(id: String): OVertex? =
