@@ -2,10 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.common.MeasureGroup
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
-import com.infowings.catalog.storage.toVertex
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
@@ -78,7 +75,7 @@ class MeasureService(val database: OrientDatabase) {
     fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>): OEdge? {
         val firstVertexGroup = findMeasureGroup(source.name) ?: return null
         val secondVertexGroup = findMeasureGroup(target.name) ?: return null
-        val addedBefore = firstVertexGroup.getEdges(ODirection.OUT, MEASURE_GROUP_EDGE).find { it.to.identity == secondVertexGroup.identity }
+        val addedBefore = firstVertexGroup.getEdges(ODirection.OUT, MEASURE_GROUP_EDGE).find { it.to.id == secondVertexGroup.id }
         if (addedBefore != null) {
             return addedBefore
         }

@@ -42,7 +42,7 @@ class ReferenceBookDbTest {
         assertTrue("Found reference book must be equals with saved", found == referenceBook)
     }
 
-    @Test(expected = ReferenceBookException.ReferenceBookNotExist::class)
+    @Test(expected = RefBookNotExist::class)
     fun findNotExistingReferenceBookTest() {
         referenceBookService.getReferenceBook("random")
     }
@@ -66,7 +66,7 @@ class ReferenceBookDbTest {
         assertTrue("`root.value1.value11` has 1 child", updatedReferenceBook["value1"]!!["value11"]!!.children.size == 1)
     }
 
-    @Test(expected = ReferenceBookException.ChildAlreadyExist::class)
+    @Test(expected = RefBookChildAlreadyExist::class)
     fun addChildrenWithSameValueAsOtherChildrenTest() {
         referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
         referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
@@ -84,7 +84,7 @@ class ReferenceBookDbTest {
         assertTrue("`root.value2` has 1 child", updatedReferenceBook["value2"]!!.children.size == 1)
     }
 
-    @Test(expected = ReferenceBookException.MoveImpossible::class)
+    @Test(expected = RefBookItemMoveImpossible::class)
     fun unCorrectMoveItemsTest() {
         val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
         val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
@@ -99,7 +99,7 @@ class ReferenceBookDbTest {
         assertTrue("Value should be changed", updated.value == "value2")
     }
 
-    @Test(expected = ReferenceBookException.ChildAlreadyExist::class)
+    @Test(expected = RefBookChildAlreadyExist::class)
     fun unCorrectChangeValueTest() {
         val childId = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
         referenceBookService.addReferenceBookItem(referenceBook.id, "value2")
