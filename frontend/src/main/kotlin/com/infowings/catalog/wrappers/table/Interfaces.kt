@@ -3,6 +3,7 @@ package com.infowings.catalog.wrappers.table
 import react.RClass
 import react.RProps
 import react.ReactElement
+import kotlin.js.Json
 
 
 /**
@@ -41,7 +42,7 @@ external interface RTableProps : RProps {
     //    var defaultSorted:   // Type???
 //    var defaultFiltered: // Type???
 //    var defaultResized:  // Type???
-//    var defaultExpanded: // Type???
+    var defaultExpanded: Json
     var defaultFilterMethod: (filter: dynamic, row: dynamic, column: dynamic) -> Boolean
     var defaultSortMethod: (firstRow: dynamic, secondRow: dynamic, desc: Boolean) -> Int
     var PadRowComponent: () -> ReactElement //() => <span>&nbsp;</span>, // the content rendered inside of a padding row

@@ -3,6 +3,7 @@ package com.infowings.catalog.units
 import com.infowings.catalog.wrappers.table.*
 import react.*
 import react.dom.span
+import kotlin.js.Json
 import kotlin.js.json
 
 private fun header(columnName: String) = rFunction<RTableRendererProps>("UnitsTableHeader") {
@@ -22,7 +23,7 @@ private fun column(accessor: String, header: RClass<RTableRendererProps>, width:
 
 data class UnitsTableRowData(val measure: String, val name: String, val symbol: String, val containsFilterText: Boolean)
 
-class UnitsTableProperties(var data: Array<UnitsTableRowData>) : RProps
+class UnitsTableProperties(var data: Array<UnitsTableRowData>, var defaultExpandedRows: Json) : RProps
 
 class UnitsTable : RComponent<UnitsTableProperties, RState>() {
 
@@ -42,6 +43,7 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 showPageJump = false
                 resizable = false
                 getTdProps = ::tdProps
+                defaultExpanded = props.defaultExpandedRows
             }
         })
     }

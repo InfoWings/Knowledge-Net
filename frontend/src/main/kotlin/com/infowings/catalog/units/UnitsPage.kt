@@ -8,6 +8,8 @@ import react.RComponent
 import react.RState
 import react.dom.h1
 import react.setState
+import kotlin.js.Json
+import kotlin.js.json
 
 class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
@@ -37,22 +39,8 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
         child(UnitsTable::class) {
             attrs {
-                data = MeasureGroupMap
-                    .filter {
-                        it.value.measureList.any { measure ->
-                            measure.name.toLowerCase().contains(state.filterText.toLowerCase())
-                        }
-                    }
-                    .flatMap {
-                        it.value.measureList.map { measure ->
-                            val filterText: String = state.filterText
-                            val containsFilterText = filterText.isEmpty() ||
-                                    (filterText.isNotEmpty() &&
-                                            measure.name.toLowerCase().contains(filterText.toLowerCase()))
-                            UnitsTableRowData(it.key, measure.name, measure.symbol, containsFilterText)
-                        }
-                    }
-                    .toTypedArray()
+                data = getFilteredData(state.filterText)
+                defaultExpandedRows = defineExpandedRows(state.filterText)
             }
         }
     }
@@ -60,4 +48,39 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     interface State : RState {
         var filterText: String
     }
+}
+
+private fun getFilteredData(filterText: String): Array<UnitsTableRowData> {
+    val filterTextInLowerCase = filterText.toLowerCase()
+    return MeasureGroupMap
+        .filter {
+            it.value.measureList.any { measure -> measure.name.toLowerCase().contains(filterTextInLowerCase) }
+        }
+        .flatMap {
+            it.value.measureList.map { measure ->
+                val containsFilterText =
+                    filterTextInLowerCase.isEmpty() || measure.name.toLowerCase().contains(filterTextInLowerCase)
+                UnitsTableRowData(it.key, measure.name, measure.symbol, containsFilterText)
+            }
+        }
+        .toTypedArray()
+}
+
+private fun defineExpandedRows(filterText: String): Json {
+    if (filterText.isEmpty()) return json()
+
+    val rowsGroupCount = MeasureGroupMap
+        .filter {
+            it.value.measureList.any { measure -> measure.name.toLowerCase().contains(filterText.toLowerCase()) }
+        }.count()
+
+    val list = IntRange(0, rowsGroupCount)
+        .map { json(it.toString() to true) }
+
+    val result = json()
+
+    for (json in list) {
+        result.add(json)
+    }
+    return result
 }
