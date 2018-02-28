@@ -22,7 +22,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
-        if (session.getClass("User") == null) {
+        if (session.getClass(USER_CLASS) == null) {
             logger.info("Init users")
             initUser("user", "user", "USER")
             initUser("admin", "admin", "ADMIN")

@@ -59,7 +59,7 @@ interface ReferenceBookService {
     fun moveReferenceBookItem(sourceId: String, targetId: String)
 }
 
-class DefaultReferenceBookService(val database: OrientDatabase, val aspectService: AspectService) : ReferenceBookService {
+class DefaultReferenceBookService(val database: OrientDatabase) : ReferenceBookService {
 
     override fun getReferenceBookItem(id: String): ReferenceBookItem {
         val rootVertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
@@ -67,10 +67,8 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
     }
 
     override fun getReferenceBook(name: String): ReferenceBook = session(database) {
-        val referenceBookVertex = getReferenceBookVertexByName(name)
-                ?: throw RefBookNotExist(name)
-        val rootVertex = referenceBookVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).first()
-        val root = getReferenceBookItem(rootVertex)
+        val referenceBookVertex = getReferenceBookVertexByName(name) ?: throw RefBookNotExist(name)
+        val root = getReferenceBookItem(referenceBookVertex.child!!)
         val aspectId = referenceBookVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).first()
                 ?: throw RefBookAspectNotExist(name)
         return@session ReferenceBook(name, aspectId.id, root)
@@ -79,22 +77,26 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
     override fun changeValue(id: String, value: String) {
         transaction(database) {
             val vertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
-            val parentVertex = vertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first()
+            val parentVertex = vertex.parent!!
             val vertexWithSameNameAlreadyExist = parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
                     .any { it.get<String>("value") == value && it.id != id }
+
             if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
                 throw RefBookChildAlreadyExist(parentVertex.id, value)
             }
+
             vertex["value"] = value
             return@transaction vertex.save<OVertex>()
         }
     }
 
     override fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) { session ->
-        val parentVertex = database.getVertexById(parentId)
-                ?: throw RefBookItemNotExist(parentId)
-        if (parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).any { it.get<String>("value") == value })
+        val parentVertex = database.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
+
+        if (parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).any { it.get<String>("value") == value }) {
             throw RefBookChildAlreadyExist(parentId, value)
+        }
+
         val childVertex = session.newVertex(REFERENCE_BOOK_ITEM_VERTEX)
         parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         childVertex["value"] = value
@@ -104,13 +106,12 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
 
     override fun moveReferenceBookItem(sourceId: String, targetId: String) {
         transaction(database) {
-            val sourceVertex = database.getVertexById(sourceId)
-                    ?: throw RefBookItemNotExist(sourceId)
-            val targetVertex = database.getVertexById(targetId)
-                    ?: throw RefBookItemNotExist(targetId)
+            val sourceVertex = database.getVertexById(sourceId) ?: throw RefBookItemNotExist(sourceId)
+            val targetVertex = database.getVertexById(targetId) ?: throw RefBookItemNotExist(targetId)
+
             var tmpPointer = targetVertex
             while (!tmpPointer.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).none()) {
-                val parent = tmpPointer.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first()
+                val parent = tmpPointer.parent!!
                 if (tmpPointer.id == sourceId) {
                     throw RefBookItemMoveImpossible
                 }
@@ -132,9 +133,7 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         val aspectVertex = database.getVertexById(aspectId)
         referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
-        rootVertex.save<OVertex>()
-        referenceBookVertex.save<OVertex>()
-        return@transaction Pair(referenceBookVertex, rootVertex)
+        return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
     }.let { ReferenceBook(it.first["name"], aspectId, ReferenceBookItem(it.second.id, it.second["value"])) }
 
 
@@ -148,6 +147,11 @@ class DefaultReferenceBookService(val database: OrientDatabase, val aspectServic
             database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 }
 
+private val OVertex.child: OVertex?
+    get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).first()
+private val OVertex.parent: OVertex?
+    get() = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first()
+
 sealed class ReferenceBookException(message: String? = null) : Exception(message)
 class RefBookAlreadyExist(val name: String) : ReferenceBookException("name: $name")
 class RefBookNotExist(val name: String) : ReferenceBookException("name: $name")
@@ -157,4 +161,3 @@ class RefBookAspectNotExist(val name: String) : ReferenceBookException("name: $n
 object RefBookItemMoveImpossible : ReferenceBookException()
 
 private const val searchReferenceBookByName = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE name = ?"
-private const val selectById = "SELECT FROM ?"
