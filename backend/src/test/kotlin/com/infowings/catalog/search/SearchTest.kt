@@ -113,11 +113,10 @@ class SearchTest {
 
     @Test
     fun aspectSuggestionController() {
-        val aspectName = "newAspectSuggestion"
-        val aspect: Aspect = createTestAspect(aspectName)
+        val aspect: Aspect = createTestAspect("newAspectSuggestion")
         mockMvc.perform(
             get("/api/search/aspect/suggestion").with(authorities)
-                .param("text", "newAspectSuggestion")
+                .param("text", aspect.name)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("$[0].name").value(aspect.name))
     }
