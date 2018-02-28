@@ -1,9 +1,6 @@
 package com.infowings.catalog.units
 
-import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
-import com.infowings.catalog.wrappers.table.RTableRendererProps
-import com.infowings.catalog.wrappers.table.ReactTable
-import com.infowings.catalog.wrappers.table.treeTable
+import com.infowings.catalog.wrappers.table.*
 import react.*
 import react.dom.span
 import kotlin.js.json
@@ -40,24 +37,20 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 )
                 data = props.data
                 showPagination = false
-                minRows = 1
+                minRows = 0
                 sortable = false
                 showPageJump = false
                 resizable = false
-                getTdProps = tdProps()
+                getTdProps = ::tdProps
             }
         })
     }
+}
 
-    private fun tdProps(): (dynamic, dynamic, dynamic) -> dynamic {
-        return fun(state: dynamic, rowInfo: dynamic, column: dynamic): dynamic {
-            if (rowInfo != undefined) {
-                if (rowInfo.aggregated != true) {
-                    val color = if (rowInfo.row._original.containsFilterText) "white" else "lightgray"
-                    return json("style" to json("background" to color))
-                }
-            }
-            return json("style" to json("background" to "#E6FDFF"))
-        }
+private fun tdProps(state: dynamic, rowInfo: RowInfo?, column: dynamic): dynamic {
+    if (rowInfo != null && !rowInfo.aggregated) {
+        val color = if (rowInfo.original.containsFilterText) "white" else "lightgray"
+        return json("style" to json("background" to color))
     }
+    return json("style" to json("background" to "#E6FDFF"))
 }

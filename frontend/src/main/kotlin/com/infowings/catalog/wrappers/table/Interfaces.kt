@@ -99,7 +99,7 @@ external interface RTableProps : RProps {
     var getTrGroupProps: (() -> dynamic)
     var getTrProps: (() -> dynamic)
     var getThProps: (() -> dynamic)
-    var getTdProps: ((state: dynamic, rowInfo: dynamic, column: dynamic) -> dynamic)
+    var getTdProps: ((state: dynamic, rowInfo: RowInfo?, column: dynamic) -> dynamic)
     var getTfootProps: (() -> dynamic)
     var getTfootTrProps: (() -> dynamic)
     var getTfootThProps: (() -> dynamic)
@@ -210,7 +210,7 @@ external interface RTableColumnDescriptor {
  */
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 inline fun RTableColumnDescriptor(builder: RTableColumnDescriptor.() -> Unit): RTableColumnDescriptor =
-        (js("({})") as RTableColumnDescriptor).apply(builder)
+    (js("({})") as RTableColumnDescriptor).apply(builder)
 
 external interface RTableRendererProps : RProps {
     var row: dynamic // the materialized row of data
@@ -258,6 +258,19 @@ external interface ExpanderDescriptor {
     var width: Double?
 }
 
+external interface RowInfo {
+    var original: dynamic
+    var row: dynamic
+    var index: Int
+    var viewIndex: Int
+    var pageSize: Int
+    var page: Int
+    var level: Int
+    var nestingPath: dynamic
+    var aggregated: Boolean
+    var groupedByPivot: dynamic
+    var subRows: dynamic
+}
 
 
 
