@@ -143,7 +143,7 @@ inline fun <U> transaction(
     }
 }
 
-operator fun <T> OVertex.get(name: String): T = getProperty(name)
+operator fun <T> OVertex.get(name: String): T = getProperty<T>(name)
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
 
 val OElement.id: String
