@@ -90,18 +90,20 @@ class SearchTest {
     @Test
     fun measureSuggestionController() {
         val response = given().log().all()
-                .contentType("application/json")
-                .header(headerAcess, signIn())
-                .`when`()
-                .get("/api/search/measure/suggestion?text=metr" +
+            .contentType("application/json")
+            .header(headerAcess, signIn())
+            .`when`()
+            .get(
+                "/api/search/measure/suggestion?text=metr" +
                         "&aspects=aspectTest1" +
-                        "&aspects=aspectTest2")
+                        "&aspects=aspectTest2"
+            )
 
         logger.info("measure suggestion result: ${response.body.print()}")
 
         response.then()
-                .statusCode(200)
-                .body("[0]", equalTo("Metre"))
+            .statusCode(200)
+            .body("[0]", equalTo("Metre"))
     }
 
     @Test
@@ -109,25 +111,27 @@ class SearchTest {
         val aspectName = "newAspectSuggestion"
         val aspect: Aspect = createTestAspect(aspectName)
         val response = given().log().all()
-                .contentType("application/json")
-                .header(headerAcess, signIn())
-                .`when`()
-                .get("/api/search/aspect/suggestion?text=newAspectSuggestion" +
+            .contentType("application/json")
+            .header(headerAcess, signIn())
+            .`when`()
+            .get(
+                "/api/search/aspect/suggestion?text=newAspectSuggestion" +
                         "&aspects=aspectTest1" +
-                        "&aspects=aspectTest2")
+                        "&aspects=aspectTest2"
+            )
 
         logger.info("aspect suggestion result: ${response.body.print()}")
         response.then()
-                .statusCode(200)
-                .body("[0].name", equalTo(aspect.name))
+            .statusCode(200)
+            .body("[0].name", equalTo(aspect.name))
     }
 
     private fun signIn(): String {
         val response = given().log().all()
-                .contentType("application/json")
-                .body("{\"username\":\"admin\",\"password\":\"admin\"}")
-                .`when`()
-                .post("/api/access/signIn")
+            .contentType("application/json")
+            .body("{\"username\":\"admin\",\"password\":\"admin\"}")
+            .`when`()
+            .post("/api/access/signIn")
 
         response.then().statusCode(200)
         logger.info("signIn result: ${response.body.asString()}")
