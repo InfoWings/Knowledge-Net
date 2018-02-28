@@ -99,7 +99,7 @@ external interface RTableProps : RProps {
     var getTrGroupProps: (() -> dynamic)
     var getTrProps: (() -> dynamic)
     var getThProps: (() -> dynamic)
-    var getTdProps: (() -> dynamic)
+    var getTdProps: ((state: dynamic, rowInfo: dynamic, column: dynamic) -> dynamic)
     var getTfootProps: (() -> dynamic)
     var getTfootTrProps: (() -> dynamic)
     var getTfootThProps: (() -> dynamic)
