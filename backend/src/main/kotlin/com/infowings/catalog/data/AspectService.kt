@@ -57,6 +57,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      */
     fun findById(id: String): Aspect = db.getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
+    /**
+     * Change [Aspect] name by id
+     */
     fun changeName(id: String, newName: String): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         findByName(newName)?.let { throw AspectModificationException(id, "Aspect with name $newName already exists") }
@@ -64,6 +67,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
+    /**
+     * Change [Aspect] base type
+     * @throws AspectDoesNotExist
+     * @throws AspectModificationException in case there exists measure or there exists value of aspect
+     */
     fun changeBaseType(id: String, newType: BaseType): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         aspectVertex.get<String?>("measure")?.let { throw AspectModificationException(id, "Aspect has a measure") }
@@ -72,6 +80,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
+    /**
+     * Change [Aspect] measure
+     * @throws AspectDoesNotExist
+     * @throws AspectModificationException in case there exists value of aspect
+     */
     fun changeMeasure(id: String, measure: Measure<*>): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         val sameGroup = MeasureGroupMap[aspectVertex.measureName]?.measureList?.contains(measure) ?: false
@@ -83,6 +96,12 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
+    /**
+     * Creates new Aspect and saves it into DB
+     * @throws AspectDoesNotExist,
+     * @throws IllegalArgumentException in case of incorrect input data,
+     * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
+     */
     fun addProperty(id: String, property: AspectPropertyData): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         if (loadProperties(aspectVertex).map { it.name }.contains(property.name)) {
@@ -91,6 +110,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction property.saveAspectProperty().let { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>() }
     }.let { findById(id) }
 
+    /**
+     * Change [AspectProperty] name
+     * @throws AspectPropertyDoesNotExist
+     * @throws AspectModificationException in for parent aspect there exists property with same name
+     */
     fun changePropertyName(propertyId: String, newPropertyName: String): AspectProperty = transaction(db) {
         val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
         val aspectVertex = propertyVertex.getVertices(ODirection.IN).first()
@@ -105,12 +129,21 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction propertyVertex.save<OVertex>()
     }.toAspectProperty()
 
+    /**
+     * Change [AspectProperty] power
+     * @throws AspectPropertyDoesNotExist
+     */
     fun changePropertyPower(propertyId: String, newPropertyPower: AspectPropertyPower): AspectProperty = transaction(db) {
         val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
         propertyVertex["power"] = newPropertyPower.name
         return@transaction propertyVertex.save<OVertex>()
     }.toAspectProperty()
 
+    /**
+     * Change [AspectProperty] name
+     * @throws AspectPropertyDoesNotExist
+     * @throws AspectModificationException in case there exists value of aspect
+     */
     fun changePropertyAspect(propertyId: String, newAspectId: String): AspectProperty = transaction(db) {
         val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
         db.getVertexById(newAspectId) ?: throw AspectDoesNotExist(newAspectId)
@@ -119,6 +152,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction propertyVertex.save<OVertex>()
     }.toAspectProperty()
 
+    /**
+     * Load property by id
+     * @throws AspectPropertyDoesNotExist
+     */
     fun loadAspectProperty(propertyId: String): AspectProperty =
             db.getVertexById(propertyId)?.toAspectProperty()
                     ?: throw AspectPropertyDoesNotExist(propertyId)
