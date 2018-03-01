@@ -36,6 +36,10 @@ pipelines:
              - echo "Starting build..."
              - chmod +x gradlew
              - ./gradlew build
+             - ls
+             - ls backend
+             - find backend/libs
+             - curl -sI 'http://google.com'
        deploy-sandbox:
         - step:
             caches:
