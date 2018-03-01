@@ -24,20 +24,21 @@ class AspectServicePropertyTest {
     lateinit var aspectService: AspectService
 
     lateinit var complexAspect: Aspect
+    lateinit var baseAspect: Aspect
 
     @Before
     fun addAspectWithProperty() {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.createAspect(ad)
+        baseAspect = aspectService.createAspect(ad)
 
-        val property = AspectPropertyData("", "p", createAspect.id, AspectPropertyPower.INFINITY.name)
+        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
 
         val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
         complexAspect = aspectService.createAspect(ad2)
     }
 
     @Test
-    fun testAddAspectProperties() {
+    fun testAspectWithProperties() {
         val loaded = aspectService.findById(complexAspect.id)
 
         assertThat("aspect property should be saved and restored", loaded, Is.`is`(complexAspect))
@@ -47,20 +48,62 @@ class AspectServicePropertyTest {
     }
 
     @Test
-    fun testChangeAspectPropertyName() {
-        val property = complexAspect.properties[0]
-        val updatedProperty = aspectService.changePropertyName(complexAspect.properties[0].id, "new Name")
+    fun testAddAspectPropertiesToAspect() {
+        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val updatedAspect = aspectService.addProperty(complexAspect.id, propertyData)
+
+        assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
+    }
+
+    @Test
+    fun testCreateAspectWithTwoPropertiesDifferentNames() {
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val loaded = aspectService.createAspect(ad2)
+
+        assertThat("aspect properties should be saved and restored", aspectService.findById(loaded.id), Is.`is`(loaded))
+
+        assertThat("aspect should have corresponding properties",
+                loaded.properties.map { it.name },
+                Is.`is`(listOf(property, property2).map { it.name }))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateAspectWithTwoPropertiesSameNames() {
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        aspectService.createAspect(ad2)
+    }
+
+    @Test
+    fun testCorrectChangeAspectPropertyName() {
+        val propertyId = complexAspect.properties[0].id
+        val updatedProperty = aspectService.changePropertyName(propertyId, "new Name")
 
         assertThat("returned from changePropertyName property should be the same as found by loadAspectProperty",
-                aspectService.loadAspectProperty(property.id), Is.`is`(updatedProperty))
+                aspectService.loadAspectProperty(propertyId), Is.`is`(updatedProperty))
 
         assertThat("aspect property should have new name", updatedProperty.name, Is.`is`("new Name"))
+    }
+
+    @Test(expected = AspectPropertyModificationException::class)
+    fun testUnCorrectChangeAspectPropertyName() {
+        val propertyId = complexAspect.properties[0].id
+
+        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        aspectService.addProperty(complexAspect.id, propertyData)
+
+        aspectService.changePropertyName(propertyId, propertyData.name)
     }
 
     @Test
     fun testChangePowerAspectProperty() {
         val property = complexAspect.properties[0]
-        val updatedProperty = aspectService.changePropertyPower(complexAspect.properties[0].id, AspectPropertyPower.ONE)
+        val updatedProperty = aspectService.changePropertyPower(property.id, AspectPropertyPower.ONE)
 
         assertThat("returned from changePropertyPower property should be the same as found by loadAspectProperty",
                 aspectService.loadAspectProperty(property.id), Is.`is`(updatedProperty))
@@ -76,7 +119,7 @@ class AspectServicePropertyTest {
         val createAspect: Aspect = aspectService.createAspect(ad)
 
         val property = complexAspect.properties[0]
-        val updatedProperty = aspectService.changePropertyAspect(complexAspect.properties[0].id, createAspect.id)
+        val updatedProperty = aspectService.changePropertyAspect(property.id, createAspect.id)
 
         assertThat("returned from changePropertyAspect property should be the same as found by loadAspectProperty",
                 aspectService.loadAspectProperty(property.id), Is.`is`(updatedProperty))

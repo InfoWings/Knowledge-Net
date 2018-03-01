@@ -85,11 +85,22 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     fun addProperty(id: String, property: AspectPropertyData): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
-        return@transaction property.saveAspectProperty().let { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE) }
+        if (loadProperties(aspectVertex).map { it.name }.contains(property.name)) {
+            throw IllegalArgumentException("Properties for aspect should have different names")
+        }
+        return@transaction property.saveAspectProperty().let { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>() }
     }.let { findById(id) }
 
     fun changePropertyName(propertyId: String, newPropertyName: String): AspectProperty = transaction(db) {
         val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
+        val aspectVertex = propertyVertex.getVertices(ODirection.IN).first()
+        if (propertyVertex.name == newPropertyName) {
+            return@transaction propertyVertex
+        }
+        val properties = loadProperties(aspectVertex)
+        if (properties.map { it.name }.contains(newPropertyName)) {
+            throw AspectPropertyModificationException(propertyId, "Properties for aspect should have different names")
+        }
         propertyVertex["name"] = newPropertyName
         return@transaction propertyVertex.save<OVertex>()
     }.toAspectProperty()
@@ -123,6 +134,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             aspectVertex["baseType"] = baseType?.name ?: measure?.baseType?.name
             aspectVertex["measure"] = measure?.name
             measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
+
+            if (properties.distinctBy { it.name }.size != properties.size) {
+                throw IllegalArgumentException("Properties for aspect should have different names")
+            }
 
             properties
                     .map { it.saveAspectProperty() }
