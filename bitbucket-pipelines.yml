@@ -37,10 +37,12 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
              - ls -l backend/build/libs/backend.jar
-             - echo "test" > data
+             - echo "test-new" > data
              - ls -l data
              - ls -la ~/.ssh/
              - echo "Trying to copy"
+             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config bitbucket@catalog.reflexia.com:/home/bitbucket/data data-prev
+             - cat data-prev
              - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config data bitbucket@catalog.reflexia.com:/home/bitbucket/
        deploy-sandox:
         - step:
