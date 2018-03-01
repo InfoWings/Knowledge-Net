@@ -95,7 +95,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         child(UnitsTable::class) {
             attrs {
                 data = state.data
-                defaultExpandedRows = defineExpandedRows(state.filterText, state.data)
+                defaultExpandedRows = defineExpandedRows(state.data)
             }
         }
     }
@@ -106,16 +106,12 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     }
 }
 
-private fun defineExpandedRows(filterText: String, data: Array<UnitsTableRowData>): Json {
-    if (filterText.isEmpty()) return json()
+private fun defineExpandedRows(data: Array<UnitsTableRowData>): Json {
+    val rowsGroupCount = data.map { it.measure }.distinct().count()
 
-    val names = data.map { it.name }
-    val rowsGroupCount = MeasureGroupMap
-        .filter {
-            it.value.measureList.any { names.contains(it.name) }
-        }.count()
+    if (rowsGroupCount == MeasureGroupMap.count()) return json()
 
-    val list = IntRange(0, rowsGroupCount)
+    val list = IntRange(0, rowsGroupCount - 1)
         .map { json(it.toString() to true) }
 
     val resultJson = json()

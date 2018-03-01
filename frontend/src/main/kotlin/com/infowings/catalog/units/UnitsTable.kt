@@ -38,6 +38,7 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 )
                 data = props.data
                 showPagination = false
+                pageSize = props.data.map { it.measure }.count()
                 minRows = 0
                 sortable = false
                 showPageJump = false
