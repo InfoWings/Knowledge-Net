@@ -68,7 +68,7 @@ class SearchTest {
     fun measureSuggestion() {
         val queryText = "metre"
         val context = SearchContext()
-        val res = suggestionService.findMeasure(context, queryText)
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
 
         logger.info("find result size: ${res.size}")
         assertFalse(res.isEmpty())
@@ -86,10 +86,10 @@ class SearchTest {
         val aspectName = "newAspectSuggestion"
         val aspect: Aspect = createTestAspect(aspectName)
 
-        val res = suggestionService.findAspect(SearchContext(), aspectName)
+        val res = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = aspectName), null)
 
         logger.info("find result size: ${res.size}")
-        assertFalse(res.isEmpty())
+        assertFalse("result set cannot by empty!") { res.isEmpty() }
 
         logger.info("find result: $res")
 
