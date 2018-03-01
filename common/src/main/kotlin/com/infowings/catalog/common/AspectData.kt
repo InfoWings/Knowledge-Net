@@ -28,8 +28,14 @@ data class AspectData(
 
 @Serializable
 data class AspectPropertyData(
-    val id: String,
-    val name: String,
-    val aspectId: String,
-    val power: String
-)
+        val id: String,
+        val name: String,
+        val aspect: AspectData,
+        val power: String
+) {
+    fun withName(name: String) = AspectPropertyData(id, name, aspect, power)
+
+    fun withAspect(aspect: AspectData) = AspectPropertyData(id, name, aspect, power)
+
+    fun withPower(power: String) = AspectPropertyData(id, name, aspect, power)
+}

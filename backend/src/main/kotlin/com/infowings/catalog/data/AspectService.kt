@@ -29,7 +29,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
 
             for (property in properties) {
-                val aspect = findById(property.aspectId)
+                val aspect = findById(property.aspect.id!!)
                 val power = AspectPropertyPower.valueOf(property.power)
                 val aspectPropertyVertex = AspectProperty("", property.name, aspect, power).saveAspectProperty()
                 aspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()

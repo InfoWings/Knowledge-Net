@@ -1,56 +1,10 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.components.SuggestingInput
-import kotlinx.html.InputType
-import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.*
 import com.infowings.catalog.wrappers.table.*
-
-/**
- * Compact method for creating header for table
- */
-private fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("AspectHeader") {
-    span {
-        +columnName
-    }
-}
-
-/**
- * Compact method for creating table Cell renderer (mutable cells for aspect fields)
- */
-private fun cellComponent(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectField") { props ->
-    input(type = InputType.text, classes = "rtable-input") {
-        attrs {
-            value = props.value?.toString() ?: ""
-            onChangeFunction = { onFieldChanged(props.original.aspect as AspectData, it.asDynamic().target.value) }
-        }
-    }
-}
-
-private fun selectComponent(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
-    child(SuggestingInput::class) {
-        attrs {
-            initialValue = props.value?.toString() ?: ""
-            onOptionSelected = { onFieldChanged(props.original.aspect as AspectData, it) }
-        }
-    }
-}
-
-/**
- * Compact method for creating aspect column
- */
-private fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, cell: RClass<RTableRendererProps>? = null) =
-        RTableColumnDescriptor {
-            this.accessor = accessor
-            this.Header = header
-            className = "aspect-cell"
-            cell?.let {
-                this.Cell = cell
-            }
-        }
 
 private data class AspectRow(val aspect: AspectData, val pending: Boolean)
 
@@ -79,15 +33,16 @@ private val addNewAspectHeaderDisabled: RClass<RTableRendererProps> = rFunction(
  * Creator of a sub table for Aspect row
  */
 private fun propertySubComponent(
-        aspectsMap: Map<String, AspectData>,
-        onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
+        onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
+        aspectOptions: Array<AspectData>
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectRow
     child(AspectPropertySubtable::class) {
         attrs {
-            data = original.aspect.properties.map { AspectPropertyRow(it, aspectsMap[it.aspectId]) }.toTypedArray()
+            data = original.aspect.properties.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
+            options = aspectOptions
         }
     }
 }
@@ -187,10 +142,10 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
         ReactTable {
             attrs {
                 columns = arrayOf(
-                        aspectColumn("aspect.name", headerComponent("Name"), cellComponent(fieldChangedHandler(AspectData::withName))),
-                        aspectColumn("aspect.measure", headerComponent("Measure Unit"), selectComponent(fieldChangedHandler(AspectData::withMeasure))),
-                        aspectColumn("aspect.domain", headerComponent("Domain"), cellComponent(fieldChangedHandler(AspectData::withDomain))),
-                        aspectColumn("aspect.baseType", headerComponent("Base Type"), cellComponent(fieldChangedHandler(AspectData::withBaseType))),
+                        aspectColumn("aspect.name", "Name", aspectCell(fieldChangedHandler(AspectData::withName))),
+                        aspectColumn("aspect.measure", "Measure Unit", aspectCell(fieldChangedHandler(AspectData::withMeasure))),
+                        aspectColumn("aspect.domain", "Domain", aspectCell(fieldChangedHandler(AspectData::withDomain))),
+                        aspectColumn("aspect.baseType", "Base Type", aspectCell(fieldChangedHandler(AspectData::withBaseType))),
                         controlsColumn(
                                 if (state.newAspect == null)
                                     addNewAspectHeaderEnabled(::startCreatingNewAspect)
@@ -202,7 +157,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
-                SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
+                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.data)
                 showPagination = false
                 minRows = 2
                 sortable = false

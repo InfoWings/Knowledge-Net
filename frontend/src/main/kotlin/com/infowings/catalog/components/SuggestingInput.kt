@@ -1,17 +1,19 @@
 package com.infowings.catalog.components
 
-import com.infowings.catalog.common.MeasureGroupMap
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.commonSelect
 import kotlinext.js.jsObject
 import react.*
 
-private interface Option : SelectOption {
-    var measure: String
+interface Option : SelectOption {
+    var aspectData: AspectData
+    var aspectName: String
 }
 
-private fun measureOption(name: String) = jsObject<Option> {
-    measure = name
+fun aspectOption(data: AspectData, name: String) = jsObject<Option> {
+    aspectName = name
+    aspectData = data
 }
 
 class SuggestingInput : RComponent<SuggestingInput.Props, SuggestingInput.State>() {
@@ -20,17 +22,18 @@ class SuggestingInput : RComponent<SuggestingInput.Props, SuggestingInput.State>
         commonSelect<Option> {
             attrs {
                 value = props.initialValue
-                labelKey = "measure"
-                valueKey = "measure"
-                options = MeasureGroupMap.flatMap { it.value.measureList }.map { measureOption(it.name) }.toTypedArray()
-                onChange = { props.onOptionSelected(it.measure) }
+                labelKey = "aspectName"
+                valueKey = "aspectName"
+                options = props.options
+                onChange = { props.onOptionSelected(it.aspectData) }
             }
         }
     }
 
     interface Props : RProps {
         var initialValue: String
-        var onOptionSelected: (String) -> Unit
+        var options: Array<Option>
+        var onOptionSelected: (AspectData) -> Unit
     }
 
     interface State : RState

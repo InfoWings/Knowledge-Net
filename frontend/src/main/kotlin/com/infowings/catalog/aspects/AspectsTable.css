@@ -53,9 +53,7 @@
   cursor: default;
 }
 
-.subtable-wrapper {
-  padding-left: 35px;
-  border-top: 1px solid rgba(0, 0, 0, 0.02);
+.aspect-property-table-wrapper {
   background-color: rgba(0, 0, 0, 0.05);
 }
 

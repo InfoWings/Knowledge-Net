@@ -27,7 +27,7 @@ data class Aspect(
 }
 
 fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
-fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { AspectPropertyData(it.id, it.name, it.aspect.id, it.power.name) }
+fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { AspectPropertyData(it.id, it.name, it.aspect.toAspectData(), it.power.name) }
 
 
 data class AspectProperty(

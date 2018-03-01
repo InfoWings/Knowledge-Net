@@ -7,7 +7,6 @@ import react.*
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: Array<AspectData>
-    var aspectsMap: Map<String, AspectData>
     var onAspectUpdate: (changedAspect: AspectData) -> Unit
     var onAspectCreate: (newAspect: AspectData) -> Unit
 }
@@ -48,7 +47,6 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
             attrs {
                 data = state.data
                 loading = state.loading
-                aspectsMap = state.data.associate { Pair(it.id!!, it) }
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect
             }
