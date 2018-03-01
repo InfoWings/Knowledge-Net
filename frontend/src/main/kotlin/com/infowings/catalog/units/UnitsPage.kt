@@ -34,12 +34,14 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         }
     }
 
+    private var timer: Int = 0
+
     private fun handleFilterTextChange(filterText: String) {
         setState {
             this.filterText = filterText
         }
-        window.clearTimeout()
-        window.setTimeout(updateDataState(filterText), 1000)
+        window.clearTimeout(timer)
+        timer = window.setTimeout({ updateDataState(filterText) }, 500)
     }
 
     private fun updateDataState(filterText: String) {

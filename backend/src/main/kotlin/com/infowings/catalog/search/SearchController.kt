@@ -1,7 +1,6 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.MeasureNames
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -18,8 +17,8 @@ class SearchController(val suggestionService: SuggestionService) {
      * Полнотекстовый поиск по измеряемым величинам и единицам измерения
      */
     @GetMapping("/measure/suggestion")
-    fun measureSuggestion(context: SearchContext, @RequestParam text: String): MeasureNames =
-        MeasureNames(suggestionService.findMeasure(context, text).map { it.name })
+    fun measureSuggestion(context: SearchContext, @RequestParam text: String) =
+        suggestionService.findMeasure(context, text).map { it.name }
 
     /**
      * Полнотекстовый поиск по аспектам
