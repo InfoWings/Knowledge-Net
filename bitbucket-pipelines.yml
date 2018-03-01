@@ -37,8 +37,6 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
              - ls -l backend/build/libs/backend.jar
-             - curl -sI 'http://google.com'
-             - scp --help
              - wget "https://kotlinlang.org/docs/reference/android-overview.html"
        deploy-sandbox:
         - step:
