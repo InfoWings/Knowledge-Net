@@ -2,6 +2,7 @@ apply plugin: 'kotlin-platform-jvm'
 apply plugin: "kotlin-spring"
 apply plugin: "kotlin-jpa"
 apply plugin: 'org.springframework.boot'
+apply plugin: 'kotlinx-serialization'
 
 buildscript {
 
@@ -49,6 +50,7 @@ dependencies {
     expectedBy project(":common")
 
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testCompile group: 'org.springframework.security', name: 'spring-security-test'
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
 }

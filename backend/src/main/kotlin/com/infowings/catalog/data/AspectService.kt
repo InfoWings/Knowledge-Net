@@ -4,7 +4,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -49,7 +48,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         aspectPropertyVertex["aspectId"] = aspect.id
         aspectPropertyVertex["power"] = power.name
 
-        val aspectVertex: OVertex = getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
+        val aspectVertex: OVertex = db.getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
         aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
@@ -59,7 +58,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun loadAspectProperty(id: String): AspectProperty =
-        getVertexById(id)?.toAspectProperty()
+            db.getVertexById(id)?.toAspectProperty()
                 ?: throw IllegalArgumentException("No aspect property with id: $id")
 
 
@@ -104,11 +103,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
-
-
-    private fun getVertexById(id: String): OVertex? =
-        db.query(selectById, ORecordId(id)) { rs -> rs.map { it.toVertexOrNUll() }.firstOrNull() }
+    fun findById(id: String): Aspect = db.getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])
@@ -118,8 +113,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         get() = this["aspectId"]
     private val OVertex.measureName: Measure<*>?
         get() = GlobalMeasureMap[this["measure"]]
-    private val OVertex.id: String
-        get() = identity.toString()
 
     private fun OVertex.toAspect(): Aspect =
         Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this))
@@ -137,7 +130,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 }
 
 private const val selectFromAspect = "SELECT FROM Aspect"
-private const val selectById = "SELECT FROM ?"
 private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 
 private val logger = loggerFor<AspectService>()
