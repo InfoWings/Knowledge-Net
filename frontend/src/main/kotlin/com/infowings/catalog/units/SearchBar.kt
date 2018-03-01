@@ -20,9 +20,7 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
                     type = kotlinx.html.InputType.text
                     placeholder = "Search unit..."
                     value = props.filterText
-                    onChangeFunction = { event ->
-                        props.onFilterTextChange(event.target.asDynamic().value)
-                    }
+                    onChangeFunction = { props.onFilterTextChange(it.target.asDynamic().value) }
                 }
             }
         }
