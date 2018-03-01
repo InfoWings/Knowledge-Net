@@ -41,9 +41,10 @@ pipelines:
              - ls -l data
              - ls -la ~/.ssh/
              - echo "Trying to copy"
-             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config bitbucket@catalog.reflexia.com:/home/bitbucket/data data-prev
-             - cat data-prev
-             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config data bitbucket@catalog.reflexia.com:/home/bitbucket/
+             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config backend/build/libs/backend.jar bitbucket@catalog.reflexia.com:/home/bitbucket/___backend___.jar
+             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config  bitbucket@catalog.reflexia.com:/home/bitbucket/___backend___.jar .
+             - ls -l ___backend___.jar
+             - diff backend/build/libs/backend.jar ___backend___.jar && echo "the same"
        deploy-sandox:
         - step:
             caches:
