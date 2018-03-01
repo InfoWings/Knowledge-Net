@@ -108,6 +108,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return@transaction propertyVertex.save<OVertex>()
     }.toAspectProperty()
 
+    fun loadAspectProperty(propertyId: String): AspectProperty =
+            db.getVertexById(propertyId)?.toAspectProperty()
+                    ?: throw AspectPropertyDoesNotExist(propertyId)
+
     private fun save(name: String, measure: Measure<*>?, baseType: BaseType?, properties: List<AspectPropertyData>): Aspect {
         logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
 
@@ -146,11 +150,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             logger.trace("Saved aspect property $name with temporary id: ${it.id}")
         }
     }
-
-    private fun loadAspectProperty(id: String): AspectProperty =
-            db.getVertexById(id)?.toAspectProperty()
-                    ?: throw IllegalArgumentException("No aspect property with id: $id")
-
 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])

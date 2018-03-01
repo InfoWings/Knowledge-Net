@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -89,8 +90,8 @@ class AspectServiceTest {
         aspectService.changeName(aspect1.id, aspect2.name)
     }
 
+    // todo: Change to change base type in case no measure and no values for aspect
     @Test
-            // todo: Change to change base type in case no measure and no values for aspect
     fun testChangeBaseTypeInCaseNoMeasure() {
         val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.createAspect(ad)
@@ -99,7 +100,7 @@ class AspectServiceTest {
 
         assertThat("returned from changeBaseType aspect should be the same as found by findById", aspectService.findById(newAspect.id), Is.`is`(newAspect))
 
-        assertThat("aspect should have new base type", newAspect.baseType!!.name, Is.`is`(BaseType.Boolean.name))
+        assertTrue("aspect should have new base type", newAspect.baseType!! == BaseType.Boolean)
     }
 
     @Test(expected = AspectModificationException::class)
@@ -110,8 +111,8 @@ class AspectServiceTest {
         aspectService.changeBaseType(aspect.id, BaseType.Boolean)
     }
 
+    // todo: Change to change measure in case no values for aspect
     @Test
-            // todo: Change to change measure in case no values for aspect
     fun testChangeAspectMeasureOtherGroupSameBaseType() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.createAspect(ad)
@@ -120,13 +121,13 @@ class AspectServiceTest {
 
         assertThat("returned from changeMeasure aspect should be the same as found by findById", aspectService.findById(newAspect.id), Is.`is`(newAspect))
 
-        assertThat("aspect should have new measure", newAspect.measure!!.name, Is.`is`(Gram.name))
+        assertTrue("aspect should have new measure", newAspect.measure == Gram)
 
-        assertThat("aspect should have correct base type", newAspect.baseType!!.name, Is.`is`(BaseType.Decimal.name))
+        assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
     }
 
+    // todo: Change to change measure in case no values for aspect
     @Test
-            // todo: Change to change measure in case no values for aspect
     fun testChangeAspectMeasureOtherGroupOtherBaseType() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.createAspect(ad)
@@ -140,9 +141,9 @@ class AspectServiceTest {
 
         assertThat("returned from changeMeasure aspect should be the same as found by findById", aspectService.findById(newAspect.id), Is.`is`(newAspect))
 
-        assertThat("aspect should have new measure", newAspect.measure!!.name, Is.`is`(Gram.name))
+        assertTrue("aspect should have new measure", newAspect.measure == Gram)
 
-        assertThat("aspect should have correct base type", newAspect.measure!!.baseType.name, Is.`is`(BaseType.Boolean.name))
+        assertTrue("aspect should have correct base type", newAspect.measure?.baseType == BaseType.Boolean)
     }
 
     @Test
@@ -152,8 +153,8 @@ class AspectServiceTest {
 
         val newAspect = aspectService.changeMeasure(aspect.id, Metre)
 
-        assertThat("aspect should have new measure", newAspect.measure!!.name, Is.`is`(Metre.name))
+        assertTrue("aspect should have new measure", newAspect.measure == Metre)
 
-        assertThat("aspect should have correct base type", newAspect.baseType!!.name, Is.`is`(BaseType.Decimal.name))
+        assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
     }
 }
