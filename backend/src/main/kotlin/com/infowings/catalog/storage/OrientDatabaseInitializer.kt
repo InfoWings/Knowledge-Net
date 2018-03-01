@@ -22,7 +22,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
-        if (session.getClass("User") == null) {
+        if (session.getClass(USER_CLASS) == null) {
             logger.info("Init users")
             initUser("user", "user", "USER")
             initUser("admin", "admin", "ADMIN")
@@ -56,15 +56,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             val vertexClass = session.createVertexClass(MEASURE_VERTEX)
             vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
-        if (session.getClass(MEASURE_GROUP_EDGE) == null) {
-            session.createEdgeClass(MEASURE_GROUP_EDGE)
-        }
-        if (session.getClass(MEASURE_BASE_EDGE) == null) {
-            session.createEdgeClass(MEASURE_BASE_EDGE)
-        }
-        if (session.getClass(MEASURE_BASE_AND_GROUP_EDGE) == null) {
-            session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
-        }
+        session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
+        session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
+        session.getClass(MEASURE_BASE_AND_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
+
         /** Add initial measures to database */
         val localMeasureService = MeasureService(database)
         session(database) {
@@ -91,6 +86,22 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun initSearch(): OrientDatabaseInitializer {
         initLuceneIndex(MEASURE_VERTEX)
         initLuceneIndex(ASPECT_CLASS)
+        return this
+    }
+
+    fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
+        logger.info("Init reference books")
+        if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
+            val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
+            vertexClass.createProperty("name", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        }
+        if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
+            val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
+            vertexClass.createProperty("value", OType.STRING)
+        }
+
+        session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
+        session.getClass(REFERENCE_BOOK_ASPECT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
         return this
     }
 

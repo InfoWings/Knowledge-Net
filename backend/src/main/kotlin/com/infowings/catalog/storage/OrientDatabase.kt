@@ -5,6 +5,8 @@ import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
@@ -35,6 +37,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
             .initAspects()
             .initUsers()
             .initMeasures()
+            .initReferenceBooks()
     }
 
     @PreDestroy
@@ -57,6 +60,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
                 .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
+
+    fun getVertexById(id: String): OVertex? =
+            query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 }
 
 val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
@@ -140,7 +146,12 @@ inline fun <U> transaction(
 operator fun <T> OVertex.get(name: String): T = getProperty(name)
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
 
+val OElement.id: String
+    get() = identity.toString()
+
 fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
 fun OResult.toVertexOrNUll(): OVertex? = vertex.orElse(null)
 
 class OrientException(reason: String) : Throwable(reason)
+
+private const val selectById = "SELECT FROM ?"

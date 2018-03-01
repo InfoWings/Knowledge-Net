@@ -21,10 +21,17 @@ class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Enviro
             chain?.doFilter(request, response)
             return
         }
-        val cookieAccess = URLDecoder.decode(request.cookies
-                .filter { it.name == env.getProperty("spring.security.header.access") }
-                .getOrNull(0)
-                ?.value, "UTF-8")
+
+        val forDecoding = request.cookies
+                ?.filter { it.name == env.getProperty("spring.security.header.access") }
+                ?.getOrNull(0)
+                ?.value
+
+        if (forDecoding == null) {
+            chain?.doFilter(request, response)
+            return
+        }
+        val cookieAccess = URLDecoder.decode(forDecoding, "UTF-8")
         if (cookieAccess == null || !cookieAccess.startsWith(env.getProperty("spring.security.prefix"))) {
             chain?.doFilter(request, response)
             return
