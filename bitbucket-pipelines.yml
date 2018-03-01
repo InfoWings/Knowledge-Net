@@ -38,6 +38,7 @@ pipelines:
              - ./gradlew build
              - ls -l backend/build/libs/backend.jar
              - wget "https://kotlinlang.org/docs/reference/android-overview.html"
+             - scp android-overview.html catalog.reflexia.com:.
        deploy-sandbox:
         - step:
             caches:
