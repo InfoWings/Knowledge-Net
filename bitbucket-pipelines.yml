@@ -37,8 +37,9 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
              - ls -l backend/build/libs/backend.jar
-             - wget "https://kotlinlang.org/docs/reference/android-overview.html"
-             - scp android-overview.html bitbucket@catalog.reflexia.com:.
+             - wget "https://kotlinlang.org/docs/reference/android-overview.html" 
+             - echo "Going to copy sample file"
+             - scp android-overview.html bitbucket@catalog.reflexia.com:test-file.html
        deploy-sandbox:
         - step:
             caches:
