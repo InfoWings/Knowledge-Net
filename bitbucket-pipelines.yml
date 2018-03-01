@@ -39,8 +39,10 @@ pipelines:
              - ls -l backend/build/libs/backend.jar
              - echo "test" > data
              - ls -l data
-             - scp  -i ~/.ssh/config data bitbucket@catalog.reflexia.com:/home/bitbucket/
-       deploy-sandbox:
+             - ls -la ~/.ssh/
+             - echo "Trying to copy"
+             - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config data bitbucket@catalog.reflexia.com:/home/bitbucket/
+       deploy-sandox:
         - step:
             caches:
              - gradle
