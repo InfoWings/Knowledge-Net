@@ -33,8 +33,20 @@ pipelines:
              - maven
              - nodemodules
             script:
+             - echo "Starting build..."
              - chmod +x gradlew
              - ./gradlew build
+       deploy-sandbox:
+        - step:
+            caches:
+             - gradle
+             - maven
+             - nodemodules
+            script:
+             - echo "Starting build..."
+             - ls
+
+
 definitions:
     caches:
          nodemodules: frontend/node_modules
