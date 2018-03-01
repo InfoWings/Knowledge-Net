@@ -45,6 +45,9 @@ pipelines:
              - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/config  bitbucket@catalog.reflexia.com:/home/bitbucket/___backend___.jar .
              - ls -l ___backend___.jar
              - diff backend/build/libs/backend.jar ___backend___.jar && echo "the same"
+             - ls /
+             - ls /etc
+             - cat ~/.ssh/config 
        deploy-sandox:
         - step:
             caches:
