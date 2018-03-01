@@ -36,11 +36,9 @@ pipelines:
              - echo "Starting build..."
              - chmod +x gradlew
              - ./gradlew build
-             - ls
-             - ls backend
-             - ls backend/build
-             - find backend/build/libs 
+             - ls -l backend/build/libs/backend.jar
              - curl -sI 'http://google.com'
+             - type scp
        deploy-sandbox:
         - step:
             caches:
