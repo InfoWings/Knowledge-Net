@@ -38,7 +38,8 @@ pipelines:
              - ./gradlew build
              - ls
              - ls backend
-             - find backend/libs
+             - ls backend/build
+             - find backend/build/libs 
              - curl -sI 'http://google.com'
        deploy-sandbox:
         - step:
