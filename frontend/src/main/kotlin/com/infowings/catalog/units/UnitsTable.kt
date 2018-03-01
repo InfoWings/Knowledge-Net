@@ -52,8 +52,8 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
 
 private fun tdProps(state: dynamic, rowInfo: RowInfo?, column: dynamic): dynamic {
     if (rowInfo != null && !rowInfo.aggregated) {
-        val color = if (rowInfo.original.containsFilterText) "white" else "lightgray"
-        return json("style" to json("background" to color))
+        val opacity = if (rowInfo.original.containsFilterText) "1" else "0.4"
+        return json("style" to json("opacity" to opacity))
     }
     return json("style" to json("background" to "#E6FDFF"))
 }
