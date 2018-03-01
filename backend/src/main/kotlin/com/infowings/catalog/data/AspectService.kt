@@ -61,18 +61,16 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         findByName(newName)?.let { throw AspectModificationException(id, "Aspect with name $newName already exists") }
         aspectVertex["name"] = newName
-        aspectVertex.save<OVertex>()
-        return@transaction findById(id)
-    }
+        return@transaction aspectVertex.save<OVertex>()
+    }.let { findById(id) }
 
     fun changeBaseType(id: String, newType: BaseType): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         aspectVertex.get<String?>("measure")?.let { throw AspectModificationException(id, "Aspect has a measure") }
         // todo: существует хотябы одно значения данного аспекта ---> throw AspectModificationException
         aspectVertex["baseType"] = newType.name
-        aspectVertex.save<OVertex>()
-        return@transaction findById(id)
-    }
+        return@transaction aspectVertex.save<OVertex>()
+    }.let { findById(id) }
 
     fun changeMeasure(id: String, measure: Measure<*>): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
@@ -82,27 +80,33 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             aspectVertex["baseType"] = measure.baseType.name
         }
         aspectVertex["measure"] = measure.name
-        aspectVertex.save<OVertex>()
-        return@transaction findById(id)
-    }
+        return@transaction aspectVertex.save<OVertex>()
+    }.let { findById(id) }
 
     fun addProperty(id: String, property: AspectPropertyData): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
-        property.saveAspectProperty().let { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE) }
-        return@transaction findById(id)
-    }
+        return@transaction property.saveAspectProperty().let { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE) }
+    }.let { findById(id) }
 
     fun changePropertyName(propertyId: String, newPropertyName: String): AspectProperty = transaction(db) {
-        val propertyVertex = db.getVertexById(propertyId) ?: throw AspectDoesNotExist(propertyId)
+        val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
         propertyVertex["name"] = newPropertyName
-        return@transaction propertyVertex.toAspectProperty()
-    }
+        return@transaction propertyVertex.save<OVertex>()
+    }.toAspectProperty()
 
     fun changePropertyPower(propertyId: String, newPropertyPower: AspectPropertyPower): AspectProperty = transaction(db) {
-        val propertyVertex = db.getVertexById(propertyId) ?: throw AspectDoesNotExist(propertyId)
+        val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
         propertyVertex["power"] = newPropertyPower.name
-        return@transaction propertyVertex.toAspectProperty()
-    }
+        return@transaction propertyVertex.save<OVertex>()
+    }.toAspectProperty()
+
+    fun changePropertyAspect(propertyId: String, newAspectId: String): AspectProperty = transaction(db) {
+        val propertyVertex = db.getVertexById(propertyId) ?: throw AspectPropertyDoesNotExist(propertyId)
+        db.getVertexById(newAspectId) ?: throw AspectDoesNotExist(newAspectId)
+        // todo: if существует хотябы одно значения данного аспекта throw [AspectPropertyModificationException]
+        propertyVertex["aspectId"] = newAspectId
+        return@transaction propertyVertex.save<OVertex>()
+    }.toAspectProperty()
 
     private fun save(name: String, measure: Measure<*>?, baseType: BaseType?, properties: List<AspectPropertyData>): Aspect {
         logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
@@ -127,18 +131,14 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun AspectPropertyData.saveAspectProperty(): OVertex = transaction(db) { session ->
-        val aspect = findById(aspectId)
+        logger.trace("Adding aspect property $name for aspect $aspectId")
+        val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
         val power = AspectPropertyPower.valueOf(this.power)
-        val aspectProperty = AspectProperty("", name, aspect, power)
-
-        logger.trace("Adding aspect property ${aspectProperty.name} for aspect ${aspect.id}")
         val aspectPropertyVertex: OVertex = session.newVertex(ASPECT_PROPERTY_CLASS)
 
         aspectPropertyVertex["name"] = name
-        aspectPropertyVertex["aspectId"] = aspect.id
+        aspectPropertyVertex["aspectId"] = aspectId
         aspectPropertyVertex["power"] = power.name
-
-        val aspectVertex: OVertex = db.getVertexById(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
         aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
 
@@ -188,3 +188,4 @@ class AspectAlreadyExist(val id: String) : AspectException("id = $id")
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
