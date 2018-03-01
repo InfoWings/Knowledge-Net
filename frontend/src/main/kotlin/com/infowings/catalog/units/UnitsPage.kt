@@ -15,22 +15,23 @@ import kotlin.js.json
 
 class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
-    private val allMeasures = MeasureGroupMap
-        .flatMap {
-            it.value.measureList.map { measure ->
-                UnitsTableRowData(it.key, measure.name, measure.symbol, true)
+    private val allData = MeasureGroupMap
+        .flatMap { (measureGroupName, measureGroup) ->
+            measureGroup.measureList.map {
+                UnitsTableRowData(measureGroupName, it.name, it.symbol, containsFilterText = true)
             }
         }
-        .toTypedArray()
+
+    private val allDataMap = allData.map { it.measureGroupName to it }.toMap()
 
     override fun State.init() {
         filterText = ""
-        data = emptyArray()
+        data = emptyList()
     }
 
     override fun componentDidMount() {
         setState {
-            data = allMeasures
+            data = allData
         }
     }
 
@@ -47,7 +48,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private fun updateDataState(filterText: String) {
         if (filterText.isEmpty()) {
             setState {
-                this.data = allMeasures
+                this.data = allData
             }
         } else {
             launch {
@@ -59,23 +60,18 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         }
     }
 
-    private suspend fun getFilteredData(filterText: String): Array<UnitsTableRowData> {
-        val filteredMeasureNames = filterMeasureNames(filterText)
-        return MeasureGroupMap
-            .filter {
-                it.value.measureList.any { measure -> filteredMeasureNames.contains(measure.name) }
-            }
-            .flatMap {
-                it.value.measureList.map { measure ->
-                    UnitsTableRowData(
-                        it.key,
-                        measure.name,
-                        measure.symbol,
-                        filteredMeasureNames.contains(measure.name)
-                    )
-                }
-            }
+    private suspend fun getFilteredData(filterText: String): List<UnitsTableRowData> {
+        val filteredNames = filterMeasureNames(filterText)
+
+        val measureGroupNames: Array<String> = filteredNames
+            .flatMap { name -> allData.filter { it.name == name }.map { it.measureGroupName } }
+            .distinct()
             .toTypedArray()
+
+        return measureGroupNames
+            .map { allDataMap.getValue(it) }
+            .map { it -> UnitsTableRowData(it.measureGroupName, it.name, it.symbol, filteredNames.contains(it.name)) }
+
     }
 
     override fun RBuilder.render() {
@@ -94,7 +90,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
         child(UnitsTable::class) {
             attrs {
-                data = state.data
+                data = state.data.toTypedArray()
                 defaultExpandedRows = defineExpandedRows(state.data)
             }
         }
@@ -102,21 +98,19 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
     interface State : RState {
         var filterText: String
-        var data: Array<UnitsTableRowData>
+        var data: List<UnitsTableRowData>
     }
 }
 
-private fun defineExpandedRows(data: Array<UnitsTableRowData>): Json {
-    val rowsGroupCount = data.map { it.measure }.distinct().count()
+private fun defineExpandedRows(data: List<UnitsTableRowData>): Json {
+    val rowsGroupCount = data.map { it.measureGroupName }.distinct().count()
 
     if (rowsGroupCount == MeasureGroupMap.count()) return json()
 
-    val list = IntRange(0, rowsGroupCount - 1)
-        .map { json(it.toString() to true) }
+    val jsonList = (0 until rowsGroupCount).map { json(it.toString() to true) }
 
     val resultJson = json()
-
-    for (json in list) {
+    for (json in jsonList) {
         resultJson.add(json)
     }
     return resultJson

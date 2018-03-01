@@ -21,7 +21,12 @@ private fun column(accessor: String, header: RClass<RTableRendererProps>, width:
         }
     }
 
-data class UnitsTableRowData(val measure: String, val name: String, val symbol: String, val containsFilterText: Boolean)
+data class UnitsTableRowData(
+    val measureGroupName: String,
+    val name: String,
+    val symbol: String,
+    val containsFilterText: Boolean
+)
 
 class UnitsTableProperties(var data: Array<UnitsTableRowData>, var defaultExpandedRows: Json) : RProps
 
@@ -30,15 +35,15 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
     override fun RBuilder.render() {
         treeTable(ReactTable)({
             attrs {
-                pivotBy = arrayOf("measure")
+                pivotBy = arrayOf("measureGroupName")
                 columns = arrayOf(
-                    column("measure", header("Measure")),
+                    column("measureGroupName", header("Measure")),
                     column("name", header("Unit"), 300.0),
                     column("symbol", header("Symbol"))
                 )
                 data = props.data
                 showPagination = false
-                pageSize = props.data.map { it.measure }.count()
+                pageSize = props.data.map { it.measureGroupName }.count()
                 minRows = 0
                 sortable = false
                 showPageJump = false
