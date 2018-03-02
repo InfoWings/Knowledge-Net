@@ -43,7 +43,7 @@ class WebSecurity() : WebSecurityConfigurerAdapter() {
                     .antMatchers("/api/measure/**").hasAuthority(UserRole.POWERED_USER.name)
                     .antMatchers("/api/measure/**").hasAuthority(UserRole.ADMIN.name)
                     .anyRequest().authenticated()
-                    .and().httpBasic().and()
+                    .and()
                     .addFilter(jWTAuthorizationFilter)
         }
     }
