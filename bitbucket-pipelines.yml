@@ -49,7 +49,10 @@ pipelines:
              - diff backend/build/libs/backend.jar ___backend___.jar && echo "the same"
              - ls /
              - ls /etc
-             - cat ~/.ssh/config 
+             - cd frontend
+             - zip -R ../frontend.zip build
+             - cd ..
+             - scp -i ~/.ssh/config  frontend.zip bitbucket@catalog.reflexia.com:/home/bitbucket/frontend.zip
        deploy-sandox:
         - step:
             caches:
