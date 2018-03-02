@@ -9,6 +9,7 @@ import react.RComponent
 import react.RState
 import react.dom.h1
 import react.setState
+import kotlin.browser.window
 
 class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
@@ -22,6 +23,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private val allDataMap = allData.groupBy { it.measureGroupName }
 
     override fun State.init() {
+        filterText = ""
         data = emptyList()
     }
 
@@ -31,7 +33,17 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         }
     }
 
+    private var timer: Int = 0
+
     private fun handleFilterTextChange(filterText: String) {
+        setState {
+            this.filterText = filterText
+        }
+        window.clearTimeout(timer)
+        timer = window.setTimeout({ updateDataState(filterText) }, 500)
+    }
+
+    private fun updateDataState(filterText: String) {
         if (filterText.isEmpty()) {
             setState {
                 this.data = allData
@@ -70,6 +82,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
         child(SearchBar::class) {
             attrs {
+                filterText = state.filterText
                 onFilterTextChange = ::handleFilterTextChange
             }
         }
@@ -82,6 +95,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     }
 
     interface State : RState {
+        var filterText: String
         var data: List<UnitsTableRowData>
     }
 }
