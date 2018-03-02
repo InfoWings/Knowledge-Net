@@ -22,6 +22,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      */
     fun createAspect(aspectData: AspectData): Aspect {
+        checkAspectData(aspectData)
         checkBusinessKey(aspectData.name)
 
         val measure: Measure<*>? = GlobalMeasureMap[aspectData.measure]
@@ -65,18 +66,21 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws IllegalArgumentException in case id is incorrect
      */
     fun updateAspect(updatingAspect: AspectData): Aspect = transaction(db) {
+
+        checkAspectData(updatingAspect)
+
         var realAspect = updatingAspect.id?.let { findById(it) } ?: throw IllegalArgumentException("Incorrect id")
 
         if (realAspect.name != updatingAspect.name) {
             realAspect = changeName(realAspect.id, updatingAspect.name)
         }
 
-        if (realAspect.baseType?.name != updatingAspect.baseType) {
-            realAspect = changeBaseType(realAspect.id, BaseType.restoreBaseType(updatingAspect.baseType))
-        }
-
         if (realAspect.measure?.name != updatingAspect.name) {
             realAspect = changeMeasure(realAspect.id, GlobalMeasureMap[updatingAspect.measure])
+        }
+
+        if (realAspect.baseType?.name != updatingAspect.baseType) {
+            realAspect = changeBaseType(realAspect.id, BaseType.restoreBaseType(updatingAspect.baseType))
         }
 
         // todo: Check domens
@@ -124,9 +128,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      */
     fun changeBaseType(id: String, newType: BaseType?): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
+
         aspectVertex.measure?.let { throw AspectModificationException(id, "Aspect has a measure") }
         // todo: существует хотябы одно значения данного аспекта ---> throw AspectModificationException
         aspectVertex["baseType"] = newType?.name
+
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
@@ -137,10 +143,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      */
     fun changeMeasure(id: String, measure: Measure<*>?): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
+
         val sameGroup = MeasureGroupMap[aspectVertex.measureName]?.measureList?.contains(measure) ?: false
-        if (measure == null || !sameGroup) {
+        if (!sameGroup) {
             // todo: существует хотябы одно значения данного аспекта ---> throw AspectModificationException
-            aspectVertex["baseType"] = measure?.baseType?.name
         }
         aspectVertex["measure"] = measure?.name
 
@@ -221,8 +227,14 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
             aspectVertex["name"] = name
-            aspectVertex["baseType"] = baseType?.name ?: measure?.baseType?.name
+
+            aspectVertex["baseType"] = when (measure) {
+                null -> baseType?.name
+                else -> null
+            }
+
             aspectVertex["measure"] = measure?.name
+
             measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
 
             if (properties.distinctBy { it.name }.size != properties.size) {
@@ -257,7 +269,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private val OVertex.baseType: BaseType?
-        get() = BaseType.restoreBaseType(this["baseType"])
+        get() = measure?.baseType ?: BaseType.restoreBaseType(this["baseType"])
     private val OVertex.name: String
         get() = this["name"]
     private val OVertex.aspect: String
@@ -280,6 +292,15 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     private fun checkBusinessKey(name: String) {
         findByName(name)?.let { throw AspectAlreadyExist(name) }
+    }
+
+    private fun checkAspectData(aspectData: AspectData) {
+        if (aspectData.measure != null
+                && aspectData.baseType != null
+                && GlobalMeasureMap[aspectData.measure!!]!!.baseType != BaseType.restoreBaseType(aspectData.baseType)) {
+
+            throw IllegalArgumentException("Measure and base type relation incorrect")
+        }
     }
 
     private fun OVertex.toAspectProperty(): AspectProperty =

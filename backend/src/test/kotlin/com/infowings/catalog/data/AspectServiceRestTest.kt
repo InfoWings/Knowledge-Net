@@ -3,7 +3,6 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.search.SuggestionService
 import kotlinx.serialization.json.JSON
 import org.hamcrest.core.Is
 import org.hamcrest.core.IsNot
@@ -13,8 +12,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -37,19 +34,7 @@ private val logger = loggerFor<AspectServiceRestTest>()
 class AspectServiceRestTest {
 
     @Autowired
-    lateinit var suggestionService: SuggestionService;
-
-    @Autowired
     lateinit var aspectService: AspectService
-
-    @LocalServerPort
-    lateinit var port: String
-
-    @Value("\${spring.security.header.access}")
-    lateinit var headerAcess: String
-
-    @Value("\${spring.security.prefix}")
-    lateinit var securityPrefix: String
 
     @Autowired
     private val wac: WebApplicationContext? = null

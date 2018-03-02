@@ -180,4 +180,37 @@ class AspectServiceTest {
 
         assertThat("aspect should have correct base type", newAspect.baseType, Is.`is`(BaseType.restoreBaseType(null)))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testAddIncorrectBaseTypeAnMeasurePair() {
+        val ad = AspectData("", "aspect", Gram.name, null, BaseType.Boolean.name, emptyList())
+        aspectService.createAspect(ad)
+    }
+
+    @Test
+    fun testMeasureBaseTypeManipulating() {
+        val ad = AspectData("", "aspect", Gram.name, null, null, emptyList())
+        val aspect = aspectService.createAspect(ad)
+
+        assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal)
+        assertTrue("measure should be gram", aspect.measure == Gram)
+
+        val ad2 = AspectData(aspect.id, "aspect", null, null, null, emptyList())
+        val aspect2 = aspectService.updateAspect(ad2)
+
+        assertTrue("base type should be null", aspect2.baseType == BaseType.restoreBaseType(null))
+        assertTrue("measure should be null", aspect2.measure == null)
+
+        val ad3 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList())
+        val aspect3 = aspectService.updateAspect(ad3)
+
+        assertTrue("base type should be decimal", aspect3.baseType == BaseType.Boolean)
+        assertTrue("measure should be null", aspect3.measure == null)
+
+        val ad4 = AspectData(aspect.id, "aspect", Kilometre.name, null, null, emptyList())
+        val aspect4 = aspectService.changeMeasure(aspect3.id, Kilometre)
+
+        assertTrue("base type should be null", aspect4.baseType == BaseType.Decimal)
+        assertTrue("measure should be Kilometre", aspect4.measure == Kilometre)
+    }
 }
