@@ -37,9 +37,6 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
              - ls -l backend/build/libs/backend.jar
-             - echo "test-new" > data
-             - ls -l data
-             - ls -la ~/.ssh/
              - echo "Trying to copy"
              - scp -i ~/.ssh/config backend/build/libs/backend.jar  bitbucket@catalog.reflexia.com:/home/bitbucket/__backend__.jar
              - curl -X POST "https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"backend/build/libs/backend.jar"
@@ -49,7 +46,7 @@ pipelines:
              - cd frontend
              - jar cf ../frontend.jar build
              - cd ..
-             - scp -i ~/.ssh/config  frontend.zip bitbucket@catalog.reflexia.com:/home/bitbucket/frontend.zip
+             - scp -i ~/.ssh/config  frontend.jar bitbucket@catalog.reflexia.com:/home/bitbucket/frontend.jar
        deploy-sandox:
         - step:
             caches:
