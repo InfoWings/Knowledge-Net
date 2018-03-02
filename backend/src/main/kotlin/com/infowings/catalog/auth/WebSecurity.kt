@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService
 
 
-//@EnableWebSecurity
+@EnableWebSecurity
 class WebSecurity() : WebSecurityConfigurerAdapter() {
 
     @Bean
@@ -43,12 +43,13 @@ class WebSecurity() : WebSecurityConfigurerAdapter() {
                     .antMatchers("/api/measure/**").hasAuthority(UserRole.POWERED_USER.name)
                     .antMatchers("/api/measure/**").hasAuthority(UserRole.ADMIN.name)
                     .anyRequest().authenticated()
-                    .and()
+                    .and().httpBasic().and()
                     .addFilter(jWTAuthorizationFilter)
         }
     }
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
+
         auth?.userDetailsService(userDetailsService)
     }
 }
