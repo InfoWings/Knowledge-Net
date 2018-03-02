@@ -22,7 +22,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      */
     fun createAspect(aspectData: AspectData): Aspect {
-        findByName(aspectData.name)?.let { throw AspectAlreadyExist(it.id) }
+        checkBusinessKey(aspectData.name)
 
         val measure: Measure<*>? = GlobalMeasureMap[aspectData.measure]
 
@@ -58,11 +58,61 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     fun findById(id: String): Aspect = db.getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
     /**
+     * Update [Aspect] by [AspectData]
+     * [id] of [AspectData] is the id of editing [Aspect]. Any other info is using for update
+     *
+     * @throws AspectException
+     * @throws IllegalArgumentException in case id is incorrect
+     */
+    fun updateAspect(updatingAspect: AspectData): Aspect = transaction(db) {
+        var realAspect = updatingAspect.id?.let { findById(it) } ?: throw IllegalArgumentException("Incorrect id")
+
+        if (realAspect.name != updatingAspect.name) {
+            realAspect = changeName(realAspect.id, updatingAspect.name)
+        }
+
+        if (realAspect.baseType?.name != updatingAspect.baseType) {
+            realAspect = changeBaseType(realAspect.id, BaseType.restoreBaseType(updatingAspect.baseType))
+        }
+
+        if (realAspect.measure?.name != updatingAspect.name) {
+            realAspect = changeMeasure(realAspect.id, GlobalMeasureMap[updatingAspect.measure])
+        }
+
+        // todo: Check domens
+
+        updatingAspect.properties.filter { it.id != "" }.forEach { property ->
+            var realProperty = loadAspectProperty(property.id)
+
+            if (realProperty.name != property.name) {
+                realProperty = changePropertyName(property.id, property.name)
+            }
+
+            if (realProperty.power.name != property.power) {
+                realProperty = changePropertyName(property.id, property.power)
+            }
+
+            if (realProperty.aspect.id != property.aspectId) {
+                changePropertyAspect(property.id, property.aspectId)
+            }
+        }
+
+        updatingAspect.properties.filter { it.id == "" }.forEach {
+            addProperty(realAspect.id, it)
+        }
+
+        return@transaction realAspect
+
+    }.let { findById(it.id) }
+
+    /**
      * Change [Aspect] name by id
+     * @throws AspectDoesNotExist
+     * @throws AspectAlreadyExist
      */
     fun changeName(id: String, newName: String): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
-        findByName(newName)?.let { throw AspectModificationException(id, "Aspect with name $newName already exists") }
+        checkBusinessKey(newName)
         aspectVertex["name"] = newName
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
@@ -72,11 +122,11 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist
      * @throws AspectModificationException in case there exists measure or there exists value of aspect
      */
-    fun changeBaseType(id: String, newType: BaseType): Aspect = transaction(db) {
+    fun changeBaseType(id: String, newType: BaseType?): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
-        aspectVertex.get<String?>("measure")?.let { throw AspectModificationException(id, "Aspect has a measure") }
+        aspectVertex.measure?.let { throw AspectModificationException(id, "Aspect has a measure") }
         // todo: существует хотябы одно значения данного аспекта ---> throw AspectModificationException
-        aspectVertex["baseType"] = newType.name
+        aspectVertex["baseType"] = newType?.name
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
@@ -85,14 +135,15 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist
      * @throws AspectModificationException in case there exists value of aspect
      */
-    fun changeMeasure(id: String, measure: Measure<*>): Aspect = transaction(db) {
+    fun changeMeasure(id: String, measure: Measure<*>?): Aspect = transaction(db) {
         val aspectVertex = db.getVertexById(id) ?: throw AspectDoesNotExist(id)
         val sameGroup = MeasureGroupMap[aspectVertex.measureName]?.measureList?.contains(measure) ?: false
-        if (!sameGroup) {
+        if (measure == null || !sameGroup) {
             // todo: существует хотябы одно значения данного аспекта ---> throw AspectModificationException
-            aspectVertex["baseType"] = measure.baseType.name
+            aspectVertex["baseType"] = measure?.baseType?.name
         }
-        aspectVertex["measure"] = measure.name
+        aspectVertex["measure"] = measure?.name
+
         return@transaction aspectVertex.save<OVertex>()
     }.let { findById(id) }
 
@@ -164,7 +215,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
 
         val save: OVertex = transaction(db) { session ->
-            val measureVertex: OVertex? = measure?.name?.let { measureService.findMeasure(it) }
+            val measureVertex: OVertex? = measure?.name?.let {
+                measureService.findMeasure(it) ?: throw IllegalArgumentException("Measure $it does not exist")
+            }
             val aspectVertex: OVertex = session.newVertex(ASPECT_CLASS)
 
             aspectVertex["name"] = name
@@ -225,6 +278,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                 .map { loadAspectProperty(it.id) }
     }
 
+    private fun checkBusinessKey(name: String) {
+        findByName(name)?.let { throw AspectAlreadyExist(name) }
+    }
+
     private fun OVertex.toAspectProperty(): AspectProperty =
             AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]))
 }
@@ -235,7 +292,7 @@ private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 private val logger = loggerFor<AspectService>()
 
 sealed class AspectException(message: String? = null) : Exception(message)
-class AspectAlreadyExist(val id: String) : AspectException("id = $id")
+class AspectAlreadyExist(val name: String) : AspectException("name = $name")
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")

@@ -3,6 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import org.hamcrest.core.Is
+import org.hamcrest.core.IsNull
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -79,7 +80,7 @@ class AspectServiceTest {
         aspectService.createAspect(ad2)
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test(expected = AspectAlreadyExist::class)
     fun testChangeAspectNameInCaseExistsAspectWithSameName() {
         val ad1 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect1 = aspectService.createAspect(ad1)
@@ -156,5 +157,27 @@ class AspectServiceTest {
         assertTrue("aspect should have new measure", newAspect.measure == Metre)
 
         assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
+    }
+
+    @Test
+    fun testChangeAspectMeasureToNull() {
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val aspect = aspectService.createAspect(ad)
+
+        val newAspect = aspectService.changeMeasure(aspect.id, null)
+
+        assertThat("aspect should have null as a measure", newAspect.measure, Is.`is`(IsNull()))
+
+        assertThat("aspect should have correct base type", newAspect.baseType, Is.`is`(BaseType.restoreBaseType(null)))
+    }
+
+    @Test
+    fun testChangeBaseTypeToNull() {
+        val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
+        val aspect = aspectService.createAspect(ad)
+
+        val newAspect = aspectService.changeBaseType(aspect.id, null)
+
+        assertThat("aspect should have correct base type", newAspect.baseType, Is.`is`(BaseType.restoreBaseType(null)))
     }
 }
