@@ -415,12 +415,15 @@ external interface AsyncSpecificProps<T : SelectOption> : RProps {
     /**
      * function that returns a promise or calls a callback with the options:
      * `function(input, [callback])`
+     *
+     * NOTE: Boolean return type (should always be false) is a hack in order to fool javascript truthy check on a result of
+     * a callback. `loadOptions` may return a promise and library code checks the fact using `if (promise)`
      */
-    var loadOptions: (String, AsyncLoadCallback<T>) -> Unit
+    var loadOptions: (String, AsyncLoadCallback<T>) -> Boolean
 
 }
 
-typealias AsyncLoadCallback<T> = (ErrorEvent, AsyncLoadData<T>) -> Unit
+typealias AsyncLoadCallback<T> = (ErrorEvent?, AsyncLoadData<T>?) -> Unit
 
 external interface AsyncLoadData<T : SelectOption> {
     var options: Array<T>
@@ -455,7 +458,7 @@ external interface CreatableSpecificProps<T : SelectOption> : RProps {
      * Factory to create new option.
      * Expected signature: `({ label: string, labelKey: string, valueKey: string }): Object`
      */
-    var newOptionCreator: (OptionFactoryArgs) -> SelectOption
+    var newOptionCreator: (OptionFactoryArgs) -> SelectOption?
 
     /**
      * new option click handler, it calls when new option has been selected.

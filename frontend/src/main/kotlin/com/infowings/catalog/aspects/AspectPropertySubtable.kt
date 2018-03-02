@@ -12,20 +12,21 @@ import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 import com.infowings.catalog.wrappers.table.SubComponentProps
+import org.w3c.dom.events.Event
 
-private fun selectColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: AspectData) -> Unit, aspectOptions: Array<AspectData>) = RTableColumnDescriptor {
+private fun selectColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: String) -> Unit, onAspectNameChanged: (AspectData, String) -> Unit) = RTableColumnDescriptor {
     this.accessor = accessor
     this.Header = rFunction("SelectAspectNameHeader") { +headerName }
-    this.Cell = selectComponent(onPropertyValueChanged, aspectOptions)
+    this.Cell = selectComponent(onPropertyValueChanged, onAspectNameChanged)
     this.className = "aspect-cell"
 }
 
-private fun selectComponent(onAspectChanged: (index: Int, value: AspectData) -> Unit, aspectOptions: Array<AspectData>) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
-    child(SuggestingInput::class) {
+private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit, onAspectModified: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
+    child(AspectSuggestingInput::class) {
         attrs {
-            options = aspectOptions.map { aspectOption(it, it.name) }.toTypedArray()
-            initialValue = props.value?.toString() ?: ""
-            onOptionSelected = { onAspectChanged(props.index, it) }
+            associatedAspect = props.original.aspect as AspectData
+            onOptionSelected = { onAspectChanged(props.index, it.id!!) }
+            onAspectNameChanged = onAspectModified
         }
     }
 }
@@ -35,20 +36,21 @@ private fun selectComponent(onAspectChanged: (index: Int, value: AspectData) -> 
  */
 private fun propertySubComponent(
         onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
-        aspectOptions: Array<AspectData>
+        context: Map<String, AspectData>
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectPropertyRow
     child(AspectPropertySubtable::class) {
         attrs {
-            data = original.property.aspect.properties.toTypedArray()
-            onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.property.aspect, propertyChanger) }
-            options = aspectOptions
+            // Does local context always contains
+            data = original.aspect.properties.toTypedArray()
+            onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
+            aspectContext = context
         }
     }
 }
 
-data class AspectPropertyRow(val property: AspectPropertyData, val pending: Boolean)
+data class AspectPropertyRow(val property: AspectPropertyData, val aspect: AspectData, val pending: Boolean)
 
 class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPropertySubtable.State>() {
 
@@ -94,6 +96,9 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         props.onPropertyChanged { aspect: AspectData ->
             AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties.mapIndexed { index, property ->
                 if (index == changedIndex) {
+                    setState {
+                        pending.remove(property.aspectId)
+                    }
                     property.propertyChanger(value)
                 } else {
                     property
@@ -105,19 +110,19 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
     /**
      * Callback to call when new property is created
      */
-    private fun onNewPropertyCreated() {
+    private fun onNewPropertyCreated(e: Event) {
         props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties + AspectPropertyData("", "", AspectData(null, "", null, null, null), ""))
+            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties + AspectPropertyData("", "", "", ""))
         }
     }
 
     private fun aspectPropertiesToRows(): Array<AspectPropertyRow> {
         return props.data.map {
-            val pending = state.pending[it.aspect.id]
+            val pending = state.pending[it.aspectId]
             if (pending == null) {
-                AspectPropertyRow(it, false)
+                AspectPropertyRow(it, props.aspectContext[it.aspectId] ?: AspectData(null, "", null, null, null), false)
             } else {
-                AspectPropertyRow(it.withAspect(pending), true)
+                AspectPropertyRow(it, pending, true)
             }
         }.toTypedArray()
     }
@@ -146,18 +151,18 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                     columns = arrayOf(
                             aspectColumn("property.name", "Name", aspectPropertyCell(onInputValueChanged(AspectPropertyData::withName))),
                             aspectColumn("property.power", "Power", aspectPropertyCell(onInputValueChanged(AspectPropertyData::withPower))),
-                            selectColumn("property.aspect.name", "Name", onAspectSelectValueChanged(AspectPropertyData::withAspect), props.options),
-                            aspectColumn("property.aspect.measure", "Measure Unit", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withMeasure))),
-                            aspectColumn("property.aspect.domain", "Domain", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withDomain))),
-                            aspectColumn("property.aspect.baseType", "Base Type", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withBaseType))),
+                            selectColumn("aspect.name", "Name", onInputValueChanged(AspectPropertyData::withAspectId), fieldChangedHandler(AspectData::withName)),
+                            aspectColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withMeasure))),
+                            aspectColumn("aspect.domain", "Domain", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withDomain))),
+                            aspectColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withBaseType))),
                             controlsPropertyColumn(::saveAspect, ::resetAspect)
                     )
                     collapseOnDataChange = false
                     className = "aspect-table"
-                    SubComponent = propertySubComponent(::onAspectPropertyChanged, props.options)
+                    SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext)
                     data = aspectPropertiesToRows()
                     showPagination = false
-                    minRows = 2
+                    minRows = 1
                     sortable = false
                     showPageJump = false
                     resizable = false
@@ -165,20 +170,20 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
             }
             div(classes = "new-property-button") {
                 i(classes = "fas fa-plus") {}
-                attrs.onClickFunction = { onNewPropertyCreated() }
+                attrs.onClickFunction = ::onNewPropertyCreated
             }
         }
     }
 
     interface Props : RProps {
         /**
-         * Array of all aspects (Temporary) (ACHTUNG: REMOVE IF YOU SEE IT)
-         */
-        var options: Array<AspectData>
-        /**
          * Array of children aspect properties
          */
         var data: Array<AspectPropertyData>
+        /**
+         *
+         */
+        var aspectContext: Map<String, AspectData>
         /**
          * Callback to call when property is changed or new property created (callback just marks aspect data as edited)
          */

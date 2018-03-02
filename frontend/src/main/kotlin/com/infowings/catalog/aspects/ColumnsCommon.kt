@@ -32,7 +32,7 @@ fun aspectPropertyAspectCell(onFieldChanged: (data: AspectData, value: String) -
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
             value = props.value?.toString() ?: ""
-            onChangeFunction = { onFieldChanged(props.original.property.aspect as AspectData, it.asDynamic().target.value) }
+            onChangeFunction = { onFieldChanged(props.original.aspect as AspectData, it.asDynamic().target.value) }
         }
     }
 }

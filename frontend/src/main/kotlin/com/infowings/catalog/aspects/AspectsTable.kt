@@ -34,7 +34,7 @@ private val addNewAspectHeaderDisabled: RClass<RTableRendererProps> = rFunction(
  */
 private fun propertySubComponent(
         onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
-        aspectOptions: Array<AspectData>
+        context: Map<String, AspectData>
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectRow
@@ -42,7 +42,7 @@ private fun propertySubComponent(
         attrs {
             data = original.aspect.properties.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
-            options = aspectOptions
+            aspectContext = context
         }
     }
 }
@@ -157,9 +157,9 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
-                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.data)
+                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext)
                 showPagination = false
-                minRows = 2
+                minRows = 1
                 sortable = false
                 showPageJump = false
                 resizable = false

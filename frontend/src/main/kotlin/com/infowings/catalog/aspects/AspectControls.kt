@@ -54,22 +54,22 @@ fun controlsPropertyColumn(onSaveAspect: (String) -> Unit, onResetAspect: (Strin
         if (props.value as Boolean) {
             div(classes = "aspect-management-container") {
                 div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onResetAspect(props.original.property.aspect.id) }
+                    attrs.onClickFunction = { onResetAspect(props.original.property.aspectId) }
                     i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onSaveAspect(props.original.property.aspect.id) }
+                    attrs.onClickFunction = { onSaveAspect(props.original.property.aspectId) }
                     i(classes = "far fa-check-circle circle-green") {}
                 }
             }
         } else {
             div(classes = "aspect-management-container hidden") {
                 div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onResetAspect(props.original.property.aspect.id) }
+                    attrs.onClickFunction = { onResetAspect(props.original.property.aspectId) }
                     i(classes = "fas fa-times-circle circle-red") {}
                 }
                 div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onSaveAspect(props.original.propertyaspect.id) }
+                    attrs.onClickFunction = { onSaveAspect(props.original.property.aspectId) }
                     i(classes = "far fa-check-circle circle-green") {}
                 }
             }

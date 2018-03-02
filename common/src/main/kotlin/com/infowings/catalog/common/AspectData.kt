@@ -30,12 +30,12 @@ data class AspectData(
 data class AspectPropertyData(
         val id: String,
         val name: String,
-        val aspect: AspectData,
+        val aspectId: String,
         val power: String
 ) {
-    fun withName(name: String) = AspectPropertyData(id, name, aspect, power)
+    fun withName(name: String) = AspectPropertyData(id, name, aspectId, power)
 
-    fun withAspect(aspect: AspectData) = AspectPropertyData(id, name, aspect, power)
+    fun withAspectId(aspectId: String) = AspectPropertyData(id, name, aspectId, power)
 
-    fun withPower(power: String) = AspectPropertyData(id, name, aspect, power)
+    fun withPower(power: String) = AspectPropertyData(id, name, aspectId, power)
 }

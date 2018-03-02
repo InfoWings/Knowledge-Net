@@ -7,6 +7,7 @@ import react.*
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: Array<AspectData>
+    var aspectContext: Map<String, AspectData>
     var onAspectUpdate: (changedAspect: AspectData) -> Unit
     var onAspectCreate: (newAspect: AspectData) -> Unit
 }
@@ -26,6 +27,7 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
             val aspects = getAllAspects()
             setState {
                 data = aspects.aspects.toTypedArray()
+                context = aspects.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
                 loading = false
             }
         }
@@ -36,6 +38,7 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
             val newAspect = createAspect(aspectData)
             setState {
                 data += newAspect
+                context[newAspect.id!!] = newAspect
             }
         }
     }
@@ -46,6 +49,7 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
         child(AspectsTable::class) {
             attrs {
                 data = state.data
+                aspectContext = state.context
                 loading = state.loading
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect
@@ -56,5 +60,6 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     interface State : RState {
         var data: Array<AspectData>
         var loading: Boolean
+        var context: MutableMap<String, AspectData>
     }
 }
