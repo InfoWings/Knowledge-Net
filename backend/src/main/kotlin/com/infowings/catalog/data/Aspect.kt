@@ -27,12 +27,13 @@ data class Aspect(
 }
 
 fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
-fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { AspectPropertyData(it.id, it.name, it.aspect.id, it.power.name) }
-
+fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { it.toAspectPropertyData() }
 
 data class AspectProperty(
     val id: String,
     val name: String,
     val aspect: Aspect,
     val power: AspectPropertyPower
-)
+) {
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, power.name)
+}
