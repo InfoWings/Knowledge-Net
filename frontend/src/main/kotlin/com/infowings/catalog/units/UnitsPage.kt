@@ -40,7 +40,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             this.filterText = filterText
         }
         window.clearTimeout(timer)
-        timer = window.setTimeout({ updateDataState(filterText) }, 500)
+        timer = window.setTimeout({ updateDataState(filterText) }, 200)
     }
 
     private fun updateDataState(filterText: String) {
