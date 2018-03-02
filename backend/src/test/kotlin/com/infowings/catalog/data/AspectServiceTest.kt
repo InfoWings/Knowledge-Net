@@ -207,7 +207,6 @@ class AspectServiceTest {
         assertTrue("base type should be decimal", aspect3.baseType == BaseType.Boolean)
         assertTrue("measure should be null", aspect3.measure == null)
 
-        val ad4 = AspectData(aspect.id, "aspect", Kilometre.name, null, null, emptyList())
         val aspect4 = aspectService.changeMeasure(aspect3.id, Kilometre)
 
         assertTrue("base type should be null", aspect4.baseType == BaseType.Decimal)
