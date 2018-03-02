@@ -22,7 +22,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             }
         }
 
-    private val allDataMap = allData.groupBy { it.measureGroupName }.toMap()
+    private val allDataMap = allData.groupBy { it.measureGroupName }
 
     override fun State.init() {
         filterText = ""
@@ -69,7 +69,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             .toTypedArray()
 
         return measureGroupNames
-            .map { allDataMap.getValue(it) }
+            .mapNotNull { allDataMap[it] }
             .flatMap {
                 it.map { UnitsTableRowData(it.measureGroupName, it.name, it.symbol, filteredNames.contains(it.name)) }
             }
