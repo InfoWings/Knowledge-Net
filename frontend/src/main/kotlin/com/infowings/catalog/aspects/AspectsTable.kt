@@ -34,7 +34,8 @@ private val addNewAspectHeaderDisabled: RClass<RTableRendererProps> = rFunction(
  */
 private fun propertySubComponent(
         onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
-        context: Map<String, AspectData>
+        context: Map<String, AspectData>,
+        onAspectUpdate: (AspectData) -> Unit
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectRow
@@ -43,6 +44,7 @@ private fun propertySubComponent(
             data = original.aspect.properties.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
             aspectContext = context
+            this.onAspectUpdate = onAspectUpdate
         }
     }
 }
@@ -107,6 +109,12 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 newAspect = null
             }
             props.onAspectCreate(savedAspect)
+        } else {
+            val updatedAspect = state.pending[aspectId]!!
+            setState {
+                pending.remove(aspectId)
+            }
+            props.onAspectUpdate(updatedAspect)
         }
     }
 
@@ -157,7 +165,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
-                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext)
+                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                 showPagination = false
                 minRows = 1
                 sortable = false

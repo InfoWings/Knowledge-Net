@@ -36,7 +36,8 @@ private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit
  */
 private fun propertySubComponent(
         onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
-        context: Map<String, AspectData>
+        context: Map<String, AspectData>,
+        onAspectUpdate: (AspectData) -> Unit
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectPropertyRow
@@ -46,6 +47,7 @@ private fun propertySubComponent(
             data = original.aspect.properties.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
             aspectContext = context
+            this.onAspectUpdate = onAspectUpdate
         }
     }
 }
@@ -92,21 +94,6 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         }
     }
 
-    private fun onAspectSelectValueChanged(propertyChanger: AspectPropertyData.(value: AspectData) -> AspectPropertyData) = { changedIndex: Int, value: AspectData ->
-        props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties.mapIndexed { index, property ->
-                if (index == changedIndex) {
-                    setState {
-                        pending.remove(property.aspectId)
-                    }
-                    property.propertyChanger(value)
-                } else {
-                    property
-                }
-            })
-        }
-    }
-
     /**
      * Callback to call when new property is created
      */
@@ -141,7 +128,11 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
      *   and requests aspect update if id is not null (not done)
      */
     private fun saveAspect(aspectId: String) {
-        TODO("SERVER API IS NOT IMPLEMENTED YET")
+        val updatedAspect = state.pending[aspectId]!!
+        setState {
+            pending.remove(aspectId)
+        }
+        props.onAspectUpdate(updatedAspect)
     }
 
     override fun RBuilder.render() {
@@ -159,7 +150,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                     )
                     collapseOnDataChange = false
                     className = "aspect-table"
-                    SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext)
+                    SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                     data = aspectPropertiesToRows()
                     showPagination = false
                     minRows = 1
@@ -188,6 +179,10 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
          * Callback to call when property is changed or new property created (callback just marks aspect data as edited)
          */
         var onPropertyChanged: (propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
+        /**
+         *
+         */
+        var onAspectUpdate: (AspectData) -> Unit
     }
 
     interface State : RState {

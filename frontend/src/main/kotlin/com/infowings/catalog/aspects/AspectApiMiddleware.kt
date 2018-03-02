@@ -43,7 +43,17 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
         }
     }
 
-    private fun handleUpdateAspect(aspectData: AspectData) {}
+    private fun handleUpdateAspect(aspectData: AspectData) {
+        launch {
+            val updatedAspect = updateAspect(aspectData)
+            setState {
+                data = data.map {
+                    if (updatedAspect.id == it.id) updatedAspect else it
+                }.toTypedArray()
+                context[updatedAspect.id!!] = updatedAspect
+            }
+        }
+    }
 
     override fun RBuilder.render() {
         child(AspectsTable::class) {
