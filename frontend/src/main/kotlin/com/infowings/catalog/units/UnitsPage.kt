@@ -20,7 +20,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             }
         }
 
-    private val allDataMap = allData.groupBy { it.measureGroupName }
+    private val allDataMap = allData.groupBy { it.pivotBy }
 
     override fun State.init() {
         filterText = ""
@@ -61,15 +61,23 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private suspend fun getFilteredData(filterText: String): List<UnitsTableRowData> {
         val filteredNames = filterMeasureNames(filterText)
 
-        val measureGroupNames: Array<String> = filteredNames
-            .flatMap { name -> allData.filter { it.name == name }.map { it.measureGroupName } }
+        // get list of measureGroupName of filtered measure names
+        val measureGroupNames: List<String> = filteredNames
+            .flatMap { name -> allData.filter { it.name == name }.map { it.pivotBy } }
             .distinct()
-            .toTypedArray()
 
-        return measureGroupNames
+        // create map where key is measureGroupName and value is list of UnitsTableRowData of this group
+        val dataByMeasureGroupNameMap: Map<String, List<UnitsTableRowData>> = measureGroupNames
             .mapNotNull { allDataMap[it] }
             .flatMap {
-                it.map { UnitsTableRowData(it.measureGroupName, it.name, it.symbol, filteredNames.contains(it.name)) }
+                it.map { UnitsTableRowData(it.pivotBy, it.name, it.symbol, filteredNames.contains(it.name)) }
+            }.groupBy { it.pivotBy }
+
+        return filteredNames
+            .flatMap { name -> allData.filter { it.name == name }.map { name to it.pivotBy } }
+            .flatMap { (name, measureGroupName) ->
+                dataByMeasureGroupNameMap.getValue(measureGroupName)
+                    .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
             }
     }
 
