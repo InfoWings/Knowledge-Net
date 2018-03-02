@@ -10,8 +10,6 @@ import react.RState
 import react.dom.h1
 import react.setState
 import kotlin.browser.window
-import kotlin.js.Json
-import kotlin.js.json
 
 class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
@@ -92,7 +90,6 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         child(UnitsTable::class) {
             attrs {
                 data = state.data.toTypedArray()
-                defaultExpandedRows = defineExpandedRows(state.data)
             }
         }
     }
@@ -101,18 +98,4 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         var filterText: String
         var data: List<UnitsTableRowData>
     }
-}
-
-private fun defineExpandedRows(data: List<UnitsTableRowData>): Json {
-    val rowsGroupCount = data.map { it.measureGroupName }.distinct().count()
-
-    if (rowsGroupCount == MeasureGroupMap.count()) return json()
-
-    val jsonList = (0 until rowsGroupCount).map { json(it.toString() to true) }
-
-    val resultJson = json()
-    for (json in jsonList) {
-        resultJson.add(json)
-    }
-    return resultJson
 }

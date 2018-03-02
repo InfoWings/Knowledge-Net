@@ -1,5 +1,6 @@
 package com.infowings.catalog.units
 
+import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.wrappers.table.*
 import react.*
 import react.dom.span
@@ -28,7 +29,7 @@ data class UnitsTableRowData(
     val containsFilterText: Boolean
 )
 
-class UnitsTableProperties(var data: Array<UnitsTableRowData>, var defaultExpandedRows: Json) : RProps
+class UnitsTableProperties(var data: Array<UnitsTableRowData>) : RProps
 
 class UnitsTable : RComponent<UnitsTableProperties, RState>() {
 
@@ -49,7 +50,7 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 showPageJump = false
                 resizable = false
                 getTdProps = ::tdProps
-                defaultExpanded = props.defaultExpandedRows
+                defaultExpanded = defineExpandedRows(props.data)
             }
         })
     }
@@ -61,4 +62,18 @@ private fun tdProps(state: dynamic, rowInfo: RowInfo?, column: dynamic): dynamic
         return json("style" to json("opacity" to opacity))
     }
     return json("style" to json("background" to "#E6FDFF"))
+}
+
+private fun defineExpandedRows(data: Array<UnitsTableRowData>): Json {
+    val rowsGroupCount = data.map { it.measureGroupName }.distinct().count()
+
+    if (rowsGroupCount == MeasureGroupMap.count()) return json()
+
+    val jsonList = (0 until rowsGroupCount).map { json(it.toString() to true) }
+
+    val resultJson = json()
+    for (json in jsonList) {
+        resultJson.add(json)
+    }
+    return resultJson
 }
