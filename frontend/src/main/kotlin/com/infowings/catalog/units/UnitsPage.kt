@@ -43,9 +43,10 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         setState {
             this.filterText = filterText
         }
-        window.clearTimeout(timer)
-        if (!skipUpdate)
+        if (!skipUpdate) {
+            window.clearTimeout(timer)
             timer = window.setTimeout({ updateDataState(filterText) }, 200)
+        }
     }
 
     private var job: Job? = null
