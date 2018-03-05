@@ -12,9 +12,10 @@ cd ..
 
 echo "timestamp: $ts"
 echo "Going to deliver $back_jar and $front_jar"
+ls -l $back_jar $front.jar
 
 scp -i ~/.ssh/config $back_jar bitbucket@catalog.reflexia.com:$back_jar
-scp -i ~/.ssh/config $fron_jar bitbucket@catalog.reflexia.com:$front_jar
+scp -i ~/.ssh/config $front_jar bitbucket@catalog.reflexia.com:$front_jar
 
-curl -X POST bbd_url --form files=@"$back_jar"
-curl -X POST bbd_url --form files=@"$front_jar"
+curl -X POST $bbd_url --form files=@"$back_jar"
+curl -X POST $bbd_url --form files=@"$front_jar"
