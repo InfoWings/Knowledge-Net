@@ -47,7 +47,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     }
 
     private fun updateDataState(filterText: String) {
-        if (filterText.isEmpty()) {
+        if (filterText.length < 3) {
             setState {
                 this.data = allData
             }
