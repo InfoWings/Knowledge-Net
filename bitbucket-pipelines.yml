@@ -47,7 +47,7 @@ pipelines:
              - echo "Starting frontend build..."
              - chmod +x gradlew
              - cd frontend
-             - ./gradlew build
+             - ../gradlew build
              - cd ..
              - bash deploy/deliver-frontend.sh
 
