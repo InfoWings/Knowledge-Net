@@ -1,6 +1,6 @@
 back_local=backend/build/libs/backend.jar
 bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads"
-ts=`date +'%F-%T'`
+ts=`date +'%F-%H_%M_%S'`
 back_jar=backend-$ts.jar
 front_jar=frontend-$ts.jar
 
@@ -12,7 +12,7 @@ cd ..
 
 echo "timestamp: $ts"
 echo "Going to deliver $back_jar and $front_jar"
-ls -l $back_jar $front.jar
+ls -l $back_jar $front_jar
 
 scp -i ~/.ssh/config $back_jar bitbucket@catalog.reflexia.com:$back_jar
 scp -i ~/.ssh/config $front_jar bitbucket@catalog.reflexia.com:$front_jar
