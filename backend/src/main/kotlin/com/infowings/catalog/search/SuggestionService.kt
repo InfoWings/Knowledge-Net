@@ -16,20 +16,20 @@ class SuggestionService(val database: OrientDatabase) {
 
     fun findMeasure(context: SearchContext?, text: String): List<Measure<*>> = session(database) {
         findInDb(MEASURE_VERTEX, context, text)
-                .mapNotNull { it.toMeasure() }
-                .toList()
+            .mapNotNull { it.toMeasure() }
+            .toList()
     }
 
     fun findAspect(context: SearchContext, text: String): List<AspectData> = session(database) {
         findInDb(ASPECT_CLASS, context, text)
-                .mapNotNull { it.toAspectData() }
-                .toList()
+            .mapNotNull { it.toAspectData() }
+            .toList()
     }
 
     private fun findInDb(classType: String, context: SearchContext?, text: String): Sequence<OVertex> {
         val q = "SELECT FROM $classType WHERE SEARCH_CLASS(?) = true"
         return database.query(q, "($text~) ($text*) (*$text*)") {
-            it.mapNotNull { it.toVertexOrNUll() }
+            it.mapNotNull { it.toVertexOrNull() }
         }
     }
 
@@ -37,11 +37,11 @@ class SuggestionService(val database: OrientDatabase) {
     private fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
 
     private fun OVertex.toAspectData() = AspectData(
-            id = identity.toString(),
-            name = this["name"],
-            measure = this["measure"],
-            baseType = this["baseType"],
-            domain = BaseType.restoreBaseType(this["baseType"])?.let { OpenDomain(it).toString() }
+        id = identity.toString(),
+        name = this["name"],
+        measure = this["measure"],
+        baseType = this["baseType"],
+        domain = BaseType.restoreBaseType(this["baseType"])?.let { OpenDomain(it).toString() }
     )
 }
 

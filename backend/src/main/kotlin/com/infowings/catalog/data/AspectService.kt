@@ -15,7 +15,12 @@ import com.orientechnologies.orient.core.record.OVertex
  */
 class AspectService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-    private fun save(name: String, measure: Measure<*>?, baseType: BaseType?, properties: List<AspectPropertyData>): Aspect {
+    private fun save(
+        name: String,
+        measure: Measure<*>?,
+        baseType: BaseType?,
+        properties: List<AspectPropertyData>
+    ): Aspect {
         logger.trace("Adding aspect $name, $measure, $baseType, ${properties.size}")
 
         val save: OVertex = transaction(db) { session ->
@@ -58,7 +63,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun loadAspectProperty(id: String): AspectProperty =
-            db.getVertexById(id)?.toAspectProperty()
+        db.getVertexById(id)?.toAspectProperty()
                 ?: throw IllegalArgumentException("No aspect property with id: $id")
 
 
@@ -91,13 +96,15 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @return null if nothing's found
      * todo: немного неконсистентно где-то летит исключение, где-то null
      */
-    fun findByName(name: String): Aspect? = db.query(selectAspectByName, name) { rs ->
+    fun findByName(name: String): Aspect? = db.query(SELECT_BY_NAME, ASPECT_CLASS, name) { rs ->
         rs.map { it.toVertex().toAspect() }.firstOrNull()
     }
 
-    fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspect() }.toList()
+    fun getAspects(): List<Aspect> = db.query(SELECT_FROM, ASPECT_CLASS) { rs ->
+        rs.mapNotNull { it.toVertexOrNull()?.toAspect() }.toList()
     }
+
+    fun getAspect(vertex: OVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id
@@ -108,7 +115,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     private val OVertex.baseType: BaseType?
         get() = BaseType.restoreBaseType(this["baseType"])
     private val OVertex.name: String
-        get() = this["name"]
+        get() = this[ATTR_NAME]
     private val OVertex.aspect: String
         get() = this["aspectId"]
     private val OVertex.measureName: Measure<*>?
@@ -116,7 +123,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     private fun OVertex.toAspect(): Aspect =
         Aspect(id, name, measureName, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this))
-
 
     private fun loadProperties(oVertex: OVertex): List<AspectProperty> = session(db) {
         oVertex
@@ -128,9 +134,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     private fun OVertex.toAspectProperty(): AspectProperty =
         AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]))
 }
-
-private const val selectFromAspect = "SELECT FROM Aspect"
-private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 
 private val logger = loggerFor<AspectService>()
 

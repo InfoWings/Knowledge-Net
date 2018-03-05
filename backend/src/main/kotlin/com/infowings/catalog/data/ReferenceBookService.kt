@@ -79,7 +79,7 @@ class DefaultReferenceBookService(val database: OrientDatabase) : ReferenceBookS
             val vertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
             val parentVertex = vertex.parent!!
             val vertexWithSameNameAlreadyExist = parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
-                    .any { it.get<String>("value") == value && it.id != id }
+                .any { it.get<String>("value") == value && it.id != id }
 
             if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
                 throw RefBookChildAlreadyExist(parentVertex.id, value)
@@ -93,7 +93,11 @@ class DefaultReferenceBookService(val database: OrientDatabase) : ReferenceBookS
     override fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) { session ->
         val parentVertex = database.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
 
-        if (parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).any { it.get<String>("value") == value }) {
+        if (parentVertex.getVertices(
+                ODirection.OUT,
+                REFERENCE_BOOK_CHILD_EDGE
+            ).any { it.get<String>("value") == value }
+        ) {
             throw RefBookChildAlreadyExist(parentId, value)
         }
 
@@ -144,7 +148,7 @@ class DefaultReferenceBookService(val database: OrientDatabase) : ReferenceBookS
     }
 
     private fun getReferenceBookVertexByName(name: String): OVertex? =
-            database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNull() }.firstOrNull() }
 }
 
 private val OVertex.child: OVertex?

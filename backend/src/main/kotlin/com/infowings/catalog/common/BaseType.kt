@@ -15,31 +15,31 @@ actual sealed class BaseType actual constructor(_name: String) {
 
     companion object {
         fun restoreBaseType(name: String?): BaseType =
-                when (name) {
-                    null -> Nothing
-                    Nothing.name -> Nothing
-                    Integer.name -> Integer
-                    Long.name -> Long
-                    Decimal.name -> Decimal
-                    Boolean.name -> Boolean
-                    Text.name -> Text
-                    Binary.name -> Binary
+            when (name) {
+                null -> Nothing
+                Nothing.name -> Nothing
+                Integer.name -> Integer
+                Long.name -> Long
+                Decimal.name -> Decimal
+                Boolean.name -> Boolean
+                Text.name -> Text
+                Binary.name -> Binary
 
-                    else -> TODO("реализовать хранение сложных типов")
-                }
+                else -> TODO("реализовать хранение сложных типов")
+            }
 
         fun getTypeClass(name: String): KClass<*> =
-                when (name) {
-                    Integer.name -> Int::class
-                    Long.name -> Long::class
-                    Decimal.name -> BigDecimal::class
-                    Boolean.name -> Boolean::class
-                    Text.name -> String::class
-                    Binary.name -> ByteArray::class
+            when (name) {
+                Integer.name -> Int::class
+                Long.name -> Long::class
+                Decimal.name -> BigDecimal::class
+                Boolean.name -> Boolean::class
+                Text.name -> String::class
+                Binary.name -> ByteArray::class
 
-                    else -> TODO("реализовать хранение сложных типов")
+                else -> TODO("реализовать хранение сложных типов")
 
-                }
+            }
     }
 
     override fun toString(): String {

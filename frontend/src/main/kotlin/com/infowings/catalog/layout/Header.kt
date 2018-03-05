@@ -34,6 +34,14 @@ class Header : RComponent<HeaderProps, RState>() {
                             +"Units"
                         }
                     }
+                    li(classes = if (props.location == "/subjects") "active" else "") {
+                        reactRouter.Link {
+                            attrs {
+                                to = "/subjects"
+                            }
+                            +"Subject"
+                        }
+                    }
                 }
                 ul(classes = "nav navbar-nav navbar-right") {
                     li {

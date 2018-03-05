@@ -1,30 +1,20 @@
 package com.infowings.catalog.search
 
 
+import com.infowings.catalog.AbstractMvcTest
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Metre
 import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -32,37 +22,14 @@ import kotlin.test.assertFalse
 private val logger = loggerFor<SearchTest>()
 
 @RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SearchTest {
+@SpringBootTest(classes = [MasterCatalog::class])
+class SearchTest : AbstractMvcTest() {
 
     @Autowired
     lateinit var suggestionService: SuggestionService;
 
     @Autowired
-    lateinit var aspectService: AspectService
-
-    @LocalServerPort
-    lateinit var port: String
-
-    @Value("\${spring.security.header.access}")
-    lateinit var headerAcess: String
-
-    @Value("\${spring.security.prefix}")
-    lateinit var securityPrefix: String
-
-    @Autowired
     private val wac: WebApplicationContext? = null
-
-    private lateinit var mockMvc: MockMvc
-
-    private val authorities = user("admin").authorities(SimpleGrantedAuthority("ADMIN"))
-
-    @Before
-    fun setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-    }
 
     @Test
     fun measureSuggestion() {
@@ -95,11 +62,6 @@ class SearchTest {
 
         assertEquals(aspectName, res.first().name)
         assertEquals(aspect.toAspectData(), res.first())
-    }
-
-    private fun createTestAspect(aspectName: String): Aspect {
-        val ad = AspectData("", aspectName, null, null, null, emptyList())
-        return aspectService.findByName(aspectName) ?: aspectService.createAspect(ad)
     }
 
     @Test
