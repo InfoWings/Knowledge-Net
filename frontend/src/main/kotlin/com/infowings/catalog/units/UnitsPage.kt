@@ -38,8 +38,9 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private var timer: Int = 0
 
     private fun handleFilterTextChange(filterText: String) {
-        val skipUpdate = (state.filterText.length > filterText.length && state.filterText.length < 3) ||
-                (state.filterText.length < filterText.length && filterText.length < 3)
+        val before = state.filterText.length
+        val after = filterText.length
+        val skipUpdate = (before < 3 && after < 3)
         setState {
             this.filterText = filterText
         }
