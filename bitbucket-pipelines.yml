@@ -37,6 +37,19 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
              - bash deploy/deliver-bundles.sh
+       frontend-deliver:
+        - step:
+            caches:
+             - gradle
+             - maven
+             - nodemodules
+            script:
+             - echo "Starting frontend build..."
+             - chmod +x gradlew
+             - cd frontend
+             - ./gradlew build
+             - cd ..
+             - bash deploy/deliver-frontend.sh
 
 
 definitions:
