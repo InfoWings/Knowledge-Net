@@ -34,6 +34,11 @@ class SuggestionService(val database: OrientDatabase) {
         }
     }
 
+    /**
+     * The method search for aspects that contains "text" in its name or other fields
+     * It filters out "parentAspectId" aspect and all its parents aspects to prevent cyclic dependencies on insert.
+     * @return list of aspects that contains "text" in its name or other fields
+     */
     fun findAspectNoCycle(parentAspectId: String, text: String): List<AspectData> = session(database) {
         val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
                 "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
