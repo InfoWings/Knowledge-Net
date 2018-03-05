@@ -58,7 +58,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             return
         }
 
-        if (length < startFilterLength) {
+        if (length < startFilterLength && prevLength == startFilterLength) {
             setState {
                 this.data = allData
             }
