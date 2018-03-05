@@ -56,6 +56,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
                 this.data = allData
             }
         } else {
+            // if previous request not completed then cancel it
             job?.cancel()
             job = launch {
                 val data = getFilteredData(filterText)
