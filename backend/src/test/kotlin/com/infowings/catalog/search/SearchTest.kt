@@ -98,11 +98,17 @@ class SearchTest {
 
     @Test
     fun findCycle() {
-        val parent = createTestAspectTree()
-        val res = suggestionService.findAspectNoCycle(parent.id, "level")
+        val child = createTestAspectTree()
+        var res = suggestionService.findAspectNoCycle(child.id, "level")
         assertEquals(1, res.size)
         assertEquals("level1_1", res[0].name)
-        assertEquals(0, suggestionService.findAspectNoCycle(parent.id, "level2").size)
+        assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
+
+        res = suggestionService.findParentAspects(child.id)
+        assertEquals(3, res.size)
+        assertEquals("level2", res[0].name)
+        assertEquals("level1", res[1].name)
+        assertEquals("root", res[2].name)
     }
 
     private fun createTestAspect(aspectName: String): Aspect {
