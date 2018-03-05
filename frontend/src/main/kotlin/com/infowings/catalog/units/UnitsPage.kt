@@ -2,7 +2,9 @@ package com.infowings.catalog.units
 
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.layout.Header
+import com.infowings.catalog.utils.get
 import com.infowings.catalog.wrappers.RouteSuppliedProps
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
@@ -34,6 +36,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     }
 
     private var timer: Int = 0
+    private var job: Job? = null
 
     private fun handleFilterTextChange(filterText: String) {
         setState {
@@ -49,7 +52,8 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
                 this.data = allData
             }
         } else {
-            launch {
+            job?.cancel()
+            job = launch {
                 val data = getFilteredData(filterText)
                 setState {
                     this.data = data
@@ -79,6 +83,10 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
                 dataByMeasureGroupNameMap.getValue(measureGroupName)
                     .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
             }
+    }
+
+    private suspend fun filterMeasureNames(filterText: String): Array<String> {
+        return JSON.parse(get("/api/search/measure/suggestion?text=$filterText"))
     }
 
     override fun RBuilder.render() {
