@@ -14,14 +14,14 @@ import com.infowings.catalog.wrappers.table.ReactTable
 import com.infowings.catalog.wrappers.table.SubComponentProps
 import org.w3c.dom.events.Event
 
-private fun selectColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: String) -> Unit, onAspectNameChanged: (AspectData, String) -> Unit) = RTableColumnDescriptor {
+private fun selectColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: String) -> Unit, onAspectNameChanged: AspectData.(name: String) -> Unit) = RTableColumnDescriptor {
     this.accessor = accessor
     this.Header = rFunction("SelectAspectNameHeader") { +headerName }
     this.Cell = selectComponent(onPropertyValueChanged, onAspectNameChanged)
     this.className = "aspect-cell"
 }
 
-private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit, onAspectModified: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
+private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit, onAspectModified: AspectData.(name: String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
     child(AspectSuggestingInput::class) {
         attrs {
             associatedAspect = props.original.aspect as AspectData
@@ -74,22 +74,12 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         }
     }
 
-    /**
-     * Callback creator. Produced callback is called when field (name, measure, domain, baseType) is changed
-     */
-    private fun fieldChangedHandler(fieldChanger: AspectData.(value: String) -> AspectData) = { aspect: AspectData, value: String ->
-
-        onAspectPropertyChanged(aspect, { it.fieldChanger(value) })
-    }
-
-    private fun onInputValueChanged(propertyChanger: AspectPropertyData.(value: String) -> AspectPropertyData) = { changedIndex: Int, value: String ->
-        props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties.mapIndexed { index, property ->
-                if (index == changedIndex) {
+    private fun indexedPropertyValueChangedHandler(propertyChanger: AspectPropertyData.(value: String) -> AspectPropertyData) = { changedIndex: Int, value: String ->
+        props.onPropertyChanged {
+            it.copy(properties = it.properties.mapIndexed { index, property ->
+                if (index == changedIndex)
                     property.propertyChanger(value)
-                } else {
-                    property
-                }
+                else property
             })
         }
     }
@@ -140,12 +130,12 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
             ReactTable {
                 attrs {
                     columns = arrayOf(
-                            aspectColumn("property.name", "Name", aspectPropertyCell(onInputValueChanged(AspectPropertyData::withName))),
-                            aspectColumn("property.power", "Power", aspectPropertyCell(onInputValueChanged(AspectPropertyData::withPower))),
-                            selectColumn("aspect.name", "Name", onInputValueChanged(AspectPropertyData::withAspectId), fieldChangedHandler(AspectData::withName)),
-                            aspectColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withMeasure))),
-                            aspectColumn("aspect.domain", "Domain", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withDomain))),
-                            aspectColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell(fieldChangedHandler(AspectData::withBaseType))),
+                            aspectColumn("property.name", "Name", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(name = it) })),
+                            aspectColumn("property.power", "Power", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(power = it) })),
+                            selectColumn("aspect.name", "Name", indexedPropertyValueChangedHandler { copy(aspectId = it) }, { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
+                            aspectColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                            aspectColumn("aspect.domain", "Domain", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
+                            aspectColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                             controlsPropertyColumn(::saveAspect, ::resetAspect)
                     )
                     collapseOnDataChange = false

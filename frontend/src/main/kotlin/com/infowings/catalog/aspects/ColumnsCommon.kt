@@ -19,20 +19,20 @@ fun aspectColumn(accessor: String, headerName: String, cell: RClass<RTableRender
             }
         }
 
-fun aspectCell(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectCell") { props ->
+fun aspectCell(onFieldChanged: AspectData.(value: String) -> Unit) = rFunction<RTableRendererProps>("AspectCell") { props ->
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
             value = props.value?.toString() ?: ""
-            onChangeFunction = { onFieldChanged(props.original.aspect as AspectData, it.asDynamic().target.value) }
+            onChangeFunction = { (props.original.aspect as AspectData).onFieldChanged(it.asDynamic().target.value as String) }
         }
     }
 }
 
-fun aspectPropertyAspectCell(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectCell") { props ->
+fun aspectPropertyAspectCell(onFieldChanged: AspectData.(value: String) -> Unit) = rFunction<RTableRendererProps>("AspectCell") { props ->
     input(type = InputType.text, classes = "rtable-input") {
         attrs {
             value = props.value?.toString() ?: ""
-            onChangeFunction = { onFieldChanged(props.original.aspect as AspectData, it.asDynamic().target.value) }
+            onChangeFunction = { (props.original.aspect as AspectData).onFieldChanged(it.asDynamic().target.value as String) }
         }
     }
 }
