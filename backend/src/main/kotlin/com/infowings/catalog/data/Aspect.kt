@@ -22,7 +22,7 @@ data class Aspect(
         val baseType: BaseType? = measure?.baseType
             ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
         val properties: List<AspectProperty> = emptyList(),
-        val version: Int
+        val version: Int = 0
 ) {
 
     operator fun get(property: String) = properties.first { it.name == property }

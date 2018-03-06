@@ -27,7 +27,7 @@ class ReferenceBookDbTest {
 
     @Before
     fun initTestData() {
-        aspect = aspectService.createAspect(AspectData("", "aspect", null, null, null))
+        aspect = aspectService.saveAspect(AspectData("", "aspect", null, null, null))
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
     }
 

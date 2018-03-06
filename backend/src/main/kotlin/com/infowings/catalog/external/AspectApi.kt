@@ -16,13 +16,13 @@ class AspectApi(val aspectService: AspectService) {
     @PostMapping("create")
     fun createAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
-        return aspectService.createAspect(aspectData).toAspectData()
+        return aspectService.saveAspect(aspectData).toAspectData()
     }
 
     @PostMapping("update")
     fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("Update aspect request: $aspectData")
-        return aspectService.updateAspect(aspectData).toAspectData()
+        return aspectService.saveAspect(aspectData).toAspectData()
     }
 
     @GetMapping("get/{name}")

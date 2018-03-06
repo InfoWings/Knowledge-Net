@@ -54,7 +54,7 @@ class AspectServiceRestTest {
     fun createAspectTest() {
 
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
-        val baseAspect = aspectService.createAspect(baseAspectData)
+        val baseAspect = aspectService.saveAspect(baseAspectData)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyPower.ONE.name)
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
@@ -78,14 +78,14 @@ class AspectServiceRestTest {
     fun updateAspectTest() {
 
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
-        val baseAspect = aspectService.createAspect(baseAspectData)
+        val baseAspect = aspectService.saveAspect(baseAspectData)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyPower.ONE.name)
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
 
         val testData = AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
 
-        val saved = aspectService.createAspect(testData)
+        val saved = aspectService.saveAspect(testData)
 
         val newProperty = AspectPropertyData("", "p3", baseAspect.id, AspectPropertyPower.INFINITY.name)
         val updatedProperty = testProperty2.copy(name = "p4", power = AspectPropertyPower.ZERO.name)
