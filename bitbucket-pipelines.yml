@@ -36,7 +36,8 @@ pipelines:
              - echo "Starting build..."
              - chmod +x gradlew
              - ./gradlew build
-             - bash deploy/deliver-bundles.sh
+             - bash deploy/deliver-backend.sh
+             - bash deploy/deliver-frontend.sh
        frontend-deliver:
         - step:
             caches:
