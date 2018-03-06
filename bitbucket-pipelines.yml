@@ -25,8 +25,20 @@ pipelines:
            script:
              - chmod +x gradlew
              - ./gradlew build
+      KS-18-deploy:
+       - step:
+           caches:
+            - gradle
+            - maven
+            - nodemodules
+           script:
+            - echo "Starting build..."
+            - chmod +x gradlew
+            - ./gradlew build
+            - bash deploy/deliver-backend.sh
+            - bash deploy/deliver-frontend.sh
     custom: # Pipelines that are triggered manually
-       build-deliver:
+      full-deliver:
         - step:
             caches:
              - gradle
@@ -38,7 +50,7 @@ pipelines:
              - ./gradlew build
              - bash deploy/deliver-backend.sh
              - bash deploy/deliver-frontend.sh
-       frontend-deliver:
+      frontend-deliver:
         - step:
             caches:
              - gradle
