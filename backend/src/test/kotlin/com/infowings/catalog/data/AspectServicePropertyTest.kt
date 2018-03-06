@@ -127,7 +127,6 @@ class AspectServicePropertyTest {
                 Is.`is`(propertyList[0].power))
     }
 
-
     @Test
     fun testChangeAspectForAspectProperty() {
         val ad = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, emptyList())

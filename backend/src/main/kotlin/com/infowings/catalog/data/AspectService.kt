@@ -42,6 +42,8 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             val aspectVertex: OVertex = if (aspectId?.isEmpty() == false) {
                 db.getVertexById(aspectId)?.also {
                     checkAspectVersion(it, aspectData)
+                    checkBaseTypeChangeCriteria(it, aspectData)
+                    checkMeasureChangeCriteria(it, aspectData)
                 } ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
             } else {
                 checkBusinessKey(aspectData.name, aspectData.measure)
@@ -111,7 +113,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
-            throw AspectModificationException(aspectVertex.id, "Old version")
+            throw AspectModificationException(aspectVertex.id, "Old version, db: ${aspectVertex.version}, param: ${aspectData.version}")
         }
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
         val receivedVersionMap = aspectData.properties.filter { it.id != "" }.map { it.id to it.version }.toMap()
@@ -132,7 +134,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
         val power = AspectPropertyPower.valueOf(power)
         val aspectPropertyVertex: OVertex = if (!id.isEmpty()) {
-            db.getVertexById(id) ?: throw IllegalArgumentException("Incorrect property id")
+            db.getVertexById(id)?.also {
+                checkPropertyAspectChangeCriteria(it, this)
+            } ?: throw IllegalArgumentException("Incorrect property id")
         } else {
             session.newVertex(ASPECT_PROPERTY_CLASS)
         }
@@ -171,6 +175,36 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
     }
 
+    private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+        if (aspectData.baseType != aspectVertex.baseType?.name) {
+            if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
+            /* или сущуствует хотя бы один экземпляр Аспекта */) {
+
+                throw AspectModificationException(aspectVertex.id, "Impossible to change base type")
+            }
+        }
+    }
+
+    private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+        if (aspectData.measure != aspectVertex.measureName) {
+            val sameGroup = aspectVertex.measureName == aspectData.measure
+            if (!sameGroup && false /* сущуствует хотя бы один экземпляр Аспекта */) {
+                throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
+            }
+        }
+    }
+
+    private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+        if (aspectVertex.aspect != aspectPropertyData.id) {
+            if (false /* сущуствует хотя бы один экземпляр Аспекта */) {
+                throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")
+            }
+        }
+    }
+
+
+
+
     private fun OVertex.toAspect(): Aspect =
             Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this), version)
 
@@ -188,6 +222,7 @@ class AspectAlreadyExist(val name: String, val measure: String?) : AspectExcepti
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 
 private val OVertex.properties: List<OVertex>
     get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
