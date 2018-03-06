@@ -9,7 +9,7 @@ import react.RClass
 import react.dom.input
 import react.rFunction
 
-fun aspectColumn(accessor: String, headerName: String, cell: RClass<RTableRendererProps>? = null) =
+fun simpleTableColumn(accessor: String, headerName: String, cell: RClass<RTableRendererProps>? = null) =
         RTableColumnDescriptor {
             this.accessor = accessor
             this.Header = rFunction("AspectColumn") { +headerName }

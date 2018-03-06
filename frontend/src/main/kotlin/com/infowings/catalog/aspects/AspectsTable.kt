@@ -142,10 +142,10 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
         ReactTable {
             attrs {
                 columns = arrayOf(
-                        aspectColumn("aspect.name", "Name", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(name = value) }) }),
-                        aspectColumn("aspect.measure", "Measure Unit", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
-                        aspectColumn("aspect.domain", "Domain", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
-                        aspectColumn("aspect.baseType", "Base Type", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
+                        simpleTableColumn("aspect.name", "Name", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(name = value) }) }),
+                        simpleTableColumn("aspect.measure", "Measure Unit", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                        simpleTableColumn("aspect.domain", "Domain", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
+                        simpleTableColumn("aspect.baseType", "Base Type", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                         controlsColumn(
                                 if (state.newAspect == null)
                                     addNewAspectHeaderEnabled(::startCreatingNewAspect)

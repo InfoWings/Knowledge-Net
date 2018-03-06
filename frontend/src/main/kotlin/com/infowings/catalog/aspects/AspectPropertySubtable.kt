@@ -2,8 +2,6 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.components.SuggestingInput
-import com.infowings.catalog.components.aspectOption
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.div
@@ -130,12 +128,12 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
             ReactTable {
                 attrs {
                     columns = arrayOf(
-                            aspectColumn("property.name", "Name", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(name = it) })),
-                            aspectColumn("property.power", "Power", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(power = it) })),
+                            simpleTableColumn("property.name", "Name", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(name = it) })),
+                            simpleTableColumn("property.power", "Power", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(power = it) })),
                             selectColumn("aspect.name", "Name", indexedPropertyValueChangedHandler { copy(aspectId = it) }, { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
-                            aspectColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
-                            aspectColumn("aspect.domain", "Domain", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
-                            aspectColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
+                            simpleTableColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                            simpleTableColumn("aspect.domain", "Domain", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
+                            simpleTableColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                             controlsPropertyColumn(::saveAspect, ::resetAspect)
                     )
                     collapseOnDataChange = false
