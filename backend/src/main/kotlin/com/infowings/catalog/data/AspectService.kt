@@ -32,7 +32,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws IllegalArgumentException in case of incorrect input data,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      */
-    fun saveAspect(aspectData: AspectData): Aspect {
+    fun save(aspectData: AspectData): Aspect {
         logger.trace("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
         checkAspectData(aspectData)
 
@@ -201,9 +201,6 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             }
         }
     }
-
-
-
 
     private fun OVertex.toAspect(): Aspect =
             Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this), version)

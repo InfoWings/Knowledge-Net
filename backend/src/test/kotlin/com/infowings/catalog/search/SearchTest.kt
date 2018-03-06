@@ -99,7 +99,7 @@ class SearchTest {
 
     private fun createTestAspect(aspectName: String): Aspect {
         val ad = AspectData("", aspectName, null, null, null, emptyList())
-        return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.saveAspect(ad)
+        return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
     }
 
     @Test

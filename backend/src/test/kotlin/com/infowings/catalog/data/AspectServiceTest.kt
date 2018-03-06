@@ -23,7 +23,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.saveAspect(ad)
+        val createAspect: Aspect = aspectService.save(ad)
 
         assertThat("aspect should be saved and restored", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
@@ -31,7 +31,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams() {
         val ad = AspectData("", "newAspect", null, null, BaseType.Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.saveAspect(ad)
+        val createAspect: Aspect = aspectService.save(ad)
 
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
@@ -39,7 +39,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
-        val createAspect: Aspect = aspectService.saveAspect(ad)
+        val createAspect: Aspect = aspectService.save(ad)
 
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
@@ -47,7 +47,7 @@ class AspectServiceTest {
     @Test
     fun testAddAspectWithEmptyParams3() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.saveAspect(ad)
+        val createAspect: Aspect = aspectService.save(ad)
 
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
@@ -55,16 +55,16 @@ class AspectServiceTest {
     @Test(expected = IllegalArgumentException::class)
     fun testFailAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, OpenDomain(BaseType.Boolean).toString(), BaseType.Boolean.name, emptyList())
-        aspectService.saveAspect(ad)
+        aspectService.save(ad)
     }
 
     @Test
     fun testChangeAspectParams() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad)
+        val aspect = aspectService.save(ad)
 
         val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
-        val newAspect = aspectService.saveAspect(ad2)
+        val newAspect = aspectService.save(ad2)
 
         assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
         assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
@@ -73,10 +73,10 @@ class AspectServiceTest {
     @Test
     fun testAddTwoAspectsSameName() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad)
+        val aspect = aspectService.save(ad)
 
         val ad2 = AspectData("", "aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
-        aspectService.saveAspect(ad2)
+        aspectService.save(ad2)
 
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
     }
@@ -84,19 +84,19 @@ class AspectServiceTest {
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameSameMeasure() {
         val ad1 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.saveAspect(ad1)
+        aspectService.save(ad1)
 
         val ad2 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.saveAspect(ad2)
+        aspectService.save(ad2)
     }
 
     @Test
     fun testAddAspectsDiffNameSameMeasure() {
         val ad1 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.saveAspect(ad1)
+        aspectService.save(ad1)
 
         val ad2 = AspectData("", "aspect2", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.saveAspect(ad2)
+        aspectService.save(ad2)
 
         assertThat("should return two aspects with same measure",
                 aspectService.getAspects().filter { it.measure == Kilometre }.size,
@@ -106,15 +106,15 @@ class AspectServiceTest {
     @Test(expected = IllegalArgumentException::class)
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
-        aspectService.saveAspect(ad)
+        aspectService.save(ad)
     }
 
     @Test
     fun testChangeAspectMeasureSameGroup() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad).toAspectData().copy(measure = Metre.name)
+        val aspect = aspectService.save(ad).toAspectData().copy(measure = Metre.name)
 
-        val newAspect = aspectService.saveAspect(aspect)
+        val newAspect = aspectService.save(aspect)
 
         assertTrue("aspect should have new measure", newAspect.measure == Metre)
 
@@ -125,9 +125,9 @@ class AspectServiceTest {
     @Test
     fun testChangeAspectMeasureDiffGroup() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad).toAspectData().copy(measure = Litre.name)
+        val aspect = aspectService.save(ad).toAspectData().copy(measure = Litre.name)
 
-        val newAspect = aspectService.saveAspect(aspect)
+        val newAspect = aspectService.save(aspect)
 
         assertTrue("aspect should have new measure", newAspect.measure == Litre)
 
@@ -138,14 +138,14 @@ class AspectServiceTest {
     @Test
     fun testChangeAspectMeasureOtherGroupOtherBaseType() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad)
+        val aspect = aspectService.save(ad)
 
         // We have not measures with different from Decimal BaseType. So, little hack
         val field = Gram::class.java.getDeclaredField("baseType")
         field.isAccessible = true
         field.set(Gram, BaseType.Boolean)
 
-        val newAspect = aspectService.saveAspect(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name))
+        val newAspect = aspectService.save(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name))
 
         assertTrue("aspect should have new measure", newAspect.measure == Gram)
 
@@ -155,26 +155,26 @@ class AspectServiceTest {
     @Test(expected = AspectModificationException::class)
     fun testChangeBaseTypeToNull() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.saveAspect(ad)
-        aspectService.saveAspect(aspect.toAspectData().copy(baseType = null))
+        val aspect = aspectService.save(ad)
+        aspectService.save(aspect.toAspectData().copy(baseType = null))
     }
 
     @Test
     fun testMeasureBaseTypeManipulating() {
         val ad = AspectData("", "aspect", Litre.name, null, null, emptyList())
-        val aspect = aspectService.saveAspect(ad)
+        val aspect = aspectService.save(ad)
 
         assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal)
         assertTrue("measure should be litre", aspect.measure == Litre)
 
         val ad2 = AspectData(aspect.id, "aspect", null, null, null, emptyList(), aspect.version)
-        val aspect2 = aspectService.saveAspect(ad2)
+        val aspect2 = aspectService.save(ad2)
 
         assertTrue("base type should be null", aspect2.baseType == BaseType.restoreBaseType(null))
         assertTrue("measure should be null", aspect2.measure == null)
 
         val ad3 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect2.version)
-        val aspect3 = aspectService.saveAspect(ad3)
+        val aspect3 = aspectService.save(ad3)
 
         assertTrue("base type should be decimal", aspect3.baseType == BaseType.Boolean)
         assertTrue("measure should be null", aspect3.measure == null)
