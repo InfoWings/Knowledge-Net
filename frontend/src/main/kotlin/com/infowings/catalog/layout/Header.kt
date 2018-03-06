@@ -1,6 +1,6 @@
 package com.infowings.catalog.layout
 
-import com.infowings.catalog.utils.logout
+import com.infowings.catalog.utils.removeAuthRole
 import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
@@ -40,7 +40,7 @@ class Header : RComponent<HeaderProps, RState>() {
                         reactRouter.Link {
                             attrs {
                                 to = "/"
-                                onClick = { logout() }
+                                onClick = { removeAuthRole() }
                             }
                             +"Logout"
                         }
