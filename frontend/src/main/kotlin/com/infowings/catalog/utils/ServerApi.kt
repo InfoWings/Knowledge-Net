@@ -21,7 +21,7 @@ private const val AUTH_ROLE = "auth-role"
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
-class ServerException(message: String) : RuntimeException(message)
+class ServerException(message: String, val httpCode: Int) : RuntimeException(message)
 
 /**
  * Http POST request to server.
@@ -41,6 +41,9 @@ suspend fun get(url: String, body: dynamic = null): String {
 
 /**
  * Http request to server after authorization.
+ * On unauthorized case do logout
+ * If response status 200(OK) then return response
+ * else throw ServerException
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body)
@@ -55,10 +58,10 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
         window.location.replace("/")
     }
 
-    if (response.ok) {
+    if (response.status.toInt() == 200) {
         return response
     } else {
-        throw ServerException(response.text().await())
+        throw ServerException(response.text().await(), response.status.toInt())
     }
 }
 
