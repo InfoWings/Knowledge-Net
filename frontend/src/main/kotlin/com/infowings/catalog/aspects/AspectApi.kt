@@ -12,4 +12,6 @@ suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/a
 
 suspend fun updateAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/update", JSON.stringify(body)))
 
-suspend fun getSuggestedAspects(query: String): AspectsList = JSON.parse(get("api/search/aspect/suggestion?text=$query"))
+suspend fun getSuggestedAspects(query: String): AspectsList = JSON.parse(get("/api/search/aspect/suggestion?text=$query"))
+
+suspend fun getSuggestedMeasurementUnits(query: String): Array<String> = kotlin.js.JSON.parse(get("/api/search/measure/suggestion?text=$query"))
