@@ -42,10 +42,21 @@ suspend fun get(url: String, body: dynamic = null): String {
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body)
-    if (response.status.toInt() == 401) {
+
+    if (response.status.toInt() == 403) {
         response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
-    return response
+
+    if (response.status.toInt() == 401) {
+        document.cookie = "$AUTH_ROLE="
+        window.location.replace("/")
+    }
+
+    if (response.ok) {
+        return response
+    } else {
+        throw RuntimeException(response.text().await())
+    }
 }
 
 /**
