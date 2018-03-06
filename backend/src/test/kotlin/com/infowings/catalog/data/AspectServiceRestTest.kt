@@ -96,7 +96,8 @@ class AspectServiceRestTest {
                 Kilometre.name,
                 null,
                 BaseType.Decimal.name,
-                listOf(saved["p1"].toAspectPropertyData(), newProperty, updatedProperty.copy(id = saved["p2"].id)))
+                listOf(saved["p1"].toAspectPropertyData(), newProperty, updatedProperty.copy(id = saved["p2"].id, version = saved["p2"].version)),
+                saved.version)
 
         val result = mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/aspect/update").with(authorities)

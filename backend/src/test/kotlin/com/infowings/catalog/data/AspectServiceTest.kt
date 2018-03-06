@@ -195,13 +195,13 @@ class AspectServiceTest {
         assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal)
         assertTrue("measure should be gram", aspect.measure == Gram)
 
-        val ad2 = AspectData(aspect.id, "aspect", null, null, null, emptyList())
+        val ad2 = AspectData(aspect.id, "aspect", null, null, null, emptyList(), aspect.version)
         val aspect2 = aspectService.updateAspect(ad2)
 
         assertTrue("base type should be null", aspect2.baseType == BaseType.restoreBaseType(null))
         assertTrue("measure should be null", aspect2.measure == null)
 
-        val ad3 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList())
+        val ad3 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect2.version)
         val aspect3 = aspectService.updateAspect(ad3)
 
         assertTrue("base type should be decimal", aspect3.baseType == BaseType.Boolean)

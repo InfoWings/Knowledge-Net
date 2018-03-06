@@ -2,6 +2,9 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
+import com.infowings.catalog.wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.ReactTable
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
@@ -9,9 +12,6 @@ import react.*
 import react.dom.div
 import react.dom.i
 import react.dom.input
-import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
-import com.infowings.catalog.wrappers.table.RTableRendererProps
-import com.infowings.catalog.wrappers.table.ReactTable
 
 /**
  * Compact column creator for immutable columns (aspect fields of the aspect property)
@@ -55,13 +55,13 @@ data class AspectPropertyRow(
 
 class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>() {
 
-    private fun propertyNameChanger(changedProperty: AspectPropertyData, name: String) = AspectPropertyData(changedProperty.id, name, changedProperty.aspectId, changedProperty.power)
+    private fun propertyNameChanger(changedProperty: AspectPropertyData, name: String) = AspectPropertyData(changedProperty.id, name, changedProperty.aspectId, changedProperty.power, changedProperty.version)
 
-    private fun propertyPowerChanger(changedProperty: AspectPropertyData, power: String) = AspectPropertyData(changedProperty.id, changedProperty.name, changedProperty.aspectId, power)
+    private fun propertyPowerChanger(changedProperty: AspectPropertyData, power: String) = AspectPropertyData(changedProperty.id, changedProperty.name, changedProperty.aspectId, power, changedProperty.version)
 
     private fun onInputValueChanged(propertyChanger: (changedProperty: AspectPropertyData, value: String) -> AspectPropertyData) = { changedIndex: Int, value: String ->
         props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties.mapIndexed { index, property ->
+            aspect.copy(properties = aspect.properties.mapIndexed { index, property ->
                 if (index == changedIndex) {
                     propertyChanger(property, value)
                 } else {
@@ -76,7 +76,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, RState>(
      */
     private fun onNewPropertyCreated() {
         props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties + AspectPropertyData("", "", "", ""))
+            aspect.copy(properties = aspect.properties + AspectPropertyData("", "", "", ""))
         }
     }
 

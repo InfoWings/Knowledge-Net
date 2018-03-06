@@ -71,6 +71,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         checkAspectData(updatingAspect)
 
         val realAspect = updatingAspect.id?.let { findById(it) } ?: throw IllegalArgumentException("Incorrect id")
+
+        val aspectVertex = db.getVertexById(updatingAspect.id!!) ?: throw AspectDoesNotExist(updatingAspect.id!!)
+        checkAspectVersion(aspectVertex, updatingAspect)
+
         changeName(realAspect.id, updatingAspect.name)
         // The order is important !
         changeMeasure(realAspect.id, GlobalMeasureMap[updatingAspect.measure])
@@ -261,6 +265,23 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         return findById(save.id)
     }
 
+    private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
+        if (aspectVertex.version != aspectData.version) {
+            throw AspectModificationException(aspectVertex.id, "Old version")
+        }
+        val realVersionMap = aspectVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).map { it.id to it.version }.toMap()
+        val receivedVersionMap = aspectData.properties.filter { it.id != "" }.map { it.id to it.version }.toMap()
+
+        if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
+            throw AspectModificationException(aspectVertex.id, "Old version")
+        }
+
+        val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
+        if (different) {
+            throw AspectModificationException(aspectVertex.id, "Old version")
+        }
+    }
+
     private fun AspectPropertyData.saveAspectProperty(): OVertex = transaction(db) { session ->
         logger.trace("Adding aspect property $name for aspect $aspectId")
         val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
@@ -292,13 +313,12 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         get() = GlobalMeasureMap[this["measure"]]
 
     private fun OVertex.toAspect(): Aspect =
-            Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this))
+            Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this), version)
 
 
     private fun loadProperties(oVertex: OVertex): List<AspectProperty> = session(db) {
         oVertex
-                .getEdges(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE)
-                .map { it.to }
+                .getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE)
                 .map { loadAspectProperty(it.id) }
     }
 
@@ -318,7 +338,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun OVertex.toAspectProperty(): AspectProperty =
-            AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]))
+            AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(this["power"]), version)
 }
 
 private const val selectFromAspect = "SELECT FROM Aspect"

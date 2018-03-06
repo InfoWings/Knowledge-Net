@@ -41,7 +41,8 @@ class SuggestionService(val database: OrientDatabase) {
             name = this["name"],
             measure = this["measure"],
             baseType = this["baseType"],
-            domain = BaseType.restoreBaseType(this["baseType"])?.let { OpenDomain(it).toString() }
+            domain = BaseType.restoreBaseType(this["baseType"]).let { OpenDomain(it).toString() },
+            version = version
     )
 }
 
