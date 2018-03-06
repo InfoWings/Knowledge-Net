@@ -43,10 +43,11 @@ suspend fun get(url: String, body: dynamic = null): String {
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic): Response {
     var response = request(method, url, body)
 
+    // if server return HTTP 403 forbidden status in response to request then try refresh token and repeat request
     if (response.status.toInt() == 403) {
         response = refreshTokenAndRepeatRequest(method, url, body, response)
     }
-
+    // if server return HTTP 401 unauthorized status in response to request then logout
     if (response.status.toInt() == 401) {
         document.cookie = "$AUTH_ROLE="
         window.location.replace("/")
