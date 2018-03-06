@@ -26,7 +26,7 @@ class AspectServiceTest {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
-        assertThat("aspect should be saved and restored", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+        assertThat("aspect should be saved and restored", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
     @Test
@@ -34,7 +34,7 @@ class AspectServiceTest {
         val ad = AspectData("", "newAspect", null, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
     @Test
@@ -42,7 +42,7 @@ class AspectServiceTest {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
     @Test
@@ -50,7 +50,7 @@ class AspectServiceTest {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.createAspect(ad)
 
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect"), Is.`is`(createAspect))
+        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
     @Test(expected = IllegalArgumentException::class)

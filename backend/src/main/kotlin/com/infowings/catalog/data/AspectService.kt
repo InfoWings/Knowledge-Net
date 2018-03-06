@@ -45,8 +45,8 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @return null if nothing's found
      * todo: немного неконсистентно где-то летит исключение, где-то null
      */
-    fun findByName(name: String): Aspect? = db.query(selectAspectByName, name) { rs ->
-        rs.map { it.toVertex().toAspect() }.firstOrNull()
+    fun findByName(name: String): Set<Aspect> = db.query(selectAspectByName, name) { rs ->
+        rs.map { it.toVertex().toAspect() }.toSet()
     }
 
     fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
@@ -324,7 +324,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     private fun checkBusinessKey(name: String?, measure: String?) {
         name?.let {
-            findByName(name)?.let { throw AspectAlreadyExist(name) }
+            if (!findByName(name).isEmpty()) {
+                throw AspectAlreadyExist(name)
+            }
         }
     }
 

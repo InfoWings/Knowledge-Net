@@ -26,9 +26,9 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): AspectData? {
+    fun getAspect(@PathVariable name: String): List<AspectData> {
         logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name)?.toAspectData()
+        return aspectService.findByName(name).map { it.toAspectData() }
     }
 
     @GetMapping("all")
