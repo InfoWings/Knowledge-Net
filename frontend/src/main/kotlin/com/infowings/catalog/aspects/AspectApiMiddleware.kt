@@ -24,10 +24,10 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
 
     override fun componentDidMount() {
         launch {
-            val aspects = getAllAspects()
+            val response = getAllAspects()
             setState {
-                data = aspects.aspects.toTypedArray()
-                context = aspects.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
+                data = response.aspects.toTypedArray()
+                context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
                 loading = false
             }
         }
