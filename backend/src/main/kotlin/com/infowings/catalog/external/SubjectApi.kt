@@ -19,7 +19,7 @@ class SubjectApi(val subjectService: SubjectService) {
 
     @GetMapping("all")
     fun getAspects(): List<SubjectData> {
-        logger.debug("Get all aspects request")
+        logger.debug("Get all subject request")
         return subjectService.getSubjects().map { it.toSubjectData() }
     }
 }

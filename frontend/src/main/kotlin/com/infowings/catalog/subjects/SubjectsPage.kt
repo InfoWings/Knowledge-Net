@@ -14,5 +14,9 @@ class SubjectsPage : RComponent<RouteSuppliedProps, RState>() {
             attrs.location = props.location.pathname
         }
         h1 { +"Subjects Page" }
+
+        child(SubjectApiMiddleware::class) {
+
+        }
     }
 }

@@ -1,23 +1,15 @@
 package com.infowings.catalog.units
 
+import com.infowings.catalog.common.column
+import com.infowings.catalog.common.header
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
-import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 import com.infowings.catalog.wrappers.table.treeTable
-import react.*
-import react.dom.span
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
 
-private fun header(columnName: String) = rFunction<RTableRendererProps>("UnitsTableHeader") {
-    span {
-        +columnName
-    }
-}
-
-private fun column(accessor: String, header: RClass<RTableRendererProps>) =
-    RTableColumnDescriptor {
-        this.accessor = accessor
-        this.Header = header
-    }
 
 data class UnitsTableRowData(val measure: String, val name: String, val symbol: String)
 

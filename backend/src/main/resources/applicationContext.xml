@@ -22,8 +22,14 @@
         <constructor-arg ref="measuerService"/>
     </bean>
 
+    <!-- Контроллеры также необходимо добавлять в xml конфиг т.к. без этого их api не виден.
+         Возможно что-то изменится с переходом на kotlin config.  -->
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
         <constructor-arg ref="aspectService"/>
+    </bean>
+
+    <bean id="subjectApi" class="com.infowings.catalog.external.SubjectApi">
+        <constructor-arg ref="subjectService"/>
     </bean>
 
     <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">

@@ -1,12 +1,18 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
+import com.infowings.catalog.wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.ReactTable
+import com.infowings.catalog.wrappers.table.SubComponentProps
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.*
-import com.infowings.catalog.wrappers.table.*
+import react.dom.div
+import react.dom.i
+import react.dom.input
+import react.dom.span
 
 /**
  * Compact method for creating header for table
@@ -188,7 +194,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                                 ::resetAspect
                         )
                 )
-                data = aspectsToRows()
+                data = aspectsToRows() //TODO move to AspectApiMiddleware???
                 loading = props.loading
                 SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
                 showPagination = false
