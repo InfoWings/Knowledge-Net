@@ -21,6 +21,8 @@ private const val AUTH_ROLE = "auth-role"
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
+class ServerException(message: String) : RuntimeException(message)
+
 /**
  * Http POST request to server.
  * Return object of type T which is obtained by parsing response text.
@@ -45,7 +47,7 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
 
     // if server return HTTP 403 forbidden status in response to request then try refresh token and repeat request
     if (response.status.toInt() == 403) {
-        response = refreshTokenAndRepeatRequest(method, url, body, response)
+        response = refreshTokenAndRepeatRequest(method, url, body)
     }
     // if server return HTTP 401 unauthorized status in response to request then logout
     if (response.status.toInt() == 401) {
@@ -56,7 +58,7 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
     if (response.ok) {
         return response
     } else {
-        throw RuntimeException(response.text().await())
+        throw ServerException(response.text().await())
     }
 }
 
@@ -78,28 +80,21 @@ private val defaultHeaders = json(
 
 /**
  * Method that try to refresh token and repeat request.
- * If refreshing was successful then return response to repeat request.
+ * If refreshing was successful then return response to repeat request else return response to refreshing request
  */
 private suspend fun refreshTokenAndRepeatRequest(
     method: String,
     url: String,
-    body: dynamic,
-    oldResponse: Response
+    body: dynamic
 ): Response {
-    val isRefreshed = refreshToken()
-    if (isRefreshed) {
-        return request(method, url, body)
-    }
-    return oldResponse
-}
-
-private suspend fun refreshToken(): Boolean {
-    val response = request(GET, "/api/access/refresh", null)
+    var response = request(GET, "/api/access/refresh", null)
     if (response.ok) {
         val isParsed = parseToken(response)
-        return isParsed
+        if (isParsed) {
+            response = request(method, url, body)
+        }
     }
-    return false
+    return response
 }
 
 /**
