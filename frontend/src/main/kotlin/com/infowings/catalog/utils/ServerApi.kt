@@ -21,7 +21,7 @@ private const val AUTH_ROLE = "auth-role"
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
-class ServerException(message: String, val httpCode: Int) : RuntimeException(message)
+class ServerException(message: String, val httpStatusCode: Int) : RuntimeException(message)
 
 /**
  * Http POST request to server.
@@ -52,16 +52,17 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
     if (response.status.toInt() == 403) {
         response = refreshTokenAndRepeatRequest(method, url, body)
     }
-    // if server return HTTP 401 unauthorized status in response to request then logout
-    if (response.status.toInt() == 401) {
-        document.cookie = "$AUTH_ROLE="
-        window.location.replace("/")
-    }
 
-    if (response.status.toInt() == 200) {
-        return response
-    } else {
-        throw ServerException(response.text().await(), response.status.toInt())
+    val statusCode = response.status.toInt()
+
+    return when (statusCode) {
+        200 -> response
+        401 -> {
+            document.cookie = "$AUTH_ROLE="
+            window.location.replace("/")
+            response
+        }
+        else -> throw ServerException(response.text().await(), statusCode)
     }
 }
 
