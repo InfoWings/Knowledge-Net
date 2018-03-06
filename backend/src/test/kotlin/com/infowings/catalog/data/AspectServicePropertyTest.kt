@@ -1,131 +1,159 @@
-//package com.infowings.catalog.data
-//
-//import com.infowings.catalog.MasterCatalog
-//import com.infowings.catalog.common.AspectData
-//import com.infowings.catalog.common.AspectPropertyData
-//import com.infowings.catalog.common.BaseType
-//import com.infowings.catalog.common.Kilometre
-//import org.hamcrest.core.Is
-//import org.junit.Assert.assertThat
-//import org.junit.Before
-//import org.junit.Test
-//import org.junit.runner.RunWith
-//import org.springframework.beans.factory.annotation.Autowired
-//import org.springframework.boot.test.context.SpringBootTest
-//import org.springframework.test.annotation.DirtiesContext
-//import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-//
-//@RunWith(SpringJUnit4ClassRunner::class)
-//@SpringBootTest(classes = [MasterCatalog::class])
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-//class AspectServicePropertyTest {
-//
-//    @Autowired
-//    lateinit var aspectService: AspectService
-//
-//    lateinit var complexAspect: Aspect
-//    lateinit var baseAspect: Aspect
-//
-//    @Before
-//    fun addAspectWithProperty() {
-//        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-//        baseAspect = aspectService.createAspect(ad)
-//
-//        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
-//
-//        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
-//        complexAspect = aspectService.createAspect(ad2)
-//    }
-//
-//    @Test
-//    fun testAspectWithProperties() {
-//        val loaded = aspectService.findById(complexAspect.id)
-//
-//        assertThat("aspect property should be saved and restored", loaded, Is.`is`(complexAspect))
-//
-//        val all = aspectService.getAspects()
-//        assertThat("There should be 2 aspects in db", all.size, Is.`is`(2))
-//    }
-//
-//    @Test
-//    fun testAddAspectPropertiesToAspect() {
-//        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
-//        val updatedAspect = aspectService.addProperty(complexAspect.id, propertyData)
-//
-//        assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
-//    }
-//
-//    @Test
-//    fun testCreateAspectWithTwoPropertiesDifferentNames() {
-//        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-//        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyPower.INFINITY.name)
-//
-//        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
-//        val loaded = aspectService.createAspect(ad2)
-//
-//        assertThat("aspect properties should be saved and restored", aspectService.findById(loaded.id), Is.`is`(loaded))
-//
-//        assertThat("aspect should have corresponding properties",
-//                loaded.properties.map { it.name },
-//                Is.`is`(listOf(property, property2).map { it.name }))
-//    }
-//
-//    @Test(expected = IllegalArgumentException::class)
-//    fun testCreateAspectWithTwoPropertiesSameNames() {
-//        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-//        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-//
-//        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
-//        aspectService.createAspect(ad2)
-//    }
-//
-//    @Test
-//    fun testCorrectChangeAspectPropertyName() {
-//        val propertyId = complexAspect.properties[0].id
-//        val updatedProperty = aspectService.changePropertyName(propertyId, "new Name")
-//
-//        assertThat("returned from changePropertyName property should be the same as found by loadAspectProperty",
-//                aspectService.loadAspectProperty(propertyId), Is.`is`(updatedProperty))
-//
-//        assertThat("aspect property should have new name", updatedProperty.name, Is.`is`("new Name"))
-//    }
-//
-//    @Test(expected = AspectPropertyModificationException::class)
-//    fun testUnCorrectChangeAspectPropertyName() {
-//        val propertyId = complexAspect.properties[0].id
-//
-//        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
-//        aspectService.addProperty(complexAspect.id, propertyData)
-//
-//        aspectService.changePropertyName(propertyId, propertyData.name)
-//    }
-//
-//    @Test
-//    fun testChangePowerAspectProperty() {
-//        val property = complexAspect.properties[0]
-//        val updatedProperty = aspectService.changePropertyPower(property.id, AspectPropertyPower.ONE)
-//
-//        assertThat("returned from changePropertyPower property should be the same as found by loadAspectProperty",
-//                aspectService.loadAspectProperty(property.id), Is.`is`(updatedProperty))
-//
-//        assertThat("aspect property should have new power", updatedProperty.power, Is.`is`(AspectPropertyPower.ONE))
-//    }
-//
-//    // todo: tests for cycle detection
-//    // todo: in case no values for aspect
-//    @Test
-//    fun testChangeAspectForAspectProperty() {
-//        val ad = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-//        val createAspect: Aspect = aspectService.createAspect(ad)
-//
-//        val property = complexAspect.properties[0]
-//        val updatedProperty = aspectService.changePropertyAspect(property.id, createAspect.id)
-//
-//        assertThat("returned from changePropertyAspect property should be the same as found by loadAspectProperty",
-//                aspectService.loadAspectProperty(property.id), Is.`is`(updatedProperty))
-//
-//        assertThat("aspect property should have new linked aspect", updatedProperty.aspect, Is.`is`(createAspect))
-//    }
-//}
-//
-//
+package com.infowings.catalog.data
+
+import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Kilometre
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.set
+import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.record.OVertex
+import org.hamcrest.core.Is
+import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+
+@RunWith(SpringJUnit4ClassRunner::class)
+@SpringBootTest(classes = [MasterCatalog::class])
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class AspectServicePropertyTest {
+
+    @Autowired
+    lateinit var aspectService: AspectService
+    @Autowired
+    lateinit var orientDatabase: OrientDatabase
+
+    lateinit var complexAspect: Aspect
+    lateinit var baseAspect: Aspect
+
+    @Before
+    fun addAspectWithProperty() {
+        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        baseAspect = aspectService.saveAspect(ad)
+
+        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
+        complexAspect = aspectService.saveAspect(ad2)
+    }
+
+    @Test
+    fun testAspectWithProperties() {
+        val loaded = aspectService.findById(complexAspect.id)
+
+        assertThat("aspect linked with aspect property should be saved", loaded, Is.`is`(complexAspect))
+
+        val all = aspectService.getAspects()
+        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
+    }
+
+    @Test
+    fun testAddAspectPropertiesToAspect() {
+        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val dataForUpdate = complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
+        val updatedAspect = aspectService.saveAspect(dataForUpdate)
+
+        assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
+    }
+
+    @Test
+    fun testCreateAspectWithTwoPropertiesDifferentNames() {
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val loaded = aspectService.saveAspect(ad2)
+
+        assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
+
+        assertThat("aspect should have correct properties",
+                loaded.properties.map { it.name },
+                Is.`is`(listOf(property, property2).map { it.name }))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCreateAspectWithTwoPropertiesSameNames() {
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        aspectService.saveAspect(ad2)
+    }
+
+    @Test
+    fun testCorrectChangeAspectPropertyName() {
+        val propertyList = complexAspect.toAspectData().properties.toMutableList()
+        propertyList[0] = propertyList[0].copy(name = "new Name")
+        val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
+
+        val updated = aspectService.saveAspect(dataForUpdate)
+
+        assertTrue("aspect property should have new name", updated.properties.map { it.name }.any { it == "new Name" })
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testUnCorrectChangeAspectPropertyName() {
+
+        val propertyList = complexAspect.toAspectData().properties.toMutableList()
+        propertyList.add(propertyList[0].copy(id = "", name = "new Name"))
+        val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
+
+        val saved = aspectService.saveAspect(dataForUpdate)
+
+        var propertyList2 = saved.toAspectData().properties.toMutableList()
+        propertyList2 = propertyList2.map { if (it.name == "new Name") it.copy(name = "p") else it }.toMutableList()
+        val dataForUpdate2 = saved.toAspectData().copy(properties = propertyList2)
+
+        aspectService.saveAspect(dataForUpdate2)
+    }
+
+    @Test
+    fun testChangePowerAspectProperty() {
+        val propertyList = complexAspect.toAspectData().properties.toMutableList()
+        propertyList[0] = propertyList[0].copy(power = AspectPropertyPower.ONE.name)
+        val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
+
+        val saved = aspectService.saveAspect(dataForUpdate)
+
+        assertThat("aspect property should have new power",
+                aspectService.findById(saved.id).properties.find { it.name == propertyList[0].name }?.power?.name,
+                Is.`is`(propertyList[0].power))
+    }
+
+
+    @Test
+    fun testChangeAspectForAspectProperty() {
+        val ad = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val createAspect: Aspect = aspectService.saveAspect(ad)
+
+        val propertyList = complexAspect.toAspectData().properties.toMutableList()
+        propertyList[0] = propertyList[0].copy(aspectId = createAspect.id)
+        val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
+
+        val saved = aspectService.saveAspect(dataForUpdate)
+
+        assertThat("aspect property should have new linked aspect",
+                saved.properties[0].aspect,
+                Is.`is`(createAspect.copy(version = createAspect.version + 1)))
+    }
+
+    @Test(expected = AspectModificationException::class)
+    fun testPropertyOldVersion() {
+        transaction(orientDatabase) {
+            val property = complexAspect.properties[0]
+            val vertex = orientDatabase.getVertexById(property.id)!!
+            vertex["name"] = "name"
+            vertex.save<OVertex>()
+        }
+        aspectService.saveAspect(complexAspect.toAspectData())
+    }
+}
+
+

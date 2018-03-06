@@ -42,9 +42,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             val aspectVertex: OVertex = if (aspectId?.isEmpty() == false) {
                 db.getVertexById(aspectId)?.also {
                     checkAspectVersion(it, aspectData)
-                    checkBusinessKey(aspectData.name, aspectData.measure)
                 } ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
             } else {
+                checkBusinessKey(aspectData.name, aspectData.measure)
                 session.newVertex(ASPECT_CLASS)
             }
 
@@ -67,7 +67,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                 throw IllegalArgumentException("Properties for aspect should have different names")
             }
 
-            val savedProperties = aspectVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).map { it.id }
+            val savedProperties = aspectVertex.properties.map { it.id }
 
             // now without removing
             aspectData.properties
@@ -104,7 +104,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * Load property by id
      * @throws AspectPropertyDoesNotExist
      */
-    private fun loadAspectProperty(propertyId: String): AspectProperty =
+    fun loadAspectProperty(propertyId: String): AspectProperty =
             db.getVertexById(propertyId)?.toAspectProperty()
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
@@ -113,7 +113,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         if (aspectVertex.version != aspectData.version) {
             throw AspectModificationException(aspectVertex.id, "Old version")
         }
-        val realVersionMap = aspectVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).map { it.id to it.version }.toMap()
+        val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
         val receivedVersionMap = aspectData.properties.filter { it.id != "" }.map { it.id to it.version }.toMap()
 
         if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
@@ -127,10 +127,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun AspectPropertyData.saveAspectProperty(): OVertex = transaction(db) { session ->
-        logger.trace("Saving aspect property $name for aspect $aspectId")
+        logger.trace("Saving aspect property $name$ linked with aspect $aspectId")
 
         val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
-        val power = AspectPropertyPower.valueOf(this.power)
+        val power = AspectPropertyPower.valueOf(power)
         val aspectPropertyVertex: OVertex = if (!id.isEmpty()) {
             db.getVertexById(id) ?: throw IllegalArgumentException("Incorrect property id")
         } else {
@@ -141,7 +141,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         aspectPropertyVertex["aspectId"] = aspectId
         aspectPropertyVertex["power"] = power.name
 
-        aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
+        if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).contains(aspectVertex)) {
+            aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
+        }
 
         return@transaction aspectPropertyVertex.save<OVertex>().also {
             logger.trace("Saved aspect property $name with temporary id: ${it.id}")
