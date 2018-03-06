@@ -41,7 +41,7 @@ suspend fun get(url: String, body: dynamic = null): String {
 
 /**
  * Http request to server after authorization.
- * On unauthorized case do logout
+ * On unauthorized redirect to login page
  * If response status 200(OK) then return response
  * else throw ServerException
  */
