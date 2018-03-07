@@ -130,20 +130,20 @@ class SearchTest {
          */
 
         val level2_data = AspectData("", "level2", Kilogram.name, null, BaseType.Decimal.name, emptyList())
-        val level2: Aspect = aspectService.createAspect(level2_data)
+        val level2: Aspect = aspectService.save(level2_data)
         val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyPower.INFINITY.name)
 
 
         val level1_1_data = AspectData("", "level1_1", Kilogram.name, null, BaseType.Decimal.name, emptyList())
-        val level1_1: Aspect = aspectService.createAspect(level1_1_data)
+        val level1_1: Aspect = aspectService.save(level1_1_data)
         val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyPower.INFINITY.name)
 
         val level1_data = AspectData("", "level1", Kilometre.name, null, BaseType.Decimal.name, listOf(level2_property))
-        val level1: Aspect = aspectService.createAspect(level1_data)
+        val level1: Aspect = aspectService.save(level1_data)
         val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyPower.INFINITY.name)
 
         val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
-        val createAspect: Aspect = aspectService.createAspect(ad)
+        val createAspect: Aspect = aspectService.save(ad)
 
 
         val loaded = aspectService.findById(level2.id)
