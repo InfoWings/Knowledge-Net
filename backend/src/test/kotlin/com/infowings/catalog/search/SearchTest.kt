@@ -2,10 +2,9 @@ package com.infowings.catalog.search
 
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.Metre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Aspect
+import com.infowings.catalog.data.AspectPropertyPower
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Before
@@ -97,9 +96,58 @@ class SearchTest {
         assertEquals(aspect.toAspectData(), res.first())
     }
 
+    @Test
+    fun findCycle() {
+        val child = createTestAspectTree()
+        var res = suggestionService.findAspectNoCycle(child.id, "level")
+        assertEquals(1, res.size)
+        assertEquals("level1_1", res[0].name)
+        assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
+
+        res = suggestionService.findParentAspects(child.id)
+        assertEquals(3, res.size)
+        assertEquals("level2", res[0].name)
+        assertEquals("level1", res[1].name)
+        assertEquals("root", res[2].name)
+    }
+
     private fun createTestAspect(aspectName: String): Aspect {
         val ad = AspectData("", aspectName, null, null, null, emptyList())
         return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
+    }
+
+
+    private fun createTestAspectTree(): Aspect {
+
+        /*
+         *  root
+         *    level1_property
+         *       level1
+         *          level2_property
+         *             level2
+         *    level1_1_property
+         *       level1_1
+         */
+
+        val level2_data = AspectData("", "level2", Kilogram.name, null, BaseType.Decimal.name, emptyList())
+        val level2: Aspect = aspectService.createAspect(level2_data)
+        val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyPower.INFINITY.name)
+
+
+        val level1_1_data = AspectData("", "level1_1", Kilogram.name, null, BaseType.Decimal.name, emptyList())
+        val level1_1: Aspect = aspectService.createAspect(level1_1_data)
+        val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyPower.INFINITY.name)
+
+        val level1_data = AspectData("", "level1", Kilometre.name, null, BaseType.Decimal.name, listOf(level2_property))
+        val level1: Aspect = aspectService.createAspect(level1_data)
+        val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyPower.INFINITY.name)
+
+        val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
+        val createAspect: Aspect = aspectService.createAspect(ad)
+
+
+        val loaded = aspectService.findById(level2.id)
+        return loaded
     }
 
     @Test
