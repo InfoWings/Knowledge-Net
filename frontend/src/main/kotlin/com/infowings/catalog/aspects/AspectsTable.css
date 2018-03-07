@@ -1,16 +1,13 @@
 .rtable-input {
+  box-sizing: border-box;
+  height: 36px;
+  line-height: 34px;
   outline: none;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  padding: 0;
+  border: none;
+  padding: 0 10px;
   margin: 0;
   background-color: transparent;
   width: 100%;
-}
-
-
-.rtable-input:focus {
-  border: 1px solid darkgreen;
 }
 
 .aspect-management-container {
@@ -71,6 +68,7 @@
 
 .ReactTable .rt-td.aspect-cell {
   overflow: visible;
+  padding: 0;
 }
 
 .ReactTable.aspect-table .rt-table {
@@ -79,4 +77,11 @@
 
 .ReactTable.aspect-table .rt-tbody {
   overflow: visible
+}
+
+.aspect-table-select > .Select-control {
+  border-radius: 0;
+  border: none;
+  background-color: transparent !important;
+  outline: none !important;
 }

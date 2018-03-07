@@ -24,6 +24,7 @@ class AspectSuggestingInput : RComponent<AspectSuggestingInput.Props, AspectSugg
     override fun RBuilder.render() {
         asyncCreatableSelect<Option> {
             attrs {
+                className = "aspect-table-select"
                 value = props.associatedAspect.name
                 labelKey = "aspectName"
                 valueKey = "aspectName"
