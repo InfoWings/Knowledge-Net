@@ -20,9 +20,9 @@ data class AspectData(
 
 @Serializable
 data class AspectPropertyData(
-        val id: String,
-        val name: String,
-        val aspectId: String,
-        val power: String,
-        val version: Int = 0
+    val id: String,
+    val name: String,
+    val aspectId: String,
+    val cardinality: String,
+    val version: Int = 0
 )

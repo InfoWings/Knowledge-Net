@@ -38,7 +38,7 @@ class AspectServicePropertyTest {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad)
 
-        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
         complexAspect = aspectService.save(ad2)
@@ -56,7 +56,7 @@ class AspectServicePropertyTest {
 
     @Test
     fun testAddAspectPropertiesToAspect() {
-        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
         val updatedAspect = aspectService.save(dataForUpdate)
 
@@ -65,8 +65,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesDifferentNames() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
         val loaded = aspectService.save(ad2)
@@ -80,8 +80,8 @@ class AspectServicePropertyTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
         aspectService.save(ad2)
@@ -89,8 +89,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesSameNamesDifferentAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
-        val property2 = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val property2 = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
         val saved = aspectService.save(ad2)
@@ -128,14 +128,16 @@ class AspectServicePropertyTest {
     @Test
     fun testChangePowerAspectProperty() {
         val propertyList = complexAspect.toAspectData().properties.toMutableList()
-        propertyList[0] = propertyList[0].copy(power = AspectPropertyPower.ONE.name)
+        propertyList[0] = propertyList[0].copy(cardinality = AspectPropertyCardinality.ONE.name)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
         val saved = aspectService.save(dataForUpdate)
 
-        assertThat("aspect property should have new power",
-                aspectService.findById(saved.id).properties.find { it.name == propertyList[0].name }?.power?.name,
-                Is.`is`(propertyList[0].power))
+        assertThat(
+            "aspect property should have new cardinality",
+            aspectService.findById(saved.id).properties.find { it.name == propertyList[0].name }?.cardinality?.name,
+            Is.`is`(propertyList[0].cardinality)
+        )
     }
 
     @Test
