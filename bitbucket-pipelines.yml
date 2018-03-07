@@ -25,18 +25,6 @@ pipelines:
            script:
              - chmod +x gradlew
              - ./gradlew build
-      master:
-       - step:
-           caches:
-            - gradle
-            - maven
-            - nodemodules
-           script:
-            - echo "Starting build..."
-            - chmod +x gradlew
-            - ./gradlew build
-            - bash deploy/deliver-backend.sh
-            - bash deploy/deliver-frontend.sh
     custom: # Pipelines that are triggered manually
       build:
         - step:
