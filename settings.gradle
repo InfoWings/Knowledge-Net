@@ -1,3 +1,3 @@
-rootProject.name = 'Knowledge EcoSystem'
+rootProject.name = 'Knowledge Net'
 
 include 'backend', 'common', 'frontend'

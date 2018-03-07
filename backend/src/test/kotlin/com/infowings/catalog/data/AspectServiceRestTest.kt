@@ -56,8 +56,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyPower.ONE.name)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData = AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
 
@@ -80,15 +80,15 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyPower.ONE.name)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyPower.INFINITY.name)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData = AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
 
         val saved = aspectService.save(testData)
 
-        val newProperty = AspectPropertyData("", "p3", baseAspect.id, AspectPropertyPower.INFINITY.name)
-        val updatedProperty = testProperty2.copy(name = "p4", power = AspectPropertyPower.ZERO.name)
+        val newProperty = AspectPropertyData("", "p3", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val updatedProperty = testProperty2.copy(name = "p4", cardinality = AspectPropertyCardinality.ZERO.name)
 
         val updateData = AspectData(
                 saved.id,

@@ -2,15 +2,15 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import kotlinx.html.js.onClickFunction
-import react.*
-import react.dom.div
-import react.dom.i
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 import com.infowings.catalog.wrappers.table.SubComponentProps
+import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
+import react.*
+import react.dom.div
+import react.dom.i
 
 data class AspectPropertyRow(val property: AspectPropertyData, val aspect: AspectData, val pending: Boolean)
 
@@ -150,7 +150,11 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                 attrs {
                     columns = arrayOf(
                             simpleTableColumn("property.name", "Name", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(name = it) })),
-                            simpleTableColumn("property.power", "Power", aspectPropertyCell(indexedPropertyValueChangedHandler { copy(power = it) })),
+                        simpleTableColumn(
+                            "property.cardinality",
+                            "Cardinality",
+                            aspectPropertyCell(indexedPropertyValueChangedHandler { copy(cardinality = it) })
+                        ),
                             selectColumn("aspect.name", "Name", indexedPropertyValueChangedHandler { copy(aspectId = it) }, { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                             simpleTableColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
                             simpleTableColumn("aspect.domain", "Domain", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),

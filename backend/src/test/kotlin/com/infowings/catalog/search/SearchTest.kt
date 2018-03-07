@@ -4,7 +4,7 @@ package com.infowings.catalog.search
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectPropertyPower
+import com.infowings.catalog.data.AspectPropertyCardinality
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Before
@@ -131,16 +131,16 @@ class SearchTest {
 
         val level2_data = AspectData("", "level2", Kilogram.name, null, BaseType.Decimal.name, emptyList())
         val level2: Aspect = aspectService.save(level2_data)
-        val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyPower.INFINITY.name)
+        val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyCardinality.INFINITY.name)
 
 
         val level1_1_data = AspectData("", "level1_1", Kilogram.name, null, BaseType.Decimal.name, emptyList())
         val level1_1: Aspect = aspectService.save(level1_1_data)
-        val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyPower.INFINITY.name)
+        val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
 
         val level1_data = AspectData("", "level1", Kilometre.name, null, BaseType.Decimal.name, listOf(level2_property))
         val level1: Aspect = aspectService.save(level1_data)
-        val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyPower.INFINITY.name)
+        val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
         val createAspect: Aspect = aspectService.save(ad)

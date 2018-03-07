@@ -6,7 +6,7 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 
 
-enum class AspectPropertyPower {
+enum class AspectPropertyCardinality {
     ZERO, ONE, INFINITY
 }
 
@@ -35,11 +35,11 @@ fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
 fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { it.toAspectPropertyData() }
 
 data class AspectProperty(
-        val id: String,
-        val name: String,
-        val aspect: Aspect,
-        val power: AspectPropertyPower,
-        val version: Int
+    val id: String,
+    val name: String,
+    val aspect: Aspect,
+    val cardinality: AspectPropertyCardinality,
+    val version: Int
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, power.name, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
 }

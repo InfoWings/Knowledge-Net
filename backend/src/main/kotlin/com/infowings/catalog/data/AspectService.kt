@@ -16,7 +16,7 @@ fun OVertex.toAspectData(): AspectData =
         AspectData(id, name, measureName, baseType?.let { OpenDomain(it).toString() }, baseType?.name, properties.map { it.toAspectPropertyData() }, version)
 
 fun OVertex.toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, power, version)
+    AspectPropertyData(id, name, aspect, cardinality, version)
 
 
 /**
@@ -139,7 +139,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         logger.trace("Saving aspect property $name$ linked with aspect $aspectId")
 
         val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
-        val power = AspectPropertyPower.valueOf(power)
+        val cardinality = AspectPropertyCardinality.valueOf(this.cardinality)
         val aspectPropertyVertex: OVertex = if (!id.isEmpty()) {
             db.getVertexById(id)?.also { validateExistingAspectProperty(it, this) }
                     ?: throw IllegalArgumentException("Incorrect property id")
@@ -149,7 +149,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         aspectPropertyVertex["name"] = name
         aspectPropertyVertex["aspectId"] = aspectId
-        aspectPropertyVertex["power"] = power.name
+        aspectPropertyVertex["cardinality"] = cardinality.name
 
         // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
         if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).contains(aspectVertex)) {
@@ -224,7 +224,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this), version)
 
     private fun OVertex.toAspectProperty(): AspectProperty =
-            AspectProperty(id, name, findById(aspect), AspectPropertyPower.valueOf(power), version)
+        AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
 }
 
 private const val selectFromAspect = "SELECT FROM Aspect"
@@ -247,8 +247,8 @@ private val OVertex.name: String
     get() = this["name"]
 private val OVertex.aspect: String
     get() = this["aspectId"]
-private val OVertex.power: String
-    get() = this["power"]
+private val OVertex.cardinality: String
+    get() = this["cardinality"]
 private val OVertex.measure: Measure<*>?
     get() = GlobalMeasureMap[measureName]
 private val OVertex.measureName: String?
