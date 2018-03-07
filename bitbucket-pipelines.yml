@@ -38,7 +38,7 @@ pipelines:
             - bash deploy/deliver-backend.sh
             - bash deploy/deliver-frontend.sh
     custom: # Pipelines that are triggered manually
-       build:
+      build:
         - step:
             caches:
              - gradle
