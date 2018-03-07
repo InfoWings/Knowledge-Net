@@ -35,18 +35,15 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     fun save(aspectData: AspectData): Aspect {
         logger.trace("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
         checkAspectData(aspectData)
+        checkBusinessKey(aspectData)
 
         val save: OVertex = transaction(db) { session ->
 
             val aspectId = aspectData.id
             val aspectVertex: OVertex = if (aspectId?.isEmpty() == false) {
-                db.getVertexById(aspectId)?.also {
-                    checkAspectVersion(it, aspectData)
-                    checkBaseTypeChangeCriteria(it, aspectData)
-                    checkMeasureChangeCriteria(it, aspectData)
-                } ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
+                db.getVertexById(aspectId)?.also { validateExistingAspect(it, aspectData) }
+                        ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
             } else {
-                checkBusinessKey(aspectData.name, aspectData.measure)
                 session.newVertex(ASPECT_CLASS)
             }
 
@@ -63,10 +60,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                 measureService.findMeasure(it) ?: throw IllegalArgumentException("Measure $it does not exist")
             }
 
-            measureVertex?.let { aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>() }
-
-            if (aspectData.properties.distinctBy { it.name }.size != aspectData.properties.size) {
-                throw IllegalArgumentException("Properties for aspect should have different names")
+            measureVertex?.let {
+                if (!aspectVertex.getVertices(ODirection.OUT, ASPECT_MEASURE_CLASS).contains(it)) {
+                    aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>()
+                }
             }
 
             val savedProperties = aspectVertex.properties.map { it.id }
@@ -111,6 +108,16 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
 
+    private fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+        checkAspectVersion(aspectVertex, aspectData)
+        checkBaseTypeChangeCriteria(aspectVertex, aspectData)
+        checkMeasureChangeCriteria(aspectVertex, aspectData)
+    }
+
+    private fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+        checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
+    }
+
     private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
             throw AspectModificationException(aspectVertex.id, "Old version, db: ${aspectVertex.version}, param: ${aspectData.version}")
@@ -134,9 +141,8 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
         val power = AspectPropertyPower.valueOf(power)
         val aspectPropertyVertex: OVertex = if (!id.isEmpty()) {
-            db.getVertexById(id)?.also {
-                checkPropertyAspectChangeCriteria(it, this)
-            } ?: throw IllegalArgumentException("Incorrect property id")
+            db.getVertexById(id)?.also { validateExistingAspectProperty(it, this) }
+                    ?: throw IllegalArgumentException("Incorrect property id")
         } else {
             session.newVertex(ASPECT_PROPERTY_CLASS)
         }
@@ -145,6 +151,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         aspectPropertyVertex["aspectId"] = aspectId
         aspectPropertyVertex["power"] = power.name
 
+        // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
         if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).contains(aspectVertex)) {
             aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
         }
@@ -156,13 +163,19 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
     private fun loadProperties(oVertex: OVertex): List<AspectProperty> = transaction(db) {
         oVertex
-                .getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE)
+                .properties
                 .map { loadAspectProperty(it.id) }
     }
 
-    private fun checkBusinessKey(name: String, measure: String?) {
-        if (findByName(name).any { it.measure?.name == measure }) {
-            throw AspectAlreadyExist(name, measure)
+    private fun checkBusinessKey(aspectData: AspectData) {
+        // check aspect business key
+        if (findByName(aspectData.name).filter { it.id != aspectData.id }.any { it.measure?.name == aspectData.measure }) {
+            throw AspectAlreadyExist(aspectData.name, aspectData.measure)
+        }
+        // check aspect properties business key
+        val valid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
+        if (valid) {
+            throw IllegalArgumentException("Not correct property business key $aspectData")
         }
     }
 

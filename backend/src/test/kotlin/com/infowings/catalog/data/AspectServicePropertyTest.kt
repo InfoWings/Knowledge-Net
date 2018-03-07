@@ -79,12 +79,23 @@ class AspectServicePropertyTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun testCreateAspectWithTwoPropertiesSameNames() {
+    fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
         val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
 
         val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
         aspectService.save(ad2)
+    }
+
+    @Test
+    fun testCreateAspectWithTwoPropertiesSameNamesDifferentAspect() {
+        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyPower.INFINITY.name)
+        val property2 = AspectPropertyData("", "p", baseAspect.id, AspectPropertyPower.INFINITY.name)
+
+        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val saved = aspectService.save(ad2)
+
+        assertThat("aspect should have two properties with same name", saved.properties.count { it.name == "p" }, Is.`is`(2))
     }
 
     @Test
