@@ -1,14 +1,18 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
+import com.infowings.catalog.data.toAspectData
+import com.infowings.catalog.data.toMeasure
+import com.infowings.catalog.storage.ASPECT_CLASS
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
+import com.infowings.catalog.storage.toVertexOrNUll
+import com.orientechnologies.orient.core.record.OVertex
 import com.infowings.catalog.data.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
-import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Сервис поиска в OrientDB
@@ -47,7 +51,7 @@ class SuggestionService(val database: OrientDatabase) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
-    
+
     /**
      * @param aspectId aspect id to start
      * @return list of the current aspect and all its parents
@@ -58,15 +62,5 @@ class SuggestionService(val database: OrientDatabase) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
-
-    private fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
-
-    private fun OVertex.toAspectData() = AspectData(
-            id = identity.toString(),
-            name = this["name"],
-            measure = this["measure"],
-            baseType = this["baseType"],
-            domain = BaseType.restoreBaseType(this["baseType"])?.let { OpenDomain(it).toString() }
-    )
 }
 

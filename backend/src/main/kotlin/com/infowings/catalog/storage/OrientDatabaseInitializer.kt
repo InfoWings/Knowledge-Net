@@ -36,9 +36,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING)
-                    .setMandatory(true)
-                    .createIndex(OClass.INDEX_TYPE.UNIQUE)
+                    .createProperty("name", OType.STRING).isMandatory = true
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
