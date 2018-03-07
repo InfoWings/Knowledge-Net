@@ -60,7 +60,10 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Callback is called when one of the AspectData#properties is changed
+     * Callback is called when one of [AspectData] fields is changed
+     * If aspect is new and has not yet been saved, changes it.
+     * If aspect is already exists but have not yet been modified, places aspect inside pending context
+     * If aspect has already been modified, changes it inside pending context
      */
     private fun onAspectPropertyChanged(changed: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) {
         setState {
@@ -78,7 +81,8 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Callback that discards all changed that were not yet saved to the server
+     * Callback that discards all changed that were not yet saved to the server.
+     * Removes aspect from pending context, if aspect already exists, removes new aspect otherwise.
      */
     private fun resetAspect(aspectId: String?) {
         setState {
@@ -91,8 +95,8 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Request aspect save if aspect is new (if id == null) (done)
-     *   and requests aspect update if id is not null (not done)
+     * Confirmation callback that requests aspect save if id == null (aspect is new), or requests aspect update
+     * if id != null (aspect already exists but has been modified)
      */
     private fun saveAspect(aspectId: String?) {
         if (aspectId == null) {

@@ -68,8 +68,18 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     }
 
     interface State : RState {
+        /**
+         * Last fetched data from server (actual)
+         */
         var data: Array<AspectData>
+        /**
+         * Flag showing if the data is still being fetched
+         */
         var loading: Boolean
+        /**
+         * Map from AspectId to actual AspectData objects. Necessary for reconstructing tree structure
+         * (AspectPropertyData contains aspectId)
+         */
         var context: MutableMap<String, AspectData>
     }
 }

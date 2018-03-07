@@ -12,6 +12,11 @@ import com.infowings.catalog.wrappers.table.ReactTable
 import com.infowings.catalog.wrappers.table.SubComponentProps
 import org.w3c.dom.events.Event
 
+data class AspectPropertyRow(val property: AspectPropertyData, val aspect: AspectData, val pending: Boolean)
+
+/**
+ * Convenient method for creating column with react-select input in aspect property subtable.
+ */
 private fun selectColumn(accessor: String, headerName: String, onPropertyValueChanged: (index: Int, value: String) -> Unit, onAspectNameChanged: AspectData.(name: String) -> Unit) = RTableColumnDescriptor {
     this.accessor = accessor
     this.Header = rFunction("SelectAspectNameHeader") { +headerName }
@@ -19,6 +24,9 @@ private fun selectColumn(accessor: String, headerName: String, onPropertyValueCh
     this.className = "aspect-cell"
 }
 
+/**
+ * Convenient method, creator of Cell for selectColumn. Renders AspectSuggestionInput.
+ */
 private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit, onAspectModified: AspectData.(name: String) -> Unit) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
     child(AspectSuggestingInput::class) {
         attrs {
@@ -30,7 +38,7 @@ private fun selectComponent(onAspectChanged: (index: Int, value: String) -> Unit
 }
 
 /**
- * Creator of a sub table for Aspect row
+ * Creator of a sub table for Aspect property row (subtable inside subtable)
  */
 private fun propertySubComponent(
         onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
@@ -50,8 +58,6 @@ private fun propertySubComponent(
     }
 }
 
-data class AspectPropertyRow(val property: AspectPropertyData, val aspect: AspectData, val pending: Boolean)
-
 class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPropertySubtable.State>() {
 
     override fun State.init() {
@@ -59,7 +65,9 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
     }
 
     /**
-     * Callback is called when one of the AspectData#properties is changed
+     * Callback is called when any field of [AspectData] is changed.
+     * Places [AspectData] inside pending context, if it has not yet been changed or changes [AspectData] inside pending
+     * context if it is already there.
      */
     private fun onAspectPropertyChanged(changed: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) {
         setState {
@@ -72,6 +80,13 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         }
     }
 
+    /**
+     * Creator of a handler for aspect properties (AspectData#properties). Index of changed property is retrieved from
+     *
+     * @param propertyChanger function that creates new AspectPropertyData given the updated [String] value. Usually is
+     * a lambda { copy(... = it) }
+     * @return change handler that should be called by index and new value. Handler changes AspectData inside pending context
+     */
     private fun indexedPropertyValueChangedHandler(propertyChanger: AspectPropertyData.(value: String) -> AspectPropertyData) = { changedIndex: Int, value: String ->
         props.onPropertyChanged {
             it.copy(properties = it.properties.mapIndexed { index, property ->
@@ -83,7 +98,8 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
     }
 
     /**
-     * Callback to call when new property is created
+     * Callback to call when new property is created. Notifies parent aspect that new property is created.
+     * Places the aspect inside pending context or changes aspect inside pending context.
      */
     private fun onNewPropertyCreated(e: Event) {
         props.onPropertyChanged { aspect: AspectData ->
@@ -91,6 +107,11 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         }
     }
 
+    /**
+     * Returns [Array] of [AspectPropertyRow] that can be displayed inside react-table. Binds [AspectPropertyData] with
+     * [AspectData] by [AspectPropertyData.aspectId], considering pending changes to the [AspectData] that should be
+     * displayed
+     */
     private fun aspectPropertiesToRows(): Array<AspectPropertyRow> {
         return props.data.map {
             val pending = state.pending[it.aspectId]
@@ -103,7 +124,8 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
     }
 
     /**
-     * Callback that discards all changed that were not yet saved to the server
+     * Callback that discards all changed that were not yet saved to the server.
+     * Removes all changes made from the pending context.
      */
     private fun resetAspect(aspectId: String) {
         setState {
@@ -112,8 +134,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
     }
 
     /**
-     * Request aspect save if aspect is new (if id == null) (done)
-     *   and requests aspect update if id is not null (not done)
+     * Removes aspectId from pending context and requests aspect update to the server.
      */
     private fun saveAspect(aspectId: String) {
         val updatedAspect = state.pending[aspectId]!!
@@ -160,7 +181,8 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
          */
         var data: Array<AspectPropertyData>
         /**
-         *
+         * Aspect context, that is just passed to the next subtable to recreate tree structure
+         * (get aspects for aspect properties)
          */
         var aspectContext: Map<String, AspectData>
         /**
@@ -168,7 +190,8 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
          */
         var onPropertyChanged: (propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
         /**
-         *
+         * Callback on confirmation of AspectData update (sends update to server).
+         * Passed from subtable to subtable.
          */
         var onAspectUpdate: (AspectData) -> Unit
     }

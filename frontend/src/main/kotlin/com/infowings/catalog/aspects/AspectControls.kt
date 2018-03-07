@@ -32,7 +32,11 @@ fun controlsColumn(columnHeader: RClass<RTableRendererProps>, onSaveAspect: (Str
 
 /**
  * Component that represents a couple of icons (discard changes made to aspect or make request to server and save changes)
+ * in the aspect subtable (controls are related to aspect, bound with property)
  * If aspect is not changed, icons should not be displayed
+ *
+ * The only difference with above column descriptor is the Cell component that gets aspect id from AspectPropertyRow,
+ * not the AspectRow
  */
 fun controlsPropertyColumn(onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
     this.accessor = "pending"
