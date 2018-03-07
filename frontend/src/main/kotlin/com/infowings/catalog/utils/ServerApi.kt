@@ -17,12 +17,15 @@ private const val POST = "POST"
 private const val GET = "GET"
 
 private const val AUTH_ROLE = "auth-role"
+private const val REFRESH_AUTH = "x-refresh-authorization"
+private const val ACCESS_AUTH = "x-access-authorization"
 
 private const val OK = 200
 private const val UNAUTHORIZED = 401
 private const val FORBIDDEN = 403
 
 private external fun encodeURIComponent(component: String): String = definedExternally
+private external fun decodeURIComponent(component: String): String = definedExternally
 
 /**
  * Http POST request to server.
@@ -103,7 +106,7 @@ private val defaultHeaders = json(
  * @throws ServerException if response to refresh request status is not 200 or 401
  */
 private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, body: dynamic): Response {
-    val responseToRefresh = request(GET, "/api/access/refresh", null)
+    val responseToRefresh = request(GET, "/api/access/refresh", null, extractRefreshHeaderFromCookies())
     val refreshStatus = responseToRefresh.status.toInt()
     return when (refreshStatus) {
         OK -> {
@@ -142,17 +145,20 @@ suspend fun login(body: UserDto): Boolean {
  */
 private suspend fun parseToken(response: Response) {
     try {
-        var ms: dynamic
         val jwtToken = JSON.parse<JwtToken>(response.text().await())
         val nowInMs = Date.now()
-        ms = jwtToken.accessTokenExpirationTimeInMs.asDynamic() + nowInMs
-        val accessExpireDate = Date(ms as Number).toUTCString()
-        ms = jwtToken.refreshTokenExpirationTimeInMs.asDynamic() + nowInMs
-        val refreshExpireDate = Date(ms as Number).toUTCString()
-        document.cookie =
-                "x-access-authorization=${encodeURIComponent("Bearer ${jwtToken.accessToken}")};expires=$accessExpireDate;path=/"
-        document.cookie =
-                "x-refresh-authorization=${encodeURIComponent("Bearer ${jwtToken.refreshToken}")};expires=$refreshExpireDate;path=/"
+
+        val accessExpireDateMs = jwtToken.accessTokenExpirationTimeInMs.asDynamic() + nowInMs
+        val accessExpireDate = Date(accessExpireDateMs as Number).toUTCString()
+
+        val refreshExpireDateMs = jwtToken.refreshTokenExpirationTimeInMs.asDynamic() + nowInMs
+        val refreshExpireDate = Date(refreshExpireDateMs as Number).toUTCString()
+
+        val accessValue = encodeURIComponent("Bearer ${jwtToken.accessToken}")
+        val refreshValue = encodeURIComponent("Bearer ${jwtToken.refreshToken}")
+
+        document.cookie = "$ACCESS_AUTH=$accessValue;expires=$accessExpireDate;path=/"
+        document.cookie = "$REFRESH_AUTH=$refreshValue;expires=$refreshExpireDate;path=/"
         document.cookie = "$AUTH_ROLE=${jwtToken.role}"
     } catch (e: Exception) {
         throw TokenParsingException(e)
@@ -168,11 +174,21 @@ private class TokenParsingException(e: Exception) : RuntimeException(e) {
  * Return authorization role name that saved in cookies.
  */
 fun getAuthorizationRole(): String? {
+    return getCookieValue(AUTH_ROLE)
+}
+
+private fun extractRefreshHeaderFromCookies(): Json? {
+    val refreshToken = getCookieValue(REFRESH_AUTH)
+    return refreshToken?.let { json(REFRESH_AUTH to it) }
+}
+
+private fun getCookieValue(key: String): String? {
     return document.cookie.split("; ")
-        .filter { it.startsWith(AUTH_ROLE) }
+        .filter { it.startsWith(key) }
         .map { it.split("=")[1] }
         .filter { it.isNotEmpty() }
-        .getOrNull(0)
+        .map { decodeURIComponent(it) }
+        .firstOrNull()
 }
 
 /**
