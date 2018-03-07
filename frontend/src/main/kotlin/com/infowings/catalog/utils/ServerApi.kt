@@ -18,6 +18,10 @@ private const val GET = "GET"
 
 private const val AUTH_ROLE = "auth-role"
 
+private const val OK = 200
+private const val UNAUTHORIZED = 401
+private const val FORBIDDEN = 403
+
 private external fun encodeURIComponent(component: String): String = definedExternally
 
 /**
@@ -48,17 +52,12 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
     val statusCode = response.status.toInt()
 
     return when (statusCode) {
-    // ok
-        200 -> response
-
-    // unauthorized
-        401 -> {
+        OK -> response
+        UNAUTHORIZED -> {
             redirectToLoginPage()
             response
         }
-
-    // forbidden
-        403 -> {
+        FORBIDDEN -> {
             if (repeat) {
                 redirectToLoginPage()
                 response
@@ -66,7 +65,6 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
                 refreshTokenAndRepeatRequest(method, url, body)
             }
         }
-
         else -> throw ServerException(response.text().await(), statusCode)
     }
 }
@@ -108,11 +106,11 @@ private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, bo
     val responseToRefresh = request(GET, "/api/access/refresh", null)
     val refreshStatus = responseToRefresh.status.toInt()
     return when (refreshStatus) {
-        200 -> {
+        OK -> {
             parseToken(responseToRefresh)
             authorizedRequest(method, url, body, repeat = true)
         }
-        401 -> {
+        UNAUTHORIZED -> {
             redirectToLoginPage()
             responseToRefresh
         }
