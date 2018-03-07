@@ -3,10 +3,9 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.AbstractMvcTest
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.Metre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Aspect
+import com.infowings.catalog.data.AspectPropertyPower
 import com.infowings.catalog.data.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Test
@@ -28,7 +27,10 @@ private val logger = loggerFor<SearchTest>()
 class SearchTest : AbstractMvcTest() {
 
     @Autowired
-    lateinit var suggestionService: SuggestionService;
+    private lateinit var aspectService: AspectService
+
+    @Autowired
+    private lateinit var suggestionService: SuggestionService;
 
     @Autowired
     private val wac: WebApplicationContext? = null
@@ -79,11 +81,6 @@ class SearchTest : AbstractMvcTest() {
         assertEquals("level2", res[0].name)
         assertEquals("level1", res[1].name)
         assertEquals("root", res[2].name)
-    }
-
-    private fun createTestAspect(aspectName: String): Aspect {
-        val ad = AspectData("", aspectName, null, null, null, emptyList())
-        return aspectService.findByName(aspectName) ?: aspectService.createAspect(ad)
     }
 
 

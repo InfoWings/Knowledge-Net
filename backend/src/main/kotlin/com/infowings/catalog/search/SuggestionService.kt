@@ -44,7 +44,7 @@ class SuggestionService(val database: OrientDatabase) {
                 "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
 
         return database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) {
-            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+            it.mapNotNull { it.toVertexOrNull()?.toAspectData() }.toList()
         }
     }
     
@@ -55,7 +55,7 @@ class SuggestionService(val database: OrientDatabase) {
     fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
         val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?"
         return database.query(q, ORecordId(aspectId)) {
-            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+            it.mapNotNull { it.toVertexOrNull()?.toAspectData() }.toList()
         }
     }
 
