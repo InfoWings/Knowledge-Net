@@ -166,7 +166,7 @@ class SearchTest {
             get("/api/search/aspect/suggestion").with(authorities)
                 .param("text", aspect.name)
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].name").value(aspect.name))
+                .andExpect(jsonPath("$['aspects'][0].name").value(aspect.name))
     }
 
 }

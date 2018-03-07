@@ -16,16 +16,7 @@ data class AspectData(
         val baseType: String?,
         val properties: List<AspectPropertyData> = emptyList(),
         val version: Int = 0
-) {
-    fun withName(name: String) = copy(name = name)
-
-    fun withMeasure(measure: String) = copy(measure = measure)
-
-    fun withDomain(domain: String) = copy(domain = domain)
-
-    fun withBaseType(baseType: String) = copy(baseType = baseType)
-}
-
+)
 
 @Serializable
 data class AspectPropertyData(
