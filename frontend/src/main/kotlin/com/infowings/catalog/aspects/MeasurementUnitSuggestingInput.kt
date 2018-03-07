@@ -11,7 +11,7 @@ import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.w3c.dom.events.Event
 import react.*
 
-fun measurementUnitAspectCell(selectOptionHandler: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("MeasurementUnitSelect") { props ->
+fun measurementUnitAspectCell(selectOptionHandler: AspectData.(String) -> Unit) = rFunction<RTableRendererProps>("MeasurementUnitSelect") { props ->
     child(MeasurementUnitSuggestingInput::class) {
         attrs {
             measurementUnitName = (props.value as String?) ?: ""
@@ -20,7 +20,7 @@ fun measurementUnitAspectCell(selectOptionHandler: (AspectData, String) -> Unit)
     }
 }
 
-fun measurementUnitAspectPropertyCell(selectOptionHandler: (AspectData, String) -> Unit) = rFunction<RTableRendererProps>("MeasurementUnitSelect") { props ->
+fun measurementUnitAspectPropertyCell(selectOptionHandler: AspectData.(String) -> Unit) = rFunction<RTableRendererProps>("MeasurementUnitSelect") { props ->
     child(MeasurementUnitSuggestingInput::class) {
         attrs {
             measurementUnitName = (props.value as String?) ?: ""
@@ -42,7 +42,7 @@ class MeasurementUnitSuggestingInput : RComponent<MeasurementUnitSuggestingInput
     override fun RBuilder.render() {
         asyncSelect<MeasurementUnitOption> {
             attrs {
-                className = "mu-suggest-menu"
+                className = "aspect-table-select"
                 value = props.measurementUnitName
                 labelKey = "measurementUnit"
                 valueKey = "measurementUnit"

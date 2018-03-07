@@ -6,8 +6,7 @@ import react.*
 import react.dom.*
 import com.infowings.catalog.wrappers.table.*
 
-private data class AspectRow(val aspect: AspectData, val pending: Boolean)
-
+data class AspectRow(val aspect: AspectData, val pending: Boolean)
 
 /**
  * Component that represents green "+" sign when there is no new aspect being edited.
@@ -147,7 +146,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
             attrs {
                 columns = arrayOf(
                         simpleTableColumn("aspect.name", "Name", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(name = value) }) }),
-                        simpleTableColumn("aspect.measure", "Measure Unit", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                        simpleTableColumn("aspect.measure", "Measure Unit", measurementUnitAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
                         simpleTableColumn("aspect.domain", "Domain", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
                         simpleTableColumn("aspect.baseType", "Base Type", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                         controlsColumn(

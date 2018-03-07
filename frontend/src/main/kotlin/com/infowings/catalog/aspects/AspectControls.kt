@@ -54,37 +54,3 @@ fun controlsPropertyColumn(onSaveAspect: (String) -> Unit, onResetAspect: (Strin
         }
     }
 }
-
-/**
- * Component that represents a couple of icons (discard changes made to aspect or make request to server and save changes)
- * If aspect is not changed, icons should not be displayed
- */
-fun controlsPropertyColumn(onSaveAspect: (String) -> Unit, onResetAspect: (String) -> Unit) = RTableColumnDescriptor {
-    this.accessor = "pending"
-    this.width = 55.0
-    this.Cell = rFunction("CheckboxCell") { props ->
-        if (props.value as Boolean) {
-            div(classes = "aspect-management-container") {
-                div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onResetAspect(props.original.property.aspectId) }
-                    i(classes = "fas fa-times-circle circle-red") {}
-                }
-                div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onSaveAspect(props.original.property.aspectId) }
-                    i(classes = "far fa-check-circle circle-green") {}
-                }
-            }
-        } else {
-            div(classes = "aspect-management-container hidden") {
-                div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onResetAspect(props.original.property.aspectId) }
-                    i(classes = "fas fa-times-circle circle-red") {}
-                }
-                div(classes = "aspect-icon-container") {
-                    attrs.onClickFunction = { onSaveAspect(props.original.property.aspectId) }
-                    i(classes = "far fa-check-circle circle-green") {}
-                }
-            }
-        }
-    }
-}
