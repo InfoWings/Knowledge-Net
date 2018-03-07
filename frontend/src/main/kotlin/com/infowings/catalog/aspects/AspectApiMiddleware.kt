@@ -36,9 +36,11 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     private fun handleCreateNewAspect(aspectData: AspectData) {
         launch {
             val newAspect = createAspect(aspectData)
+            val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+
             setState {
                 data += newAspect
-                context[newAspect.id!!] = newAspect
+                context[newAspectId] = newAspect
             }
         }
     }
@@ -46,11 +48,14 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     private fun handleUpdateAspect(aspectData: AspectData) {
         launch {
             val updatedAspect = updateAspect(aspectData)
+            val updatedAspectId: String = updatedAspect.id
+                    ?: throw Error("Server returned Aspect with aspectId == null")
+
             setState {
                 data = data.map {
                     if (updatedAspect.id == it.id) updatedAspect else it
                 }.toTypedArray()
-                context[updatedAspect.id!!] = updatedAspect
+                context[updatedAspectId] = updatedAspect
             }
         }
     }
