@@ -17,16 +17,14 @@ class SearchController(val suggestionService: SuggestionService) {
      * Полнотекстовый поиск по измеряемым величинам и единицам измерения
      */
     @GetMapping("/measure/suggestion")
-    fun measureSuggestion(
-        context: SearchContext,
-        @RequestParam text: String
-    ): List<String> =
-        suggestionService.findMeasure(context, text).map { it.name }
+    fun measureSuggestion(context: SearchContext,
+                          @RequestParam text: String): List<String> =
+            suggestionService.findMeasure(context, text).map { it.name }
 
     /**
      * Полнотекстовый поиск по аспектам
      */
     @GetMapping("/aspect/suggestion")
     fun aspectSuggestion(context: SearchContext, text: String): List<AspectData> =
-        suggestionService.findAspect(context, text)
+            suggestionService.findAspect(context, text)
 }

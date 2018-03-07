@@ -7,6 +7,7 @@ import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.data.OpenDomain
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 
 /**
@@ -33,6 +34,30 @@ class SuggestionService(val database: OrientDatabase) {
         }
     }
 
+    /**
+     * The method search for aspects that contains "text" in its name or other fields
+     * It filters out "parentAspectId" aspect and all its parents aspects to prevent cyclic dependencies on insert.
+     * @return list of aspects that contains "text" in its name or other fields
+     */
+    fun findAspectNoCycle(aspectId: String, text: String): List<AspectData> = session(database) {
+        val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
+                "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
+
+        return database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) {
+            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+        }
+    }
+    
+    /**
+     * @param aspectId aspect id to start
+     * @return list of the current aspect and all its parents
+     */
+    fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
+        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?"
+        return database.query(q, ORecordId(aspectId)) {
+            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+        }
+    }
 
     private fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
 

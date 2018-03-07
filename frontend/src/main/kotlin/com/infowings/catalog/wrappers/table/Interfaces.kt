@@ -3,6 +3,7 @@ package com.infowings.catalog.wrappers.table
 import react.RClass
 import react.RProps
 import react.ReactElement
+import kotlin.js.Json
 
 
 /**
@@ -41,7 +42,7 @@ external interface RTableProps : RProps {
     //    var defaultSorted:   // Type???
 //    var defaultFiltered: // Type???
 //    var defaultResized:  // Type???
-//    var defaultExpanded: // Type???
+    var defaultExpanded: Json
     var defaultFilterMethod: (filter: dynamic, row: dynamic, column: dynamic) -> Boolean
     var defaultSortMethod: (firstRow: dynamic, secondRow: dynamic, desc: Boolean) -> Int
     var PadRowComponent: () -> ReactElement //() => <span>&nbsp;</span>, // the content rendered inside of a padding row
@@ -99,7 +100,7 @@ external interface RTableProps : RProps {
     var getTrGroupProps: (() -> dynamic)
     var getTrProps: (() -> dynamic)
     var getThProps: (() -> dynamic)
-    var getTdProps: (() -> dynamic)
+    var getTdProps: ((state: dynamic, rowInfo: RowInfo?, column: dynamic) -> dynamic)
     var getTfootProps: (() -> dynamic)
     var getTfootTrProps: (() -> dynamic)
     var getTfootThProps: (() -> dynamic)
@@ -210,7 +211,7 @@ external interface RTableColumnDescriptor {
  */
 @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 inline fun RTableColumnDescriptor(builder: RTableColumnDescriptor.() -> Unit): RTableColumnDescriptor =
-        (js("({})") as RTableColumnDescriptor).apply(builder)
+    (js("({})") as RTableColumnDescriptor).apply(builder)
 
 external interface RTableRendererProps : RProps {
     var row: dynamic // the materialized row of data
@@ -258,6 +259,19 @@ external interface ExpanderDescriptor {
     var width: Double?
 }
 
+external interface RowInfo {
+    var original: dynamic
+    var row: dynamic
+    var index: Int
+    var viewIndex: Int
+    var pageSize: Int
+    var page: Int
+    var level: Int
+    var nestingPath: dynamic
+    var aggregated: Boolean
+    var groupedByPivot: dynamic
+    var subRows: dynamic
+}
 
 
 
