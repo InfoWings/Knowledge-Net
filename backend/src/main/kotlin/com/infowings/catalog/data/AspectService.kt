@@ -185,10 +185,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         if (measureString != null && baseType != null) {
             val measure: Measure<*> = GlobalMeasureMap[measureString]
-                    ?: throw IllegalArgumentException("Measure incorrect")
+                    ?: throw IllegalArgumentException("Measure $measureString incorrect")
 
             if (measure.baseType != BaseType.restoreBaseType(aspectData.baseType)) {
-                throw IllegalArgumentException("Measure and base type relation incorrect")
+                throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
             }
         }
     }
