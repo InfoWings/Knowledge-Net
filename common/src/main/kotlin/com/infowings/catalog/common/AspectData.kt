@@ -14,14 +14,15 @@ data class AspectData(
         val measure: String?,
         val domain: String?,
         val baseType: String?,
-        val properties: List<AspectPropertyData> = emptyList()
+        val properties: List<AspectPropertyData> = emptyList(),
+        val version: Int = 0
 )
-
 
 @Serializable
 data class AspectPropertyData(
         val id: String,
         val name: String,
         val aspectId: String,
-        val power: String
+        val power: String,
+        val version: Int = 0
 )
