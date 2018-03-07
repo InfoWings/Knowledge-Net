@@ -106,7 +106,7 @@ private val defaultHeaders = json(
  * @throws ServerException if response to refresh request status is not 200 or 401
  */
 private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, body: dynamic): Response {
-    val responseToRefresh = request(GET, "/api/access/refresh", null, extractRefreshHeaderFromCookies())
+    val responseToRefresh = request(GET, "/api/access/refresh", null)
     val refreshStatus = responseToRefresh.status.toInt()
     return when (refreshStatus) {
         OK -> {
@@ -175,11 +175,6 @@ private class TokenParsingException(e: Exception) : RuntimeException(e) {
  */
 fun getAuthorizationRole(): String? {
     return getCookieValue(AUTH_ROLE)
-}
-
-private fun extractRefreshHeaderFromCookies(): Json? {
-    val refreshToken = getCookieValue(REFRESH_AUTH)
-    return refreshToken?.let { json(REFRESH_AUTH to it) }
 }
 
 private fun getCookieValue(key: String): String? {
