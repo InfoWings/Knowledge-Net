@@ -51,6 +51,7 @@
 }
 
 .aspect-property-table-wrapper {
+  margin-left: 35px;
   background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -84,4 +85,26 @@
   border: none;
   background-color: transparent !important;
   outline: none !important;
+}
+
+.mu-option {
+
+}
+
+.mu-option-category-container {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  border-radius: 3px;
+  padding: 0 5px;
+  border: 1px solid #AAA;
+}
+
+.mu-option-category-item {
+  height: 36px;
+  line-height: 34px;
+}
+
+.mu-option-category-item:hover {
+  background-color: #f2f9fc;
 }

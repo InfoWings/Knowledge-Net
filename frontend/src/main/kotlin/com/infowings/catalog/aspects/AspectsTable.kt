@@ -162,7 +162,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 loading = props.loading
                 SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                 showPagination = false
-                minRows = 1
+                minRows = 0
                 sortable = false
                 showPageJump = false
                 resizable = false

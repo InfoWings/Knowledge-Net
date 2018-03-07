@@ -158,7 +158,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                             controlsPropertyColumn(::saveAspect, ::resetAspect)
                     )
                     collapseOnDataChange = false
-                    className = "aspect-table"
+                    className = "aspect-table aspect-subtable"
                     SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                     data = aspectPropertiesToRows()
                     showPagination = false
