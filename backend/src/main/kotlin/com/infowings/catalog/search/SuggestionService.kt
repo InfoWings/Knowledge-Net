@@ -8,6 +8,7 @@ import com.infowings.catalog.data.*
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.sql.executor.OResult
 
 /**
  * Сервис поиска в OrientDB
@@ -38,53 +39,65 @@ class SuggestionService(val database: OrientDatabase) {
             val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name = \"$measureGroupName\"))"
             "SELECT FROM (TRAVERS $edgeSelector FROM $traversFrom) WHERE SEARCH_CLASS(?) = true"
         }
-        return luceneSearchInDb(q, text)
+        return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
+            it.mapNotNull { it.toVertexOrNUll() }
+        }
     }
 
     private fun findAspectInDb(
         context: SearchContext, commonParam: CommonSuggestionParam?, aspectParam: AspectSuggestionParam?
     ): Sequence<OVertex> {
-        if (aspectParam?.measureName != null || aspectParam?.measureText != null) {
-            val measureName = textOrAllWildcard(aspectParam?.measureName)
-            val measureText = textOrAllWildcard(aspectParam?.measureText)
-            val aspectText = textOrAllWildcard(commonParam?.text)
-            val q = "SELECT FROM $ASPECT_CLASS " +
-                    "   WHERE @rid IN " +
-                    "          (SELECT @rid FROM " +
-                    "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
-                    "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true OR name = ? ))) " +
-                    " AND SEARCH_CLASS(?) = true"
-            return database.query(q, luceneQuery(measureText), luceneQuery(aspectText), measureName) {
-                it.mapNotNull { it.toVertexOrNUll() }
+        val aspectId = context.aspectId
+        val res: Sequence<OResult> =
+            if (aspectParam?.measureName != null || aspectParam?.measureText != null) {
+                val measureName = textOrAllWildcard(aspectParam?.measureName)
+                val measureText = textOrAllWildcard(aspectParam?.measureText)
+                val aspectText = textOrAllWildcard(commonParam?.text)
+                val q = "SELECT FROM $ASPECT_CLASS " +
+                        "   WHERE @rid IN " +
+                        "          (SELECT @rid FROM " +
+                        "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
+                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true OR name = ? ))) " +
+                        " AND SEARCH_CLASS(?) = true"
+                if (aspectId == null) {
+                    database.query(q, luceneQuery(measureText), luceneQuery(aspectText), measureName) { it }
+                } else {
+                    database.query(
+                        "$q @rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))",
+                        luceneQuery(measureText),
+                        luceneQuery(aspectText),
+                        measureName,
+                        ORecordId(aspectId)
+                    ) { it }
+                }
+            } else {
+                if (aspectId == null) {
+                    val q = "SELECT FROM $ASPECT_CLASS WHERE SEARCH_CLASS(?) = true"
+                    database.query(q, luceneQuery(textOrAllWildcard(commonParam?.text))) { it }
+                } else {
+                    findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
+                }
             }
-        } else {
-            val q = "SELECT FROM $ASPECT_CLASS WHERE SEARCH_CLASS(?) = true"
-            return luceneSearchInDb(q, textOrAllWildcard(commonParam?.text))
-        }
+        return res.mapNotNull { it.toVertexOrNUll() }
     }
 
-    private fun textOrAllWildcard(text: String?): String =
-        if (text.isNullOrEmpty()) "*" else text!!
-
-    private fun luceneSearchInDb(q: String, text: String): Sequence<OVertex> {
-        return database.query(q, luceneQuery(text)) {
-            it.mapNotNull { it.toVertexOrNUll() }
-        }
-    }
+    private fun textOrAllWildcard(text: String?): String = if (text.isNullOrEmpty()) "*" else text!!
 
     private fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
+
     /**
      * The method search for aspects that contains "text" in its name or other fields
      * It filters out "parentAspectId" aspect and all its parents aspects to prevent cyclic dependencies on insert.
      * @return list of aspects that contains "text" in its name or other fields
      */
     fun findAspectNoCycle(aspectId: String, text: String): List<AspectData> = session(database) {
+        findAspectVertexNoCycle(aspectId, text).mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+    }
+
+    private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
         val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
                 "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
-
-        return database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) {
-            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
-        }
+        database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) { it }
     }
 
     /**
