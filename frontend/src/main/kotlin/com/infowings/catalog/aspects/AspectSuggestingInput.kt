@@ -12,10 +12,18 @@ import react.RState
 interface Option : SelectOption {
     var aspectData: AspectData
     var aspectName: String
+    var aspectLabel: String
 }
 
-fun aspectOption(data: AspectData, name: String) = jsObject<Option> {
-    aspectName = name
+fun aspectOption(data: AspectData) = jsObject<Option> {
+    aspectLabel = "${data.name} ${data.measure?.let { "(${data.measure})" } ?: ""}"
+    aspectName = data.name
+    aspectData = data
+}
+
+fun renameAspectOption(data: AspectData, newAspectName: String) = jsObject<Option> {
+    aspectLabel = "$newAspectName ${data.measure?.let { "(${data.measure})" } ?: ""}"
+    aspectName = newAspectName
     aspectData = data
 }
 
@@ -26,29 +34,29 @@ class AspectSuggestingInput : RComponent<AspectSuggestingInput.Props, AspectSugg
             attrs {
                 className = "aspect-table-select"
                 value = props.associatedAspect.name
-                labelKey = "aspectName"
+                labelKey = "aspectLabel"
                 valueKey = "aspectName"
                 onChange = { props.onOptionSelected(it.aspectData) }
                 cache = false
                 clearable = false
-                options = arrayOf(aspectOption(props.associatedAspect, props.associatedAspect.name))
+                options = arrayOf(aspectOption(props.associatedAspect))
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {
                         launch {
                             val searchResult = getSuggestedAspects(input)
                             callback(null, jsObject {
-                                options = searchResult.aspects.map { aspectOption(it, it.name) }.toTypedArray()
+                                options = searchResult.aspects.map { aspectOption(it) }.toTypedArray()
                             })
                         }
                     } else {
                         callback(null, jsObject {
-                            options = arrayOf(aspectOption(props.associatedAspect, props.associatedAspect.name))
+                            options = arrayOf(aspectOption(props.associatedAspect))
                         })
                     }
                     false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript
                 }
                 promptTextCreator = { "Change aspect name to $it" }
-                newOptionCreator = { aspectOption(props.associatedAspect, it.label) }
+                newOptionCreator = { renameAspectOption(props.associatedAspect, it.label) }
                 onNewOptionClick = { props.onAspectNameChanged(it.aspectData, it.aspectName) }
             }
         }
