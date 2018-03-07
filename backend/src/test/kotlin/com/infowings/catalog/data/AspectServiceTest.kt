@@ -150,6 +150,9 @@ class AspectServiceTest {
         assertTrue("aspect should have new measure", newAspect.measure == Gram)
 
         assertTrue("aspect should have correct base type", newAspect.measure?.baseType == BaseType.Boolean)
+
+        field.set(Gram, BaseType.Decimal)
+
     }
 
     @Test(expected = AspectModificationException::class)
