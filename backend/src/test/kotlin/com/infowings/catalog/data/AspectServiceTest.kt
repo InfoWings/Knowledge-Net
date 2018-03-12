@@ -21,6 +21,14 @@ class AspectServiceTest {
     lateinit var aspectService: AspectService
 
     @Test
+    fun testNotVirtualId() {
+        val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        aspectService.save(ad)
+
+        assertThat("Ids are not virtual", aspectService.getAspects().all { !it.id.contains("-") }, Is.`is`(true))
+    }
+
+    @Test
     fun testAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.save(ad)
