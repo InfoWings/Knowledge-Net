@@ -6,6 +6,9 @@ import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
+ *
+ * Class also should be used for new vertex creating,
+ * methods [aspectVertex] and [aspectPropertyVertex] support validation checks.
  */
 internal class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) {
 
