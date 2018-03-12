@@ -5,14 +5,13 @@ import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
 import com.infowings.catalog.data.toAspectData
 import com.infowings.catalog.data.toMeasure
+import com.infowings.catalog.storage.ASPECT_ASPECTPROPERTY_EDGE
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
-import com.orientechnologies.orient.core.record.OVertex
-import com.infowings.catalog.data.OpenDomain
-import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Сервис поиска в OrientDB
@@ -47,7 +46,7 @@ class SuggestionService(val database: OrientDatabase) {
         val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
                 "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
 
-        return database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) {
+        return@session database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
@@ -58,7 +57,7 @@ class SuggestionService(val database: OrientDatabase) {
      */
     fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
         val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?"
-        return database.query(q, ORecordId(aspectId)) {
+        return@session database.query(q, ORecordId(aspectId)) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
