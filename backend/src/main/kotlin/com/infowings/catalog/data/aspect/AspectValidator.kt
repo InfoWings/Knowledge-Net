@@ -4,8 +4,17 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
 
-class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) {
+/**
+ * Class for validating aspects.
+ */
+internal class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) {
 
+    /**
+     * Create empty vertex in case [aspectData.id] is null or empty
+     * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
+     * @throws IllegalStateException
+     * @throws AspectModificationException
+     * */
     internal fun aspectVertex(aspectData: AspectData): OVertex {
         val aspectId = aspectData.id
 
@@ -17,6 +26,12 @@ class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) 
         }
     }
 
+    /**
+     * Create empty vertex in case [aspectPropertyData.id] is null or empty
+     * Otherwise validate and return vertex of class [ASPECT_PROPERTY_CLASS] with given id
+     * @throws IllegalStateException
+     * @throws AspectPropertyModificationException
+     * */
     internal fun aspectPropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
         val propertyId = aspectPropertyData.id
 
@@ -29,6 +44,11 @@ class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) 
     }
 
 
+    /**
+     * Check business key of given [AspectData]
+     * @throws AspectAlreadyExist
+     * @throws IllegalArgumentException
+     */
     internal fun checkBusinessKey(aspectData: AspectData) {
         // check aspect business key
         if (aspectService.findByName(aspectData.name).filter { it.id != aspectData.id }.any { it.measure?.name == aspectData.measure }) {
@@ -41,6 +61,11 @@ class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) 
         }
     }
 
+    /**
+     * Data consistency check.
+     * For example, conformity of measure and base type
+     * @throws IllegalArgumentException
+     */
     internal fun checkAspectData(aspectData: AspectData) {
         val measureString: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
@@ -65,6 +90,7 @@ class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) 
         if (aspectVertex.version != aspectData.version) {
             throw AspectModificationException(aspectVertex.id, "Old version, db: ${aspectVertex.version}, param: ${aspectData.version}")
         }
+
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
         val receivedVersionMap = aspectData.properties.filter { it.id != "" }.map { it.id to it.version }.toMap()
 

@@ -68,7 +68,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
             // now without removing
             aspectData.properties
-                    .map { it.saveAspectProperty() }
+                    .map { saveAspectProperty(it) }
                     .filter { !savedProperties.contains(it.id) }
                     .forEach { aspectVertex.addEdge(it, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>() }
 
@@ -105,16 +105,17 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             db.getVertexById(propertyId)?.toAspectProperty()
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
-    private fun AspectPropertyData.saveAspectProperty(): OVertex = transaction(db) {
-        logger.trace("Saving aspect property $name$ linked with aspect $aspectId")
+    private fun saveAspectProperty(aspectPropertyData: AspectPropertyData): OVertex = transaction(db) {
+        logger.trace("Saving aspect property $aspectPropertyData.name$ linked with aspect $aspectPropertyData.aspectId")
 
-        val aspectVertex: OVertex = db.getVertexById(aspectId) ?: throw AspectDoesNotExist(aspectId)
-        val cardinality = AspectPropertyCardinality.valueOf(this.cardinality)
+        val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
+                ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
+        val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        val aspectPropertyVertex = aspectValidator.aspectPropertyVertex(this)
+        val aspectPropertyVertex = aspectValidator.aspectPropertyVertex(aspectPropertyData)
 
-        aspectPropertyVertex["name"] = name
-        aspectPropertyVertex["aspectId"] = aspectId
+        aspectPropertyVertex["name"] = aspectPropertyData.name
+        aspectPropertyVertex["aspectId"] = aspectPropertyData.aspectId
         aspectPropertyVertex["cardinality"] = cardinality.name
 
         // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
@@ -123,7 +124,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
 
         return@transaction aspectPropertyVertex.save<OVertex>().also {
-            logger.trace("Saved aspect property $name with temporary id: ${it.id}")
+            logger.trace("Saved aspect property ${aspectPropertyData.name} with temporary id: ${it.id}")
         }
     }
 
