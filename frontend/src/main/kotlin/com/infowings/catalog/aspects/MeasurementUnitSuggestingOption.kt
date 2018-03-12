@@ -2,19 +2,19 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.wrappers.select.OptionComponentProps
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onKeyDownFunction
-import kotlinx.html.js.onMouseDownFunction
 import kotlinx.html.js.onMouseMoveFunction
 import kotlinx.html.role
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.children
 import react.dom.div
 
 
 class MeasurementUnitSuggestingOption : RComponent<OptionComponentProps<MeasurementUnitOption>, RState>() {
+
+    private var optionRef: HTMLDivElement? = null
 
     private fun handleClick(event: Event) {
         event.preventDefault()
@@ -38,12 +38,14 @@ class MeasurementUnitSuggestingOption : RComponent<OptionComponentProps<Measurem
                 role = "option"
                 onClickFunction = ::handleClick
                 onMouseMoveFunction = ::handleMouseMove
+                ref { ref -> optionRef = ref as HTMLDivElement? }
             }
             if (props.isFocused) {
                 child(MeasurementUnitOptionCategoryContainer::class) {
                     attrs {
                         measurementUnit = props.option.measurementUnit
                         onUnitClick = { optionName, event -> props.onSelect(measurementUnitOption(optionName), event) }
+                        relativeHeight = optionRef?.offsetTop
                     }
                 }
             }

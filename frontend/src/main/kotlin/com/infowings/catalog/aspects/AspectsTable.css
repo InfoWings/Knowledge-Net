@@ -80,6 +80,10 @@
   overflow: visible
 }
 
+.ReactTable.aspect-table .rt-noData {
+  display: none;
+}
+
 .aspect-table-select > .Select-control {
   border-radius: 0;
   border: none;
@@ -96,11 +100,12 @@
   top: 0;
   left: 100%;
   border-radius: 3px;
-  padding: 0 5px;
   border: 1px solid #AAA;
+  background-color: #FFF;
 }
 
 .mu-option-category-item {
+  padding: 0 5px;
   height: 36px;
   line-height: 34px;
 }
