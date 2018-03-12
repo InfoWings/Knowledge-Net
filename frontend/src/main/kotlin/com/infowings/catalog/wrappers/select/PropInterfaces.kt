@@ -281,7 +281,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     /**
      * option component to render in dropdown
      */
-    //var optionComponent: (RClass<???>/ReactElement)
+    var optionComponent: RClass<OptionComponentProps<T>>
 
     /**
      * custom function to render the options in the menu
@@ -428,6 +428,19 @@ typealias AsyncLoadCallback<T> = (ErrorEvent?, AsyncLoadData<T>?) -> Unit
 external interface AsyncLoadData<T : SelectOption> {
     var options: Array<T>
     var complete: Boolean // Set only if all data is fetched
+}
+
+external interface OptionComponentProps<T : SelectOption> : RProps {
+    var className: String
+    var instancePrefix: String
+    var isDisabled: Boolean
+    var isFocused: Boolean
+    var isSelected: Boolean
+    var onFocus: (T, Event) -> Unit
+    var onSelect: (T, Event) -> Unit
+    var onUnfocus: (T, Event) -> Unit
+    var option: T
+    var optionIndex: Int
 }
 
 external interface CreatableSpecificProps<T : SelectOption> : RProps {

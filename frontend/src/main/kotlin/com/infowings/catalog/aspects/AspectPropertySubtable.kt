@@ -156,13 +156,13 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                             aspectPropertyCell(indexedPropertyValueChangedHandler { copy(cardinality = it) })
                         ),
                             selectColumn("aspect.name", "Name", indexedPropertyValueChangedHandler { copy(aspectId = it) }, { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
-                            simpleTableColumn("aspect.measure", "Measure Unit", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                            simpleTableColumn("aspect.measure", "Measure Unit", measurementUnitAspectPropertyCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
                             simpleTableColumn("aspect.domain", "Domain", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
                             simpleTableColumn("aspect.baseType", "Base Type", aspectPropertyAspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                             controlsPropertyColumn(::saveAspect, ::resetAspect)
                     )
                     collapseOnDataChange = false
-                    className = "aspect-table"
+                    className = "aspect-table aspect-subtable"
                     SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                     data = aspectPropertiesToRows()
                     showPagination = false

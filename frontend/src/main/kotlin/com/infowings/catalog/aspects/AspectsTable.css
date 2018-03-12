@@ -51,6 +51,7 @@
 }
 
 .aspect-property-table-wrapper {
+  margin-left: 35px;
   background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -79,9 +80,36 @@
   overflow: visible
 }
 
+.ReactTable.aspect-table .rt-noData {
+  display: none;
+}
+
 .aspect-table-select > .Select-control {
   border-radius: 0;
   border: none;
   background-color: transparent !important;
   outline: none !important;
+}
+
+.mu-option {
+
+}
+
+.mu-option-category-container {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  border-radius: 3px;
+  border: 1px solid #AAA;
+  background-color: #FFF;
+}
+
+.mu-option-category-item {
+  padding: 0 5px;
+  height: 36px;
+  line-height: 34px;
+}
+
+.mu-option-category-item:hover {
+  background-color: #f2f9fc;
 }
