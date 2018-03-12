@@ -37,11 +37,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      */
     fun save(aspectData: AspectData): Aspect {
         logger.trace("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
-
-        aspectValidator.checkAspectData(aspectData)
-        aspectValidator.checkBusinessKey(aspectData)
-
         val save: OVertex = transaction(db) {
+
+            aspectValidator.checkAspectData(aspectData)
+            aspectValidator.checkBusinessKey(aspectData)
 
             val aspectVertex: OVertex = aspectValidator.aspectVertex(aspectData)
 
