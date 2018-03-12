@@ -49,6 +49,7 @@ class WebSecurity() : WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
+
         auth?.userDetailsService(userDetailsService)
     }
 }
