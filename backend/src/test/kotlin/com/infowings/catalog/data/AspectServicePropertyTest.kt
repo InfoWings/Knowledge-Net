@@ -5,6 +5,10 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Kilometre
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectModificationException
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction

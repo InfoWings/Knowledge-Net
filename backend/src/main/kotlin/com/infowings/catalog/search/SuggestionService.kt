@@ -3,16 +3,11 @@ package com.infowings.catalog.search
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MEASURE_VERTEX
-import com.infowings.catalog.data.toAspectData
+import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.data.toMeasure
-import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
-import com.infowings.catalog.storage.toVertexOrNUll
-import com.orientechnologies.orient.core.record.OVertex
-import com.infowings.catalog.data.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Сервис поиска в OrientDB

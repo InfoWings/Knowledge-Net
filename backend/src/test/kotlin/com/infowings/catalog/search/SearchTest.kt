@@ -3,9 +3,9 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectPropertyCardinality
-import com.infowings.catalog.data.AspectService
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Before
 import org.junit.Test

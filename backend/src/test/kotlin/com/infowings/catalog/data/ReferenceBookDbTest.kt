@@ -3,6 +3,8 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectService
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
