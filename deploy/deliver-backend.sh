@@ -6,7 +6,7 @@ back_jar=backend-$ts.jar
 ls -l $back_local
 cp $back_local $back_jar
 
-ver=`./gradlew properties | grep ^version:` 
+ver=`./gradlew properties | grep '^version: '` | sed 's/^version: //' 
 
 echo "version" $ver
 echo "timestamp: $ts"
