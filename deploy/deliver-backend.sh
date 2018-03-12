@@ -6,6 +6,9 @@ back_jar=backend-$ts.jar
 ls -l $back_local
 cp $back_local $back_jar
 
+ver=`gradle properties | grep ^version:` 
+
+echo "version" $ver
 echo "timestamp: $ts"
 echo "Going to deliver $back_jar"
 ls -l $back_jar
