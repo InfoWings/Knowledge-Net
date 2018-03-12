@@ -1,10 +1,13 @@
 bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads"
 ts=`date +'%F-%H_%M_%S'`
-front_jar=frontend-$ts.jar
 
 cd frontend/build
 jar cf ../$front_jar web
 cd ..
+
+ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
+
+front_jar=frontend-$ts-$ver.jar
 
 echo "timestamp: $ts"
 echo "Going to deliver $back_jar and $front_jar"

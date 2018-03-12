@@ -1,12 +1,13 @@
 back_local=backend/build/libs/backend.jar
 bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads"
 ts=`date +'%F-%H_%M_%S'`
-back_jar=backend-$ts.jar
 
 ls -l $back_local
 cp $back_local $back_jar
 
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
+
+back_jar=backend-$ts-$ver.jar
 
 echo "version" $ver
 echo "timestamp: $ts"
