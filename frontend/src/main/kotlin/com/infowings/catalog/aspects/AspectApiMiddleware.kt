@@ -7,7 +7,7 @@ import react.*
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: Array<AspectData>
-    var aspectsMap: Map<String, AspectData>
+    var aspectContext: Map<String, AspectData>
     var onAspectUpdate: (changedAspect: AspectData) -> Unit
     var onAspectCreate: (newAspect: AspectData) -> Unit
 }
@@ -24,9 +24,10 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
 
     override fun componentDidMount() {
         launch {
-            val aspects = getAllAspects()
+            val response = getAllAspects()
             setState {
-                data = aspects.aspects.toTypedArray()
+                data = response.aspects.toTypedArray()
+                context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
                 loading = false
             }
         }
@@ -35,20 +36,36 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     private fun handleCreateNewAspect(aspectData: AspectData) {
         launch {
             val newAspect = createAspect(aspectData)
+            val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+
             setState {
                 data += newAspect
+                context[newAspectId] = newAspect
             }
         }
     }
 
-    private fun handleUpdateAspect(aspectData: AspectData) {}
+    private fun handleUpdateAspect(aspectData: AspectData) {
+        launch {
+            val updatedAspect = updateAspect(aspectData)
+            val updatedAspectId: String = updatedAspect.id
+                    ?: throw Error("Server returned Aspect with aspectId == null")
+
+            setState {
+                data = data.map {
+                    if (updatedAspect.id == it.id) updatedAspect else it
+                }.toTypedArray()
+                context[updatedAspectId] = updatedAspect
+            }
+        }
+    }
 
     override fun RBuilder.render() {
         child(AspectsTable::class) {
             attrs {
                 data = state.data
+                aspectContext = state.context
                 loading = state.loading
-                aspectsMap = state.data.associate { Pair(it.id!!, it) }
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect
             }
@@ -56,7 +73,18 @@ class AspectApiMiddleware : RComponent<RProps, AspectApiMiddleware.State>() {
     }
 
     interface State : RState {
+        /**
+         * Last fetched data from server (actual)
+         */
         var data: Array<AspectData>
+        /**
+         * Flag showing if the data is still being fetched
+         */
         var loading: Boolean
+        /**
+         * Map from AspectId to actual AspectData objects. Necessary for reconstructing tree structure
+         * (AspectPropertyData contains aspectId)
+         */
+        var context: MutableMap<String, AspectData>
     }
 }

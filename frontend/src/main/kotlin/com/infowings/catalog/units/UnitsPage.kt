@@ -2,13 +2,100 @@ package com.infowings.catalog.units
 
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.layout.Header
+import com.infowings.catalog.utils.get
 import com.infowings.catalog.wrappers.RouteSuppliedProps
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.h1
+import react.setState
+import kotlin.browser.window
 
-class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
+class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
+
+    private val allData = MeasureGroupMap
+        .flatMap { (measureGroupName, measureGroup) ->
+            measureGroup.measureList.map {
+                UnitsTableRowData(measureGroupName, it.name, it.symbol, containsFilterText = true)
+            }
+        }
+
+    private val allDataMap = allData.groupBy { it.pivotBy }
+
+    override fun State.init() {
+        filterText = ""
+        data = emptyList()
+    }
+
+    override fun componentDidMount() {
+        setState {
+            data = allData
+        }
+    }
+
+    private var timer: Int = 0
+
+    private fun handleFilterTextChange(filterText: String) {
+        val before = state.filterText.length
+        val after = filterText.length
+        val skipUpdate = (before < 3 && after < 3)
+        setState {
+            this.filterText = filterText
+        }
+        if (!skipUpdate) {
+            window.clearTimeout(timer)
+            timer = window.setTimeout({ updateDataState(filterText) }, 200)
+        }
+    }
+
+    private var job: Job? = null
+
+    private fun updateDataState(filterText: String) {
+        if (filterText.length < 3) {
+            setState {
+                this.data = allData
+            }
+        } else {
+            // if previous request not completed then cancel it
+            job?.cancel()
+            job = launch {
+                val data = getFilteredData(filterText)
+                setState {
+                    this.data = data
+                }
+            }
+        }
+    }
+
+    private suspend fun getFilteredData(filterText: String): List<UnitsTableRowData> {
+        val filteredNames = filterMeasureNames(filterText)
+
+        // get list of measureGroupName of filtered measure names
+        val measureGroupNames: List<String> = filteredNames
+            .flatMap { name -> allData.filter { it.name == name }.map { it.pivotBy } }
+            .distinct()
+
+        // create map where key is measureGroupName and value is list of UnitsTableRowData of this group
+        val dataByMeasureGroupNameMap: Map<String, List<UnitsTableRowData>> = measureGroupNames
+            .mapNotNull { allDataMap[it] }
+            .flatMap {
+                it.map { UnitsTableRowData(it.pivotBy, it.name, it.symbol, filteredNames.contains(it.name)) }
+            }.groupBy { it.pivotBy }
+
+        return filteredNames
+            .flatMap { name -> allData.filter { it.name == name }.map { name to it.pivotBy } }
+            .flatMap { (name, measureGroupName) ->
+                dataByMeasureGroupNameMap.getValue(measureGroupName)
+                    .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
+            }
+    }
+
+    private suspend fun filterMeasureNames(filterText: String): Array<String> {
+        return JSON.parse(get("/api/search/measure/suggestion?text=$filterText"))
+    }
+
     override fun RBuilder.render() {
         child(Header::class) {
             attrs { location = props.location.pathname }
@@ -16,12 +103,22 @@ class UnitsPage : RComponent<RouteSuppliedProps, RState>() {
 
         h1 { +"Units Page" }
 
-        child(UnitsTable::class) {
+        child(SearchBar::class) {
             attrs {
-                data = MeasureGroupMap.flatMap { it ->
-                    it.value.measureList.map { m -> UnitsTableRowData(it.key, m.name, m.symbol) }
-                }.toTypedArray()
+                filterText = state.filterText
+                onFilterTextChange = ::handleFilterTextChange
             }
         }
+
+        child(UnitsTable::class) {
+            attrs {
+                data = state.data.toTypedArray()
+            }
+        }
+    }
+
+    interface State : RState {
+        var filterText: String
+        var data: List<UnitsTableRowData>
     }
 }

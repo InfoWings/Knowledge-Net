@@ -1,16 +1,13 @@
 .rtable-input {
+  box-sizing: border-box;
+  height: 36px;
+  line-height: 34px;
   outline: none;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  padding: 0;
+  border: none;
+  padding: 0 10px;
   margin: 0;
   background-color: transparent;
   width: 100%;
-}
-
-
-.rtable-input:focus {
-  border: 1px solid darkgreen;
 }
 
 .aspect-management-container {
@@ -53,9 +50,8 @@
   cursor: default;
 }
 
-.subtable-wrapper {
-  padding-left: 35px;
-  border-top: 1px solid rgba(0, 0, 0, 0.02);
+.aspect-property-table-wrapper {
+  margin-left: 35px;
   background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -69,4 +65,51 @@
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   border-left: 1px solid rgba(0, 0, 0, 0.1);
   padding: 7px 5px;
+}
+
+.ReactTable .rt-td.aspect-cell {
+  overflow: visible;
+  padding: 0;
+}
+
+.ReactTable.aspect-table .rt-table {
+  overflow: visible;
+}
+
+.ReactTable.aspect-table .rt-tbody {
+  overflow: visible
+}
+
+.ReactTable.aspect-table .rt-noData {
+  display: none;
+}
+
+.aspect-table-select > .Select-control {
+  border-radius: 0;
+  border: none;
+  background-color: transparent !important;
+  outline: none !important;
+}
+
+.mu-option {
+
+}
+
+.mu-option-category-container {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  border-radius: 3px;
+  border: 1px solid #AAA;
+  background-color: #FFF;
+}
+
+.mu-option-category-item {
+  padding: 0 5px;
+  height: 36px;
+  line-height: 34px;
+}
+
+.mu-option-category-item:hover {
+  background-color: #f2f9fc;
 }
