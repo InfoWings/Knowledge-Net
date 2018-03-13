@@ -1,14 +1,12 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Measure
-import com.infowings.catalog.data.*
+import com.infowings.catalog.data.MEASURE_VERTEX
+import com.infowings.catalog.data.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
-import com.orientechnologies.orient.core.sql.executor.OResult
 
 /**
  * Сервис поиска в OrientDB
