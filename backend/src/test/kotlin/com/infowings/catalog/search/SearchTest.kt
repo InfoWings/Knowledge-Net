@@ -82,7 +82,7 @@ class SearchTest {
 
     @Test
     fun aspectSuggestion() {
-        val aspectName = "newAspectSuggestion"
+        val aspectName = "aspectSuggestionTst"
         val aspect: Aspect = createTestAspect(aspectName)
 
         val res = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = aspectName), null)
