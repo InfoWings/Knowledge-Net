@@ -2,8 +2,9 @@ bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKE
 ts=`date +'%F-%H_%M_%S'`
 
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
+gb=`git rev-parse --abbrev-ref HEAD`
 
-front_jar=frontend-$ts-$ver.jar
+front_jar=frontend-$ts-$ver_$gb.jar
 
 cd frontend/build
 jar cf ../$front_jar web
