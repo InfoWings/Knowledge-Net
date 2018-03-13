@@ -194,7 +194,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                                 ::resetAspect
                         )
                 )
-                data = aspectsToRows() //TODO move to AspectApiMiddleware???
+                data = aspectsToRows()
                 loading = props.loading
                 SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
                 showPagination = false

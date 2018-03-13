@@ -2,6 +2,7 @@ package com.infowings.catalog.data.subject
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.AbstractMvcTest
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -31,7 +32,7 @@ class SubjectApiTest : AbstractMvcTest() {
     @Test
     fun create() {
         val aspect = createTestAspect("TestSubjectAspect")
-        val sd = SubjectData(name = "TestSubject_CreateApi", aspectIds = listOf(aspect.id))
+        val sd = SubjectData(name = "TestSubject_CreateApi", aspects = listOf(AspectData(aspect.id)))
         val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
 
         mockMvc.perform(
@@ -44,12 +45,30 @@ class SubjectApiTest : AbstractMvcTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNotEmpty)
     }
 
+    @Test
+    fun upadte() {
+        val subject = createTestSubject("TestSubjectUpdate")
+        val sd = SubjectData(id = subject.id, name = "TestSubjectUpdateNewName")
+        val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.put("/api/subject/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(subjectDataJson)
+                .with(authorities)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(sd.name))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(subject.id))
+
+    }
+
     private fun createTestSubject(name: String): Subject {
         val aspect = createTestAspect("TestSubjectAspect")
         val sd = SubjectData(
             name = name,
-            aspectIds = listOf(aspect.id)
+            aspects = listOf(AspectData(aspect.id))
         )
         return subjectService.findByName(name) ?: subjectService.createSubject(sd)
     }
+
 }
