@@ -12,15 +12,21 @@ import org.springframework.web.bind.annotation.*
 class SubjectApi(val subjectService: SubjectService) {
 
     @PostMapping("create")
-    fun createAspect(@RequestBody subjectData: SubjectData): SubjectData {
+    fun createSubject(@RequestBody subjectData: SubjectData): SubjectData {
         logger.info("New subject create request: $subjectData")
         return subjectService.createSubject(subjectData).toSubjectData()
     }
 
     @GetMapping("all")
-    fun getAspects(): List<SubjectData> {
+    fun getSubject(): List<SubjectData> {
         logger.debug("Get all subject request")
         return subjectService.getSubjects().map { it.toSubjectData() }
+    }
+
+    @PostMapping("update")
+    fun updateSubject(@RequestBody subjectData: SubjectData): SubjectData {
+        logger.info("Update subject create request: $subjectData")
+        return subjectService.updateSubject(subjectData).toSubjectData()
     }
 }
 

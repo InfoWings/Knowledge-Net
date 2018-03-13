@@ -3,7 +3,6 @@ package com.infowings.catalog.subjects
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
-import com.infowings.catalog.utils.put
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -15,14 +14,14 @@ suspend fun createSubject(body: SubjectData): SubjectData =
     JSON.parse(post("/api/subject/create", JSON.stringify(body)))
 
 suspend fun updateSubject(body: SubjectData): SubjectData =
-    JSON.parse(put("/api/subject/update", JSON.stringify(body)))
+    JSON.parse(post("/api/subject/update", JSON.stringify(body)))
 
 
 interface SubjectApiReceiverProps : RProps {
     var data: Array<SubjectData>
     var loading: Boolean
-    var onSubjectUpdate: (changedAspect: SubjectData) -> Unit
-    var onSubjectsCreate: (newAspect: SubjectData) -> Unit
+    var onSubjectUpdate: (sd: SubjectData) -> Unit
+    var onSubjectsCreate: (sd: SubjectData) -> Unit
 }
 
 class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
@@ -54,7 +53,10 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
 
     private fun handleUpdateSubject(subjectData: SubjectData) {
         launch {
-            updateSubject(subjectData)
+            val res = updateSubject(SubjectData(subjectData.id, subjectData.name))
+            setState {
+
+            }
         }
     }
 

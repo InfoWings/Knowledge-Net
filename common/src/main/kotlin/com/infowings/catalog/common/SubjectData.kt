@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class SubjectData(
     val id: String? = null,
     val name: String,
-    val aspects: List<AspectData> = emptyList()
+    val aspects: Array<AspectData> = emptyArray()
 )

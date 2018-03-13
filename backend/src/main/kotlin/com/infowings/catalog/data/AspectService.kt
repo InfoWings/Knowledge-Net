@@ -74,7 +74,8 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      */
     fun createAspect(aspectData: AspectData): Aspect {
-        if (findByName(aspectData.name) != null)
+        val name = aspectData.name ?: throw NewAspectNameIsNull
+        if (findByName(name) != null)
             throw AspectAlreadyExist
 
         val measure: Measure<*>? = GlobalMeasureMap[aspectData.measure]
@@ -88,7 +89,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         if (baseType != null && measure != null && baseType != measure.baseType)
             throw IllegalArgumentException("Base type and measure base type should be the same")
 
-        return save(aspectData.name, measure, baseType, aspectData.properties)
+        return save(name, measure, baseType, aspectData.properties)
     }
 
     /**
@@ -138,4 +139,5 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 private val logger = loggerFor<AspectService>()
 
 object AspectAlreadyExist : Throwable()
+object NewAspectNameIsNull : Throwable()
 class AspectDoesNotExist(val id: String) : Throwable()

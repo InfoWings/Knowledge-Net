@@ -36,8 +36,33 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
             transaction(db) { session ->
                 val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
                 vertex[ATTR_NAME] = sd.name
-                sd.aspectIds.forEach { aspectId ->
+                sd.aspects.forEach { aspectData ->
+                    val aspectId = aspectData.id ?: aspectService.createAspect(aspectData).id
                     db[aspectId].addEdge(vertex, ASPECT_SUBJECT_EDGE).save<OEdge>()
+                }
+                vertex.save<OVertex>()
+                session.commit() //TODO ????
+                return@transaction vertex.toSubject()
+            }
+        return res
+    }
+
+    class SubjectWithNameAlreadyExist(name: String) : Throwable("Subject already exist: $name") {}
+
+    fun updateSubject(sd: SubjectData): Subject {
+        val res: Subject =
+            transaction(db) { session ->
+                val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull]
+                vertex[ATTR_NAME] = sd.name
+                sd.aspects.forEach { aspectData ->
+                    val aspectId = aspectData.id ?: aspectService.createAspect(aspectData).id
+                    if (db[aspectId].getEdges(
+                            ODirection.OUT,
+                            ASPECT_SUBJECT_EDGE
+                        ).find { it.to.id == vertex.id } == null
+                    ) {
+                        db[aspectId].addEdge(vertex, ASPECT_SUBJECT_EDGE).save<OEdge>()
+                    }
                 }
                 vertex.save<OVertex>()
                 vertex.toSubject()
@@ -45,7 +70,7 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
         return res
     }
 
-    class SubjectWithNameAlreadyExist(name: String) : Throwable("Subject already exist: $name") {}
+    object SubjectIdIsNull : Throwable()
 
 }
 
