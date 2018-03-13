@@ -4,7 +4,7 @@ ts=`date +'%F-%H_%M_%S'`
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
 gb=`git rev-parse --abbrev-ref HEAD`
 
-front_jar=frontend-$ts-$ver_$gb.jar
+front_jar=frontend-$ts-${ver}_$gb.jar
 
 cd frontend/build
 jar cf ../$front_jar web

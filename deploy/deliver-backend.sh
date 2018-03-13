@@ -5,7 +5,7 @@ ts=`date +'%F-%H_%M_%S'`
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
 gb=`git rev-parse --abbrev-ref HEAD`
 
-back_jar=backend-$ts-$ver_$gb.jar
+back_jar=backend-$ts-${ver}_$gb.jar
 
 ls -l $back_local
 cp $back_local $back_jar
