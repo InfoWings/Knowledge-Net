@@ -19,14 +19,15 @@
 
     <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="measuerService"/>
+        <constructor-arg ref="measureService"/>
+        <constructor-arg ref="suggestionService"/>
     </bean>
 
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
         <constructor-arg ref="metadataService"/>
     </bean>
 
-    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">
+    <bean id="measureService" class="com.infowings.catalog.data.MeasureService">
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
