@@ -31,7 +31,8 @@ class WebSecurity : WebSecurityConfigurerAdapter() {
     lateinit var jwtService: JWTService
 
     override fun configure(http: HttpSecurity?) {
-        http?.sessionManagement()?.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http?.sessionManagement()
+            ?.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         val jWTAuthorizationFilter = JWTAuthorizationFilter(authenticationManager(), env, jwtService)
 
