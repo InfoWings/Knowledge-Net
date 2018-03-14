@@ -118,7 +118,7 @@ class SuggestionService(val database: OrientDatabase) {
      */
     fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
         val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord"
-        return database.query(q, mapOf(aspectRecord to ORecordId(aspectId))) {
+        return@session database.query(q, mapOf(aspectRecord to ORecordId(aspectId))) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
