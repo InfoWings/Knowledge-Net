@@ -83,7 +83,7 @@ class SuggestionService(val database: OrientDatabase) {
         return res.mapNotNull { it.toVertexOrNUll() }
     }
 
-    private fun textOrAllWildcard(text: String?): String = if (text.isNullOrEmpty()) "*" else text!!
+    private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text
 
     private fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
 
@@ -99,7 +99,7 @@ class SuggestionService(val database: OrientDatabase) {
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
         val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
                 "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
-        database.query(q, "($text~) ($text*) (*$text*)", ORecordId(aspectId)) { it }
+        database.query(q, luceneQuery(text), ORecordId(aspectId)) { it }
     }
 
     /**
