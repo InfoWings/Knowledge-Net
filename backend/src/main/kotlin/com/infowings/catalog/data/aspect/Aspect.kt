@@ -28,7 +28,7 @@ data class Aspect(
     operator fun get(property: String) = properties.filter { it.name == property }
 
     fun toAspectData(): AspectData =
-            AspectData(id, name, measure?.name, domain.toString(), baseType?.name, properties.toAspectPropertyData(), version)
+            AspectData(id, name, measure?.name, domain?.toString(), baseType?.name, properties.toAspectPropertyData(), version)
 }
 
 fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }

@@ -14,8 +14,8 @@ import com.orientechnologies.orient.core.record.OVertex
  * Public OVertex Extensions.
  */
 fun OVertex.toAspectData(): AspectData {
-    val baseTypeObj = BaseType.restoreBaseType(baseType)
-    return AspectData(id, name, measureName, OpenDomain(baseTypeObj).toString(), baseType, properties.map { it.toAspectPropertyData() }, version)
+    val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+    return AspectData(id, name, measureName, baseTypeObj?.let { OpenDomain(it).toString() }, baseType, properties.map { it.toAspectPropertyData() }, version)
 }
 
 fun OVertex.toAspectPropertyData(): AspectPropertyData =
@@ -135,8 +135,8 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun OVertex.toAspect(): Aspect {
-        val baseTypeObj = BaseType.restoreBaseType(baseType)
-        return Aspect(id, name, measure, OpenDomain(baseTypeObj), baseTypeObj, loadProperties(this), version)
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return Aspect(id, name, measure, baseTypeObj?.let { OpenDomain(it) }, baseTypeObj, loadProperties(this), version)
     }
 
     private fun OVertex.toAspectProperty(): AspectProperty =
