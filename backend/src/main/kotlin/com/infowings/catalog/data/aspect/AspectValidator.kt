@@ -21,7 +21,7 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
     internal fun aspectVertex(aspectData: AspectData): OVertex {
         val aspectId = aspectData.id
 
-        return if (aspectId?.isEmpty() == false) {
+        return if (aspectId != null && aspectId.isNotEmpty()) {
             db.getVertexById(aspectId)?.also { validateExistingAspect(it, aspectData) }
                     ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
         } else {
@@ -38,7 +38,7 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
     internal fun aspectPropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
         val propertyId = aspectPropertyData.id
 
-        return if (!propertyId.isEmpty()) {
+        return if (propertyId.isNotEmpty()) {
             db.getVertexById(propertyId)?.also { validateExistingAspectProperty(it, aspectPropertyData) }
                     ?: throw IllegalArgumentException("Incorrect property id")
         } else {
@@ -54,12 +54,17 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
      */
     internal fun checkBusinessKey(aspectData: AspectData) {
         // check aspect business key
-        if (aspectService.findByName(aspectData.name).filter { it.id != aspectData.id }.any { it.measure?.name == aspectData.measure }) {
+        val alreadyExists = aspectService
+                .findByName(aspectData.name)
+                .filter { it.id != aspectData.id }
+                .any { it.measure?.name == aspectData.measure }
+
+        if (alreadyExists) {
             throw AspectAlreadyExist(aspectData.name, aspectData.measure)
         }
         // check aspect properties business key
-        val valid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
-        if (valid) {
+        val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
+        if (notValid) {
             throw IllegalArgumentException("Not correct property business key $aspectData")
         }
     }
@@ -73,11 +78,11 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
         val measureString: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
-        if (measureString != null && baseType != null) {
+        if (measureString != null) {
             val measure: Measure<*> = GlobalMeasureMap[measureString]
                     ?: throw IllegalArgumentException("Measure $measureString incorrect")
 
-            if (measure.baseType != BaseType.restoreBaseType(aspectData.baseType)) {
+            if (baseType != null && measure.baseType != BaseType.restoreBaseType(baseType)) {
                 throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
             }
         }
