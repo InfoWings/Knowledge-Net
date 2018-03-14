@@ -46,6 +46,13 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
         }
     }
 
+    private fun handleRequestNewAspect() {
+        setState {
+            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspectProperty = null
+        }
+    }
+
     override fun RBuilder.render() {
         aspectTreeView {
             attrs {
@@ -53,6 +60,7 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
                 aspectContext = props.aspectContext
                 onAspectClick = ::handleClickAspect
                 onAspectPropertyClick = ::handleClickAspectProperty
+                onNewAspectRequest = ::handleRequestNewAspect
             }
         }
         when {
@@ -61,10 +69,17 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
                     attrs {
                         aspect = state.selectedAspect!!
                         onCancel = ::handleCancelChanges
+
                     }
                 }
             state.selectedAspect == null && state.selectedAspectProperty != null ->
-                aspectPropertyEditConsole {}
+                aspectPropertyEditConsole {
+                    attrs {
+                        aspectProperty = state.selectedAspectProperty!!
+                        childAspect = props.aspectContext[state.selectedAspectProperty!!.aspectId]!!
+                        onCancel = ::handleCancelChanges
+                    }
+                }
         }
     }
 

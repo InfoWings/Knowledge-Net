@@ -4,6 +4,8 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
+import kotlinx.html.js.onClickFunction
+import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
@@ -15,17 +17,32 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
         }
     }
 
+    private fun createNewAspectHandler(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onNewAspectRequest()
+    }
+
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
-            props.aspects.map { aspect ->
-                aspectTreeRoot {
-                    attrs {
-                        key = aspect.id ?: ""
-                        this.aspect = aspect
-                        onAspectClick = props.onAspectClick
-                        onAspectPropertyClick = props.onAspectPropertyClick
-                        aspectContext = props.aspectContext
+            if (props.aspects.isNotEmpty()) {
+                props.aspects.map { aspect ->
+                    aspectTreeRoot {
+                        attrs {
+                            key = aspect.id ?: ""
+                            this.aspect = aspect
+                            onAspectClick = props.onAspectClick
+                            onAspectPropertyClick = props.onAspectPropertyClick
+                            aspectContext = props.aspectContext
+                        }
                     }
+                }
+            } else {
+                div(classes = "aspect-tree-view--empty") {
+                    attrs {
+                        onClickFunction = ::createNewAspectHandler
+                    }
+                    +"Click here to create the first aspect"
                 }
             }
         }

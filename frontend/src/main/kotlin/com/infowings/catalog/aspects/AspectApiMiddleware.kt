@@ -1,21 +1,20 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
 
-private val aspects: List<AspectData> = arrayListOf(
-        AspectData("#1:0", "Width", "Metre", "OpenDomain", "Decimal"),
-        AspectData("#2:0", "Height", "Metre", "OpenDomain", "Decimal"),
-        AspectData("#3:0", "Depth", "Metre", "OpenDomain", "Decimal"),
-        AspectData("#4:0", "Dimensions", null, "OpenDomain", "Complex Type", arrayListOf(
-                AspectPropertyData("#5:0", "Width", "#1:0", "ONE"),
-                AspectPropertyData("#6:0", "Height", "#2:0", "ONE"),
-                AspectPropertyData("#7:0", "Depth", "#3:0", "ONE")
-        ))
-)
+//private val aspects: List<AspectData> = arrayListOf(
+//        AspectData("#1:0", "Width", "Metre", "OpenDomain", "Decimal"),
+//        AspectData("#2:0", "Height", "Metre", "OpenDomain", "Decimal"),
+//        AspectData("#3:0", "Depth", "Metre", "OpenDomain", "Decimal"),
+//        AspectData("#4:0", "Dimensions", null, "OpenDomain", "Complex Type", arrayListOf(
+//                AspectPropertyData("#5:0", "Width", "#1:0", "ONE"),
+//                AspectPropertyData("#6:0", "Height", "#2:0", "ONE"),
+//                AspectPropertyData("#7:0", "Depth", "#3:0", "ONE")
+//        ))
+//)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
@@ -76,8 +75,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
-                data = aspects //state.data
-                aspectContext = aspects.associateBy { it.id!! } //state.context
+                data = /*aspects */ state.data
+                aspectContext = /*aspects.associateBy { it.id!! }*/ state.context
                 loading = state.loading
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect

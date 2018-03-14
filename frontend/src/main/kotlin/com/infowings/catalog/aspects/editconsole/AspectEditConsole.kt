@@ -11,11 +11,17 @@ import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
-class AspectEditConsole : RComponent<AspectEditConsole.Props, AspectEditConsole.State>() {
+class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
+
+    override fun State.init(props: Props) {
+        aspectName = props.aspect.name
+        aspectMeasure = props.aspect.measure
+        aspectDomain = props.aspect.domain
+        aspectBaseType = props.aspect.baseType
+    }
 
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
-        e.preventDefault()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
         when (keyCode) {
             27 -> props.onCancel()
@@ -36,22 +42,22 @@ class AspectEditConsole : RComponent<AspectEditConsole.Props, AspectEditConsole.
             div(classes = "aspect-edit-console--input-group") {
                 aspectNameInput {
                     attrs {
-                        initialValue = props.aspect.name
+                        initialValue = state.aspectName
                     }
                 }
                 aspectMeasureInput {
                     attrs {
-                        initialValue = props.aspect.measure
+                        initialValue = state.aspectMeasure
                     }
                 }
                 aspectDomainInput {
                     attrs {
-                        initialValue = props.aspect.domain
+                        initialValue = state.aspectDomain
                     }
                 }
                 aspectBaseTypeInput {
                     attrs {
-                        initialValue = props.aspect.baseType
+                        initialValue = state.aspectBaseType
                     }
                 }
             }

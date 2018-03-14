@@ -5,6 +5,26 @@
   max-width: 120rem;
   margin: auto;
 
+  &--empty {
+    margin: 2rem auto;
+    padding: 2rem;
+    box-shadow: 0 1rem 2rem #333333;
+    cursor: pointer;
+    transition: all .2s;
+    width: 35rem;
+    border-radius: 6px;
+    background-color: #d6d6d6;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-align: center;
+
+    &:hover {
+      text-decoration: underline;
+      box-shadow: 0 2rem 2rem #333333;
+      transform: translateY(-.3rem);
+    }
+  }
+
   &--root {
     display: flex;
     align-items: center;
