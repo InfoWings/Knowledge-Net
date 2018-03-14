@@ -1,5 +1,6 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.MeasureGroup
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -13,6 +14,13 @@ const val MEASURE_VERTEX = "MeasureVertex"
 const val MEASURE_GROUP_EDGE = "MeasureGroupEdge"
 const val MEASURE_BASE_EDGE = "MeasureEdge"
 const val MEASURE_BASE_AND_GROUP_EDGE = "MeasureBaseAndGroupEdge"
+
+
+/**
+ * Public OVertex Extensions.
+ */
+fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
+
 
 /**
  * Измерения делятся на группы. Каждая группа имеет название и базовый элемент.

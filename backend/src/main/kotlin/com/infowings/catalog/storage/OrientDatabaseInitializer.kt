@@ -28,7 +28,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             initUser("admin", "admin", "ADMIN")
             initUser("powereduser", "powereduser", "POWERED_USER")
         }
-        return this
+        return@session this
     }
 
     /** Executes only if there is no Class Aspect in db */
@@ -36,14 +36,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING)
-                    .setMandatory(true)
-                    .createIndex(OClass.INDEX_TYPE.UNIQUE)
+                    .createProperty("name", OType.STRING).isMandatory = true
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
-        return this
+        return@session this
     }
 
     /** Initializes measures */
@@ -79,7 +77,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
-        return initSearch()
+        return@session initSearch()
     }
 
     /** Initializes measures search */
@@ -102,7 +100,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
         session.getClass(REFERENCE_BOOK_ASPECT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
-        return this
+        return@session this
     }
 
     private fun initLuceneIndex(classType: String) =
