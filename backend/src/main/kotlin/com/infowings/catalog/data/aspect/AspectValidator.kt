@@ -100,7 +100,7 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
         }
 
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
-        val receivedVersionMap = aspectData.properties.filter { it.id != "" }.map { it.id to it.version }.toMap()
+        val receivedVersionMap = aspectData.properties.filter { it.id.isNotEmpty() }.map { it.id to it.version }.toMap()
 
         if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
             throw AspectModificationException(aspectVertex.id, "Old version")
