@@ -17,14 +17,14 @@ class SuggestionService(val database: OrientDatabase) {
 
     fun findMeasure(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<Measure<*>> =
         session(database) {
-            findMeasureInDb(
-                measureGroupName, textOrAllWildcard(commonParam?.text)
-            ).mapNotNull { it.toMeasure() }
+            findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
                 .toList()
         }
 
     fun findAspect(
-        context: SearchContext, commonParam: CommonSuggestionParam?, aspectParam: AspectSuggestionParam?
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        aspectParam: AspectSuggestionParam?
     ): List<AspectData> = session(database) {
         findAspectInDb(context, commonParam, aspectParam)
             .mapNotNull { it.toAspectData() }
@@ -45,13 +45,15 @@ class SuggestionService(val database: OrientDatabase) {
     }
 
     private fun findAspectInDb(
-        context: SearchContext, commonParam: CommonSuggestionParam?, aspectParam: AspectSuggestionParam?
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        aspectParam: AspectSuggestionParam?
     ): Sequence<OVertex> {
         val aspectId = context.aspectId
         val res: Sequence<OResult> =
             if (aspectParam?.measureName != null || aspectParam?.measureText != null) {
-                val measureName = textOrAllWildcard(aspectParam?.measureName)
-                val measureText = textOrAllWildcard(aspectParam?.measureText)
+                val measureName = textOrAllWildcard(aspectParam.measureName)
+                val measureText = textOrAllWildcard(aspectParam.measureText)
                 val aspectText = textOrAllWildcard(commonParam?.text)
                 val q = "SELECT FROM $ASPECT_CLASS " +
                         "   WHERE @rid IN " +
@@ -118,7 +120,7 @@ class SuggestionService(val database: OrientDatabase) {
         name = this["name"],
         measure = this["measure"],
         baseType = this["baseType"] ?: BaseType.Nothing.name,
-        domain = BaseType.restoreBaseType(this["baseType"])?.let { OpenDomain(it).toString() },
+        domain = BaseType.restoreBaseType(this["baseType"]).let { OpenDomain(it).toString() },
         version = this.version
     )
 }
