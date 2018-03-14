@@ -67,10 +67,8 @@ compileKotlin2Js {
 }
 
 task copyCss(type: Copy) {
-    from ("$project.projectDir/src/main/kotlin") {
-        include '**/*.css'
-    }
-    into "$buildDir/web/css"
+    from fileTree("$project.projectDir/src/main/kotlin") { include("**/*.css", "**/*.scss") } .files
+    into "$buildDir/web/styles"
 }
 
 task copyStatic(type: Copy, dependsOn: copyCss) {
@@ -80,6 +78,10 @@ task copyStatic(type: Copy, dependsOn: copyCss) {
 
 task buildBundle(type: NpmTask, dependsOn: [npmInstall, runDceKotlinJs, copyStatic]) {
     args = ["run", "dist"]
+}
+
+task serve(type: NpmTask) {
+    args = ["run", "serve"]
 }
 
 task devBuild(dependsOn: [npmInstall, copyStatic, runDceKotlinJs])
