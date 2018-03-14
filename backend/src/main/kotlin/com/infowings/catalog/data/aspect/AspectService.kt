@@ -13,8 +13,10 @@ import com.orientechnologies.orient.core.record.OVertex
 /**
  * Public OVertex Extensions.
  */
-fun OVertex.toAspectData(): AspectData =
-        AspectData(id, name, measureName, baseType?.let { OpenDomain(it).toString() }, baseType?.name, properties.map { it.toAspectPropertyData() }, version)
+fun OVertex.toAspectData(): AspectData {
+    val baseTypeObj = BaseType.restoreBaseType(baseType)
+    return AspectData(id, name, measureName, OpenDomain(baseTypeObj).toString(), baseType, properties.map { it.toAspectPropertyData() }, version)
+}
 
 fun OVertex.toAspectPropertyData(): AspectPropertyData =
         AspectPropertyData(id, name, aspect, cardinality, version)
@@ -36,7 +38,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      */
     fun save(aspectData: AspectData): Aspect {
-        logger.trace("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
+        logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
         val save: OVertex = transaction(db) {
 
             aspectValidator.checkAspectData(aspectData)
@@ -44,14 +46,14 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
             val aspectVertex: OVertex = aspectValidator.aspectVertex(aspectData)
 
-            aspectVertex["name"] = aspectData.name
+            aspectVertex.name = aspectData.name
 
-            aspectVertex["baseType"] = when (aspectData.measure) {
+            aspectVertex.baseType = when (aspectData.measure) {
                 null -> aspectData.baseType
                 else -> null
             }
 
-            aspectVertex["measure"] = aspectData.measure
+            aspectVertex.measureName = aspectData.measure
 
             val measureVertex: OVertex? = aspectData.measure?.let { measureService.findMeasure(it) }
 
@@ -72,7 +74,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             return@transaction aspectVertex.save()
         }
 
-        logger.trace("Aspect ${aspectData.name} saved with id: ${save.id}")
+        logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
         return findById(save.id)
     }
 
@@ -112,9 +114,9 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         val aspectPropertyVertex = aspectValidator.aspectPropertyVertex(aspectPropertyData)
 
-        aspectPropertyVertex["name"] = aspectPropertyData.name
-        aspectPropertyVertex["aspectId"] = aspectPropertyData.aspectId
-        aspectPropertyVertex["cardinality"] = cardinality.name
+        aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.aspect = aspectPropertyData.aspectId
+        aspectPropertyVertex.cardinality = cardinality.name
 
         // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
         if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).contains(aspectVertex)) {
@@ -132,8 +134,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                 .map { loadAspectProperty(it.id) }
     }
 
-    private fun OVertex.toAspect(): Aspect =
-            Aspect(id, name, measure, baseType?.let { OpenDomain(it) }, baseType, loadProperties(this), version)
+    private fun OVertex.toAspect(): Aspect {
+        val baseTypeObj = BaseType.restoreBaseType(baseType)
+        return Aspect(id, name, measure, OpenDomain(baseTypeObj), baseTypeObj, loadProperties(this), version)
+    }
 
     private fun OVertex.toAspectProperty(): AspectProperty =
             AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
@@ -153,15 +157,30 @@ class AspectPropertyModificationException(val id: String, message: String?) : As
 
 internal val OVertex.properties: List<OVertex>
     get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
-internal val OVertex.baseType: BaseType?
-    get() = measure?.baseType ?: BaseType.restoreBaseType(this["baseType"])
-internal val OVertex.name: String
+internal var OVertex.baseType: String?
+    get() = measure?.baseType?.name ?: this["baseType"]
+    set(value) {
+        this["baseType"] = value
+    }
+internal var OVertex.name: String
     get() = this["name"]
-internal val OVertex.aspect: String
+    set(value) {
+        this["name"] = value
+    }
+internal var OVertex.aspect: String
     get() = this["aspectId"]
-internal val OVertex.cardinality: String
+    set(value) {
+        this["aspectId"] = value
+    }
+internal var OVertex.cardinality: String
     get() = this["cardinality"]
+    set(value) {
+        this["cardinality"] = value
+    }
 internal val OVertex.measure: Measure<*>?
     get() = GlobalMeasureMap[measureName]
-internal val OVertex.measureName: String?
+internal var OVertex.measureName: String?
     get() = this["measure"]
+    set(value) {
+        this["measure"] = value
+    }

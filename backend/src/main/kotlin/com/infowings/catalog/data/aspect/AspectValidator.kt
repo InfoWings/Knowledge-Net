@@ -10,7 +10,7 @@ import com.orientechnologies.orient.core.record.OVertex
  * Class also should be used for new vertex creating,
  * methods [aspectVertex] and [aspectPropertyVertex] support validation checks.
  */
-internal class AspectValidator(val db: OrientDatabase, val aspectService: AspectService) {
+internal class AspectValidator(private val db: OrientDatabase, private val aspectService: AspectService) {
 
     /**
      * Create empty vertex in case [aspectData.id] is null or empty
@@ -113,7 +113,7 @@ internal class AspectValidator(val db: OrientDatabase, val aspectService: Aspect
     }
 
     private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
-        if (aspectData.baseType != aspectVertex.baseType?.name) {
+        if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
             /* или сущуствует хотя бы один экземпляр Аспекта */) {
 
