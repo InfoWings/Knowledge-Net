@@ -61,10 +61,16 @@ class SuggestionService(val database: OrientDatabase) {
                         "          (SELECT @rid FROM " +
                         "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
                         "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(:$lqm) = true OR name = :$unitName ))) " +
-                        " AND SEARCH_CLASS(:lq) = true"
-                if (aspectId == null) {
-                    database.query(q, luceneQuery(measureText), luceneQuery(aspectText), measureName) { it }
-                } else {
+                        " AND SEARCH_CLASS(:$lq) = true"
+                if (aspectId == null) { //т.к. не задан текущий аспект, то поикс идет без учета циклов
+                    database.query(
+                        q, mapOf(
+                            lqm to luceneQuery(measureText),
+                            lq to luceneQuery(aspectText),
+                            unitName to measureName
+                        )
+                    ) { it }
+                } else { //т.к. задан текущий аспект, то из результатов поиска исключаем его ветку, чтобы избежать циклических зависимостей
                     database.query(
                         "$q $noCycle",
                         mapOf(
