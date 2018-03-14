@@ -78,6 +78,21 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         }
     }
 
+    /**
+     * run specified query with named params and process result in provided lambda
+     *
+     * usage example:
+     *
+     * database.query(selectFromAspect) { rs, session ->
+     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     */
+    fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
+        return session(database = this) { session ->
+            return@session session.query(query, args)
+                .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
     fun getVertexById(id: String): OVertex? =
             query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 }

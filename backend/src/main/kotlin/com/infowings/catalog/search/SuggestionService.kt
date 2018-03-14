@@ -10,6 +10,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 
+
 /**
  * Сервис поиска в OrientDB
  */
@@ -36,7 +37,7 @@ class SuggestionService(val database: OrientDatabase) {
             "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
         } else {
             val edgeSelector = "both(\"$MEASURE_BASE_EDGE\", \"$MEASURE_BASE_AND_GROUP_EDGE\")"
-            val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name = \"$measureGroupName\")"
+            val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name = \"$measureGroupName\"))"
             "SELECT FROM (TRAVERS $edgeSelector FROM $traversFrom) WHERE SEARCH_CLASS(?) = true"
         }
         return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
@@ -59,23 +60,25 @@ class SuggestionService(val database: OrientDatabase) {
                         "   WHERE @rid IN " +
                         "          (SELECT @rid FROM " +
                         "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
-                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true OR name = ? ))) " +
-                        " AND SEARCH_CLASS(?) = true"
+                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(:$lqm) = true OR name = :$unitName ))) " +
+                        " AND SEARCH_CLASS(:lq) = true"
                 if (aspectId == null) {
                     database.query(q, luceneQuery(measureText), luceneQuery(aspectText), measureName) { it }
                 } else {
                     database.query(
-                        "$q @rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))",
-                        luceneQuery(measureText),
-                        luceneQuery(aspectText),
-                        measureName,
-                        ORecordId(aspectId)
+                        "$q $noCycle",
+                        mapOf(
+                            lqm to luceneQuery(measureText),
+                            lq to luceneQuery(aspectText),
+                            unitName to measureName,
+                            aspectRecord to ORecordId(aspectId)
+                        )
                     ) { it }
                 }
             } else {
                 if (aspectId == null) {
-                    val q = "SELECT FROM $ASPECT_CLASS WHERE SEARCH_CLASS(?) = true"
-                    database.query(q, luceneQuery(textOrAllWildcard(commonParam?.text))) { it }
+                    val q = "SELECT FROM $ASPECT_CLASS WHERE SEARCH_CLASS(:$lq) = true"
+                    database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
                 }
@@ -97,9 +100,8 @@ class SuggestionService(val database: OrientDatabase) {
     }
 
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
-        val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(?) = true and " +
-                "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?))"
-        database.query(q, luceneQuery(text), ORecordId(aspectId)) { it }
+        val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(:$lq) = true and $noCycle"
+        database.query(q, mapOf(lq to luceneQuery(text), aspectRecord to ORecordId(aspectId))) { it }
     }
 
     /**
@@ -107,8 +109,8 @@ class SuggestionService(val database: OrientDatabase) {
      * @return list of the current aspect and all its parents
      */
     fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
-        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM ?"
-        return database.query(q, ORecordId(aspectId)) {
+        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord"
+        return database.query(q, mapOf(aspectRecord to ORecordId(aspectId))) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
         }
     }
@@ -123,6 +125,13 @@ class SuggestionService(val database: OrientDatabase) {
         domain = BaseType.restoreBaseType(this["baseType"]).let { OpenDomain(it).toString() },
         version = this.version
     )
+
+    private val aspectRecord = "a"
+    private val unitName = "un"
+    private val lq = "lq"
+    private val lqm = "lqm"
+    private val noCycle =
+        "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord))"
 }
 
 
