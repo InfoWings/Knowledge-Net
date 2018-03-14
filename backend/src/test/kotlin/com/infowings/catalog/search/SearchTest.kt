@@ -81,6 +81,23 @@ class SearchTest {
     }
 
     @Test
+    fun measureSuggestionInGroup() {
+        val queryText = "metre"
+        val context = SearchContext()
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), "Length")
+
+        logger.info("find result size: ${res.size}")
+        assertFalse(res.isEmpty())
+
+        logger.info("find result: $res")
+        assertEquals("Metre", res.first().name)
+        val m = GlobalMeasureMap[res.first().name]
+        assertEquals(m, Metre)
+
+        res.forEach { logger.info("name : ${it.name}") }
+    }
+
+    @Test
     fun aspectSuggestion() {
         val aspectName = "aspectSuggestionTst"
         val aspect: Aspect = createTestAspect(aspectName)
