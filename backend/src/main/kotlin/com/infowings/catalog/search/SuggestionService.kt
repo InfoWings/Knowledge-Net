@@ -36,7 +36,7 @@ class SuggestionService(val database: OrientDatabase) {
             "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
         } else {
             val edgeSelector = "both(\"$MEASURE_BASE_EDGE\", \"$MEASURE_BASE_AND_GROUP_EDGE\")"
-            val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name = \"$measureGroupName\"))"
+            val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name = \"$measureGroupName\")"
             "SELECT FROM (TRAVERS $edgeSelector FROM $traversFrom) WHERE SEARCH_CLASS(?) = true"
         }
         return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
