@@ -53,9 +53,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
             aspectVertex["measure"] = aspectData.measure
 
-            val measureVertex: OVertex? = aspectData.measure?.let {
-                measureService.findMeasure(it) ?: throw IllegalArgumentException("Measure $it does not exist")
-            }
+            val measureVertex: OVertex? = aspectData.measure?.let { measureService.findMeasure(it) }
 
             measureVertex?.let {
                 if (!aspectVertex.getVertices(ODirection.OUT, ASPECT_MEASURE_CLASS).contains(it)) {
@@ -109,6 +107,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
+
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
         val aspectPropertyVertex = aspectValidator.aspectPropertyVertex(aspectPropertyData)
