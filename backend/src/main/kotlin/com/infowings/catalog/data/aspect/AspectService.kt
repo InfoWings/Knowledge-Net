@@ -105,7 +105,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun saveAspectProperty(aspectPropertyData: AspectPropertyData): OVertex = transaction(db) {
-        logger.trace("Saving aspect property $aspectPropertyData.name$ linked with aspect $aspectPropertyData.aspectId")
+        logger.debug("Saving aspect property $aspectPropertyData.name$ linked with aspect $aspectPropertyData.aspectId")
 
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
@@ -124,7 +124,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
 
         return@transaction aspectPropertyVertex.save<OVertex>().also {
-            logger.trace("Saved aspect property ${aspectPropertyData.name} with temporary id: ${it.id}")
+            logger.debug("Saved aspect property ${aspectPropertyData.name} with temporary id: ${it.id}")
         }
     }
 
