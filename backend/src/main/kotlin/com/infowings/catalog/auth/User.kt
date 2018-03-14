@@ -2,7 +2,7 @@ package com.infowings.catalog.auth
 
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.sql.executor.OResult
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JSON
@@ -17,16 +17,13 @@ data class UserEntity(var username: String,
                       var role: UserRole)
 
 class UserAcceptService(var database: OrientDatabase) {
-    fun findByUsername(username: String): UserEntity? {
-        transaction(database) {
-            val query = "SELECT * from User where username = ?"
-            it.query(query, username).use {
-                if (it.hasNext()) {
-                    val row: OResult = it.next()
-                    return JSON.nonstrict.parse(row.toJSON())
-                }
-            }
+    fun findByUsername(username: String): UserEntity? = session(database) {
+        val query = "SELECT * from User where username = ?"
+        return@session it.query(query, username).use {
+            return@use if (it.hasNext()) {
+                val row: OResult = it.next()
+                JSON.nonstrict.parse<UserEntity>(row.toJSON())
+            } else null
         }
-        return null
     }
 }
