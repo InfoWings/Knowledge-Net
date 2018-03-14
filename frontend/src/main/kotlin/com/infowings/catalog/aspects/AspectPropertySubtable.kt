@@ -103,7 +103,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
      */
     private fun onNewPropertyCreated(e: Event) {
         props.onPropertyChanged { aspect: AspectData ->
-            AspectData(aspect.id, aspect.name, aspect.measure, aspect.domain, aspect.baseType, aspect.properties + AspectPropertyData("", "", "", ""))
+            aspect.copy(properties = aspect.properties + AspectPropertyData("", "", "", ""))
         }
     }
 

@@ -88,10 +88,10 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
  * DO NOT use directly, use [transaction] and [session] instead
  */
 inline fun <U> transactionInner(
-    session: ODatabaseDocument,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        session: ODatabaseDocument,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -117,7 +117,7 @@ inline fun <U> transactionInner(
  *
  * sessions can be nested
  */
-inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) -> U): U {
+inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODatabaseDocument) -> U): U {
     val session = sessionStore.get()
 
     if (session != null)
@@ -138,10 +138,10 @@ inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) 
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-    database: OrientDatabase,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        database: OrientDatabase,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)
