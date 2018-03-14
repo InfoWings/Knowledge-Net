@@ -22,20 +22,28 @@ class ReferenceBookService(val database: OrientDatabase) {
      * Get ReferenceBookItem by id
      * @throws RefBookItemNotExist
      * */
-    fun getReferenceBookItem(id: String): ReferenceBookItem {
+    fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(database) {
         val rootVertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
-        return getReferenceBookItem(rootVertex)
+        return@transaction rootVertex.toReferenceBookItem()
     }
 
     /**
      * Get ReferenceBook instance by name
      * @throws RefBookNotExist
      * */
-    fun getReferenceBook(name: String): ReferenceBook = session(database) {
+    fun getReferenceBook(name: String): ReferenceBook = transaction(database) {
         val referenceBookVertex = getReferenceBookVertexByName(name) ?: throw RefBookNotExist(name)
-        val aspectId = referenceBookVertex.aspect ?: throw RefBookAspectNotExist(name)
-        val root = getReferenceBookItem(referenceBookVertex.child!!)
-        return@session ReferenceBook(name, aspectId.id, root)
+        return@transaction referenceBookVertex.toReferenceBook()
+    }
+
+    /**
+     * Get ReferenceBook instance by name
+     * @throws RefBookNotExist
+     * */
+    fun getReferenceBooks(): Set<ReferenceBook> = transaction(database) {
+        return@transaction database.query(selectFromReferenceBook) { rs ->
+            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toSet()
+        }
     }
 
     /**
@@ -118,14 +126,19 @@ class ReferenceBookService(val database: OrientDatabase) {
         return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
     }.let { ReferenceBook(it.first["name"], aspectId, ReferenceBookItem(it.second.id, it.second["value"])) }
 
-
-    private fun getReferenceBookItem(vertex: OVertex): ReferenceBookItem = session(database) {
-        val children = vertex.children.map { getReferenceBookItem(it) }
-        return@session ReferenceBookItem(vertex.id, vertex.value, children)
-    }
-
     private fun getReferenceBookVertexByName(name: String): OVertex? =
             database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+
+    private fun OVertex.toReferenceBook(): ReferenceBook {
+        val aspectId = aspect?.id ?: throw RefBookAspectNotExist(name)
+        val root = child!!.toReferenceBookItem()
+        return ReferenceBook(name, aspectId, root)
+    }
+
+    private fun OVertex.toReferenceBookItem(): ReferenceBookItem {
+        val children = children.map { it.toReferenceBookItem() }
+        return ReferenceBookItem(id, value, children)
+    }
 }
 
 sealed class ReferenceBookException(message: String? = null) : Exception(message)
@@ -137,6 +150,7 @@ class RefBookAspectNotExist(val name: String) : ReferenceBookException("name: $n
 object RefBookItemMoveImpossible : ReferenceBookException()
 
 private const val searchReferenceBookByName = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE name = ?"
+private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
 
 private val OVertex.name: String
     get() = this["name"]
