@@ -109,9 +109,14 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
 
     private fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+
         checkAspectVersion(aspectVertex, aspectData)
-        checkBaseTypeChangeCriteria(aspectVertex, aspectData)
-        checkMeasureChangeCriteria(aspectVertex, aspectData)
+
+        // if there are no links related to current aspect, we can work with it as a new aspect without validating
+        if (aspectVertex.getVertices(ODirection.IN).any()) {
+            checkBaseTypeChangeCriteria(aspectVertex, aspectData)
+            checkMeasureChangeCriteria(aspectVertex, aspectData)
+        }
     }
 
     private fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
