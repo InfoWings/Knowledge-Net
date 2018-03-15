@@ -147,7 +147,7 @@ class AspectServiceTest {
 
     }
 
-    @Test(expected = AspectConcurrentModificationException::class)
+    @Test(expected = AspectModificationException::class)
     fun testChangeBaseTypeToNull() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)

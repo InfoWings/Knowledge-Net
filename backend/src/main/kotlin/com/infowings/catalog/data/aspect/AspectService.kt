@@ -185,4 +185,5 @@ class AspectAlreadyExist(val name: String, val measure: String?) : AspectExcepti
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")

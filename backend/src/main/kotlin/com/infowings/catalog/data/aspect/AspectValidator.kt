@@ -92,7 +92,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
                     || thereExistAspectImplementation(aspectVertex.id)) {
 
-                throw AspectConcurrentModificationException(aspectVertex.id, "Impossible to change base type")
+                throw AspectModificationException(aspectVertex.id, "Impossible to change base type")
             }
         }
     }
@@ -101,7 +101,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
             if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
-                throw AspectConcurrentModificationException(aspectVertex.id, "Impossible to change measure")
+                throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
             }
         }
     }
