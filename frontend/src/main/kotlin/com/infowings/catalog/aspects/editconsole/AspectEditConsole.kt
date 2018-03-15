@@ -6,12 +6,16 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
 import kotlinx.html.js.onKeyDownFunction
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
+
+    private var inputRef: HTMLInputElement? = null
+    private var aspectChanged: Boolean = false
 
     override fun State.init(props: Props) {
         aspectName = props.aspect.name
@@ -20,28 +24,57 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectBaseType = props.aspect.baseType
     }
 
-    override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.aspect.id != nextProps.aspect.id) {
-            setState {
-                aspectName = nextProps.aspect.name
-                aspectMeasure = nextProps.aspect.measure
-                aspectDomain = nextProps.aspect.domain
-                aspectBaseType = nextProps.aspect.baseType
+    override fun componentDidMount() {
+        inputRef?.focus()
+        inputRef?.select()
+    }
+
+    override fun componentDidUpdate(prevProps: Props, prevState: State) {
+        when {
+            props.aspect.id != null && props.aspect.id != prevProps.aspect.id -> {
+                inputRef?.focus()
+                inputRef?.select()
+            }
+            props.aspect.id == null && aspectChanged -> {
+                aspectChanged = false
+                inputRef?.focus()
+                inputRef?.select()
             }
         }
+    }
+
+    override fun componentWillReceiveProps(nextProps: Props) {
+        setState {
+            aspectName = nextProps.aspect.name
+            aspectMeasure = nextProps.aspect.measure
+            aspectDomain = nextProps.aspect.domain
+            aspectBaseType = nextProps.aspect.baseType
+        }
+    }
+
+    private fun assignInputRef(element: HTMLInputElement?) {
+        inputRef = element
     }
 
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
         when (keyCode) {
-            27 -> props.onCancel()
-            13 -> props.onSubmit(props.aspect.copy(
-                    name = state.aspectName ?: error("Aspect Name is null"),
-                    measure = state.aspectMeasure,
-                    domain = state.aspectDomain,
-                    baseType = state.aspectBaseType
-            ))
+            27 -> {
+                aspectChanged = true
+                inputRef?.blur()
+                props.onCancel()
+            }
+            13 -> {
+                aspectChanged = true
+                inputRef?.blur()
+                props.onSubmit(props.aspect.copy(
+                        name = state.aspectName ?: error("Aspect Name is null"),
+                        measure = state.aspectMeasure,
+                        domain = state.aspectDomain,
+                        baseType = state.aspectBaseType
+                ))
+            }
         }
     }
 
@@ -79,6 +112,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     attrs {
                         value = state.aspectName
                         onChange = ::handleAspectNameChanged
+                        inputRef = ::assignInputRef
                     }
                 }
                 aspectMeasureInput {

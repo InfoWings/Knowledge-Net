@@ -29,6 +29,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
                         id = "aspect-name"
                         value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
+                        ref { props.inputRef(it as HTMLInputElement?) }
                     }
                 }
             }
@@ -38,6 +39,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
     interface Props : RProps {
         var value: String?
         var onChange: (String) -> Unit
+        var inputRef: (HTMLInputElement?) -> Unit
     }
 
 }

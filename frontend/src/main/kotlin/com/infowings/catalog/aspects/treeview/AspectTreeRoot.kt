@@ -22,7 +22,7 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view--root") {
             if (props.aspect.properties.isNotEmpty()) {
-                svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                svg(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     attrs {
                         onClickFunction = ::handleExpanderClick
                     }
@@ -33,9 +33,14 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
                     }
                 }
             } else {
-                svg("aspect-tree-view--line-icon") {
+                svg(classes = "aspect-tree-view--line-icon")
+            }
+            if (props.aspect.id != null) {
+                svg(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     use("svg/sprite.svg#icon-add-to-list")
                 }
+            } else {
+                svg(classes = "aspect-tree-view--line-icon")
             }
             aspectRootLabel {
                 attrs {
