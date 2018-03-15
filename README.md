@@ -10,7 +10,7 @@
 
 OrientDB docker для версии 3.0.0RC1:
 
-`docker run -d --name orientdb -p 2424:2424 -p 2480:2480   -e ORIENTDB_ROOT_PASSWORD= <пароль> orientdb:3.0.0RC1`
+`docker run -d --name orientdb -p 2424:2424 -p 2480:2480   -e ORIENTDB_ROOT_PASSWORD= <пароль> orientdb:3.0.0RC2`
 
 application.properties файл должен быть в папке с backend.jar (или в user.dir) в нем должны быть прописаны все 
 свойства оставленные пустыми в backend/resources/application.properties

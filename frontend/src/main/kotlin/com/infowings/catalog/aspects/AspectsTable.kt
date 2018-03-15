@@ -1,54 +1,12 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
-import com.infowings.catalog.wrappers.table.RTableRendererProps
-import com.infowings.catalog.wrappers.table.ReactTable
-import com.infowings.catalog.wrappers.table.SubComponentProps
-import kotlinx.html.InputType
-import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.div
-import react.dom.i
-import react.dom.input
-import react.dom.span
+import react.dom.*
+import com.infowings.catalog.wrappers.table.*
 
-/**
- * Compact method for creating header for table
- */
-private fun headerComponent(columnName: String) = rFunction<RTableRendererProps>("AspectHeader") {
-    span {
-        +columnName
-    }
-}
-
-/**
- * Compact method for creating table Cell renderer (mutable cells for aspect fields)
- */
-private fun cellComponent(onFieldChanged: (data: AspectData, value: String) -> Unit) = rFunction<RTableRendererProps>("AspectField") { props ->
-    input(type = InputType.text, classes = "rtable-input") {
-        attrs {
-            value = props.value?.toString() ?: ""
-            onChangeFunction = { onFieldChanged(props.original.aspect as AspectData, it.asDynamic().target.value) }
-        }
-    }
-}
-
-/**
- * Compact method for creating aspect column
- */
-private fun aspectColumn(accessor: String, header: RClass<RTableRendererProps>, cell: RClass<RTableRendererProps>? = null) =
-        RTableColumnDescriptor {
-            this.accessor = accessor
-            this.Header = header
-            cell?.let {
-                this.Cell = cell
-            }
-        }
-
-private data class AspectRow(val aspect: AspectData, val pending: Boolean)
-
+data class AspectRow(val aspect: AspectData, val pending: Boolean)
 
 /**
  * Component that represents green "+" sign when there is no new aspect being edited.
@@ -74,15 +32,18 @@ private val addNewAspectHeaderDisabled: RClass<RTableRendererProps> = rFunction(
  * Creator of a sub table for Aspect row
  */
 private fun propertySubComponent(
-        aspectsMap: Map<String, AspectData>,
-        onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit
+        onAspectPropertyChanged: (changedAspect: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) -> Unit,
+        context: Map<String, AspectData>,
+        onAspectUpdate: (AspectData) -> Unit
 ): RClass<SubComponentProps> = rFunction("PropertySubComponent") { props ->
 
     val original = props.original as AspectRow
     child(AspectPropertySubtable::class) {
         attrs {
-            data = original.aspect.properties.map { AspectPropertyRow(it, aspectsMap[it.aspectId]) }.toTypedArray()
+            data = original.aspect.properties.toTypedArray()
             onPropertyChanged = { propertyChanger -> onAspectPropertyChanged(original.aspect, propertyChanger) }
+            aspectContext = context
+            this.onAspectUpdate = onAspectUpdate
         }
     }
 }
@@ -98,7 +59,10 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Callback is called when one of the AspectData#properties is changed
+     * Callback is called when one of [AspectData] fields is changed
+     * If aspect is new and has not yet been saved, changes it.
+     * If aspect is already exists but have not yet been modified, places aspect inside pending context
+     * If aspect has already been modified, changes it inside pending context
      */
     private fun onAspectPropertyChanged(changed: AspectData, propertyChanger: (aspect: AspectData) -> AspectData) {
         setState {
@@ -116,15 +80,8 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Callback creator. Produced callback is called when field (name, measure, domain, baseType) is changed
-     */
-    private fun fieldChangedHandler(fieldChanger: AspectData.(value: String) -> AspectData) = { aspect: AspectData, value: String ->
-
-        onAspectPropertyChanged(aspect, { it.fieldChanger(value) })
-    }
-
-    /**
-     * Callback that discards all changed that were not yet saved to the server
+     * Callback that discards all changed that were not yet saved to the server.
+     * Removes aspect from pending context, if aspect already exists, removes new aspect otherwise.
      */
     private fun resetAspect(aspectId: String?) {
         setState {
@@ -137,8 +94,8 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
     }
 
     /**
-     * Request aspect save if aspect is new (if id == null) (done)
-     *   and requests aspect update if id is not null (not done)
+     * Confirmation callback that requests aspect save if id == null (aspect is new), or requests aspect update
+     * if id != null (aspect already exists but has been modified)
      */
     private fun saveAspect(aspectId: String?) {
         if (aspectId == null) {
@@ -147,6 +104,12 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 newAspect = null
             }
             props.onAspectCreate(savedAspect)
+        } else {
+            val updatedAspect = state.pending[aspectId]!!
+            setState {
+                pending.remove(aspectId)
+            }
+            props.onAspectUpdate(updatedAspect)
         }
     }
 
@@ -182,10 +145,10 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
         ReactTable {
             attrs {
                 columns = arrayOf(
-                        aspectColumn("aspect.name", headerComponent("Name"), cellComponent(fieldChangedHandler(AspectData::withName))),
-                        aspectColumn("aspect.measure", headerComponent("Measure Unit"), cellComponent(fieldChangedHandler(AspectData::withMeasure))),
-                        aspectColumn("aspect.domain", headerComponent("Domain"), cellComponent(fieldChangedHandler(AspectData::withDomain))),
-                        aspectColumn("aspect.baseType", headerComponent("Base Type"), cellComponent(fieldChangedHandler(AspectData::withBaseType))),
+                        simpleTableColumn("aspect.name", "Name", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(name = value) }) }),
+                        simpleTableColumn("aspect.measure", "Measure Unit", measurementUnitAspectCell { value -> onAspectPropertyChanged(this, { it.copy(measure = value) }) }),
+                        simpleTableColumn("aspect.domain", "Domain", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(domain = value) }) }),
+                        simpleTableColumn("aspect.baseType", "Base Type", aspectCell { value -> onAspectPropertyChanged(this, { it.copy(baseType = value) }) }),
                         controlsColumn(
                                 if (state.newAspect == null)
                                     addNewAspectHeaderEnabled(::startCreatingNewAspect)
@@ -194,11 +157,12 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                                 ::resetAspect
                         )
                 )
+                className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
-                SubComponent = propertySubComponent(props.aspectsMap, ::onAspectPropertyChanged)
+                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                 showPagination = false
-                minRows = 2
+                minRows = 0
                 sortable = false
                 showPageJump = false
                 resizable = false

@@ -3,6 +3,8 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.ReferenceBook
+import org.hamcrest.core.Is
+import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -27,8 +29,15 @@ class ReferenceBookDbTest {
 
     @Before
     fun initTestData() {
-        aspect = aspectService.createAspect(AspectData("", "aspect", null, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", null, null, null))
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
+    }
+
+    @Test
+    fun testNotVirtualId() {
+        Assert.assertThat("Ids are not virtual",
+                referenceBookService.getReferenceBook(referenceBook.name).id.contains("-"),
+                Is.`is`(false))
     }
 
     @Test

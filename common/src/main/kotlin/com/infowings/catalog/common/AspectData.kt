@@ -9,27 +9,20 @@ data class AspectsList(
 
 @Serializable
 data class AspectData(
-    val id: String? = null,
-    val name: String? = null,
-    val measure: String? = null,
-    val domain: String? = null,
-    val baseType: String? = null,
-    val properties: List<AspectPropertyData> = emptyList()
-) {
-    fun withName(name: String) = AspectData(id, name, measure, domain, baseType, properties)
-
-    fun withMeasure(measure: String) = AspectData(id, name, measure, domain, baseType, properties)
-
-    fun withDomain(domain: String) = AspectData(id, name, measure, domain, baseType, properties)
-
-    fun withBaseType(baseType: String) = AspectData(id, name, measure, domain, baseType, properties)
-}
-
+        val id: String?,
+        val name: String,
+        val measure: String?,
+        val domain: String?,
+        val baseType: String?,
+        val properties: List<AspectPropertyData> = emptyList(),
+        val version: Int = 0
+)
 
 @Serializable
 data class AspectPropertyData(
     val id: String,
     val name: String,
     val aspectId: String,
-    val power: String
+    val cardinality: String,
+    val version: Int = 0
 )

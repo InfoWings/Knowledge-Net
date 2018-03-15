@@ -15,6 +15,23 @@ import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
 
+/**
+ * Public OVertex Extensions.
+ */
+operator fun <T> OVertex.get(name: String): T = getProperty<T>(name)
+
+operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
+
+val OElement.id: String
+    get() = identity.toString()
+
+fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
+fun OResult.toVertexOrNUll(): OVertex? = vertex.orElse(null)
+
+
+/**
+ * Main class for work with database
+ * */
 class OrientDatabase(url: String, database: String, user: String, password: String) {
 
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
@@ -54,11 +71,26 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * usage example:
      *
      * database.query(selectFromAspect) { rs, session ->
-     * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
+     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, *args)
+                    .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
+    /**
+     * run specified query with named params and process result in provided lambda
+     *
+     * usage example:
+     *
+     * database.query(selectFromAspect) { rs, session ->
+     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     */
+    fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
+        return session(database = this) { session ->
+            return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
@@ -77,10 +109,10 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
  * DO NOT use directly, use [transaction] and [session] instead
  */
 inline fun <U> transactionInner(
-    session: ODatabaseDocument,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        session: ODatabaseDocument,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -106,7 +138,7 @@ inline fun <U> transactionInner(
  *
  * sessions can be nested
  */
-inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) -> U): U {
+inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODatabaseDocument) -> U): U {
     val session = sessionStore.get()
 
     if (session != null)
@@ -127,10 +159,10 @@ inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) 
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-    database: OrientDatabase,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        database: OrientDatabase,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)

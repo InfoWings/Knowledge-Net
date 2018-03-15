@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import java.net.URLDecoder
 
 @Controller
 @RequestMapping("/api/access")
@@ -36,8 +37,14 @@ class UserAccessController(var userAcceptService: UserAcceptService, var jwtServ
 
     @GetMapping("refresh")
     fun refresh(request: RequestEntity<Map<String, String>>): ResponseEntity<JwtToken> {
-        val refreshTokenHeader = request.headers.getFirst(REFRESH_HEADER)
         return try {
+            val refreshTokenHeader = request.headers.getFirst("cookie")
+                .split("; ")
+                .filter { it.startsWith(REFRESH_HEADER) }
+                .map { it.split("=")[1] }
+                .map { URLDecoder.decode(it, "UTF-8") }
+                .first()
+
             val jwtInfo = jwtService.parseTokenString(refreshTokenHeader)
             ResponseEntity(jwtService.createJwtToken(jwtInfo!!.username), HttpStatus.OK)
         } catch (e: Exception) {

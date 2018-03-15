@@ -16,20 +16,19 @@ class AspectApi(val aspectService: AspectService) {
     @PostMapping("create")
     fun createAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
-        return aspectService.createAspect(aspectData).toAspectData()
+        return aspectService.save(aspectData).toAspectData()
     }
 
-//    @PostMapping("create/property")
-//    fun createPropertyForAspect(aspectId: Long, name: String, propertyAspect: String, propertyPower: String): Aspect {
-//        logger.info("Create property for aspect: $aspectId, $name, $propertyAspect, $propertyPower")
-//        return aspectService.createPropertyForAspect(aspectId, name, propertyAspect, propertyPower)
-//    }
-
+    @PostMapping("update")
+    fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
+        logger.info("Update aspect request: $aspectData")
+        return aspectService.save(aspectData).toAspectData()
+    }
 
     @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): AspectData? {
+    fun getAspect(@PathVariable name: String): List<AspectData> {
         logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name)?.toAspectData()
+        return aspectService.findByName(name).map { it.toAspectData() }
     }
 
     @GetMapping("all")
@@ -37,7 +36,5 @@ class AspectApi(val aspectService: AspectService) {
         logger.debug("Get all aspects request")
         return AspectsList(aspectService.getAspects().toAspectData())
     }
-
 }
-
 private val logger = loggerFor<AspectApi>()
