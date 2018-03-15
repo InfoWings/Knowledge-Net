@@ -1,6 +1,9 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -8,18 +11,6 @@ import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-
-
-/**
- * Public OVertex Extensions.
- */
-fun OVertex.toAspectData(): AspectData {
-    val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-    return AspectData(id, name, measureName, baseTypeObj?.let { OpenDomain(it).toString() }, baseType, properties.map { it.toAspectPropertyData() }, version)
-}
-
-fun OVertex.toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, version)
 
 
 /**
@@ -44,7 +35,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             aspectValidator.checkAspectData(aspectData)
             aspectValidator.checkBusinessKey(aspectData)
 
-            val aspectVertex: OVertex = aspectValidator.aspectVertex(aspectData)
+            val aspectVertex: OVertex = createOrGetAspectVertex(aspectData)
 
             aspectVertex.name = aspectData.name
 
@@ -112,7 +103,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        val aspectPropertyVertex = aspectValidator.aspectPropertyVertex(aspectPropertyData)
+        val aspectPropertyVertex = createOrGetAspectPropertyVertex(aspectPropertyData)
 
         aspectPropertyVertex.name = aspectPropertyData.name
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
@@ -132,6 +123,47 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         oVertex
                 .properties
                 .map { loadAspectProperty(it.id) }
+    }
+
+    /**
+     * Create empty vertex in case [aspectData.id] is null or empty
+     * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
+     * @throws IllegalStateException
+     * @throws AspectModificationException
+     * */
+    private fun createOrGetAspectVertex(aspectData: AspectData): OVertex {
+        val aspectId = aspectData.id
+
+        return if (!aspectId.isNullOrEmpty()) {
+
+            db.getVertexById(aspectId!!)?.also {
+                // if aspect is exist, we should validate it with new data
+                aspectValidator.validateExistingAspect(it, aspectData)
+            } ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
+
+        } else {
+            db.createNewVertex(ASPECT_CLASS)
+        }
+    }
+
+    /**
+     * Create empty vertex in case [aspectPropertyData.id] is null or empty
+     * Otherwise validate and return vertex of class [ASPECT_PROPERTY_CLASS] with given id
+     * @throws IllegalStateException
+     * @throws AspectPropertyModificationException
+     * */
+    private fun createOrGetAspectPropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
+        val propertyId = aspectPropertyData.id
+
+        return if (!propertyId.isEmpty()) {
+            db.getVertexById(propertyId)?.also {
+                // if aspect property is exist, we should validate it with new data
+                aspectValidator.validateExistingAspectProperty(it, aspectPropertyData)
+            } ?: throw IllegalArgumentException("Incorrect property id")
+
+        } else {
+            db.createNewVertex(ASPECT_PROPERTY_CLASS)
+        }
     }
 
     private fun OVertex.toAspect(): Aspect {
@@ -154,33 +186,3 @@ class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
-
-internal val OVertex.properties: List<OVertex>
-    get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
-internal var OVertex.baseType: String?
-    get() = measure?.baseType?.name ?: this["baseType"]
-    set(value) {
-        this["baseType"] = value
-    }
-internal var OVertex.name: String
-    get() = this["name"]
-    set(value) {
-        this["name"] = value
-    }
-internal var OVertex.aspect: String
-    get() = this["aspectId"]
-    set(value) {
-        this["aspectId"] = value
-    }
-internal var OVertex.cardinality: String
-    get() = this["cardinality"]
-    set(value) {
-        this["cardinality"] = value
-    }
-internal val OVertex.measure: Measure<*>?
-    get() = GlobalMeasureMap[measureName]
-internal var OVertex.measureName: String?
-    get() = this["measure"]
-    set(value) {
-        this["measure"] = value
-    }

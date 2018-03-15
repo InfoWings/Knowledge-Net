@@ -1,51 +1,14 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.*
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
- *
- * Class also should be used for new vertex creating,
- * methods [aspectVertex] and [aspectPropertyVertex] support validation checks.
  */
 internal class AspectValidator(private val db: OrientDatabase, private val aspectService: AspectService) {
-
-    /**
-     * Create empty vertex in case [aspectData.id] is null or empty
-     * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
-     * @throws IllegalStateException
-     * @throws AspectModificationException
-     * */
-    internal fun aspectVertex(aspectData: AspectData): OVertex {
-        val aspectId = aspectData.id
-
-        return if (aspectId != null && aspectId.isNotEmpty()) {
-            db.getVertexById(aspectId)?.also { validateExistingAspect(it, aspectData) }
-                    ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
-        } else {
-            session(database = db) { it.newVertex(ASPECT_CLASS) }
-        }
-    }
-
-    /**
-     * Create empty vertex in case [aspectPropertyData.id] is null or empty
-     * Otherwise validate and return vertex of class [ASPECT_PROPERTY_CLASS] with given id
-     * @throws IllegalStateException
-     * @throws AspectPropertyModificationException
-     * */
-    internal fun aspectPropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
-        val propertyId = aspectPropertyData.id
-
-        return if (propertyId.isNotEmpty()) {
-            db.getVertexById(propertyId)?.also { validateExistingAspectProperty(it, aspectPropertyData) }
-                    ?: throw IllegalArgumentException("Incorrect property id")
-        } else {
-            session(database = db) { it.newVertex(ASPECT_PROPERTY_CLASS) }
-        }
-    }
-
 
     /**
      * Check business key of given [AspectData]
@@ -88,7 +51,7 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
         }
     }
 
-    private fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+    internal fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
         checkBaseTypeChangeCriteria(aspectVertex, aspectData)
         checkMeasureChangeCriteria(aspectVertex, aspectData)
@@ -115,7 +78,7 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
     private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
-            /* или сущуствует хотя бы один экземпляр Аспекта */) {
+                    || thereExistAspectImplementation(aspectVertex.id)) {
 
                 throw AspectModificationException(aspectVertex.id, "Impossible to change base type")
             }
@@ -125,21 +88,24 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
     private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
-            if (!sameGroup && false /* сущуствует хотя бы один экземпляр Аспекта */) {
+            if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
                 throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
             }
         }
     }
 
-    private fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
     private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
-        if (aspectVertex.aspect != aspectPropertyData.id) {
-            if (false /* сущуствует хотя бы один экземпляр Аспекта */) {
+        if (aspectVertex.aspect != aspectPropertyData.aspectId) {
+            if (thereExistAspectImplementation(aspectPropertyData.aspectId)) {
                 throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")
             }
         }
     }
+
+    // todo: Complete this method in future
+    private fun thereExistAspectImplementation(aspectId: String): Boolean = false
 }
