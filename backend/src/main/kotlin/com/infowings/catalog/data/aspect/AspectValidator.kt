@@ -71,6 +71,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
 
     private fun checkAspectPropertyBusinessKey(aspectData: AspectData) {
         // check aspect properties business key
+        // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
         val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
 
         if (notValid) {
