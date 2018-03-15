@@ -25,6 +25,19 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         childAspectBaseType = props.childAspect.baseType
     }
 
+    override fun componentWillReceiveProps(nextProps: Props) {
+        if (props.aspectProperty.id != nextProps.aspectProperty.id) {
+            setState {
+                aspectPropertyName = nextProps.aspectProperty.name
+                aspectPropertyCardinality = nextProps.aspectProperty.cardinality
+                childAspectName = nextProps.childAspect.name
+                childAspectMeasure = nextProps.childAspect.measure
+                childAspectDomain = nextProps.childAspect.domain
+                childAspectBaseType = nextProps.childAspect.baseType
+            }
+        }
+    }
+
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
@@ -51,22 +64,22 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     }
                     aspectNameInput {
                         attrs {
-                            initialValue = state.childAspectName
+                            value = state.childAspectName
                         }
                     }
                     aspectMeasureInput {
                         attrs {
-                            initialValue = state.childAspectMeasure
+                            value = state.childAspectMeasure
                         }
                     }
                     aspectDomainInput {
                         attrs {
-                            initialValue = state.childAspectDomain
+                            value = state.childAspectDomain
                         }
                     }
                     aspectBaseTypeInput {
                         attrs {
-                            initialValue = state.childAspectBaseType
+                            value = state.childAspectBaseType
                         }
                     }
                 }

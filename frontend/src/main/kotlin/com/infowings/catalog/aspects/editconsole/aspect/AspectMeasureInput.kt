@@ -4,6 +4,7 @@ import com.infowings.catalog.wrappers.react.label
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
@@ -14,6 +15,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
     private fun handleInputFieldChanged(e: Event) {
         e.stopPropagation()
         e.preventDefault()
+        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
     }
 
     override fun RBuilder.render() {
@@ -25,7 +27,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                 input(type = InputType.text, name = "measure", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-measure"
-                        value = props.initialValue ?: ""
+                        value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
                     }
                 }
@@ -34,7 +36,8 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
     }
 
     interface Props : RProps {
-        var initialValue: String?
+        var value: String?
+        var onChange: (String) -> Unit
     }
 
 }

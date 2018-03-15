@@ -4,17 +4,20 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
-import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
+class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTreeView.State>(props) {
 
     companion object {
         init {
             require("styles/aspect-tree-view.scss")
         }
+    }
+
+    override fun State.init(props: Props) {
+        buildingNewAspect = props.aspects.isEmpty()
     }
 
     private fun createNewAspectHandler(e: Event) {
@@ -25,27 +28,23 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
-            if (props.aspects.isNotEmpty()) {
-                props.aspects.map { aspect ->
-                    aspectTreeRoot {
-                        attrs {
-                            key = aspect.id ?: ""
-                            this.aspect = aspect
-                            onAspectClick = props.onAspectClick
-                            onAspectPropertyClick = props.onAspectPropertyClick
-                            aspectContext = props.aspectContext
-                        }
-                    }
-                }
-            } else {
-                div(classes = "aspect-tree-view--empty") {
+            props.aspects.map { aspect ->
+                aspectTreeRoot {
                     attrs {
-                        onClickFunction = ::createNewAspectHandler
+                        key = aspect.id ?: ""
+                        this.aspect = aspect
+                        selectedId = props.selectedId
+                        onAspectClick = props.onAspectClick
+                        onAspectPropertyClick = props.onAspectPropertyClick
+                        aspectContext = props.aspectContext
                     }
-                    +"Click here to create the first aspect"
                 }
             }
         }
+    }
+
+    interface State : RState {
+        var buildingNewAspect: Boolean
     }
 
     interface Props : RProps {
@@ -54,6 +53,7 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
         var aspectContext: Map<String, AspectData>
         var onNewAspectRequest: () -> Unit
+        var selectedId: String?
         var onNewAspectPropertyRequest: (AspectData) -> Unit
     }
 }

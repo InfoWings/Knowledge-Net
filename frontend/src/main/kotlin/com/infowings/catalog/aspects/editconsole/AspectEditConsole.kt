@@ -20,6 +20,17 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectBaseType = props.aspect.baseType
     }
 
+    override fun componentWillReceiveProps(nextProps: Props) {
+        if (props.aspect.id != nextProps.aspect.id) {
+            setState {
+                aspectName = nextProps.aspect.name
+                aspectMeasure = nextProps.aspect.measure
+                aspectDomain = nextProps.aspect.domain
+                aspectBaseType = nextProps.aspect.baseType
+            }
+        }
+    }
+
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
@@ -34,6 +45,30 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
+    private fun handleAspectNameChanged(name: String) {
+        setState {
+            aspectName = name
+        }
+    }
+
+    private fun handleAspectMeasureChanged(measure: String) {
+        setState {
+            aspectMeasure = measure
+        }
+    }
+
+    private fun handleAspectDomainChanged(domain: String) {
+        setState {
+            aspectDomain = domain
+        }
+    }
+
+    private fun handleAspectBaseTypeChanged(baseType: String) {
+        setState {
+            aspectBaseType = baseType
+        }
+    }
+
     override fun RBuilder.render() {
         div(classes = "aspect-edit-console") {
             attrs {
@@ -42,22 +77,26 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             div(classes = "aspect-edit-console--input-group") {
                 aspectNameInput {
                     attrs {
-                        initialValue = state.aspectName
+                        value = state.aspectName
+                        onChange = ::handleAspectNameChanged
                     }
                 }
                 aspectMeasureInput {
                     attrs {
-                        initialValue = state.aspectMeasure
+                        value = state.aspectMeasure
+                        onChange = ::handleAspectMeasureChanged
                     }
                 }
                 aspectDomainInput {
                     attrs {
-                        initialValue = state.aspectDomain
+                        value = state.aspectDomain
+                        onChange = ::handleAspectDomainChanged
                     }
                 }
                 aspectBaseTypeInput {
                     attrs {
-                        initialValue = state.aspectBaseType
+                        value = state.aspectBaseType
+                        onChange = ::handleAspectBaseTypeChanged
                     }
                 }
             }

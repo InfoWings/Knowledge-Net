@@ -15,7 +15,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
     private fun handleInputFieldChanged(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        console.log(e.target.unsafeCast<HTMLInputElement>().value)
+        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
     }
 
     override fun RBuilder.render() {
@@ -27,7 +27,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
                 input(type = InputType.text, name = "name", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-name"
-                        value = props.initialValue ?: ""
+                        value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
                     }
                 }
@@ -36,7 +36,8 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
     }
 
     interface Props : RProps {
-        var initialValue: String?
+        var value: String?
+        var onChange: (String) -> Unit
     }
 
 }

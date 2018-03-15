@@ -12,7 +12,7 @@ import react.RComponent
 import react.RState
 import react.setState
 
-class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>() {
+class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiverProps, AspectsControl.State>(props) {
 
     companion object {
         init {
@@ -20,9 +20,20 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
         }
     }
 
-    override fun State.init() {
-        selectedAspect = null
+    override fun State.init(props: AspectApiReceiverProps) {
+        selectedAspect = if (!props.loading)
+            AspectData(null, "", null, null, null)
+        else null
         selectedAspectProperty = null
+    }
+
+    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
+        if (props.loading && !nextProps.loading) {
+            setState {
+                selectedAspect = AspectData(null, "", null, null, null)
+                selectedAspectProperty = null
+            }
+        }
     }
 
     private fun handleClickAspect(aspect: AspectData) {
@@ -35,7 +46,21 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
     private fun handleCancelChanges() {
         setState {
             selectedAspectProperty = null
-            selectedAspect = null
+            selectedAspect = AspectData(null, "", null, null, null)
+        }
+    }
+
+    private fun handleSubmitAspectChanges(aspectData: AspectData) {
+        if (aspectData.id == null) {
+            setState {
+                selectedAspect = AspectData(null, "", null, null, null)
+            }
+            props.onAspectCreate(aspectData)
+        } else {
+            setState {
+                selectedAspect = AspectData(null, "", null, null, null)
+            }
+            props.onAspectUpdate(aspectData)
         }
     }
 
@@ -54,29 +79,38 @@ class AspectsControl : RComponent<AspectApiReceiverProps, AspectsControl.State>(
     }
 
     override fun RBuilder.render() {
+        val selectedAspect = state.selectedAspect
+        val selectedAspectProperty = state.selectedAspectProperty
         aspectTreeView {
             attrs {
-                aspects = props.data
+                aspects = if (selectedAspect != null && selectedAspect.id == null)
+                    props.data + selectedAspect
+                else props.data
                 aspectContext = props.aspectContext
+                selectedId = when {
+                    selectedAspect != null -> selectedAspect.id
+                    selectedAspectProperty != null -> selectedAspectProperty.id
+                    else -> null
+                }
                 onAspectClick = ::handleClickAspect
                 onAspectPropertyClick = ::handleClickAspectProperty
                 onNewAspectRequest = ::handleRequestNewAspect
             }
         }
         when {
-            state.selectedAspect != null && state.selectedAspectProperty == null ->
+            selectedAspect != null && selectedAspectProperty == null ->
                 aspectEditConsole {
                     attrs {
-                        aspect = state.selectedAspect!!
+                        aspect = selectedAspect
                         onCancel = ::handleCancelChanges
-
+                        onSubmit = ::handleSubmitAspectChanges
                     }
                 }
-            state.selectedAspect == null && state.selectedAspectProperty != null ->
+            selectedAspect == null && selectedAspectProperty != null ->
                 aspectPropertyEditConsole {
                     attrs {
-                        aspectProperty = state.selectedAspectProperty!!
-                        childAspect = props.aspectContext[state.selectedAspectProperty!!.aspectId]!!
+                        aspectProperty = selectedAspectProperty
+                        childAspect = props.aspectContext[selectedAspectProperty.aspectId]!!
                         onCancel = ::handleCancelChanges
                     }
                 }

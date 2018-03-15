@@ -16,24 +16,30 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--label") {
-            attrs {
-                onClickFunction = ::handleAspectRootLabelClick
-            }
-            span(classes = "aspect-tree-view--label-name") {
-                +props.aspect.name
-            }
-            +":"
-            span(classes = "aspect-tree-view--label-measure") {
-                +(props.aspect.measure ?: "")
-            }
-            +":"
-            span(classes = "aspect-tree-view--label-domain") {
-                +(props.aspect.domain ?: "")
-            }
-            +":"
-            span(classes = "aspect-tree-view--label-base-type") {
-                +(props.aspect.baseType ?: "")
+        div(classes = "aspect-tree-view--label${if (props.selected) " aspect-tree-view--label__selected" else ""}") {
+            if (props.aspect.id != null) {
+                attrs {
+                    onClickFunction = ::handleAspectRootLabelClick
+                }
+                span(classes = "aspect-tree-view--label-name") {
+                    +props.aspect.name
+                }
+                +":"
+                span(classes = "aspect-tree-view--label-measure") {
+                    +(props.aspect.measure ?: "")
+                }
+                +":"
+                span(classes = "aspect-tree-view--label-domain") {
+                    +(props.aspect.domain ?: "")
+                }
+                +":"
+                span(classes = "aspect-tree-view--label-base-type") {
+                    +(props.aspect.baseType ?: "")
+                }
+            } else {
+                span(classes = "aspect-tree-view--empty") {
+                    +"(Aspect Placeholder)"
+                }
             }
         }
     }
@@ -41,6 +47,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
     interface Props : RProps {
         var aspect: AspectData
         var onClick: (AspectData) -> Unit
+        var selected: Boolean
     }
 }
 

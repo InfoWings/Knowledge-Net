@@ -41,6 +41,7 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
                 attrs {
                     aspect = props.aspect
                     onClick = props.onAspectClick
+                    selected = props.selectedId == props.aspect.id
                 }
             }
         }
@@ -60,6 +61,7 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
         var onAspectClick: (AspectData) -> Unit
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
         var aspectContext: Map<String, AspectData>
+        var selectedId: String?
     }
 
     interface State : RState {
