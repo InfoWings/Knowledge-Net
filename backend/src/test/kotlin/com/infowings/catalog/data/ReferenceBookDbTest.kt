@@ -2,6 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.Metre
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
@@ -29,7 +30,7 @@ class ReferenceBookDbTest {
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", null, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
     }
 

@@ -5,6 +5,7 @@ import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 /**
@@ -28,12 +29,16 @@ internal class AspectValidator(private val db: OrientDatabase) {
      * @throws IllegalArgumentException
      */
     internal fun checkAspectDataConsistent(aspectData: AspectData) {
-        val measureString: String? = aspectData.measure
+        val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
-        if (measureString != null) {
-            val measure: Measure<*> = GlobalMeasureMap[measureString]
-                    ?: throw IllegalArgumentException("Measure $measureString incorrect")
+        if (measureName == null && baseType == null) {
+            throw IllegalArgumentException("Measure and BaseType can't be null in same time")
+        }
+
+        if (measureName != null) {
+            val measure: Measure<*> = GlobalMeasureMap[measureName]
+                    ?: throw IllegalArgumentException("Measure $measureName incorrect")
 
             if (baseType != null && measure.baseType != BaseType.restoreBaseType(baseType)) {
                 throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
@@ -43,8 +48,12 @@ internal class AspectValidator(private val db: OrientDatabase) {
 
     internal fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
-        checkBaseTypeChangeCriteria(aspectVertex, aspectData)
-        checkMeasureChangeCriteria(aspectVertex, aspectData)
+
+        // this describes case when there exists something that links to this aspect (Aspect is not 'free')
+        if (aspectVertex.getVertices(ODirection.IN).any()) {
+            checkBaseTypeChangeCriteria(aspectVertex, aspectData)
+            checkMeasureChangeCriteria(aspectVertex, aspectData)
+        }
     }
 
     internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
@@ -55,7 +64,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
         db.query(sql, aspectData.name, ORecordId(aspectData.id)) {
             if (it.any()) {
-                throw AspectAlreadyExist(aspectData.name, aspectData.measure)
+                throw AspectAlreadyExist(aspectData.name)
             }
         }
     }
@@ -100,7 +109,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
     private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
-            if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
+            if (!sameGroup || thereExistAspectImplementation(aspectVertex.id)) {
                 throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
             }
         }

@@ -181,7 +181,7 @@ private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 private val logger = loggerFor<AspectService>()
 
 sealed class AspectException(message: String? = null) : Exception(message)
-class AspectAlreadyExist(val name: String, val measure: String?) : AspectException("name = $name, measure = $measure")
+class AspectAlreadyExist(val name: String) : AspectException("name = $name")
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
