@@ -8,19 +8,24 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("api/book")
 class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
-
     @GetMapping("all")
-    fun getReferenceBooks(): Set<ReferenceBook> {
+    fun all(): Set<ReferenceBook> {
         return referenceBookService.getReferenceBooks()
     }
 
     @GetMapping("get/{name}")
-    fun getReferenceBooks(@PathVariable("name") name: String): ReferenceBook {
+    fun getByName(@PathVariable("name") name: String): ReferenceBook {
         return referenceBookService.getReferenceBook(name)
     }
 
     @PostMapping("create")
-    fun getReferenceBooks(@RequestParam("name") name: String, @RequestParam("aspectId") aspectId: String): ReferenceBook {
-        return referenceBookService.createReferenceBook(name, aspectId)
+    fun create(@RequestBody referenceBook: ReferenceBook): ReferenceBook {
+        return referenceBookService.createReferenceBook(referenceBook.name, referenceBook.aspectId)
     }
+
+    /*
+    @PostMapping("update")
+    fun update(@RequestBody referenceBook: ReferenceBook): ReferenceBook {
+        return referenceBookService.update(name, aspectId)
+    }*/
 }

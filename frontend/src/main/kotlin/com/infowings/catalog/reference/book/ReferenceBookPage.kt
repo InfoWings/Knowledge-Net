@@ -2,6 +2,7 @@ package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.simpleTableColumn
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.layout.Header
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
@@ -18,9 +19,12 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, ReferenceBookPage.State
 
     override fun componentDidMount() {
         launch {
-            val aspects = getAllAspects()
+            val booksAspects = getAllAspects()
+                .aspects
+                .toTypedArray()
+
             setState {
-                data = aspects.aspects.toTypedArray()
+                data = booksAspects
             }
         }
     }
@@ -36,14 +40,15 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, ReferenceBookPage.State
         ReactTable {
             attrs {
                 columns = arrayOf(
-                        RTableColumnDescriptor {
-                            Header = rFunction("AggregateColumnAspect") { +"Aspect" }
-                            columns = arrayOf(
-                                    simpleTableColumn("name", "Name"),
-                                    simpleTableColumn("measure", "Measure Unit"),
-                                    simpleTableColumn("domain", "Domain"),
-                                    simpleTableColumn("baseType", "Base Type"))
-                        })
+                    RTableColumnDescriptor {
+                        Header = rFunction("AggregateColumnAspect") { +"Aspect" }
+                        columns = arrayOf(
+                            simpleTableColumn("name", "Name"),
+                            simpleTableColumn("measure", "Measure Unit"),
+                            simpleTableColumn("domain", "Domain"),
+                            simpleTableColumn("baseType", "Base Type")
+                        )
+                    })
                 data = state.data
                 showPagination = false
                 minRows = 1
@@ -51,10 +56,10 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, ReferenceBookPage.State
                 showPageJump = false
                 resizable = false
                 collapseOnDataChange = false
-                SubComponent = rFunction("PropertySubComponent") {
+                SubComponent = rFunction("PropertySubComponent") { props ->
                     child(ReferenceBookComponent::class) {
                         attrs {
-
+                            aspectId = (props.original as AspectData).id
                         }
                     }
                 }
@@ -63,6 +68,6 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, ReferenceBookPage.State
     }
 
     interface State : RState {
-        var data: Array<out Any>
+        var data: Array<out AspectData>
     }
 }

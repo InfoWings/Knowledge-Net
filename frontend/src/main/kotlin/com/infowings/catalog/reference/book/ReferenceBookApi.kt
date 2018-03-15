@@ -1,10 +1,16 @@
 package com.infowings.catalog.reference.book
 
-import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.utils.get
+import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllReferenceBooks(): AspectsList = JSON.parse(get("/api/books/all"))
+internal suspend fun getAll(): Array<ReferenceBook> = JSON.parse(get("/api/book/all"))
 
-//suspend fun createReferenceBook(name: String, aspect: String): AspectData = JSON.parse(post("/api/books/create", JSON.stringify(body)))
+internal suspend fun get(name: String): ReferenceBook = JSON.parse(get("/api/book/get/$name"))
 
+internal suspend fun create(referenceBook: ReferenceBook): ReferenceBook =
+    JSON.parse(post("/api/book/create", JSON.stringify(referenceBook)))
+
+internal suspend fun update(referenceBook: ReferenceBook): ReferenceBook =
+    JSON.parse(post("/api/book/update", JSON.stringify(referenceBook)))
