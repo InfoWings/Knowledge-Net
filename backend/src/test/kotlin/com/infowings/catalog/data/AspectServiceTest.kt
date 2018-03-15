@@ -144,7 +144,7 @@ class AspectServiceTest {
         field.set(Gram, BaseType.Decimal)
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testChangeAspectMeasureOtherGroupNotFreeAspect() {
         val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)
@@ -153,7 +153,8 @@ class AspectServiceTest {
         aspectService.save(aspect.toAspectData().copy(name = "new", id = null, properties = listOf(property)))
 
         val ad2 = aspect.copy(measure = Litre, version = 2)
-        aspectService.save(ad2.toAspectData())
+        val saved = aspectService.save(ad2.toAspectData())
+        assertTrue("measure should be Litre", saved.measure == Litre)
     }
 
     @Test

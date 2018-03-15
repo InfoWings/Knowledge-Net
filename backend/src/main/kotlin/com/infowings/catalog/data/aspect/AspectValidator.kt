@@ -109,7 +109,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
     private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
-            if (!sameGroup || thereExistAspectImplementation(aspectVertex.id)) {
+            if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
                 throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
             }
         }
@@ -117,7 +117,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
 
     private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         if (aspectVertex.aspect != aspectPropertyData.aspectId) {
-            if (thereExistAspectImplementation(aspectPropertyData.aspectId)) {
+            if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
                 throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")
             }
         }
@@ -125,4 +125,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
 
     // todo: Complete this method in future
     private fun thereExistAspectImplementation(aspectId: String): Boolean = false
+
+    // todo: Complete this method in future
+    private fun thereExistAspectPropertyImplementation(aspectPropertyId: String): Boolean = false
 }
