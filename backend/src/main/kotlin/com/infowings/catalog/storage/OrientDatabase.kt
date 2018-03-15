@@ -46,10 +46,15 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
+        val logger = loggerFor<OrientDatabase>()
+
+        logger.info("Initializing orient...")
+
 
         launch {
-            val logger = loggerFor<OrientDatabase>()
             while (true) {
+                logger.info("orient hb")
+
                 delay(1000 * 60)
                 val res = orientDB.list()
                 logger.info("hb reasult: ${res}")
