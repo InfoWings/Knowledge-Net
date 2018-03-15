@@ -47,11 +47,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
-        val logger = loggerFor<OrientDatabase>()
-
-        logger.info("Initializing orient...")
-
-
         // злой хак для тестов
         if (url == "memory") {
             orientDB.create(database, ODatabaseType.MEMORY)
@@ -63,22 +58,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
                 .initUsers()
                 .initMeasures()
                 .initReferenceBooks()
-
-        val db = this
-
-        val job = launch {
-            while (true) {
-                logger.info("orient hb")
-                delay(1000 * 60)
-                val res = transaction(db) {
-                    val query = "SELECT * from User where username = ?"
-                    it.query(query, "username")
-                }
-                logger.info("hb result: $res")
-            }
-        }
-
-        logger.info("job status: ${job.isActive}")
 
     }
 
