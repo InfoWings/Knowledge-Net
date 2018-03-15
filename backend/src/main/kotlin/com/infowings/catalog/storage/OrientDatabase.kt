@@ -51,7 +51,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         logger.info("Initializing orient...")
 
 
-        launch {
+        val job  = launch {
             while (true) {
                 logger.info("orient hb")
 
@@ -60,6 +60,12 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
                 logger.info("hb reasult: ${res}")
             }
         }
+
+        logger.info("job status: ${job.isActive}")
+
+        job.start()
+
+        logger.info("job status: ${job.isActive}, ${job}")
 
 
         // злой хак для тестов
