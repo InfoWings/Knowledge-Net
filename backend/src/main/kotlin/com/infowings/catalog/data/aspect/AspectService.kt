@@ -20,7 +20,7 @@ import com.orientechnologies.orient.core.record.OVertex
  */
 class AspectService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-    private val aspectValidator = AspectValidator(db, this)
+    private val aspectValidator = AspectValidator(db)
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
@@ -32,7 +32,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
         val save: OVertex = transaction(db) {
 
-            aspectValidator.checkAspectData(aspectData)
+            aspectValidator.checkAspectDataConsistent(aspectData)
             aspectValidator.checkBusinessKey(aspectData)
 
             val aspectVertex: OVertex = createOrGetAspectVertex(aspectData)
@@ -129,7 +129,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * Create empty vertex in case [aspectData.id] is null or empty
      * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
      * @throws IllegalStateException
-     * @throws AspectModificationException
+     * @throws AspectConcurrentModificationException
      * */
     private fun createOrGetAspectVertex(aspectData: AspectData): OVertex {
         val aspectId = aspectData.id
@@ -184,5 +184,5 @@ sealed class AspectException(message: String? = null) : Exception(message)
 class AspectAlreadyExist(val name: String, val measure: String?) : AspectException("name = $name, measure = $measure")
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
-class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")

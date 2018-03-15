@@ -71,24 +71,15 @@ class AspectServiceTest {
         assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
     }
 
-    @Test
+    @Test(expected = AspectAlreadyExist::class)
     fun testAddTwoAspectsSameName() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.save(ad)
+        aspectService.save(ad)
 
         val ad2 = AspectData("", "aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
         aspectService.save(ad2)
 
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
-    }
-
-    @Test(expected = AspectAlreadyExist::class)
-    fun testAddAspectsSameNameSameMeasure() {
-        val ad1 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.save(ad1)
-
-        val ad2 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.save(ad2)
     }
 
     @Test
@@ -156,7 +147,7 @@ class AspectServiceTest {
 
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test(expected = AspectConcurrentModificationException::class)
     fun testChangeBaseTypeToNull() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)

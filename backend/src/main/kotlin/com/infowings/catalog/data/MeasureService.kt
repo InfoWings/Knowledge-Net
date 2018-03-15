@@ -52,19 +52,24 @@ class MeasureService(val database: OrientDatabase) {
      *  Возвращает ссылку на вершину, описывающую указанную группу.
      *  Если группа уже существовала, возвращаем null. */
     fun saveGroup(group: MeasureGroup<*>): OVertex? = transaction(database) {
+
         if (findMeasureGroup(group.name) != null) {
             loggerFor<MeasureService>().info("Group with name ${group.name} already exist in db")
             return@transaction null
         }
-        val groupVertex = database.createNewVertex(MEASURE_GROUP_VERTEX)
-        groupVertex.setProperty("name", group.name)
+
+        val groupVertex = database.createNewVertex(MEASURE_GROUP_VERTEX).also { it["name"] = group.name }
         val baseVertex = createMeasureVertexWithoutSaving(group.base.name)
+
         groupVertex.addEdge(baseVertex, MEASURE_BASE_AND_GROUP_EDGE).save<ORecord>()
         baseVertex.addEdge(groupVertex, MEASURE_BASE_AND_GROUP_EDGE).save<ORecord>()
+
         group.measureList.forEach {
             createMeasureVertexWithoutSaving(it.name).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
         }
+
         baseVertex.save<ORecord>()
+
         return@transaction groupVertex.save()
     }
 

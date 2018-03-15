@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class MasterCatalog
 
 fun main(args: Array<String>) {
-    SpringApplication.run(MasterCatalog::class, *args)
+    SpringApplication.run(MasterCatalog::class.java, *args)
 }
 
 inline fun <reified T : Any> loggerFor(): Logger =

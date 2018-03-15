@@ -1,14 +1,16 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
  */
-internal class AspectValidator(private val db: OrientDatabase, private val aspectService: AspectService) {
+internal class AspectValidator(private val db: OrientDatabase) {
 
     /**
      * Check business key of given [AspectData]
@@ -16,20 +18,8 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
      * @throws IllegalArgumentException
      */
     internal fun checkBusinessKey(aspectData: AspectData) {
-        // check aspect business key
-        val alreadyExists = aspectService
-                .findByName(aspectData.name)
-                .filter { it.id != aspectData.id }
-                .any { it.measure?.name == aspectData.measure }
-
-        if (alreadyExists) {
-            throw AspectAlreadyExist(aspectData.name, aspectData.measure)
-        }
-        // check aspect properties business key
-        val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
-        if (notValid) {
-            throw IllegalArgumentException("Not correct property business key $aspectData")
-        }
+        checkAspectBusinessKey(aspectData)
+        checkAspectPropertyBusinessKey(aspectData)
     }
 
     /**
@@ -37,7 +27,7 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
      * For example, conformity of measure and base type
      * @throws IllegalArgumentException
      */
-    internal fun checkAspectData(aspectData: AspectData) {
+    internal fun checkAspectDataConsistent(aspectData: AspectData) {
         val measureString: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
@@ -57,21 +47,43 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
         checkMeasureChangeCriteria(aspectVertex, aspectData)
     }
 
+    internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+        checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
+    }
+
+    private fun checkAspectBusinessKey(aspectData: AspectData) {
+        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
+        db.query(sql, aspectData.name, ORecordId(aspectData.id)) {
+            if (it.any()) {
+                throw AspectAlreadyExist(aspectData.name, aspectData.measure)
+            }
+        }
+    }
+
+    private fun checkAspectPropertyBusinessKey(aspectData: AspectData) {
+        // check aspect properties business key
+        val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
+
+        if (notValid) {
+            throw IllegalArgumentException("Not correct property business key $aspectData")
+        }
+    }
+
     private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
-            throw AspectModificationException(aspectVertex.id, "Old version, db: ${aspectVertex.version}, param: ${aspectData.version}")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
 
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
         val receivedVersionMap = aspectData.properties.filter { it.id.isNotEmpty() }.map { it.id to it.version }.toMap()
 
         if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
-            throw AspectModificationException(aspectVertex.id, "Old version")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
 
         val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
         if (different) {
-            throw AspectModificationException(aspectVertex.id, "Old version")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
     }
 
@@ -80,7 +92,7 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
                     || thereExistAspectImplementation(aspectVertex.id)) {
 
-                throw AspectModificationException(aspectVertex.id, "Impossible to change base type")
+                throw AspectConcurrentModificationException(aspectVertex.id, "Impossible to change base type")
             }
         }
     }
@@ -89,13 +101,9 @@ internal class AspectValidator(private val db: OrientDatabase, private val aspec
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
             if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
-                throw AspectModificationException(aspectVertex.id, "Impossible to change measure")
+                throw AspectConcurrentModificationException(aspectVertex.id, "Impossible to change measure")
             }
         }
-    }
-
-    internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
-        checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
     private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {

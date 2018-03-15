@@ -6,7 +6,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Kilometre
 import com.infowings.catalog.data.aspect.Aspect
-import com.infowings.catalog.data.aspect.AspectModificationException
+import com.infowings.catalog.data.aspect.AspectConcurrentModificationException
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.storage.OrientDatabase
@@ -160,7 +160,7 @@ class AspectServicePropertyTest {
                 Is.`is`(createAspect.copy(version = createAspect.version + 1)))
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test(expected = AspectConcurrentModificationException::class)
     fun testPropertyOldVersion() {
         transaction(orientDatabase) {
             val property = complexAspect.properties[0]
