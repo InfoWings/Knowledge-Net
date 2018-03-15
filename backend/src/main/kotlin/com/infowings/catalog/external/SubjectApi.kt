@@ -1,6 +1,7 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.loggerFor
@@ -18,9 +19,9 @@ class SubjectApi(val subjectService: SubjectService) {
     }
 
     @GetMapping("all")
-    fun getSubject(): List<SubjectData> {
+    fun getSubject(): SubjectsList {
         logger.debug("Get all subject request")
-        return subjectService.getSubjects().map { it.toSubjectData() }
+        return SubjectsList(subjectService.getSubjects().map { it.toSubjectData() })
     }
 
     @PostMapping("update")

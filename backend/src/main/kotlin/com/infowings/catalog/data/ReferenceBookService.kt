@@ -125,7 +125,7 @@ class ReferenceBookService(val database: OrientDatabase) {
     }
 
     private fun getReferenceBookVertexByName(name: String): OVertex? =
-            database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNull() }.firstOrNull() }
 }
 
 sealed class ReferenceBookException(message: String? = null) : Exception(message)

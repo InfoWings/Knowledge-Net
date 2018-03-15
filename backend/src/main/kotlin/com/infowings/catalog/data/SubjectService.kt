@@ -37,7 +37,7 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
                 val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
                 vertex[ATTR_NAME] = sd.name
                 sd.aspects.forEach { aspectData ->
-                    val aspectId = aspectData.id ?: aspectService.createAspect(aspectData).id
+                    val aspectId = aspectData.id ?: aspectService.save(aspectData).id
                     db[aspectId].addEdge(vertex, ASPECT_SUBJECT_EDGE).save<OEdge>()
                 }
                 vertex.save<OVertex>()
@@ -55,7 +55,7 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
                 val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull]
                 vertex[ATTR_NAME] = sd.name
                 sd.aspects.forEach { aspectData ->
-                    val aspectId = aspectData.id ?: aspectService.createAspect(aspectData).id
+                    val aspectId = aspectData.id ?: aspectService.save(aspectData).id
                     if (db[aspectId].getEdges(
                             ODirection.OUT,
                             ASPECT_SUBJECT_EDGE

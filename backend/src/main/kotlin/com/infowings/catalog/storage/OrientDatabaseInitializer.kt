@@ -90,7 +90,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
-        return@session initSearch()
+        return@session this
     }
 
     /** Initializes measures search */
@@ -117,7 +117,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init subject")
         createVertexWithAttrName(session, SUBJECT_CLASS)
         session.getClass(ASPECT_SUBJECT_EDGE) ?: session.createEdgeClass(ASPECT_SUBJECT_EDGE)
-        return this
+        return@session this
     }
 
     private fun initLuceneIndex(classType: String) =

@@ -32,7 +32,7 @@ class SubjectApiTest : AbstractMvcTest() {
     @Test
     fun create() {
         val aspect = createTestAspect("TestSubjectAspect")
-        val sd = SubjectData(name = "TestSubject_CreateApi", aspects = arrayOf(AspectData(aspect.id)))
+        val sd = SubjectData(name = "TestSubject_CreateApi", aspects = arrayOf(AspectData(aspect.id, "tstAspect")))
         val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
 
         mockMvc.perform(
@@ -66,7 +66,7 @@ class SubjectApiTest : AbstractMvcTest() {
         val aspect = createTestAspect("TestSubjectAspect")
         val sd = SubjectData(
             name = name,
-            aspects = arrayOf(AspectData(aspect.id))
+            aspects = arrayOf(AspectData(aspect.id, "tstAspect"))
         )
         return subjectService.findByName(name) ?: subjectService.createSubject(sd)
     }

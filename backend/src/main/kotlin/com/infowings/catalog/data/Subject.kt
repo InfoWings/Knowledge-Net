@@ -12,6 +12,6 @@ fun Subject.toSubjectData(): SubjectData {
     return SubjectData(
         id = this.id,
         name = this.name,
-        aspects = this.aspects.map { it.toAspectData() }.toTypedArray()
+        aspects = this.aspects.map { it.toAspectData() }
     )
 }

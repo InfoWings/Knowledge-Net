@@ -1,14 +1,15 @@
 package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
 
-suspend fun getAllSubjects(): Array<SubjectData> =
-    kotlin.js.JSON.parse(get("/api/subject/all"))
+suspend fun getAllSubjects(): SubjectsList =
+    JSON.parse(get("/api/subject/all"))
 
 suspend fun createSubject(body: SubjectData): SubjectData =
     JSON.parse(post("/api/subject/create", JSON.stringify(body)))
@@ -35,7 +36,7 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         launch {
             val subjects = getAllSubjects()
             setState {
-                data = subjects
+                data = subjects.subject.toTypedArray()
                 loading = false
             }
         }
@@ -53,7 +54,7 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
 
     private fun handleUpdateSubject(subjectData: SubjectData) {
         launch {
-            val res = updateSubject(SubjectData(subjectData.id, subjectData.name))
+            val res = updateSubject(subjectData)
             setState {
 
             }

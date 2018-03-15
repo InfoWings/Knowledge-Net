@@ -90,8 +90,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspect() }.toList()
+        rs.mapNotNull { it.toVertexOrNull()?.toAspect() }.toList()
     }
+
+    fun getAspect(vertex: OVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id

@@ -9,13 +9,13 @@ data class AspectsList(
 
 @Serializable
 data class AspectData(
-        val id: String?,
-        val name: String,
-        val measure: String?,
-        val domain: String?,
-        val baseType: String?,
-        val properties: List<AspectPropertyData> = emptyList(),
-        val version: Int = 0
+    val id: String? = null,
+    val name: String,
+    val measure: String? = null,
+    val domain: String? = null,
+    val baseType: String? = null,
+    val properties: List<AspectPropertyData> = emptyList(),
+    val version: Int = 0
 )
 
 @Serializable

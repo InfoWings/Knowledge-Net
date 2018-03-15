@@ -39,7 +39,7 @@ abstract class AbstractMvcTest {
 
     protected fun createTestAspect(aspectName: String): Aspect {
         val ad = AspectData("", aspectName, null, null, null, emptyList())
-        return aspectService.findByName(aspectName) ?: aspectService.createAspect(ad)
+        return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
     }
 
 }

@@ -26,7 +26,7 @@ val OElement.id: String
     get() = identity.toString()
 
 fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
-fun OResult.toVertexOrNUll(): OVertex? = vertex.orElse(null)
+fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
 
 /**
@@ -71,7 +71,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * usage example:
      *
      * database.query(selectFromAspect) { rs, session ->
-     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
@@ -86,7 +86,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * usage example:
      *
      * database.query(selectFromAspect) { rs, session ->
-     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
@@ -180,15 +180,6 @@ inline fun <U> transaction(
         newSession.close()
     }
 }
-
-operator fun <T> OVertex.get(name: String): T = getProperty(name)
-operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
-
-val OElement.id: String
-    get() = identity.toString()
-
-fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
-fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
 class OrientException(reason: String) : Throwable(reason)
 
