@@ -1,5 +1,6 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.ODatabasePool
 import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
@@ -12,7 +13,9 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
+import kotlinx.coroutines.experimental.delay
 import javax.annotation.PreDestroy
+import kotlinx.coroutines.experimental.launch
 
 
 /**
@@ -43,6 +46,16 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun acquire(): ODatabaseDocument = dbPool.acquire()
 
     init {
+
+        launch {
+            val logger = loggerFor<OrientDatabase>()
+            while (true) {
+                delay(1000 * 60)
+                val res = orientDB.list()
+                logger.info("hb reasult: ${res}")
+            }
+        }
+
 
         // злой хак для тестов
         if (url == "memory") {
