@@ -71,19 +71,19 @@ internal class AspectValidator(private val db: OrientDatabase) {
 
     private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
-            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
 
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
         val receivedVersionMap = aspectData.properties.filter { it.id.isNotEmpty() }.map { it.id to it.version }.toMap()
 
         if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
-            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Properties changed")
         }
 
         val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
         if (different) {
-            throw AspectConcurrentModificationException(aspectVertex.id, "Old version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
+            throw AspectConcurrentModificationException(aspectVertex.id, "Properties changed")
         }
     }
 
