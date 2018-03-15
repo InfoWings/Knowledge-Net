@@ -16,6 +16,7 @@ import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import kotlinx.coroutines.experimental.delay
 import javax.annotation.PreDestroy
 import kotlinx.coroutines.experimental.launch
+import kotlinx.serialization.json.JSON
 
 
 /**
@@ -51,23 +52,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         logger.info("Initializing orient...")
 
 
-        val job  = launch {
-            while (true) {
-                logger.info("orient hb")
-
-                delay(1000 * 60)
-                val res = orientDB.list()
-                logger.info("hb reasult: ${res}")
-            }
-        }
-
-        logger.info("job status: ${job.isActive}")
-
-        job.start()
-
-        logger.info("job status: ${job.isActive}, ${job}")
-
-
         // злой хак для тестов
         if (url == "memory") {
             orientDB.create(database, ODatabaseType.MEMORY)
@@ -79,6 +63,23 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
                 .initUsers()
                 .initMeasures()
                 .initReferenceBooks()
+
+        val db = this
+
+        val job = launch {
+            while (true) {
+                logger.info("orient hb")
+                delay(1000 * 60)
+                val res = transaction(db) {
+                    val query = "SELECT * from User where username = ?"
+                    it.query(query, "username")
+                }
+                logger.info("hb result: $res")
+            }
+        }
+
+        logger.info("job status: ${job.isActive}")
+
     }
 
     @PreDestroy
