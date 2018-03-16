@@ -150,6 +150,12 @@ private var OVertex.value: String
         this["value"] = value
     }
 
+private var OVertex.deleted: Boolean
+    get() = this["deleted"] ?: false
+    set(value) {
+        this["deleted"] = value
+    }
+
 private val OVertex.children: List<OVertex>
     get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).toList()
 
