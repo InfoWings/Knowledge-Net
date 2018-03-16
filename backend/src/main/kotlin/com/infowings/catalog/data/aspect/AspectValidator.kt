@@ -6,7 +6,6 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
@@ -47,7 +46,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+    internal fun validateExistingAspect(aspectVertex: AspectVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
 
         // this describes case when there exists something that links to this aspect (Aspect is not 'free')
@@ -57,12 +56,12 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    internal fun validateExistingAspectProperty(aspectPropertyVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
     private fun checkAspectBusinessKey(aspectData: AspectData) {
-        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
+        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ? and ($notDeletedSql)"
         db.query(sql, aspectData.name, ORecordId(aspectData.id)) {
             if (it.any()) {
                 throw AspectAlreadyExist(aspectData.name)
@@ -73,6 +72,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
     private fun checkAspectPropertyBusinessKey(aspectData: AspectData) {
         // check aspect properties business key
         // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
+        // not call db because we suppose that Aspect Property business key is exist only inside concrete aspect
         val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
 
         if (notValid) {
@@ -80,7 +80,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkAspectVersion(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
             throw AspectConcurrentModificationException(aspectVertex.id, "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
@@ -98,7 +98,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkBaseTypeChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
                     || thereExistAspectImplementation(aspectVertex.id)) {
@@ -108,7 +108,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkMeasureChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
             if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
@@ -117,7 +117,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    private fun checkPropertyAspectChangeCriteria(aspectVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
         if (aspectVertex.aspect != aspectPropertyData.aspectId) {
             if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
                 throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")
@@ -131,3 +131,5 @@ internal class AspectValidator(private val db: OrientDatabase) {
     // todo: Complete this method in future
     private fun thereExistAspectPropertyImplementation(aspectPropertyId: String): Boolean = false
 }
+
+private const val notDeletedSql = "deleted is NULL or deleted = false"

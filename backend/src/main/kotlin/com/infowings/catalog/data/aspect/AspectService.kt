@@ -35,7 +35,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
             aspectValidator.checkAspectDataConsistent(aspectData)
             aspectValidator.checkBusinessKey(aspectData)
 
-            val aspectVertex: OVertex = createOrGetAspectVertex(aspectData)
+            val aspectVertex: AspectVertex = createOrGetAspectVertex(aspectData)
 
             aspectVertex.name = aspectData.name
 
@@ -74,31 +74,32 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @return List of [Aspect] with name [name]
      */
     fun findByName(name: String): Set<Aspect> = db.query(selectAspectByName, name) { rs ->
-        rs.map { it.toVertex().toAspect() }.toSet()
+        rs.map { it.toVertex().toAspectVertex().toAspect() }.toSet()
     }
 
     fun getAspects(): List<Aspect> = db.query(selectFromAspect) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspect() }.toList()
+        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex()?.toAspect() }.toList()
     }
 
     /**
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = db.getVertexById(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+    fun findById(id: String): Aspect = db.getVertexById(id)?.toAspectVertex()?.toAspect()
+            ?: throw AspectDoesNotExist(id)
 
     /**
      * Load property by id
      * @throws AspectPropertyDoesNotExist
      */
     private fun loadAspectProperty(propertyId: String): AspectProperty =
-            db.getVertexById(propertyId)?.toAspectProperty()
+            db.getVertexById(propertyId)?.toAspectPropertyVertex()?.toAspectProperty()
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun saveAspectProperty(aspectPropertyData: AspectPropertyData): OVertex = transaction(db) {
         logger.debug("Saving aspect property ${aspectPropertyData.name} linked with aspect ${aspectPropertyData.aspectId}")
 
-        val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
+        val aspectVertex: AspectVertex = db.getVertexById(aspectPropertyData.aspectId)?.toAspectVertex()
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
@@ -119,7 +120,7 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
     }
 
-    private fun loadProperties(oVertex: OVertex): List<AspectProperty> = transaction(db) {
+    private fun loadProperties(oVertex: AspectVertex): List<AspectProperty> = transaction(db) {
         oVertex
                 .properties
                 .map { loadAspectProperty(it.id) }
@@ -131,18 +132,18 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws IllegalStateException
      * @throws AspectConcurrentModificationException
      * */
-    private fun createOrGetAspectVertex(aspectData: AspectData): OVertex {
+    private fun createOrGetAspectVertex(aspectData: AspectData): AspectVertex {
         val aspectId = aspectData.id
 
         return if (!aspectId.isNullOrEmpty()) {
 
-            db.getVertexById(aspectId!!)?.also {
+            db.getVertexById(aspectId!!)?.toAspectVertex()?.also {
                 // if aspect is exist, we should validate it with new data
                 aspectValidator.validateExistingAspect(it, aspectData)
             } ?: throw IllegalStateException("Aspect with id $aspectId does not exist")
 
         } else {
-            db.createNewVertex(ASPECT_CLASS)
+            db.createNewVertex(ASPECT_CLASS).toAspectVertex()
         }
     }
 
@@ -152,26 +153,26 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
      * @throws IllegalStateException
      * @throws AspectPropertyModificationException
      * */
-    private fun createOrGetAspectPropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
+    private fun createOrGetAspectPropertyVertex(aspectPropertyData: AspectPropertyData): AspectPropertyVertex {
         val propertyId = aspectPropertyData.id
 
         return if (!propertyId.isEmpty()) {
-            db.getVertexById(propertyId)?.also {
+            db.getVertexById(propertyId)?.toAspectPropertyVertex()?.also {
                 // if aspect property is exist, we should validate it with new data
                 aspectValidator.validateExistingAspectProperty(it, aspectPropertyData)
             } ?: throw IllegalArgumentException("Incorrect property id")
 
         } else {
-            db.createNewVertex(ASPECT_PROPERTY_CLASS)
+            db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
         }
     }
 
-    private fun OVertex.toAspect(): Aspect {
+    private fun AspectVertex.toAspect(): Aspect {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return Aspect(id, name, measure, baseTypeObj?.let { OpenDomain(it) }, baseTypeObj, loadProperties(this), version)
     }
 
-    private fun OVertex.toAspectProperty(): AspectProperty =
+    private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
             AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
 }
 

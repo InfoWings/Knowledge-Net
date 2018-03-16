@@ -8,46 +8,82 @@ import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
-/**
- * Public OVertex Extensions.
- */
-fun OVertex.toAspectData(): AspectData {
-    val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-    return AspectData(id, name, measureName, baseTypeObj?.let { OpenDomain(it).toString() }, baseType, properties.map { it.toAspectPropertyData() }, version)
+
+fun OVertex.toAspectVertex() = AspectVertex(this)
+
+fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
+
+class AspectVertex(val vertex: OVertex) : OVertex by vertex {
+
+    fun toAspectData(): AspectData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return AspectData(
+                id,
+                name,
+                measureName,
+                baseTypeObj?.let { OpenDomain(it).toString() },
+                baseType,
+                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+                version)
+    }
+
+    val properties: List<OVertex>
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
+
+    var baseType: String?
+        get() = measure?.baseType?.name ?: this["baseType"]
+        set(value) {
+            vertex["baseType"] = value
+        }
+
+    var name: String
+        get() = vertex["name"]
+        set(value) {
+            vertex["name"] = value
+        }
+
+    val measure: Measure<*>?
+        get() = GlobalMeasureMap[measureName]
+
+    var measureName: String?
+        get() = vertex["measure"]
+        set(value) {
+            vertex["measure"] = value
+        }
+
+    var deleted: Boolean
+        get() = vertex["deleted"] ?: false
+        set(value) {
+            vertex["deleted"] = value
+        }
 }
 
-fun OVertex.toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, version)
+class AspectPropertyVertex(val vertex: OVertex) : OVertex by vertex {
 
-/**
- * Internal OVertex Extensions.
- */
-internal val OVertex.properties: List<OVertex>
-    get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
-internal var OVertex.baseType: String?
-    get() = measure?.baseType?.name ?: this["baseType"]
-    set(value) {
-        this["baseType"] = value
-    }
-internal var OVertex.name: String
-    get() = this["name"]
-    set(value) {
-        this["name"] = value
-    }
-internal var OVertex.aspect: String
-    get() = this["aspectId"]
-    set(value) {
-        this["aspectId"] = value
-    }
-internal var OVertex.cardinality: String
-    get() = this["cardinality"]
-    set(value) {
-        this["cardinality"] = value
-    }
-internal val OVertex.measure: Measure<*>?
-    get() = GlobalMeasureMap[measureName]
-internal var OVertex.measureName: String?
-    get() = this["measure"]
-    set(value) {
-        this["measure"] = value
-    }
+    fun toAspectPropertyData(): AspectPropertyData =
+            AspectPropertyData(id, name, aspect, cardinality, version)
+
+    var name: String
+        get() = vertex["name"]
+        set(value) {
+            vertex["name"] = value
+        }
+
+    var aspect: String
+        get() = vertex["aspectId"]
+        set(value) {
+            vertex["aspectId"] = value
+        }
+
+    var cardinality: String
+        get() = vertex["cardinality"]
+        set(value) {
+            vertex["cardinality"] = value
+        }
+
+    var deleted: Boolean
+        get() = vertex["deleted"] ?: false
+        set(value) {
+            vertex["deleted"] = value
+        }
+}
