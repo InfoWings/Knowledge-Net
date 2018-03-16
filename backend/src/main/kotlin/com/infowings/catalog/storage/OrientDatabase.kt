@@ -95,6 +95,10 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
     fun getVertexById(id: String): OVertex? =
             query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+
+    fun createNewVertex(className: String): OVertex = session(database = this) {
+        return@session it.newVertex(className)
+    }
 }
 
 val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
