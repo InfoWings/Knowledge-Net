@@ -23,7 +23,7 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
                     val query = "SELECT * from User where username = ?"
                     it.query(query, "username")
                 }
-                logger.info("heart beat result: ${res}")
+                logger.trace("heart beat result: ${res}")
             }
         }
 
