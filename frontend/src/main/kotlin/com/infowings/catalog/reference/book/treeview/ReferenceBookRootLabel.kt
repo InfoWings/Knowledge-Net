@@ -17,17 +17,11 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view--label${if (props.selected) " aspect-tree-view--label__selected" else ""}") {
-            if (props.book.id != null) {
-                attrs {
-                    onClickFunction = ::handleBookRootLabelClick
-                }
-                span(classes = "aspect-tree-view--label-name") {
-                    +props.book.name
-                }
-            } else {
-                span(classes = "aspect-tree-view--empty") {
-                    +"(Add Reference Book ...)"
-                }
+            attrs {
+                onClickFunction = ::handleBookRootLabelClick
+            }
+            span(classes = "aspect-tree-view--label-name") {
+                +props.book.name
             }
         }
     }

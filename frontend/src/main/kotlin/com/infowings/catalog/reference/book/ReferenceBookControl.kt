@@ -24,7 +24,7 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
 
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = null
-        selectedBook = ReferenceBook("", "", null)
+        selectedBook = null
         selectedBookItem = null
     }
 
@@ -95,10 +95,10 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
                             ReferenceBook("book1", "aspId", ReferenceBookItem("id1", "", items)),
                             ReferenceBook("book2", "aspId", ReferenceBookItem("id2", "", items)),
                             ReferenceBook("book3", "aspId", ReferenceBookItem("id3", "", items))
-                        ) + selectedBook
-                        books = list
+                        )
 
-                        selectedId = selectedBook.id
+                        books = list
+                        selectedId = selectedBook?.id
                         onBookClick = ::handleClickBook
                         onBookItemClick = ::handleClickBookItem
                         onNewBookRequest = ::handleRequestNewBook
@@ -110,7 +110,7 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
 
     interface State : RState {
         var selectedAspect: AspectData?
-        var selectedBook: ReferenceBook
+        var selectedBook: ReferenceBook?
         var selectedBookItem: ReferenceBookItem?
     }
 }
