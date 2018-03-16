@@ -47,13 +47,13 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     onClick = props.onAspectPropertyClick
                 }
             }
-            if (props.bookItem.children.isNotEmpty() && state.expanded) {
-                referenceBookTreeItems {
-                    attrs {
-                        bookItems = props.bookItem.children
-                        bookContext = props.aspectContext
-                        onBookItemClick = props.onAspectPropertyClick
-                    }
+        }
+        if (props.bookItem.children.isNotEmpty() && state.expanded) {
+            referenceBookTreeItems {
+                attrs {
+                    bookItems = props.bookItem.children
+                    bookContext = props.aspectContext
+                    onBookItemClick = props.onAspectPropertyClick
                 }
             }
         }
