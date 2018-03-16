@@ -91,18 +91,19 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
     private fun onSaveChanged(index: Int) {
         setState {
             val newAspect: AspectData = state.data[index].aspectEditable
+            val name: String = newAspect.name ?: ""
             if (index < props.data.size) {
                 if (state.data[index].name.isNotBlank()) {
                     val curSubjectData = props.data[index]
                     var aspects: List<AspectData> = curSubjectData.aspects
-                    if (newAspect.name.isNotBlank()) {
-                        state.data[index].aspectNames?.add(newAspect.name)
+                    if (name.isNotBlank()) {
+                        state.data[index].aspectNames?.add(name)
                         aspects += newAspect
                     }
                     props.onSubjectUpdate(SubjectData(curSubjectData.id, state.data[index].name, aspects))
                 }
             } else if (state.data.last().name.isNotBlank()) {
-                val aspects = if (newAspect.name.isNotBlank()) listOf<AspectData>(newAspect) else emptyList()
+                val aspects = if (name.isNotBlank()) listOf<AspectData>(newAspect) else emptyList()
                 props.onSubjectsCreate(SubjectData(name = state.data.last().name, aspects = aspects))
                 state.data += SubjectViewData()
             }
