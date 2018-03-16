@@ -1,9 +1,6 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
@@ -14,7 +11,7 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 /**
  * Сервис поиска в OrientDB
  */
-class SuggestionService(val database: OrientDatabase) {
+class SuggestionService(val database: OrientDatabase, val subjectService: SubjectService) {
 
     fun findMeasure(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<Measure<*>> =
         session(database) {
@@ -30,6 +27,38 @@ class SuggestionService(val database: OrientDatabase) {
         findAspectInDb(context, commonParam, aspectParam)
             .mapNotNull { it.toAspectData() }
             .toList()
+    }
+
+    fun findSubject(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        subjectParam: SubjectSuggestionParam
+    ): List<SubjectData> = session(database) {
+        findSubjectInDb(context, commonParam, subjectParam)
+            .mapNotNull { subjectService.getSubject(it).toSubjectData() }
+            .toList()
+    }
+
+    private fun findSubjectInDb(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        subjectParam: SubjectSuggestionParam?
+    ): Sequence<OVertex> {
+        val q = "SELECT FROM $SUBJECT_CLASS WHERE SEARCH_CLASS(:$lq) = true"
+        val aspectFilter = if (subjectParam?.aspectText.isNullOrBlank()) {
+            ""
+        } else {
+            " AND @rid IN (SELECT expand(out($ASPECT_SUBJECT_EDGE)).@rid FROM Aspect WHERE SEARCH_CLASS(:$lqa) = true)"
+        }
+        return database.query(
+            q + aspectFilter,
+            mapOf(
+                lq to luceneQuery(textOrAllWildcard(commonParam?.text)),
+                lqa to luceneQuery(textOrAllWildcard(subjectParam?.aspectText))
+            )
+        ) {
+            it.mapNotNull { it.toVertexOrNull() }
+        }
     }
 
     private fun findMeasureInDb(measureGroupName: String?, text: String): Sequence<OVertex> {
@@ -138,6 +167,7 @@ class SuggestionService(val database: OrientDatabase) {
     private val unitName = "un"
     private val lq = "lq"
     private val lqm = "lqm"
+    private val lqa = "lqa"
     private val noCycle =
         "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord))"
 }

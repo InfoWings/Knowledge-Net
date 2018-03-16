@@ -10,7 +10,7 @@ data class AspectsList(
 @Serializable
 data class AspectData(
     val id: String? = null,
-    val name: String,
+    val name: String? = null,
     val measure: String? = null,
     val domain: String? = null,
     val baseType: String? = null,

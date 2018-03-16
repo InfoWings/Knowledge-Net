@@ -6,6 +6,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.not
 import org.junit.Test
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import java.time.LocalDateTime
 
 
 class SubjectApiTest : AbstractMvcTest() {
@@ -31,8 +33,11 @@ class SubjectApiTest : AbstractMvcTest() {
 
     @Test
     fun create() {
-        val aspect = createTestAspect("TestSubjectAspect")
-        val sd = SubjectData(name = "TestSubject_CreateApi", aspects = listOf(AspectData(aspect.id, "tstAspect")))
+        val aspect = createTestAspect("TestCreateSubjectAspect")
+        val sd = SubjectData(
+            name = "TestSubject_CreateApi_${LocalDateTime.now()}",
+            aspects = listOf(AspectData(aspect.id, "tstAspect"))
+        )
         val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
 
         mockMvc.perform(
@@ -48,8 +53,7 @@ class SubjectApiTest : AbstractMvcTest() {
     @Test
     fun update() {
         val subject = createTestSubject("TestSubjectUpdate")
-        val sd = SubjectData(id = subject.id, name = "TestSubjectUpdateNewName")
-        val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
+        val subjectDataJson: String = ObjectMapper().writeValueAsString(subject.toSubjectData())
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/subject/update")
@@ -57,16 +61,29 @@ class SubjectApiTest : AbstractMvcTest() {
                 .content(subjectDataJson)
                 .with(authorities)
         ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(sd.name))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(subject.name))
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(subject.id))
+    }
+
+    @Test
+    fun suggestion() {
+        val s = createTestSubject("TestSuggestionSubject", listOf("tstAspect1", "tstAspect2"))
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/search/subject/suggestion")
+                .with(authorities)
+                .param("text", "Subject")
+                .param("aspectText", "Aspect1")
+        ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subject[0].name").value(s.name))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.subject[0].id").value(s.id))
 
     }
 
-    private fun createTestSubject(name: String): Subject {
-        val aspect = createTestAspect("TestSubjectAspect")
+    private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject {
+        val aspects = aspectNames.map { createTestAspect(it) }
         val sd = SubjectData(
             name = name,
-            aspects = listOf(AspectData(aspect.id, "tstAspect"))
+            aspects = aspects.map { AspectData(it.id) }
         )
         return subjectService.findByName(name) ?: subjectService.createSubject(sd)
     }

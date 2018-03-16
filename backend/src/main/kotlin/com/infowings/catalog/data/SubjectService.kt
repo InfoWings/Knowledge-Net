@@ -12,6 +12,8 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
         rs.mapNotNull { it.toVertexOrNull()?.toSubject() }.toList()
     }
 
+    fun getSubject(vertex: OVertex): Subject = vertex.toSubject()
+
     private fun OVertex.toSubject(): Subject =
         Subject(this.id, this[ATTR_NAME], getAspects(this))
 

@@ -170,9 +170,10 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
     }
 
     private fun checkBusinessKey(aspectData: AspectData) {
+        val name: String = aspectData.name ?: throw AspectNameIsNull(aspectData)
         // check aspect business key
-        if (findByName(aspectData.name).filter { it.id != aspectData.id }.any { it.measure?.name == aspectData.measure }) {
-            throw AspectAlreadyExist(aspectData.name, aspectData.measure)
+        if (findByName(name).filter { it.id != aspectData.id }.any { it.measure?.name == aspectData.measure }) {
+            throw AspectAlreadyExist(name, aspectData.measure)
         }
         // check aspect properties business key
         val valid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
@@ -240,6 +241,7 @@ class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectNameIsNull(aspectData: AspectData) : AspectException("Illegal aspect data: $aspectData")
 
 private val OVertex.properties: List<OVertex>
     get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
