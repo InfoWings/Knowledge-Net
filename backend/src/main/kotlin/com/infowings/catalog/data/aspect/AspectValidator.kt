@@ -10,6 +10,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
+ * Methods should be called in transaction
  */
 internal class AspectValidator(private val db: OrientDatabase) {
 
