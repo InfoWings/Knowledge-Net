@@ -10,10 +10,14 @@ import com.orientechnologies.orient.core.record.OVertex
 
 
 fun OVertex.toAspectVertex() = AspectVertex(this)
-
 fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
 
-class AspectVertex(val vertex: OVertex) : OVertex by vertex {
+/**
+ * Kotlin does not provide package-level declarations.
+ * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
+ * by vertex means simple delegating OVertex calls to property [vertex]
+ * */
+class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
 
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
@@ -58,7 +62,7 @@ class AspectVertex(val vertex: OVertex) : OVertex by vertex {
         }
 }
 
-class AspectPropertyVertex(val vertex: OVertex) : OVertex by vertex {
+class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
 
     fun toAspectPropertyData(): AspectPropertyData =
             AspectPropertyData(id, name, aspect, cardinality, version)
