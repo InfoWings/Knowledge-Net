@@ -49,6 +49,13 @@ class AspectServicePropertyTest {
     }
 
     @Test
+    fun testNotVirtualPropertyId() {
+        assertThat("Property Ids are not virtual",
+                aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") },
+                Is.`is`(true))
+    }
+
+    @Test
     fun testAspectWithProperties() {
         val loaded = aspectService.findById(complexAspect.id)
 
