@@ -14,7 +14,7 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
 
         val period = TimeUnit.SECONDS.toMillis(seconds.toLong());
 
-        logger.info("Initializing orient heart beat...")
+        logger.info("Initializing orient heart beat with $seconds seconds period")
 
         launch {
             while (isActive) {
