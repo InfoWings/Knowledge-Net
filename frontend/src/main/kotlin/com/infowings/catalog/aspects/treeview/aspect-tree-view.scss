@@ -43,8 +43,18 @@
     cursor: pointer;
     padding: .2em;
 
+    &__aspect-selected {
+      background-color: $color-aspect-selected;
+      border-radius: 2px;
+    }
+
+    &__property-selected {
+      background-color: $color-aspect-property-selected;
+      border-radius: 2px;
+    }
+
     &__selected {
-      background-color: #c2e2ed;
+      background-color: $color-aspect-selected;
       border-radius: 2px;
     }
 

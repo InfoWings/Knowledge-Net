@@ -20,11 +20,12 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
     }
 
     override fun RBuilder.render() {
+        val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
             svg("aspect-tree-view--line-icon") {
                 use("svg/sprite.svg#icon-dots-two-horizontal")
             }
-            if (props.aspect.properties.isNotEmpty()) {
+            if (childAspect != null && childAspect.properties.isNotEmpty()) {
                 svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     attrs {
                         onClickFunction = ::handleExpanderClick
@@ -36,23 +37,33 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                     }
                 }
             } else {
+                svg("aspect-tree-view--line-icon")
+            }
+            if (props.parentAspect.id != null) {
                 svg("aspect-tree-view--line-icon") {
                     use("svg/sprite.svg#icon-add-to-list")
                 }
+            } else {
+                svg("aspect-tree-view--line-icon")
             }
             aspectPropertyLabel {
                 attrs {
                     aspectProperty = props.aspectProperty
-                    aspect = props.aspect
+                    aspect = childAspect
                     onClick = props.onAspectPropertyClick
+                    propertySelected = props.propertySelected
+                    aspectSelected = childAspect != null && childAspect.id == props.selectedId
                 }
             }
-            if (props.aspect.properties.isNotEmpty() && state.expanded) {
+            if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
                 aspectTreeProperties {
                     attrs {
-                        aspectProperties = props.aspect.properties
+                        parentAspect = childAspect
                         aspectContext = props.aspectContext
                         onAspectPropertyClick = props.onAspectPropertyClick
+                        selectedId = props.selectedId
+                        selectedPropertyIndex = props.selectedPropertyIndex
+                        parentSelected = childAspect.id == props.selectedId
                     }
                 }
             }
@@ -60,10 +71,14 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
     }
 
     interface Props : RProps {
+        var parentAspect: AspectData
         var aspectProperty: AspectPropertyData
-        var aspect: AspectData
+        var aspect: AspectData?
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
         var aspectContext: Map<String, AspectData>
+        var propertySelected: Boolean
+        var selectedId: String?
+        var selectedPropertyIndex: Int?
     }
 
     interface State : RState {

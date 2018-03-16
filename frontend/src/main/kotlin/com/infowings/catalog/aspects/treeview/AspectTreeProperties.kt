@@ -9,15 +9,19 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view--properties-block") {
-            props.aspectProperties.map {
+            props.parentAspect.properties.mapIndexed { index, property ->
                 aspectTreeProperty {
                     attrs {
-                        key = it.id
-                        aspectProperty = it
-                        aspect = props.aspectContext[it.aspectId] ?: throw Error("Aspect Property $it has aspectId that " +
+                        key = property.id
+                        parentAspect = props.parentAspect
+                        aspectProperty = property
+                        aspect = if (property.id == "") null
+                        else props.aspectContext[property.aspectId]
+                                ?: throw Error("Aspect Property $property has aspectId that " +
                                 "was neigher in the fetched list nor created")
                         onAspectPropertyClick = props.onAspectPropertyClick
                         aspectContext = props.aspectContext
+                        propertySelected = props.parentSelected && index == props.selectedPropertyIndex
                     }
                 }
             }
@@ -25,9 +29,12 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
     }
 
     interface Props : RProps {
-        var aspectProperties: List<AspectPropertyData>
+        var parentAspect: AspectData
         var aspectContext: Map<String, AspectData>
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
+        var selectedId: String?
+        var selectedPropertyIndex: Int?
+        var parentSelected: Boolean
     }
 
 }

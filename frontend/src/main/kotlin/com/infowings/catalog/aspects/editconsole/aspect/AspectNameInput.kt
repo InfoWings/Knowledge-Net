@@ -19,7 +19,8 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        val inputRef = props.inputRef
+        div(classes = "aspect-edit-console--aspect-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-name") {
                 +"Name"
             }
@@ -29,7 +30,9 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
                         id = "aspect-name"
                         value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
-                        ref { props.inputRef(it as HTMLInputElement?) }
+                        if (inputRef != null) {
+                            ref { inputRef(it as HTMLInputElement?) }
+                        }
                     }
                 }
             }
@@ -39,7 +42,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
     interface Props : RProps {
         var value: String?
         var onChange: (String) -> Unit
-        var inputRef: (HTMLInputElement?) -> Unit
+        var inputRef: ((HTMLInputElement?) -> Unit)?
     }
 
 }

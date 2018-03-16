@@ -4,7 +4,6 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
-import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
@@ -20,12 +19,6 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
         buildingNewAspect = props.aspects.isEmpty()
     }
 
-    private fun createNewAspectHandler(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onNewAspectRequest()
-    }
-
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
             props.aspects.map { aspect ->
@@ -34,9 +27,11 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
                         key = aspect.id ?: ""
                         this.aspect = aspect
                         selectedId = props.selectedId
+                        selectedPropertyIndex = props.selectedPropertyIndex
                         onAspectClick = props.onAspectClick
                         onAspectPropertyClick = props.onAspectPropertyClick
                         aspectContext = props.aspectContext
+                        onAspectPropertyRequest = props.onNewAspectPropertyRequest
                     }
                 }
             }
@@ -52,8 +47,8 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
         var onAspectClick: (AspectData) -> Unit
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
         var aspectContext: Map<String, AspectData>
-        var onNewAspectRequest: () -> Unit
         var selectedId: String?
+        var selectedPropertyIndex: Int?
         var onNewAspectPropertyRequest: (AspectData) -> Unit
     }
 }

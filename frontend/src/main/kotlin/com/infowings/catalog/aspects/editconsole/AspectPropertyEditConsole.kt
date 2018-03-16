@@ -7,7 +7,6 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -17,23 +16,24 @@ import react.dom.div
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
-        aspectPropertyName = props.aspectProperty.name
-        aspectPropertyCardinality = props.aspectProperty.cardinality
-        childAspectName = props.childAspect.name
-        childAspectMeasure = props.childAspect.measure
-        childAspectDomain = props.childAspect.domain
-        childAspectBaseType = props.childAspect.baseType
+        aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
+        aspectPropertyCardinality = props.parentAspect.properties[props.aspectPropertyIndex].cardinality
+        childAspectName = props.childAspect?.name
+        childAspectMeasure = props.childAspect?.measure
+        childAspectDomain = props.childAspect?.domain
+        childAspectBaseType = props.childAspect?.baseType
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.aspectProperty.id != nextProps.aspectProperty.id) {
+        if (props.parentAspect.id != nextProps.parentAspect.id
+                || props.aspectPropertyIndex != nextProps.aspectPropertyIndex) {
             setState {
-                aspectPropertyName = nextProps.aspectProperty.name
-                aspectPropertyCardinality = nextProps.aspectProperty.cardinality
-                childAspectName = nextProps.childAspect.name
-                childAspectMeasure = nextProps.childAspect.measure
-                childAspectDomain = nextProps.childAspect.domain
-                childAspectBaseType = nextProps.childAspect.baseType
+                aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
+                aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
+                childAspectName = nextProps.childAspect?.name
+                childAspectMeasure = nextProps.childAspect?.measure
+                childAspectDomain = nextProps.childAspect?.domain
+                childAspectBaseType = nextProps.childAspect?.baseType
             }
         }
     }
@@ -51,17 +51,19 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         div(classes = "aspect-edit-console") {
             attrs {
                 onKeyDownFunction = ::handleKeyDown
+            }
+            div(classes = "aspect-edit-console--input-group") {
+                aspectPropertyNameInput {
+                    attrs {
+                        initialValue = state.aspectPropertyName
+                    }
+                }
+                aspectPropertyCardinality {
+                    attrs {
+                        initialValue = state.aspectPropertyCardinality
+                    }
+                }
                 div(classes = "aspect-edit-console--input-group") {
-                    aspectPropertyNameInput {
-                        attrs {
-                            initialValue = state.aspectPropertyName
-                        }
-                    }
-                    aspectPropertyCardinality {
-                        attrs {
-                            initialValue = state.aspectPropertyCardinality
-                        }
-                    }
                     aspectNameInput {
                         attrs {
                             value = state.childAspectName
@@ -88,8 +90,9 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     }
 
     interface Props : RProps {
-        var aspectProperty: AspectPropertyData
-        var childAspect: AspectData
+        var parentAspect: AspectData
+        var aspectPropertyIndex: Int
+        var childAspect: AspectData?
         var onCancel: () -> Unit
         var onSubmit: (AspectData) -> Unit
     }

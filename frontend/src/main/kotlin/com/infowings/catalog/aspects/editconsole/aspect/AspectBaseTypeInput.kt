@@ -19,7 +19,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        div(classes = "aspect-edit-console--aspect-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-base-type") {
                 +"Base Type"
             }

@@ -11,12 +11,26 @@ import react.dom.svg
 
 class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() {
 
+    override fun componentWillReceiveProps(nextProps: Props) {
+        if (nextProps.selectedId == nextProps.aspect.id) {
+            setState {
+                expanded = true
+            }
+        }
+    }
+
     private fun handleExpanderClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
             expanded = !expanded
         }
+    }
+
+    private fun handleAddToListClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        props.onAspectPropertyRequest(props.aspect)
     }
 
     override fun RBuilder.render() {
@@ -37,6 +51,9 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
             }
             if (props.aspect.id != null) {
                 svg(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                    attrs {
+                        onClickFunction = ::handleAddToListClick
+                    }
                     use("svg/sprite.svg#icon-add-to-list")
                 }
             } else {
@@ -53,9 +70,12 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
         if (props.aspect.properties.isNotEmpty() && state.expanded) {
             aspectTreeProperties {
                 attrs {
-                    aspectProperties = props.aspect.properties
+                    parentAspect = props.aspect
                     aspectContext = props.aspectContext
                     onAspectPropertyClick = props.onAspectPropertyClick
+                    selectedId = props.selectedId
+                    selectedPropertyIndex = props.selectedPropertyIndex
+                    parentSelected = props.aspect.id == props.selectedId
                 }
             }
         }
@@ -67,6 +87,8 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
         var onAspectPropertyClick: (AspectPropertyData) -> Unit
         var aspectContext: Map<String, AspectData>
         var selectedId: String?
+        var selectedPropertyIndex: Int?
+        var onAspectPropertyRequest: (AspectData) -> Unit
     }
 
     interface State : RState {

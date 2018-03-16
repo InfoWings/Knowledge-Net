@@ -59,6 +59,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
+        val ctrlPressed = e.unsafeCast<KeyboardEvent>().ctrlKey
         when (keyCode) {
             27 -> {
                 aspectChanged = true
@@ -66,14 +67,25 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 props.onCancel()
             }
             13 -> {
-                aspectChanged = true
-                inputRef?.blur()
-                props.onSubmit(props.aspect.copy(
-                        name = state.aspectName ?: error("Aspect Name is null"),
-                        measure = state.aspectMeasure,
-                        domain = state.aspectDomain,
-                        baseType = state.aspectBaseType
-                ))
+                if (ctrlPressed) {
+                    aspectChanged = true
+                    inputRef?.blur()
+                    props.onSwitchToProperties(props.aspect.copy(
+                            name = state.aspectName ?: error("Aspect Name is null"),
+                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+                    ))
+                } else {
+                    aspectChanged = true
+                    inputRef?.blur()
+                    props.onSubmit(props.aspect.copy(
+                            name = state.aspectName ?: error("Aspect Name is null"),
+                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+                    ))
+                }
             }
         }
     }
@@ -141,6 +153,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspect: AspectData
         var onCancel: () -> Unit
         var onSubmit: (AspectData) -> Unit
+        var onSwitchToProperties: (AspectData) -> Unit
     }
 
     interface State : RState {
