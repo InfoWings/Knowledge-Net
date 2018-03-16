@@ -19,11 +19,8 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
         launch {
             while (isActive) {
                 delay(period)
-                val res = session(database) {
-                    val query = "SELECT * from User where username = ?"
-                    it.query(query, "username")
-                }
-                logger.trace("heart beat result: ${res}")
+                val query = "SELECT * from User where username = ?"
+                database.query(query, "username") { logger.trace("heart beat result: $it") }
             }
         }
 
