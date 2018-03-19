@@ -12,21 +12,23 @@ import com.orientechnologies.orient.core.record.OVertex
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS)
+    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
 
-    fun getAspectVertex(aspectId: String) = db.getVertexById(aspectId)
+    fun getAspectVertex(aspectId: String) = db.getVertexById(aspectId)?.toAspectVertex()
 
-    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS)
+    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
-    fun getAspectPropertyVertex(aspectPropertyId: String) = db.getVertexById(aspectPropertyId)
+    fun getAspectPropertyVertex(aspectPropertyId: String) = db.getVertexById(aspectPropertyId)?.toAspectPropertyVertex()
 
-    fun findByName(name: String): Set<OVertex> = db.query(selectAspectByName, name) { rs ->
-        rs.map { it.toVertex() }.toSet()
+    fun findByName(name: String): Set<AspectVertex> = db.query(selectAspectByName, name) { rs ->
+        rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun getAspects(): Set<OVertex> = db.query(selectFromAspect) { rs -> rs.mapNotNull { it.toVertexOrNUll() }.toSet() }
+    fun getAspects(): Set<AspectVertex> = db.query(selectFromAspect) { rs ->
+        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
+    }
 
-    fun saveAspect(aspectVertex: OVertex, aspectData: AspectData): OVertex = session(db) {
+    fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
         aspectVertex.name = aspectData.name
@@ -46,14 +48,14 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }
         }
 
-        return@session aspectVertex.save<OVertex>().also {
+        return@session aspectVertex.save<OVertex>().toAspectVertex().also {
             logger.debug("Aspect ${aspectData.name} saved with id: ${it.id}")
         }
     }
 
-    fun saveAspectProperty(ownerAspectVertex: OVertex,
-                           aspectPropertyVertex: OVertex,
-                           aspectPropertyData: AspectPropertyData): OVertex = transaction(db) {
+    fun saveAspectProperty(ownerAspectVertex: AspectVertex,
+                           aspectPropertyVertex: AspectPropertyVertex,
+                           aspectPropertyData: AspectPropertyData): AspectPropertyVertex = transaction(db) {
 
         logger.debug("Saving aspect property ${aspectPropertyData.name} linked with aspect ${aspectPropertyData.aspectId}")
 
@@ -75,16 +77,19 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             ownerAspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
         }
 
-        return@transaction aspectPropertyVertex.save<OVertex>().also {
+        return@transaction aspectPropertyVertex.save<OVertex>().toAspectPropertyVertex().also {
             logger.debug("Saved aspect property ${aspectPropertyData.name} with temporary id: ${it.id}")
         }
     }
 
-    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<OVertex> =
-            db.query(selectWithNameDifferentId, name, ORecordId(id)) { it.map { it.toVertex() }.toSet() }
+    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<AspectVertex> =
+            db.query("$selectWithNameDifferentId and ($notDeletedSql)", name, ORecordId(id)) {
+                it.map { it.toVertex().toAspectVertex() }.toSet()
+            }
 }
 
 private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
+private const val notDeletedSql = "deleted is NULL or deleted = false"
 private const val selectFromAspect = "SELECT FROM Aspect"
 private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 

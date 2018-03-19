@@ -60,6 +60,14 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             vertex["deleted"] = value
         }
+
+    override fun equals(other: Any?): Boolean {
+        return vertex == other
+    }
+
+    override fun hashCode(): Int {
+        return vertex.hashCode()
+    }
 }
 
 class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
@@ -90,4 +98,12 @@ class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             vertex["deleted"] = value
         }
+
+    override fun equals(other: Any?): Boolean {
+        return vertex == other
+    }
+
+    override fun hashCode(): Int {
+        return vertex.hashCode()
+    }
 }

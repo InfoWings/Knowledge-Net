@@ -4,7 +4,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
@@ -45,7 +44,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+    fun validateExistingAspect(aspectVertex: AspectVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
         checkCyclicDependencies(aspectVertex, aspectData)
         // this describes case when there exists something that links to this aspect (Aspect is not 'free')
@@ -55,11 +54,11 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    fun validateExistingAspectProperty(aspectPropertyVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
-    private fun checkCyclicDependencies(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkCyclicDependencies(aspectVertex: AspectVertex, aspectData: AspectData) {
         val parentsIds = suggestionService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
                 .map { it.aspectId }
@@ -90,7 +89,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkAspectVersion(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
             throw AspectConcurrentModificationException(aspectVertex.id, "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
@@ -108,7 +107,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkBaseTypeChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
                     || thereExistAspectImplementation(aspectVertex.id)) {
@@ -118,7 +117,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
+    private fun checkMeasureChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
             if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
@@ -127,7 +126,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         }
     }
 
-    private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    private fun checkPropertyAspectChangeCriteria(aspectVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
         if (aspectVertex.aspect != aspectPropertyData.aspectId) {
             if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
                 throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")
@@ -141,5 +140,3 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     // todo: Complete this method in future
     private fun thereExistAspectPropertyImplementation(aspectPropertyId: String): Boolean = false
 }
-
-private const val notDeletedSql = "deleted is NULL or deleted = false"
