@@ -14,7 +14,6 @@ import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
-
 /**
  * Public OVertex Extensions.
  */
