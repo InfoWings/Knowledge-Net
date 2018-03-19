@@ -3,9 +3,9 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectPropertyCardinality
-import com.infowings.catalog.data.AspectService
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Before
 import org.junit.Test
@@ -35,7 +35,7 @@ private val logger = loggerFor<SearchTest>()
 class SearchTest {
 
     @Autowired
-    lateinit var suggestionService: SuggestionService;
+    lateinit var suggestionService: SuggestionService
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -129,7 +129,7 @@ class SearchTest {
     }
 
     private fun createTestAspect(aspectName: String): Aspect {
-        val ad = AspectData("", aspectName, null, null, null, emptyList())
+        val ad = AspectData("", aspectName, Metre.name, null, null, emptyList())
         return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
     }
 
@@ -160,7 +160,7 @@ class SearchTest {
         val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
-        val createAspect: Aspect = aspectService.save(ad)
+        aspectService.save(ad)
 
 
         val loaded = aspectService.findById(level2.id)

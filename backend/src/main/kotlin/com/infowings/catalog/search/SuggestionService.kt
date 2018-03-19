@@ -1,7 +1,10 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
@@ -152,17 +155,6 @@ class SuggestionService(val database: OrientDatabase, val subjectService: Subjec
         }
     }
 
-    private fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
-
-    private fun OVertex.toAspectData() = AspectData(
-        id = identity.toString(),
-        name = this["name"],
-        measure = this["measure"],
-        baseType = this["baseType"] ?: BaseType.Nothing.name,
-        domain = BaseType.restoreBaseType(this["baseType"]).let { OpenDomain(it).toString() },
-        version = this.version
-    )
-
     private val aspectRecord = "a"
     private val unitName = "un"
     private val lq = "lq"
@@ -171,5 +163,3 @@ class SuggestionService(val database: OrientDatabase, val subjectService: Subjec
     private val noCycle =
         "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord))"
 }
-
-

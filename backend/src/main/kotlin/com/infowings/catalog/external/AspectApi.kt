@@ -2,8 +2,8 @@ package com.infowings.catalog.external
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectsList
-import com.infowings.catalog.data.AspectService
-import com.infowings.catalog.data.toAspectData
+import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 
