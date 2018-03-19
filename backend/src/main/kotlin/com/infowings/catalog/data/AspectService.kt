@@ -2,6 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.loggerFor
+import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.ODirection
@@ -24,20 +25,31 @@ fun OVertex.toAspectPropertyData(): AspectPropertyData =
  * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
-class AspectService(private val db: OrientDatabase, private val measureService: MeasureService) {
+class AspectService(
+    private val db: OrientDatabase,
+    private val measureService: MeasureService,
+    private val suggestionService: SuggestionService
+) {
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
+     * @param aspectData data that represents Aspect, which will be saved or updated
      * @throws AspectAlreadyExist,
      * @throws IllegalArgumentException in case of incorrect input data,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
+     * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
     fun save(aspectData: AspectData): Aspect {
         logger.trace("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
         checkAspectData(aspectData)
-        checkBusinessKey(aspectData)
 
         val save: OVertex = transaction(db) { session ->
+            /*
+             These checks should be in transaction as they also do query to DB,
+             that is checking and saving should be atomic operation
+             */
+            checkBusinessKey(aspectData)
+            checkCyclicDependencies(aspectData)
 
             val aspectId = aspectData.id
             val aspectVertex: OVertex = if (aspectId?.isEmpty() == false) {
@@ -193,6 +205,17 @@ class AspectService(private val db: OrientDatabase, private val measureService: 
         }
     }
 
+    private fun checkCyclicDependencies(aspectData: AspectData) {
+        val aspectId = aspectData.id ?: return
+        val parentsIds = suggestionService.findParentAspects(aspectId).mapNotNull { it.id }
+        val cyclicIds = aspectData.properties
+            .map { it.aspectId }
+            .filter { parentsIds.contains(it) }
+            .toList()
+
+        if (cyclicIds.isNotEmpty()) throw AspectCyclicDependencyException(cyclicIds)
+    }
+
     private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType?.name) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
@@ -238,6 +261,8 @@ class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectCyclicDependencyException(val cyclicIds: List<String>) :
+    AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 
 private val OVertex.properties: List<OVertex>
     get() = getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
