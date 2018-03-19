@@ -4,6 +4,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.OVertex
@@ -14,15 +15,19 @@ import com.orientechnologies.orient.core.record.OVertex
  * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
-class AspectService(private val db: OrientDatabase, private val aspectDaoService: AspectDaoService) {
+class AspectService(private val db: OrientDatabase,
+                    private val aspectDaoService: AspectDaoService,
+                    suggestionService: SuggestionService) {
 
-    private val aspectValidator = AspectValidator(aspectDaoService)
+    private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
+     * @param aspectData data that represents Aspect, which will be saved or updated
      * @throws AspectAlreadyExist,
      * @throws IllegalArgumentException in case of incorrect input data,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
+     * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
     fun save(aspectData: AspectData): Aspect {
 
@@ -134,3 +139,5 @@ class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectCyclicDependencyException(val cyclicIds: List<String>) :
+        AspectException("Cyclic dependencies on aspects with id: $cyclicIds")

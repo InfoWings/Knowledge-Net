@@ -80,14 +80,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<OVertex> {
-        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
-        return db.query(sql, name, ORecordId(id)) {
-            it.map { it.toVertex() }.toSet()
-        }
-    }
+    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<OVertex> =
+            db.query(selectWithNameDifferentId, name, ORecordId(id)) { it.map { it.toVertex() }.toSet() }
 }
 
+private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
 private const val selectFromAspect = "SELECT FROM Aspect"
 private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 

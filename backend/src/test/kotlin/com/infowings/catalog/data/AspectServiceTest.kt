@@ -2,9 +2,10 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
+import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -201,19 +202,26 @@ class AspectServiceTest {
     fun testAspectWithoutCyclicDependency() {
         val aspect = prepareAspect()
         assertThat(
-            "aspect should be saved and restored if no cyclic dependencies",
-            aspectService.findByName("aspect").firstOrNull(),
-            Is.`is`(aspect)
+                "aspect should be saved and restored if no cyclic dependencies",
+                aspectService.findByName("aspect").firstOrNull(),
+                Is.`is`(aspect)
         )
     }
 
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect()
-        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, INFINITY.name)
+        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, AspectPropertyCardinality.INFINITY.name)
         val aspect1 = aspect.properties.first().aspect
-        val editedAspectData1 =
-            AspectData(aspect1.id, "aspect1", Metre.name, null, Decimal.name, listOf(editedPropertyData1))
+        val editedAspectData1 = AspectData(
+                aspect1.id,
+                "aspect1",
+                Metre.name,
+                null,
+                Decimal.name,
+                aspect1.properties.toAspectPropertyData().plus(editedPropertyData1),
+                aspect1.version)
+
         aspectService.save(editedAspectData1)
     }
 

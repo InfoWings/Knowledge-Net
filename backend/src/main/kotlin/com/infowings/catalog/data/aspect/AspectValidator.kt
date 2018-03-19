@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -9,7 +10,7 @@ import com.orientechnologies.orient.core.record.OVertex
  * Class for validating aspects.
  * Methods should be called in transaction
  */
-class AspectValidator(private val aspectDaoService: AspectDaoService) {
+class AspectValidator(private val aspectDaoService: AspectDaoService, private val suggestionService: SuggestionService) {
 
     /**
      * Check business key of given [AspectData]
@@ -46,7 +47,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService) {
 
     fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
-
+        checkCyclicDependencies(aspectVertex, aspectData)
         // this describes case when there exists something that links to this aspect (Aspect is not 'free')
         if (aspectVertex.getVertices(ODirection.IN).any()) {
             checkBaseTypeChangeCriteria(aspectVertex, aspectData)
@@ -56,6 +57,16 @@ class AspectValidator(private val aspectDaoService: AspectDaoService) {
 
     fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
+    }
+
+    private fun checkCyclicDependencies(aspectVertex: OVertex, aspectData: AspectData) {
+        val parentsIds = suggestionService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
+        val cyclicIds = aspectData.properties
+                .map { it.aspectId }
+                .filter { parentsIds.contains(it) }
+                .toList()
+
+        if (cyclicIds.isNotEmpty()) throw AspectCyclicDependencyException(cyclicIds)
     }
 
     private fun checkAspectBusinessKey(aspectData: AspectData) {

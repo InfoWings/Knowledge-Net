@@ -24,7 +24,7 @@
 
     <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="measuerService"/>
+        <constructor-arg ref="measureService"/>
     </bean>
 
     <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
