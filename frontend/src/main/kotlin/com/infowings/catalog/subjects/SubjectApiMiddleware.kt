@@ -17,18 +17,22 @@ suspend fun createSubject(body: SubjectData): SubjectData =
 suspend fun updateSubject(body: SubjectData): SubjectData =
     JSON.parse(post("/api/subject/update", JSON.stringify(body)))
 
+suspend fun getSuggestedSubject(subjectText: String, aspectText: String): SubjectsList =
+    JSON.parse(get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
+
 
 interface SubjectApiReceiverProps : RProps {
     var data: Array<SubjectData>
     var loading: Boolean
     var onSubjectUpdate: (sd: SubjectData) -> Unit
     var onSubjectsCreate: (sd: SubjectData) -> Unit
+    var onFetchData: (filterParam: Map<String, String>) -> Unit
 }
 
 class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
 
     override fun State.init() {
-        data = emptyArray()
+        data = mutableMapOf()
         loading = true
     }
 
@@ -36,7 +40,7 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         launch {
             val subjects = getAllSubjects()
             setState {
-                data = subjects.subject.toTypedArray()
+                data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
                 loading = false
             }
         }
@@ -46,7 +50,8 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         launch {
             val res = createSubject(subjectData)
             setState {
-                data += res
+                data[res.id] = res
+                loading = false
             }
 
         }
@@ -56,29 +61,42 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         launch {
             val res = updateSubject(subjectData)
             setState {
-
+                data[res.id] = res
+                loading = false
             }
         }
     }
 
+    private fun handleFetchData(filterParam: Map<String, String>) {
+        launch {
+            val subjects = getSuggestedSubject(filterParam["name"] ?: "", filterParam["aspects"] ?: "")
+            setState {
+                data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
+                loading = false
+                renew = true
+            }
+        }
+
+    }
 
     override fun RBuilder.render() {
         child(SubjectsTable::class) {
             attrs {
                 console.log(" SubjectApiMiddleware state.data: ", state.data)
-                data = state.data
+                data = state.data.values.toTypedArray()
                 loading = state.loading
                 onSubjectUpdate = ::handleUpdateSubject
                 onSubjectsCreate = ::handleCreateSubject
+                onFetchData = ::handleFetchData
             }
         }
     }
 
     interface State : RState {
-        var data: Array<SubjectData>
+        var data: MutableMap<String?, SubjectData>
         var loading: Boolean
+        var renew: Boolean
     }
-
 
 }
 

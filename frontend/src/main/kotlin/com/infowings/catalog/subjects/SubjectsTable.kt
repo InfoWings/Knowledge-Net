@@ -4,19 +4,15 @@ import com.infowings.catalog.aspects.AspectSuggestingInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.header
+import com.infowings.catalog.wrappers.table.FilteringModel
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 import kotlinx.html.InputType
-import kotlinx.html.contentEditable
 import kotlinx.html.js.onBlurFunction
-import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.div
-import react.dom.i
-import react.dom.input
-import react.dom.span
+import react.dom.*
 
 data class SubjectViewData(
     var name: String = "",
@@ -26,8 +22,10 @@ data class SubjectViewData(
 
 class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>() {
 
-    override fun State.init(props: SubjectApiReceiverProps) {
-        data = toSubjectViewData(props.data)
+    override fun componentWillUpdate(nextProps: SubjectApiReceiverProps, nextState: State) {
+        val size = nextProps.data.size + 1
+        state.newAspects = Array(size, { AspectData(name = "") })
+        state.subjectNames = Array(size, { "" })
     }
 
     override fun RBuilder.render() {
@@ -41,23 +39,27 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                         this.Header = header("aspects")
                         this.Cell = selectComponent(::onAspectChanged, ::onAspectNameChanged)
                         this.className = "aspect-cell"
-                    },
+                    }/*,
                     RTableColumnDescriptor {
                         this.accessor = "pending"
                         this.Header = addNewSubjectHeaderEnabled()
                         this.width = 55.0
-                    }
+                    }*/
                 )
-                if (!props.loading && state.data == undefined) {
-                    state.data = subjectToRows()
-                }
-                data = if (props.loading) emptyArray() else state.data
+                data = if (props.loading) emptyArray() else subjectToRows()
                 showPagination = false
                 minRows = 2
                 sortable = false
                 showPageJump = false
                 resizable = false
                 collapseOnDataChange = false
+                filterable = true
+                onFilteredChange = { ewExpanded: dynamic, index: dynamic, event: dynamic ->
+                    //filtering in server side
+                    props.onFetchData((ewExpanded as Array<FilteringModel>).map { it.id to it.value }.toMap())
+                }
+                defaultFilterMethod =
+                        { filter: dynamic, row: dynamic, column: dynamic -> true } //disable filtering in frontend
             }
         }
     }
@@ -73,70 +75,56 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
             this.Cell = rFunction("SubjectField") { props ->
                 input(type = InputType.text, classes = "rtable-input") {
                     attrs {
-                        value = props.value?.toString() ?: ""
-                        contentEditable = true
-                        onChangeFunction = { onSubjectChanged(props.index, it.asDynamic().target.value) }
-                        onBlurFunction = { onSaveChanged(props.index) }
+                        defaultValue = props.value?.toString() ?: ""
+                        onBlurFunction = {
+                            state.subjectNames[props.index] = it.asDynamic().target.value as String
+                            onSaveChangedSubjectName(props.index)
+                        }
                     }
                 }
+
             }
         }
 
-    private fun onSubjectChanged(index: Int, value: dynamic) {
+    private fun onSaveChangedSubjectName(index: Int) {
         setState {
-            data[index] = SubjectViewData(value, data[index].aspectNames)
-        }
-    }
-
-    private fun onSaveChanged(index: Int) {
-        setState {
-            val newAspect: AspectData = state.data[index].aspectEditable
-            val name: String = newAspect.name ?: ""
             if (index < props.data.size) {
-                if (state.data[index].name.isNotBlank()) {
+                if (state.subjectNames[index].isNotBlank()) {
                     val curSubjectData = props.data[index]
                     var aspects: List<AspectData> = curSubjectData.aspects
-                    if (name.isNotBlank()) {
-                        state.data[index].aspectNames?.add(name)
-                        aspects += newAspect
-                    }
-                    props.onSubjectUpdate(SubjectData(curSubjectData.id, state.data[index].name, aspects))
+                    props.onSubjectUpdate(SubjectData(curSubjectData.id, state.subjectNames[index], aspects))
                 }
-            } else if (state.data.last().name.isNotBlank()) {
-                val aspects = if (name.isNotBlank()) listOf<AspectData>(newAspect) else emptyList()
-                props.onSubjectsCreate(SubjectData(name = state.data.last().name, aspects = aspects))
-                state.data += SubjectViewData()
+            } else if (state.subjectNames.last().isNotBlank()) {
+                props.onSubjectsCreate(SubjectData(name = state.subjectNames.last(), aspects = emptyList()))
+                state.subjectNames += ""
             }
         }
     }
 
-    /**
-     * Component that represents green "+" sign when there is no new aspect being edited.
-     * Receives callback on click.
-     */
-    private fun addNewSubjectHeaderEnabled(): RClass<RTableRendererProps> =
-        rFunction("CheckboxHeaderEnabled") {
-            div(classes = "create-new-aspect-container") {
-                i(classes = "fas fa-plus") {}
-                attrs.onClickFunction = { startCreatingNewSubject() }
+    private fun onSaveChangedAspects(index: Int) {
+        setState {
+            val newAspect: AspectData = state.newAspects[index]
+            if (index < props.data.size) {
+                    val curSubjectData = props.data[index]
+                    var aspects: List<AspectData> = curSubjectData.aspects
+                if (!newAspect.name.isNullOrBlank()) {
+                    aspects += state.newAspects[index]
+                }
+                props.onSubjectUpdate(SubjectData(curSubjectData.id, curSubjectData.name, aspects))
+            } else {
+                props.onSubjectsCreate(SubjectData(name = state.subjectNames.last(), aspects = listOf(newAspect)))
+                state.subjectNames += ""
             }
         }
-
-    private fun startCreatingNewSubject() {
-        //TODO scroll down and focus to last row!
     }
 
     private fun subjectToRows(): Array<SubjectViewData> {
-        if (state.editable == undefined) {
-            state.editable = arrayOf(SubjectViewData())
-        }
-        return toSubjectViewData(props.data) + state.editable
+        return toSubjectViewData(props.data) + arrayOf(SubjectViewData())
     }
 
-
     interface State : RState {
-        var data: Array<SubjectViewData>
-        var editable: Array<SubjectViewData>
+        var subjectNames: Array<String>
+        var newAspects: Array<AspectData>
     }
 
     private fun toSubjectViewData(data: Array<SubjectData>): Array<SubjectViewData> =
@@ -152,33 +140,26 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
         onAspectModified: (AspectData, String) -> Unit
     ) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
         div { +(props.row.aspects as String) }
-/*
-        input(type = InputType.text, classes = "rtable-input") {
-            attrs {
-                value = props.row.aspectEditable
-                placeholder = "start typing for add new aspect"
-                contentEditable = true
-                onBlurFunction = { onSaveChanged(props.index, it.asDynamic().target.value) }
-            }
-        }
-*/
+
         child(AspectSuggestingInput::class) {
             attrs {
-                associatedAspect = (props.original as SubjectViewData).aspectEditable
-                onOptionSelected = { onAspectChanged(props.index, it) }
+                associatedAspect = state.newAspects[props.index]
+                onOptionSelected = {
+                    onAspectChanged(props.index, it)
+                }
                 onAspectNameChanged = onAspectModified
             }
         }
 
         span(classes = "create-new-aspect-container") {
             i(classes = "fas fa-plus") {}
-            attrs.onClickFunction = { onSaveChanged(props.index) }
+            attrs.onClickFunction = { onSaveChangedAspects(props.index) }
         }
     }
 
     private fun onAspectChanged(index: Int, value: AspectData) {
         setState {
-            state.data[index].aspectEditable = value
+            state.newAspects[index] = value
         }
     }
 
