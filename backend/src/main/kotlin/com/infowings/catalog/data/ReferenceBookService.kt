@@ -37,13 +37,19 @@ class ReferenceBookService(val database: OrientDatabase) {
     }
 
     /**
-     * Get ReferenceBook instance by name
-     * @throws RefBookNotExist
+     * Get all ReferenceBook instances
      * */
     fun getReferenceBooks(): Set<ReferenceBook> = transaction(database) {
         return@transaction database.query(selectFromReferenceBook) { rs ->
             rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toSet()
         }
+    }
+
+    /**
+     * Get ReferenceBook instances by aspect id
+     * */
+    fun getReferenceBooksByAspectId(aspectId: String): List<ReferenceBook> {
+        return getReferenceBooks().filter { it.aspectId == aspectId }.toList()
     }
 
     /**

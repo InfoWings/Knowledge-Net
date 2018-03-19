@@ -1,6 +1,8 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinext.js.invoke
@@ -36,12 +38,12 @@ class ReferenceBookTreeView(props: Props) :
             setState {
                 selectedBook = book
             }
-//            props.onReferenceBookCreate(book)
+            props.onReferenceBookCreate(book)
         } else {
             setState {
                 selectedBook = book
             }
-//            props.onReferenceBookUpdate(book)
+            props.onReferenceBookUpdate(book)
         }
     }
 
@@ -50,7 +52,7 @@ class ReferenceBookTreeView(props: Props) :
             props.books.map { book ->
                 referenceBookTreeRoot {
                     attrs {
-                        key = book.id!!
+                        key = book.id
                         this.book = book
                         selectedId = props.selectedId
                         onBookClick = props.onBookClick
@@ -63,7 +65,7 @@ class ReferenceBookTreeView(props: Props) :
                 if (props.addingNewBook) {
                     bookEditConsole {
                         attrs {
-                            book = ReferenceBookData(null, null, props.aspectId)
+                            book = ReferenceBookData(null, "", props.aspectId)
                             onCancel = ::handleCancelChanges
                             onSubmit = ::handleSubmitBookChanges
                         }
@@ -84,11 +86,11 @@ class ReferenceBookTreeView(props: Props) :
 
     interface State : RState {
         var selectedBook: ReferenceBookData?
-}
+    }
 
     interface Props : RProps {
         var aspectId: String
-        var books: List<ReferenceBookData>
+        var books: List<ReferenceBook>
         var onBookClick: (ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>
@@ -97,6 +99,8 @@ class ReferenceBookTreeView(props: Props) :
         var addingNewBook: Boolean
         var onNewBookItemRequest: (AspectData) -> Unit
         var cancelBookEditing: () -> Unit
+        var onReferenceBookCreate: (ReferenceBookData) -> Unit
+        var onReferenceBookUpdate: (ReferenceBookData) -> Unit
     }
 }
 

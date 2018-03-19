@@ -1,5 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
+import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.common.ReferenceBookData
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -11,7 +13,8 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
     private fun handleBookRootLabelClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
-        props.onClick(props.book)
+        val book = props.book
+        props.onClick(ReferenceBookData(book.id, book.name, book.aspectId))
     }
 
     override fun RBuilder.render() {
@@ -20,13 +23,13 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
                 onClickFunction = ::handleBookRootLabelClick
             }
             span(classes = "aspect-tree-view--label-name") {
-                +props.book.name!!
+                +props.book.name
             }
         }
     }
 
     interface Props : RProps {
-        var book: ReferenceBookData
+        var book: ReferenceBook
         var onClick: (ReferenceBookData) -> Unit
         var selected: Boolean
     }

@@ -1,5 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
+import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
@@ -56,7 +58,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 
     interface Props : RProps {
-        var book: ReferenceBookData
+        var book: ReferenceBook
         var onBookClick: (ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>

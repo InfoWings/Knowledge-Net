@@ -15,6 +15,6 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, RState>() {
             attrs { location = props.location.pathname }
         }
 
-        aspectApiMiddleware(ReferenceBookControl::class)
+        aspectApiMiddleware(AspectControl::class)
     }
 }

@@ -1,7 +1,7 @@
 package com.infowings.catalog.reference.book.editconsole
 
+import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.reference.book.editconsole.book.referenceBookNameInput
-import com.infowings.catalog.reference.book.treeview.ReferenceBookData
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
