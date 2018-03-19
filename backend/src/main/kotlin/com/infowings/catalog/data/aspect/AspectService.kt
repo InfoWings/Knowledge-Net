@@ -33,15 +33,12 @@ class AspectService(private val db: OrientDatabase,
 
         val save: OVertex = transaction(db) {
 
-            aspectValidator.checkAspectDataConsistent(aspectData)
-            aspectValidator.checkBusinessKey(aspectData)
+            val aspectVertex = aspectData
+                    .checkAspectDataConsistent()
+                    .checkBusinessKey()
+                    .getOrCreateAspectVertex()
 
-            val aspectVertex: OVertex = getOrCreateAspectVertex(aspectData)
-
-            aspectData.properties.forEach { propertyData ->
-                val aspectPropertyVertex = getOrCreatePropertyVertex(propertyData)
-                aspectDaoService.saveAspectProperty(aspectVertex, aspectPropertyVertex, propertyData)
-            }
+            aspectVertex.saveAspectProperties(aspectData.properties)
 
             return@transaction aspectDaoService.saveAspect(aspectVertex, aspectData)
         }
@@ -81,15 +78,15 @@ class AspectService(private val db: OrientDatabase,
      * @throws IllegalStateException
      * @throws AspectConcurrentModificationException
      * */
-    private fun getOrCreateAspectVertex(aspectData: AspectData): OVertex {
-        val aspectId = aspectData.id
+    private fun AspectData.getOrCreateAspectVertex(): OVertex {
+        val aspectId = id
 
         if (aspectId.isNullOrEmpty())
             return aspectDaoService.createNewAspectVertex()
 
 
         return aspectDaoService.getAspectVertex(aspectId!!)
-                ?.validateExistingAspect(aspectData)
+                ?.validateExistingAspect(this)
                 ?: throw IllegalArgumentException("Incorrect aspect id")
 
     }
@@ -100,15 +97,15 @@ class AspectService(private val db: OrientDatabase,
      * @throws IllegalStateException
      * @throws AspectPropertyModificationException
      * */
-    private fun getOrCreatePropertyVertex(aspectPropertyData: AspectPropertyData): OVertex {
-        val propertyId = aspectPropertyData.id
+    private fun AspectPropertyData.getOrCreatePropertyVertex(): OVertex {
+        val propertyId = id
 
         if (propertyId.isEmpty())
             return aspectDaoService.createNewAspectPropertyVertex()
 
 
         return aspectDaoService.getAspectPropertyVertex(propertyId)
-                ?.validateExistingAspectProperty(aspectPropertyData)
+                ?.validateExistingAspectProperty(this)
                 ?: throw IllegalArgumentException("Incorrect property id")
 
     }
@@ -121,14 +118,19 @@ class AspectService(private val db: OrientDatabase,
     private fun OVertex.toAspectProperty(): AspectProperty =
             AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
 
-    private fun OVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): OVertex {
-        aspectValidator.validateExistingAspectProperty(this, aspectPropertyData)
-        return this
-    }
+    private fun OVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): OVertex = this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
 
-    private fun OVertex.validateExistingAspect(aspectData: AspectData): OVertex {
-        aspectValidator.validateExistingAspect(this, aspectData)
-        return this
+    private fun OVertex.validateExistingAspect(aspectData: AspectData): OVertex = this.also { aspectValidator.validateExistingAspect(this, aspectData) }
+
+    private fun AspectData.checkAspectDataConsistent(): AspectData = this.also { aspectValidator.checkAspectDataConsistent(this) }
+
+    private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
+
+    private fun OVertex.saveAspectProperties(propertyData: List<AspectPropertyData>) {
+        propertyData.forEach {
+            val aspectPropertyVertex = it.getOrCreatePropertyVertex()
+            aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
+        }
     }
 }
 
@@ -139,5 +141,5 @@ class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
-class AspectCyclicDependencyException(val cyclicIds: List<String>) :
+class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
