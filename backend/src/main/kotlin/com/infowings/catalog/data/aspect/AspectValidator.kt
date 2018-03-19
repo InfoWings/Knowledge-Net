@@ -1,24 +1,23 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
-import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OVertex
 
 /**
  * Class for validating aspects.
  * Methods should be called in transaction
  */
-internal class AspectValidator(private val db: OrientDatabase) {
+class AspectValidator(private val aspectDaoService: AspectDaoService, private val suggestionService: SuggestionService) {
 
     /**
      * Check business key of given [AspectData]
      * @throws AspectAlreadyExist
      * @throws IllegalArgumentException
      */
-    internal fun checkBusinessKey(aspectData: AspectData) {
+    fun checkBusinessKey(aspectData: AspectData) {
         checkAspectBusinessKey(aspectData)
         checkAspectPropertyBusinessKey(aspectData)
     }
@@ -28,7 +27,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
      * For example, conformity of measure and base type
      * @throws IllegalArgumentException
      */
-    internal fun checkAspectDataConsistent(aspectData: AspectData) {
+    fun checkAspectDataConsistent(aspectData: AspectData) {
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
@@ -46,9 +45,9 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspect(aspectVertex: AspectVertex, aspectData: AspectData) {
+    fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
-
+        checkCyclicDependencies(aspectVertex, aspectData)
         // this describes case when there exists something that links to this aspect (Aspect is not 'free')
         if (aspectVertex.getVertices(ODirection.IN).any()) {
             checkBaseTypeChangeCriteria(aspectVertex, aspectData)
@@ -56,13 +55,24 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspectProperty(aspectPropertyVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
+    fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
+    private fun checkCyclicDependencies(aspectVertex: OVertex, aspectData: AspectData) {
+        val parentsIds = suggestionService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
+        val cyclicIds = aspectData.properties
+                .map { it.aspectId }
+                .filter { parentsIds.contains(it) }
+                .toList()
+
+        if (cyclicIds.isNotEmpty()) throw AspectCyclicDependencyException(cyclicIds)
+    }
+
     private fun checkAspectBusinessKey(aspectData: AspectData) {
-        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ? and ($notDeletedSql)"
-        db.query(sql, aspectData.name, ORecordId(aspectData.id)) {
+        // val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ? and ($notDeletedSql)"
+
+        aspectDaoService.getAspectsByNameWithDifferentId(aspectData.name, aspectData.id).let {
             if (it.any()) {
                 throw AspectAlreadyExist(aspectData.name)
             }
@@ -80,7 +90,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkAspectVersion(aspectVertex: AspectVertex, aspectData: AspectData) {
+    private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
             throw AspectConcurrentModificationException(aspectVertex.id, "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
         }
@@ -98,7 +108,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkBaseTypeChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
+    private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
                     || thereExistAspectImplementation(aspectVertex.id)) {
@@ -108,7 +118,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkMeasureChangeCriteria(aspectVertex: AspectVertex, aspectData: AspectData) {
+    private fun checkMeasureChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.measure != aspectVertex.measureName) {
             val sameGroup = aspectVertex.measureName == aspectData.measure
             if (!sameGroup && thereExistAspectImplementation(aspectVertex.id)) {
@@ -117,7 +127,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    private fun checkPropertyAspectChangeCriteria(aspectVertex: AspectPropertyVertex, aspectPropertyData: AspectPropertyData) {
+    private fun checkPropertyAspectChangeCriteria(aspectVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         if (aspectVertex.aspect != aspectPropertyData.aspectId) {
             if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
                 throw AspectPropertyModificationException(aspectVertex.id, "Impossible to change aspectId")

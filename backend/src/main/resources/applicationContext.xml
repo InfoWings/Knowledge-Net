@@ -17,16 +17,27 @@
         <constructor-arg name="password" value="${orient.password}"/>
     </bean>
 
+    <bean id="orientHeartBeat" class="com.infowings.catalog.storage.OrientHeartBeat">
+        <constructor-arg name="database" ref="orientDatabase"/>
+        <constructor-arg name="seconds" value="${orient.heartbeat.timeout}"/>
+    </bean>
+
+    <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="measureService"/>
+    </bean>
+
     <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="measuerService"/>
+        <constructor-arg ref="aspectDaoService"/>
+        <constructor-arg ref="suggestionService"/>
     </bean>
 
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
         <constructor-arg ref="metadataService"/>
     </bean>
 
-    <bean id="measuerService" class="com.infowings.catalog.data.MeasureService">
+    <bean id="measureService" class="com.infowings.catalog.data.MeasureService">
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
