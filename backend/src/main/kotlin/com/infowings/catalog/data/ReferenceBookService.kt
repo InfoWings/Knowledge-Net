@@ -59,14 +59,14 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
-    fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) { session ->
+    fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
         val parentVertex = database.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
 
         if (parentVertex.children.any { it.value == value }) {
             throw RefBookChildAlreadyExist(parentId, value)
         }
 
-        val childVertex = session.newVertex(REFERENCE_BOOK_ITEM_VERTEX)
+        val childVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
         parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         childVertex["value"] = value
 
@@ -101,13 +101,13 @@ class ReferenceBookService(val database: OrientDatabase) {
      * Save ReferenceBook with name [name]
      * @throws RefBookAlreadyExist
      */
-    fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(database) { session ->
+    fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(database) {
         getReferenceBookVertexByName(name)?.let { throw RefBookAlreadyExist(name) }
 
-        val referenceBookVertex = session.newVertex(REFERENCE_BOOK_VERTEX)
+        val referenceBookVertex = database.createNewVertex(REFERENCE_BOOK_VERTEX)
         referenceBookVertex["name"] = name
 
-        val rootVertex = session.newVertex(REFERENCE_BOOK_ITEM_VERTEX)
+        val rootVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
         rootVertex["value"] = "root"
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()

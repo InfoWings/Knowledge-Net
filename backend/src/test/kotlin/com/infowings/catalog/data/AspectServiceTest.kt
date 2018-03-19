@@ -4,7 +4,8 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
-import com.infowings.catalog.data.AspectPropertyCardinality.INFINITY
+import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -47,12 +48,10 @@ class AspectServiceTest {
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException::class)
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
-        val createAspect: Aspect = aspectService.save(ad)
-
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
+        aspectService.save(ad)
     }
 
     @Test
@@ -81,10 +80,10 @@ class AspectServiceTest {
         assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
     }
 
-    @Test
+    @Test(expected = AspectAlreadyExist::class)
     fun testAddTwoAspectsSameName() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
-        val aspect = aspectService.save(ad)
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        aspectService.save(ad)
 
         val ad2 = AspectData("", "aspect", Metre.name, null, Decimal.name, emptyList(), 1)
         aspectService.save(ad2)
@@ -94,10 +93,10 @@ class AspectServiceTest {
 
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameSameMeasure() {
-        val ad1 = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad1 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad1)
 
-        val ad2 = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad2 = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad2)
     }
 
@@ -134,8 +133,8 @@ class AspectServiceTest {
 
     // todo: Change to change measure in case no values for aspect
     @Test
-    fun testChangeAspectMeasureDiffGroup() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
+    fun testChangeAspectMeasureOtherGroupFreeAspect() {
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad).toAspectData().copy(measure = Litre.name)
 
         val newAspect = aspectService.save(aspect)
@@ -163,14 +162,19 @@ class AspectServiceTest {
         assertTrue("aspect should have correct base type", newAspect.measure?.baseType == Boolean)
 
         field.set(Gram, Decimal)
-
     }
 
-    @Test(expected = AspectModificationException::class)
-    fun testChangeBaseTypeToNull() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
+    @Test
+    fun testChangeAspectMeasureOtherGroupNotFreeAspect() {
+        val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)
-        aspectService.save(aspect.toAspectData().copy(baseType = null))
+
+        val property = AspectProperty("", "name", aspect, AspectPropertyCardinality.ONE, 0).toAspectPropertyData()
+        aspectService.save(aspect.toAspectData().copy(name = "new", id = null, properties = listOf(property)))
+
+        val ad2 = aspect.copy(measure = Litre, version = 2)
+        val saved = aspectService.save(ad2.toAspectData())
+        assertTrue("measure should be Litre", saved.measure == Litre)
     }
 
     @Test
@@ -181,36 +185,43 @@ class AspectServiceTest {
         assertTrue("base type should be decimal", aspect.baseType == Decimal)
         assertTrue("measure should be litre", aspect.measure == Litre)
 
-        val ad2 = AspectData(aspect.id, "aspect", null, null, null, emptyList(), aspect.version)
+        val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
         val aspect2 = aspectService.save(ad2)
 
-        assertTrue("base type should be null", aspect2.baseType == BaseType.restoreBaseType(null))
+        assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean)
         assertTrue("measure should be null", aspect2.measure == null)
 
-        val ad3 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect2.version)
+        val ad3 = AspectData(aspect.id, "aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), aspect2.version)
         val aspect3 = aspectService.save(ad3)
 
-        assertTrue("base type should be decimal", aspect3.baseType == Boolean)
-        assertTrue("measure should be null", aspect3.measure == null)
+        assertTrue("base type should be decimal", aspect3.baseType == BaseType.Decimal)
+        assertTrue("measure should be metre", aspect3.measure == Metre)
     }
 
     @Test
     fun testAspectWithoutCyclicDependency() {
         val aspect = prepareAspect()
         assertThat(
-            "aspect should be saved and restored if no cyclic dependencies",
-            aspectService.findByName("aspect").firstOrNull(),
-            Is.`is`(aspect)
+                "aspect should be saved and restored if no cyclic dependencies",
+                aspectService.findByName("aspect").firstOrNull(),
+                Is.`is`(aspect)
         )
     }
 
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect()
-        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, INFINITY.name)
+        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, AspectPropertyCardinality.INFINITY.name)
         val aspect1 = aspect.properties.first().aspect
-        val editedAspectData1 =
-            AspectData(aspect1.id, "aspect1", Metre.name, null, Decimal.name, listOf(editedPropertyData1))
+        val editedAspectData1 = AspectData(
+                aspect1.id,
+                "aspect1",
+                Metre.name,
+                null,
+                Decimal.name,
+                aspect1.properties.toAspectPropertyData().plus(editedPropertyData1),
+                aspect1.version)
+
         aspectService.save(editedAspectData1)
     }
 

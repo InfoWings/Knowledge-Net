@@ -22,9 +22,14 @@
         <constructor-arg name="seconds" value="${orient.heartbeat.timeout}"/>
     </bean>
 
-    <bean id="metadataService" class="com.infowings.catalog.data.AspectService">
+    <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="measureService"/>
+    </bean>
+
+    <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="aspectDaoService"/>
         <constructor-arg ref="suggestionService"/>
     </bean>
 
