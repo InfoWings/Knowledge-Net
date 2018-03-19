@@ -19,6 +19,16 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         }
     }
 
+    private fun handleAddToListClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        val childAspect = props.aspect ?: error("Clicked add to list with no aspect")
+        setState {
+            expanded = true
+        }
+        props.onAspectPropertyRequest(childAspect)
+    }
+
     override fun RBuilder.render() {
         val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
@@ -39,8 +49,11 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
             } else {
                 svg("aspect-tree-view--line-icon")
             }
-            if (props.parentAspect.id != null) {
+            if (props.aspect != null) {
                 svg("aspect-tree-view--line-icon") {
+                    attrs {
+                        onClickFunction = ::handleAddToListClick
+                    }
                     use("svg/sprite.svg#icon-add-to-list")
                 }
             } else {
@@ -66,6 +79,7 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                     this.selectedAspect = props.selectedAspect
                     selectedPropertyIndex = props.selectedPropertyIndex
                     parentSelected = childAspect.id == props.selectedAspect?.id
+                    onAspectPropertyRequest = props.onAspectPropertyRequest
                 }
             }
         }
@@ -81,6 +95,7 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         var propertySelected: Boolean
         var selectedAspect: AspectData?
         var selectedPropertyIndex: Int?
+        var onAspectPropertyRequest: (AspectData) -> Unit
     }
 
     interface State : RState {

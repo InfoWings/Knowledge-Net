@@ -160,6 +160,15 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
+    private fun handleClickAddPropertyToAspect(aspect: AspectData) {
+        setState {
+            selectedAspect = aspect.copy(
+                    properties = aspect.properties + AspectPropertyData("", "", "", "")
+            )
+            selectedAspectPropertyIndex = aspect.properties.size
+        }
+    }
+
     override fun RBuilder.render() {
         val selectedAspect = state.selectedAspect
         val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
@@ -167,13 +176,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             attrs {
                 aspects = if (selectedAspect != null && selectedAspect.id == null)
                     props.data + selectedAspect
-
                 else props.data
                 aspectContext = props.aspectContext
                 this.selectedAspect = state.selectedAspect
                 selectedPropertyIndex = state.selectedAspectPropertyIndex
                 onAspectClick = ::handleClickAspect
                 onAspectPropertyClick = ::handleClickAspectProperty
+                onNewAspectPropertyRequest = ::handleClickAddPropertyToAspect
             }
         }
         when {

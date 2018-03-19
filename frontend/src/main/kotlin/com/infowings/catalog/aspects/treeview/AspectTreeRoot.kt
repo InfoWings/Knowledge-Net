@@ -77,6 +77,7 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
                     this.selectedAspect = props.selectedAspect
                     selectedPropertyIndex = props.selectedPropertyIndex
                     parentSelected = props.aspect.id == props.selectedAspect?.id
+                    onAspectPropertyRequest = props.onAspectPropertyRequest
                 }
             }
         }

@@ -24,6 +24,7 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
                         selectedAspect = props.selectedAspect
                         selectedPropertyIndex = props.selectedPropertyIndex
                         propertySelected = props.parentSelected && index == props.selectedPropertyIndex
+                        onAspectPropertyRequest = props.onAspectPropertyRequest
                     }
                 }
             }
@@ -37,6 +38,7 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
         var selectedAspect: AspectData?
         var selectedPropertyIndex: Int?
         var parentSelected: Boolean
+        var onAspectPropertyRequest: (AspectData) -> Unit
     }
 
 }
