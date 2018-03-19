@@ -1,8 +1,8 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.html.js.onClickFunction
@@ -20,14 +20,29 @@ class ReferenceBookTreeView(props: Props) :
         }
     }
 
-    override fun State.init(props: Props) {
-        buildingNewAspect = props.books.isEmpty()
-    }
-
     private fun createNewBookHandler(e: Event) {
         e.stopPropagation()
         e.preventDefault()
         props.onNewBookRequest()
+    }
+
+    private fun handleCancelChanges() {
+        props.cancelBookEditing()
+    }
+
+
+    private fun handleSubmitBookChanges(book: ReferenceBookData) {
+        if (book.id == null) {
+            setState {
+                selectedBook = book
+            }
+//            props.onReferenceBookCreate(book)
+        } else {
+            setState {
+                selectedBook = book
+            }
+//            props.onReferenceBookUpdate(book)
+        }
     }
 
     override fun RBuilder.render() {
@@ -35,7 +50,7 @@ class ReferenceBookTreeView(props: Props) :
             props.books.map { book ->
                 referenceBookTreeRoot {
                     attrs {
-                        key = book.id
+                        key = book.id!!
                         this.book = book
                         selectedId = props.selectedId
                         onBookClick = props.onBookClick
@@ -45,12 +60,22 @@ class ReferenceBookTreeView(props: Props) :
                 }
             }
             div(classes = "aspect-tree-view--root") {
-                div(classes = "aspect-tree-view--label${if (props.selectedId == null) " aspect-tree-view--label__selected" else ""}") {
-                    attrs {
-                        onClickFunction = ::createNewBookHandler
+                if (props.addingNewBook) {
+                    bookEditConsole {
+                        attrs {
+                            book = ReferenceBookData(null, null, props.aspectId)
+                            onCancel = ::handleCancelChanges
+                            onSubmit = ::handleSubmitBookChanges
+                        }
                     }
-                    span(classes = "aspect-tree-view--empty") {
-                        +"(Add Reference Book ...)"
+                } else {
+                    div(classes = "aspect-tree-view--label${if (props.selectedId == null) " aspect-tree-view--label__selected" else ""}") {
+                        attrs {
+                            onClickFunction = ::createNewBookHandler
+                        }
+                        span(classes = "aspect-tree-view--empty") {
+                            +"Add Reference Book ..."
+                        }
                     }
                 }
             }
@@ -58,17 +83,20 @@ class ReferenceBookTreeView(props: Props) :
     }
 
     interface State : RState {
-        var buildingNewAspect: Boolean
-    }
+        var selectedBook: ReferenceBookData?
+}
 
     interface Props : RProps {
-        var books: List<ReferenceBook>
-        var onBookClick: (ReferenceBook) -> Unit
+        var aspectId: String
+        var books: List<ReferenceBookData>
+        var onBookClick: (ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
-        var bookContext: Map<String, ReferenceBook>
+        var bookContext: Map<String, ReferenceBookData>
         var onNewBookRequest: () -> Unit
         var selectedId: String?
+        var addingNewBook: Boolean
         var onNewBookItemRequest: (AspectData) -> Unit
+        var cancelBookEditing: () -> Unit
     }
 }
 

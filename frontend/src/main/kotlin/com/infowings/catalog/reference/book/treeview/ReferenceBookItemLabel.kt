@@ -31,7 +31,6 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, RState>(
                 }
                 +")"
             }
-
         }
     }
 

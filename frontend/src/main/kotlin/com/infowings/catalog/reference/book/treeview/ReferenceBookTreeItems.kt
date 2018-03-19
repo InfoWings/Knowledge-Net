@@ -1,6 +1,5 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import react.*
 import react.dom.div
@@ -15,7 +14,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, RState>(
                         key = it.id
                         bookItem = it
                         onAspectPropertyClick = props.onBookItemClick
-                        aspectContext = props.bookContext
+                        bookContext = props.bookContext
                     }
                 }
             }
@@ -24,7 +23,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, RState>(
 
     interface Props : RProps {
         var bookItems: List<ReferenceBookItem>
-        var bookContext: Map<String, ReferenceBook>
+        var bookContext: Map<String, ReferenceBookData>
         var onBookItemClick: (ReferenceBookItem) -> Unit
     }
 

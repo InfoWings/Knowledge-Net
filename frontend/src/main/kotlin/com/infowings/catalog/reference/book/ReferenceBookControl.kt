@@ -3,8 +3,8 @@ package com.infowings.catalog.reference.book
 import com.infowings.catalog.aspects.AspectApiReceiverProps
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.reference.book.treeview.ReferenceBookData
 import com.infowings.catalog.reference.book.treeview.referenceBookTreeView
 import kotlinext.js.invoke
 import kotlinext.js.require
@@ -18,7 +18,7 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
 
     companion object {
         init {
-            require("styles/aspect-edit-console.scss")
+            require("styles/book-edit-console.scss")
         }
     }
 
@@ -26,6 +26,7 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
         selectedAspect = null
         selectedBook = null
         selectedBookItem = null
+        addingNewBook = false
     }
 
     private fun handleClickAspect(aspect: AspectData) {
@@ -34,9 +35,10 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
         }
     }
 
-    private fun handleClickBook(book: ReferenceBook) {
+    private fun handleClickBook(book: ReferenceBookData) {
         setState {
             selectedBook = book
+            addingNewBook = false
         }
     }
 
@@ -49,7 +51,15 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
 
     private fun handleRequestNewBook() {
         setState {
+            addingNewBook = true
+            selectedBook = null
             selectedBookItem = null
+        }
+    }
+
+    private fun handleCancelBookEditing() {
+        setState {
+            addingNewBook = false
         }
     }
 
@@ -92,16 +102,19 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
                             ReferenceBookItem("id3", "val3", inner)
                         )
                         val list = listOf(
-                            ReferenceBook("book1", "aspId", ReferenceBookItem("id1", "", items)),
-                            ReferenceBook("book2", "aspId", ReferenceBookItem("id2", "", items)),
-                            ReferenceBook("book3", "aspId", ReferenceBookItem("id3", "", items))
+                            ReferenceBookData("id1", "book1", "aspId", items),
+                            ReferenceBookData("id2", "book2", "aspId", items),
+                            ReferenceBookData("id3", "book3", "aspId", items)
                         )
 
+                        aspectId = selectedAspect.id!!
+                        addingNewBook = state.addingNewBook
                         books = list
                         selectedId = selectedBook?.id
                         onBookClick = ::handleClickBook
                         onBookItemClick = ::handleClickBookItem
                         onNewBookRequest = ::handleRequestNewBook
+                        cancelBookEditing = ::handleCancelBookEditing
                     }
                 }
             }
@@ -110,7 +123,8 @@ class ReferenceBookControl(props: AspectApiReceiverProps) :
 
     interface State : RState {
         var selectedAspect: AspectData?
-        var selectedBook: ReferenceBook?
+        var selectedBook: ReferenceBookData?
         var selectedBookItem: ReferenceBookItem?
+        var addingNewBook: Boolean
     }
 }
