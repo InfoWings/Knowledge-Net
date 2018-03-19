@@ -1,10 +1,7 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
-import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
@@ -12,14 +9,14 @@ import com.orientechnologies.orient.core.record.OVertex
  * Class for validating aspects.
  * Methods should be called in transaction
  */
-internal class AspectValidator(private val db: OrientDatabase) {
+class AspectValidator(private val aspectDaoService: AspectDaoService) {
 
     /**
      * Check business key of given [AspectData]
      * @throws AspectAlreadyExist
      * @throws IllegalArgumentException
      */
-    internal fun checkBusinessKey(aspectData: AspectData) {
+    fun checkBusinessKey(aspectData: AspectData) {
         checkAspectBusinessKey(aspectData)
         checkAspectPropertyBusinessKey(aspectData)
     }
@@ -29,7 +26,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
      * For example, conformity of measure and base type
      * @throws IllegalArgumentException
      */
-    internal fun checkAspectDataConsistent(aspectData: AspectData) {
+    fun checkAspectDataConsistent(aspectData: AspectData) {
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
@@ -47,7 +44,7 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
+    fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
         checkAspectVersion(aspectVertex, aspectData)
 
         // this describes case when there exists something that links to this aspect (Aspect is not 'free')
@@ -57,13 +54,12 @@ internal class AspectValidator(private val db: OrientDatabase) {
         }
     }
 
-    internal fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
+    fun validateExistingAspectProperty(aspectPropertyVertex: OVertex, aspectPropertyData: AspectPropertyData) {
         checkPropertyAspectChangeCriteria(aspectPropertyVertex, aspectPropertyData)
     }
 
     private fun checkAspectBusinessKey(aspectData: AspectData) {
-        val sql = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
-        db.query(sql, aspectData.name, ORecordId(aspectData.id)) {
+        aspectDaoService.getAspectsByNameWithDifferentId(aspectData.name, aspectData.id).let {
             if (it.any()) {
                 throw AspectAlreadyExist(aspectData.name)
             }

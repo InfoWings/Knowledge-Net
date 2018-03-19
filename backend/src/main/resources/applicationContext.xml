@@ -17,9 +17,14 @@
         <constructor-arg name="password" value="${orient.password}"/>
     </bean>
 
-    <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
+    <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="measuerService"/>
+    </bean>
+
+    <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="aspectDaoService"/>
     </bean>
 
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
