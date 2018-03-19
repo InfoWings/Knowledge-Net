@@ -13,7 +13,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
     private fun handleAspectPropertyLabelClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
-        props.onClick(props.aspectProperty)
+        props.onClick()
     }
 
     override fun RBuilder.render() {
@@ -23,7 +23,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
             else -> ""
         }
         div(classes = "aspect-tree-view--label$selectedClass") {
-            if (props.aspectProperty.id != "") {
+            if (props.aspectProperty.name != "" || props.aspectProperty.cardinality != "" || props.aspectProperty.aspectId != "") {
                 attrs {
                     onClickFunction = ::handleAspectPropertyLabelClick
                 }
@@ -56,7 +56,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
                 }
             } else {
                 span(classes = "aspect-tree-view--empty") {
-                    +"(Aspect Property Placeholder)"
+                    +"(Enter new Aspect Property)"
                 }
             }
         }
@@ -65,7 +65,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
     interface Props : RProps {
         var aspectProperty: AspectPropertyData
         var aspect: AspectData?
-        var onClick: (AspectPropertyData) -> Unit
+        var onClick: () -> Unit
         var propertySelected: Boolean
         var aspectSelected: Boolean
     }

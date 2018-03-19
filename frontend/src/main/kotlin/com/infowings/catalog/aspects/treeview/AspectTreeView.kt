@@ -1,7 +1,6 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
 import react.*
@@ -26,7 +25,7 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
                     attrs {
                         key = aspect.id ?: ""
                         this.aspect = aspect
-                        selectedId = props.selectedId
+                        selectedAspect = props.selectedAspect
                         selectedPropertyIndex = props.selectedPropertyIndex
                         onAspectClick = props.onAspectClick
                         onAspectPropertyClick = props.onAspectPropertyClick
@@ -45,9 +44,9 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
     interface Props : RProps {
         var aspects: List<AspectData>
         var onAspectClick: (AspectData) -> Unit
-        var onAspectPropertyClick: (AspectPropertyData) -> Unit
+        var onAspectPropertyClick: (AspectData, propertyIndex: Int) -> Unit
         var aspectContext: Map<String, AspectData>
-        var selectedId: String?
+        var selectedAspect: AspectData?
         var selectedPropertyIndex: Int?
         var onNewAspectPropertyRequest: (AspectData) -> Unit
     }

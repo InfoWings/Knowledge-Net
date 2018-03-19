@@ -8,18 +8,32 @@
   box-shadow: 0 -.5rem 2rem #AAA;
 
   bottom: 0;
+  background-color: #FFFFFF;
   left: 0;
   right: 0;
   padding: 0 20rem;
 
-  &--input-group {
+  &--input-group-aspect {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 2rem 0;
   }
 
+  &--input-group-aspect-property {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid #d6d6d6;
+  }
+
   &--aspect-input-container {
+    flex: 0 1 30rem;
+    padding: 0 1rem;
+  }
+
+  &--aspect-property-input-container {
     flex: 0 1 30rem;
     padding: 0 1rem;
   }

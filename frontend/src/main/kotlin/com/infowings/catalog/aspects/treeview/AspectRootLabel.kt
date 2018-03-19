@@ -39,7 +39,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
                 }
             } else {
                 span(classes = "aspect-tree-view--empty") {
-                    +"(Aspect Placeholder)"
+                    +"(Enter New Aspect)"
                 }
             }
         }

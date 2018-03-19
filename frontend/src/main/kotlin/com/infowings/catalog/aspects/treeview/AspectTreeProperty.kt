@@ -50,21 +50,22 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 attrs {
                     aspectProperty = props.aspectProperty
                     aspect = childAspect
-                    onClick = props.onAspectPropertyClick
+                    onClick = props.onLabelClick
                     propertySelected = props.propertySelected
-                    aspectSelected = childAspect != null && childAspect.id == props.selectedId
+                    aspectSelected = childAspect != null && childAspect.id == props.selectedAspect?.id
                 }
             }
-            if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
-                aspectTreeProperties {
-                    attrs {
-                        parentAspect = childAspect
-                        aspectContext = props.aspectContext
-                        onAspectPropertyClick = props.onAspectPropertyClick
-                        selectedId = props.selectedId
-                        selectedPropertyIndex = props.selectedPropertyIndex
-                        parentSelected = childAspect.id == props.selectedId
-                    }
+        }
+        if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
+            aspectTreeProperties {
+                val selectedAspect = props.selectedAspect
+                attrs {
+                    parentAspect = if (selectedAspect != null && selectedAspect.id == childAspect.id) selectedAspect else childAspect
+                    aspectContext = props.aspectContext
+                    onAspectPropertyClick = props.onAspectPropertyClick
+                    this.selectedAspect = props.selectedAspect
+                    selectedPropertyIndex = props.selectedPropertyIndex
+                    parentSelected = childAspect.id == props.selectedAspect?.id
                 }
             }
         }
@@ -74,10 +75,11 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         var parentAspect: AspectData
         var aspectProperty: AspectPropertyData
         var aspect: AspectData?
-        var onAspectPropertyClick: (AspectPropertyData) -> Unit
+        var onAspectPropertyClick: (AspectData, propertyIndex: Int) -> Unit
+        var onLabelClick: () -> Unit
         var aspectContext: Map<String, AspectData>
         var propertySelected: Boolean
-        var selectedId: String?
+        var selectedAspect: AspectData?
         var selectedPropertyIndex: Int?
     }
 

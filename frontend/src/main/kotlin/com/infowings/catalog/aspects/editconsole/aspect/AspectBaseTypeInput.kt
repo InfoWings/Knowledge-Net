@@ -24,7 +24,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
                 +"Base Type"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "base-type", classes = "aspect-edit-console--input") {
+                input(type = InputType.text, name = "aspect-base-type", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-base-type"
                         value = props.value ?: ""

@@ -24,7 +24,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                 +"Measure"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "measure", classes = "aspect-edit-console--input") {
+                input(type = InputType.text, name = "aspect-measure", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-measure"
                         value = props.value ?: ""

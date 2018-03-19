@@ -15,11 +15,11 @@ class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput
     private fun handleInputFieldChanged(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        console.log(e.target.unsafeCast<HTMLInputElement>().value)
+        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        div(classes = "aspect-edit-console--aspect-property-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-property-cardinality") {
                 +"Cardinality"
             }
@@ -27,7 +27,7 @@ class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput
                 input(type = InputType.text, name = "property-cardinality", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-property-cardinality"
-                        value = props.initialValue ?: ""
+                        value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
                     }
                 }
@@ -36,7 +36,8 @@ class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput
     }
 
     interface Props : RProps {
-        var initialValue: String?
+        var value: String?
+        var onChange: (String) -> Unit
     }
 
 }

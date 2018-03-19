@@ -25,7 +25,7 @@ class AspectNameInput : RComponent<AspectNameInput.Props, RState>() {
                 +"Name"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "name", classes = "aspect-edit-console--input") {
+                input(type = InputType.text, name = "aspect-name", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-name"
                         value = props.value ?: ""

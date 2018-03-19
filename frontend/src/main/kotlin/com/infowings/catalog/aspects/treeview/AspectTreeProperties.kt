@@ -1,7 +1,6 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import react.*
 import react.dom.div
 
@@ -20,7 +19,10 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
                                 ?: throw Error("Aspect Property $property has aspectId that " +
                                 "was neigher in the fetched list nor created")
                         onAspectPropertyClick = props.onAspectPropertyClick
+                        onLabelClick = { props.onAspectPropertyClick(props.parentAspect, index) }
                         aspectContext = props.aspectContext
+                        selectedAspect = props.selectedAspect
+                        selectedPropertyIndex = props.selectedPropertyIndex
                         propertySelected = props.parentSelected && index == props.selectedPropertyIndex
                     }
                 }
@@ -31,8 +33,8 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
     interface Props : RProps {
         var parentAspect: AspectData
         var aspectContext: Map<String, AspectData>
-        var onAspectPropertyClick: (AspectPropertyData) -> Unit
-        var selectedId: String?
+        var onAspectPropertyClick: (AspectData, propertyIndex: Int) -> Unit
+        var selectedAspect: AspectData?
         var selectedPropertyIndex: Int?
         var parentSelected: Boolean
     }

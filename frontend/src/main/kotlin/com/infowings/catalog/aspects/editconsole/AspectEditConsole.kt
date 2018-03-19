@@ -119,7 +119,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             attrs {
                 onKeyDownFunction = ::handleKeyDown
             }
-            div(classes = "aspect-edit-console--input-group") {
+            div(classes = "aspect-edit-console--input-group-aspect") {
                 aspectNameInput {
                     attrs {
                         value = state.aspectName

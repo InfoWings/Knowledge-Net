@@ -4,9 +4,11 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -18,6 +20,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
         aspectPropertyCardinality = props.parentAspect.properties[props.aspectPropertyIndex].cardinality
+        aspectPropertyAspectId = props.parentAspect.properties[props.aspectPropertyIndex].aspectId
         childAspectName = props.childAspect?.name
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
@@ -30,6 +33,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
             setState {
                 aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
                 aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
+                aspectPropertyAspectId = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].aspectId
                 childAspectName = nextProps.childAspect?.name
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
@@ -38,12 +42,75 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         }
     }
 
+    private fun handlePropertyNameChanged(name: String) {
+        setState {
+            aspectPropertyName = name
+        }
+    }
+
+    private fun handlePropertyCardinalityChanged(cardinality: String) {
+        setState {
+            aspectPropertyCardinality = cardinality
+        }
+    }
+
+    private fun handlePropertyAspectIdChanged(aspect: AspectData) {
+        setState {
+            aspectPropertyAspectId = aspect.id
+            childAspectName = aspect.name
+            childAspectMeasure = aspect.measure
+            childAspectDomain = aspect.domain
+            childAspectBaseType = aspect.baseType
+        }
+    }
+
+    private fun handleChildAspectNameChanged(name: String) {
+        setState {
+            childAspectName = name
+        }
+    }
+
+    private fun handleChildAspectMeasureChanged(measure: String) {
+        setState {
+            childAspectMeasure = measure
+        }
+    }
+
+    private fun handleChildAspectDomainChanged(domain: String) {
+        setState {
+            childAspectDomain = domain
+        }
+    }
+
+    private fun handleChildAspectBaseTypeChanged(baseType: String) {
+        setState {
+            childAspectBaseType = baseType
+        }
+    }
+
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
+        val ctrlPressed = e.unsafeCast<KeyboardEvent>().ctrlKey
         when (keyCode) {
             27 -> props.onCancel()
-            13 -> console.log("Submit")
+            13 -> if (ctrlPressed) {
+                props.onSwitchToNextProperty(props.parentAspect.properties[props.aspectPropertyIndex].copy(
+                        name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+                        cardinality = state.aspectPropertyCardinality
+                                ?: error("Can't save aspect property with cardinality == null"),
+                        aspectId = state.aspectPropertyAspectId
+                                ?: error("Can't save aspect property with aspectId == null")
+                ))
+            } else {
+                props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
+                        name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+                        cardinality = state.aspectPropertyCardinality
+                                ?: error("Can't save aspect property with cardinality == null"),
+                        aspectId = state.aspectPropertyAspectId
+                                ?: error("Can't save aspect property with aspectId == null")
+                ))
+            }
         }
     }
 
@@ -52,37 +119,58 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
             attrs {
                 onKeyDownFunction = ::handleKeyDown
             }
-            div(classes = "aspect-edit-console--input-group") {
+            div(classes = "aspect-edit-console--input-group-aspect-property") {
                 aspectPropertyNameInput {
                     attrs {
-                        initialValue = state.aspectPropertyName
+                        value = state.aspectPropertyName
+                        onChange = ::handlePropertyNameChanged
                     }
                 }
                 aspectPropertyCardinality {
                     attrs {
-                        initialValue = state.aspectPropertyCardinality
+                        value = state.aspectPropertyCardinality
+                        onChange = ::handlePropertyCardinalityChanged
                     }
                 }
-                div(classes = "aspect-edit-console--input-group") {
-                    aspectNameInput {
-                        attrs {
-                            value = state.childAspectName
+                aspectPropertyAspect {
+                    val boundAspectId = state.aspectPropertyAspectId
+                    attrs {
+                        aspect = props.childAspect ?: boundAspectId?.let {
+                            AspectData(
+                                    boundAspectId,
+                                    state.childAspectName!!,
+                                    state.childAspectMeasure,
+                                    state.childAspectDomain,
+                                    state.childAspectBaseType
+                            )
                         }
+                        onAspectSelected = ::handlePropertyAspectIdChanged
                     }
-                    aspectMeasureInput {
-                        attrs {
-                            value = state.childAspectMeasure
-                        }
+                }
+            }
+            div(classes = "aspect-edit-console--input-group-aspect") {
+                aspectNameInput {
+                    attrs {
+                        value = state.childAspectName
+                        onChange = ::handleChildAspectNameChanged
                     }
-                    aspectDomainInput {
-                        attrs {
-                            value = state.childAspectDomain
-                        }
+                }
+                aspectMeasureInput {
+                    attrs {
+                        value = state.childAspectMeasure
+                        onChange = ::handleChildAspectMeasureChanged
                     }
-                    aspectBaseTypeInput {
-                        attrs {
-                            value = state.childAspectBaseType
-                        }
+                }
+                aspectDomainInput {
+                    attrs {
+                        value = state.childAspectDomain
+                        onChange = ::handleChildAspectDomainChanged
+                    }
+                }
+                aspectBaseTypeInput {
+                    attrs {
+                        value = state.childAspectBaseType
+                        onChange = ::handleChildAspectBaseTypeChanged
                     }
                 }
             }
@@ -94,12 +182,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
         var onCancel: () -> Unit
-        var onSubmit: (AspectData) -> Unit
+        var onSwitchToNextProperty: (AspectPropertyData) -> Unit
+        var onSaveParentAspect: (AspectPropertyData) -> Unit
     }
 
     interface State : RState {
         var aspectPropertyName: String?
         var aspectPropertyCardinality: String?
+        var aspectPropertyAspectId: String?
         var childAspectName: String?
         var childAspectMeasure: String?
         var childAspectDomain: String?

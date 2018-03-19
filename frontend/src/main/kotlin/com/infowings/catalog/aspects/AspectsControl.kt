@@ -89,6 +89,70 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
+    private fun handleSwitchToNextProperty(aspectProperty: AspectPropertyData) = setState {
+        val currentSelectedAspect = selectedAspect ?: error("handleSwitchToNextProperty when no aspect is selected")
+        val currentSelectedAspectPropertyIndex = selectedAspectPropertyIndex
+                ?: error("handleSwitchToNextProperty when no property is selected")
+        selectedAspect = if (currentSelectedAspect.properties.lastIndex == currentSelectedAspectPropertyIndex)
+            currentSelectedAspect.copy(
+                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                        if (index != currentSelectedAspectPropertyIndex) {
+                            property
+                        } else {
+                            property.copy(
+                                    name = aspectProperty.name,
+                                    cardinality = aspectProperty.cardinality,
+                                    aspectId = aspectProperty.aspectId
+                            )
+                        }
+                    } + AspectPropertyData("", "", "", "")
+            )
+        else
+            currentSelectedAspect.copy(
+                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                        if (index != currentSelectedAspectPropertyIndex) {
+                            property
+                        } else {
+                            property.copy(
+                                    name = aspectProperty.name,
+                                    cardinality = aspectProperty.cardinality,
+                                    aspectId = aspectProperty.aspectId
+                            )
+                        }
+                    }
+            )
+        selectedAspectPropertyIndex = currentSelectedAspectPropertyIndex + 1
+    }
+
+    private fun handleSaveParentAspect(aspectProperty: AspectPropertyData) {
+        val currentSelectedAspect = state.selectedAspect
+                ?: error("handleSwitchToNextProperty when no aspect is selected")
+        val currentSelectedAspectPropertyIndex = state.selectedAspectPropertyIndex
+                ?: error("handleSwitchToNextProperty when no property is selected")
+        val savedAspect = currentSelectedAspect.copy(
+                properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                    if (index != currentSelectedAspectPropertyIndex) {
+                        property
+                    } else {
+                        property.copy(
+                                name = aspectProperty.name,
+                                cardinality = aspectProperty.cardinality,
+                                aspectId = aspectProperty.aspectId
+                        )
+                    }
+                }
+        )
+        if (currentSelectedAspect.id == null) {
+            props.onAspectCreate(savedAspect)
+        } else {
+            props.onAspectUpdate(savedAspect)
+        }
+        setState {
+            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspectPropertyIndex = null
+        }
+    }
+
     private fun handleClickAspectProperty(aspect: AspectData, aspectPropertyIndex: Int) {
         setState {
             selectedAspect = aspect
@@ -103,16 +167,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             attrs {
                 aspects = if (selectedAspect != null && selectedAspect.id == null)
                     props.data + selectedAspect
+
                 else props.data
                 aspectContext = props.aspectContext
-                selectedId = when {
-                    selectedAspect != null -> selectedAspect.id
-                    else -> null
-                }
+                this.selectedAspect = state.selectedAspect
                 selectedPropertyIndex = state.selectedAspectPropertyIndex
                 onAspectClick = ::handleClickAspect
-//                onAspectPropertyClick = ::handleClickAspectProperty
-//                onNewAspectPropertyRequest =
+                onAspectPropertyClick = ::handleClickAspectProperty
             }
         }
         when {
@@ -133,6 +194,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                         childAspect = if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
                         else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]!!
                         onCancel = ::handleCancelChanges
+                        onSwitchToNextProperty = ::handleSwitchToNextProperty
+                        onSaveParentAspect = ::handleSaveParentAspect
                     }
                 }
         }
