@@ -6,8 +6,7 @@ import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.TimeUnit
 
 private val logger = loggerFor<OrientDatabase>()
-private const val QUERY = "SELECT * from User where username = ?"
-private const val USER = "username"
+private const val QUERY = "SELECT * from User where username = 'username'"
 
 /**
  * Периодически шлем запросы, чтобы сессия не закрывалась
@@ -21,9 +20,8 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
         launch {
             while (isActive) {
                 delay(period)
-                database.query(QUERY, USER) { logger.trace("heart beat result: $it") }
+                database.query(QUERY) { logger.info("heart beat result: $it") }
             }
         }
-
     }
 }
