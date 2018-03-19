@@ -13,7 +13,14 @@ import com.orientechnologies.orient.core.record.OVertex
  */
 fun OVertex.toAspectData(): AspectData {
     val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-    return AspectData(id, name, measureName, baseTypeObj?.let { OpenDomain(it).toString() }, baseType, properties.map { it.toAspectPropertyData() }, version)
+    return AspectData(
+            id,
+            name,
+            measureName,
+            baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType,
+            properties.map { it.toAspectPropertyData() },
+            version)
 }
 
 fun OVertex.toAspectPropertyData(): AspectPropertyData =
