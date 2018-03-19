@@ -1,14 +1,27 @@
 package com.infowings.catalog.aspects.editconsole.aspect
 
+import com.infowings.catalog.aspects.MeasurementUnitOption
+import com.infowings.catalog.aspects.MeasurementUnitSuggestingOption
+import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.wrappers.react.label
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
+import com.infowings.catalog.wrappers.select.OptionComponentProps
+import com.infowings.catalog.wrappers.select.SelectOption
+import com.infowings.catalog.wrappers.select.asyncSelect
+import kotlinext.js.jsObject
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
-import react.dom.input
+
+interface MeasurementUnitOption : SelectOption {
+    var measurementUnit: String
+}
+
+private fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnitOption> {
+    measurementUnit = optionName
+}
 
 class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
 
@@ -20,15 +33,39 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-edit-console--aspect-input-container") {
-            label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-measure") {
+            label(classes = "aspect-edit-console--input-label") {
                 +"Measure"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "aspect-measure", classes = "aspect-edit-console--input") {
+                asyncSelect<MeasurementUnitOption> {
                     attrs {
-                        id = "aspect-measure"
+                        className = "aspect-table-select"
                         value = props.value ?: ""
-                        onChangeFunction = ::handleInputFieldChanged
+                        labelKey = "measurementUnit"
+                        valueKey = "measurementUnit"
+                        onChange = { props.onChange(it.measurementUnit) }
+                        cache = false
+                        clearable = false
+                        options = if (props.value.isNullOrEmpty()) emptyArray()
+                        else arrayOf(measurementUnitOption(props.value!!))
+                        loadOptions = { input, callback ->
+                            if (input.isNotEmpty()) {
+                                launch {
+                                    val measurementUnitsArray = withTimeoutOrNull(500) {
+                                        getSuggestedMeasurementUnits(input)
+                                    }
+                                    callback(null, jsObject {
+                                        options = measurementUnitsArray?.map { measurementUnitOption(it) }?.toTypedArray() ?: emptyArray()
+                                    })
+                                }
+                            } else {
+                                callback(null, jsObject {
+                                    options = emptyArray()
+                                })
+                            }
+                            false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript
+                        }
+                        optionComponent = MeasurementUnitSuggestingOption::class.js.unsafeCast<RClass<OptionComponentProps<MeasurementUnitOption>>>()
                     }
                 }
             }

@@ -63,3 +63,17 @@
   }
 
 }
+
+.aspect-table-select.Select {
+  width: 30rem;
+}
+
+.aspect-table-select.Select > .Select-control {
+  width: 30rem;
+  border-radius: 3px;
+  border: none;
+  background-color: transparent !important;
+  outline: none !important;
+  height: 3rem;
+  line-height: 3rem;
+}

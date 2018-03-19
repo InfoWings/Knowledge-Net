@@ -84,13 +84,6 @@
   display: none;
 }
 
-.aspect-table-select > .Select-control {
-  border-radius: 0;
-  border: none;
-  background-color: transparent !important;
-  outline: none !important;
-}
-
 .mu-option {
 
 }

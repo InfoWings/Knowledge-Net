@@ -10,12 +10,15 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinx.html.js.onKeyDownFunction
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+
+    private var inputRef: HTMLInputElement? = null
 
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
@@ -40,6 +43,22 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 childAspectBaseType = nextProps.childAspect?.baseType
             }
         }
+    }
+
+    override fun componentDidMount() {
+        inputRef?.focus()
+        inputRef?.select()
+    }
+
+    override fun componentDidUpdate(prevProps: Props, prevState: State) {
+        if (props.parentAspect.id != prevProps.parentAspect.id || props.aspectPropertyIndex != prevProps.aspectPropertyIndex) {
+            inputRef?.focus()
+            inputRef?.select()
+        }
+    }
+
+    private fun assignInputRef(inputRef: HTMLInputElement?) {
+        this.inputRef = inputRef
     }
 
     private fun handlePropertyNameChanged(name: String) {
@@ -124,6 +143,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     attrs {
                         value = state.aspectPropertyName
                         onChange = ::handlePropertyNameChanged
+                        inputRef = ::assignInputRef
                     }
                 }
                 aspectPropertyCardinality {
@@ -135,7 +155,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 aspectPropertyAspect {
                     val boundAspectId = state.aspectPropertyAspectId
                     attrs {
-                        aspect = props.childAspect ?: boundAspectId?.let {
+                        aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                     boundAspectId,
                                     state.childAspectName!!,
@@ -143,7 +163,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                                     state.childAspectDomain,
                                     state.childAspectBaseType
                             )
-                        }
+                        } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
                     }
                 }
