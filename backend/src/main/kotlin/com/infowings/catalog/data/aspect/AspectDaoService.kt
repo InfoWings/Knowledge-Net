@@ -24,12 +24,12 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex() }.toSet()
     }
 
-    fun getAspects(): Set<OVertex> = db.query(selectFromAspect) { rs -> rs.mapNotNull { it.toVertexOrNUll() }.toSet() }
+    fun getAspects(): Set<OVertex> = db.query(selectFromAspect) { rs -> rs.mapNotNull { it.toVertexOrNull() }.toSet() }
 
     fun saveAspect(aspectVertex: OVertex, aspectData: AspectData): OVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name
+        aspectVertex.name = aspectData.name ?: throw AspectNameCannotBeNull()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType

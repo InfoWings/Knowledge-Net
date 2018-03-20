@@ -82,7 +82,6 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     override fun RBuilder.render() {
         child(SubjectsTable::class) {
             attrs {
-                console.log(" SubjectApiMiddleware state.data: ", state.data)
                 data = state.data.values.toTypedArray()
                 loading = state.loading
                 onSubjectUpdate = ::handleUpdateSubject

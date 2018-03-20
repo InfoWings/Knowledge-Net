@@ -39,12 +39,7 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                         this.Header = header("aspects")
                         this.Cell = selectComponent(::onAspectChanged, ::onAspectNameChanged)
                         this.className = "aspect-cell"
-                    }/*,
-                    RTableColumnDescriptor {
-                        this.accessor = "pending"
-                        this.Header = addNewSubjectHeaderEnabled()
-                        this.width = 55.0
-                    }*/
+                    }
                 )
                 data = if (props.loading) emptyArray() else subjectToRows()
                 showPagination = false
@@ -105,8 +100,8 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
         setState {
             val newAspect: AspectData = state.newAspects[index]
             if (index < props.data.size) {
-                    val curSubjectData = props.data[index]
-                    var aspects: List<AspectData> = curSubjectData.aspects
+                val curSubjectData = props.data[index]
+                var aspects: List<AspectData> = curSubjectData.aspects
                 if (!newAspect.name.isNullOrBlank()) {
                     aspects += state.newAspects[index]
                 }
@@ -141,19 +136,29 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
     ) = rFunction<RTableRendererProps>("AspectSelectField") { props ->
         div { +(props.row.aspects as String) }
 
-        child(AspectSuggestingInput::class) {
-            attrs {
-                associatedAspect = state.newAspects[props.index]
-                onOptionSelected = {
-                    onAspectChanged(props.index, it)
-                }
-                onAspectNameChanged = onAspectModified
-            }
-        }
+        table {
+            tbody {
+                tr {
+                    td("new-aspect-select") {
+                        child(AspectSuggestingInput::class) {
+                            attrs {
+                                associatedAspect = state.newAspects[props.index]
+                                onOptionSelected = {
+                                    onAspectChanged(props.index, it)
+                                }
+                                onAspectNameChanged = onAspectModified
+                            }
+                        }
+                    }
+                    td {
 
-        span(classes = "create-new-aspect-container") {
-            i(classes = "fas fa-plus") {}
-            attrs.onClickFunction = { onSaveChangedAspects(props.index) }
+                        span(classes = "create-new-aspect-container") {
+                            i(classes = "fas fa-plus") {}
+                            attrs.onClickFunction = { onSaveChangedAspects(props.index) }
+                        }
+                    }
+                }
+            }
         }
     }
 

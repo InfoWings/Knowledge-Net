@@ -101,7 +101,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
     class VertexNotFound(id: String) : Throwable("No vertex for id: $id")
-            query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 
     fun createNewVertex(className: String): OVertex = session(database = this) {
         return@session it.newVertex(className)

@@ -121,7 +121,7 @@ class SearchTest {
         assertEquals("level1_1", res[0].name)
         assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
 
-        res = suggestionService.findParentAspects(child.id)
+        res = aspectService.findParentAspects(child.id)
         assertEquals(3, res.size)
         assertEquals("level2", res[0].name)
         assertEquals("level1", res[1].name)

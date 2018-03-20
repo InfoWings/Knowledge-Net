@@ -1,6 +1,8 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -53,7 +55,7 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
 
     fun updateSubject(sd: SubjectData): Subject {
         val res: Subject =
-            transaction(db) { session ->
+            transaction(db) {
                 val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull]
                 vertex[ATTR_NAME] = sd.name
                 sd.aspects.forEach { aspectData ->

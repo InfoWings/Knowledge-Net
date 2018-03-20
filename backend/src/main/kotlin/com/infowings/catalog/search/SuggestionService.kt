@@ -1,9 +1,10 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.common.*
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
@@ -14,7 +15,11 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 /**
  * Сервис поиска в OrientDB
  */
-class SuggestionService(val database: OrientDatabase, val subjectService: SubjectService) {
+class SuggestionService(
+    private val database: OrientDatabase,
+    private val aspectService: AspectService,
+    private val subjectService: SubjectService
+) {
 
     fun findMeasure(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<Measure<*>> =
         session(database) {
@@ -142,17 +147,6 @@ class SuggestionService(val database: OrientDatabase, val subjectService: Subjec
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
         val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(:$lq) = true and $noCycle"
         database.query(q, mapOf(lq to luceneQuery(text), aspectRecord to ORecordId(aspectId))) { it }
-    }
-
-    /**
-     * @param aspectId aspect id to start
-     * @return list of the current aspect and all its parents
-     */
-    fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
-        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord"
-        return@session database.query(q, mapOf(aspectRecord to ORecordId(aspectId))) {
-            it.mapNotNull { it.toVertexOrNull()?.toAspectData() }.toList()
-        }
     }
 
     private val aspectRecord = "a"

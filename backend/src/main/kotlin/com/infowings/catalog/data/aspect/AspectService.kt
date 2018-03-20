@@ -4,9 +4,9 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 
 
@@ -16,10 +16,10 @@ import com.orientechnologies.orient.core.record.OVertex
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
 class AspectService(private val db: OrientDatabase,
-                    private val aspectDaoService: AspectDaoService,
-                    suggestionService: SuggestionService) {
+                    private val aspectDaoService: AspectDaoService
+) {
 
-    private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
+    private val aspectValidator = AspectValidator(aspectDaoService, this)
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
@@ -54,11 +54,24 @@ class AspectService(private val db: OrientDatabase,
 
     fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
 
+    fun getAspect(vertex: OVertex): Aspect = vertex.toAspect()
+
     /**
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+
+    /**
+     * @param aspectId aspect id to start
+     * @return list of the current aspect and all its parents
+     */
+    fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
+        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
+        return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
+            it.mapNotNull { it.toVertexOrNull()?.toAspectData() }.toList()
+        }
+    }
 
     /**
      * Load property by id
@@ -143,3 +156,5 @@ class AspectModificationException(val id: String, message: String?) : AspectExce
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectNameCannotBeNull : AspectException()

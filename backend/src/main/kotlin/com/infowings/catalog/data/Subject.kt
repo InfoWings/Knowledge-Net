@@ -1,6 +1,7 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.data.aspect.Aspect
 
 data class Subject(
     val id: String,

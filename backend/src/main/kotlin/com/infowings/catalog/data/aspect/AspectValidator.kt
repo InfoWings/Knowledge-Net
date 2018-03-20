@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -10,7 +9,7 @@ import com.orientechnologies.orient.core.record.OVertex
  * Class for validating aspects.
  * Methods should be called in transaction
  */
-class AspectValidator(private val aspectDaoService: AspectDaoService, private val suggestionService: SuggestionService) {
+class AspectValidator(private val aspectDaoService: AspectDaoService, private val aspectService: AspectService) {
 
     /**
      * Check business key of given [AspectData]
@@ -60,7 +59,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     }
 
     private fun checkCyclicDependencies(aspectVertex: OVertex, aspectData: AspectData) {
-        val parentsIds = suggestionService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
+        val parentsIds = aspectService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
                 .map { it.aspectId }
                 .filter { parentsIds.contains(it) }
@@ -70,9 +69,10 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     }
 
     private fun checkAspectBusinessKey(aspectData: AspectData) {
-        aspectDaoService.getAspectsByNameWithDifferentId(aspectData.name, aspectData.id).let {
+        val name: String = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectDaoService.getAspectsByNameWithDifferentId(name, aspectData.id).let {
             if (it.any()) {
-                throw AspectAlreadyExist(aspectData.name)
+                throw AspectAlreadyExist(name)
             }
         }
     }
