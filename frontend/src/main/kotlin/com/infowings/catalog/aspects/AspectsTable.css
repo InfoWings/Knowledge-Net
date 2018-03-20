@@ -90,7 +90,6 @@
 
 .mu-option-category-container {
   position: absolute;
-  top: 0;
   left: 100%;
   border-radius: 3px;
   border: 1px solid #AAA;
@@ -98,6 +97,7 @@
 }
 
 .mu-option-category-item {
+  white-space: nowrap;
   padding: 0 5px;
   height: 36px;
   line-height: 34px;

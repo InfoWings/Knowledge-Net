@@ -5,12 +5,14 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.svg
 
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
 
@@ -118,6 +120,23 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         div(classes = "aspect-edit-console") {
             attrs {
                 onKeyDownFunction = ::handleKeyDown
+            }
+            div(classes = "aspect-edit-console--button-control-tab") {
+                div(classes = "aspect-edit-console--button-control") {
+                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                        use("svg/sprite.svg#icon-check")
+                    }
+                }
+                div(classes = "aspect-edit-console--button-control") {
+                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                        use("svg/sprite.svg#icon-add-to-list")
+                    }
+                }
+                div(classes = "aspect-edit-console--button-control") {
+                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {
+                        use("svg/sprite.svg#icon-cross")
+                    }
+                }
             }
             div(classes = "aspect-edit-console--input-group-aspect") {
                 aspectNameInput {

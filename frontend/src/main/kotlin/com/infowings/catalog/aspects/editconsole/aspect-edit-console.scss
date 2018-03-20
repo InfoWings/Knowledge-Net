@@ -62,6 +62,39 @@
     width: 100%;
   }
 
+  &--button-control-tab {
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+  }
+
+  &--button-control {
+    border-radius: 3px;
+    border: 1px solid #d6d6d6;
+    background-color: #FFF;
+    height: 2rem;
+    width: 2rem;
+    margin: 0 1.5rem;
+
+    &:hover {
+      border-color: #CCC;
+      background-color: rgba(194, 226, 237, 0.5);
+    }
+  }
+
+  &--button-icon {
+    height: 100%;
+    width: 100%;
+
+    &__green {
+      fill: green;
+    }
+    &__red {
+      fill: red;
+    }
+  }
+
 }
 
 .aspect-table-select.Select {
@@ -76,4 +109,9 @@
   outline: none !important;
   height: 3rem;
   line-height: 3rem;
+}
+
+.Select-menu-outer {
+  top: auto;
+  bottom: 100%;
 }
