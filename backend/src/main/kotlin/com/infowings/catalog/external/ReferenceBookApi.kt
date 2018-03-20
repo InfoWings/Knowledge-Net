@@ -12,6 +12,12 @@ import java.net.URLDecoder
 @RequestMapping("api/book")
 class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
+    @GetMapping("all")
+    fun getAll(): ReferenceBooksList {
+        logger.debug("Getting all reference books")
+        return ReferenceBooksList(referenceBookService.getReferenceBooks())
+    }
+
     @GetMapping("get")
     fun getByAspectId(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBooksList {
         val aspectId = URLDecoder.decode(encodedAspectId, "UTF-8")
@@ -30,13 +36,6 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
         return referenceBookService.createReferenceBook(book.name, book.aspectId)
     }
-
-    /*
-    @PostMapping("update")
-    fun update(@RequestBody referenceBook: ReferenceBook): ReferenceBook {
-        logger.debug("updating reference book")
-        return referenceBookService.update(name, aspectId)
-    }*/
 
     private val logger = loggerFor<ReferenceBookApi>()
 }

@@ -39,9 +39,9 @@ class ReferenceBookService(val database: OrientDatabase) {
     /**
      * Get all ReferenceBook instances
      * */
-    fun getReferenceBooks(): Set<ReferenceBook> = transaction(database) {
+    fun getReferenceBooks(): List<ReferenceBook> = transaction(database) {
         return@transaction database.query(selectFromReferenceBook) { rs ->
-            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toSet()
+            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toList()
         }
     }
 

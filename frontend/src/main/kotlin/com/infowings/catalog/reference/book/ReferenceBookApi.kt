@@ -9,6 +9,9 @@ import kotlinx.serialization.json.JSON
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
+internal suspend fun getAll(): ReferenceBooksList =
+    JSON.parse(get("/api/book/all"))
+
 internal suspend fun getByAspectId(aspectId: String): ReferenceBooksList =
     JSON.parse(get("/api/book/get?aspectId=${encodeURIComponent(aspectId)}"))
 
