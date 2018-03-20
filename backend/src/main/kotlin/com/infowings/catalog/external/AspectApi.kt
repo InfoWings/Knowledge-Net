@@ -36,5 +36,11 @@ class AspectApi(val aspectService: AspectService) {
         logger.debug("Get all aspects request")
         return AspectsList(aspectService.getAspects().toAspectData())
     }
+
+    @GetMapping("remove/{name}")
+    fun removeAspect(@PathVariable name: String): RemoveStatus {
+        logger.debug("Remove aspect request: $name")
+        return aspectService.removeByName(name)
+    }
 }
 private val logger = loggerFor<AspectApi>()

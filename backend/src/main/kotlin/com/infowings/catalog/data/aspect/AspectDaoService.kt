@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -23,6 +24,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun findByName(name: String): Set<OVertex> = db.query(selectAspectByName, name) { rs ->
         rs.map { it.toVertex() }.toSet()
     }
+
+    fun remove(vert: OVertex) = db.delete(vert)
 
     fun getAspects(): Set<OVertex> = db.query(selectFromAspect) { rs -> rs.mapNotNull { it.toVertexOrNUll() }.toSet() }
 
@@ -87,5 +90,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
 private const val selectFromAspect = "SELECT FROM Aspect"
 private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
+private const val deleteById = "DELETE from $ASPECT_CLASS WHERE @rid = ?"
 
 private val logger = loggerFor<AspectDaoService>()

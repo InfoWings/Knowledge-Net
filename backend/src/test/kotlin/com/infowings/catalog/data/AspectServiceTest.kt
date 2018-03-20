@@ -6,6 +6,8 @@ import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
+import com.infowings.catalog.external.RemoveStatus
+import com.infowings.catalog.external.StatusType
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -205,6 +207,65 @@ class AspectServiceTest {
                 "aspect should be saved and restored if no cyclic dependencies",
                 aspectService.findByName("aspect").firstOrNull(),
                 Is.`is`(aspect)
+        )
+    }
+
+    @Test
+    fun testDeleteAbsentAspect() {
+        val name = "NON_EXISTENT_ASPECT"
+        val res = aspectService.removeByName(name)
+        assertThat(
+                "attempt to remove absent aspect should be reported properly",
+                res.status,
+                Is.`is`(StatusType.ABSENT)
+        )
+        assertThat(
+                "aspect name in status must be correct",
+                res.aspectName,
+                Is.`is`(name)
+        )
+    }
+
+    @Test
+    fun testDeleteStandaloneAspect() {
+        val name = "SOME_ASPECT"
+        val ad = AspectData("", name, null, null, Decimal.name, emptyList())
+
+        aspectService.save(ad)
+
+        val res = aspectService.removeByName(name)
+
+        assertThat(
+                "attempt to remove existing aspect with no edges should be reported properly",
+                res.status,
+                Is.`is`(StatusType.REMOVED)
+        )
+        assertThat(
+                "aspect name in status must be correct",
+                res.aspectName,
+                Is.`is`(name)
+        )
+    }
+
+    @Test
+    fun testDeleteAspectWithProperty() {
+        val name = "SOME_ASPECT"
+        val ad = AspectData("", name, null, null, Decimal.name, emptyList())
+
+
+        aspectService.save(ad)
+
+        val res = aspectService.removeByName(name)
+
+        assertThat(
+                "attempt to remove existing aspect with no edges should be reported properly",
+                res.status,
+                Is.`is`(StatusType.REMOVED)
+        )
+        assertThat(
+                "aspect name in status must be correct",
+                res.aspectName,
+                Is.`is`(name)
         )
     }
 

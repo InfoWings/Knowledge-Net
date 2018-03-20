@@ -4,9 +4,12 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.external.RemoveStatus
+import com.infowings.catalog.external.StatusType
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 
@@ -44,6 +47,33 @@ class AspectService(private val db: OrientDatabase,
         }
 
         return findById(save.id)
+    }
+
+    fun removeByName(name: String): RemoveStatus {
+        return transaction(db) {
+            val vertList = aspectDaoService.findByName(name).toList()
+            if (vertList.isEmpty()) {
+                RemoveStatus(name, StatusType.ABSENT)
+            } else {
+                /*
+                По-хорошему, надо проверять случай, когда есть несколько узлов с одним
+                бизнес ключем.
+                Пока этот случай не обработать за неимением флага удаленности
+                 */
+                val vert = vertList.get(0)
+                if (vert.getEdges(ODirection.IN).iterator().hasNext()) {
+                    RemoveStatus(name, StatusType.REFERABLE)
+                } else {
+                    /*
+                    Вообще-то это не очень правильно на этом уровне оперировать
+                    с типом OVertex.
+                    Но пока findByName его возвращает, это неизбежно
+                     */
+                    aspectDaoService.remove(vert)
+                    RemoveStatus(name, StatusType.REMOVED)
+                }
+            }
+        }
     }
 
     /**
