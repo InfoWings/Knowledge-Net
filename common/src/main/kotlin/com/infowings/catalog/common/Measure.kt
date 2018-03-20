@@ -44,7 +44,7 @@ class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val b
 
 /** Length group */
 val Kilometre = createDecimalMeasure("Kilometer", "km", 1000.0)
-val Meter = createDecimalMeasure("Metre", "m", 1.0)
+val Metre = createDecimalMeasure("Metre", "m", 1.0)
 val Decimeter = createDecimalMeasure("Decimeter", "dm", 0.1)
 val Centimeter = createDecimalMeasure("Centimeter", "cm", 0.01)
 val Millimetre = createDecimalMeasure("Millimeter", "millimetre", 0.001)
@@ -57,8 +57,8 @@ val Foot = createDecimalMeasure("Foot", "ft", 0.3048)
 
 val LengthGroup = MeasureGroup(
     "Length",
-    listOf(Kilometre, Meter, Decimeter, Centimeter, Millimetre, Micrometer, Nanometer, Yard, Inch, Mile, Foot),
-    Meter
+    listOf(Kilometre, Metre, Decimeter, Centimeter, Millimetre, Micrometer, Nanometer, Yard, Inch, Mile, Foot),
+    Metre
 )
 
 /** Speed group */
@@ -83,7 +83,7 @@ val SquareInch = createDecimalMeasure("Square Inch", "inch^2", 0.00064516)
 val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), SquareMetre)
 
 /** Volume group */
-val CubicMetre = createDecimalMeasure("Cubic Meter", "m^3", 1.0)
+val CubicMetre = createDecimalMeasure("Cubic Metre", "m^3", 1.0)
 val CubicMillimetre = createDecimalMeasure("Cubic Millimetre", "millimetre^3", 1E-9)
 val Litre = createDecimalMeasure("Litre", "litre", 0.001)
 val CubicDecimetre = createDecimalMeasure("Cubic Decimeter", "dm^3", 0.001)

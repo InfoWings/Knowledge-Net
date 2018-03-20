@@ -75,7 +75,7 @@ class SearchTest {
         logger.info("find result: $res")
         assertEquals("Metre", res.first().name)
         val m = GlobalMeasureMap[res.first().name]
-        assertEquals(m, Meter)
+        assertEquals(m, Metre)
 
         res.forEach { logger.info("name : ${it.name}") }
     }
@@ -112,7 +112,7 @@ class SearchTest {
         logger.info("find result: $res")
         assertEquals("Metre", res.first().name)
         val m = GlobalMeasureMap[res.first().name]
-        assertEquals(m, Meter)
+        assertEquals(m, Metre)
 
         res.forEach { logger.info("name : ${it.name}") }
     }

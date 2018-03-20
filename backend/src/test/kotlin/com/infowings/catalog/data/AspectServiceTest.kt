@@ -71,11 +71,11 @@ class AspectServiceTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)
 
-        val ad2 = AspectData(aspect.id, "new Aspect", Meter.name, null, BaseType.Decimal.name, emptyList(), 1)
+        val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
         val newAspect = aspectService.save(ad2)
 
         assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
-        assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Meter.name))
+        assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
     }
 
     @Test
@@ -83,7 +83,7 @@ class AspectServiceTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad)
 
-        val ad2 = AspectData("", "aspect", Meter.name, null, BaseType.Decimal.name, emptyList(), 1)
+        val ad2 = AspectData("", "aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
         aspectService.save(ad2)
 
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
@@ -120,11 +120,11 @@ class AspectServiceTest {
     @Test
     fun testChangeAspectMeasureSameGroup() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.save(ad).toAspectData().copy(measure = Meter.name)
+        val aspect = aspectService.save(ad).toAspectData().copy(measure = Metre.name)
 
         val newAspect = aspectService.save(aspect)
 
-        assertTrue("aspect should have new measure", newAspect.measure == Meter)
+        assertTrue("aspect should have new measure", newAspect.measure == Metre)
 
         assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
     }

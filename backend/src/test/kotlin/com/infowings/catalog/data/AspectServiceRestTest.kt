@@ -60,7 +60,7 @@ class AspectServiceRestTest {
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData =
-            AspectData("", "t1", Meter.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
+            AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
 
         val result = mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
@@ -85,7 +85,7 @@ class AspectServiceRestTest {
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData =
-            AspectData("", "t1", Meter.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
+            AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
 
         val saved = aspectService.save(testData)
 
