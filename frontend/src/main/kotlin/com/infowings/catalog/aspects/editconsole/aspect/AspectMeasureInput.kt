@@ -45,9 +45,10 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                         valueKey = "measurementUnit"
                         onChange = { props.onChange(it.measurementUnit) }
                         cache = false
-                        clearable = false
+                        clearable = true
+                        resetValue = null
                         options = if (props.value.isNullOrEmpty()) emptyArray()
-                        else arrayOf(measurementUnitOption(props.value!!))
+                        else arrayOf(measurementUnitOption(props.value!!), measurementUnitOption(""))
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
@@ -61,7 +62,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                             } else {
                                 callback(null, jsObject {
                                     options = if (props.value.isNullOrEmpty()) emptyArray()
-                                    else arrayOf(measurementUnitOption(props.value!!))
+                                    else arrayOf(measurementUnitOption(props.value!!), measurementUnitOption(""))
                                 })
                             }
                             false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript

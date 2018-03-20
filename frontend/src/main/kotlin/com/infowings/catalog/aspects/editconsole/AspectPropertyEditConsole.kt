@@ -185,21 +185,6 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         onChange = ::handlePropertyCardinalityChanged
                     }
                 }
-                aspectPropertyAspect {
-                    val boundAspectId = state.aspectPropertyAspectId
-                    attrs {
-                        aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
-                            AspectData(
-                                    boundAspectId,
-                                    state.childAspectName!!,
-                                    state.childAspectMeasure,
-                                    state.childAspectDomain,
-                                    state.childAspectBaseType
-                            )
-                        } else null
-                        onAspectSelected = ::handlePropertyAspectIdChanged
-                    }
-                }
                 div(classes = "aspect-edit-console--button-control-tab") {
                     div(classes = "aspect-edit-console--button-control") {
                         attrs {
@@ -227,29 +212,48 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     }
                 }
             }
-            div(classes = "aspect-edit-console--input-group-aspect") {
-                aspectNameInput {
+            div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
+                aspectPropertyAspect {
+                    val boundAspectId = state.aspectPropertyAspectId
                     attrs {
-                        value = state.childAspectName
-                        onChange = ::handleChildAspectNameChanged
+                        aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
+                            AspectData(
+                                    boundAspectId,
+                                    state.childAspectName!!,
+                                    state.childAspectMeasure,
+                                    state.childAspectDomain,
+                                    state.childAspectBaseType
+                            )
+                        } else null
+                        onAspectSelected = ::handlePropertyAspectIdChanged
                     }
                 }
-                aspectMeasureInput {
-                    attrs {
-                        value = state.childAspectMeasure
-                        onChange = ::handleChildAspectMeasureChanged
-                    }
-                }
-                aspectDomainInput {
-                    attrs {
-                        value = state.childAspectDomain
-                        onChange = ::handleChildAspectDomainChanged
-                    }
-                }
-                aspectBaseTypeInput {
-                    attrs {
-                        value = state.childAspectBaseType
-                        onChange = ::handleChildAspectBaseTypeChanged
+                div(classes = "aspect-edit-console--input-group-aspect-container") {
+                    div(classes = "aspect-edit-console--input-group-aspect") {
+                        aspectNameInput {
+                            attrs {
+                                value = state.childAspectName
+                                onChange = ::handleChildAspectNameChanged
+                            }
+                        }
+                        aspectMeasureInput {
+                            attrs {
+                                value = state.childAspectMeasure
+                                onChange = ::handleChildAspectMeasureChanged
+                            }
+                        }
+                        aspectDomainInput {
+                            attrs {
+                                value = state.childAspectDomain
+                                onChange = ::handleChildAspectDomainChanged
+                            }
+                        }
+                        aspectBaseTypeInput {
+                            attrs {
+                                value = state.childAspectBaseType
+                                onChange = ::handleChildAspectBaseTypeChanged
+                            }
+                        }
                     }
                 }
             }

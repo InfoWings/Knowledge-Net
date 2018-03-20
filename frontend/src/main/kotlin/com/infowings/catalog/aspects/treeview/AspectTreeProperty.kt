@@ -32,9 +32,9 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
     override fun RBuilder.render() {
         val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
-            svg("aspect-tree-view--line-icon") {
-                use("svg/sprite.svg#icon-dots-two-horizontal")
-            }
+            //            svg("aspect-tree-view--line-icon") {
+//                use("svg/sprite.svg#icon-dots-two-horizontal")
+//            }
             if (childAspect != null && childAspect.properties.isNotEmpty()) {
                 svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     attrs {
@@ -49,6 +49,15 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
             } else {
                 svg("aspect-tree-view--line-icon")
             }
+            aspectPropertyLabel {
+                attrs {
+                    aspectProperty = props.aspectProperty
+                    aspect = childAspect
+                    onClick = props.onLabelClick
+                    propertySelected = props.propertySelected
+                    aspectSelected = childAspect != null && childAspect.id == props.selectedAspect?.id
+                }
+            }
             if (props.aspect != null) {
                 svg("aspect-tree-view--line-icon") {
                     attrs {
@@ -58,15 +67,6 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 }
             } else {
                 svg("aspect-tree-view--line-icon")
-            }
-            aspectPropertyLabel {
-                attrs {
-                    aspectProperty = props.aspectProperty
-                    aspect = childAspect
-                    onClick = props.onLabelClick
-                    propertySelected = props.propertySelected
-                    aspectSelected = childAspect != null && childAspect.id == props.selectedAspect?.id
-                }
             }
         }
         if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {

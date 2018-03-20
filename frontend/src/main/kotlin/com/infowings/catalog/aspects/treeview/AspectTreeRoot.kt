@@ -48,6 +48,14 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
             } else {
                 svg(classes = "aspect-tree-view--line-icon")
             }
+            aspectRootLabel {
+                val selectedAspect = props.selectedAspect
+                attrs {
+                    aspect = if (selectedAspect != null && selectedAspect.id == props.aspect.id) selectedAspect else props.aspect
+                    onClick = props.onAspectClick
+                    selected = props.selectedAspect?.id == props.aspect.id
+                }
+            }
             if (props.aspect.id != null) {
                 svg(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     attrs {
@@ -57,14 +65,6 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
                 }
             } else {
                 svg(classes = "aspect-tree-view--line-icon")
-            }
-            aspectRootLabel {
-                val selectedAspect = props.selectedAspect
-                attrs {
-                    aspect = if (selectedAspect != null && selectedAspect.id == props.aspect.id) selectedAspect else props.aspect
-                    onClick = props.onAspectClick
-                    selected = props.selectedAspect?.id == props.aspect.id
-                }
             }
         }
         if (props.aspect.properties.isNotEmpty() && state.expanded) {

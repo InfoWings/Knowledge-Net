@@ -28,6 +28,19 @@
     border-bottom: 1px solid #d6d6d6;
   }
 
+  &--input-group-aspect-property-aspect {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &--input-group-aspect-container {
+    flex: 1 1 auto;
+    border: 2px solid #d6d6d6;
+    border-radius: 7px;
+    margin: .5rem 0;
+  }
+
   &--aspect-input-container {
     flex: 0 1 30rem;
     padding: 0 1rem;
@@ -126,7 +139,7 @@
   line-height: 3rem;
 }
 
-.Select-menu-outer {
+.Select.aspect-table-select > .Select-menu-outer {
   top: auto;
   bottom: 100%;
 }
