@@ -12,7 +12,7 @@ interface ReferenceBookApiReceiverProps : RProps {
     var books: List<ReferenceBook>
     var onReferenceBookUpdate: (changedAspect: ReferenceBookData) -> Unit
     var onReferenceBookCreate: (newAspect: ReferenceBookData) -> Unit
-    var onClosePopup: () -> Unit
+    var closePopup: () -> Unit
 }
 
 /**
@@ -67,7 +67,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 loading = state.loading
                 onReferenceBookCreate = ::handleCreateNewBook
                 onReferenceBookUpdate = ::handleUpdateAspect
-                onClosePopup = props.aspectUnselected
+                closePopup = props.aspectUnselected
             }
         }
     }

@@ -21,7 +21,7 @@ class AspectControl(props: AspectApiReceiverProps) :
         }
     }
 
-    private fun handleAspectUnselected() {
+    private fun closePopup() {
         setState {
             selectedAspect = null
         }
@@ -44,7 +44,7 @@ class AspectControl(props: AspectApiReceiverProps) :
         }
         val aspectId = selectedAspect?.id
         if (aspectId != null) {
-            referenceBookApiMiddleware(aspectId, ::handleAspectUnselected, ReferenceBookControl::class)
+            referenceBookApiMiddleware(aspectId, ::closePopup, ReferenceBookControl::class)
         }
     }
 
