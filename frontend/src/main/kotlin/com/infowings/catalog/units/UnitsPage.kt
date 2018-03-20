@@ -1,8 +1,8 @@
 package com.infowings.catalog.units
 
+import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.layout.Header
-import com.infowings.catalog.utils.get
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
@@ -74,7 +74,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
         // get list of measureGroupName of filtered measure names
         val measureGroupNames: List<String> = filteredNames
-            .flatMap { name -> allData.filter { it.name == name }.map { it.pivotBy } }
+            .flatMap { name -> allData.filter { it.name == name || it.pivotBy == name }.map { it.pivotBy } }
             .distinct()
 
         // create map where key is measureGroupName and value is list of UnitsTableRowData of this group
@@ -85,7 +85,8 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             }.groupBy { it.pivotBy }
 
         return filteredNames
-            .flatMap { name -> allData.filter { it.name == name }.map { name to it.pivotBy } }
+            .flatMap { name -> allData.filter { it.name == name || it.pivotBy == name }.map { name to it.pivotBy } }
+            .distinct()
             .flatMap { (name, measureGroupName) ->
                 dataByMeasureGroupNameMap.getValue(measureGroupName)
                     .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
@@ -93,7 +94,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     }
 
     private suspend fun filterMeasureNames(filterText: String): Array<String> {
-        return JSON.parse(get("/api/search/measure/suggestion?text=$filterText"))
+        return getSuggestedMeasurementUnits(filterText, findInGroups = true)
     }
 
     override fun RBuilder.render() {

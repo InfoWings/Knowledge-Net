@@ -16,7 +16,28 @@ import com.orientechnologies.orient.core.sql.executor.OResult
  */
 class SuggestionService(val database: OrientDatabase) {
 
-    fun findMeasure(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<Measure<*>> =
+    fun findMeasure(
+        commonParam: CommonSuggestionParam?,
+        measureGroupName: String?,
+        findInGroups: Boolean
+    ): List<String> =
+        findMeasure(commonParam, measureGroupName).map { it.name } +
+                if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+
+    private fun findMeasureGroups(text: String?): List<String> {
+        if (text == null) {
+            return emptyList()
+        }
+        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_CLASS(?) = true"
+        return database.query(q, luceneQuery(text)) {
+            it.mapNotNull { it.toVertexOrNUll() }.toList().map { it.getProperty<String>("name") }
+        }
+    }
+
+    fun findMeasure(
+        commonParam: CommonSuggestionParam?,
+        measureGroupName: String?
+    ): List<Measure<*>> =
         session(database) {
             findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
                 .toList()
