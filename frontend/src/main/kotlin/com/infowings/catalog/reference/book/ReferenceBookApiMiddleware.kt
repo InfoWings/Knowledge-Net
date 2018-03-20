@@ -28,7 +28,6 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     override fun componentDidMount() {
         launch {
             val referenceBooks = getByAspectId(props.aspectId).books
-            console.log(referenceBooks.size)
             setState {
                 books = referenceBooks
                 loading = false
