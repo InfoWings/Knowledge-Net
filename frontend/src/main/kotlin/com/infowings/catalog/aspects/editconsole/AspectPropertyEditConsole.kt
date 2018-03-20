@@ -9,12 +9,15 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCa
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.wrappers.react.use
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.svg
 
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
@@ -107,6 +110,36 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         }
     }
 
+    private fun handleSubmitAspectClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
+                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+                cardinality = state.aspectPropertyCardinality
+                        ?: error("Can't save aspect property with cardinality == null"),
+                aspectId = state.aspectPropertyAspectId
+                        ?: error("Can't save aspect property with aspectId == null")
+        ))
+    }
+
+    private fun handleNextPropertyClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onSwitchToNextProperty(props.parentAspect.properties[props.aspectPropertyIndex].copy(
+                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+                cardinality = state.aspectPropertyCardinality
+                        ?: error("Can't save aspect property with cardinality == null"),
+                aspectId = state.aspectPropertyAspectId
+                        ?: error("Can't save aspect property with aspectId == null")
+        ))
+    }
+
+    private fun handleCancelClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onCancel()
+    }
+
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
@@ -165,6 +198,32 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
+                    }
+                }
+                div(classes = "aspect-edit-console--button-control-tab") {
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleSubmitAspectClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                            use("svg/sprite.svg#icon-check")
+                        }
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleNextPropertyClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                            use("svg/sprite.svg#icon-add-to-list")
+                        }
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleCancelClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {
+                            use("svg/sprite.svg#icon-cross")
+                        }
                     }
                 }
             }

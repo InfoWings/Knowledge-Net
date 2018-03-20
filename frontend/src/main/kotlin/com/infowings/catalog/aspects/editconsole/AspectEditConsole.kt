@@ -6,6 +6,7 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.wrappers.react.use
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
@@ -54,6 +55,40 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
+    private fun handleSwitchToPropertiesClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onSwitchToProperties(props.aspect.copy(
+                name = state.aspectName ?: error("Aspect Name is null"),
+                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        ))
+    }
+
+    private fun handleSubmitAspectClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onSubmit(props.aspect.copy(
+                name = state.aspectName ?: error("Aspect Name is null"),
+                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        ))
+    }
+
+    private fun handleCancelClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onCancel()
+    }
+
     private fun assignInputRef(element: HTMLInputElement?) {
         inputRef = element
     }
@@ -99,6 +134,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     private fun handleAspectMeasureChanged(measure: String) {
+        console.log("AspectEditConsole#onChange($measure)")
         setState {
             aspectMeasure = measure
         }
@@ -120,23 +156,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         div(classes = "aspect-edit-console") {
             attrs {
                 onKeyDownFunction = ::handleKeyDown
-            }
-            div(classes = "aspect-edit-console--button-control-tab") {
-                div(classes = "aspect-edit-console--button-control") {
-                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
-                        use("svg/sprite.svg#icon-check")
-                    }
-                }
-                div(classes = "aspect-edit-console--button-control") {
-                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
-                        use("svg/sprite.svg#icon-add-to-list")
-                    }
-                }
-                div(classes = "aspect-edit-console--button-control") {
-                    svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {
-                        use("svg/sprite.svg#icon-cross")
-                    }
-                }
             }
             div(classes = "aspect-edit-console--input-group-aspect") {
                 aspectNameInput {
@@ -162,6 +181,32 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     attrs {
                         value = state.aspectBaseType
                         onChange = ::handleAspectBaseTypeChanged
+                    }
+                }
+                div(classes = "aspect-edit-console--button-control-tab") {
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleSubmitAspectClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                            use("svg/sprite.svg#icon-check")
+                        }
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleSwitchToPropertiesClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
+                            use("svg/sprite.svg#icon-add-to-list")
+                        }
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleCancelClick
+                        }
+                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {
+                            use("svg/sprite.svg#icon-cross")
+                        }
                     }
                 }
             }

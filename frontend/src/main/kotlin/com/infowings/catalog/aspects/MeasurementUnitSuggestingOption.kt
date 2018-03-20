@@ -46,8 +46,6 @@ class MeasurementUnitSuggestingOption : RComponent<OptionComponentProps<Measurem
                 ref { ref -> optionRef = ref as HTMLDivElement? }
             }
             if (props.isFocused) {
-                console.log("class: ${offsetParent?.className}")
-                console.log(offsetParent?.scrollTop?.toInt())
                 child(MeasurementUnitOptionCategoryContainer::class) {
                     attrs {
                         measurementUnit = props.option.measurementUnit

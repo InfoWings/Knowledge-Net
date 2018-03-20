@@ -60,7 +60,8 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                                 }
                             } else {
                                 callback(null, jsObject {
-                                    options = emptyArray()
+                                    options = if (props.value.isNullOrEmpty()) emptyArray()
+                                    else arrayOf(measurementUnitOption(props.value!!))
                                 })
                             }
                             false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript
