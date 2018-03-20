@@ -102,10 +102,10 @@ val VolumeGroup = MeasureGroup(
 val Gram = createDecimalMeasure("Gram", "g", 0.001)
 val Milligram = createDecimalMeasure("Milligram", "mg", 1e-6)
 val Kilogram = createDecimalMeasure("Kilogram", "kg", 1.0)
-val Ton = createDecimalMeasure("Ton", "tn", 1000.0)
+val Tonne = createDecimalMeasure("Tonne", "tn", 1000.0)
 val PoundMass = createDecimalMeasure("Pound(mass)", "lb", 0.4535923)
 
-val MassGroup = MeasureGroup("Mass", listOf(Gram, Milligram, Kilogram, Ton, PoundMass), Kilogram)
+val MassGroup = MeasureGroup("Mass", listOf(Gram, Milligram, Kilogram, Tonne, PoundMass), Kilogram)
 
 /** Power group */
 val Watt = createDecimalMeasure("Watt", "W", 1.0)
