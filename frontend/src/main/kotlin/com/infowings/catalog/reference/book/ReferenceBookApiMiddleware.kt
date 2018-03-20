@@ -1,18 +1,16 @@
 package com.infowings.catalog.reference.book
 
-import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.common.ReferenceBookData
 import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
-    var aspectId: String
     var loading: Boolean
-    var books: List<ReferenceBook>
-    var onReferenceBookUpdate: (changedAspect: ReferenceBookData) -> Unit
-    var onReferenceBookCreate: (newAspect: ReferenceBookData) -> Unit
-    var closePopup: () -> Unit
+    var aspectBookPairs: List<AspectBookPair>
+    var onReferenceBookUpdate: (bookData: ReferenceBookData) -> Unit
+    var onReferenceBookCreate: (aspectName: String, bookData: ReferenceBookData) -> Unit
 }
 
 /**
@@ -21,39 +19,44 @@ interface ReferenceBookApiReceiverProps : RProps {
 class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, ReferenceBookApiMiddleware.State>() {
 
     override fun State.init() {
-        books = emptyList()
+        aspectBookPairs = emptyList()
         loading = true
     }
 
     override fun componentDidMount() {
         launch {
-            val referenceBooks = getByAspectId(props.aspectId).books
+            val booksMap = getAllBooks().books
+                .map { Pair(it.aspectId, it) }
+                .toMap()
+            val aspectBookPairs = getAllAspects().aspects
+                .map { AspectBookPair(it.name, booksMap[it.id]) }
+
             setState {
-                books = referenceBooks
+                this.aspectBookPairs = aspectBookPairs
                 loading = false
             }
         }
     }
 
-    private fun handleCreateNewBook(bookData: ReferenceBookData) {
+    private fun handleCreateNewBook(aspectName: String, bookData: ReferenceBookData) {
         launch {
             if (bookData.name.isEmpty()) throw RuntimeException("Reference book name should not be empty!")
 
-            val newBook = create(bookData)
+            val newBook = createBook(bookData)
 
             setState {
-                books += newBook
+                aspectBookPairs += AspectBookPair(aspectName, newBook)
             }
         }
     }
 
     private fun handleUpdateAspect(bookData: ReferenceBookData) {
         launch {
-            val updatedBook = update(bookData)
+            val updatedBook = updateBook(bookData)
 
             setState {
-                books = books.map {
-                    if (updatedBook.id == it.id) updatedBook else it
+                aspectBookPairs = aspectBookPairs.map {
+                    if (updatedBook.id == it.book?.id) AspectBookPair(it.aspectName, updatedBook) else it
                 }
             }
         }
@@ -62,43 +65,27 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
-                aspectId = props.aspectId
-                books = state.books
+                aspectBookPairs = state.aspectBookPairs
                 loading = state.loading
                 onReferenceBookCreate = ::handleCreateNewBook
                 onReferenceBookUpdate = ::handleUpdateAspect
-                closePopup = props.aspectUnselected
             }
         }
     }
 
     interface Props : RProps {
-        var aspectId: String
-        var aspectUnselected: () -> Unit
         var apiReceiverComponent: KClass<out RComponent<ReferenceBookApiReceiverProps, *>>
     }
 
     interface State : RState {
-        /**
-         * Last fetched books from server (actual)
-         */
-        var books: List<ReferenceBook>
-        /**
-         * Flag showing if the books is still being fetched
-         */
+        var aspectBookPairs: List<AspectBookPair>
         var loading: Boolean
     }
 }
 
-fun RBuilder.referenceBookApiMiddleware(
-    aspectId: String,
-    aspectUnselected: () -> Unit,
-    apiReceiverComponent: KClass<out RComponent<ReferenceBookApiReceiverProps, *>>
-) =
+fun RBuilder.referenceBookApiMiddleware(apiReceiverComponent: KClass<out RComponent<ReferenceBookApiReceiverProps, *>>) =
     child(ReferenceBookApiMiddleware::class) {
         attrs {
-            this.aspectId = aspectId
-            this.aspectUnselected = aspectUnselected
             this.apiReceiverComponent = apiReceiverComponent
         }
     }

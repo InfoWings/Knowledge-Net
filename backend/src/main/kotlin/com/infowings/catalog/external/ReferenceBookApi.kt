@@ -37,5 +37,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         return referenceBookService.createReferenceBook(book.name, book.aspectId)
     }
 
+/*    @PostMapping("update")
+    fun update(@RequestBody referenceBook: ReferenceBook): ReferenceBook {
+        logger.debug("Updating reference book")
+        return referenceBookService.update(name, aspectId) //todo: add update method to ReferenceBookService
+    }*/
+
     private val logger = loggerFor<ReferenceBookApi>()
 }

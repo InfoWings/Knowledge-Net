@@ -9,18 +9,11 @@ class ReferenceBookControl(props: ReferenceBookApiReceiverProps) :
     RComponent<ReferenceBookApiReceiverProps, RState>(props) {
 
     override fun RBuilder.render() {
-        child(Popup::class) {
+        referenceBookTreeView {
             attrs {
-                closePopup = props.closePopup
-            }
-
-            referenceBookTreeView {
-                attrs {
-                    aspectId = props.aspectId
-                    books = props.books
-                    onReferenceBookCreate = props.onReferenceBookCreate
-                    onReferenceBookUpdate = props.onReferenceBookUpdate
-                }
+                aspectBookPairs = props.aspectBookPairs
+                onReferenceBookCreate = props.onReferenceBookCreate
+                onReferenceBookUpdate = props.onReferenceBookUpdate
             }
         }
     }

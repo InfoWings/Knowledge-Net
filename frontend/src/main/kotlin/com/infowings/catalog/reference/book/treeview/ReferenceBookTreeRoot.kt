@@ -40,6 +40,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
             }
             referenceBookRootLabel {
                 attrs {
+                    aspectName = props.aspectName
                     book = props.book
                     onClick = props.onBookClick
                     selected = props.selectedId == props.book.id
@@ -59,6 +60,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
 
     interface Props : RProps {
         var book: ReferenceBook
+        var aspectName: String
         var onBookClick: (ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>

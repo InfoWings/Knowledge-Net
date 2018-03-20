@@ -20,3 +20,9 @@ data class ReferenceBookItem(val id: String, val value: String, val children: Li
 
     operator fun get(child: String): ReferenceBookItem? = accessChildrenMap[child]
 }
+
+@Serializable
+data class ReferenceBooksList(val books: List<ReferenceBook>)
+
+@Serializable
+data class ReferenceBookData(val id: String?, val name: String, val aspectId: String)

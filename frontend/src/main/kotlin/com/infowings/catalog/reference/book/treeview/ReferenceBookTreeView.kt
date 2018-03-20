@@ -1,15 +1,12 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.reference.book.editconsole.bookEditConsole
+import com.infowings.catalog.reference.book.AspectBookPair
 import kotlinext.js.invoke
 import kotlinext.js.require
-import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
-import react.dom.span
 
 class ReferenceBookTreeView(props: Props) :
     RComponent<ReferenceBookTreeView.Props, ReferenceBookTreeView.State>(props) {
@@ -48,12 +45,12 @@ class ReferenceBookTreeView(props: Props) :
         }
     }
 
-    private fun submitBookChanges(book: ReferenceBookData) {
+    private fun submitBookChanges(aspectName: String, book: ReferenceBookData) {
         if (book.id == null) {
             setState {
                 selectedBook = book
             }
-            props.onReferenceBookCreate(book)
+            props.onReferenceBookCreate(aspectName, book)
         } else {
             setState {
                 selectedBook = book
@@ -65,36 +62,31 @@ class ReferenceBookTreeView(props: Props) :
     override fun RBuilder.render() {
         val selectedBookId = state.selectedBook?.id
         div(classes = "aspect-tree-view") {
-            props.books.map { book ->
-                referenceBookTreeRoot {
-                    attrs {
-                        key = book.id
-                        this.book = book
-                        selectedId = selectedBookId
-                        onBookClick = ::onBookClick
-                    }
-                }
-            }
-            div(classes = "aspect-tree-view--root") {
-                if (state.creatingNewBook) {
-                    bookEditConsole {
-                        attrs {
-                            book = ReferenceBookData(null, "", props.aspectId)
-                            onCancel = ::cancelBookCreating
-                            onSubmit = ::submitBookChanges
+            props.aspectBookPairs
+                .map { pair ->
+                    if (pair.book != null) {
+                        referenceBookTreeRoot {
+                            attrs {
+                                key = pair.aspectName
+                                aspectName = pair.aspectName
+                                book = pair.book
+                                selectedId = selectedBookId
+                                onBookClick = ::onBookClick
+                            }
                         }
-                    }
-                } else {
-                    div(classes = "aspect-tree-view--label${if (selectedBookId == null) " aspect-tree-view--label__selected" else ""}") {
-                        attrs {
-                            onClickFunction = ::startCreatingNewBook
-                        }
-                        span(classes = "aspect-tree-view--empty") {
-                            +"Add Reference Book ..."
+                    } else {
+                        referenceBookEmptyTreeRoot {
+                            attrs {
+                                key = pair.aspectName
+                                aspectName = pair.aspectName
+                                creatingNewBook = state.creatingNewBook
+                                startCreatingNewBook = ::startCreatingNewBook
+                                cancelBookCreating = ::cancelBookCreating
+                                submitBookChanges = ::submitBookChanges
+                            }
                         }
                     }
                 }
-            }
         }
     }
 
@@ -104,10 +96,9 @@ class ReferenceBookTreeView(props: Props) :
     }
 
     interface Props : RProps {
-        var aspectId: String
-        var books: List<ReferenceBook>
-        var onReferenceBookCreate: (ReferenceBookData) -> Unit
-        var onReferenceBookUpdate: (ReferenceBookData) -> Unit
+        var aspectBookPairs: List<AspectBookPair>
+        var onReferenceBookCreate: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var onReferenceBookUpdate: (bookData: ReferenceBookData) -> Unit
     }
 }
 

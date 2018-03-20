@@ -1,6 +1,5 @@
 package com.infowings.catalog.reference.book
 
-import com.infowings.catalog.aspects.aspectApiMiddleware
 import com.infowings.catalog.layout.Header
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
@@ -15,6 +14,6 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, RState>() {
             attrs { location = props.location.pathname }
         }
 
-        aspectApiMiddleware(AspectControl::class)
+        referenceBookApiMiddleware(ReferenceBookControl::class)
     }
 }

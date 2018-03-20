@@ -23,12 +23,17 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
                 onClickFunction = ::handleBookRootLabelClick
             }
             span(classes = "aspect-tree-view--label-name") {
+                +props.aspectName
+            }
+            +":"
+            span(classes = "aspect-tree-view--label-name") {
                 +props.book.name
             }
         }
     }
 
     interface Props : RProps {
+        var aspectName: String
         var book: ReferenceBook
         var onClick: (ReferenceBookData) -> Unit
         var selected: Boolean
