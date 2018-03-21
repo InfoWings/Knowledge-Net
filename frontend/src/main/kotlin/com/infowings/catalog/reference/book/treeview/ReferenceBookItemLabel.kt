@@ -9,7 +9,7 @@ import react.dom.span
 
 class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, RState>() {
 
-    private fun handleAspectPropertyLabelClick(e: Event) {
+    private fun handleBookItemLabelClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         props.onClick(props.bookItem)
@@ -18,9 +18,9 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, RState>(
     override fun RBuilder.render() {
         div(classes = "book-tree-view--label") {
             attrs {
-                onClickFunction = ::handleAspectPropertyLabelClick
+                onClickFunction = ::handleBookItemLabelClick
             }
-            span(classes = "book-tree-view--label-property") {
+            span(classes = "book-tree-view--label-item") {
                 +props.bookItem.value
             }
         }

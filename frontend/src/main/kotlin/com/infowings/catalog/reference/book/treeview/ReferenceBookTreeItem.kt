@@ -20,7 +20,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-tree-view--property") {
+        div(classes = "book-tree-view--item") {
             svg("book-tree-view--line-icon") {
                 use("svg/sprite.svg#icon-dots-two-horizontal")
             }
@@ -44,7 +44,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             referenceBookItemLabel {
                 attrs {
                     bookItem = props.bookItem
-                    onClick = props.onAspectPropertyClick
+                    onClick = props.onBookItemClick
                 }
             }
         }
@@ -53,7 +53,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 attrs {
                     bookItems = props.bookItem.children
                     bookContext = props.bookContext
-                    onBookItemClick = props.onAspectPropertyClick
+                    onBookItemClick = props.onBookItemClick
                 }
             }
         }
@@ -61,7 +61,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     interface Props : RProps {
         var bookItem: ReferenceBookItem
-        var onAspectPropertyClick: (ReferenceBookItem) -> Unit
+        var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>
     }
 

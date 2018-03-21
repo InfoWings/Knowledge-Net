@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
     var loading: Boolean
-    var aspectBookPairs: List<RowData>
+    var rowDataList: List<RowData>
     var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
     var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
     var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
@@ -82,7 +82,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
-                aspectBookPairs = state.rowDataList
+                rowDataList = state.rowDataList
                 loading = state.loading
                 onReferenceBookCreate = ::handleCreateNewBook
                 onReferenceBookUpdate = ::handleUpdateBook

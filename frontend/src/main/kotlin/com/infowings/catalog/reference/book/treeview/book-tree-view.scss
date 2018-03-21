@@ -16,7 +16,7 @@
     }
   }
 
-  &--property {
+  &--item {
     display: flex;
     align-items: center;
     font-size: 1.6rem;
@@ -73,7 +73,7 @@
     color: $color-text-dark-grey;
   }
 
-  &--label-property {
+  &--label-item {
     color: $color-text-dark-grey;
 
     &-name {
@@ -86,7 +86,7 @@
     }
   }
 
-  &--properties-block {
+  &--items-block {
     padding-left: $tree-level-translation;
     padding-top: .2rem;
   }
