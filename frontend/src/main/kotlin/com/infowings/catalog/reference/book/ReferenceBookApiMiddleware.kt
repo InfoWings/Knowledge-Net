@@ -41,7 +41,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun handleCreateNewBook(bookData: ReferenceBookData) {
         launch {
-            if (bookData.name.isEmpty()) throw RuntimeException("Reference book name should not be empty!")
+            if (bookData.name == null) throw RuntimeException("Reference book name should not be empty!")
 
             val newBook = createBook(bookData)
 

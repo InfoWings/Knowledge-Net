@@ -39,7 +39,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                     }
                 } else {
                     span(classes = "aspect-tree-view--empty") {
-                        +"Add Reference Book ..."
+                        +"(Add Reference Book ...)"
                     }
                 }
             }

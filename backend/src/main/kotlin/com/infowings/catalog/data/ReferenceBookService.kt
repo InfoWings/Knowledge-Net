@@ -132,8 +132,21 @@ class ReferenceBookService(val database: OrientDatabase) {
         return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
     }.let { ReferenceBook(it.first["name"], aspectId, ReferenceBookItem(it.second.id, it.second["value"])) }
 
+
+    /**
+     * Change ReferenceBook's [oldName] to [newName]
+     * @throws RefBookNotExist if ReferenceBook with [oldName] not found
+     * @throws RefBookAlreadyExist if exists ReferenceBook with [newName]
+     * */
+    fun updateReferenceBook(oldName: String, newName: String) = transaction(database) {
+        val referenceBookVertex = getReferenceBookVertexByName(oldName) ?: throw RefBookNotExist(oldName)
+        getReferenceBookVertexByName(newName)?.let { throw RefBookAlreadyExist(newName) }
+        referenceBookVertex["name"] = newName
+        return@transaction referenceBookVertex.save<OVertex>().toReferenceBook()
+    }
+
     private fun getReferenceBookVertexByName(name: String): OVertex? =
-            database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 
     private fun OVertex.toReferenceBook(): ReferenceBook {
         val aspectId = aspect?.id ?: throw RefBookAspectNotExist(name)

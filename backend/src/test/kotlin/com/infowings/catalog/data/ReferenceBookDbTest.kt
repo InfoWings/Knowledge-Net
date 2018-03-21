@@ -4,11 +4,10 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Metre
 import com.infowings.catalog.common.ReferenceBook
-import org.hamcrest.core.Is
-import org.junit.Assert
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import org.junit.Assert.assertTrue
+import org.hamcrest.core.Is
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,7 +37,7 @@ class ReferenceBookDbTest {
 
     @Test
     fun testNotVirtualId() {
-        Assert.assertThat("Ids are not virtual",
+        assertThat("Ids are not virtual",
                 referenceBookService.getReferenceBook(referenceBook.name).id.contains("-"),
                 Is.`is`(false))
     }
@@ -57,6 +56,25 @@ class ReferenceBookDbTest {
     @Test(expected = RefBookNotExist::class)
     fun findNotExistingReferenceBookTest() {
         referenceBookService.getReferenceBook("random")
+    }
+
+    @Test
+    fun updateReferenceBookTest() {
+        val oldName = referenceBook.name
+        val newName = "newName"
+        val updatedReferenceBook = referenceBookService.updateReferenceBook(oldName, newName)
+        assertEquals(ReferenceBook(newName, referenceBook.aspectId, referenceBook.root), updatedReferenceBook)
+    }
+
+    @Test(expected = RefBookAlreadyExist::class)
+    fun updateReferenceBookWithAlreadyExistsNameTest() {
+        val oldName = referenceBook.name
+        referenceBookService.updateReferenceBook(oldName, oldName)
+    }
+
+    @Test(expected = RefBookNotExist::class)
+    fun updateNotExistReferenceBookTest() {
+        referenceBookService.updateReferenceBook("random", "newName")
     }
 
     @Test

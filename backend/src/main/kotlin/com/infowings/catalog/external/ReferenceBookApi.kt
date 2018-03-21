@@ -34,14 +34,14 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     @PostMapping("create")
     fun create(@RequestBody book: ReferenceBookData): ReferenceBook {
         logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
-        return referenceBookService.createReferenceBook(book.name, book.aspectId)
+        return referenceBookService.createReferenceBook(book.name!!, book.aspectId)
     }
 
-/*    @PostMapping("update")
-    fun update(@RequestBody referenceBook: ReferenceBook): ReferenceBook {
-        logger.debug("Updating reference book")
-        return referenceBookService.update(name, aspectId) //todo: add update method to ReferenceBookService
-    }*/
+    @PostMapping("update")
+    fun update(@RequestBody book: ReferenceBookData): ReferenceBook {
+        logger.debug("Updating reference book with id=${book.id} name to ${book.name}")
+        return referenceBookService.createReferenceBook(book.id!!, book.name!!)
+    }
 
     private val logger = loggerFor<ReferenceBookApi>()
 }
