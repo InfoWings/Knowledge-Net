@@ -94,7 +94,7 @@ class SearchTest {
         assertFalse(res.isEmpty())
 
         logger.info("find result: $res")
-        assertEquals("Square Metre", res.first())
+        assertEquals("Square meter", res.first())
         assertEquals("Area", res.last())
 
         res.forEach { logger.info("name : $it") }
