@@ -2,10 +2,9 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.Metre
-import com.infowings.catalog.data.aspect.Aspect
-import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
@@ -49,5 +48,17 @@ class AspectServiceDeletingTest {
         val ad = AspectData("", "aspect1", Metre.name, null, null)
         val aspect = aspectService.save(ad)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
+    }
+
+    @Test(expected = AspectModificationException::class)
+    fun testEditingAfterRemoving() {
+        aspectService.save(initialAspect.toAspectData())
+    }
+
+    @Test(expected = AspectDoesNotExist::class)
+    fun testCreatePropertyLinksToRemoved() {
+        val p1 = AspectPropertyData("", "", initialAspect.id, AspectPropertyCardinality.ONE.name)
+        val ad = AspectData("", "aspect1", Metre.name, null, null, listOf(p1))
+        val aspect = aspectService.save(ad)
     }
 }

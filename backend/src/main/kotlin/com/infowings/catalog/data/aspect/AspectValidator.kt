@@ -30,6 +30,10 @@ class AspectValidator(
      * @throws IllegalArgumentException
      */
     fun checkAspectDataConsistent(aspectData: AspectData) {
+
+        // check properties not link to deleted aspects
+        aspectData.properties.forEach { it.checkForRemoved() }
+
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
@@ -49,6 +53,7 @@ class AspectValidator(
 
     fun validateExistingAspect(aspectVertex: AspectVertex, aspectData: AspectData) {
         aspectVertex
+            .checkForRemoved()
             .checkAspectVersion(aspectData)
             .checkCyclicDependencies(aspectData)
 
@@ -64,7 +69,8 @@ class AspectValidator(
         aspectPropertyVertex: AspectPropertyVertex,
         aspectPropertyData: AspectPropertyData
     ) {
-        aspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData)
+        aspectPropertyVertex
+            .checkPropertyAspectChangeCriteria(aspectPropertyData)
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
@@ -86,6 +92,7 @@ class AspectValidator(
         }
 
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
+
         // check aspect properties business key
         // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
         // not call db because we suppose that Aspect Property business key is exist only inside concrete aspect
@@ -94,6 +101,12 @@ class AspectValidator(
 
         if (notValid) {
             throw IllegalArgumentException("Not correct property business key $this")
+        }
+    }
+
+    private fun AspectVertex.checkForRemoved() = also {
+        if (deleted) {
+            throw AspectModificationException(id, "aspect is removed")
         }
     }
 
@@ -153,6 +166,13 @@ class AspectValidator(
             if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
                 throw AspectPropertyModificationException(id, "Impossible to change aspectId")
             }
+        }
+    }
+
+    private fun AspectPropertyData.checkForRemoved() = also {
+        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
+        if (relatedAspect?.deleted != null && relatedAspect.deleted) {
+            throw AspectDoesNotExist(aspectId)
         }
     }
 

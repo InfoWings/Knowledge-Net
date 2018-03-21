@@ -13,7 +13,7 @@ import com.orientechnologies.orient.core.record.OVertex
 /** Should be used externally for query building. */
 const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
 const val notDeletedSql = "deleted is NULL or deleted = false"
-const val selectFromAspect = "SELECT FROM Aspect WHERE ($notDeletedSql)"
+const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE ($notDeletedSql)"
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
 const val selectAspectByName = "SELECT FROM Aspect where name = ? AND ($notDeletedSql)"
 
@@ -32,11 +32,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun getAspects(): Set<AspectVertex> = db.query(selectFromAspect) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
-    }
-
-    fun getAspectsWithDeleted(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
+    fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
         rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
     }
 
