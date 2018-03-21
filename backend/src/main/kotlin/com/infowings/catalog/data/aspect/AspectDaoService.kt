@@ -28,6 +28,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
     }
 
+    fun getAspectsWithDeleted(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
+        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
+    }
+
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
@@ -82,7 +86,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<AspectVertex> =
+    fun getAspectsByNameWithDifferentId(id: String, name: String): Set<AspectVertex> =
             db.query("$selectWithNameDifferentId and ($notDeletedSql)", name, ORecordId(id)) {
                 it.map { it.toVertex().toAspectVertex() }.toSet()
             }
@@ -90,7 +94,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
 private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
 private const val notDeletedSql = "deleted is NULL or deleted = false"
-private const val selectFromAspect = "SELECT FROM Aspect"
-private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
+private const val selectFromAspect = "SELECT FROM Aspect WHERE $notDeletedSql"
+private const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
+private const val selectAspectByName = "SELECT FROM Aspect where name = ? AND ($notDeletedSql)"
 
 private val logger = loggerFor<AspectDaoService>()

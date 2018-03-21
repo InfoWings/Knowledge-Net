@@ -61,6 +61,8 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["deleted"] = value
         }
 
+    fun isLinkedBy() = getVertices(ODirection.IN).any()
+
     override fun equals(other: Any?): Boolean {
         return vertex == other
     }
