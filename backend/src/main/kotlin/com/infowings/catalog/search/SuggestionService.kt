@@ -30,7 +30,7 @@ class SuggestionService(val database: OrientDatabase) {
         }
         val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_CLASS(?) = true"
         return database.query(q, luceneQuery(text)) {
-            it.mapNotNull { it.toVertexOrNUll() }.toList().map { it.getProperty<String>("name") }
+            it.mapNotNull { it.toVertexOrNUll()?.getProperty<String>("name") }.toList()
         }
     }
 
