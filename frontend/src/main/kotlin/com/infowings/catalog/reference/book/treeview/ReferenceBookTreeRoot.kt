@@ -43,6 +43,8 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     aspectName = props.aspectName
                     book = props.book
                     onClick = props.onBookClick
+                    submitBookChanges = props.submitBookChanges
+                    cancelBookCreating = props.cancelBookCreating
                     selected = props.selectedAspectName == props.aspectName
                 }
             }
@@ -65,6 +67,8 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>
         var selectedAspectName: String?
+        var submitBookChanges: (name: String, ReferenceBookData) -> Unit
+        var cancelBookCreating: () -> Unit
     }
 
     interface State : RState {

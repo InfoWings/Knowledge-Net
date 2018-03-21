@@ -2,18 +2,40 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>() {
+class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, ReferenceBookRootLabel.State>() {
+
+    override fun State.init() {
+        editing = false
+    }
+
+    private fun submitBookChanges(bookData: ReferenceBookData) {
+        setState {
+            editing = false
+        }
+        props.submitBookChanges(props.book.name, bookData)
+    }
+
+    private fun cancelBookCreating() {
+        setState {
+            editing = false
+        }
+        props.cancelBookCreating
+    }
 
     private fun handleBookRootLabelClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         val book = props.book
+        setState {
+            editing = true
+        }
         props.onClick(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
     }
 
@@ -26,8 +48,19 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
                 +props.aspectName
             }
             +":"
-            span(classes = "aspect-tree-view--label-name") {
-                +props.book.name
+            if (props.selected && state.editing) {
+                val book = props.book
+                bookEditConsole {
+                    attrs {
+                        this.book = ReferenceBookData(book.id, book.name, book.aspectId)
+                        onCancel = ::cancelBookCreating
+                        onSubmit = ::submitBookChanges
+                    }
+                }
+            } else {
+                span(classes = "aspect-tree-view--label-name") {
+                    +props.book.name
+                }
             }
         }
     }
@@ -37,6 +70,12 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
         var book: ReferenceBook
         var onClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
+        var submitBookChanges: (name: String, ReferenceBookData) -> Unit
+        var cancelBookCreating: () -> Unit
+    }
+
+    interface State : RState {
+        var editing: Boolean
     }
 }
 

@@ -48,18 +48,20 @@ class ReferenceBookTreeView(props: Props) :
         }
     }
 
-    private fun submitBookChanges(book: ReferenceBookData) {
-        if (book.id == null) {
-            setState {
-                selectedBook = book
-            }
-            props.onReferenceBookCreate(book)
-        } else {
-            setState {
-                selectedBook = book
-            }
-            props.onReferenceBookUpdate(book)
+    private fun submitBookCreating(book: ReferenceBookData) {
+        setState {
+            selectedBook = book
         }
+        props.onReferenceBookCreate(book)
+
+    }
+
+    private fun submitBookChanges(name: String, book: ReferenceBookData) {
+        setState {
+            selectedBook = book
+        }
+        props.onReferenceBookUpdate(name, book)
+
     }
 
     override fun RBuilder.render() {
@@ -73,6 +75,8 @@ class ReferenceBookTreeView(props: Props) :
                                 book = rowData.book
                                 selectedAspectName = state.selectedAspectName
                                 onBookClick = ::onBookClick
+                                submitBookChanges = ::submitBookChanges
+                                cancelBookCreating = ::cancelBookCreating
                             }
                         }
                     } else {
@@ -84,7 +88,7 @@ class ReferenceBookTreeView(props: Props) :
                                 creatingNewBook = state.creatingNewBook
                                 startCreatingNewBook = ::startCreatingNewBook
                                 cancelBookCreating = ::cancelBookCreating
-                                submitBookChanges = ::submitBookChanges
+                                submitBookChanges = ::submitBookCreating
                             }
                         }
                     }
@@ -101,7 +105,7 @@ class ReferenceBookTreeView(props: Props) :
     interface Props : RProps {
         var rowDataList: List<RowData>
         var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
-        var onReferenceBookUpdate: (bookData: ReferenceBookData) -> Unit
+        var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
     }
 }
 

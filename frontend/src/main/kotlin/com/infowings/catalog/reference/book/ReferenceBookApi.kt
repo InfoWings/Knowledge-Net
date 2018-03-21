@@ -21,5 +21,5 @@ internal suspend fun getBookByName(name: String): ReferenceBook =
 internal suspend fun createBook(bookData: ReferenceBookData): ReferenceBook =
     JSON.parse(post("/api/book/create", JSON.stringify(bookData)))
 
-internal suspend fun updateBook(bookData: ReferenceBookData): ReferenceBook =
-    JSON.parse(post("/api/book/update", JSON.stringify(bookData)))
+internal suspend fun updateBook(name: String, bookData: ReferenceBookData): ReferenceBook =
+    JSON.parse(post("/api/book/update/$name", JSON.stringify(bookData)))

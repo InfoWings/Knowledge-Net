@@ -10,10 +10,6 @@ import react.dom.span
 
 class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, RState>() {
 
-    private fun submitBookChanges(bookData: ReferenceBookData) {
-        props.submitBookChanges(bookData)
-    }
-
     private fun startCreatingNewBook(e: Event) {
         props.startCreatingNewBook(props.aspectName, e)
     }
@@ -29,12 +25,12 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                     +props.aspectName
                 }
                 +":"
-                if (props.creatingNewBook) {
+                if (props.creatingNewBook && selected) {
                     bookEditConsole {
                         attrs {
                             book = ReferenceBookData(null, "", props.aspectId)
                             onCancel = props.cancelBookCreating
-                            onSubmit = ::submitBookChanges
+                            onSubmit = props.submitBookChanges
                         }
                     }
                 } else {
