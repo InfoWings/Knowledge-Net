@@ -26,7 +26,7 @@ pipelines:
              - chmod +x gradlew
              - ./gradlew build
     custom: # Pipelines that are triggered manually
-       build:
+      build:
         - step:
             caches:
              - gradle
@@ -35,6 +35,33 @@ pipelines:
             script:
              - chmod +x gradlew
              - ./gradlew build
+      full-deliver:
+        - step:
+            caches:
+             - gradle
+             - maven
+             - nodemodules
+            script:
+             - echo "Starting build..."
+             - chmod +x gradlew
+             - ./gradlew build
+             - bash deploy/deliver-backend.sh
+             - bash deploy/deliver-frontend.sh
+      frontend-deliver:
+        - step:
+            caches:
+             - gradle
+             - maven
+             - nodemodules
+            script:
+             - echo "Starting frontend build..."
+             - chmod +x gradlew
+             - cd frontend
+             - ../gradlew build
+             - cd ..
+             - bash deploy/deliver-frontend.sh
+
+
 definitions:
     caches:
          nodemodules: frontend/node_modules

@@ -14,7 +14,6 @@ import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
 
-
 /**
  * Public OVertex Extensions.
  */
@@ -78,8 +77,27 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         }
     }
 
+    /**
+     * run specified query with named params and process result in provided lambda
+     *
+     * usage example:
+     *
+     * database.query(selectFromAspect) { rs, session ->
+     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     */
+    fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
+        return session(database = this) { session ->
+            return@session session.query(query, args)
+                .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
     fun getVertexById(id: String): OVertex? =
             query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+
+    fun createNewVertex(className: String): OVertex = session(database = this) {
+        return@session it.newVertex(className)
+    }
 }
 
 val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
@@ -88,10 +106,10 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
  * DO NOT use directly, use [transaction] and [session] instead
  */
 inline fun <U> transactionInner(
-    session: ODatabaseDocument,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        session: ODatabaseDocument,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -117,7 +135,7 @@ inline fun <U> transactionInner(
  *
  * sessions can be nested
  */
-inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) -> U): U {
+inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODatabaseDocument) -> U): U {
     val session = sessionStore.get()
 
     if (session != null)
@@ -138,10 +156,10 @@ inline fun <U> session(database: OrientDatabase, block: (db: ODatabaseDocument) 
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-    database: OrientDatabase,
-    retryOnFailure: Int = 0,
-    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-    block: (db: ODatabaseDocument) -> U
+        database: OrientDatabase,
+        retryOnFailure: Int = 0,
+        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+        crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)

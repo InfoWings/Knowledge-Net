@@ -1,4 +1,4 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.BaseType
 

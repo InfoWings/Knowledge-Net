@@ -3,9 +3,9 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.Aspect
-import com.infowings.catalog.data.AspectPropertyCardinality
-import com.infowings.catalog.data.AspectService
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
 import org.junit.Before
 import org.junit.Test
@@ -35,7 +35,7 @@ private val logger = loggerFor<SearchTest>()
 class SearchTest {
 
     @Autowired
-    lateinit var suggestionService: SuggestionService;
+    lateinit var suggestionService: SuggestionService
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -67,7 +67,24 @@ class SearchTest {
     fun measureSuggestion() {
         val queryText = "metre"
         val context = SearchContext()
-        val res = suggestionService.findMeasure(context, queryText)
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
+
+        logger.info("find result size: ${res.size}")
+        assertFalse(res.isEmpty())
+
+        logger.info("find result: $res")
+        assertEquals("Metre", res.first().name)
+        val m = GlobalMeasureMap[res.first().name]
+        assertEquals(m, Metre)
+
+        res.forEach { logger.info("name : ${it.name}") }
+    }
+
+    @Test
+    fun measureSuggestionInGroup() {
+        val queryText = "metre"
+        val context = SearchContext()
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), "Length")
 
         logger.info("find result size: ${res.size}")
         assertFalse(res.isEmpty())
@@ -82,13 +99,13 @@ class SearchTest {
 
     @Test
     fun aspectSuggestion() {
-        val aspectName = "newAspectSuggestion"
+        val aspectName = "aspectSuggestionTst"
         val aspect: Aspect = createTestAspect(aspectName)
 
-        val res = suggestionService.findAspect(SearchContext(), aspectName)
+        val res = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = aspectName), null)
 
         logger.info("find result size: ${res.size}")
-        assertFalse(res.isEmpty())
+        assertFalse("result set cannot by empty!") { res.isEmpty() }
 
         logger.info("find result: $res")
 
@@ -112,7 +129,7 @@ class SearchTest {
     }
 
     private fun createTestAspect(aspectName: String): Aspect {
-        val ad = AspectData("", aspectName, null, null, null, emptyList())
+        val ad = AspectData("", aspectName, Metre.name, null, null, emptyList())
         return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
     }
 
@@ -143,7 +160,7 @@ class SearchTest {
         val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
-        val createAspect: Aspect = aspectService.save(ad)
+        aspectService.save(ad)
 
 
         val loaded = aspectService.findById(level2.id)
