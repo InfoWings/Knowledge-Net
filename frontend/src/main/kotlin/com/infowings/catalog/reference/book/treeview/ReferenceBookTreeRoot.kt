@@ -82,9 +82,10 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         if (props.book.children.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
+                    book = props.book
                     bookItems = props.book.children
-                    bookContext = props.bookContext
                     onBookItemClick = props.onBookItemClick
+                    createBookItem = props.createBookItem
                 }
             }
         }
@@ -104,7 +105,6 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var aspectName: String
         var onBookClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
-        var bookContext: Map<String, ReferenceBookData>
         var selectedAspectName: String?
         var submitBookChanges: (name: String, ReferenceBookData) -> Unit
         var cancelBookCreating: () -> Unit

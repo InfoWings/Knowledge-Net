@@ -1,7 +1,8 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -51,18 +52,20 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         if (props.bookItem.children.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
+                    book = props.book
                     bookItems = props.bookItem.children
-                    bookContext = props.bookContext
                     onBookItemClick = props.onBookItemClick
+                    createBookItem = props.createBookItem
                 }
             }
         }
     }
 
     interface Props : RProps {
+        var book: ReferenceBook
         var bookItem: ReferenceBookItem
         var onBookItemClick: (ReferenceBookItem) -> Unit
-        var bookContext: Map<String, ReferenceBookData>
+        var createBookItem: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
@@ -70,6 +73,5 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     }
 }
 
-fun RBuilder.referenceBookTreeItem(block: RHandler<ReferenceBookTreeItem.Props>) = child(
-    ReferenceBookTreeItem::class, block
-)
+fun RBuilder.referenceBookTreeItem(block: RHandler<ReferenceBookTreeItem.Props>) =
+    child(ReferenceBookTreeItem::class, block)
