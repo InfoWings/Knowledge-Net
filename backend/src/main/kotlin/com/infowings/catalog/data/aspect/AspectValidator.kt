@@ -31,7 +31,7 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
-        if (measureName == null && baseType == null) {
+        if (measureName == null && baseType == null && aspectData.properties.isEmpty()) {
             throw IllegalArgumentException("Measure and BaseType can't be null in same time")
         }
 

@@ -14,7 +14,7 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
                         key = property.id
                         parentAspect = props.parentAspect
                         aspectProperty = property
-                        aspect = if (property.id == "") null
+                        aspect = if (property.aspectId == "") null
                         else props.aspectContext[property.aspectId]
                                 ?: throw Error("Aspect Property $property has aspectId that " +
                                 "was neigher in the fetched list nor created")

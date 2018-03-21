@@ -56,13 +56,11 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 }
             }
             if (props.aspect != null) {
-                div(classes = "aspect-tree-view--final-icon-container") {
-                    svg("aspect-tree-view--add-to-list-icon") {
-                        attrs {
-                            onClickFunction = ::handleAddToListClick
-                        }
-                        use("svg/sprite.svg#icon-add-to-list")
+                svg("aspect-tree-view--add-to-list-icon") {
+                    attrs {
+                        onClickFunction = ::handleAddToListClick
                     }
+                    use("svg/sprite.svg#icon-add-to-list")
                 }
             }
         }
