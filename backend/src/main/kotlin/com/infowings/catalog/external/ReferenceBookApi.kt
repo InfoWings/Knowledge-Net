@@ -39,7 +39,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("update/{name}")
     fun update(@PathVariable("name") name: String, @RequestBody book: ReferenceBookData): ReferenceBook {
-        logger.debug("Updating reference book with id=${name} name to ${book.name}")
+        logger.debug("Updating reference book with id=$name name to ${book.name}")
         return referenceBookService.updateReferenceBook(name, book.name!!)
     }
 
