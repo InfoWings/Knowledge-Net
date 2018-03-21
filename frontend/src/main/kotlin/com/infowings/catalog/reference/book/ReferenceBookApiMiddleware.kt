@@ -14,7 +14,7 @@ interface ReferenceBookApiReceiverProps : RProps {
 }
 
 /**
- * Component that manages already fetched aspects and makes real requests to the server API
+ * Component that manages already fetched books and makes real requests to the server API
  */
 class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, ReferenceBookApiMiddleware.State>() {
 
@@ -28,6 +28,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val booksMap = getAllBooks().books
                 .map { Pair(it.aspectId, it) }
                 .toMap()
+
             val aspectBookPairs = getAllAspects().aspects
                 .map { AspectBookPair(it.name, booksMap[it.id]) }
 
@@ -45,7 +46,9 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val newBook = createBook(bookData)
 
             setState {
-                aspectBookPairs += AspectBookPair(aspectName, newBook)
+                aspectBookPairs = aspectBookPairs.map {
+                    if (aspectName == it.aspectName) AspectBookPair(aspectName, newBook) else it
+                }
             }
         }
     }
