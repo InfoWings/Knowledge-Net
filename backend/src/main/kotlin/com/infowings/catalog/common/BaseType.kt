@@ -1,6 +1,5 @@
 package com.infowings.catalog.common
 
-import com.infowings.catalog.loggerFor
 import java.math.BigDecimal
 import kotlin.reflect.KClass
 
@@ -26,10 +25,8 @@ actual sealed class BaseType actual constructor(_name: String) {
                     Text.name -> Text
                     Binary.name -> Binary
 
-                    else -> {
-                        loggerFor<BaseType>().error("Name: $name")
-                        TODO("реализовать хранение сложных типов")
-                    }
+                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
+
                 }
 
         fun getTypeClass(name: String): KClass<*> =
@@ -41,7 +38,7 @@ actual sealed class BaseType actual constructor(_name: String) {
                     Text.name -> String::class
                     Binary.name -> ByteArray::class
 
-                    else -> TODO("реализовать хранение сложных типов")
+                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
 
                 }
     }
