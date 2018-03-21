@@ -81,6 +81,26 @@ class SearchTest {
     }
 
     @Test
+    fun measureSuggestionWithGroup() {
+        val queryText = "Are"
+        val context = SearchContext()
+        val res = suggestionService.findMeasure(
+            CommonSuggestionParam(text = queryText),
+            measureGroupName = null,
+            findInGroups = true
+        )
+
+        logger.info("find result size: ${res.size}")
+        assertFalse(res.isEmpty())
+
+        logger.info("find result: $res")
+        assertEquals("Square Metre", res.first())
+        assertEquals("Area", res.last())
+
+        res.forEach { logger.info("name : $it") }
+    }
+
+    @Test
     fun measureSuggestionInGroup() {
         val queryText = "metre"
         val context = SearchContext()
