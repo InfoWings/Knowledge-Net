@@ -11,7 +11,7 @@ class ReferenceBookControl(props: ReferenceBookApiReceiverProps) :
     override fun RBuilder.render() {
         referenceBookTreeView {
             attrs {
-                aspectBookPairs = props.aspectBookPairs
+                rowDataList = props.aspectBookPairs
                 onReferenceBookCreate = props.onReferenceBookCreate
                 onReferenceBookUpdate = props.onReferenceBookUpdate
             }

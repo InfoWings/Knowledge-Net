@@ -1,7 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.reference.book.AspectBookPair
+import com.infowings.catalog.reference.book.RowData
 import kotlinext.js.invoke
 import kotlinext.js.require
 import org.w3c.dom.events.Event
@@ -19,21 +19,24 @@ class ReferenceBookTreeView(props: Props) :
     }
 
     override fun State.init(props: ReferenceBookTreeView.Props) {
+        selectedAspectName = null
         selectedBook = null
         creatingNewBook = false
     }
 
-    private fun onBookClick(book: ReferenceBookData) {
+    private fun onBookClick(aspectName: String, book: ReferenceBookData) {
         setState {
+            selectedAspectName = aspectName
             selectedBook = book
             creatingNewBook = false
         }
     }
 
-    private fun startCreatingNewBook(e: Event) {
+    private fun startCreatingNewBook(aspectName: String, e: Event) {
         e.stopPropagation()
         e.preventDefault()
         setState {
+            selectedAspectName = aspectName
             selectedBook = null
             creatingNewBook = true
         }
@@ -45,12 +48,12 @@ class ReferenceBookTreeView(props: Props) :
         }
     }
 
-    private fun submitBookChanges(aspectName: String, book: ReferenceBookData) {
+    private fun submitBookChanges(book: ReferenceBookData) {
         if (book.id == null) {
             setState {
                 selectedBook = book
             }
-            props.onReferenceBookCreate(aspectName, book)
+            props.onReferenceBookCreate(book)
         } else {
             setState {
                 selectedBook = book
@@ -60,25 +63,24 @@ class ReferenceBookTreeView(props: Props) :
     }
 
     override fun RBuilder.render() {
-        val selectedBookId = state.selectedBook?.id
         div(classes = "aspect-tree-view") {
-            props.aspectBookPairs
-                .map { pair ->
-                    if (pair.book != null) {
+            props.rowDataList
+                .map { rowData ->
+                    if (rowData.book != null) {
                         referenceBookTreeRoot {
                             attrs {
-                                key = pair.aspectName
-                                aspectName = pair.aspectName
-                                book = pair.book
-                                selectedId = selectedBookId
+                                aspectName = rowData.aspectName
+                                book = rowData.book
+                                selectedAspectName = state.selectedAspectName
                                 onBookClick = ::onBookClick
                             }
                         }
                     } else {
                         referenceBookEmptyTreeRoot {
                             attrs {
-                                key = pair.aspectName
-                                aspectName = pair.aspectName
+                                selectedAspectName = state.selectedAspectName
+                                aspectId = rowData.aspectId
+                                aspectName = rowData.aspectName
                                 creatingNewBook = state.creatingNewBook
                                 startCreatingNewBook = ::startCreatingNewBook
                                 cancelBookCreating = ::cancelBookCreating
@@ -93,11 +95,12 @@ class ReferenceBookTreeView(props: Props) :
     interface State : RState {
         var creatingNewBook: Boolean
         var selectedBook: ReferenceBookData?
+        var selectedAspectName: String?
     }
 
     interface Props : RProps {
-        var aspectBookPairs: List<AspectBookPair>
-        var onReferenceBookCreate: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var rowDataList: List<RowData>
+        var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
         var onReferenceBookUpdate: (bookData: ReferenceBookData) -> Unit
     }
 }

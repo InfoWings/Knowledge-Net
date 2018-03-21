@@ -43,7 +43,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     aspectName = props.aspectName
                     book = props.book
                     onClick = props.onBookClick
-                    selected = props.selectedId == props.book.id
+                    selected = props.selectedAspectName == props.aspectName
                 }
             }
         }
@@ -61,10 +61,10 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     interface Props : RProps {
         var book: ReferenceBook
         var aspectName: String
-        var onBookClick: (ReferenceBookData) -> Unit
+        var onBookClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var bookContext: Map<String, ReferenceBookData>
-        var selectedId: String?
+        var selectedAspectName: String?
     }
 
     interface State : RState {

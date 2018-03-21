@@ -14,7 +14,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
         e.preventDefault()
         e.stopPropagation()
         val book = props.book
-        props.onClick(ReferenceBookData(book.id, book.name, book.aspectId))
+        props.onClick(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
     }
 
     override fun RBuilder.render() {
@@ -35,7 +35,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, RState>(
     interface Props : RProps {
         var aspectName: String
         var book: ReferenceBook
-        var onClick: (ReferenceBookData) -> Unit
+        var onClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
     }
 }

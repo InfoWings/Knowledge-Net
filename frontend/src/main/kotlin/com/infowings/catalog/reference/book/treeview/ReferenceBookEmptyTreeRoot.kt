@@ -8,31 +8,36 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, ReferenceBookEmptyTreeRoot.State>() {
+class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, RState>() {
 
     private fun submitBookChanges(bookData: ReferenceBookData) {
-        props.submitBookChanges(props.aspectName, bookData)
+        props.submitBookChanges(bookData)
+    }
+
+    private fun startCreatingNewBook(e: Event) {
+        props.startCreatingNewBook(props.aspectName, e)
     }
 
     override fun RBuilder.render() {
-        val selectedBookId = props.selectedId
+        val selected = props.selectedAspectName == props.aspectName
         div(classes = "aspect-tree-view--root") {
-            if (props.creatingNewBook) {
-                bookEditConsole {
-                    attrs {
-                        book = ReferenceBookData(null, "", "#25:0")
-                        onCancel = props.cancelBookCreating
-                        onSubmit = ::submitBookChanges
-                    }
+            div(classes = "aspect-tree-view--label${if (selected) " aspect-tree-view--label__selected" else ""}") {
+                attrs {
+                    onClickFunction = ::startCreatingNewBook
                 }
-            } else {
-                div(classes = "aspect-tree-view--label${if (selectedBookId == null) " aspect-tree-view--label__selected" else ""}") {
-                    attrs {
-                        onClickFunction = props.startCreatingNewBook
+                span(classes = "aspect-tree-view--label-name") {
+                    +props.aspectName
+                }
+                +":"
+                if (props.creatingNewBook) {
+                    bookEditConsole {
+                        attrs {
+                            book = ReferenceBookData(null, "", props.aspectId)
+                            onCancel = props.cancelBookCreating
+                            onSubmit = ::submitBookChanges
+                        }
                     }
-                    span(classes = "aspect-tree-view--label-name") {
-                        +props.aspectName
-                    }
+                } else {
                     span(classes = "aspect-tree-view--empty") {
                         +"Add Reference Book ..."
                     }
@@ -43,14 +48,12 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
 
     interface Props : RProps {
         var creatingNewBook: Boolean
+        var aspectId: String
         var aspectName: String
-        var selectedId: String?
-        var startCreatingNewBook: (Event) -> Unit
+        var selectedAspectName: String?
+        var startCreatingNewBook: (aspectName: String, e: Event) -> Unit
         var cancelBookCreating: () -> Unit
-        var submitBookChanges: (String, ReferenceBookData) -> Unit
-    }
-
-    interface State : RState {
+        var submitBookChanges: (ReferenceBookData) -> Unit
     }
 }
 

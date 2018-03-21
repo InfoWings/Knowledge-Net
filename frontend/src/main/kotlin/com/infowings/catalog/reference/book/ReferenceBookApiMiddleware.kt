@@ -8,9 +8,9 @@ import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
     var loading: Boolean
-    var aspectBookPairs: List<AspectBookPair>
+    var aspectBookPairs: List<RowData>
     var onReferenceBookUpdate: (bookData: ReferenceBookData) -> Unit
-    var onReferenceBookCreate: (aspectName: String, bookData: ReferenceBookData) -> Unit
+    var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
 }
 
 /**
@@ -19,7 +19,7 @@ interface ReferenceBookApiReceiverProps : RProps {
 class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, ReferenceBookApiMiddleware.State>() {
 
     override fun State.init() {
-        aspectBookPairs = emptyList()
+        rowDataList = emptyList()
         loading = true
     }
 
@@ -29,25 +29,25 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
-            val aspectBookPairs = getAllAspects().aspects
-                .map { AspectBookPair(it.name, booksMap[it.id]) }
+            val rowDataList = getAllAspects().aspects
+                .map { RowData(it.id!!, it.name, booksMap[it.id!!]) }
 
             setState {
-                this.aspectBookPairs = aspectBookPairs
+                this.rowDataList = rowDataList
                 loading = false
             }
         }
     }
 
-    private fun handleCreateNewBook(aspectName: String, bookData: ReferenceBookData) {
+    private fun handleCreateNewBook(bookData: ReferenceBookData) {
         launch {
             if (bookData.name.isEmpty()) throw RuntimeException("Reference book name should not be empty!")
 
             val newBook = createBook(bookData)
 
             setState {
-                aspectBookPairs = aspectBookPairs.map {
-                    if (aspectName == it.aspectName) AspectBookPair(aspectName, newBook) else it
+                rowDataList = rowDataList.map {
+                    if (it.aspectId == bookData.aspectId) RowData(it.aspectId, it.aspectName, newBook) else it
                 }
             }
         }
@@ -58,8 +58,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val updatedBook = updateBook(bookData)
 
             setState {
-                aspectBookPairs = aspectBookPairs.map {
-                    if (updatedBook.id == it.book?.id) AspectBookPair(it.aspectName, updatedBook) else it
+                rowDataList = rowDataList.map {
+                    if (it.aspectId == bookData.aspectId) RowData(it.aspectId, it.aspectName, updatedBook) else it
                 }
             }
         }
@@ -68,7 +68,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
-                aspectBookPairs = state.aspectBookPairs
+                aspectBookPairs = state.rowDataList
                 loading = state.loading
                 onReferenceBookCreate = ::handleCreateNewBook
                 onReferenceBookUpdate = ::handleUpdateAspect
@@ -81,7 +81,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     }
 
     interface State : RState {
-        var aspectBookPairs: List<AspectBookPair>
+        var rowDataList: List<RowData>
         var loading: Boolean
     }
 }
