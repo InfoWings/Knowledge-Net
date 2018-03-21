@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.RowData
 import kotlinext.js.invoke
 import kotlinext.js.require
@@ -77,6 +78,7 @@ class ReferenceBookTreeView(props: Props) :
                                 onBookClick = ::onBookClick
                                 submitBookChanges = ::submitBookChanges
                                 cancelBookCreating = ::cancelBookCreating
+                                createBookItem = props.createBookItem
                             }
                         }
                     } else {
@@ -106,6 +108,7 @@ class ReferenceBookTreeView(props: Props) :
         var rowDataList: List<RowData>
         var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
         var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
+        var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
     }
 }
 

@@ -2,6 +2,7 @@ package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
@@ -23,3 +24,6 @@ internal suspend fun createBook(bookData: ReferenceBookData): ReferenceBook =
 
 internal suspend fun updateBook(name: String, bookData: ReferenceBookData): ReferenceBook =
     JSON.parse(post("/api/book/update/$name", JSON.stringify(bookData)))
+
+internal suspend fun createItem(bookItemData: ReferenceBookItemData): ReferenceBook =
+    JSON.parse(post("/api/book/item/create", JSON.stringify(bookItemData)))

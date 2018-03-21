@@ -87,6 +87,11 @@ class ReferenceBookService(val database: OrientDatabase) {
         return@transaction childVertex.save<OVertex>()
     }.id
 
+    fun addItemAndGetReferenceBook(bookName: String, parentId: String, value: String) = transaction(database) {
+        addReferenceBookItem(parentId, value)
+        return@transaction getReferenceBook(bookName)
+    }
+
     /**
      * Make ReferenceBookItem with id [sourceId] to be a child of ReferenceBookItem with id [targetId]
      * @throws RefBookItemNotExist

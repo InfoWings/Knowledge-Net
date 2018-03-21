@@ -2,6 +2,7 @@ package com.infowings.catalog.external
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.ReferenceBookService
 import com.infowings.catalog.loggerFor
@@ -41,6 +42,16 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     fun update(@PathVariable("name") name: String, @RequestBody book: ReferenceBookData): ReferenceBook {
         logger.debug("Updating reference book with id=$name name to ${book.name}")
         return referenceBookService.updateReferenceBook(name, book.name!!)
+    }
+
+    @PostMapping("item/create")
+    fun createItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+        logger.debug("Adding reference book item")
+        return referenceBookService.addItemAndGetReferenceBook(
+            bookItemData.bookName,
+            bookItemData.parentId,
+            bookItemData.value!!
+        )
     }
 
     private val logger = loggerFor<ReferenceBookApi>()

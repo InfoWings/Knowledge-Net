@@ -1,4 +1,4 @@
-package com.infowings.catalog.reference.book.editconsole.book
+package com.infowings.catalog.reference.book.editconsole
 
 import kotlinx.html.InputType
 import kotlinx.html.id

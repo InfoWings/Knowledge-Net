@@ -14,6 +14,7 @@ class ReferenceBookControl(props: ReferenceBookApiReceiverProps) :
                 rowDataList = props.aspectBookPairs
                 onReferenceBookCreate = props.onReferenceBookCreate
                 onReferenceBookUpdate = props.onReferenceBookUpdate
+                createBookItem = props.createBookItem
             }
         }
     }

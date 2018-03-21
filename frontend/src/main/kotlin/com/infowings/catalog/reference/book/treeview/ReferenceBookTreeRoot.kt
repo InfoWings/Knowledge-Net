@@ -3,6 +3,8 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -12,12 +14,37 @@ import react.dom.svg
 
 class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceBookTreeRoot.State>() {
 
+    override fun State.init() {
+        addingBookItem = false
+    }
+
     private fun handleExpanderClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
             expanded = !expanded
         }
+    }
+
+    private fun startAddingBookItem(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        setState {
+            addingBookItem = true
+        }
+    }
+
+    private fun cancelBookItemCreating() {
+        setState {
+            addingBookItem = false
+        }
+    }
+
+    private fun createBookItem(bookItemData: ReferenceBookItemData) {
+        setState {
+            addingBookItem = false
+        }
+        props.createBookItem(bookItemData)
     }
 
     override fun RBuilder.render() {
@@ -35,6 +62,9 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             } else {
                 svg("aspect-tree-view--line-icon") {
+                    attrs {
+                        onClickFunction = ::startAddingBookItem
+                    }
                     use("svg/sprite.svg#icon-add-to-list")
                 }
             }
@@ -58,6 +88,15 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
         }
+        if (state.addingBookItem) {
+            bookItemEditConsole {
+                attrs {
+                    bookItem = ReferenceBookItemData(null, "", props.book.id, props.book.name)
+                    onCancel = ::cancelBookItemCreating
+                    onSubmit = ::createBookItem
+                }
+            }
+        }
     }
 
     interface Props : RProps {
@@ -69,10 +108,12 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var selectedAspectName: String?
         var submitBookChanges: (name: String, ReferenceBookData) -> Unit
         var cancelBookCreating: () -> Unit
+        var createBookItem: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
         var expanded: Boolean
+        var addingBookItem: Boolean
     }
 }
 

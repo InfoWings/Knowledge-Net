@@ -1,23 +1,23 @@
 package com.infowings.catalog.reference.book.editconsole
 
-import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBookItemData
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
-class ReferenceBookEditConsole(props: Props) :
-    RComponent<ReferenceBookEditConsole.Props, ReferenceBookEditConsole.State>(props) {
+class ReferenceBookItemEditConsole(props: Props) :
+    RComponent<ReferenceBookItemEditConsole.Props, ReferenceBookItemEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
-        bookName = props.book.name
+        value = props.bookItem.value
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.book.id != nextProps.book.id) {
+        if (props.bookItem.id != nextProps.bookItem.id) {
             setState {
-                bookName = nextProps.book.name
+                value = nextProps.bookItem.value
             }
         }
     }
@@ -28,15 +28,15 @@ class ReferenceBookEditConsole(props: Props) :
         when (keyCode) {
             27 -> props.onCancel() //esc
             13 -> {
-                if (state.bookName.isNullOrEmpty()) error("Reference Book Name is null")
-                props.onSubmit(props.book.copy(name = state.bookName))
+                if (state.value.isNullOrEmpty()) error("Reference Book Name is null")
+                props.onSubmit(props.bookItem.copy(value = state.value))
             } //Enter
         }
     }
 
-    private fun handleBookNameChanged(name: String) {
+    private fun handleBookItemValueChanged(name: String) {
         setState {
-            bookName = name
+            value = name
         }
     }
 
@@ -46,10 +46,10 @@ class ReferenceBookEditConsole(props: Props) :
                 onKeyDownFunction = ::handleKeyDown
             }
             div(classes = "book-edit-console--input-group") {
-                referenceBookNameInput {
+                referenceBookItemValueInput {
                     attrs {
-                        value = state.bookName
-                        onChange = ::handleBookNameChanged
+                        value = state.value
+                        onChange = ::handleBookItemValueChanged
                     }
                 }
             }
@@ -57,15 +57,15 @@ class ReferenceBookEditConsole(props: Props) :
     }
 
     interface Props : RProps {
-        var book: ReferenceBookData
+        var bookItem: ReferenceBookItemData
         var onCancel: () -> Unit
-        var onSubmit: (ReferenceBookData) -> Unit
+        var onSubmit: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
-        var bookName: String?
+        var value: String?
     }
 }
 
-fun RBuilder.bookEditConsole(block: RHandler<ReferenceBookEditConsole.Props>) =
-    child(ReferenceBookEditConsole::class, block)
+fun RBuilder.bookItemEditConsole(block: RHandler<ReferenceBookItemEditConsole.Props>) =
+    child(ReferenceBookItemEditConsole::class, block)

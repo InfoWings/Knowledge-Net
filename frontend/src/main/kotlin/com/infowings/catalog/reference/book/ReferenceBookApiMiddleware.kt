@@ -2,6 +2,7 @@ package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBookItemData
 import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
@@ -11,6 +12,7 @@ interface ReferenceBookApiReceiverProps : RProps {
     var aspectBookPairs: List<RowData>
     var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
     var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
+    var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
 }
 
 /**
@@ -48,19 +50,30 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
             setState {
                 rowDataList = rowDataList.map {
-                    if (it.aspectId == bookData.aspectId) RowData(it.aspectId, it.aspectName, newBook) else it
+                    if (it.aspectId == bookData.aspectId) it.copy(book = newBook) else it
                 }
             }
         }
     }
 
-    private fun handleUpdateAspect(name: String, bookData: ReferenceBookData) {
+    private fun handleUpdateBook(name: String, bookData: ReferenceBookData) {
         launch {
             val updatedBook = updateBook(name, bookData)
 
             setState {
                 rowDataList = rowDataList.map {
-                    if (it.aspectId == bookData.aspectId) RowData(it.aspectId, it.aspectName, updatedBook) else it
+                    if (it.aspectId == bookData.aspectId) it.copy(book = updatedBook) else it
+                }
+            }
+        }
+    }
+
+    private fun createBookItem(bookItemData: ReferenceBookItemData) {
+        launch {
+            val updatedBook = createItem(bookItemData)
+            setState {
+                rowDataList = rowDataList.map {
+                    if (it.aspectId == updatedBook.aspectId) it.copy(book = updatedBook) else it
                 }
             }
         }
@@ -72,7 +85,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 aspectBookPairs = state.rowDataList
                 loading = state.loading
                 onReferenceBookCreate = ::handleCreateNewBook
-                onReferenceBookUpdate = ::handleUpdateAspect
+                onReferenceBookUpdate = ::handleUpdateBook
+                createBookItem = ::createBookItem
             }
         }
     }
