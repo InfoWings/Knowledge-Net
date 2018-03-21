@@ -46,6 +46,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }
         }
 
+        aspectData.subject?.id?.let { aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>() }
+
         return@session aspectVertex.save<OVertex>().also {
             logger.debug("Aspect ${aspectData.name} saved with id: ${it.id}")
         }
@@ -80,11 +82,19 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsByNameWithDifferentId(name: String, id: String?): Set<OVertex> =
-            db.query(selectWithNameDifferentId, name, ORecordId(id)) { it.map { it.toVertex() }.toSet() }
+    fun getAspectsByNameAndSubjectWithDifferentId(name: String, subjectId: String?, id: String?): Set<OVertex> {
+        val q = if (subjectId == null) {
+            selectWithNameDifferentId
+        } else {
+            "$selectWithNameDifferentId and (@rid in (select out.@rid from $ASPECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
+        }
+        val args: Map<String, Any?> =
+            mapOf("name" to name, "aspectId" to ORecordId(id), "subjectId" to ORecordId(subjectId))
+        return db.query(q, args) { it.map { it.toVertex() }.toSet() }
+    }
 }
 
-private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
+private const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId)"
 private const val selectFromAspect = "SELECT FROM Aspect"
 private const val selectAspectByName = "SELECT FROM Aspect where name = ? "
 

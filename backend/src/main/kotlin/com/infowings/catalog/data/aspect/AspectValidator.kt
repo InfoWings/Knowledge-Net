@@ -61,18 +61,18 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     private fun checkCyclicDependencies(aspectVertex: OVertex, aspectData: AspectData) {
         val parentsIds = aspectService.findParentAspects(aspectVertex.id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
-                .map { it.aspectId }
-                .filter { parentsIds.contains(it) }
-                .toList()
+            .map { it.aspectId }
+            .filter { parentsIds.contains(it) }
+            .toList()
 
         if (cyclicIds.isNotEmpty()) throw AspectCyclicDependencyException(cyclicIds)
     }
 
     private fun checkAspectBusinessKey(aspectData: AspectData) {
         val name: String = aspectData.name ?: throw AspectNameCannotBeNull()
-        aspectDaoService.getAspectsByNameWithDifferentId(name, aspectData.id).let {
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, aspectData.id).let {
             if (it.any()) {
-                throw AspectAlreadyExist(name)
+                throw AspectAlreadyExist(name, null)
             }
         }
     }
@@ -80,7 +80,8 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     private fun checkAspectPropertyBusinessKey(aspectData: AspectData) {
         // check aspect properties business key
         // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
-        val notValid = aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
+        val notValid =
+            aspectData.properties.distinctBy { Pair(it.name, it.aspectId) }.size != aspectData.properties.size
 
         if (notValid) {
             throw IllegalArgumentException("Not correct property business key $aspectData")
@@ -89,7 +90,10 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
 
     private fun checkAspectVersion(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectVertex.version != aspectData.version) {
-            throw AspectConcurrentModificationException(aspectVertex.id, "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}")
+            throw AspectConcurrentModificationException(
+                aspectVertex.id,
+                "Old Aspect version. Expected: ${aspectVertex.version}. Actual: ${aspectData.version}"
+            )
         }
 
         val realVersionMap = aspectVertex.properties.map { it.id to it.version }.toMap()
@@ -108,7 +112,8 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
     private fun checkBaseTypeChangeCriteria(aspectVertex: OVertex, aspectData: AspectData) {
         if (aspectData.baseType != aspectVertex.baseType) {
             if ((aspectData.measure != null && aspectData.measure == aspectVertex.measureName)
-                    || thereExistAspectImplementation(aspectVertex.id)) {
+                || thereExistAspectImplementation(aspectVertex.id)
+            ) {
 
                 throw AspectModificationException(aspectVertex.id, "Impossible to change base type")
             }

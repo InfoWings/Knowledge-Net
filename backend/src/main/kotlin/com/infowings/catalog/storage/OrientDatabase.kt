@@ -88,7 +88,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * database.query(selectFromAspect) { rs, session ->
      * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
-    fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
+    fun <T> query(query: String, args: Map<String, Any?>, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }

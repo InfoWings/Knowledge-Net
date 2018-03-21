@@ -2,10 +2,11 @@ package com.infowings.catalog.data.subject
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.AbstractMvcTest
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.aspect.AspectAlreadyExist
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.not
@@ -21,6 +22,9 @@ class SubjectApiTest : AbstractMvcTest() {
 
     @Autowired
     lateinit var subjectService: SubjectService
+
+    @Autowired
+    private lateinit var aspectService: AspectService
 
     @Test
     fun getAll() {
@@ -50,6 +54,32 @@ class SubjectApiTest : AbstractMvcTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNotEmpty)
     }
 
+    @Test(expected = AspectAlreadyExist::class)
+    fun testAddAspectsSameNameSameSubject() {
+        val subject = createTestSubject("TestSubjectUpdate")
+        val ad1 = AspectData(
+            "",
+            "aspect",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            subject = subject.toSubjectData()
+        )
+        aspectService.save(ad1)
+
+        val ad2 = AspectData(
+            "",
+            "aspect",
+            Metre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            subject = subject.toSubjectData()
+        )
+        aspectService.save(ad2)
+    }
+
     @Test
     fun update() {
         val subject = createTestSubject("TestSubjectUpdate")
@@ -71,7 +101,7 @@ class SubjectApiTest : AbstractMvcTest() {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/search/subject/suggestion")
                 .with(authorities)
-                .param("text", "Subject")
+                .param("text", "TestSuggestionSubject")
                 .param("aspectText", "Aspect1")
         ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.jsonPath("$.subject[0].name").value(s.name))

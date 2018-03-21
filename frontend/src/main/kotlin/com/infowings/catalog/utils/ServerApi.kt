@@ -46,7 +46,7 @@ suspend fun get(url: String, body: dynamic = null): String {
 
 /**
  * Http PUT request to server.
- * Return object of type T which is obtained by parsing response text.
+ * Returns response text.
  */
 suspend fun put(url: String, body: dynamic = null): String {
     return authorizedRequest(PUT, url, body).text().await()

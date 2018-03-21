@@ -15,7 +15,8 @@ data class AspectData(
     val domain: String? = null,
     val baseType: String? = null,
     val properties: List<AspectPropertyData> = emptyList(),
-    val version: Int = 0
+    val version: Int = 0,
+    val subject: SubjectData? = null
 )
 
 @Serializable

@@ -148,7 +148,8 @@ class AspectService(private val db: OrientDatabase,
 }
 
 sealed class AspectException(message: String? = null) : Exception(message)
-class AspectAlreadyExist(val name: String) : AspectException("name = $name")
+class AspectAlreadyExist(val name: String, subject: String?) :
+    AspectException("name = $name, subject ${subject ?: "GLOBAL"}")
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
