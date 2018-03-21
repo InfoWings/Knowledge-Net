@@ -43,7 +43,7 @@ class ElectricityIndicatorsConverterTest {
 
 
     private fun toWattTest(source: Double, sourceInWatt: Double, measure: Measure<DecimalNumber>) =
-            measureTest(source, sourceInWatt, measure, PowerEnergyGroup.base)
+        measureTest(source, sourceInWatt, measure, PowerGroup.base)
 
     private fun toVoltTest(source: Double, sourceInVolt: Double, measure: Measure<DecimalNumber>) = measureTest(source, sourceInVolt, measure, VoltageGroup.base)
 

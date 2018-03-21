@@ -16,8 +16,12 @@ class SearchController(val suggestionService: SuggestionService) {
      * Полнотекстовый поиск по измеряемым величинам и единицам измерения
      */
     @GetMapping("/measure/suggestion")
-    fun measureSuggestion(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<String> =
-        suggestionService.findMeasure(commonParam, measureGroupName).map { it.name }
+    fun measureSuggestion(
+        commonParam: CommonSuggestionParam?,
+        measureGroupName: String?,
+        findInGroups: Boolean = false
+    ): List<String> =
+        suggestionService.findMeasure(commonParam, measureGroupName, findInGroups)
 
     /**
      * Полнотекстовый поиск по аспектам
