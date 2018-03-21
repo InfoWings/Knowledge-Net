@@ -1,6 +1,5 @@
 package com.infowings.catalog.aspects.editconsole.aspect
 
-import com.infowings.catalog.aspects.MeasurementUnitOption
 import com.infowings.catalog.aspects.MeasurementUnitSuggestingOption
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.wrappers.react.label
@@ -10,12 +9,10 @@ import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withTimeoutOrNull
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-interface MeasurementUnitOption : SelectOption {
+private interface MeasurementUnitOption : SelectOption {
     var measurementUnit: String
 }
 
@@ -25,10 +22,8 @@ private fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnit
 
 class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
 
-    private fun handleInputFieldChanged(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
+    private fun handleMeasurementUnitOptionSelected(option: MeasurementUnitOption) {
+        props.onChange(option.measurementUnit)
     }
 
     override fun RBuilder.render() {
@@ -43,13 +38,14 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                         value = props.value ?: ""
                         labelKey = "measurementUnit"
                         valueKey = "measurementUnit"
-                        onChange = { props.onChange(it.measurementUnit) }
+                        onChange = ::handleMeasurementUnitOptionSelected
                         cache = false
                         onSelectResetsInput = false
                         clearable = true
                         resetValue = ""
                         options = if (props.value.isNullOrEmpty()) emptyArray()
                         else arrayOf(measurementUnitOption(props.value!!))
+                        autoBlur = true
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
@@ -63,7 +59,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                             } else {
                                 callback(null, jsObject {
                                     options = if (props.value.isNullOrEmpty()) emptyArray()
-                                    else arrayOf(measurementUnitOption(props.value!!), measurementUnitOption(""))
+                                    else arrayOf(measurementUnitOption(props.value!!))
                                 })
                             }
                             false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript

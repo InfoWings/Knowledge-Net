@@ -9,6 +9,7 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCa
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -95,6 +96,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun handleChildAspectMeasureChanged(measure: String) {
         setState {
             childAspectMeasure = measure
+            childAspectBaseType = GlobalMeasureMap[measure]?.baseType?.name
         }
     }
 
@@ -250,6 +252,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         }
                         aspectBaseTypeInput {
                             attrs {
+                                measureUnit = state.childAspectMeasure
                                 value = state.childAspectBaseType
                                 onChange = ::handleChildAspectBaseTypeChanged
                             }

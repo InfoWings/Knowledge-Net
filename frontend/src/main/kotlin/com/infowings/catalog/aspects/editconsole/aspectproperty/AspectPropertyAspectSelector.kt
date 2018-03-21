@@ -10,13 +10,13 @@ import kotlinx.coroutines.experimental.launch
 import react.*
 import react.dom.div
 
-interface Option : SelectOption {
+interface AspectOption : SelectOption {
     var aspectData: AspectData
     var aspectName: String
     var aspectLabel: String
 }
 
-fun aspectOption(data: AspectData) = jsObject<Option> {
+fun aspectOption(data: AspectData) = jsObject<AspectOption> {
     aspectLabel = "${data.name} ${data.measure?.let { "(${data.measure})" } ?: ""}"
     aspectName = data.name
     aspectData = data
@@ -24,7 +24,7 @@ fun aspectOption(data: AspectData) = jsObject<Option> {
 
 class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Props, RState>() {
 
-    private fun handleSelectAspectOption(option: Option) {
+    private fun handleSelectAspectOption(option: AspectOption) {
         props.onAspectSelected(option.aspectData)
     }
 
@@ -35,7 +35,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                 +"Aspect"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                asyncSelect<Option> {
+                asyncSelect<AspectOption> {
                     attrs {
                         className = "aspect-table-select"
                         value = boundAspect?.name ?: ""

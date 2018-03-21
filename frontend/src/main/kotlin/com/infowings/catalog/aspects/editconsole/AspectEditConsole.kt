@@ -5,6 +5,7 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -134,9 +135,9 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     private fun handleAspectMeasureChanged(measure: String) {
-        console.log("AspectEditConsole#onChange($measure)")
         setState {
             aspectMeasure = measure
+            aspectBaseType = GlobalMeasureMap[measure]?.baseType?.name
         }
     }
 
@@ -179,6 +180,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectBaseTypeInput {
                     attrs {
+                        measureUnit = state.aspectMeasure
                         value = state.aspectBaseType
                         onChange = ::handleAspectBaseTypeChanged
                     }

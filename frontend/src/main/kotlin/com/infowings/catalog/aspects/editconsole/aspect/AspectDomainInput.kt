@@ -29,6 +29,7 @@ class AspectDomainInput : RComponent<AspectDomainInput.Props, RState>() {
                         id = "aspect-domain"
                         value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
+                        disabled = true
                     }
                 }
             }
