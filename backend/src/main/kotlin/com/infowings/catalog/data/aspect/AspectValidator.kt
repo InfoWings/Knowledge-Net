@@ -31,18 +31,20 @@ class AspectValidator(private val aspectDaoService: AspectDaoService, private va
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
-        if (measureName == null && baseType == null && aspectData.properties.isEmpty()) {
-            throw IllegalArgumentException("Measure and BaseType can't be null in same time")
-        }
+        when {
+            measureName == null && baseType == null && aspectData.properties.isEmpty() ->
+                throw IllegalArgumentException("Measure and BaseType can't be null at the same time")
+            measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
+            measureName != null && baseType != null -> {
+                val measure: Measure<*> = GlobalMeasureMap[measureName]
+                        ?: throw IllegalArgumentException("Measure $measureName incorrect")
 
-        if (measureName != null) {
-            val measure: Measure<*> = GlobalMeasureMap[measureName]
-                    ?: throw IllegalArgumentException("Measure $measureName incorrect")
-
-            if (baseType != null && measure.baseType != BaseType.restoreBaseType(baseType)) {
-                throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
+                if (measure.baseType != BaseType.restoreBaseType(baseType)) {
+                    throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
+                }
             }
         }
+
     }
 
     fun validateExistingAspect(aspectVertex: OVertex, aspectData: AspectData) {
