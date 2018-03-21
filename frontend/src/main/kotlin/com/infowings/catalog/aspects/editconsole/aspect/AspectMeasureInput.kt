@@ -45,10 +45,11 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                         valueKey = "measurementUnit"
                         onChange = { props.onChange(it.measurementUnit) }
                         cache = false
+                        onSelectResetsInput = false
                         clearable = true
-                        resetValue = null
+                        resetValue = ""
                         options = if (props.value.isNullOrEmpty()) emptyArray()
-                        else arrayOf(measurementUnitOption(props.value!!), measurementUnitOption(""))
+                        else arrayOf(measurementUnitOption(props.value!!))
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {

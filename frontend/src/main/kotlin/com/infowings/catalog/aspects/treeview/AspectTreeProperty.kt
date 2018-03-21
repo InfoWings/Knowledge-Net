@@ -32,9 +32,6 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
     override fun RBuilder.render() {
         val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
-            //            svg("aspect-tree-view--line-icon") {
-//                use("svg/sprite.svg#icon-dots-two-horizontal")
-//            }
             if (childAspect != null && childAspect.properties.isNotEmpty()) {
                 svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
                     attrs {
@@ -59,14 +56,14 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 }
             }
             if (props.aspect != null) {
-                svg("aspect-tree-view--line-icon") {
-                    attrs {
-                        onClickFunction = ::handleAddToListClick
+                div(classes = "aspect-tree-view--final-icon-container") {
+                    svg("aspect-tree-view--add-to-list-icon") {
+                        attrs {
+                            onClickFunction = ::handleAddToListClick
+                        }
+                        use("svg/sprite.svg#icon-add-to-list")
                     }
-                    use("svg/sprite.svg#icon-add-to-list")
                 }
-            } else {
-                svg("aspect-tree-view--line-icon")
             }
         }
         if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {

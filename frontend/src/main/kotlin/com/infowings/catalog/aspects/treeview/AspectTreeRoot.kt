@@ -56,15 +56,15 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
                     selected = props.selectedAspect?.id == props.aspect.id
                 }
             }
-            if (props.aspect.id != null) {
-                svg(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
-                    attrs {
-                        onClickFunction = ::handleAddToListClick
+            if (props.aspect.name != "") {
+                div(classes = "aspect-tree-view--final-icon-container") {
+                    svg(classes = "aspect-tree-view--add-to-list-icon") {
+                        attrs {
+                            onClickFunction = ::handleAddToListClick
+                        }
+                        use("svg/sprite.svg#icon-add-to-list")
                     }
-                    use("svg/sprite.svg#icon-add-to-list")
                 }
-            } else {
-                svg(classes = "aspect-tree-view--line-icon")
             }
         }
         if (props.aspect.properties.isNotEmpty() && state.expanded) {
