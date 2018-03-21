@@ -48,9 +48,9 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--root") {
+        div(classes = "book-tree-view--root") {
             if (props.book.children.isNotEmpty()) {
-                svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                svg("book-tree-view--line-icon book-tree-view--line-icon__clickable") {
                     attrs {
                         onClickFunction = ::handleExpanderClick
                     }
@@ -61,7 +61,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     }
                 }
             } else {
-                svg("aspect-tree-view--line-icon") {
+                svg("book-tree-view--line-icon") {
                     attrs {
                         onClickFunction = ::startAddingBookItem
                     }

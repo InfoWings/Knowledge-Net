@@ -14,7 +14,7 @@ class ReferenceBookTreeView(props: Props) :
 
     companion object {
         init {
-            require("styles/aspect-tree-view.scss")
+            require("styles/book-tree-view.scss")
             require("styles/book-edit-console.scss")
         }
     }
@@ -66,7 +66,7 @@ class ReferenceBookTreeView(props: Props) :
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view") {
+        div(classes = "book-tree-view") {
             props.rowDataList
                 .map { rowData ->
                     if (rowData.book != null) {

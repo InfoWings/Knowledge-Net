@@ -16,20 +16,12 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, RState>(
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--label") {
+        div(classes = "book-tree-view--label") {
             attrs {
                 onClickFunction = ::handleAspectPropertyLabelClick
             }
-            span(classes = "aspect-tree-view--label-property") {
-                +"("
-                span(classes = "aspect-tree-view--label-property-name") {
-                    +props.bookItem.id
-                }
-                +":"
-                span(classes = "aspect-tree-view--label-property-cardinality") {
-                    +props.bookItem.value
-                }
-                +")"
+            span(classes = "book-tree-view--label-property") {
+                +props.bookItem.value
             }
         }
     }

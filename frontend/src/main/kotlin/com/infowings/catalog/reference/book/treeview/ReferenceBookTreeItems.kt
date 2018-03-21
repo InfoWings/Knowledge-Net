@@ -8,7 +8,7 @@ import react.dom.div
 class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, RState>() {
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--properties-block") {
+        div(classes = "book-tree-view--properties-block") {
             props.bookItems.map {
                 referenceBookTreeItem {
                     attrs {

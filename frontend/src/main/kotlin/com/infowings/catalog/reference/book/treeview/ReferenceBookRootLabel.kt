@@ -40,11 +40,11 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--label${if (props.selected) " aspect-tree-view--label__selected" else ""}") {
+        div(classes = "book-tree-view--label${if (props.selected) " book-tree-view--label__selected" else ""}") {
             attrs {
                 onClickFunction = ::handleBookRootLabelClick
             }
-            span(classes = "aspect-tree-view--label-name") {
+            span(classes = "book-tree-view--label-name") {
                 +props.aspectName
             }
             +":"
@@ -58,7 +58,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
                     }
                 }
             } else {
-                span(classes = "aspect-tree-view--label-name") {
+                span(classes = "book-tree-view--label-name") {
                     +props.book.name
                 }
             }

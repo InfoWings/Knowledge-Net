@@ -16,12 +16,12 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
 
     override fun RBuilder.render() {
         val selected = props.selectedAspectName == props.aspectName
-        div(classes = "aspect-tree-view--root") {
-            div(classes = "aspect-tree-view--label${if (selected) " aspect-tree-view--label__selected" else ""}") {
+        div(classes = "book-tree-view--root") {
+            div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
                 attrs {
                     onClickFunction = ::startCreatingNewBook
                 }
-                span(classes = "aspect-tree-view--label-name") {
+                span(classes = "book-tree-view--label-name") {
                     +props.aspectName
                 }
                 +":"
@@ -34,7 +34,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                         }
                     }
                 } else {
-                    span(classes = "aspect-tree-view--empty") {
+                    span(classes = "book-tree-view--empty") {
                         +"(Add Reference Book ...)"
                     }
                 }

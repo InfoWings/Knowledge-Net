@@ -20,12 +20,12 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--property") {
-            svg("aspect-tree-view--line-icon") {
+        div(classes = "book-tree-view--property") {
+            svg("book-tree-view--line-icon") {
                 use("svg/sprite.svg#icon-dots-two-horizontal")
             }
             if (props.bookItem.children.isNotEmpty()) {
-                svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                svg("book-tree-view--line-icon book-tree-view--line-icon__clickable") {
                     attrs {
                         onClickFunction = ::handleExpanderClick
                     }
@@ -36,7 +36,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     }
                 }
             } else {
-                svg("aspect-tree-view--line-icon") {
+                svg("book-tree-view--line-icon") {
                     use("svg/sprite.svg#icon-add-to-list")
                 }
             }
