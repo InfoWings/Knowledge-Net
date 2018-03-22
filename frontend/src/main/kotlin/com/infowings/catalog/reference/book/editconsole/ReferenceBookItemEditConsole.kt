@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book.editconsole
 
 import com.infowings.catalog.common.ReferenceBookItemData
+import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
@@ -34,6 +35,12 @@ class ReferenceBookItemEditConsole(props: Props) :
         }
     }
 
+    private fun handleBlur(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        props.onCancel()
+    }
+
     private fun handleBookItemValueChanged(name: String) {
         setState {
             value = name
@@ -45,6 +52,7 @@ class ReferenceBookItemEditConsole(props: Props) :
             div(classes = "book-edit-console") {
                 attrs {
                     onKeyDownFunction = ::handleKeyDown
+                    onBlurFunction = ::handleBlur
                 }
                 div(classes = "book-edit-console--input-group") {
                     referenceBookItemValueInput {
