@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.layout.Header
+import com.infowings.catalog.reference.book.treeview.ReferenceBookTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
 import react.RComponent
@@ -14,6 +15,6 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, RState>() {
             attrs { location = props.location.pathname }
         }
 
-        referenceBookApiMiddleware(ReferenceBookControl::class)
+        referenceBookApiMiddleware(ReferenceBookTreeView::class)
     }
 }

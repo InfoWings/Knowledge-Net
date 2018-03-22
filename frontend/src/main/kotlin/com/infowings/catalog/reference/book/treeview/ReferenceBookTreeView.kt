@@ -1,16 +1,18 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.common.ReferenceBookItemData
-import com.infowings.catalog.reference.book.RowData
+import com.infowings.catalog.reference.book.ReferenceBookApiReceiverProps
 import kotlinext.js.invoke
 import kotlinext.js.require
 import org.w3c.dom.events.Event
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RState
 import react.dom.div
+import react.setState
 
-class ReferenceBookTreeView(props: Props) :
-    RComponent<ReferenceBookTreeView.Props, ReferenceBookTreeView.State>(props) {
+class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
+    RComponent<ReferenceBookApiReceiverProps, ReferenceBookTreeView.State>(props) {
 
     companion object {
         init {
@@ -19,7 +21,7 @@ class ReferenceBookTreeView(props: Props) :
         }
     }
 
-    override fun State.init(props: ReferenceBookTreeView.Props) {
+    override fun State.init(props: ReferenceBookApiReceiverProps) {
         selectedAspectName = null
         selectedBook = null
         creatingNewBook = false
@@ -104,15 +106,4 @@ class ReferenceBookTreeView(props: Props) :
         var selectedBook: ReferenceBookData?
         var selectedAspectName: String?
     }
-
-    interface Props : RProps {
-        var rowDataList: List<RowData>
-        var onReferenceBookCreate: (ReferenceBookData) -> Unit
-        var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
-        var createBookItem: (ReferenceBookItemData) -> Unit
-        var updateBookItem: (ReferenceBookItemData) -> Unit
-    }
 }
-
-fun RBuilder.referenceBookTreeView(block: RHandler<ReferenceBookTreeView.Props>) =
-    child(ReferenceBookTreeView::class, block)

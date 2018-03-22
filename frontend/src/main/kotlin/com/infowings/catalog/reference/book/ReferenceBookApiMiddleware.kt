@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
+import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItemData
 import kotlinx.coroutines.experimental.launch
@@ -15,6 +16,8 @@ interface ReferenceBookApiReceiverProps : RProps {
     var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
     var updateBookItem: (bookItemData: ReferenceBookItemData) -> Unit
 }
+
+data class RowData(val aspectId: String, val aspectName: String, val book: ReferenceBook?)
 
 /**
  * Component that manages already fetched books and makes real requests to the server API
