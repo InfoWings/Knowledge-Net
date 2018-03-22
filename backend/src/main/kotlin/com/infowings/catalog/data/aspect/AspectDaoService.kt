@@ -35,7 +35,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun remove(vert: OVertex) = db.delete(vert)
+    fun remove(vertex: OVertex) = db.delete(vertex)
 
     fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
         rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
@@ -100,8 +100,5 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 it.map { it.toVertex().toAspectVertex() }.toSet()
             }
 }
-
-private const val selectFromAspect = "SELECT FROM Aspect"
-private const val deleteById = "DELETE from $ASPECT_CLASS WHERE @rid = ?"
 
 private val logger = loggerFor<AspectDaoService>()
