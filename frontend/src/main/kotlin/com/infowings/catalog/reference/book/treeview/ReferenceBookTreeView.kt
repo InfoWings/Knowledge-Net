@@ -55,7 +55,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
         setState {
             selectedBook = book
         }
-        props.onReferenceBookCreate(book)
+        props.createBook(book)
 
     }
 
@@ -63,7 +63,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
         setState {
             selectedBook = book
         }
-        props.onReferenceBookUpdate(name, book)
+        props.updateBook(name, book)
 
     }
 

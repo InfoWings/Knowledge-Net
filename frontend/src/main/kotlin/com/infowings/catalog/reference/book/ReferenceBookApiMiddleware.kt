@@ -8,16 +8,16 @@ import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
 
+
 interface ReferenceBookApiReceiverProps : RProps {
     var loading: Boolean
     var rowDataList: List<RowData>
-    var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
-    var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
-    var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
-    var updateBookItem: (bookItemData: ReferenceBookItemData) -> Unit
+    var updateBook: (bookName: String, bookData: ReferenceBookData) -> Unit
+    var createBook: (ReferenceBookData) -> Unit
+    var createBookItem: (ReferenceBookItemData) -> Unit
+    var updateBookItem: (ReferenceBookItemData) -> Unit
 }
 
-data class RowData(val aspectId: String, val aspectName: String, val book: ReferenceBook?)
 
 /**
  * Component that manages already fetched books and makes real requests to the server API
@@ -31,12 +31,12 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     override fun componentDidMount() {
         launch {
-            val booksMap = getAllBooks().books
+            val aspectIdToBookMap = getAllReferenceBooks().books
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
             val rowDataList = getAllAspects().aspects
-                .map { RowData(it.id!!, it.name, booksMap[it.id!!]) }
+                .map { RowData(it.id!!, it.name, aspectIdToBookMap[it.id!!]) }
 
             setState {
                 this.rowDataList = rowDataList
@@ -45,51 +45,45 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private fun handleCreateNewBook(bookData: ReferenceBookData) {
+    private fun createBook(bookData: ReferenceBookData) {
         launch {
-            val newName = bookData.name
-            if (newName == null || newName.isEmpty()) throw RuntimeException("Reference book name should not be empty!")
+            if (bookData.name.isNullOrEmpty()) throw RuntimeException("Reference book name shouldn't be empty!")
 
-            val newBook = createBook(bookData)
+            val newBook = createReferenceBook(bookData)
 
-            setState {
-                rowDataList = rowDataList.map {
-                    if (it.aspectId == bookData.aspectId) it.copy(book = newBook) else it
-                }
-            }
+            updateRowDataList(bookData.aspectId, newBook)
         }
     }
 
-    private fun handleUpdateBook(name: String, bookData: ReferenceBookData) {
+    private fun updateBook(bookName: String, bookData: ReferenceBookData) {
         launch {
-            val updatedBook = updateBook(name, bookData)
+            val newName = bookData.name
+            if (newName.isNullOrEmpty()) throw RuntimeException("Reference book name shouldn't be empty!")
 
-            setState {
-                rowDataList = rowDataList.map {
-                    if (it.aspectId == bookData.aspectId) it.copy(book = updatedBook) else it
-                }
-            }
+            val updatedBook = updateReferenceBook(bookName, bookData)
+
+            updateRowDataList(bookData.aspectId, updatedBook)
         }
     }
 
     private fun createBookItem(bookItemData: ReferenceBookItemData) {
         launch {
-            val updatedBook = createItem(bookItemData)
-            setState {
-                rowDataList = rowDataList.map {
-                    if (it.aspectId == updatedBook.aspectId) it.copy(book = updatedBook) else it
-                }
-            }
+            val updatedBook = createReferenceBookItem(bookItemData)
+            updateRowDataList(updatedBook.aspectId, updatedBook)
         }
     }
 
     private fun updateBookItem(bookItemData: ReferenceBookItemData) {
         launch {
-            val updatedBook = updateItem(bookItemData)
-            setState {
-                rowDataList = rowDataList.map {
-                    if (it.aspectId == updatedBook.aspectId) it.copy(book = updatedBook) else it
-                }
+            val updatedBook = updateReferenceBookItem(bookItemData)
+            updateRowDataList(updatedBook.aspectId, updatedBook)
+        }
+    }
+
+    private fun updateRowDataList(aspectId: String, book: ReferenceBook) {
+        setState {
+            rowDataList = rowDataList.map {
+                if (it.aspectId == aspectId) it.copy(book = book) else it
             }
         }
     }
@@ -100,8 +94,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             attrs {
                 rowDataList = state.rowDataList
                 loading = state.loading
-                onReferenceBookCreate = ::handleCreateNewBook
-                onReferenceBookUpdate = ::handleUpdateBook
+                createBook = ::createBook
+                updateBook = ::updateBook
                 createBookItem = ::createBookItem
                 updateBookItem = ::updateBookItem
             }
@@ -124,3 +118,5 @@ fun RBuilder.referenceBookApiMiddleware(apiReceiverComponent: KClass<out RCompon
             this.apiReceiverComponent = apiReceiverComponent
         }
     }
+
+data class RowData(val aspectId: String, val aspectName: String, val book: ReferenceBook?)

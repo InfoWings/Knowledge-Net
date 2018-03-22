@@ -10,23 +10,23 @@ import kotlinx.serialization.json.JSON
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
-internal suspend fun getAllBooks(): ReferenceBooksList =
+internal suspend fun getAllReferenceBooks(): ReferenceBooksList =
     JSON.parse(get("/api/book/all"))
 
-internal suspend fun getBookByAspectId(aspectId: String): ReferenceBooksList =
+internal suspend fun getReferenceBookByAspectId(aspectId: String): ReferenceBooksList =
     JSON.parse(get("/api/book/get?aspectId=${encodeURIComponent(aspectId)}"))
 
-internal suspend fun getBookByName(name: String): ReferenceBook =
+internal suspend fun getReferenceBookByName(name: String): ReferenceBook =
     JSON.parse(get("/api/book/get/$name"))
 
-internal suspend fun createBook(bookData: ReferenceBookData): ReferenceBook =
+internal suspend fun createReferenceBook(bookData: ReferenceBookData): ReferenceBook =
     JSON.parse(post("/api/book/create", JSON.stringify(bookData)))
 
-internal suspend fun updateBook(name: String, bookData: ReferenceBookData): ReferenceBook =
+internal suspend fun updateReferenceBook(name: String, bookData: ReferenceBookData): ReferenceBook =
     JSON.parse(post("/api/book/update/$name", JSON.stringify(bookData)))
 
-internal suspend fun createItem(bookItemData: ReferenceBookItemData): ReferenceBook =
+internal suspend fun createReferenceBookItem(bookItemData: ReferenceBookItemData): ReferenceBook =
     JSON.parse(post("/api/book/item/create", JSON.stringify(bookItemData)))
 
-internal suspend fun updateItem(bookItemData: ReferenceBookItemData): ReferenceBook =
+internal suspend fun updateReferenceBookItem(bookItemData: ReferenceBookItemData): ReferenceBook =
     JSON.parse(post("/api/book/item/update", JSON.stringify(bookItemData)))
