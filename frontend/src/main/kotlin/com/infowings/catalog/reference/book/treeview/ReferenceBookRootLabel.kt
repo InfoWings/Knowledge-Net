@@ -31,11 +31,10 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     private fun startUpdatingBook(e: Event) {
         e.preventDefault()
         e.stopPropagation()
-        val book = props.book
         setState {
             updatingBook = true
         }
-        props.startUpdatingBook(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
+        props.startUpdatingBook(props.aspectName)
     }
 
     override fun RBuilder.render() {
@@ -67,7 +66,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     interface Props : RProps {
         var aspectName: String
         var book: ReferenceBook
-        var startUpdatingBook: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var startUpdatingBook: (aspectName: String) -> Unit
         var selected: Boolean
         var updateBook: (bookName: String, ReferenceBookData) -> Unit
     }

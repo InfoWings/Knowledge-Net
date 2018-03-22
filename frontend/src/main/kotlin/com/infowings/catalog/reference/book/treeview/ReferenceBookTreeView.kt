@@ -1,6 +1,5 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.reference.book.ReferenceBookApiReceiverProps
 import kotlinext.js.invoke
 import kotlinext.js.require
@@ -22,36 +21,18 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
 
     override fun State.init(props: ReferenceBookApiReceiverProps) {
         selectedAspectName = null
-        selectedBookData = null
-    }
-
-    private fun startUpdatingBook(aspectName: String, bookData: ReferenceBookData) {
-        setState {
-            selectedAspectName = aspectName
-            selectedBookData = bookData
-        }
     }
 
     private fun startCreatingBook(selectedAspectName: String) {
         setState {
             this.selectedAspectName = selectedAspectName
-            selectedBookData = null
         }
     }
 
-    private fun createBook(bookData: ReferenceBookData) {
+    private fun startUpdatingBook(aspectName: String) {
         setState {
-            selectedBookData = bookData
+            selectedAspectName = aspectName
         }
-        props.createBook(bookData)
-    }
-
-    private fun updateBook(bookName: String, bookData: ReferenceBookData) {
-        setState {
-            selectedBookData = bookData
-        }
-        props.updateBook(bookName, bookData)
-
     }
 
     override fun RBuilder.render() {
@@ -65,7 +46,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 book = rowData.book
                                 selected = rowData.aspectName == state.selectedAspectName
                                 startUpdatingBook = ::startUpdatingBook
-                                updateBook = ::updateBook
+                                updateBook = props.updateBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
                             }
@@ -77,7 +58,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 aspectId = rowData.aspectId
                                 aspectName = rowData.aspectName
                                 startCreatingBook = ::startCreatingBook
-                                createBook = ::createBook
+                                createBook = props.createBook
                             }
                         }
                     }
@@ -86,7 +67,6 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
     }
 
     interface State : RState {
-        var selectedBookData: ReferenceBookData?
         var selectedAspectName: String?
     }
 }
