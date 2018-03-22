@@ -93,13 +93,14 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             }
         }
-
-        if (state.addingBookItem) {
-            bookItemEditConsole {
-                attrs {
-                    bookItemData = ReferenceBookItemData(null, "", props.bookItem.id, props.book.name)
-                    onCancel = ::cancelBookItemCreating
-                    onSubmit = ::createBookItem
+        div(classes = "book-tree-view--item") {
+            if (state.addingBookItem) {
+                bookItemEditConsole {
+                    attrs {
+                        bookItemData = ReferenceBookItemData(null, "", props.bookItem.id, props.book.name)
+                        onCancel = ::cancelBookItemCreating
+                        onSubmit = ::createBookItem
+                    }
                 }
             }
         }

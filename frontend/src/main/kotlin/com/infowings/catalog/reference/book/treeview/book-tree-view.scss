@@ -21,10 +21,7 @@
     align-items: center;
     font-size: 1.6rem;
     font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
+    margin-bottom: .2rem;
   }
 
   &--line-icon {
@@ -86,5 +83,4 @@
     padding-left: $tree-level-translation;
     padding-top: .2rem;
   }
-
 }

@@ -59,12 +59,14 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                     }
                 }
             } else {
-                div(classes = "book-tree-view--label book-tree-view--label__selected") {
-                    attrs {
-                        onClickFunction = ::startAddingBookItem
-                    }
-                    span(classes = "book-tree-view--empty") {
-                        +"(Add Item ...)"
+                div(classes = "book-tree-view--item") {
+                    div(classes = "book-tree-view--label book-tree-view--label__selected") {
+                        attrs {
+                            onClickFunction = ::startAddingBookItem
+                        }
+                        span(classes = "book-tree-view--empty") {
+                            +"(Add Item ...)"
+                        }
                     }
                 }
             }
