@@ -92,7 +92,7 @@ class AspectServiceDeletingTest {
         val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP" , listOf(aspectProperty))
         aspectService.save(aspectData2)
 
-        thrown.expect(AspectHasIncomingEdgesException::class.java)
+        thrown.expect(AspectHasLinkedEntitiesException::class.java)
         aspectService.remove(aspectService.findById(aspect.id))
 
     }
