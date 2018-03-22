@@ -24,7 +24,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
         }
     }
 
-    private fun cancelBookItemUpdating() {
+    private fun cancelUpdatingBookItem() {
         setState {
             updatingBookItem = false
         }
@@ -47,7 +47,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                     val bookItem = props.bookItem
                     attrs {
                         this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, null, props.book.name)
-                        onCancel = ::cancelBookItemUpdating
+                        onCancel = ::cancelUpdatingBookItem
                         onSubmit = ::updateBookItem
                     }
                 }

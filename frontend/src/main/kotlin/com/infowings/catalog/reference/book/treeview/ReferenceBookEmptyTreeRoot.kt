@@ -23,7 +23,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         props.startCreatingBook(props.aspectName)
     }
 
-    private fun cancelBookCreating() {
+    private fun cancelCreatingBook() {
         setState {
             creatingBook = false
         }
@@ -45,7 +45,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                     bookEditConsole {
                         attrs {
                             bookData = ReferenceBookData(null, "", props.aspectId)
-                            onCancel = ::cancelBookCreating
+                            onCancel = ::cancelCreatingBook
                             onSubmit = props.createBook
                         }
                     }

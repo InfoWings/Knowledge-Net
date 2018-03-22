@@ -34,7 +34,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         }
     }
 
-    private fun cancelBookItemCreating() {
+    private fun cancelCreatingBookItem() {
         setState {
             creatingBookItem = false
         }
@@ -97,7 +97,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
             bookItemEditConsole {
                 attrs {
                     bookItemData = ReferenceBookItemData(null, "", props.book.id, props.book.name)
-                    onCancel = ::cancelBookItemCreating
+                    onCancel = ::cancelCreatingBookItem
                     onSubmit = ::createBookItem
                 }
             }
