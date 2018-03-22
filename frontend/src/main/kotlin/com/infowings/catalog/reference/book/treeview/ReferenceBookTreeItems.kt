@@ -16,7 +16,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         creatingBookItem = false
     }
 
-    private fun startAddingBookItem(e: Event) {
+    private fun startCreatingBookItem(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
@@ -62,7 +62,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                 div(classes = "book-tree-view--item") {
                     div(classes = "book-tree-view--label book-tree-view--label__selected") {
                         attrs {
-                            onClickFunction = ::startAddingBookItem
+                            onClickFunction = ::startCreatingBookItem
                         }
                         span(classes = "book-tree-view--empty") {
                             +"(Add Item ...)"

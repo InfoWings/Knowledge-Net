@@ -28,20 +28,20 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         }
     }
 
-    private fun startBookUpdating(e: Event) {
+    private fun startUpdatingBook(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         val book = props.book
         setState {
             updatingBook = true
         }
-        props.startBookUpdating(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
+        props.startUpdatingBook(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
     }
 
     override fun RBuilder.render() {
         div(classes = "book-tree-view--label${if (props.selected) " book-tree-view--label__selected" else ""}") {
             attrs {
-                onClickFunction = ::startBookUpdating
+                onClickFunction = ::startUpdatingBook
             }
             span(classes = "book-tree-view--label-name") {
                 +props.aspectName
@@ -51,7 +51,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
                 val book = props.book
                 bookEditConsole {
                     attrs {
-                        this.book = ReferenceBookData(book.id, book.name, book.aspectId)
+                        this.bookData = ReferenceBookData(book.id, book.name, book.aspectId)
                         onCancel = ::cancelBookUpdating
                         onSubmit = ::updateBook
                     }
@@ -67,7 +67,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     interface Props : RProps {
         var aspectName: String
         var book: ReferenceBook
-        var startBookUpdating: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var startUpdatingBook: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
         var updateBook: (bookName: String, ReferenceBookData) -> Unit
     }

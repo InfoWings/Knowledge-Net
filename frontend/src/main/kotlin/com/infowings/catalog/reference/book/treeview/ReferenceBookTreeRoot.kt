@@ -69,7 +69,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     aspectName = props.aspectName
                     book = props.book
-                    startBookUpdating = props.startBookUpdating
+                    startUpdatingBook = props.startUpdatingBook
                     updateBook = props.updateBook
                     selected = props.selected
                 }
@@ -107,7 +107,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     interface Props : RProps {
         var book: ReferenceBook
         var aspectName: String
-        var startBookUpdating: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var startUpdatingBook: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
         var updateBook: (bookName: String, ReferenceBookData) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit

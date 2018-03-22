@@ -44,7 +44,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                 if (state.creatingBook && selected) {
                     bookEditConsole {
                         attrs {
-                            book = ReferenceBookData(null, "", props.aspectId)
+                            bookData = ReferenceBookData(null, "", props.aspectId)
                             onCancel = ::cancelBookCreating
                             onSubmit = props.createBook
                         }

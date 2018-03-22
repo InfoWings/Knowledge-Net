@@ -25,7 +25,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
         selectedBookData = null
     }
 
-    private fun startBookUpdating(aspectName: String, bookData: ReferenceBookData) {
+    private fun startUpdatingBook(aspectName: String, bookData: ReferenceBookData) {
         setState {
             selectedAspectName = aspectName
             selectedBookData = bookData
@@ -64,7 +64,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 aspectName = rowData.aspectName
                                 book = rowData.book
                                 selected = rowData.aspectName == state.selectedAspectName
-                                startBookUpdating = ::startBookUpdating
+                                startUpdatingBook = ::startUpdatingBook
                                 updateBook = ::updateBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem

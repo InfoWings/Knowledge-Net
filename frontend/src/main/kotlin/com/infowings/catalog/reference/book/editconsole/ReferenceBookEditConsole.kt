@@ -12,13 +12,13 @@ class ReferenceBookEditConsole(props: Props) :
     RComponent<ReferenceBookEditConsole.Props, ReferenceBookEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
-        bookName = props.book.name
+        bookName = props.bookData.name
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.book.id != nextProps.book.id) {
+        if (props.bookData.id != nextProps.bookData.id) {
             setState {
-                bookName = nextProps.book.name
+                bookName = nextProps.bookData.name
             }
         }
     }
@@ -30,7 +30,7 @@ class ReferenceBookEditConsole(props: Props) :
             27 -> props.onCancel() //esc
             13 -> {
                 if (state.bookName.isNullOrEmpty()) error("Reference Book Name is empty")
-                props.onSubmit(props.book.copy(name = state.bookName))
+                props.onSubmit(props.bookData.copy(name = state.bookName))
             } //Enter
         }
     }
@@ -65,7 +65,7 @@ class ReferenceBookEditConsole(props: Props) :
     }
 
     interface Props : RProps {
-        var book: ReferenceBookData
+        var bookData: ReferenceBookData
         var onCancel: () -> Unit
         var onSubmit: (ReferenceBookData) -> Unit
     }

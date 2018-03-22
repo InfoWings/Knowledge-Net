@@ -16,7 +16,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
         updatingBookItem = false
     }
 
-    private fun startBookItemUpdating(e: Event) {
+    private fun startUpdatingBookItem(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
@@ -40,7 +40,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     override fun RBuilder.render() {
         div(classes = "book-tree-view--label") {
             attrs {
-                onClickFunction = ::startBookItemUpdating
+                onClickFunction = ::startUpdatingBookItem
             }
             if (state.updatingBookItem) {
                 bookItemEditConsole {
