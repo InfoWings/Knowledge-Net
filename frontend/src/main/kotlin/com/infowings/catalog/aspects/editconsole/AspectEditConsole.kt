@@ -9,6 +9,7 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -89,6 +90,14 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectChanged = true
         inputRef?.blur()
         props.onCancel()
+    }
+
+    private fun handleDeleteClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onDelete(props.aspect)
     }
 
     private fun assignInputRef(element: HTMLInputElement?) {
@@ -203,7 +212,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         attrs {
                             onClickFunction = ::handleCancelClick
                         }
-                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__yellow") {}
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleDeleteClick
+                        }
+                        ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }
@@ -214,6 +229,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspect: AspectData
         var onCancel: () -> Unit
         var onSubmit: (AspectData) -> Unit
+        var onDelete: (AspectData) -> Unit
         var onSwitchToProperties: (AspectData) -> Unit
     }
 

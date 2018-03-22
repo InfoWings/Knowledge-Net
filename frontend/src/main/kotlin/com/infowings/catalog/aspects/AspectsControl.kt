@@ -51,6 +51,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
+    private fun handleDeleteAspect(aspect: AspectData) {
+        setState {
+            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspectPropertyIndex = null
+        }
+    }
+
     private fun handleSubmitAspectChanges(aspectData: AspectData) {
         if (aspectData.id == null) {
             setState {
@@ -125,6 +132,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         selectedAspectPropertyIndex = currentSelectedAspectPropertyIndex + 1
     }
 
+    private fun handleDeleteProperty(aspectProperty: AspectPropertyData) {
+        setState {
+            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspectPropertyIndex = null
+        }
+    }
+
     private fun handleSaveParentAspect(aspectProperty: AspectPropertyData) {
         val currentSelectedAspect = state.selectedAspect
                 ?: error("handleSwitchToNextProperty when no aspect is selected")
@@ -192,6 +206,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                     attrs {
                         aspect = selectedAspect
                         onCancel = ::handleCancelChanges
+                        onDelete = ::handleDeleteAspect
                         onSubmit = ::handleSubmitAspectChanges
                         onSwitchToProperties = ::handleSwitchToAspectProperties
                     }
@@ -204,6 +219,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                         childAspect = if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
                         else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]!!
                         onCancel = ::handleCancelChanges
+                        onDelete = ::handleDeleteProperty
                         onSwitchToNextProperty = ::handleSwitchToNextProperty
                         onSaveParentAspect = ::handleSaveParentAspect
                     }

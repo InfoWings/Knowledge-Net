@@ -13,6 +13,7 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -143,6 +144,12 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         props.onCancel()
     }
 
+    private fun handleDeleteClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onDelete(props.parentAspect.properties[props.aspectPropertyIndex])
+    }
+
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
@@ -205,7 +212,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         attrs {
                             onClickFunction = ::handleCancelClick
                         }
-                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__yellow") {}
+                    }
+
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleDeleteClick
+                        }
+                        ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }
@@ -263,6 +277,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
         var onCancel: () -> Unit
+        var onDelete: (AspectPropertyData) -> Unit
         var onSwitchToNextProperty: (AspectPropertyData) -> Unit
         var onSaveParentAspect: (AspectPropertyData) -> Unit
     }
