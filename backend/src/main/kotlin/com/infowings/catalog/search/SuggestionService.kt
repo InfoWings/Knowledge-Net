@@ -3,7 +3,9 @@ package com.infowings.catalog.search
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.*
-import com.infowings.catalog.data.aspect.toAspectData
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
@@ -15,7 +17,28 @@ import com.orientechnologies.orient.core.sql.executor.OResult
  */
 class SuggestionService(val database: OrientDatabase) {
 
-    fun findMeasure(commonParam: CommonSuggestionParam?, measureGroupName: String?): List<Measure<*>> =
+    fun findMeasure(
+        commonParam: CommonSuggestionParam?,
+        measureGroupName: String?,
+        findInGroups: Boolean
+    ): List<String> =
+        findMeasure(commonParam, measureGroupName).map { it.name } +
+                if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+
+    private fun findMeasureGroups(text: String?): List<String> {
+        if (text == null) {
+            return emptyList()
+        }
+        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_CLASS(?) = true"
+        return database.query(q, luceneQuery(text)) {
+            it.mapNotNull { it.toVertexOrNUll()?.getProperty<String>("name") }.toList()
+        }
+    }
+
+    fun findMeasure(
+        commonParam: CommonSuggestionParam?,
+        measureGroupName: String?
+    ): List<Measure<*>> =
         session(database) {
             findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
                 .toList()
@@ -50,15 +73,15 @@ class SuggestionService(val database: OrientDatabase) {
         context: SearchContext,
         commonParam: CommonSuggestionParam?,
         aspectParam: AspectSuggestionParam?
-    ): Sequence<OVertex> {
+    ): Sequence<AspectVertex> {
         val aspectId = context.aspectId
         val res: Sequence<OResult> =
             if (aspectParam?.measureName != null || aspectParam?.measureText != null) {
                 val measureName = textOrAllWildcard(aspectParam.measureName)
                 val measureText = textOrAllWildcard(aspectParam.measureText)
                 val aspectText = textOrAllWildcard(commonParam?.text)
-                val q = "SELECT FROM $ASPECT_CLASS " +
-                        "   WHERE @rid IN " +
+                val q = selectFromAspectWithoutDeleted +
+                        "    AND @rid IN " +
                         "          (SELECT @rid FROM " +
                         "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
                         "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(:$lqm) = true OR name = :$unitName ))) " +
@@ -84,13 +107,13 @@ class SuggestionService(val database: OrientDatabase) {
                 }
             } else {
                 if (aspectId == null) {
-                    val q = "SELECT FROM $ASPECT_CLASS WHERE SEARCH_CLASS(:$lq) = true"
+                    val q = "$selectFromAspectWithoutDeleted AND SEARCH_CLASS(:$lq) = true"
                     database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
                 }
             }
-        return res.mapNotNull { it.toVertexOrNUll() }
+        return res.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }
     }
 
     private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text
@@ -103,11 +126,11 @@ class SuggestionService(val database: OrientDatabase) {
      * @return list of aspects that contains "text" in its name or other fields
      */
     fun findAspectNoCycle(aspectId: String, text: String): List<AspectData> = session(database) {
-        findAspectVertexNoCycle(aspectId, text).mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+        findAspectVertexNoCycle(aspectId, text).mapNotNull { it.toVertexOrNUll()?.toAspectVertex()?.toAspectData() }.toList()
     }
 
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
-        val q = "select * from $ASPECT_CLASS where SEARCH_CLASS(:$lq) = true and $noCycle"
+        val q = "$selectFromAspectWithoutDeleted AND SEARCH_CLASS(:$lq) = true AND $noCycle"
         database.query(q, mapOf(lq to luceneQuery(text), aspectRecord to ORecordId(aspectId))) { it }
     }
 
@@ -118,7 +141,7 @@ class SuggestionService(val database: OrientDatabase) {
     fun findParentAspects(aspectId: String): List<AspectData> = session(database) {
         val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord"
         return@session database.query(q, mapOf(aspectRecord to ORecordId(aspectId))) {
-            it.mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+            it.mapNotNull { it.toVertexOrNUll()?.toAspectVertex()?.toAspectData() }.toList()
         }
     }
 

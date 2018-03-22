@@ -6,8 +6,6 @@ import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
-import com.infowings.catalog.external.RemoveStatus
-import com.infowings.catalog.external.StatusType
 import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -18,10 +16,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
+
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class AspectServiceTest {
+class AspectServiceSavingTest {
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -210,64 +209,6 @@ class AspectServiceTest {
         )
     }
 
-    @Test
-    fun testDeleteAbsentAspect() {
-        val name = "NON_EXISTENT_ASPECT"
-        val res = aspectService.removeByName(name)
-        assertThat(
-                "attempt to remove absent aspect should be reported properly",
-                res.status,
-                Is.`is`(StatusType.ABSENT)
-        )
-        assertThat(
-                "aspect name in status must be correct",
-                res.aspectName,
-                Is.`is`(name)
-        )
-    }
-
-    @Test
-    fun testDeleteStandaloneAspect() {
-        val name = "SOME_ASPECT"
-        val ad = AspectData("", name, null, null, Decimal.name, emptyList())
-
-        aspectService.save(ad)
-
-        val res = aspectService.removeByName(name)
-
-        assertThat(
-                "attempt to remove existing aspect with no edges should be reported properly",
-                res.status,
-                Is.`is`(StatusType.REMOVED)
-        )
-        assertThat(
-                "aspect name in status must be correct",
-                res.aspectName,
-                Is.`is`(name)
-        )
-    }
-
-    @Test
-    fun testDeleteAspectWithProperty() {
-        val name = "SOME_ASPECT"
-        val ad = AspectData("", name, null, null, Decimal.name, emptyList())
-
-
-        aspectService.save(ad)
-
-        val res = aspectService.removeByName(name)
-
-        assertThat(
-                "attempt to remove existing aspect with no edges should be reported properly",
-                res.status,
-                Is.`is`(StatusType.REMOVED)
-        )
-        assertThat(
-                "aspect name in status must be correct",
-                res.aspectName,
-                Is.`is`(name)
-        )
-    }
 
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {

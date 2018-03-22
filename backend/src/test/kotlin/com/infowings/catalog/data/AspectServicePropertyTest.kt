@@ -37,6 +37,11 @@ class AspectServicePropertyTest {
     lateinit var complexAspect: Aspect
     lateinit var baseAspect: Aspect
 
+    /**
+     * complexAspect
+     *     -> property
+     *             -> baseAspect
+     */
     @Before
     fun addAspectWithProperty() {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
