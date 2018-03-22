@@ -1,7 +1,8 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.wrappers.select.*
+import com.infowings.catalog.wrappers.select.SelectOption
+import com.infowings.catalog.wrappers.select.asyncCreatableSelect
 import kotlinext.js.jsObject
 import kotlinx.coroutines.experimental.launch
 import react.RBuilder
@@ -43,7 +44,7 @@ class AspectSuggestingInput : RComponent<AspectSuggestingInput.Props, AspectSugg
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {
                         launch {
-                            val searchResult = getSuggestedAspects(input)
+                            val searchResult = getSuggestedAspects(input, null, null)
                             callback(null, jsObject {
                                 options = searchResult.aspects.map { aspectOption(it) }.toTypedArray()
                             })
