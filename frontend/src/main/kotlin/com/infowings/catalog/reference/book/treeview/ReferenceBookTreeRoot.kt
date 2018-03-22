@@ -105,10 +105,10 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 
     interface Props : RProps {
-        var book: ReferenceBook
         var aspectName: String
-        var startUpdatingBook: (aspectName: String) -> Unit
+        var book: ReferenceBook
         var selected: Boolean
+        var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: (bookName: String, ReferenceBookData) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit
         var updateBookItem: (ReferenceBookItemData) -> Unit

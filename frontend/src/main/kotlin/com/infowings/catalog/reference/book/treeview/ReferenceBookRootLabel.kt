@@ -66,8 +66,8 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     interface Props : RProps {
         var aspectName: String
         var book: ReferenceBook
-        var startUpdatingBook: (aspectName: String) -> Unit
         var selected: Boolean
+        var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: (bookName: String, ReferenceBookData) -> Unit
     }
 
