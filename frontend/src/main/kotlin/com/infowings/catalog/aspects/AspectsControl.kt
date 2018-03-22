@@ -16,9 +16,10 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     companion object {
         init {
-            require("styles/aspect-edit-console.scss")
+            require("styles/aspect-edit-console.scss") // Styles regarding aspect console
         }
     }
+
 
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = if (!props.loading)

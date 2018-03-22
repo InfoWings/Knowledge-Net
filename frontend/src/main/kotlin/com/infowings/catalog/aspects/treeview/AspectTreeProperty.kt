@@ -2,7 +2,9 @@ package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.wrappers.react.use
+import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.squareMinusIcon
+import com.infowings.catalog.utils.squarePlusIcon
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -33,14 +35,17 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
             if (childAspect != null && childAspect.properties.isNotEmpty()) {
-                svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
-                    attrs {
-                        onClickFunction = ::handleExpanderClick
+                if (state.expanded) {
+                    squareMinusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
-                    if (state.expanded) {
-                        use("svg/sprite.svg#icon-squared-minus")
-                    } else {
-                        use("svg/sprite.svg#icon-squared-plus")
+                } else {
+                    squarePlusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
                 }
             } else {
@@ -56,11 +61,10 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 }
             }
             if (props.aspect != null) {
-                svg("aspect-tree-view--add-to-list-icon") {
+                addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
                     attrs {
                         onClickFunction = ::handleAddToListClick
                     }
-                    use("svg/sprite.svg#icon-add-to-list")
                 }
             }
         }

@@ -10,7 +10,9 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.wrappers.react.use
+import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.checkIcon
+import com.infowings.catalog.utils.crossIcon
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -18,7 +20,6 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
-import react.dom.svg
 
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
@@ -192,25 +193,19 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         attrs {
                             onClickFunction = ::handleSubmitAspectClick
                         }
-                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
-                            use("svg/sprite.svg#icon-check")
-                        }
+                        checkIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
                     }
                     div(classes = "aspect-edit-console--button-control") {
                         attrs {
                             onClickFunction = ::handleNextPropertyClick
                         }
-                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {
-                            use("svg/sprite.svg#icon-add-to-list")
-                        }
+                        addToListIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
                     }
                     div(classes = "aspect-edit-console--button-control") {
                         attrs {
                             onClickFunction = ::handleCancelClick
                         }
-                        svg(classes = "aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {
-                            use("svg/sprite.svg#icon-cross")
-                        }
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }

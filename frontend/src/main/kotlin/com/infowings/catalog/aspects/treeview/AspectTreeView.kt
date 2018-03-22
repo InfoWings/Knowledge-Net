@@ -6,16 +6,12 @@ import kotlinext.js.require
 import react.*
 import react.dom.div
 
-class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTreeView.State>(props) {
+class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     companion object {
         init {
             require("styles/aspect-tree-view.scss")
         }
-    }
-
-    override fun State.init(props: Props) {
-        buildingNewAspect = props.aspects.isEmpty()
     }
 
     override fun RBuilder.render() {
@@ -35,10 +31,6 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
                 }
             }
         }
-    }
-
-    interface State : RState {
-        var buildingNewAspect: Boolean
     }
 
     interface Props : RProps {
