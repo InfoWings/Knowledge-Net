@@ -26,7 +26,6 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         setState {
             editing = false
         }
-        props.cancelBookCreating
     }
 
     private fun handleBookRootLabelClick(e: Event) {
@@ -71,7 +70,6 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         var onClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
         var submitBookChanges: (name: String, ReferenceBookData) -> Unit
-        var cancelBookCreating: () -> Unit
     }
 
     interface State : RState {

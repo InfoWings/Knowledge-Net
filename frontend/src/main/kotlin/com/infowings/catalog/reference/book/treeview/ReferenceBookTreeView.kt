@@ -23,47 +23,37 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
 
     override fun State.init(props: ReferenceBookApiReceiverProps) {
         selectedAspectName = null
-        selectedBook = null
-        creatingNewBook = false
+        selectedBookData = null
     }
 
-    private fun onBookClick(aspectName: String, book: ReferenceBookData) {
+    private fun onBookClick(aspectName: String, bookData: ReferenceBookData) {
         setState {
             selectedAspectName = aspectName
-            selectedBook = book
-            creatingNewBook = false
+            selectedBookData = bookData
         }
     }
 
-    private fun startCreatingNewBook(aspectName: String, e: Event) {
+    private fun startCreatingBook(aspectName: String, e: Event) {
         e.stopPropagation()
         e.preventDefault()
         setState {
             selectedAspectName = aspectName
-            selectedBook = null
-            creatingNewBook = true
+            selectedBookData = null
         }
     }
 
-    private fun cancelBookCreating() {
+    private fun createBook(bookData: ReferenceBookData) {
         setState {
-            creatingNewBook = false
+            selectedBookData = bookData
         }
+        props.createBook(bookData)
     }
 
-    private fun submitBookCreating(book: ReferenceBookData) {
+    private fun updateBook(bookName: String, bookData: ReferenceBookData) {
         setState {
-            selectedBook = book
+            selectedBookData = bookData
         }
-        props.createBook(book)
-
-    }
-
-    private fun submitBookChanges(name: String, book: ReferenceBookData) {
-        setState {
-            selectedBook = book
-        }
-        props.updateBook(name, book)
+        props.updateBook(bookName, bookData)
 
     }
 
@@ -76,10 +66,9 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                             attrs {
                                 aspectName = rowData.aspectName
                                 book = rowData.book
-                                selectedAspectName = state.selectedAspectName
+                                selected = rowData.aspectName == state.selectedAspectName
                                 onBookClick = ::onBookClick
-                                submitBookChanges = ::submitBookChanges
-                                cancelBookCreating = ::cancelBookCreating
+                                submitBookChanges = ::updateBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
                             }
@@ -87,13 +76,11 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                     } else {
                         referenceBookEmptyTreeRoot {
                             attrs {
-                                selectedAspectName = state.selectedAspectName
+                                selected = rowData.aspectName == state.selectedAspectName
                                 aspectId = rowData.aspectId
                                 aspectName = rowData.aspectName
-                                creatingNewBook = state.creatingNewBook
-                                startCreatingNewBook = ::startCreatingNewBook
-                                cancelBookCreating = ::cancelBookCreating
-                                submitBookChanges = ::submitBookCreating
+                                startCreatingNewBook = ::startCreatingBook
+                                submitBookChanges = ::createBook
                             }
                         }
                     }
@@ -102,8 +89,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
     }
 
     interface State : RState {
-        var creatingNewBook: Boolean
-        var selectedBook: ReferenceBookData?
+        var selectedBookData: ReferenceBookData?
         var selectedAspectName: String?
     }
 }

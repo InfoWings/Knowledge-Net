@@ -8,14 +8,28 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, RState>() {
+class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, ReferenceBookEmptyTreeRoot.State>() {
+
+    override fun State.init(props: ReferenceBookEmptyTreeRoot.Props) {
+        creatingBook = false
+    }
 
     private fun startCreatingNewBook(e: Event) {
+        setState {
+            creatingBook = true
+        }
         props.startCreatingNewBook(props.aspectName, e)
     }
 
+    private fun cancelBookCreating() {
+        setState {
+            creatingBook = false
+        }
+    }
+
+
     override fun RBuilder.render() {
-        val selected = props.selectedAspectName == props.aspectName
+        val selected = props.selected
         div(classes = "book-tree-view--root") {
             div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
                 attrs {
@@ -25,11 +39,11 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                     +props.aspectName
                 }
                 +":"
-                if (props.creatingNewBook && selected) {
+                if (state.creatingBook && selected) {
                     bookEditConsole {
                         attrs {
                             book = ReferenceBookData(null, "", props.aspectId)
-                            onCancel = props.cancelBookCreating
+                            onCancel = ::cancelBookCreating
                             onSubmit = props.submitBookChanges
                         }
                     }
@@ -43,13 +57,16 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
     }
 
     interface Props : RProps {
-        var creatingNewBook: Boolean
         var aspectId: String
         var aspectName: String
-        var selectedAspectName: String?
+        var selected: Boolean
         var startCreatingNewBook: (aspectName: String, e: Event) -> Unit
-        var cancelBookCreating: () -> Unit
         var submitBookChanges: (ReferenceBookData) -> Unit
+    }
+
+
+    interface State : RState {
+        var creatingBook: Boolean
     }
 }
 
