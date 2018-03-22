@@ -4,14 +4,13 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
+import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
-import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
-import react.dom.svg
 
 class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceBookTreeItem.State>() {
 
@@ -64,13 +63,6 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                         }
                     }
                 }
-            } else {
-                svg("book-tree-view--line-icon") {
-                    attrs {
-                        onClickFunction = ::startAddingBookItem
-                    }
-                    use("svg/sprite.svg#icon-add-to-list")
-                }
             }
 
             referenceBookItemLabel {
@@ -78,6 +70,14 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     book = props.book
                     bookItem = props.bookItem
                     updateBookItem = props.updateBookItem
+                }
+            }
+
+            if (props.bookItem.children.isEmpty()) {
+                addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                    attrs {
+                        onClickFunction = ::startAddingBookItem
+                    }
                 }
             }
         }
