@@ -28,6 +28,7 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
                 baseTypeObj?.let { OpenDomain(it).toString() },
                 baseType,
                 properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            deleted,
                 version)
     }
 
@@ -75,7 +76,7 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
 class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
 
     fun toAspectPropertyData(): AspectPropertyData =
-            AspectPropertyData(id, name, aspect, cardinality, version)
+        AspectPropertyData(id, name, aspect, cardinality, false, version)
 
     var name: String
         get() = vertex["name"]
