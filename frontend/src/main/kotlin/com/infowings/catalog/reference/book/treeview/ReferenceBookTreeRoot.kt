@@ -4,6 +4,8 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
+import com.infowings.catalog.utils.squareMinusIcon
+import com.infowings.catalog.utils.squarePlusIcon
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -49,14 +51,17 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     override fun RBuilder.render() {
         div(classes = "book-tree-view--root") {
             if (props.book.children.isNotEmpty()) {
-                svg("book-tree-view--line-icon book-tree-view--line-icon__clickable") {
-                    attrs {
-                        onClickFunction = ::handleExpanderClick
+                if (state.expanded) {
+                    squareMinusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
-                    if (state.expanded) {
-                        use("svg/sprite.svg#icon-squared-minus")
-                    } else {
-                        use("svg/sprite.svg#icon-squared-plus")
+                } else {
+                    squarePlusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
                 }
             } else {
