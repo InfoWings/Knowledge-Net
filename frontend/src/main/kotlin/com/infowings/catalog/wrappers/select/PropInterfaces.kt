@@ -316,7 +316,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     /**
      * value to set when the control is cleared
      */
-    var resetValue: Any
+    var resetValue: Any?
 
     /**
      * use react-select in right-to-left direction

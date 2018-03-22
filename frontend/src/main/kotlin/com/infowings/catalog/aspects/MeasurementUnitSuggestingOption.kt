@@ -33,6 +33,11 @@ class MeasurementUnitSuggestingOption : RComponent<OptionComponentProps<Measurem
     }
 
     override fun RBuilder.render() {
+        val currentOptionRef = optionRef
+        val offsetParent = currentOptionRef?.let {
+            it.offsetParent?.querySelector(".Select-menu")
+                    ?: error("Measurement Unit Option should be positioned inside options container")
+        }
         div(classes = "mu-option ${props.className}") {
             attrs {
                 role = "option"
@@ -45,7 +50,8 @@ class MeasurementUnitSuggestingOption : RComponent<OptionComponentProps<Measurem
                     attrs {
                         measurementUnit = props.option.measurementUnit
                         onUnitClick = { optionName, event -> props.onSelect(measurementUnitOption(optionName), event) }
-                        relativeHeight = optionRef?.offsetTop
+                        relativeHeight = currentOptionRef?.let { currentOptionRef.offsetTop - offsetParent!!.scrollTop.toInt() + currentOptionRef.offsetHeight }
+                        currentOptionRef?.offsetParent?.scrollHeight
                     }
                 }
             }
