@@ -13,26 +13,26 @@ import react.dom.span
 class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, ReferenceBookItemLabel.State>() {
 
     override fun State.init() {
-        editing = false
+        updatingBookItem = false
     }
 
-    private fun handleBookItemLabelClick(e: Event) {
+    private fun startBookItemUpdating(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
-            editing = true
+            updatingBookItem = true
         }
     }
 
-    private fun cancelBookItemEditing() {
+    private fun cancelBookItemUpdating() {
         setState {
-            editing = false
+            updatingBookItem = false
         }
     }
 
     private fun updateBookItem(bookItemData: ReferenceBookItemData) {
         setState {
-            editing = false
+            updatingBookItem = false
         }
         props.updateBookItem(bookItemData)
     }
@@ -40,14 +40,14 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     override fun RBuilder.render() {
         div(classes = "book-tree-view--label") {
             attrs {
-                onClickFunction = ::handleBookItemLabelClick
+                onClickFunction = ::startBookItemUpdating
             }
-            if (state.editing) {
+            if (state.updatingBookItem) {
                 bookItemEditConsole {
                     val bookItem = props.bookItem
                     attrs {
                         this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, null, props.book.name)
-                        onCancel = ::cancelBookItemEditing
+                        onCancel = ::cancelBookItemUpdating
                         onSubmit = ::updateBookItem
                     }
                 }
@@ -66,7 +66,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     }
 
     interface State : RState {
-        var editing: Boolean
+        var updatingBookItem: Boolean
     }
 }
 

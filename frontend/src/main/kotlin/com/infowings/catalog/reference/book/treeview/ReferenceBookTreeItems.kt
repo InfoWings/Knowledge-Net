@@ -13,26 +13,26 @@ import react.dom.span
 class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, ReferenceBookTreeItems.State>() {
 
     override fun State.init() {
-        addingBookItem = false
+        creatingBookItem = false
     }
 
     private fun startAddingBookItem(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
-            addingBookItem = true
+            creatingBookItem = true
         }
     }
 
     private fun cancelBookItemCreating() {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
     }
 
     private fun createBookItem(bookItemData: ReferenceBookItemData) {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
         props.createBookItem(bookItemData)
     }
@@ -50,7 +50,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                     }
                 }
             }
-            if (state.addingBookItem) {
+            if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
                         bookItemData = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.book.name)
@@ -82,7 +82,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
     }
 
     interface State : RState {
-        var addingBookItem: Boolean
+        var creatingBookItem: Boolean
     }
 }
 

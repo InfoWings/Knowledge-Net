@@ -15,7 +15,7 @@ import react.dom.div
 class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceBookTreeItem.State>() {
 
     override fun State.init() {
-        addingBookItem = false
+        creatingBookItem = false
     }
 
     private fun handleExpanderClick(e: Event) {
@@ -26,23 +26,23 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         }
     }
 
-    private fun startAddingBookItem(e: Event) {
+    private fun startCreatingBookItem(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
-            addingBookItem = true
+            creatingBookItem = true
         }
     }
 
     private fun cancelBookItemCreating() {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
     }
 
     private fun createBookItem(bookItemData: ReferenceBookItemData) {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
         props.createBookItem(bookItemData)
     }
@@ -76,7 +76,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             if (props.bookItem.children.isEmpty()) {
                 addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                     attrs {
-                        onClickFunction = ::startAddingBookItem
+                        onClickFunction = ::startCreatingBookItem
                     }
                 }
             }
@@ -94,7 +94,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             }
         }
         div(classes = "book-tree-view--item") {
-            if (state.addingBookItem) {
+            if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
                         bookItemData = ReferenceBookItemData(null, "", props.bookItem.id, props.book.name)
@@ -115,7 +115,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     interface State : RState {
         var expanded: Boolean
-        var addingBookItem: Boolean
+        var creatingBookItem: Boolean
     }
 }
 

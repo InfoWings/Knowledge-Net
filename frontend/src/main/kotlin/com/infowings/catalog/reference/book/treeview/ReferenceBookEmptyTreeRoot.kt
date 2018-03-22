@@ -14,11 +14,13 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         creatingBook = false
     }
 
-    private fun startCreatingNewBook(e: Event) {
+    private fun startCreatingBook(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
         setState {
             creatingBook = true
         }
-        props.startCreatingNewBook(props.aspectName, e)
+        props.startCreatingBook(props.aspectName)
     }
 
     private fun cancelBookCreating() {
@@ -33,7 +35,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         div(classes = "book-tree-view--root") {
             div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
                 attrs {
-                    onClickFunction = ::startCreatingNewBook
+                    onClickFunction = ::startCreatingBook
                 }
                 span(classes = "book-tree-view--label-name") {
                     +props.aspectName
@@ -44,7 +46,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                         attrs {
                             book = ReferenceBookData(null, "", props.aspectId)
                             onCancel = ::cancelBookCreating
-                            onSubmit = props.submitBookChanges
+                            onSubmit = props.createBook
                         }
                     }
                 } else {
@@ -60,10 +62,9 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         var aspectId: String
         var aspectName: String
         var selected: Boolean
-        var startCreatingNewBook: (aspectName: String, e: Event) -> Unit
-        var submitBookChanges: (ReferenceBookData) -> Unit
+        var startCreatingBook: (selectedAspectName: String) -> Unit
+        var createBook: (ReferenceBookData) -> Unit
     }
-
 
     interface State : RState {
         var creatingBook: Boolean

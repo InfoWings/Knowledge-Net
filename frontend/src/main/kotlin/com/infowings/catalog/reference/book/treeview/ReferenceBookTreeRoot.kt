@@ -15,7 +15,7 @@ import react.dom.div
 class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceBookTreeRoot.State>() {
 
     override fun State.init() {
-        addingBookItem = false
+        creatingBookItem = false
     }
 
     private fun handleExpanderClick(e: Event) {
@@ -26,23 +26,23 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         }
     }
 
-    private fun startAddingBookItem(e: Event) {
+    private fun startCreatingBookItem(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         setState {
-            addingBookItem = true
+            creatingBookItem = true
         }
     }
 
     private fun cancelBookItemCreating() {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
     }
 
     private fun createBookItem(bookItemData: ReferenceBookItemData) {
         setState {
-            addingBookItem = false
+            creatingBookItem = false
         }
         props.createBookItem(bookItemData)
     }
@@ -69,8 +69,8 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     aspectName = props.aspectName
                     book = props.book
-                    onClick = props.onBookClick
-                    submitBookChanges = props.submitBookChanges
+                    startBookUpdating = props.startBookUpdating
+                    updateBook = props.updateBook
                     selected = props.selected
                 }
             }
@@ -78,7 +78,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
             if(props.book.children.isEmpty()) {
                 addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                     attrs {
-                        onClickFunction = ::startAddingBookItem
+                        onClickFunction = ::startCreatingBookItem
                     }
                 }
             }
@@ -93,7 +93,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
         }
-        if (state.addingBookItem) {
+        if (state.creatingBookItem) {
             bookItemEditConsole {
                 attrs {
                     bookItemData = ReferenceBookItemData(null, "", props.book.id, props.book.name)
@@ -107,16 +107,16 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     interface Props : RProps {
         var book: ReferenceBook
         var aspectName: String
-        var onBookClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var startBookUpdating: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
-        var submitBookChanges: (name: String, ReferenceBookData) -> Unit
+        var updateBook: (bookName: String, ReferenceBookData) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit
         var updateBookItem: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
         var expanded: Boolean
-        var addingBookItem: Boolean
+        var creatingBookItem: Boolean
     }
 }
 

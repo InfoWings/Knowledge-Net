@@ -12,48 +12,48 @@ import react.dom.span
 class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, ReferenceBookRootLabel.State>() {
 
     override fun State.init() {
-        editing = false
+        updatingBook = false
     }
 
-    private fun submitBookChanges(bookData: ReferenceBookData) {
+    private fun updateBook(bookData: ReferenceBookData) {
         setState {
-            editing = false
+            updatingBook = false
         }
-        props.submitBookChanges(props.book.name, bookData)
+        props.updateBook(props.book.name, bookData)
     }
 
-    private fun cancelBookCreating() {
+    private fun cancelBookUpdating() {
         setState {
-            editing = false
+            updatingBook = false
         }
     }
 
-    private fun handleBookRootLabelClick(e: Event) {
+    private fun startBookUpdating(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         val book = props.book
         setState {
-            editing = true
+            updatingBook = true
         }
-        props.onClick(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
+        props.startBookUpdating(props.aspectName, ReferenceBookData(book.id, book.name, book.aspectId))
     }
 
     override fun RBuilder.render() {
         div(classes = "book-tree-view--label${if (props.selected) " book-tree-view--label__selected" else ""}") {
             attrs {
-                onClickFunction = ::handleBookRootLabelClick
+                onClickFunction = ::startBookUpdating
             }
             span(classes = "book-tree-view--label-name") {
                 +props.aspectName
             }
             +":"
-            if (props.selected && state.editing) {
+            if (props.selected && state.updatingBook) {
                 val book = props.book
                 bookEditConsole {
                     attrs {
                         this.book = ReferenceBookData(book.id, book.name, book.aspectId)
-                        onCancel = ::cancelBookCreating
-                        onSubmit = ::submitBookChanges
+                        onCancel = ::cancelBookUpdating
+                        onSubmit = ::updateBook
                     }
                 }
             } else {
@@ -67,13 +67,13 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     interface Props : RProps {
         var aspectName: String
         var book: ReferenceBook
-        var onClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
+        var startBookUpdating: (aspectName: String, bookData: ReferenceBookData) -> Unit
         var selected: Boolean
-        var submitBookChanges: (name: String, ReferenceBookData) -> Unit
+        var updateBook: (bookName: String, ReferenceBookData) -> Unit
     }
 
     interface State : RState {
-        var editing: Boolean
+        var updatingBook: Boolean
     }
 }
 

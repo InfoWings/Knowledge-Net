@@ -4,7 +4,6 @@ import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.reference.book.ReferenceBookApiReceiverProps
 import kotlinext.js.invoke
 import kotlinext.js.require
-import org.w3c.dom.events.Event
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -26,18 +25,16 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
         selectedBookData = null
     }
 
-    private fun onBookClick(aspectName: String, bookData: ReferenceBookData) {
+    private fun startBookUpdating(aspectName: String, bookData: ReferenceBookData) {
         setState {
             selectedAspectName = aspectName
             selectedBookData = bookData
         }
     }
 
-    private fun startCreatingBook(aspectName: String, e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
+    private fun startCreatingBook(selectedAspectName: String) {
         setState {
-            selectedAspectName = aspectName
+            this.selectedAspectName = selectedAspectName
             selectedBookData = null
         }
     }
@@ -67,8 +64,8 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 aspectName = rowData.aspectName
                                 book = rowData.book
                                 selected = rowData.aspectName == state.selectedAspectName
-                                onBookClick = ::onBookClick
-                                submitBookChanges = ::updateBook
+                                startBookUpdating = ::startBookUpdating
+                                updateBook = ::updateBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
                             }
@@ -79,8 +76,8 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 selected = rowData.aspectName == state.selectedAspectName
                                 aspectId = rowData.aspectId
                                 aspectName = rowData.aspectName
-                                startCreatingNewBook = ::startCreatingBook
-                                submitBookChanges = ::createBook
+                                startCreatingBook = ::startCreatingBook
+                                createBook = ::createBook
                             }
                         }
                     }
