@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
+import com.infowings.catalog.aspects.BadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
@@ -9,6 +10,7 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -16,6 +18,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.span
 
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
 
@@ -54,6 +57,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             aspectMeasure = nextProps.aspect.measure
             aspectDomain = nextProps.aspect.domain
             aspectBaseType = nextProps.aspect.baseType
+            badRequestErrorMessage = null
         }
     }
 
@@ -75,12 +79,24 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSubmit(props.aspect.copy(
-                name = state.aspectName ?: error("Aspect Name is null"),
-                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-        ))
+        tryMakeSubmitAspectRequest()
+    }
+
+    private fun tryMakeSubmitAspectRequest() {
+        launch {
+            try {
+                props.onSubmit(props.aspect.copy(
+                        name = state.aspectName ?: error("Aspect Name is null"),
+                        measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                        domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                        baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+                ))
+            } catch (exception: BadRequestException) {
+                setState {
+                    badRequestErrorMessage = exception.message
+                }
+            }
+        }
     }
 
     private fun handleCancelClick(e: Event) {
@@ -118,12 +134,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 } else {
                     aspectChanged = true
                     inputRef?.blur()
-                    props.onSubmit(props.aspect.copy(
-                            name = state.aspectName ?: error("Aspect Name is null"),
-                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                    ))
+                    tryMakeSubmitAspectRequest()
                 }
             }
         }
@@ -207,13 +218,21 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     }
                 }
             }
+            val badRequestErrorMessage = state.badRequestErrorMessage
+            if (badRequestErrorMessage != null) {
+                div(classes = "aspect-edit-console--error-message-container") {
+                    span(classes = "aspect-edit-console--error-message") {
+                        +badRequestErrorMessage
+                    }
+                }
+            }
         }
     }
 
     interface Props : RProps {
         var aspect: AspectData
         var onCancel: () -> Unit
-        var onSubmit: (AspectData) -> Unit
+        var onSubmit: suspend (AspectData) -> Unit
         var onSwitchToProperties: (AspectData) -> Unit
     }
 
@@ -222,6 +241,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var badRequestErrorMessage: String?
     }
 }
 

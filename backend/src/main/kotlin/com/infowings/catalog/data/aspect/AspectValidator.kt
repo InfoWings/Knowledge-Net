@@ -165,11 +165,11 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-            if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
-                throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
+                    throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                }
             }
         }
-    }
 
     private fun AspectPropertyData.checkForRemoved() = also {
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)

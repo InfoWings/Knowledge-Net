@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
+import com.infowings.catalog.aspects.BadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
@@ -13,6 +14,8 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -24,6 +27,7 @@ import react.dom.div
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
+    private var savingJob: Job? = null
 
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
@@ -46,6 +50,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
                 childAspectBaseType = nextProps.childAspect?.baseType
+                badRequestErrorMessage = null
             }
         }
     }
@@ -116,13 +121,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun handleSubmitAspectClick(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                cardinality = state.aspectPropertyCardinality
-                        ?: error("Can't save aspect property with cardinality == null"),
-                aspectId = state.aspectPropertyAspectId
-                        ?: error("Can't save aspect property with aspectId == null")
-        ))
+        trySubmitParentAspect()
     }
 
     private fun handleNextPropertyClick(e: Event) {
@@ -157,7 +156,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspectId = state.aspectPropertyAspectId
                                 ?: error("Can't save aspect property with aspectId == null")
                 ))
-            } else {
+            } else trySubmitParentAspect()
+
+        }
+    }
+
+    private fun trySubmitParentAspect() {
+        this.savingJob = launch {
+            try {
                 props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
                         name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
                         cardinality = state.aspectPropertyCardinality
@@ -165,6 +171,10 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspectId = state.aspectPropertyAspectId
                                 ?: error("Can't save aspect property with aspectId == null")
                 ))
+            } catch (exception: BadRequestException) {
+                setState {
+                    badRequestErrorMessage = exception.message
+                }
             }
         }
     }
@@ -264,7 +274,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspect: AspectData?
         var onCancel: () -> Unit
         var onSwitchToNextProperty: (AspectPropertyData) -> Unit
-        var onSaveParentAspect: (AspectPropertyData) -> Unit
+        var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
     }
 
     interface State : RState {
@@ -275,6 +285,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspectMeasure: String?
         var childAspectDomain: String?
         var childAspectBaseType: String?
+        var badRequestErrorMessage: String?
     }
 }
 

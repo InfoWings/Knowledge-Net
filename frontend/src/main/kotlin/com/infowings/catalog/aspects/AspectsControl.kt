@@ -51,19 +51,19 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
-    private fun handleSubmitAspectChanges(aspectData: AspectData) {
+    private suspend fun handleSubmitAspectChanges(aspectData: AspectData) {
         if (aspectData.id == null) {
+            props.onAspectCreate(aspectData)
             setState {
                 selectedAspect = AspectData(null, "", null, null, null)
             }
-            props.onAspectCreate(aspectData)
         } else {
             val existingAspect = state.selectedAspect
-            setState {
-                selectedAspect = AspectData(null, "", null, null, null)
-            }
             if (existingAspect != aspectData) {
                 props.onAspectUpdate(aspectData)
+            }
+            setState {
+                selectedAspect = AspectData(null, "", null, null, null)
             }
         }
     }
@@ -125,7 +125,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         selectedAspectPropertyIndex = currentSelectedAspectPropertyIndex + 1
     }
 
-    private fun handleSaveParentAspect(aspectProperty: AspectPropertyData) {
+    private suspend fun handleSaveParentAspect(aspectProperty: AspectPropertyData) {
         val currentSelectedAspect = state.selectedAspect
                 ?: error("handleSwitchToNextProperty when no aspect is selected")
         val currentSelectedAspectPropertyIndex = state.selectedAspectPropertyIndex
@@ -192,7 +192,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                     attrs {
                         aspect = selectedAspect
                         onCancel = ::handleCancelChanges
-                        onSubmit = ::handleSubmitAspectChanges
+                        onSubmit = { handleSubmitAspectChanges(it) }
                         onSwitchToProperties = ::handleSwitchToAspectProperties
                     }
                 }
@@ -205,7 +205,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                         else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]!!
                         onCancel = ::handleCancelChanges
                         onSwitchToNextProperty = ::handleSwitchToNextProperty
-                        onSaveParentAspect = ::handleSaveParentAspect
+                        onSaveParentAspect = { handleSaveParentAspect(it) }
                     }
                 }
         }
