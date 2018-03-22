@@ -4,7 +4,9 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.*
-import com.infowings.catalog.data.aspect.toAspectData
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
@@ -16,7 +18,6 @@ import com.orientechnologies.orient.core.sql.executor.OResult
  */
 class SuggestionService(
     private val database: OrientDatabase,
-    private val aspectService: AspectService,
     private val subjectService: SubjectService
 ) {
 
@@ -34,7 +35,7 @@ class SuggestionService(
         }
         val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_CLASS(?) = true"
         return database.query(q, luceneQuery(text)) {
-            it.mapNotNull { it.toVertexOrNUll()?.getProperty<String>("name") }.toList()
+            it.mapNotNull { it.toVertexOrNull()?.getProperty<String>("name") }.toList()
         }
     }
 
@@ -148,7 +149,7 @@ class SuggestionService(
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
                 }
             }
-        return res.mapNotNull { it.toVertexOrNUll() }
+        return res.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }
     }
 
     private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text
@@ -161,7 +162,8 @@ class SuggestionService(
      * @return list of aspects that contains "text" in its name or other fields
      */
     fun findAspectNoCycle(aspectId: String, text: String): List<AspectData> = session(database) {
-        findAspectVertexNoCycle(aspectId, text).mapNotNull { it.toVertexOrNUll()?.toAspectData() }.toList()
+        findAspectVertexNoCycle(aspectId, text).mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }
+            .toList()
     }
 
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {

@@ -3,7 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.name
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -42,7 +42,7 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
         Subject(this.id, this.name, this.aspects())
 
     private fun OVertex.aspects(): List<Aspect> =
-        this.getVertices(ODirection.IN, ASPECT_SUBJECT_EDGE).map { aspectService.getAspect(it) }
+        this.getVertices(ODirection.IN, ASPECT_SUBJECT_EDGE).map { aspectService.getAspect(it.toAspectVertex()) }
 
     private fun OVertex.subjects(): Iterable<OVertex> =
         this.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE)

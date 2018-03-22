@@ -6,7 +6,7 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.id.ORecordId
 
 
 /**
@@ -53,7 +53,7 @@ class AspectService(private val db: OrientDatabase,
 
     fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
 
-    fun getAspect(vertex: OVertex): Aspect = vertex.toAspect()
+    fun getAspect(vertex: AspectVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id
@@ -68,7 +68,7 @@ class AspectService(private val db: OrientDatabase,
     fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
         val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
         return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
-            it.mapNotNull { it.toVertexOrNull()?.toAspectData() }.toList()
+            it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
         }
     }
 

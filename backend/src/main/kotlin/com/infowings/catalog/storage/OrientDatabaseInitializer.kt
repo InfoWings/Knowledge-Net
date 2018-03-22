@@ -97,7 +97,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initSearch() {
         initLuceneIndex(MEASURE_VERTEX)
         initLuceneIndex(ASPECT_CLASS)
-        return this
+        initLuceneIndex(SUBJECT_CLASS)
+        initLuceneIndex(MEASURE_GROUP_VERTEX)
     }
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->

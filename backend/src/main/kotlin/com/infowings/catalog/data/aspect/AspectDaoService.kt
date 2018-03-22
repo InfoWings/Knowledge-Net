@@ -11,7 +11,7 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /** Should be used externally for query building. */
-const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
+const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId)"
 const val notDeletedSql = "deleted is NULL or deleted = false"
 const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE ($notDeletedSql)"
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
@@ -33,13 +33,13 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
     fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
+        rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
     }
 
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name
+        aspectVertex.name = aspectData.name ?: throw AspectNameCannotBeNull()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -90,10 +90,16 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsByNameWithDifferentId(id: String, name: String): Set<AspectVertex> =
-            db.query("$selectWithNameDifferentId and ($notDeletedSql)", name, ORecordId(id)) {
-                it.map { it.toVertex().toAspectVertex() }.toSet()
-            }
+    fun getAspectsByNameAndSubjectWithDifferentId(name: String, subjectId: String?, id: String?): Set<OVertex> {
+        val q = if (subjectId == null) {
+            selectWithNameDifferentId
+        } else {
+            "$selectWithNameDifferentId and (@rid in (select out.@rid from $ASPECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
+        }
+        val args: Map<String, Any?> =
+            mapOf("name" to name, "aspectId" to ORecordId(id), "subjectId" to ORecordId(subjectId))
+        return db.query(q, args) { it.map { it.toVertex() }.toSet() }
+    }
 }
 
 private val logger = loggerFor<AspectDaoService>()

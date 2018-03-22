@@ -138,7 +138,7 @@ object RefBookItemMoveImpossible : ReferenceBookException()
 
 private const val searchReferenceBookByName = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE name = ?"
 
-private var OVertex.name: String
+var OVertex.name: String
     get() = this["name"]
     set(value) {
         this["name"] = value

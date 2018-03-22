@@ -18,7 +18,7 @@ interface AspectOption : SelectOption {
 
 fun aspectOption(data: AspectData) = jsObject<AspectOption> {
     aspectLabel = "${data.name} ${data.measure?.let { "(${data.measure})" } ?: ""}"
-    aspectName = data.name
+    aspectName = data.name ?: ""
     aspectData = data
 }
 

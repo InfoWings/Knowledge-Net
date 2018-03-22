@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 
 /**
@@ -10,7 +9,7 @@ import com.infowings.catalog.storage.id
  */
 class AspectValidator(
     private val aspectDaoService: AspectDaoService,
-    private val suggestionService: SuggestionService
+    private val aspectService: AspectService
 ) {
 
     /**
@@ -76,20 +75,22 @@ class AspectValidator(
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
-        id?.let { checkAspectBusinessKeyForExistingAspect(id!!, name) } ?: checkAspectBusinessKeyForNewAspect(name)
+        val name = this.name ?: throw AspectNameCannotBeNull()
+        id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(name)
     }
 
-    private fun checkAspectBusinessKeyForExistingAspect(id: String, name: String) =
-        aspectDaoService.getAspectsByNameWithDifferentId(id, name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+    private fun checkAspectBusinessKeyForExistingAspect(aspectData: AspectData, name: String) {
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, aspectData.id).let {
+            if (it.any()) {
+                throw AspectAlreadyExist(name, null)
             }
         }
+    }
 
     private fun checkAspectBusinessKeyForNewAspect(name: String) =
         aspectDaoService.findByName(name).let {
             if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+                throw AspectAlreadyExist(name, null)
             }
         }
 
@@ -113,7 +114,7 @@ class AspectValidator(
     }
 
     private fun AspectVertex.checkCyclicDependencies(aspectData: AspectData) = this.also {
-        val parentsIds = suggestionService.findParentAspects(id).mapNotNull { it.id }
+        val parentsIds = aspectService.findParentAspects(id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
             .map { it.aspectId }
             .filter { parentsIds.contains(it) }
@@ -165,11 +166,11 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-            if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
-                throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
+                    throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                }
             }
         }
-    }
 
     private fun AspectPropertyData.checkForRemoved() = also {
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)

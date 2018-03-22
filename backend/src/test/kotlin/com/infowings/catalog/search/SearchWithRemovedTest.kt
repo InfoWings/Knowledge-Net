@@ -42,11 +42,11 @@ class SearchWithRemovedTest {
 
     @Before
     fun saveAspectAndRemoveIt() {
-        val ad = AspectData("", "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad)
 
         val p1 = AspectPropertyData("", "", initialAspect.id, AspectPropertyCardinality.ONE.name)
-        val ad2 = AspectData("", "aspect2", Tonne.name, null, null, listOf(p1))
+        val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2)
 
         session(database) {
@@ -89,7 +89,7 @@ class SearchWithRemovedTest {
     @Test
     fun testFindAsParent() {
 
-        val searched = suggestionService.findParentAspects(initialAspect.id)
+        val searched = aspectService.findParentAspects(initialAspect.id)
 
         assertThat(
             "Search parents must contain aspect and his parent",

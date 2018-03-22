@@ -29,7 +29,7 @@ class SubjectServiceTest {
     fun testAddAspectsSameNameSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = AspectData(
-            "",
+            null,
             "aspect",
             Kilometre.name,
             null,
@@ -40,7 +40,7 @@ class SubjectServiceTest {
         aspectService.save(ad1)
 
         val ad2 = AspectData(
-            "",
+            null,
             "aspect",
             Metre.name,
             null,

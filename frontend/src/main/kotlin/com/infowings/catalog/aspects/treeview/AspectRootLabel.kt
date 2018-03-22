@@ -17,13 +17,13 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view--label${if (props.selected) " aspect-tree-view--label__selected" else ""}") {
-            if (props.aspect.name.isNotEmpty() || !props.aspect.measure.isNullOrEmpty()
+            if (props.aspect.name.isNullOrEmpty() || !props.aspect.measure.isNullOrEmpty()
                     || !props.aspect.domain.isNullOrEmpty() || !props.aspect.baseType.isNullOrEmpty()) {
                 attrs {
                     onClickFunction = ::handleAspectRootLabelClick
                 }
                 span(classes = "aspect-tree-view--label-name") {
-                    +props.aspect.name
+                    +(props.aspect.name ?: "")
                 }
                 +":"
                 span(classes = "aspect-tree-view--label-measure") {
