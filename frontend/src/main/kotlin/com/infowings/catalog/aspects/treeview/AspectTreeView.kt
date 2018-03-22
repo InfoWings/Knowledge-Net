@@ -1,29 +1,17 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
-import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTreeView.State>(props) {
+class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     companion object {
         init {
             require("styles/aspect-tree-view.scss")
         }
-    }
-
-    override fun State.init(props: Props) {
-        buildingNewAspect = props.aspects.isEmpty()
-    }
-
-    private fun createNewAspectHandler(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onNewAspectRequest()
     }
 
     override fun RBuilder.render() {
@@ -33,27 +21,25 @@ class AspectTreeView(props: Props) : RComponent<AspectTreeView.Props, AspectTree
                     attrs {
                         key = aspect.id ?: ""
                         this.aspect = aspect
-                        selectedId = props.selectedId
+                        selectedAspect = props.selectedAspect
+                        selectedPropertyIndex = props.selectedPropertyIndex
                         onAspectClick = props.onAspectClick
                         onAspectPropertyClick = props.onAspectPropertyClick
                         aspectContext = props.aspectContext
+                        onAspectPropertyRequest = props.onNewAspectPropertyRequest
                     }
                 }
             }
         }
     }
 
-    interface State : RState {
-        var buildingNewAspect: Boolean
-    }
-
     interface Props : RProps {
         var aspects: List<AspectData>
         var onAspectClick: (AspectData) -> Unit
-        var onAspectPropertyClick: (AspectPropertyData) -> Unit
+        var onAspectPropertyClick: (AspectData, propertyIndex: Int) -> Unit
         var aspectContext: Map<String, AspectData>
-        var onNewAspectRequest: () -> Unit
-        var selectedId: String?
+        var selectedAspect: AspectData?
+        var selectedPropertyIndex: Int?
         var onNewAspectPropertyRequest: (AspectData) -> Unit
     }
 }

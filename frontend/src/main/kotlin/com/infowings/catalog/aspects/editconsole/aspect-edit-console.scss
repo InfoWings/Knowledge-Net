@@ -1,25 +1,53 @@
+@import "abstract";
+
 .aspect-edit-console {
 
   position: fixed;
 
-  //border-top-left-radius: 5px;
-  //border-top-right-radius: 5px;
-  //border: 1px solid #666;
   box-shadow: 0 -.5rem 2rem #AAA;
 
   bottom: 0;
+  background-color: $color-background-white;
   left: 0;
   right: 0;
+  padding: 0 10rem 0 20rem;
 
-  &--input-group {
+  &--input-group-aspect {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
     padding: 2rem 0;
   }
 
-  &--input-container {
-    flex: 0 1 35rem;
+  &--input-group-aspect-property {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 2rem 0;
+    border-bottom: 1px solid $color-border;
+  }
+
+  &--input-group-aspect-property-aspect {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &--input-group-aspect-container {
+    flex: 1 1 auto;
+    border: 2px solid $color-border;
+    border-radius: 7px;
+    margin: .5rem 0;
+  }
+
+  &--aspect-input-container {
+    flex: 0 1 30rem;
+    padding: 0 1rem;
+  }
+
+  &--aspect-property-input-container {
+    flex: 0 1 30rem;
+    padding: 0 1rem;
   }
 
   &--input-label {
@@ -30,13 +58,13 @@
 
   &--input-wrapper {
     border-radius: 3px;
-    background-color: #d6d6d6;
+    background-color: $color-border;
     line-height: 3rem;
     height: 3rem;
     padding: 0 .5rem;
 
     &:focus-within {
-      background-color: #c2e2ed;
+      background-color: $color-background-blue;
     }
   }
 
@@ -46,4 +74,70 @@
     width: 100%;
   }
 
+  &--button-control-tab {
+    flex: 0 1 10rem;
+    padding: 1rem 2rem 0;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
+  &--button-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid $color-border;
+    background-color: $color-background-white;
+    height: 3rem;
+    width: 3rem;
+    margin: 0 1rem;
+    cursor: pointer;
+    transition: all .2s;
+    transform: scale(0.9);
+
+    &:hover {
+      background-color: #BBB;
+      transform: scale(1);
+    }
+  }
+
+  &--button-control:hover > &--button-icon__green {
+    fill: green;
+  }
+
+  &--button-control:hover > &--button-icon__red {
+    fill: red;
+  }
+
+  &--button-icon {
+    height: 1.8rem;
+    width: 1.8rem;
+
+    &__green {
+      fill: $color-icon-grey;
+    }
+    &__red {
+      fill: $color-icon-grey;
+    }
+  }
+}
+
+.aspect-table-select.Select {
+  width: 30rem;
+}
+
+.aspect-table-select.Select > .Select-control {
+  width: 30rem;
+  border-radius: 3px;
+  border: none;
+  background-color: transparent !important;
+  outline: none !important;
+  height: 3rem;
+  line-height: 3rem;
+}
+
+.Select.aspect-table-select > .Select-menu-outer {
+  top: auto;
+  bottom: 100%;
 }

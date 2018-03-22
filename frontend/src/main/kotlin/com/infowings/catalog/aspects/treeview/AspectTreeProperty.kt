@@ -2,7 +2,9 @@ package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.wrappers.react.use
+import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.squareMinusIcon
+import com.infowings.catalog.utils.squarePlusIcon
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -19,51 +21,80 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         }
     }
 
+    private fun handleAddToListClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        val childAspect = props.aspect ?: error("Clicked add to list with no aspect")
+        setState {
+            expanded = true
+        }
+        props.onAspectPropertyRequest(childAspect)
+    }
+
     override fun RBuilder.render() {
+        val childAspect = props.aspect
         div(classes = "aspect-tree-view--property") {
-            svg("aspect-tree-view--line-icon") {
-                use("svg/sprite.svg#icon-dots-two-horizontal")
-            }
-            if (props.aspect.properties.isNotEmpty()) {
-                svg("aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
-                    attrs {
-                        onClickFunction = ::handleExpanderClick
+            if (childAspect != null && childAspect.properties.isNotEmpty()) {
+                if (state.expanded) {
+                    squareMinusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
-                    if (state.expanded) {
-                        use("svg/sprite.svg#icon-squared-minus")
-                    } else {
-                        use("svg/sprite.svg#icon-squared-plus")
+                } else {
+                    squarePlusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
+                        attrs {
+                            onClickFunction = ::handleExpanderClick
+                        }
                     }
                 }
             } else {
-                svg("aspect-tree-view--line-icon") {
-                    use("svg/sprite.svg#icon-add-to-list")
-                }
+                svg("aspect-tree-view--line-icon")
             }
             aspectPropertyLabel {
                 attrs {
                     aspectProperty = props.aspectProperty
-                    aspect = props.aspect
-                    onClick = props.onAspectPropertyClick
+                    aspect = childAspect
+                    onClick = props.onLabelClick
+                    propertySelected = props.propertySelected
+                    aspectSelected = childAspect != null && childAspect.id == props.selectedAspect?.id
                 }
             }
-            if (props.aspect.properties.isNotEmpty() && state.expanded) {
-                aspectTreeProperties {
+            if (props.aspect != null) {
+                addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
                     attrs {
-                        aspectProperties = props.aspect.properties
-                        aspectContext = props.aspectContext
-                        onAspectPropertyClick = props.onAspectPropertyClick
+                        onClickFunction = ::handleAddToListClick
                     }
+                }
+            }
+        }
+        if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
+            aspectTreeProperties {
+                val selectedAspect = props.selectedAspect
+                attrs {
+                    parentAspect = if (selectedAspect != null && selectedAspect.id == childAspect.id) selectedAspect else childAspect
+                    aspectContext = props.aspectContext
+                    onAspectPropertyClick = props.onAspectPropertyClick
+                    this.selectedAspect = props.selectedAspect
+                    selectedPropertyIndex = props.selectedPropertyIndex
+                    parentSelected = childAspect.id == props.selectedAspect?.id
+                    onAspectPropertyRequest = props.onAspectPropertyRequest
                 }
             }
         }
     }
 
     interface Props : RProps {
+        var parentAspect: AspectData
         var aspectProperty: AspectPropertyData
-        var aspect: AspectData
-        var onAspectPropertyClick: (AspectPropertyData) -> Unit
+        var aspect: AspectData?
+        var onAspectPropertyClick: (AspectData, propertyIndex: Int) -> Unit
+        var onLabelClick: () -> Unit
         var aspectContext: Map<String, AspectData>
+        var propertySelected: Boolean
+        var selectedAspect: AspectData?
+        var selectedPropertyIndex: Int?
+        var onAspectPropertyRequest: (AspectData) -> Unit
     }
 
     interface State : RState {

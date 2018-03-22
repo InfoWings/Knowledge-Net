@@ -22,7 +22,7 @@ class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
     }
 
     override fun toString(): String {
-        return "OpenDomain of $baseType"
+        return "All values of ${baseType.name}"
     }
 
     override fun equals(other: Any?): Boolean {

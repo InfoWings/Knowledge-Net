@@ -25,7 +25,8 @@ actual sealed class BaseType actual constructor(_name: String) {
                     Text.name -> Text
                     Binary.name -> Binary
 
-                    else -> TODO("реализовать хранение сложных типов")
+                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
+
                 }
 
         fun getTypeClass(name: String): KClass<*> =
@@ -37,7 +38,7 @@ actual sealed class BaseType actual constructor(_name: String) {
                     Text.name -> String::class
                     Binary.name -> ByteArray::class
 
-                    else -> TODO("реализовать хранение сложных типов")
+                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
 
                 }
     }

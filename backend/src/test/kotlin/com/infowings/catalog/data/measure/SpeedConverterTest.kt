@@ -8,7 +8,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(SpringJUnit4ClassRunner::class)
 class SpeedConverterTest {
     @Test
-    fun kilometrePerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(14.3, 14300.0, KilometrePerSecond)
+    fun kilometrePerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(14.3, 14300.0, KilometerPerSecond)
 
     @Test
     fun milePerHourToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(2.71, 1.2114784, MilePerHour)
@@ -17,7 +17,7 @@ class SpeedConverterTest {
     fun inchPerSecondToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(3.24, 0.98755, InchPerSecond)
 
     @Test
-    fun kilometrePerHourToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(123.0, 34.16669, KilometrePerHour)
+    fun kilometrePerHourToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(123.0, 34.16669, KilometerPerHour)
 
     @Test
     fun knotToMetrePerSecAndViseVersaTest() = toMetrePerSecondTest(13.0, 6.68777, Knot)

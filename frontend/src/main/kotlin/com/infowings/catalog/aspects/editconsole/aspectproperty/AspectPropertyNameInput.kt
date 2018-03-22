@@ -15,11 +15,11 @@ class AspectPropertyNameInput : RComponent<AspectPropertyNameInput.Props, RState
     private fun handleInputFieldChanged(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        console.log(e.target.unsafeCast<HTMLInputElement>().value)
+        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        div(classes = "aspect-edit-console--aspect-property-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-property-name") {
                 +"Property Name"
             }
@@ -27,8 +27,9 @@ class AspectPropertyNameInput : RComponent<AspectPropertyNameInput.Props, RState
                 input(type = InputType.text, name = "property-name", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-property-name"
-                        value = props.initialValue ?: ""
+                        value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
+                        ref { props.inputRef(it.unsafeCast<HTMLInputElement?>()) }
                     }
                 }
             }
@@ -36,7 +37,9 @@ class AspectPropertyNameInput : RComponent<AspectPropertyNameInput.Props, RState
     }
 
     interface Props : RProps {
-        var initialValue: String?
+        var value: String?
+        var onChange: (String) -> Unit
+        var inputRef: (HTMLInputElement?) -> Unit
     }
 
 }

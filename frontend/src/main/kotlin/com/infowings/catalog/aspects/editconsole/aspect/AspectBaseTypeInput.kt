@@ -1,34 +1,51 @@
 package com.infowings.catalog.aspects.editconsole.aspect
 
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.wrappers.react.label
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
+import com.infowings.catalog.wrappers.select.SelectOption
+import com.infowings.catalog.wrappers.select.commonSelect
+import kotlinext.js.jsObject
 import react.*
 import react.dom.div
-import react.dom.input
+
+private interface Option : SelectOption {
+    var aspectBaseType: String
+}
+
+private fun baseTypeOption(baseType: String) = jsObject<Option> {
+    aspectBaseType = baseType
+}
 
 class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
 
-    private fun handleInputFieldChanged(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
+    private fun handleSelectBaseTypeOption(option: Option) {
+        props.onChange(option.aspectBaseType)
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        div(classes = "aspect-edit-console--aspect-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-base-type") {
                 +"Base Type"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "base-type", classes = "aspect-edit-console--input") {
+                commonSelect<Option> {
                     attrs {
-                        id = "aspect-base-type"
+                        className = "aspect-table-select"
                         value = props.value ?: ""
-                        onChangeFunction = ::handleInputFieldChanged
+                        labelKey = "aspectBaseType"
+                        valueKey = "aspectBaseType"
+                        onChange = ::handleSelectBaseTypeOption
+                        clearable = false
+                        disabled = !props.measureUnit.isNullOrEmpty()
+                        options = arrayOf(
+                                baseTypeOption(BaseType.Binary.name),
+                                baseTypeOption(BaseType.Boolean.name),
+                                baseTypeOption(BaseType.Decimal.name),
+                                baseTypeOption(BaseType.Integer.name),
+                                baseTypeOption(BaseType.Long.name),
+                                baseTypeOption(BaseType.Nothing.name),
+                                baseTypeOption(BaseType.Text.name)
+                        )
                     }
                 }
             }
@@ -36,6 +53,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
     }
 
     interface Props : RProps {
+        var measureUnit: String?
         var value: String?
         var onChange: (String) -> Unit
     }

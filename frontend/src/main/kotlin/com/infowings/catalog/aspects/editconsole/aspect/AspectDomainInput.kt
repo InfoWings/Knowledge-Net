@@ -19,16 +19,17 @@ class AspectDomainInput : RComponent<AspectDomainInput.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console--input-container") {
+        div(classes = "aspect-edit-console--aspect-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-domain") {
                 +"Domain"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "domain", classes = "aspect-edit-console--input") {
+                input(type = InputType.text, name = "aspect-domain", classes = "aspect-edit-console--input") {
                     attrs {
                         id = "aspect-domain"
                         value = props.value ?: ""
                         onChangeFunction = ::handleInputFieldChanged
+                        disabled = true
                     }
                 }
             }

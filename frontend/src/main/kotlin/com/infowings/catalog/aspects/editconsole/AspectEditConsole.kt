@@ -5,13 +5,22 @@ import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.checkIcon
+import com.infowings.catalog.utils.crossIcon
+import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
+
+    private var inputRef: HTMLInputElement? = null
+    private var aspectChanged: Boolean = false
 
     override fun State.init(props: Props) {
         aspectName = props.aspect.name
@@ -20,28 +29,103 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectBaseType = props.aspect.baseType
     }
 
-    override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.aspect.id != nextProps.aspect.id) {
-            setState {
-                aspectName = nextProps.aspect.name
-                aspectMeasure = nextProps.aspect.measure
-                aspectDomain = nextProps.aspect.domain
-                aspectBaseType = nextProps.aspect.baseType
+    override fun componentDidMount() {
+        inputRef?.focus()
+        inputRef?.select()
+    }
+
+    override fun componentDidUpdate(prevProps: Props, prevState: State) {
+        when {
+            props.aspect.id != null && props.aspect.id != prevProps.aspect.id -> {
+                inputRef?.focus()
+                inputRef?.select()
+            }
+            props.aspect.id == null && aspectChanged -> {
+                aspectChanged = false
+                inputRef?.focus()
+                inputRef?.select()
             }
         }
+    }
+
+    override fun componentWillReceiveProps(nextProps: Props) {
+        setState {
+            aspectName = nextProps.aspect.name
+            aspectMeasure = nextProps.aspect.measure
+            aspectDomain = nextProps.aspect.domain
+            aspectBaseType = nextProps.aspect.baseType
+        }
+    }
+
+    private fun handleSwitchToPropertiesClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onSwitchToProperties(props.aspect.copy(
+                name = state.aspectName ?: error("Aspect Name is null"),
+                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        ))
+    }
+
+    private fun handleSubmitAspectClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onSubmit(props.aspect.copy(
+                name = state.aspectName ?: error("Aspect Name is null"),
+                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        ))
+    }
+
+    private fun handleCancelClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        props.onCancel()
+    }
+
+    private fun assignInputRef(element: HTMLInputElement?) {
+        inputRef = element
     }
 
     private fun handleKeyDown(e: Event) {
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
+        val ctrlPressed = e.unsafeCast<KeyboardEvent>().ctrlKey
         when (keyCode) {
-            27 -> props.onCancel()
-            13 -> props.onSubmit(props.aspect.copy(
-                    name = state.aspectName ?: error("Aspect Name is null"),
-                    measure = state.aspectMeasure,
-                    domain = state.aspectDomain,
-                    baseType = state.aspectBaseType
-            ))
+            27 -> {
+                aspectChanged = true
+                inputRef?.blur()
+                props.onCancel()
+            }
+            13 -> {
+                if (ctrlPressed) {
+                    aspectChanged = true
+                    inputRef?.blur()
+                    props.onSwitchToProperties(props.aspect.copy(
+                            name = state.aspectName ?: error("Aspect Name is null"),
+                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+                    ))
+                } else {
+                    aspectChanged = true
+                    inputRef?.blur()
+                    props.onSubmit(props.aspect.copy(
+                            name = state.aspectName ?: error("Aspect Name is null"),
+                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+                    ))
+                }
+            }
         }
     }
 
@@ -54,6 +138,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun handleAspectMeasureChanged(measure: String) {
         setState {
             aspectMeasure = measure
+            aspectBaseType = GlobalMeasureMap[measure]?.baseType?.name
         }
     }
 
@@ -74,11 +159,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             attrs {
                 onKeyDownFunction = ::handleKeyDown
             }
-            div(classes = "aspect-edit-console--input-group") {
+            div(classes = "aspect-edit-console--input-group-aspect") {
                 aspectNameInput {
                     attrs {
                         value = state.aspectName
                         onChange = ::handleAspectNameChanged
+                        inputRef = ::assignInputRef
                     }
                 }
                 aspectMeasureInput {
@@ -95,8 +181,29 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectBaseTypeInput {
                     attrs {
+                        measureUnit = state.aspectMeasure
                         value = state.aspectBaseType
                         onChange = ::handleAspectBaseTypeChanged
+                    }
+                }
+                div(classes = "aspect-edit-console--button-control-tab") {
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleSubmitAspectClick
+                        }
+                        checkIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleSwitchToPropertiesClick
+                        }
+                        addToListIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleCancelClick
+                        }
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }
@@ -107,6 +214,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspect: AspectData
         var onCancel: () -> Unit
         var onSubmit: (AspectData) -> Unit
+        var onSwitchToProperties: (AspectData) -> Unit
     }
 
     interface State : RState {

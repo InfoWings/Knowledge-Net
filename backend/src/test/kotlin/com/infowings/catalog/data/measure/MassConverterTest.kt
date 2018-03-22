@@ -15,7 +15,7 @@ class MassConverterTest {
     fun milligramToKilogramTest() = toKilogramTest(234.0, 0.000234, Milligram)
 
     @Test
-    fun tonToKilogramTest() = toKilogramTest(4.23, 4230.0, Ton)
+    fun tonToKilogramTest() = toKilogramTest(4.23, 4230.0, Tonne)
 
     @Test
     fun poundToKilogramTest() = toKilogramTest(45.5, 20.63845, PoundMass)

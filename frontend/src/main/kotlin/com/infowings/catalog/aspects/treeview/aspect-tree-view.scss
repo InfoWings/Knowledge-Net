@@ -3,7 +3,8 @@
 .aspect-tree-view {
 
   max-width: 120rem;
-  margin: auto;
+  margin: 0 auto;
+  padding-bottom: 20rem;
 
   &--root {
     display: flex;
@@ -38,13 +39,34 @@
     }
   }
 
+  &--add-to-list-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
+
+    &:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
   &--label {
     display: inline-block;
     cursor: pointer;
     padding: .2em;
 
+    &__aspect-selected {
+      background-color: $color-aspect-selected;
+      border-radius: 2px;
+    }
+
+    &__property-selected {
+      background-color: $color-aspect-property-selected;
+      border-radius: 2px;
+    }
+
     &__selected {
-      background-color: #c2e2ed;
+      background-color: $color-aspect-selected;
       border-radius: 2px;
     }
 
