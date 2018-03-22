@@ -24,7 +24,7 @@
     height: 3rem;
     padding: 0 .5rem;
 
-    &:focus-within {
+    &:focus {
       background-color: #c2e2ed;
     }
   }
@@ -33,6 +33,9 @@
     border: none;
     background-color: transparent;
     width: 100%;
-  }
 
+    &:focus {
+      outline: none
+    }
+  }
 }

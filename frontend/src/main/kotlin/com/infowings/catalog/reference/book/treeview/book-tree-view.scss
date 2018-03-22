@@ -61,18 +61,6 @@
     font-weight: 600;
   }
 
-  &--label-measure {
-    color: $color-text-dark-grey;
-  }
-
-  &--label-domain {
-    color: $color-text-dark-grey;
-  }
-
-  &--label-base-type {
-    color: $color-text-dark-grey;
-  }
-
   &--label-item {
     color: $color-text-dark-grey;
 
@@ -81,9 +69,6 @@
       padding-right: .5rem;
     }
 
-    &-cardinality {
-      padding-left: .5rem;
-    }
   }
 
   &--items-block {
