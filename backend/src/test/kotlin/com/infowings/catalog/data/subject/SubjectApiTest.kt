@@ -2,10 +2,11 @@ package com.infowings.catalog.data.subject
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.AbstractMvcTest
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.Matchers.empty
@@ -37,7 +38,7 @@ class SubjectApiTest : AbstractMvcTest() {
 
     @Test
     fun create() {
-        val aspect = createTestAspect("TestCreateSubjectAspect")
+        val aspect = createTestAspect("TestCreateSubjectAspect", aspectService)
         val sd = SubjectData(
             name = "TestSubject_CreateApi_${LocalDateTime.now()}",
             aspects = listOf(AspectData(aspect.id, "tstAspect"))
@@ -54,31 +55,6 @@ class SubjectApiTest : AbstractMvcTest() {
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNotEmpty)
     }
 
-    @Test(expected = AspectAlreadyExist::class)
-    fun testAddAspectsSameNameSameSubject() {
-        val subject = createTestSubject("TestSubjectUpdate")
-        val ad1 = AspectData(
-            "",
-            "aspect",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject.toSubjectData()
-        )
-        aspectService.save(ad1)
-
-        val ad2 = AspectData(
-            "",
-            "aspect",
-            Metre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject.toSubjectData()
-        )
-        aspectService.save(ad2)
-    }
 
     @Test
     fun update() {
@@ -109,13 +85,8 @@ class SubjectApiTest : AbstractMvcTest() {
 
     }
 
-    private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject {
-        val aspects = aspectNames.map { createTestAspect(it) }
-        val sd = SubjectData(
-            name = name,
-            aspects = aspects.map { AspectData(it.id) }
-        )
-        return subjectService.findByName(name) ?: subjectService.createSubject(sd)
-    }
+    private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject =
+        createTestSubject(name, aspectNames, aspectService, subjectService)
 
 }
+
