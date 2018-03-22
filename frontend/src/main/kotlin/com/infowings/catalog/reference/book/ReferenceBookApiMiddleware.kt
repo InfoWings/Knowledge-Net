@@ -10,7 +10,6 @@ import kotlin.reflect.KClass
 
 
 interface ReferenceBookApiReceiverProps : RProps {
-    var loading: Boolean
     var rowDataList: List<RowData>
     var updateBook: (bookName: String, bookData: ReferenceBookData) -> Unit
     var createBook: (ReferenceBookData) -> Unit
@@ -26,7 +25,6 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     override fun State.init() {
         rowDataList = emptyList()
-        loading = true
     }
 
     override fun componentDidMount() {
@@ -40,7 +38,6 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
             setState {
                 this.rowDataList = rowDataList
-                loading = false
             }
         }
     }
@@ -93,7 +90,6 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         child(props.apiReceiverComponent) {
             attrs {
                 rowDataList = state.rowDataList
-                loading = state.loading
                 createBook = ::createBook
                 updateBook = ::updateBook
                 createBookItem = ::createBookItem
@@ -108,7 +104,6 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     interface State : RState {
         var rowDataList: List<RowData>
-        var loading: Boolean
     }
 }
 
