@@ -13,6 +13,7 @@ interface ReferenceBookApiReceiverProps : RProps {
     var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
     var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
     var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
+    var updateBookItem: (bookItemData: ReferenceBookItemData) -> Unit
 }
 
 /**
@@ -79,6 +80,18 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
+    private fun updateBookItem(bookItemData: ReferenceBookItemData) {
+        launch {
+            val updatedBook = updateItem(bookItemData)
+            setState {
+                rowDataList = rowDataList.map {
+                    if (it.aspectId == updatedBook.aspectId) it.copy(book = updatedBook) else it
+                }
+            }
+        }
+    }
+
+
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
@@ -87,6 +100,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 onReferenceBookCreate = ::handleCreateNewBook
                 onReferenceBookUpdate = ::handleUpdateBook
                 createBookItem = ::createBookItem
+                updateBookItem = ::updateBookItem
             }
         }
     }

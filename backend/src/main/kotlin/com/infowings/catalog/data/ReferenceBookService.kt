@@ -92,6 +92,11 @@ class ReferenceBookService(val database: OrientDatabase) {
         return getReferenceBook(bookName)
     }
 
+    fun updateItemAndGetReferenceBook(bookName: String, id: String, newValue: String): ReferenceBook {
+        changeValue(id, newValue)
+        return getReferenceBook(bookName)
+    }
+
     /**
      * Make ReferenceBookItem with id [sourceId] to be a child of ReferenceBookItem with id [targetId]
      * @throws RefBookItemNotExist

@@ -15,6 +15,7 @@ class ReferenceBookControl(props: ReferenceBookApiReceiverProps) :
                 onReferenceBookCreate = props.onReferenceBookCreate
                 onReferenceBookUpdate = props.onReferenceBookUpdate
                 createBookItem = props.createBookItem
+                updateBookItem = props.updateBookItem
             }
         }
     }

@@ -45,15 +45,15 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                         book = props.book
                         key = it.id
                         bookItem = it
-                        onBookItemClick = props.onBookItemClick
                         createBookItem = props.createBookItem
+                        updateBookItem = props.updateBookItem
                     }
                 }
             }
             if (state.addingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.book.name)
+                        bookItemData = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.book.name)
                         onCancel = ::cancelBookItemCreating
                         onSubmit = ::createBookItem
                     }
@@ -75,8 +75,8 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var book: ReferenceBook
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
-        var onBookItemClick: (ReferenceBookItem) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit
+        var updateBookItem: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {

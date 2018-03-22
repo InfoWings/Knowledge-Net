@@ -79,6 +79,7 @@ class ReferenceBookTreeView(props: Props) :
                                 submitBookChanges = ::submitBookChanges
                                 cancelBookCreating = ::cancelBookCreating
                                 createBookItem = props.createBookItem
+                                updateBookItem = props.updateBookItem
                             }
                         }
                     } else {
@@ -106,9 +107,10 @@ class ReferenceBookTreeView(props: Props) :
 
     interface Props : RProps {
         var rowDataList: List<RowData>
-        var onReferenceBookCreate: (bookData: ReferenceBookData) -> Unit
+        var onReferenceBookCreate: (ReferenceBookData) -> Unit
         var onReferenceBookUpdate: (name: String, bookData: ReferenceBookData) -> Unit
-        var createBookItem: (bookItemData: ReferenceBookItemData) -> Unit
+        var createBookItem: (ReferenceBookItemData) -> Unit
+        var updateBookItem: (ReferenceBookItemData) -> Unit
     }
 }
 

@@ -28,4 +28,4 @@ data class ReferenceBooksList(val books: List<ReferenceBook>)
 data class ReferenceBookData(val id: String?, val name: String?, val aspectId: String)
 
 @Serializable
-data class ReferenceBookItemData(val id: String?, val value: String?, val parentId: String, val bookName: String)
+data class ReferenceBookItemData(val id: String?, val value: String?, val parentId: String?, val bookName: String)

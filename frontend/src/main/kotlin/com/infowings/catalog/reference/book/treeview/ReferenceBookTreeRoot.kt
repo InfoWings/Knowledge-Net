@@ -2,7 +2,6 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.wrappers.react.use
@@ -84,15 +83,15 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     book = props.book
                     bookItems = props.book.children
-                    onBookItemClick = props.onBookItemClick
                     createBookItem = props.createBookItem
+                    updateBookItem = props.updateBookItem
                 }
             }
         }
         if (state.addingBookItem) {
             bookItemEditConsole {
                 attrs {
-                    bookItem = ReferenceBookItemData(null, "", props.book.id, props.book.name)
+                    bookItemData = ReferenceBookItemData(null, "", props.book.id, props.book.name)
                     onCancel = ::cancelBookItemCreating
                     onSubmit = ::createBookItem
                 }
@@ -104,11 +103,11 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var book: ReferenceBook
         var aspectName: String
         var onBookClick: (aspectName: String, bookData: ReferenceBookData) -> Unit
-        var onBookItemClick: (ReferenceBookItem) -> Unit
         var selectedAspectName: String?
         var submitBookChanges: (name: String, ReferenceBookData) -> Unit
         var cancelBookCreating: () -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit
+        var updateBookItem: (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
