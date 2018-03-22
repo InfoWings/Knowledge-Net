@@ -8,9 +8,11 @@ module.exports = {
         filename: "bundle.js"
     },
     resolve: {
-        modules: [path.resolve(__dirname, "node_modules"),
+      modules: [
+        path.resolve(__dirname, "node_modules"),
             path.resolve(__dirname, "build/kotlin-js-min/main/"),
-            path.resolve(__dirname, "build/web")]
+        path.resolve(__dirname, "build/web")
+      ]
     },
     module: {
         rules: [
@@ -21,11 +23,11 @@ module.exports = {
             },
             {
                 test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader'
+              loader: "file-loader"
             },
             {
-                test: /\.css$/,
-                loader: 'style-loader!css-loader'
+              test: /\.(s*)css$/,
+              use: ["style-loader", "css-loader", "sass-loader"]
             }
         ]
     }
