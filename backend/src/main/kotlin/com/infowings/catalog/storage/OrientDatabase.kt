@@ -100,8 +100,6 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
     operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
-    class VertexNotFound(id: String) : Throwable("No vertex for id: $id")
-
     fun createNewVertex(className: String): OVertex = session(database = this) {
         return@session it.newVertex(className)
     }
@@ -186,5 +184,6 @@ inline fun <U> transaction(
 }
 
 class OrientException(reason: String) : Throwable(reason)
+class VertexNotFound(id: String) : Throwable("No vertex for id: $id")
 
 private const val selectById = "SELECT FROM ?"

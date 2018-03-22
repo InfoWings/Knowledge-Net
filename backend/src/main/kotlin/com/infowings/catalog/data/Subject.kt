@@ -9,10 +9,8 @@ data class Subject(
     val aspects: List<Aspect> = emptyList()
 )
 
-fun Subject.toSubjectData(): SubjectData {
-    return SubjectData(
-        id = this.id,
-        name = this.name,
-        aspects = this.aspects.map { it.toAspectData() }
-    )
-}
+fun Subject.toSubjectData() = SubjectData(
+    id = this.id,
+    name = this.name,
+    aspects = this.aspects.map { it.toAspectData() }
+)
