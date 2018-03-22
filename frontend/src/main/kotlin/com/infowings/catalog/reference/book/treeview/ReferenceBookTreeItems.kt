@@ -53,7 +53,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
             if (state.addingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItemData(null, "", props.book.id, props.book.name)
+                        bookItem = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.book.name)
                         onCancel = ::cancelBookItemCreating
                         onSubmit = ::createBookItem
                     }
@@ -73,6 +73,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
 
     interface Props : RProps {
         var book: ReferenceBook
+        var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
         var onBookItemClick: (ReferenceBookItem) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit

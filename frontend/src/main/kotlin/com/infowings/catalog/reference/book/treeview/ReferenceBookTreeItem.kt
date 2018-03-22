@@ -3,6 +3,7 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.wrappers.react.use
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -12,12 +13,37 @@ import react.dom.svg
 
 class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceBookTreeItem.State>() {
 
+    override fun State.init() {
+        addingBookItem = false
+    }
+
     private fun handleExpanderClick(e: Event) {
         e.stopPropagation()
         e.preventDefault()
         setState {
             expanded = !expanded
         }
+    }
+
+    private fun startAddingBookItem(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        setState {
+            addingBookItem = true
+        }
+    }
+
+    private fun cancelBookItemCreating() {
+        setState {
+            addingBookItem = false
+        }
+    }
+
+    private fun createBookItem(bookItemData: ReferenceBookItemData) {
+        setState {
+            addingBookItem = false
+        }
+        props.createBookItem(bookItemData)
     }
 
     override fun RBuilder.render() {
@@ -38,6 +64,9 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             } else {
                 svg("book-tree-view--line-icon") {
+                    attrs {
+                        onClickFunction = ::startAddingBookItem
+                    }
                     use("svg/sprite.svg#icon-add-to-list")
                 }
             }
@@ -49,13 +78,25 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             }
         }
+
         if (props.bookItem.children.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
                     book = props.book
+                    bookItem = props.bookItem
                     bookItems = props.bookItem.children
                     onBookItemClick = props.onBookItemClick
                     createBookItem = props.createBookItem
+                }
+            }
+        }
+
+        if (state.addingBookItem) {
+            bookItemEditConsole {
+                attrs {
+                    bookItem = ReferenceBookItemData(null, "", props.bookItem.id, props.book.name)
+                    onCancel = ::cancelBookItemCreating
+                    onSubmit = ::createBookItem
                 }
             }
         }
@@ -70,6 +111,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     interface State : RState {
         var expanded: Boolean
+        var addingBookItem: Boolean
     }
 }
 

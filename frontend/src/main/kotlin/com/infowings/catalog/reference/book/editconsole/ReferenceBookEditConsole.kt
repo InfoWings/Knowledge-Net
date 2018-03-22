@@ -28,7 +28,7 @@ class ReferenceBookEditConsole(props: Props) :
         when (keyCode) {
             27 -> props.onCancel() //esc
             13 -> {
-                if (state.bookName.isNullOrEmpty()) error("Reference Book Name is null")
+                if (state.bookName.isNullOrEmpty()) error("Reference Book Name is empty")
                 props.onSubmit(props.book.copy(name = state.bookName))
             } //Enter
         }

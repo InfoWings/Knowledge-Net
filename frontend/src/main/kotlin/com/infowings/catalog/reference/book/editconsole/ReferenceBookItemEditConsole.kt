@@ -28,7 +28,7 @@ class ReferenceBookItemEditConsole(props: Props) :
         when (keyCode) {
             27 -> props.onCancel() //esc
             13 -> {
-                if (state.value.isNullOrEmpty()) error("Reference Book Name is null")
+                if (state.value.isNullOrEmpty()) error("Reference Book Item Value is empty")
                 props.onSubmit(props.bookItem.copy(value = state.value))
             } //Enter
         }
@@ -41,15 +41,17 @@ class ReferenceBookItemEditConsole(props: Props) :
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-edit-console") {
-            attrs {
-                onKeyDownFunction = ::handleKeyDown
-            }
-            div(classes = "book-edit-console--input-group") {
-                referenceBookItemValueInput {
-                    attrs {
-                        value = state.value
-                        onChange = ::handleBookItemValueChanged
+        div {
+            div(classes = "book-edit-console") {
+                attrs {
+                    onKeyDownFunction = ::handleKeyDown
+                }
+                div(classes = "book-edit-console--input-group") {
+                    referenceBookItemValueInput {
+                        attrs {
+                            value = state.value
+                            onChange = ::handleBookItemValueChanged
+                        }
                     }
                 }
             }

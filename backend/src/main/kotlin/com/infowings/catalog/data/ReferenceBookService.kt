@@ -87,9 +87,9 @@ class ReferenceBookService(val database: OrientDatabase) {
         return@transaction childVertex.save<OVertex>()
     }.id
 
-    fun addItemAndGetReferenceBook(bookName: String, parentId: String, value: String) = transaction(database) {
+    fun addItemAndGetReferenceBook(bookName: String, parentId: String, value: String): ReferenceBook {
         addReferenceBookItem(parentId, value)
-        return@transaction getReferenceBook(bookName)
+        return getReferenceBook(bookName)
     }
 
     /**
