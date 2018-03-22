@@ -83,10 +83,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             localMeasureService.linkGroupsBidirectional(DensityGroup, VolumeGroup)
             localMeasureService.linkGroupsBidirectional(PressureGroup, MassGroup)
             localMeasureService.linkGroupsBidirectional(DensityGroup, MassGroup)
-            localMeasureService.linkGroupsBidirectional(WorkEnergyGroup, PowerEnergyGroup)
+            localMeasureService.linkGroupsBidirectional(WorkEnergyGroup, PowerGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, LengthGroup)
-            localMeasureService.linkGroupsBidirectional(TorqueGroup, PowerGroup)
-            localMeasureService.linkGroupsBidirectional(PowerEnergyGroup, TimeGroup)
+            localMeasureService.linkGroupsBidirectional(TorqueGroup, ForceGroup)
+            localMeasureService.linkGroupsBidirectional(PowerGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(SpeedGroup, TimeGroup)
             localMeasureService.linkGroupsBidirectional(RotationFrequencyGroup, TimeGroup)
         }
@@ -97,7 +97,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initSearch() {
         initLuceneIndex(MEASURE_VERTEX)
         initLuceneIndex(ASPECT_CLASS)
-        initLuceneIndex(SUBJECT_CLASS)
+        return this
     }
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->

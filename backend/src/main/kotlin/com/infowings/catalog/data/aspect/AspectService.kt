@@ -6,7 +6,6 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 
 
@@ -31,7 +30,7 @@ class AspectService(private val db: OrientDatabase,
      */
     fun save(aspectData: AspectData): Aspect {
 
-        val save: OVertex = transaction(db) {
+        val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
                     .checkAspectDataConsistent()
@@ -81,8 +80,8 @@ class AspectService(private val db: OrientDatabase,
             aspectDaoService.getAspectPropertyVertex(propertyId)?.toAspectProperty()
                     ?: throw AspectPropertyDoesNotExist(propertyId)
 
-    private fun loadProperties(oVertex: OVertex): List<AspectProperty> = transaction(db) {
-        oVertex.properties.map { loadAspectProperty(it.id) }
+    private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
+        aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 
     /**
@@ -91,7 +90,7 @@ class AspectService(private val db: OrientDatabase,
      * @throws IllegalStateException
      * @throws AspectConcurrentModificationException
      * */
-    private fun AspectData.getOrCreateAspectVertex(): OVertex {
+    private fun AspectData.getOrCreateAspectVertex(): AspectVertex {
         val aspectId = id
 
         if (aspectId.isNullOrEmpty())
@@ -110,7 +109,7 @@ class AspectService(private val db: OrientDatabase,
      * @throws IllegalStateException
      * @throws AspectPropertyModificationException
      * */
-    private fun AspectPropertyData.getOrCreatePropertyVertex(): OVertex {
+    private fun AspectPropertyData.getOrCreatePropertyVertex(): AspectPropertyVertex {
         val propertyId = id
 
         if (propertyId.isEmpty())
@@ -123,23 +122,23 @@ class AspectService(private val db: OrientDatabase,
 
     }
 
-    private fun OVertex.toAspect(): Aspect {
+    private fun AspectVertex.toAspect(): Aspect {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return Aspect(id, name, measure, baseTypeObj?.let { OpenDomain(it) }, baseTypeObj, loadProperties(this), version)
     }
 
-    private fun OVertex.toAspectProperty(): AspectProperty =
+    private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
             AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
 
-    private fun OVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): OVertex = this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
+    private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex = this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
 
-    private fun OVertex.validateExistingAspect(aspectData: AspectData): OVertex = this.also { aspectValidator.validateExistingAspect(this, aspectData) }
+    private fun AspectVertex.validateExistingAspect(aspectData: AspectData): AspectVertex = this.also { aspectValidator.validateExistingAspect(this, aspectData) }
 
     private fun AspectData.checkAspectDataConsistent(): AspectData = this.also { aspectValidator.checkAspectDataConsistent(this) }
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
-    private fun OVertex.saveAspectProperties(propertyData: List<AspectPropertyData>) {
+    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
             aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
