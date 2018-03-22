@@ -39,15 +39,15 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("remove")
-    fun removeAspect(@RequestBody aspect: Aspect): Unit {
+    fun removeAspect(@RequestBody aspect: Aspect) {
         logger.debug("Remove aspect request: ${aspect.id}")
-        return aspectService.remove(aspect)
+        aspectService.remove(aspect)
     }
 
     @GetMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody aspect: Aspect): Unit {
+    fun forceRemoveAspect(@RequestBody aspect: Aspect) {
         logger.debug("Forced remove aspect request: ${aspect.id}")
-        return aspectService.remove(aspect, true)
+        aspectService.remove(aspect, true)
     }
 }
 private val logger = loggerFor<AspectApi>()
