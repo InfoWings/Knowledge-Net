@@ -8,6 +8,28 @@ import com.infowings.catalog.storage.id
  * Class for validating aspects.
  * Methods should be called in transaction
  */
+
+fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
+    if (version != aspectData.version) {
+        throw AspectConcurrentModificationException(
+                id,
+                "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
+        )
+    }
+
+    val realVersionMap = properties.map { it.id to it.version }.toMap()
+    val receivedVersionMap = aspectData.properties.filter { it.id.isNotEmpty() }.map { it.id to it.version }.toMap()
+
+    if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
+        throw AspectConcurrentModificationException(id, "Properties changed")
+    }
+
+    val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
+    if (different) {
+        throw AspectConcurrentModificationException(id, "Properties changed")
+    }
+}
+
 class AspectValidator(
     private val aspectDaoService: AspectDaoService,
     private val suggestionService: SuggestionService
@@ -120,27 +142,6 @@ class AspectValidator(
             .toList()
 
         if (cyclicIds.isNotEmpty()) throw AspectCyclicDependencyException(cyclicIds)
-    }
-
-    private fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
-        if (version != aspectData.version) {
-            throw AspectConcurrentModificationException(
-                id,
-                "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
-            )
-        }
-
-        val realVersionMap = properties.map { it.id to it.version }.toMap()
-        val receivedVersionMap = aspectData.properties.filter { it.id.isNotEmpty() }.map { it.id to it.version }.toMap()
-
-        if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
-            throw AspectConcurrentModificationException(id, "Properties changed")
-        }
-
-        val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
-        if (different) {
-            throw AspectConcurrentModificationException(id, "Properties changed")
-        }
     }
 
     private fun AspectVertex.checkBaseTypeChangeCriteria(aspectData: AspectData) = this.also {

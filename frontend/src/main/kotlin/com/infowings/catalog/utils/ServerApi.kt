@@ -24,8 +24,8 @@ private const val OK = 200
 private const val UNAUTHORIZED = 401
 private const val FORBIDDEN = 403
 
-private external fun encodeURIComponent(component: String): String = definedExternally
-private external fun decodeURIComponent(component: String): String = definedExternally
+external fun encodeURIComponent(component: String): String = definedExternally
+external fun decodeURIComponent(component: String): String = definedExternally
 
 /**
  * Http POST request to server.

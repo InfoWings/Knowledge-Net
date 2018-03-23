@@ -38,6 +38,18 @@ class AspectApi(val aspectService: AspectService) {
         return AspectsList(aspectService.getAspects().toAspectData())
     }
 
+    @GetMapping("remove")
+    fun removeAspect(@RequestBody aspect: Aspect) {
+        logger.debug("Remove aspect request: ${aspect.id}")
+        aspectService.remove(aspect)
+    }
+
+    @GetMapping("forceRemove")
+    fun forceRemoveAspect(@RequestBody aspect: Aspect) {
+        logger.debug("Forced remove aspect request: ${aspect.id}")
+        aspectService.remove(aspect, true)
+    }
+
     @ExceptionHandler(AspectException::class)
     fun handleAspectException(exception: AspectException): ResponseEntity<String> {
         logger.error(exception.toString(), exception)

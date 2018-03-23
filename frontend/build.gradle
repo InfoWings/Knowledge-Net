@@ -80,7 +80,7 @@ task buildBundle(type: NpmTask, dependsOn: [npmInstall, runDceKotlinJs, copyStat
     args = ["run", "dist"]
 }
 
-task serve(type: NpmTask) {
+task run(type: NpmTask) {
     args = ["run", "serve"]
 }
 
