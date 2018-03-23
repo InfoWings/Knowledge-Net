@@ -13,11 +13,12 @@ import org.hamcrest.Matchers.not
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.time.LocalDateTime
 
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SubjectApiTest : AbstractMvcTest() {
 
     @Autowired
@@ -37,7 +38,7 @@ class SubjectApiTest : AbstractMvcTest() {
 
     @Test
     fun create() {
-        val aspect = createTestAspect("TestCreateSubjectAspect", aspectService)
+        createTestAspect("TestCreateSubjectAspect", aspectService)
         val sd = SubjectData(
             name = "TestSubject_CreateApi_${LocalDateTime.now()}"
         )

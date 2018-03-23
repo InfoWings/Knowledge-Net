@@ -12,10 +12,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SubjectServiceTest {
 
     @Autowired
@@ -61,7 +63,8 @@ fun createTestSubject(
     aspectService: AspectService,
     subjectService: SubjectService
 ): Subject {
-    val aspects = aspectNames.map { createTestAspect(it, aspectService) }
     val sd = SubjectData(name = name)
-    return subjectService.findByName(name) ?: subjectService.createSubject(sd)
+    val subject = subjectService.findByName(name) ?: subjectService.createSubject(sd)
+    aspectNames.map { createTestAspect(it, aspectService, subject) }
+    return subject
 }

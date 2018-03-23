@@ -1,8 +1,10 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.toSubjectData
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +43,11 @@ abstract class AbstractMvcTest {
 
 }
 
-fun createTestAspect(aspectName: String, aspectService: AspectService): Aspect {
-    val ad = AspectData("", aspectName, "Metre", null, null, emptyList())
+fun createTestAspect(
+    aspectName: String,
+    aspectService: AspectService,
+    subject: Subject? = null
+): Aspect {
+    val ad = AspectData("", aspectName, "Metre", null, null, emptyList(), subject = subject?.toSubjectData())
     return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
 }
