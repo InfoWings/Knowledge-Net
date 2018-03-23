@@ -215,7 +215,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
                     attrs {
                         parentAspectId = props.parentAspect.id
-                        this.aspectPropertyId = if (aspectPropertyId == "") null else aspectPropertyId
+                        this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                     boundAspectId,
