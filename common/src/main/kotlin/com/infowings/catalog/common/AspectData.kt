@@ -28,3 +28,11 @@ data class AspectPropertyData(
     val deleted: Boolean = false,
     val version: Int = 0
 )
+
+/** Helpful extensions */
+
+val emptyAspectData: AspectData
+    get() = AspectData(null, "", null, null, null)
+
+val emptyAspectPropertyData: AspectPropertyData
+    get() = AspectPropertyData("", "", "", "")

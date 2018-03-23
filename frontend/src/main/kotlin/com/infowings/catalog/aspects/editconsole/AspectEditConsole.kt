@@ -94,7 +94,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onDelete(props.aspect)
+        props.onDelete()
     }
 
     private fun assignInputRef(element: HTMLInputElement?) {
@@ -216,7 +216,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspect: AspectData
         var onCancel: () -> Unit
         var onSubmit: (AspectData) -> Unit
-        var onDelete: (AspectData) -> Unit
+        var onDelete: () -> Unit
         var onSwitchToProperties: (AspectData) -> Unit
     }
 

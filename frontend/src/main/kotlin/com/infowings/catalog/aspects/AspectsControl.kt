@@ -5,6 +5,8 @@ import com.infowings.catalog.aspects.editconsole.aspectPropertyEditConsole
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
 import react.RBuilder
@@ -48,7 +50,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
-    private fun handleDeleteAspect(aspect: AspectData) {
+    private fun handleDeleteAspect() {
         setState {
             selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
@@ -60,14 +62,14 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             setState {
                 selectedAspect = emptyAspectData
             }
-            props.onAspectCreate(aspectData)
+            props.onAspectCreate(aspectData.normalize())
         } else {
             val existingAspect = state.selectedAspect
             setState {
                 selectedAspect = emptyAspectData
             }
             if (existingAspect != aspectData) {
-                props.onAspectUpdate(aspectData)
+                props.onAspectUpdate(aspectData.normalize())
             }
         }
     }
@@ -138,7 +140,10 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 ?: error("handleSwitchToNextProperty when no property is selected")
 
         val savedAspect = currentSelectedAspect.changePropertyValues(currentSelectedAspectPropertyIndex, aspectProperty)
-        currentSelectedAspect.id?.let { props.onAspectUpdate(savedAspect) } ?: props.onAspectCreate(savedAspect)
+        currentSelectedAspect.id?.let { props.onAspectUpdate(savedAspect.normalize()) }
+                ?: props.onAspectCreate(
+                    savedAspect.normalize()
+                )
 
         setState {
             selectedAspect = emptyAspectData
@@ -210,14 +215,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     }
 }
 
-fun AspectData.hasNextAlivePropertyIndex(index: Int) =
+/** Possibly should be moved somewhere during refactoring. For example to file AspectDataFrontendExtensions.  */
+
+private fun AspectData.hasNextAlivePropertyIndex(index: Int) =
     properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
 
-fun AspectData.nextAlivePropertyIndex(index: Int) =
+private fun AspectData.nextAlivePropertyIndex(index: Int) =
     properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
-
-fun AspectData.firstAlivePropertyIndex() =
-    properties.indexOfFirst { !it.deleted }
 
 private fun AspectData.changePropertyValues(index: Int, aspectProperty: AspectPropertyData) = copy(
     properties = properties.mapIndexed { i, property ->
@@ -234,15 +238,12 @@ private fun AspectData.changePropertyValues(index: Int, aspectProperty: AspectPr
     }
 )
 
-private val emptyAspectData: AspectData
-    get() = AspectData(null, "", null, null, null)
-
-private val emptyAspectPropertyData: AspectPropertyData
-    get() = AspectPropertyData("", "", "", "")
-
-private fun AspectData.dropProperty(index: Int) =
-    copy(properties = properties.filterIndexed { i, _ -> i != index }.toList())
-
 private fun AspectData.plusEmptyProperty() = copy(
-    properties = properties + AspectPropertyData("", "", "", "")
+    properties = properties + emptyAspectPropertyData
 )
+
+private fun AspectData.normalize() = filterNotEmpty().filterNewDeleted()
+
+private fun AspectData.filterNotEmpty() = copy(properties = properties.filter { it != emptyAspectPropertyData })
+
+private fun AspectData.filterNewDeleted() = copy(properties = properties.filter { !(it.id.isEmpty() && it.deleted) })
