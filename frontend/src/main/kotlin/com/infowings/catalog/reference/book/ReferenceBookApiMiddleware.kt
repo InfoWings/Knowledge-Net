@@ -44,6 +44,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun createBook(bookData: ReferenceBookData) {
         launch {
+            /*
+            Maybe get ReferenceBook is not optimal way.
+            Actually we need only created ReferenceBook id.
+            */
             val newBook = createReferenceBook(bookData)
             updateRowDataList(bookData.aspectId, newBook)
         }
@@ -51,6 +55,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun updateBook(bookData: ReferenceBookData) {
         launch {
+            /*
+            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+            Actually we need only to know is updating was successful.
+            */
             val updatedBook = updateReferenceBook(bookData)
             updateRowDataList(bookData.aspectId, updatedBook)
         }
@@ -58,6 +66,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun createBookItem(bookItemData: ReferenceBookItemData) {
         launch {
+            /*
+            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+            Actually we need only created ReferenceBookItem id.
+            */
             val updatedBook = createReferenceBookItem(bookItemData)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         }
@@ -65,6 +77,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun updateBookItem(bookItemData: ReferenceBookItemData) {
         launch {
+            /*
+            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+            Actually we need only to know is updating was successful.
+            */
             val updatedBook = updateReferenceBookItem(bookItemData)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         }
