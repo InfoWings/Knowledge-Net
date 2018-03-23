@@ -85,7 +85,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         )
 
         setState {
-            selectedAspect = if (!aspect.hasNextAlivePropertyIndex(0)) tmpAspect.plusEmptyProperty() else tmpAspect
+            selectedAspect = if (!tmpAspect.hasNextAlivePropertyIndex(0)) tmpAspect.plusEmptyProperty() else tmpAspect
             selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(0)
         }
     }
@@ -242,8 +242,5 @@ private fun AspectData.plusEmptyProperty() = copy(
     properties = properties + emptyAspectPropertyData
 )
 
-private fun AspectData.normalize() = filterNotEmpty().filterNewDeleted()
-
-private fun AspectData.filterNotEmpty() = copy(properties = properties.filter { it != emptyAspectPropertyData })
-
-private fun AspectData.filterNewDeleted() = copy(properties = properties.filter { !(it.id.isEmpty() && it.deleted) })
+private fun AspectData.normalize() =
+    copy(properties = properties.filter { it != emptyAspectPropertyData && !(it.id.isEmpty() && it.deleted) })

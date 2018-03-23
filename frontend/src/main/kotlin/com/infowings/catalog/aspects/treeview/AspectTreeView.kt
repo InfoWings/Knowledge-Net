@@ -15,13 +15,14 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
     }
 
     override fun RBuilder.render() {
+        val selectedAspect = props.selectedAspect
         div(classes = "aspect-tree-view") {
             props.aspects.map { aspect ->
                 aspectTreeRoot {
                     attrs {
                         key = aspect.id ?: ""
                         this.aspect = aspect
-                        selectedAspect = props.selectedAspect
+                        this.selectedAspect = props.selectedAspect
                         selectedPropertyIndex = props.selectedPropertyIndex
                         onAspectClick = props.onAspectClick
                         onAspectPropertyClick = props.onAspectPropertyClick

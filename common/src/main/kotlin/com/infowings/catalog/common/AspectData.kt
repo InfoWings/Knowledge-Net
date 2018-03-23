@@ -30,9 +30,10 @@ data class AspectPropertyData(
 )
 
 /** Helpful extensions */
-
 val emptyAspectData: AspectData
     get() = AspectData(null, "", null, null, null)
 
 val emptyAspectPropertyData: AspectPropertyData
     get() = AspectPropertyData("", "", "", "")
+
+fun AspectData.actualData() = copy(properties = properties.filter { !it.deleted })

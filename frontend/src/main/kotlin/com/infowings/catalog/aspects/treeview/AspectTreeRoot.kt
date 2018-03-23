@@ -35,6 +35,7 @@ class AspectTreeRoot : RComponent<AspectTreeRoot.Props, AspectTreeRoot.State>() 
     }
 
     override fun RBuilder.render() {
+        console.log(props.aspect)
         div(classes = "aspect-tree-view--root") {
             if (props.aspect.properties.isNotEmpty()) {
                 if (state.expanded) {
