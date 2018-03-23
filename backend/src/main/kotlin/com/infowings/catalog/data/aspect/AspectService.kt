@@ -54,10 +54,10 @@ class AspectService(private val db: OrientDatabase,
         aspectVertex.checkAspectVersion(aspect.toAspectData())
 
         when {
-            vertex.hasIncomingEdges() && force -> {
+            aspectVertex.isLinkedBy() && force -> {
                 // сюда - удаление связанного
             }
-            vertex.hasIncomingEdges() -> {
+            aspectVertex.isLinkedBy() -> {
                 throw AspectHasLinkedEntitiesException(aspect.id)
             }
             else ->
@@ -68,13 +68,10 @@ class AspectService(private val db: OrientDatabase,
     fun remove(property: AspectProperty) = transaction(db) {
         val vertex = aspectDaoService.getVertex(property.id) ?: throw AspectPropertyDoesNotExist(property.id)
 
-
-        val propertyVertex = vertex.toAspectPropertyVertex()
-
-        if (property.version != propertyVertex.version) {
+        if (property.version != vertex.version) {
             throw AspectPropertyConcurrentModificationException(property.id,
-                    "found aspect version ${propertyVertex.version}" +
-                            " instead of ${propertyVertex.version}")
+                    "found aspect version ${vertex.version}" +
+                            " instead of ${vertex.version}")
         }
 
         aspectDaoService.remove(vertex)
