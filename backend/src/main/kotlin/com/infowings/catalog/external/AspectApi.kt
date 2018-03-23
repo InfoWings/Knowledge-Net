@@ -2,6 +2,7 @@ package com.infowings.catalog.external
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.loggerFor
@@ -35,6 +36,18 @@ class AspectApi(val aspectService: AspectService) {
     fun getAspects(): AspectsList {
         logger.debug("Get all aspects request")
         return AspectsList(aspectService.getAspects().toAspectData())
+    }
+
+    @GetMapping("remove")
+    fun removeAspect(@RequestBody aspect: Aspect) {
+        logger.debug("Remove aspect request: ${aspect.id}")
+        aspectService.remove(aspect)
+    }
+
+    @GetMapping("forceRemove")
+    fun forceRemoveAspect(@RequestBody aspect: Aspect) {
+        logger.debug("Forced remove aspect request: ${aspect.id}")
+        aspectService.remove(aspect, true)
     }
 }
 private val logger = loggerFor<AspectApi>()
