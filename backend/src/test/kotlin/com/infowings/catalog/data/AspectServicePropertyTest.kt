@@ -91,7 +91,7 @@ class AspectServicePropertyTest {
                 Is.`is`(listOf(property, property2).map { it.name }))
     }
 
-    @Test(expected = AspectValidationException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
         val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
@@ -122,7 +122,7 @@ class AspectServicePropertyTest {
         assertTrue("aspect property should have new name", updated.properties.map { it.name }.any { it == "new Name" })
     }
 
-    @Test(expected = AspectValidationException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testUnCorrectChangeAspectPropertyName() {
 
         val propertyList = complexAspect.toAspectData().properties.toMutableList()

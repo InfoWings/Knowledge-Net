@@ -48,7 +48,7 @@ class AspectServiceSavingTest {
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
-    @Test(expected = AspectValidationException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
         aspectService.save(ad)
@@ -62,7 +62,7 @@ class AspectServiceSavingTest {
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
-    @Test(expected = AspectValidationException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testFailAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, OpenDomain(Boolean).toString(), BaseType.Boolean.name, emptyList())
         aspectService.save(ad)
@@ -113,7 +113,7 @@ class AspectServiceSavingTest {
                 Is.`is`(2))
     }
 
-    @Test(expected = AspectValidationException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
         aspectService.save(ad)

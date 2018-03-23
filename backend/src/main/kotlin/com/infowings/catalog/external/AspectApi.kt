@@ -46,17 +46,13 @@ class AspectApi(val aspectService: AspectService) {
                     .body("Aspect with such name already exists (${exception.name}).")
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                     .body("Attempt to modify old version of entity, please refresh.")
-            is AspectModificationException ->
-                if (exception.message == "aspect is removed") {
-                    ResponseEntity.badRequest().body("Attempt to modify already deleted entity, please refresh.")
-                } else {
-                    ResponseEntity.badRequest().body("Updates to aspect ${exception.id} violates update constraints: ${exception.message}")
-                }
+            is AspectModificationException -> ResponseEntity.badRequest()
+                    .body("Updates to aspect ${exception.id} violates update constraints: ${exception.message}")
             is AspectPropertyModificationException -> ResponseEntity.badRequest()
                     .body("Updates to aspect property ${exception.id} violates update constraints: ${exception.message}")
             is AspectCyclicDependencyException -> ResponseEntity.badRequest()
                     .body("Failed to create/modify aspect due to emerging cycle among aspects")
-            is AspectValidationException -> ResponseEntity.badRequest()
+            is AspectInconsistentStateException -> ResponseEntity.badRequest()
                     .body(exception.message)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("${exception.message}")
