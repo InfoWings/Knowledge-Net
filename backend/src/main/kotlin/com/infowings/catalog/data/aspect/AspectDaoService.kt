@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -22,15 +23,19 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
 
+    fun getVertex(id: String): OVertex? = db.getVertexById(id)
+
     fun getAspectVertex(aspectId: String) = db.getVertexById(aspectId)?.toAspectVertex()
 
     fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
-    fun getAspectPropertyVertex(aspectPropertyId: String) = db.getVertexById(aspectPropertyId)?.toAspectPropertyVertex()
+    fun getAspectPropertyVertex(aspectPropertyId: String) = getVertex(aspectPropertyId)?.toAspectPropertyVertex()
 
     fun findByName(name: String): Set<AspectVertex> = db.query(selectAspectByName, name) { rs ->
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
+
+    fun remove(vertex: OVertex) = db.delete(vertex)
 
     fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
         rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
