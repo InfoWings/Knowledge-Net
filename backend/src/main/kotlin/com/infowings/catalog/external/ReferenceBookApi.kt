@@ -20,7 +20,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @GetMapping("get")
-    fun getByAspectId(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBook {
+    fun get(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBook {
         val aspectId = URLDecoder.decode(encodedAspectId, "UTF-8")
         logger.debug("Getting reference books by aspectId=$aspectId")
         return referenceBookService.getReferenceBook(aspectId)

@@ -50,6 +50,13 @@ class ReferenceBookDbTest {
     }
 
     @Test
+    fun getAllReferenceBooksTest() {
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherBook = referenceBookService.createReferenceBook("Example", anotherAspect.id)
+        assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
+    }
+
+    @Test
     fun findReferenceBookTest() {
         val found = referenceBookService.getReferenceBook(aspect.id)
         assertTrue("Found reference book must be equals with saved", found == referenceBook)

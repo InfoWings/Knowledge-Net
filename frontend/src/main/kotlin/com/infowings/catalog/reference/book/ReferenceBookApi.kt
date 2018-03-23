@@ -13,7 +13,7 @@ private external fun encodeURIComponent(component: String): String = definedExte
 internal suspend fun getAllReferenceBooks(): ReferenceBooksList =
     JSON.parse(get("/api/book/all"))
 
-internal suspend fun getReferenceBookByAspectId(aspectId: String): ReferenceBooksList =
+internal suspend fun getReferenceBook(aspectId: String): ReferenceBook =
     JSON.parse(get("/api/book/get?aspectId=${encodeURIComponent(aspectId)}"))
 
 internal suspend fun createReferenceBook(bookData: ReferenceBookData): ReferenceBook =
