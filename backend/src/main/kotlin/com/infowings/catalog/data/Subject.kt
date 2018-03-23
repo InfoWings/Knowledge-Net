@@ -11,6 +11,5 @@ data class Subject(
 
 fun Subject.toSubjectData() = SubjectData(
     id = this.id,
-    name = this.name,
-    aspects = this.aspects.map { it.toAspectData() }
+    name = this.name
 )

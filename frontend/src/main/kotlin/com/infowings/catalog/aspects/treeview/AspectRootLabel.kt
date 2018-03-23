@@ -37,6 +37,10 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
                 span(classes = "aspect-tree-view--label-base-type") {
                     +(props.aspect.baseType ?: "")
                 }
+                +"Subject:"
+                span(classes = "aspect-tree-view--label-subject") {
+                    +(props.aspect.subject?.name ?: "Global")
+                }
             } else {
                 span(classes = "aspect-tree-view--empty") {
                     +"(Enter New Aspect)"

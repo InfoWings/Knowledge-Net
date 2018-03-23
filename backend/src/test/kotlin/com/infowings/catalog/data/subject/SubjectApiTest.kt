@@ -2,7 +2,6 @@ package com.infowings.catalog.data.subject
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.AbstractMvcTest
-import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.Subject
@@ -40,8 +39,7 @@ class SubjectApiTest : AbstractMvcTest() {
     fun create() {
         val aspect = createTestAspect("TestCreateSubjectAspect", aspectService)
         val sd = SubjectData(
-            name = "TestSubject_CreateApi_${LocalDateTime.now()}",
-            aspects = listOf(AspectData(aspect.id, "tstAspect"))
+            name = "TestSubject_CreateApi_${LocalDateTime.now()}"
         )
         val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
 

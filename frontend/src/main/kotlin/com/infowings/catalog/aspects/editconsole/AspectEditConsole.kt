@@ -1,11 +1,9 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
@@ -27,6 +25,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectMeasure = props.aspect.measure
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
+        aspectName = props.aspect.subject?.name ?: ""
     }
 
     override fun componentDidMount() {
@@ -54,6 +53,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             aspectMeasure = nextProps.aspect.measure
             aspectDomain = nextProps.aspect.domain
             aspectBaseType = nextProps.aspect.baseType
+            aspectSubject = nextProps.aspect.subject
         }
     }
 
@@ -62,12 +62,14 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSwitchToProperties(props.aspect.copy(
+        props.onSwitchToProperties(
+            props.aspect.copy(
                 name = state.aspectName ?: error("Aspect Name is null"),
                 measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
                 domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
                 baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-        ))
+            )
+        )
     }
 
     private fun handleSubmitAspectClick(e: Event) {
@@ -75,12 +77,15 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSubmit(props.aspect.copy(
+        props.onSubmit(
+            props.aspect.copy(
                 name = state.aspectName ?: error("Aspect Name is null"),
                 measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
                 domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-        ))
+                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+                subject = state.aspectSubject
+            )
+        )
     }
 
     private fun handleCancelClick(e: Event) {
@@ -109,21 +114,25 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 if (ctrlPressed) {
                     aspectChanged = true
                     inputRef?.blur()
-                    props.onSwitchToProperties(props.aspect.copy(
+                    props.onSwitchToProperties(
+                        props.aspect.copy(
                             name = state.aspectName ?: error("Aspect Name is null"),
                             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
                             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
                             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                    ))
+                        )
+                    )
                 } else {
                     aspectChanged = true
                     inputRef?.blur()
-                    props.onSubmit(props.aspect.copy(
+                    props.onSubmit(
+                        props.aspect.copy(
                             name = state.aspectName ?: error("Aspect Name is null"),
                             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
                             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
                             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                    ))
+                        )
+                    )
                 }
             }
         }
@@ -139,6 +148,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         setState {
             aspectMeasure = measure
             aspectBaseType = GlobalMeasureMap[measure]?.baseType?.name
+        }
+    }
+
+    private fun handleAspectSubjectChanged(subjectName: String, subjetId: String) {
+        setState {
+            aspectSubject = SubjectData(id = subjetId, name = subjectName)
         }
     }
 
@@ -186,6 +201,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         onChange = ::handleAspectBaseTypeChanged
                     }
                 }
+                aspectSubjectInput {
+                    attrs {
+                        value = state.aspectSubject?.name ?: ""
+                        onChange = ::handleAspectSubjectChanged
+                    }
+                }
                 div(classes = "aspect-edit-console--button-control-tab") {
                     div(classes = "aspect-edit-console--button-control") {
                         attrs {
@@ -222,6 +243,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var aspectSubject: SubjectData?
     }
 }
 

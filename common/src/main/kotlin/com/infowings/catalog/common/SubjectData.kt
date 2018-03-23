@@ -10,6 +10,5 @@ data class SubjectsList(
 @Serializable
 data class SubjectData(
     val id: String? = null,
-    val name: String,
-    val aspects: List<AspectData> = emptyList()
+    val name: String
 )

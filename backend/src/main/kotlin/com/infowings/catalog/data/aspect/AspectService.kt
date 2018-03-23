@@ -122,9 +122,18 @@ class AspectService(private val db: OrientDatabase,
 
     }
 
-    private fun AspectVertex.toAspect(): Aspect {
+    private fun AspectVertex.toAspect(): Aspect = transaction(db) {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        return Aspect(id, name, measure, baseTypeObj?.let { OpenDomain(it) }, baseTypeObj, loadProperties(this), version)
+        return@transaction Aspect(
+            id,
+            name,
+            measure,
+            baseTypeObj?.let { OpenDomain(it) },
+            baseTypeObj,
+            loadProperties(this),
+            version,
+            subject
+        )
     }
 
     private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =

@@ -1,13 +1,12 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+
+fun OVertex.toSubject(): Subject =
+    Subject(this.id, this.name)
 
 class SubjectService(private val db: OrientDatabase, private val aspectService: AspectService) {
 
@@ -28,33 +27,13 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
         transaction(db) {
             val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull()]
             vertex.name = sd.name
-            sd.aspects.forEach { aspectData ->
-                val aspectId = aspectData.id ?: aspectService.save(aspectData).id
-                db[aspectId].subjects().find { it.id == vertex.id } ?: db[aspectId].addEdge(
-                    vertex,
-                    ASPECT_SUBJECT_EDGE
-                ).save<OEdge>()
-            }
             vertex.save<OVertex>().toSubject()
         }
-
-    private fun OVertex.toSubject(): Subject =
-        Subject(this.id, this.name, this.aspects())
-
-    private fun OVertex.aspects(): List<Aspect> =
-        this.getVertices(ODirection.IN, ASPECT_SUBJECT_EDGE).map { aspectService.getAspect(it.toAspectVertex()) }
-
-    private fun OVertex.subjects(): Iterable<OVertex> =
-        this.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE)
 
     private fun save(sd: SubjectData): Subject =
         transaction(db) { session ->
             val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
             vertex.name = sd.name
-            sd.aspects.forEach { aspectData ->
-                val aspectId = aspectData.id ?: aspectService.save(aspectData).id
-                db[aspectId].addEdge(vertex, ASPECT_SUBJECT_EDGE).save<OEdge>()
-            }
             vertex.save<OVertex>()
             session.commit() //TODO ????
             return@transaction vertex.toSubject()

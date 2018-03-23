@@ -72,18 +72,21 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             if (aspect.properties.isEmpty()) {
                 selectedAspect = aspect.copy(
-                        name = aspect.name,
-                        measure = aspect.measure,
-                        domain = aspect.domain,
-                        baseType = aspect.baseType,
-                        properties = aspect.properties + AspectPropertyData("", "", "", "")
+                    name = aspect.name,
+                    measure = aspect.measure,
+                    domain = aspect.domain,
+                    baseType = aspect.baseType,
+                    properties = aspect.properties + AspectPropertyData("", "", "", ""),
+                    subject = aspect.subject
+
                 )
             } else {
                 selectedAspect = aspect.copy(
-                        name = aspect.name,
-                        measure = aspect.measure,
-                        domain = aspect.domain,
-                        baseType = aspect.baseType
+                    name = aspect.name,
+                    measure = aspect.measure,
+                    domain = aspect.domain,
+                    baseType = aspect.baseType,
+                    subject = aspect.subject
                 )
             }
             selectedAspectPropertyIndex = 0
@@ -96,31 +99,31 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 ?: error("handleSwitchToNextProperty when no property is selected")
         selectedAspect = if (currentSelectedAspect.properties.lastIndex == currentSelectedAspectPropertyIndex)
             currentSelectedAspect.copy(
-                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                        if (index != currentSelectedAspectPropertyIndex) {
-                            property
-                        } else {
-                            property.copy(
-                                    name = aspectProperty.name,
-                                    cardinality = aspectProperty.cardinality,
-                                    aspectId = aspectProperty.aspectId
-                            )
-                        }
-                    } + AspectPropertyData("", "", "", "")
+                properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                    if (index != currentSelectedAspectPropertyIndex) {
+                        property
+                    } else {
+                        property.copy(
+                            name = aspectProperty.name,
+                            cardinality = aspectProperty.cardinality,
+                            aspectId = aspectProperty.aspectId
+                        )
+                    }
+                } + AspectPropertyData("", "", "", "")
             )
         else
             currentSelectedAspect.copy(
-                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                        if (index != currentSelectedAspectPropertyIndex) {
-                            property
-                        } else {
-                            property.copy(
-                                    name = aspectProperty.name,
-                                    cardinality = aspectProperty.cardinality,
-                                    aspectId = aspectProperty.aspectId
-                            )
-                        }
+                properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                    if (index != currentSelectedAspectPropertyIndex) {
+                        property
+                    } else {
+                        property.copy(
+                            name = aspectProperty.name,
+                            cardinality = aspectProperty.cardinality,
+                            aspectId = aspectProperty.aspectId
+                        )
                     }
+                }
             )
         selectedAspectPropertyIndex = currentSelectedAspectPropertyIndex + 1
     }
@@ -131,17 +134,17 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         val currentSelectedAspectPropertyIndex = state.selectedAspectPropertyIndex
                 ?: error("handleSwitchToNextProperty when no property is selected")
         val savedAspect = currentSelectedAspect.copy(
-                properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                    if (index != currentSelectedAspectPropertyIndex) {
-                        property
-                    } else {
-                        property.copy(
-                                name = aspectProperty.name,
-                                cardinality = aspectProperty.cardinality,
-                                aspectId = aspectProperty.aspectId
-                        )
-                    }
+            properties = currentSelectedAspect.properties.mapIndexed { index, property ->
+                if (index != currentSelectedAspectPropertyIndex) {
+                    property
+                } else {
+                    property.copy(
+                        name = aspectProperty.name,
+                        cardinality = aspectProperty.cardinality,
+                        aspectId = aspectProperty.aspectId
+                    )
                 }
+            }
         )
         if (currentSelectedAspect.id == null) {
             props.onAspectCreate(savedAspect)
@@ -164,7 +167,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     private fun handleClickAddPropertyToAspect(aspect: AspectData) {
         setState {
             selectedAspect = aspect.copy(
-                    properties = aspect.properties + AspectPropertyData("", "", "", "")
+                properties = aspect.properties + AspectPropertyData("", "", "", "")
             )
             selectedAspectPropertyIndex = aspect.properties.size
         }

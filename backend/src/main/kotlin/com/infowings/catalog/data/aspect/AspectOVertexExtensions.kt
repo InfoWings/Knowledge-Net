@@ -1,10 +1,9 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.ASPECT_ASPECTPROPERTY_EDGE
-import com.infowings.catalog.storage.get
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.set
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.toSubject
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
@@ -60,6 +59,9 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             vertex["deleted"] = value
         }
+
+    val subject: Subject?
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList().firstOrNull()?.toSubject()
 
     fun isLinkedBy() = getVertices(ODirection.IN).any()
 

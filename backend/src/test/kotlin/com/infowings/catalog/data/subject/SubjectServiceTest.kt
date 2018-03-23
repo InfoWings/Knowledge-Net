@@ -62,6 +62,6 @@ fun createTestSubject(
     subjectService: SubjectService
 ): Subject {
     val aspects = aspectNames.map { createTestAspect(it, aspectService) }
-    val sd = SubjectData(name = name, aspects = aspects.map { AspectData(it.id) })
+    val sd = SubjectData(name = name)
     return subjectService.findByName(name) ?: subjectService.createSubject(sd)
 }
