@@ -33,6 +33,7 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
 
     override fun RBuilder.render() {
         val childAspect = props.aspect
+        val selectedAspect = props.selectedAspect
         div(classes = "aspect-tree-view--property") {
             if (childAspect != null && childAspect.properties.isNotEmpty()) {
                 if (state.expanded) {
@@ -70,7 +71,6 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
         }
         if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
             aspectTreeProperties {
-                val selectedAspect = props.selectedAspect
                 attrs {
                     parentAspect = if (selectedAspect != null && selectedAspect.id == childAspect.id) selectedAspect else childAspect
                     aspectContext = props.aspectContext

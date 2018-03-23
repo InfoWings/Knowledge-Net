@@ -59,17 +59,14 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     private fun handleSubmitAspectChanges(aspectData: AspectData) {
         if (aspectData.id == null) {
-            setState {
-                selectedAspect = emptyAspectData
-            }
             props.onAspectCreate(aspectData.normalize())
-        } else {
-            val existingAspect = state.selectedAspect
             setState {
                 selectedAspect = emptyAspectData
             }
-            if (existingAspect != aspectData) {
-                props.onAspectUpdate(aspectData.normalize())
+        } else {
+            props.onAspectUpdate(aspectData.normalize())
+            setState {
+                selectedAspect = emptyAspectData
             }
         }
     }

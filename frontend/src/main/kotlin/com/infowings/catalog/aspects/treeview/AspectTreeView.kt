@@ -21,7 +21,7 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
                 aspectTreeRoot {
                     attrs {
                         key = aspect.id ?: ""
-                        this.aspect = aspect
+                        this.aspect = if (selectedAspect != null && selectedAspect.id == aspect.id) selectedAspect else aspect
                         this.selectedAspect = props.selectedAspect
                         selectedPropertyIndex = props.selectedPropertyIndex
                         onAspectClick = props.onAspectClick
