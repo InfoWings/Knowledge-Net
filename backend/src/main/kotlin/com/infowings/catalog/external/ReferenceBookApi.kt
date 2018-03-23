@@ -16,41 +16,37 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     @GetMapping("all")
     fun getAll(): ReferenceBooksList {
         logger.debug("Getting all reference books")
-        return ReferenceBooksList(referenceBookService.getReferenceBooks())
+        return ReferenceBooksList(referenceBookService.getAllReferenceBooks())
     }
 
     @GetMapping("get")
-    fun getByAspectId(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBooksList {
+    fun getByAspectId(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBook {
         val aspectId = URLDecoder.decode(encodedAspectId, "UTF-8")
         logger.debug("Getting reference books by aspectId=$aspectId")
-        return ReferenceBooksList(referenceBookService.getReferenceBooksByAspectId(aspectId))
-    }
-
-    @GetMapping("get/{name}")
-    fun getByName(@PathVariable("name") name: String): ReferenceBook {
-        logger.debug("Getting reference book by name=$name")
-        return referenceBookService.getReferenceBook(name)
+        return referenceBookService.getReferenceBook(aspectId)
     }
 
     @PostMapping("create")
     fun create(@RequestBody book: ReferenceBookData): ReferenceBook {
         logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
-        return referenceBookService.createReferenceBook(book.name!!, book.aspectId)
+        return referenceBookService.createReferenceBook(book.name, book.aspectId)
     }
 
-    @PostMapping("update/{name}")
-    fun update(@PathVariable("name") name: String, @RequestBody book: ReferenceBookData): ReferenceBook {
-        logger.debug("Updating reference book with id=$name name to ${book.name}")
-        return referenceBookService.updateReferenceBook(name, book.name!!)
+    @PostMapping("update")
+    fun update(@RequestBody book: ReferenceBookData): ReferenceBook {
+        val aspectId = book.aspectId
+        val newName: String = book.name
+        logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
+        return referenceBookService.updateReferenceBook(aspectId, newName)
     }
 
     @PostMapping("item/create")
     fun createItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
         logger.debug("Creating reference book item")
         return referenceBookService.addItemAndGetReferenceBook(
-            bookItemData.bookName,
-            bookItemData.parentId!!,
-            bookItemData.value!!
+            bookItemData.aspectId,
+            bookItemData.parentId,
+            bookItemData.value
         )
     }
 
@@ -58,9 +54,9 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     fun updateItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
         logger.debug("Updating reference book item with id=${bookItemData.id}")
         return referenceBookService.updateItemAndGetReferenceBook(
-            bookItemData.bookName,
+            bookItemData.aspectId,
             bookItemData.id!!,
-            bookItemData.value!!
+            bookItemData.value
         )
     }
 

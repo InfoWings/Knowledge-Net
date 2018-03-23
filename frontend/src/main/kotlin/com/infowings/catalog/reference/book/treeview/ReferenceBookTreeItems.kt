@@ -42,6 +42,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
             props.bookItems.map {
                 referenceBookTreeItem {
                     attrs {
+                        aspectId = props.aspectId
                         book = props.book
                         key = it.id
                         bookItem = it
@@ -53,7 +54,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItemData = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.book.name)
+                        bookItemData = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.aspectId)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = ::createBookItem
                     }
@@ -74,6 +75,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
     }
 
     interface Props : RProps {
+        var aspectId: String
         var book: ReferenceBook
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>

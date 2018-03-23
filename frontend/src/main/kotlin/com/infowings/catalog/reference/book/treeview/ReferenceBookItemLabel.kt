@@ -1,6 +1,5 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
@@ -46,7 +45,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                 bookItemEditConsole {
                     val bookItem = props.bookItem
                     attrs {
-                        this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, null, props.book.name)
+                        this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, "", props.aspectId)
                         onCancel = ::cancelUpdatingBookItem
                         onSubmit = ::updateBookItem
                     }
@@ -60,7 +59,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     }
 
     interface Props : RProps {
-        var book: ReferenceBook
+        var aspectId: String
         var bookItem: ReferenceBookItem
         var updateBookItem: (ReferenceBookItemData) -> Unit
     }

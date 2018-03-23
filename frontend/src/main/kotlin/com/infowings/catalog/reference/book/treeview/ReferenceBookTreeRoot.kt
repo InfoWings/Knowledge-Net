@@ -86,6 +86,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         if (props.book.children.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
+                    aspectId = props.aspectId
                     book = props.book
                     bookItems = props.book.children
                     createBookItem = props.createBookItem
@@ -96,7 +97,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         if (state.creatingBookItem) {
             bookItemEditConsole {
                 attrs {
-                    bookItemData = ReferenceBookItemData(null, "", props.book.id, props.book.name)
+                    bookItemData = ReferenceBookItemData(null, "", props.book.id, props.aspectId)
                     onCancel = ::cancelCreatingBookItem
                     onSubmit = ::createBookItem
                 }
@@ -105,11 +106,12 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 
     interface Props : RProps {
+        var aspectId: String
         var aspectName: String
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: (bookName: String, ReferenceBookData) -> Unit
+        var updateBook: (ReferenceBookData) -> Unit
         var createBookItem: (ReferenceBookItemData) -> Unit
         var updateBookItem: (ReferenceBookItemData) -> Unit
     }

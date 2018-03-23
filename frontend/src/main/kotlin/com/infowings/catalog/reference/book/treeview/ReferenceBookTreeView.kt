@@ -42,6 +42,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                     if (rowData.book != null) {
                         referenceBookTreeRoot {
                             attrs {
+                                aspectId = rowData.aspectId
                                 aspectName = rowData.aspectName
                                 book = rowData.book
                                 selected = rowData.aspectName == state.selectedAspectName

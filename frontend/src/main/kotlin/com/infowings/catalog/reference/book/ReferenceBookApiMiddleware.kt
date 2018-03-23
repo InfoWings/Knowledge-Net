@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
     var rowDataList: List<RowData>
-    var updateBook: (bookName: String, bookData: ReferenceBookData) -> Unit
+    var updateBook: (bookData: ReferenceBookData) -> Unit
     var createBook: (ReferenceBookData) -> Unit
     var createBookItem: (ReferenceBookItemData) -> Unit
     var updateBookItem: (ReferenceBookItemData) -> Unit
@@ -44,21 +44,14 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private fun createBook(bookData: ReferenceBookData) {
         launch {
-            if (bookData.name.isNullOrEmpty()) throw RuntimeException("Reference book name shouldn't be empty!")
-
             val newBook = createReferenceBook(bookData)
-
             updateRowDataList(bookData.aspectId, newBook)
         }
     }
 
-    private fun updateBook(bookName: String, bookData: ReferenceBookData) {
+    private fun updateBook(bookData: ReferenceBookData) {
         launch {
-            val newName = bookData.name
-            if (newName.isNullOrEmpty()) throw RuntimeException("Reference book name shouldn't be empty!")
-
-            val updatedBook = updateReferenceBook(bookName, bookData)
-
+            val updatedBook = updateReferenceBook(bookData)
             updateRowDataList(bookData.aspectId, updatedBook)
         }
     }

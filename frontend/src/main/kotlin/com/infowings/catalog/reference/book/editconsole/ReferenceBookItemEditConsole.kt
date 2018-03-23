@@ -29,7 +29,7 @@ class ReferenceBookItemEditConsole(props: Props) :
         when (keyCode) {
             27 -> props.onCancel() //esc
             13 -> {
-                if (state.value.isNullOrEmpty()) error("Reference Book Item Value is empty")
+                if (state.value.isEmpty()) error("Reference Book Item Value must not be empty!")
                 props.onSubmit(props.bookItemData.copy(value = state.value))
             } //Enter
         }
@@ -73,7 +73,7 @@ class ReferenceBookItemEditConsole(props: Props) :
     }
 
     interface State : RState {
-        var value: String?
+        var value: String
     }
 }
 

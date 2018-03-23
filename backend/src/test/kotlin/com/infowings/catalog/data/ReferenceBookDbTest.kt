@@ -37,9 +37,11 @@ class ReferenceBookDbTest {
 
     @Test
     fun testNotVirtualId() {
-        assertThat("Ids are not virtual",
-                referenceBookService.getReferenceBook(referenceBook.name).id.contains("-"),
-                Is.`is`(false))
+        assertThat(
+            "Ids are not virtual",
+            referenceBookService.getReferenceBook(referenceBook.aspectId).id.contains("-"),
+            Is.`is`(false)
+        )
     }
 
     @Test
@@ -49,7 +51,7 @@ class ReferenceBookDbTest {
 
     @Test
     fun findReferenceBookTest() {
-        val found = referenceBookService.getReferenceBook("Example")
+        val found = referenceBookService.getReferenceBook(aspect.id)
         assertTrue("Found reference book must be equals with saved", found == referenceBook)
     }
 
@@ -60,16 +62,9 @@ class ReferenceBookDbTest {
 
     @Test
     fun updateReferenceBookTest() {
-        val oldName = referenceBook.name
         val newName = "newName"
-        val updatedReferenceBook = referenceBookService.updateReferenceBook(oldName, newName)
+        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName)
         assertEquals(ReferenceBook(newName, referenceBook.aspectId, referenceBook.root), updatedReferenceBook)
-    }
-
-    @Test(expected = RefBookAlreadyExist::class)
-    fun updateReferenceBookWithAlreadyExistsNameTest() {
-        val oldName = referenceBook.name
-        referenceBookService.updateReferenceBook(oldName, oldName)
     }
 
     @Test(expected = RefBookNotExist::class)
@@ -90,10 +85,13 @@ class ReferenceBookDbTest {
         val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
         referenceBookService.addReferenceBookItem(child11, "value111")
 
-        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.name)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
         assertTrue("Root has 2 children", updatedReferenceBook.children.size == 2)
         assertTrue("`root.value1` has 1 child", updatedReferenceBook["value1"]!!.children.size == 1)
-        assertTrue("`root.value1.value11` has 1 child", updatedReferenceBook["value1"]!!["value11"]!!.children.size == 1)
+        assertTrue(
+            "`root.value1.value11` has 1 child",
+            updatedReferenceBook["value1"]!!["value11"]!!.children.size == 1
+        )
     }
 
     @Test(expected = RefBookChildAlreadyExist::class)
@@ -109,7 +107,7 @@ class ReferenceBookDbTest {
         val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
         referenceBookService.moveReferenceBookItem(child11, child2)
 
-        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.name)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
         assertTrue("`root.value1` has no child", updatedReferenceBook["value1"]!!.children.isEmpty())
         assertTrue("`root.value2` has 1 child", updatedReferenceBook["value2"]!!.children.size == 1)
     }

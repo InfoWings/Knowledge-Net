@@ -19,45 +19,91 @@ const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
 class ReferenceBookService(val database: OrientDatabase) {
 
     /**
-     * Get ReferenceBookItem by id
-     * @throws RefBookItemNotExist
-     * */
-    fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(database) {
-        val rootVertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
-        return@transaction rootVertex.toReferenceBookItem()
-    }
-
-    /**
-     * Get ReferenceBook instance by name
-     * @throws RefBookNotExist
-     * */
-    fun getReferenceBook(name: String): ReferenceBook = transaction(database) {
-        val referenceBookVertex = getReferenceBookVertexByName(name) ?: throw RefBookNotExist(name)
-        return@transaction referenceBookVertex.toReferenceBook()
-    }
-
-    /**
      * Get all ReferenceBook instances
-     * */
-    fun getReferenceBooks(): List<ReferenceBook> = transaction(database) {
+     */
+    fun getAllReferenceBooks(): List<ReferenceBook> = transaction(database) {
         return@transaction database.query(selectFromReferenceBook) { rs ->
             rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toList()
         }
     }
 
     /**
-     * Get ReferenceBook instances by aspect id
-     * */
-    fun getReferenceBooksByAspectId(aspectId: String): List<ReferenceBook> {
-        return getReferenceBooks().filter { it.aspectId == aspectId }.toList()
+     * Get ReferenceBook instance by aspect id
+     * @throws RefBookNotExist
+     */
+    fun getReferenceBook(aspectId: String): ReferenceBook = transaction(database) {
+        val referenceBookVertex =
+            getReferenceBookVertexByAspectId(aspectId) ?: throw RefBookNotExist("aspectId=$aspectId")
+        return@transaction referenceBookVertex.toReferenceBook()
     }
+
+    /**
+     * Create ReferenceBook with name [name]
+     * @throws RefBookAlreadyExist
+     */
+    fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(database) {
+        getReferenceBookVertexByAspectId(aspectId)?.let { throw RefBookAlreadyExist(name) }
+
+        val referenceBookVertex = database.createNewVertex(REFERENCE_BOOK_VERTEX)
+        referenceBookVertex.aspectId = aspectId
+        referenceBookVertex.name = name
+
+        val rootVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
+        rootVertex.value = "root"
+
+        referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+
+        val aspectVertex = database.getVertexById(aspectId)
+        referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
+
+        return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
+    }.let { ReferenceBook(it.first.name, aspectId, ReferenceBookItem(it.second.id, it.second.value)) }
+
+    /**
+     * Change ReferenceBook name to [newName] where aspect id equals to [aspectId]
+     * @throws RefBookNotExist if ReferenceBook with [aspectId] not found
+     * */
+    fun updateReferenceBook(aspectId: String, newName: String) = transaction(database) {
+        val referenceBookVertex =
+            getReferenceBookVertexByAspectId(aspectId) ?: throw RefBookNotExist("aspectId=$aspectId")
+        referenceBookVertex["name"] = newName
+        return@transaction referenceBookVertex.save<OVertex>().toReferenceBook()
+    }
+
+    /**
+     * Get ReferenceBookItem by id
+     * @throws RefBookItemNotExist
+     */
+    fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(database) {
+        val rootVertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
+        return@transaction rootVertex.toReferenceBookItem()
+    }
+
+    /**
+     * Add ReferenceBookItem instance to item with id = [parentId]
+     * @throws RefBookItemNotExist if item with id [parentId] doesn't exist
+     * @throws RefBookChildAlreadyExist if item with id [parentId] already has child with value equals to [value]
+     */
+    internal fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
+        val parentVertex = database.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
+
+        if (parentVertex.children.any { it.value == value }) {
+            throw RefBookChildAlreadyExist(parentId, value)
+        }
+
+        val childVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
+        parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+        childVertex.value = value
+
+        return@transaction childVertex.save<OVertex>()
+    }.id
 
     /**
      * Change value of ReferenceBookItem with id [id]
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
-     * */
-    fun changeValue(id: String, value: String) {
+     */
+    internal fun changeValue(id: String, value: String) {
         transaction(database) {
 
             val vertex = database.getVertexById(id) ?: throw RefBookItemNotExist(id)
@@ -73,28 +119,14 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
-    fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
-        val parentVertex = database.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
-
-        if (parentVertex.children.any { it.value == value }) {
-            throw RefBookChildAlreadyExist(parentId, value)
-        }
-
-        val childVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
-        parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-        childVertex.value = value
-
-        return@transaction childVertex.save<OVertex>()
-    }.id
-
-    fun addItemAndGetReferenceBook(bookName: String, parentId: String, value: String): ReferenceBook {
+    fun addItemAndGetReferenceBook(aspectId: String, parentId: String, value: String): ReferenceBook {
         addReferenceBookItem(parentId, value)
-        return getReferenceBook(bookName)
+        return getReferenceBook(aspectId)
     }
 
-    fun updateItemAndGetReferenceBook(bookName: String, id: String, newValue: String): ReferenceBook {
+    fun updateItemAndGetReferenceBook(aspectId: String, id: String, newValue: String): ReferenceBook {
         changeValue(id, newValue)
-        return getReferenceBook(bookName)
+        return getReferenceBook(aspectId)
     }
 
     /**
@@ -121,42 +153,8 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
-    /**
-     * Save ReferenceBook with name [name]
-     * @throws RefBookAlreadyExist
-     */
-    fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(database) {
-        getReferenceBookVertexByName(name)?.let { throw RefBookAlreadyExist(name) }
-
-        val referenceBookVertex = database.createNewVertex(REFERENCE_BOOK_VERTEX)
-        referenceBookVertex.name = name
-
-        val rootVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX)
-        rootVertex.value = "root"
-
-        referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-
-        val aspectVertex = database.getVertexById(aspectId)
-        referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
-
-        return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
-    }.let { ReferenceBook(it.first.name, aspectId, ReferenceBookItem(it.second.id, it.second.value)) }
-
-
-    /**
-     * Change ReferenceBook's [oldName] to [newName]
-     * @throws RefBookNotExist if ReferenceBook with [oldName] not found
-     * @throws RefBookAlreadyExist if exists ReferenceBook with [newName]
-     * */
-    fun updateReferenceBook(oldName: String, newName: String) = transaction(database) {
-        val referenceBookVertex = getReferenceBookVertexByName(oldName) ?: throw RefBookNotExist(oldName)
-        getReferenceBookVertexByName(newName)?.let { throw RefBookAlreadyExist(newName) }
-        referenceBookVertex["name"] = newName
-        return@transaction referenceBookVertex.save<OVertex>().toReferenceBook()
-    }
-
-    private fun getReferenceBookVertexByName(name: String): OVertex? =
-        database.query(searchReferenceBookByName, name) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+    private fun getReferenceBookVertexByAspectId(aspectId: String): OVertex? =
+        database.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 
     private fun OVertex.toReferenceBook(): ReferenceBook {
         val aspectId = aspect?.id ?: throw RefBookAspectNotExist(name)
@@ -178,8 +176,14 @@ class RefBookChildAlreadyExist(val id: String, val value: String) : ReferenceBoo
 class RefBookAspectNotExist(val name: String) : ReferenceBookException("name: $name")
 object RefBookItemMoveImpossible : ReferenceBookException()
 
-private const val searchReferenceBookByName = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE name = ?"
+private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
 private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
+
+private var OVertex.aspectId: String
+    get() = this["aspectId"]
+    set(value) {
+        this["aspectId"] = value
+    }
 
 private var OVertex.name: String
     get() = this["name"]

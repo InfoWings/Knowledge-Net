@@ -19,7 +19,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         setState {
             updatingBook = false
         }
-        props.updateBook(props.book.name, bookData)
+        props.updateBook(bookData)
     }
 
     private fun cancelUpdatingBook() {
@@ -68,7 +68,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: (bookName: String, ReferenceBookData) -> Unit
+        var updateBook: (ReferenceBookData) -> Unit
     }
 
     interface State : RState {
