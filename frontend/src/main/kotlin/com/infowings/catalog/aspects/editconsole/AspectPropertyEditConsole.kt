@@ -22,6 +22,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.span
 
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
@@ -260,6 +261,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                                 onChange = ::handleChildAspectBaseTypeChanged
                             }
                         }
+                    }
+                }
+            }
+            val badRequestErrorMessage = state.badRequestErrorMessage
+            if (badRequestErrorMessage != null) {
+                div(classes = "aspect-edit-console--error-message-container") {
+                    span(classes = "aspect-edit-console--error-message") {
+                        +badRequestErrorMessage
                     }
                 }
             }

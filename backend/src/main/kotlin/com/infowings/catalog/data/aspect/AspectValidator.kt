@@ -16,7 +16,7 @@ class AspectValidator(
     /**
      * Check business key of given [AspectData]
      * @throws AspectAlreadyExist
-     * @throws IllegalArgumentException
+     * @throws AspectValidationException
      */
     fun checkBusinessKey(aspectData: AspectData) {
         aspectData
@@ -27,7 +27,7 @@ class AspectValidator(
     /**
      * Data consistency check.
      * For example, conformity of measure and base type
-     * @throws IllegalArgumentException
+     * @throws AspectValidationException
      */
     fun checkAspectDataConsistent(aspectData: AspectData) {
 
@@ -39,14 +39,14 @@ class AspectValidator(
 
         when {
             measureName == null && baseType == null && aspectData.properties.isEmpty() ->
-                throw IllegalArgumentException("Measure and BaseType can't be null at the same time")
+                throw AspectValidationException("Measure and BaseType can't be null at the same time")
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
-                        ?: throw IllegalArgumentException("Measure $measureName incorrect")
+                        ?: throw AspectValidationException("Measure $measureName incorrect")
 
                 if (measure.baseType != BaseType.restoreBaseType(baseType)) {
-                    throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
+                    throw AspectValidationException("Measure $measure and base type $baseType relation incorrect")
                 }
             }
         }
@@ -102,7 +102,7 @@ class AspectValidator(
             properties.distinctBy { Pair(it.name, it.aspectId) }.size != properties.size
 
         if (notValid) {
-            throw IllegalArgumentException("Not correct property business key $this")
+            throw AspectValidationException("Aspect properties should have unique pairs of name and assigned aspect")
         }
     }
 

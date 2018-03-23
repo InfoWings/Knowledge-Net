@@ -142,3 +142,5 @@ class AspectModificationException(val id: String, message: String?) : AspectExce
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectValidationException(message: String) : AspectException(message)
