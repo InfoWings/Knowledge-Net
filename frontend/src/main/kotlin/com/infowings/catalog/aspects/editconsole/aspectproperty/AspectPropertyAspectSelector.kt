@@ -48,7 +48,11 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
-                                    val searchResult = getSuggestedAspects(input)
+                                    val searchResult = getSuggestedAspects(
+                                            input,
+                                            props.parentAspectId,
+                                            props.aspectPropertyId
+                                    )
                                     callback(null, jsObject {
                                         options = searchResult.aspects.map { aspectOption(it) }.toTypedArray()
                                     })
@@ -70,6 +74,8 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
     interface Props : RProps {
         var aspect: AspectData?
         var onAspectSelected: (AspectData) -> Unit
+        var parentAspectId: String?
+        var aspectPropertyId: String?
     }
 }
 

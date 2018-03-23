@@ -7,6 +7,7 @@ import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
+import hasIncomingEdges
 
 
 fun OVertex.toAspectVertex() = AspectVertex(this)
@@ -62,7 +63,7 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["deleted"] = value
         }
 
-    fun isLinkedBy() = getVertices(ODirection.IN).any()
+    fun isLinkedBy() = hasIncomingEdges()
 
     override fun equals(other: Any?): Boolean {
         return vertex == other

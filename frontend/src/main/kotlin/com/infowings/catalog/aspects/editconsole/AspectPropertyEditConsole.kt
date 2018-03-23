@@ -216,7 +216,10 @@ class AspectPropertyEditConsole(props: Props) :
             div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
                 aspectPropertyAspect {
                     val boundAspectId = state.aspectPropertyAspectId
+                    val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
                     attrs {
+                        parentAspectId = props.parentAspect.id
+                        this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                 boundAspectId,
