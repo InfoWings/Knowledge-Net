@@ -5,10 +5,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Kilometre
-import com.infowings.catalog.data.aspect.Aspect
-import com.infowings.catalog.data.aspect.AspectConcurrentModificationException
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
-import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction
@@ -94,7 +91,7 @@ class AspectServicePropertyTest {
                 Is.`is`(listOf(property, property2).map { it.name }))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectValidationException::class)
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
         val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
@@ -125,7 +122,7 @@ class AspectServicePropertyTest {
         assertTrue("aspect property should have new name", updated.properties.map { it.name }.any { it == "new Name" })
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectValidationException::class)
     fun testUnCorrectChangeAspectPropertyName() {
 
         val propertyList = complexAspect.toAspectData().properties.toMutableList()
