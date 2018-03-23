@@ -14,7 +14,6 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
-import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -27,7 +26,6 @@ import react.dom.div
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
-    private var savingJob: Job? = null
 
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
@@ -162,7 +160,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     }
 
     private fun trySubmitParentAspect() {
-        this.savingJob = launch {
+        launch {
             try {
                 props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
                         name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
