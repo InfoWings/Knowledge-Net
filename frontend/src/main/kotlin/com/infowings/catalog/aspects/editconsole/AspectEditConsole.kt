@@ -22,6 +22,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     private var inputRef: HTMLInputElement? = null
     private var aspectChanged: Boolean = false
+    private val currentState
+        get() = props.aspect.copy(
+            name = state.aspectName ?: error("Aspect Name is null"),
+            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        )
 
     override fun State.init(props: Props) {
         aspectName = props.aspect.name
@@ -63,12 +70,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSwitchToProperties(props.aspect.copy(
-                name = state.aspectName ?: error("Aspect Name is null"),
-                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-        ))
+        props.onSwitchToProperties(currentState)
     }
 
     private fun handleSubmitAspectClick(e: Event) {
@@ -76,12 +78,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSubmit(props.aspect.copy(
-                name = state.aspectName ?: error("Aspect Name is null"),
-                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-        ))
+        props.onSubmit(currentState)
     }
 
     private fun handleCancelClick(e: Event) {
@@ -118,21 +115,11 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 if (ctrlPressed) {
                     aspectChanged = true
                     inputRef?.blur()
-                    props.onSwitchToProperties(props.aspect.copy(
-                            name = state.aspectName ?: error("Aspect Name is null"),
-                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                    ))
+                    props.onSwitchToProperties(currentState)
                 } else {
                     aspectChanged = true
                     inputRef?.blur()
-                    props.onSubmit(props.aspect.copy(
-                            name = state.aspectName ?: error("Aspect Name is null"),
-                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                    ))
+                    props.onSubmit(currentState)
                 }
             }
         }
