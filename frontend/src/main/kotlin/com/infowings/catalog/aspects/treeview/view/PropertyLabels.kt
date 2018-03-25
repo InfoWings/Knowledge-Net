@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.treeview
+package com.infowings.catalog.aspects.treeview.view
 
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
@@ -14,7 +14,7 @@ fun RBuilder.propertyLabel(
         aspectDomain: String,
         aspectBaseType: String,
         onClick: () -> Unit
-) = div(classes = "aspect-tree-view--label${className?.let { " $className" } ?: ""}") {
+) = div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
         onClickFunction = {
             it.stopPropagation()
@@ -51,8 +51,7 @@ fun RBuilder.propertyLabel(
     }
 }
 
-fun RBuilder.placeholderPropertyLabel(
-        className: String?
-) = div(classes = "aspect-tree-view--label${className?.let { " $className" } ?: ""}") {
-    +"(Enter new Aspect Property)"
-}
+fun RBuilder.placeholderPropertyLabel(className: String?) =
+        div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
+            +"(Enter new Aspect Property)"
+        }

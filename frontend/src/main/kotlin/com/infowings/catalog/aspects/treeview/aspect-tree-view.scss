@@ -6,39 +6,6 @@
   margin: 0 auto;
   padding-bottom: 20rem;
 
-  &--root {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--property {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--line-icon {
-    height: 1.6rem;
-    width: 1.6rem;
-    fill: $color-icon-default;
-    margin-right: .4rem;
-
-    &__clickable:hover {
-      fill: $color-icon-hover;
-    }
-  }
-
   &--add-to-list-icon {
     height: 1.5rem;
     width: 1.5rem;
@@ -106,11 +73,6 @@
     &-cardinality {
       padding-left: .5rem;
     }
-  }
-
-  &--properties-block {
-    padding-left: $tree-level-translation;
-    padding-top: .2rem;
   }
 
 }
