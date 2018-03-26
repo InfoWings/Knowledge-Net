@@ -4,6 +4,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
+import kotlinx.coroutines.experimental.launch
 import react.*
 
 class AspectConsole : RComponent<AspectConsole.Props, RState>() {
@@ -15,17 +16,21 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
     }
 
     private fun handleSubmitAspectChanges(aspect: AspectData) {
-        props.onAspectUpdate(aspect)
-        props.onSubmit() // FIXME: Server call occurs before setState completes
+        launch {
+            props.onAspectUpdate(aspect)
+            props.onSubmit()
+        }
     }
 
     private fun handleSwitchToAspectProperties(aspect: AspectData) {
         val selectedAspect = props.aspect ?: error("Aspect should be selected in order to save changes")
-        props.onAspectUpdate(aspect)
-        if (selectedAspect.properties.isNotEmpty()) {
-            props.onSelectProperty(selectedAspect.id, 0)
-        } else {
-            props.onCreateProperty(0)
+        launch {
+            props.onAspectUpdate(aspect)
+            if (selectedAspect.properties.isNotEmpty()) {
+                props.onSelectProperty(selectedAspect.id, 0)
+            } else {
+                props.onCreateProperty(0)
+            }
         }
     }
 
@@ -33,17 +38,21 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         val selectedAspect = props.aspect ?: error("Aspect should be selected in order to save changes")
         val selectedPropertyIndex = props.propertyIndex
                 ?: error("Aspect property should be selected in order to switch to next property")
-        props.onAspectPropertyUpdate(property)
-        if (selectedPropertyIndex + 1 > selectedAspect.properties.lastIndex) {
-            props.onCreateProperty(selectedPropertyIndex + 1)
-        } else {
-            props.onSelectProperty(selectedAspect.id, selectedPropertyIndex + 1)
+        launch {
+            props.onAspectPropertyUpdate(property)
+            if (selectedPropertyIndex + 1 > selectedAspect.properties.lastIndex) {
+                props.onCreateProperty(selectedPropertyIndex + 1)
+            } else {
+                props.onSelectProperty(selectedAspect.id, selectedPropertyIndex + 1)
+            }
         }
     }
 
     private fun handleSaveParentAspect(property: AspectPropertyData) {
-        props.onAspectPropertyUpdate(property)
-        props.onSubmit() // FIXME: Server call occurs before setState completes
+        launch {
+            props.onAspectPropertyUpdate(property)
+            props.onSubmit()
+        }
     }
 
     override fun RBuilder.render() {
@@ -81,8 +90,8 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         var onSelectProperty: (String?, Int) -> Unit
         var onCreateProperty: (Int) -> Unit
         var onCancel: () -> Unit
-        var onAspectUpdate: (AspectData) -> Unit
-        var onAspectPropertyUpdate: (AspectPropertyData) -> Unit
+        var onAspectUpdate: suspend (AspectData) -> Unit
+        var onAspectPropertyUpdate: suspend (AspectPropertyData) -> Unit
         var onSubmit: () -> Unit
     }
 }

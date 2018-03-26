@@ -4,10 +4,13 @@ import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.wrappers.react.setStateWithCallback
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
+import kotlin.coroutines.experimental.Continuation
+import kotlin.coroutines.experimental.suspendCoroutine
 
 class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiverProps, AspectsControl.State>(props) {
 
@@ -103,8 +106,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     /**
      * Handler for updating currently selected [AspectData]
      */
-    private fun handleUpdateSelectedAspect(aspect: AspectData) {
-        setState {
+    private suspend fun handleUpdateSelectedAspect(aspect: AspectData) = suspendCoroutine { cont: Continuation<Unit> ->
+        setStateWithCallback({ cont.resume(Unit) }) {
             val currentlySelectedAspect = selectedAspect ?: error("Currently selected aspect should not be null")
             selectedAspect = currentlySelectedAspect.copy(
                     name = aspect.name,
@@ -118,8 +121,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     /**
      * Handler for updating currently selected [AspectPropertyData]
      */
-    private fun handleUpdateSelectedAspectProperty(aspectProperty: AspectPropertyData) {
-        setState {
+    private suspend fun handleUpdateSelectedAspectProperty(aspectProperty: AspectPropertyData) = suspendCoroutine { cont: Continuation<Unit> ->
+        setStateWithCallback({ cont.resume(Unit) }) {
             val currentlySelectedAspect = selectedAspect ?: error("Currently selected aspect should not be null")
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
                     ?: error("Currently selected aspect property index should not be null")
@@ -175,8 +178,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 onSelectProperty = ::handleSelectAspectProperty
                 onCreateProperty = ::handleCreateNewProperty
                 onCancel = ::handleCancelSelect
-                onAspectUpdate = ::handleUpdateSelectedAspect
-                onAspectPropertyUpdate = ::handleUpdateSelectedAspectProperty
+                onAspectUpdate = { handleUpdateSelectedAspect(it) }
+                onAspectPropertyUpdate = { handleUpdateSelectedAspectProperty(it) }
                 onSubmit = ::handleSubmitSelectedAspect
             }
         }

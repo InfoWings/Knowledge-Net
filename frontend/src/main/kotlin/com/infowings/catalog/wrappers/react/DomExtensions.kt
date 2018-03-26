@@ -1,7 +1,10 @@
 package com.infowings.catalog.wrappers.react
 
+import kotlinext.js.assign
 import kotlinx.html.*
 import react.RBuilder
+import react.RState
+import react.React
 import react.ReactElement
 import react.dom.RDOMBuilder
 import react.dom.tag
@@ -36,3 +39,10 @@ fun RDOMBuilder<SVG>.path(path: String): ReactElement = tag({}) { PATH(attribute
  * Custom label builder that supports 'htmlFor' attribute instead of for in react
  */
 inline fun RBuilder.label(classes: String? = null, htmlFor: String? = null, block: RDOMBuilder<LABEL>.() -> Unit): ReactElement = tag(block) { LABEL(attributesMapOf("class", classes, "htmlFor", htmlFor), it) }
+
+
+/**
+ * Extension for setState with additional callback
+ */
+fun <S : RState> React.Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
+        setState({ assign(it, buildState) }, callback)

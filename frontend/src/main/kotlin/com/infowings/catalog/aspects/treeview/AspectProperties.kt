@@ -16,7 +16,7 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
             treeNode {
                 val childAspect =
                         if (property.id.isNotEmpty())
-                            props.aspectContext(property.id)
+                            props.aspectContext(property.aspectId)
                                     ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
                         else null
 
