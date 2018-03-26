@@ -125,6 +125,17 @@
       fill: $color-icon-grey;
     }
   }
+
+  &--error-message-container {
+    text-align: center;
+    padding: .5em 0;
+  }
+
+  &--error-message {
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: maroon;
+  }
 }
 
 .aspect-table-select.Select {

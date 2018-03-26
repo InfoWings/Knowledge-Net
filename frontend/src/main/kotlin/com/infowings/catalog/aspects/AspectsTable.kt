@@ -1,10 +1,13 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.wrappers.table.RTableRendererProps
+import com.infowings.catalog.wrappers.table.ReactTable
+import com.infowings.catalog.wrappers.table.SubComponentProps
 import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.*
-import com.infowings.catalog.wrappers.table.*
+import react.dom.div
+import react.dom.i
 
 data class AspectRow(val aspect: AspectData, val pending: Boolean)
 
@@ -103,13 +106,13 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
             setState {
                 newAspect = null
             }
-            props.onAspectCreate(savedAspect)
+//            props.onAspectCreate(savedAspect)
         } else {
             val updatedAspect = state.pending[aspectId]!!
             setState {
                 pending.remove(aspectId)
             }
-            props.onAspectUpdate(updatedAspect)
+//            props.onAspectUpdate(updatedAspect)
         }
     }
 
@@ -160,7 +163,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
                 className = "aspect-table"
                 data = aspectsToRows()
                 loading = props.loading
-                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
+//                SubComponent = propertySubComponent(::onAspectPropertyChanged, props.aspectContext, props.onAspectUpdate)
                 showPagination = false
                 minRows = 0
                 sortable = false

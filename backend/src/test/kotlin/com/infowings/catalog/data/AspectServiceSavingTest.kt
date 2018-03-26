@@ -57,7 +57,7 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
         aspectService.save(ad)
@@ -75,7 +75,7 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testFailAddAspect() {
         val ad = AspectData(
             "",
@@ -135,7 +135,7 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
         aspectService.save(ad)

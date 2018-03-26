@@ -178,12 +178,16 @@ class AspectService(
 
 sealed class AspectException(message: String? = null) : Exception(message)
 class AspectAlreadyExist(val name: String) : AspectException("name = $name")
+
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
+
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
+
 class AspectConcurrentModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+
 class AspectPropertyConcurrentModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
@@ -191,6 +195,7 @@ class AspectPropertyModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
-    AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+        AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
 
-class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
+class AspectInconsistentStateException(message: String) : AspectException(message)
