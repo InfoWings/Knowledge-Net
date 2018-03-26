@@ -42,9 +42,15 @@ class AspectService(private val db: OrientDatabase,
                     .checkBusinessKey()
                     .getOrCreateAspectVertex()
 
+            println("aspectVartex: $aspectVertex")
+
             aspectVertex.saveAspectProperties(aspectData.properties)
 
+            println("aspectVartex: $aspectVertex")
+
             val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
+
+            println("res: $res")
 
             if (isCreate) {
                 val event = aspectVertex.toHistoryEvent(user, aspectVertex.toCreatePayload())
