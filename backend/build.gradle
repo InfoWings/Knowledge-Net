@@ -3,6 +3,7 @@ apply plugin: "kotlin-spring"
 apply plugin: "kotlin-jpa"
 apply plugin: 'org.springframework.boot'
 apply plugin: 'kotlinx-serialization'
+apply plugin: 'io.spring.dependency-management'
 
 buildscript {
 
@@ -67,6 +68,9 @@ kotlin {
 }
 
 springBoot {
-    mainClass = "com.infowings.catalog.MasterCatalogKt"
-    executable = true
+    mainClassName = "com.infowings.catalog.MasterCatalogKt"
+}
+
+bootJar {
+	launchScript()
 }
