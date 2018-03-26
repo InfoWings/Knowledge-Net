@@ -39,17 +39,10 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      */
     private fun handleSelectAspect(aspectId: String?) {
         setState {
-            selectedAspect = if (aspectId == null) {
-                if (selectedAspect?.id == null) // if aspect with id == null is currently selected, do nothing
-                    selectedAspect
-                else
-                    AspectData(null, "", null, null, null)
-            } else {
-                if (selectedAspect?.id == aspectId) {
-                    selectedAspect
-                } else {
-                    props.aspectContext[aspectId] ?: selectedAspect
-                }
+            selectedAspect = when (aspectId) {
+                selectedAspect?.id -> selectedAspect // If we select aspect that is already selected, do nothing
+                null -> AspectData(null, "", null, null, null)
+                else -> props.aspectContext[aspectId] ?: selectedAspect
             }
             selectedAspectPropertyIndex = null
         }
@@ -68,17 +61,10 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      */
     private fun handleSelectAspectProperty(aspectId: String?, index: Int) {
         setState {
-            selectedAspect = if (aspectId == null) {
-                if (selectedAspect?.id == null) // if aspect with id == null is currently selected, do nothing
-                    selectedAspect
-                else
-                    AspectData(null, "", null, null, null)
-            } else {
-                if (selectedAspect?.id == aspectId) {
-                    selectedAspect
-                } else {
-                    props.aspectContext[aspectId] ?: selectedAspect
-                }
+            selectedAspect = when (aspectId) {
+                selectedAspect?.id -> selectedAspect // If we select aspect that is already selected, do nothing
+                null -> AspectData(null, "", null, null, null)
+                else -> props.aspectContext[aspectId] ?: selectedAspect
             }
             selectedAspectPropertyIndex = if (index > selectedAspect!!.properties.lastIndex)
                 selectedAspect!!.properties.lastIndex else index
