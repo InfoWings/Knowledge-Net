@@ -136,20 +136,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
-//    private fun tryMakeFirstDeleteAspectRequest() {
-//        launch {
-//            try {
-//                props.onDelete(currentState, false)
-//            } catch (ex: AspectBadRequestException) {
-//                if (ex.exceptionInfo.code == AspectBadRequestCode.NEED_CONFIRMATION) {
-//                    showConfirmationAlert(currentState)
-//                }
-//            }
-//        }
-//    }
-
-    // private fun showConfirmationAlert
-
     private fun assignInputRef(element: HTMLInputElement?) {
         inputRef = element
     }

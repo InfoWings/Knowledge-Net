@@ -13,7 +13,7 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
 
     companion object {
         init {
-            require("styles/RemoveConfirmWindow.scss")
+            require("styles/remove-confirm-window.scss")
         }
     }
 
