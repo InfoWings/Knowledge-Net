@@ -1,4 +1,4 @@
-package com.infowings.catalog.units
+package com.infowings.catalog.measures
 
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
@@ -13,7 +13,7 @@ import react.dom.h1
 import react.setState
 import kotlin.browser.window
 
-class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
+class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
     private val allData = MeasureGroupMap
         .flatMap { (measureGroupName, measureGroup) ->
@@ -102,7 +102,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             attrs { location = props.location.pathname }
         }
 
-        h1 { +"Units Page" }
+        h1 { +"Measure Page" }
 
         child(SearchBar::class) {
             attrs {

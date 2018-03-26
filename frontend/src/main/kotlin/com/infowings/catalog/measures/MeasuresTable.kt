@@ -1,4 +1,4 @@
-package com.infowings.catalog.units
+package com.infowings.catalog.measures
 
 import com.infowings.catalog.wrappers.table.*
 import react.*
