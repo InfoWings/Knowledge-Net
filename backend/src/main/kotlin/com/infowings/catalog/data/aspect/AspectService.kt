@@ -4,10 +4,14 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.data.history.EventKind
+import com.infowings.catalog.data.history.HistoryEvent
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 import hasIncomingEdges
+import org.springframework.boot.autoconfigure.security.SecurityProperties
 
 
 /**
@@ -17,6 +21,7 @@ import hasIncomingEdges
  */
 class AspectService(private val db: OrientDatabase,
                     private val aspectDaoService: AspectDaoService,
+                    private val historyService: HistoryService,
                     suggestionService: SuggestionService) {
 
     private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
@@ -29,8 +34,7 @@ class AspectService(private val db: OrientDatabase,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
-    fun save(aspectData: AspectData): Aspect {
-
+    fun save(aspectData: AspectData, user: String = ""): Aspect {
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
@@ -40,7 +44,13 @@ class AspectService(private val db: OrientDatabase,
 
             aspectVertex.saveAspectProperties(aspectData.properties)
 
-            return@transaction aspectDaoService.saveAspect(aspectVertex, aspectData)
+            val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
+
+            val event = HistoryEvent(name = res.name, user = user,
+                    rid = res.id, event = EventKind.CREATE, cls = ASPECT_CLASS, data = res.toHistoryData())
+            historyService.storeEvent(event)
+
+            return@transaction res
         }
 
         return findById(save.id)

@@ -103,6 +103,13 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun delete(v: OVertex) = session(database = this) {
         return@session it.delete(v.identity)
     }
+
+    fun <T> command(command: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
+        return session(database = this) { session ->
+            return@session session.command(command, *args)
+                    .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
 }
 
 val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()

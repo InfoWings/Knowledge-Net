@@ -32,6 +32,12 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
                 version)
     }
 
+    fun toHistoryData(): Map<String, String> = listOfNotNull(
+            "name" to name,
+            if (measure != null) ("measure" to measure.toString()) else null,
+            if (baseType != null) ("baseType" to baseType!!) else null
+        ).toMap()
+
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
 

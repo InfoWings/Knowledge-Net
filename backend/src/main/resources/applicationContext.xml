@@ -27,9 +27,14 @@
         <constructor-arg ref="measureService"/>
     </bean>
 
+    <bean id="historyDaoService" class="com.infowings.catalog.data.history.HistoryDaoService">
+        <constructor-arg ref="orientDatabase"/>
+    </bean>
+
     <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="aspectDaoService"/>
+        <constructor-arg ref="historyService"/>
         <constructor-arg ref="suggestionService"/>
     </bean>
 
@@ -47,5 +52,10 @@
 
     <bean id="suggestionService" class="com.infowings.catalog.search.SuggestionService">
         <constructor-arg ref="orientDatabase"/>
+    </bean>
+
+    <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="historyDaoService"/>
     </bean>
 </beans>

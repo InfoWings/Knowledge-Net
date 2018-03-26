@@ -7,6 +7,9 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
+
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
 @RestController
@@ -17,13 +20,17 @@ class AspectApi(val aspectService: AspectService) {
     @PostMapping("create")
     fun createAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("New aspect create request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+        val user = SecurityContextHolder.getContext().authentication.principal as User
+        logger.info("user: $user.username")
+        return aspectService.save(aspectData, user.username).toAspectData()
     }
 
     @PostMapping("update")
     fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
         logger.info("Update aspect request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+        val user = SecurityContextHolder.getContext().authentication.principal as User
+        logger.info("user: $user.username")
+        return aspectService.save(aspectData, user.username).toAspectData()
     }
 
     @GetMapping("get/{name}")
