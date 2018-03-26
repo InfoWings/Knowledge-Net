@@ -1,15 +1,13 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
@@ -33,6 +31,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
         childAspectBaseType = props.childAspect?.baseType
+        childAspectSubject = props.childAspect?.subject
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
@@ -110,6 +109,12 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun handleChildAspectBaseTypeChanged(baseType: String) {
         setState {
             childAspectBaseType = baseType
+        }
+    }
+
+    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
+        setState {
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
         }
     }
 
@@ -252,6 +257,12 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                                 onChange = ::handleChildAspectBaseTypeChanged
                             }
                         }
+                        aspectSubjectInput {
+                            attrs {
+                                value = state.childAspectSubject?.name ?: ""
+                                onChange = ::handleAspectSubjectChanged
+                            }
+                        }
                     }
                 }
             }
@@ -275,6 +286,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspectMeasure: String?
         var childAspectDomain: String?
         var childAspectBaseType: String?
+        var childAspectSubject: SubjectData?
     }
 }
 
