@@ -10,6 +10,7 @@ import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
+import java.security.Principal
 
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
@@ -17,32 +18,19 @@ import org.springframework.security.core.userdetails.User
 @RequestMapping("/api/aspect")
 class AspectApi(val aspectService: AspectService) {
 
-    private fun username(): String {
-        // безобразный хак - временно
-        // нужна общая схема получения имени пользователя в разных контекстах
-        val principal = SecurityContextHolder.getContext().authentication.principal
-        return when {
-            principal is User ->  (principal as User).username
-            principal is JwtInfo -> (principal as JwtInfo).username
-            else -> ""
-        }
-    }
-
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(@RequestBody aspectData: AspectData): AspectData {
+    fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
         logger.info("New aspect create request: $aspectData")
-        val user = username()
+        val user = principal.name
         logger.info("user: $user")
         return aspectService.save(aspectData, user).toAspectData()
     }
 
     @PostMapping("update")
-    fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
+    fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
         logger.info("Update aspect request: $aspectData")
-        val user = username()
-        logger.info("user: $user")
-        return aspectService.save(aspectData, user).toAspectData()
+        return aspectService.save(aspectData, principal.name).toAspectData()
     }
 
     @GetMapping("get/{name}")
