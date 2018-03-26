@@ -2,7 +2,7 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -44,12 +44,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val newAspect: AspectData
         try {
             newAspect = createAspect(aspectData)
-        } catch (ex: ServerException) {
-            if (ex.httpStatusCode == 400) {
-                throw AspectBadRequestException(JSON.parse(ex.message!!))
-            }
-            console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
-            return
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message!!))
         }
 
         val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
@@ -65,16 +61,11 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
         try {
             updatedAspect = updateAspect(aspectData)
-        } catch (ex: ServerException) {
-            if (ex.httpStatusCode == 400) {
-                throw AspectBadRequestException(JSON.parse(ex.message!!))
-            }
-            console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
-            return
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message!!))
         }
 
-        val updatedAspectId: String = updatedAspect.id
-                ?: throw Error("Server returned Aspect with aspectId == null")
+        val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
 
         setState {
             data = data.map {
@@ -92,12 +83,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             } else {
                 removeAspect(aspectData)
             }
-        } catch (ex: ServerException) {
-            if (ex.httpStatusCode == 400) {
-                throw AspectBadRequestException(JSON.parse(ex.message!!))
-            }
-            console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
-            return
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message!!))
         }
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
@@ -148,7 +135,6 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
 fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) =
     child(AspectApiMiddleware::class) {
-
         attrs {
             this.apiReceiverComponent = apiReceiverComponent
         }
