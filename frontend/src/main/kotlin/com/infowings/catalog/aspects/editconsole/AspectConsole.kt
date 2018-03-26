@@ -15,11 +15,9 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         }
     }
 
-    private fun handleSubmitAspectChanges(aspect: AspectData) {
-        launch {
-            props.onAspectUpdate(aspect)
-            props.onSubmit()
-        }
+    private suspend fun handleSubmitAspectChanges(aspect: AspectData) {
+        props.onAspectUpdate(aspect)
+        props.onSubmit()
     }
 
     private fun handleSwitchToAspectProperties(aspect: AspectData) {
@@ -50,11 +48,9 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         }
     }
 
-    private fun handleSaveParentAspect(property: AspectPropertyData) {
-        launch {
-            props.onAspectPropertyUpdate(property)
-            props.onSubmit()
-        }
+    private suspend fun handleSaveParentAspect(property: AspectPropertyData) {
+        props.onAspectPropertyUpdate(property)
+        props.onSubmit()
     }
 
     override fun RBuilder.render() {
@@ -66,7 +62,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                     attrs {
                         aspect = selectedAspect
                         onCancel = props.onCancel
-                        onSubmit = ::handleSubmitAspectChanges
+                        onSubmit = { handleSubmitAspectChanges(it) }
                         onSwitchToProperties = ::handleSwitchToAspectProperties
                     }
                 }
@@ -79,7 +75,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                         else props.aspectContext(selectedAspect.properties[selectedAspectPropertyIndex].aspectId)
                         onCancel = props.onCancel
                         onSwitchToNextProperty = ::handleSwitchToNextProperty
-                        onSaveParentAspect = ::handleSaveParentAspect
+                        onSaveParentAspect = { handleSaveParentAspect(it) }
                     }
                 }
         }
@@ -94,7 +90,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         var onCancel: () -> Unit
         var onAspectUpdate: suspend (AspectData) -> Unit
         var onAspectPropertyUpdate: suspend (AspectPropertyData) -> Unit
-        var onSubmit: () -> Unit
+        var onSubmit: suspend () -> Unit
     }
 }
 
