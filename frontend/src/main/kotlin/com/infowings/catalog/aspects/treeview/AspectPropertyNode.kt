@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.treeview
 
+import com.infowings.catalog.aspects.treeview.view.aspectPropertyLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.components.treeview.TreeNodeContentProps

@@ -42,7 +42,7 @@ inline fun RBuilder.label(classes: String? = null, htmlFor: String? = null, bloc
 
 
 /**
- * Extension for setState with additional callback
+ * Extension for setState with additional callback. Intended to be used to make suspended calls inside coroutines
  */
 fun <S : RState> React.Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
         setState({ assign(it, buildState) }, callback)

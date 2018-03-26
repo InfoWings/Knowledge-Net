@@ -1,7 +1,5 @@
-package com.infowings.catalog.aspects.treeview
+package com.infowings.catalog.aspects.treeview.view
 
-import com.infowings.catalog.aspects.treeview.view.aspectLabel
-import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
 import react.*
 
