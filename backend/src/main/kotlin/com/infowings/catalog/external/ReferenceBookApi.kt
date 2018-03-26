@@ -4,8 +4,10 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.common.ReferenceBooksList
-import com.infowings.catalog.data.ReferenceBookService
+import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 
@@ -60,5 +62,18 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         )
     }
 
-    private val logger = loggerFor<ReferenceBookApi>()
+    @ExceptionHandler(Exception::class)
+    fun handleException(e: Exception): ResponseEntity<String> {
+        return when (e) {
+            is RefBookAlreadyExist -> ResponseEntity.badRequest().body("Aspect already has reference book")
+            is RefBookNotExist -> ResponseEntity.badRequest().body("Aspect doesn't have reference book")
+            is RefBookItemNotExist -> ResponseEntity.badRequest().body("Reference Book Item doesn't exist")
+            is RefBookChildAlreadyExist -> ResponseEntity.badRequest().body("Reference Book Item '${e.value}' already exists")
+            is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
+            is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
+            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${e.message}")
+        }
+    }
 }
+
+private val logger = loggerFor<ReferenceBookApi>()

@@ -40,11 +40,11 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         }
     }
 
-    private fun createBookItem(bookItemData: ReferenceBookItemData) {
+    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
+        props.createBookItem(bookItemData)
         setState {
             creatingBookItem = false
         }
-        props.createBookItem(bookItemData)
     }
 
     override fun RBuilder.render() {
@@ -99,7 +99,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     bookItemData = ReferenceBookItemData(null, "", props.book.id, props.aspectId)
                     onCancel = ::cancelCreatingBookItem
-                    onSubmit = ::createBookItem
+                    onSubmit = { handleCreateBookItem(it)}
                 }
             }
         }
@@ -111,9 +111,9 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: (ReferenceBookData) -> Unit
-        var createBookItem: (ReferenceBookItemData) -> Unit
-        var updateBookItem: (ReferenceBookItemData) -> Unit
+        var updateBook: suspend (ReferenceBookData) -> Unit
+        var createBookItem: suspend (ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {

@@ -15,11 +15,11 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         updatingBook = false
     }
 
-    private fun updateBook(bookData: ReferenceBookData) {
+    private suspend fun handleUpdateBook(bookData: ReferenceBookData) {
+        props.updateBook(bookData)
         setState {
             updatingBook = false
         }
-        props.updateBook(bookData)
     }
 
     private fun cancelUpdatingBook() {
@@ -52,7 +52,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
                     attrs {
                         this.bookData = ReferenceBookData(book.id, book.name, book.aspectId)
                         onCancel = ::cancelUpdatingBook
-                        onSubmit = ::updateBook
+                        onSubmit = { handleUpdateBook(it) }
                     }
                 }
             } else {
@@ -68,7 +68,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: (ReferenceBookData) -> Unit
+        var updateBook: suspend (ReferenceBookData) -> Unit
     }
 
     interface State : RState {

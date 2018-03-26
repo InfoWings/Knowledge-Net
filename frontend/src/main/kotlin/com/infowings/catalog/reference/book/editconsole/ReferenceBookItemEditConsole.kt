@@ -1,6 +1,8 @@
 package com.infowings.catalog.reference.book.editconsole
 
 import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.utils.BadRequestException
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
@@ -42,8 +44,20 @@ class ReferenceBookItemEditConsole(props: Props) :
                     }
                     return
                 }
-                props.onSubmit(props.bookItemData.copy(value = state.value))
+                submit()
             } //Enter
+        }
+    }
+
+    private fun submit() {
+        launch {
+            try {
+                props.onSubmit(props.bookItemData.copy(value = state.value))
+            } catch (e: BadRequestException) {
+                setState {
+                    errorMessage = e.message
+                }
+            }
         }
     }
 
@@ -90,7 +104,7 @@ class ReferenceBookItemEditConsole(props: Props) :
     interface Props : RProps {
         var bookItemData: ReferenceBookItemData
         var onCancel: () -> Unit
-        var onSubmit: (ReferenceBookItemData) -> Unit
+        var onSubmit: suspend (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {

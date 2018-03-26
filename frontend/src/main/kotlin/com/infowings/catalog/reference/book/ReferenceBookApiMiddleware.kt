@@ -11,10 +11,10 @@ import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
     var rowDataList: List<RowData>
-    var updateBook: (bookData: ReferenceBookData) -> Unit
-    var createBook: (ReferenceBookData) -> Unit
-    var createBookItem: (ReferenceBookItemData) -> Unit
-    var updateBookItem: (ReferenceBookItemData) -> Unit
+    var updateBook: suspend (bookData: ReferenceBookData) -> Unit
+    var createBook: suspend (ReferenceBookData) -> Unit
+    var createBookItem: suspend (ReferenceBookItemData) -> Unit
+    var updateBookItem: suspend (ReferenceBookItemData) -> Unit
 }
 
 
@@ -42,48 +42,40 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private fun createBook(bookData: ReferenceBookData) {
-        launch {
-            /*
-            Maybe get ReferenceBook is not optimal way.
-            Actually we need only created ReferenceBook id.
-            */
-            val newBook = createReferenceBook(bookData)
-            updateRowDataList(bookData.aspectId, newBook)
-        }
+    private suspend fun handleCreateBook(bookData: ReferenceBookData) {
+        /*
+        Maybe get ReferenceBook is not optimal way.
+        Actually we need only created ReferenceBook id.
+        */
+        val newBook = createReferenceBook(bookData)
+        updateRowDataList(bookData.aspectId, newBook)
     }
 
-    private fun updateBook(bookData: ReferenceBookData) {
-        launch {
-            /*
-            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
-            Actually we need only to know is updating was successful.
-            */
-            val updatedBook = updateReferenceBook(bookData)
-            updateRowDataList(bookData.aspectId, updatedBook)
-        }
+    private suspend fun handleUpdateBook(bookData: ReferenceBookData) {
+        /*
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Actually we need only to know is updating was successful.
+        */
+        val updatedBook = updateReferenceBook(bookData)
+        updateRowDataList(bookData.aspectId, updatedBook)
     }
 
-    private fun createBookItem(bookItemData: ReferenceBookItemData) {
-        launch {
-            /*
-            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
-            Actually we need only created ReferenceBookItem id.
-            */
-            val updatedBook = createReferenceBookItem(bookItemData)
-            updateRowDataList(updatedBook.aspectId, updatedBook)
-        }
+    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
+        /*
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Actually we need only created ReferenceBookItem id.
+        */
+        val updatedBook = createReferenceBookItem(bookItemData)
+        updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
-    private fun updateBookItem(bookItemData: ReferenceBookItemData) {
-        launch {
-            /*
-            Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
-            Actually we need only to know is updating was successful.
-            */
-            val updatedBook = updateReferenceBookItem(bookItemData)
-            updateRowDataList(updatedBook.aspectId, updatedBook)
-        }
+    private suspend fun handleUpdateBookItem(bookItemData: ReferenceBookItemData) {
+        /*
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Actually we need only to know is updating was successful.
+        */
+        val updatedBook = updateReferenceBookItem(bookItemData)
+        updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
     private fun updateRowDataList(aspectId: String, book: ReferenceBook) {
@@ -99,10 +91,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         child(props.apiReceiverComponent) {
             attrs {
                 rowDataList = state.rowDataList
-                createBook = ::createBook
-                updateBook = ::updateBook
-                createBookItem = ::createBookItem
-                updateBookItem = ::updateBookItem
+                createBook = { handleCreateBook(it) }
+                updateBook = { handleUpdateBook(it) }
+                createBookItem = { handleCreateBookItem(it) }
+                updateBookItem = { handleUpdateBookItem(it) }
             }
         }
     }

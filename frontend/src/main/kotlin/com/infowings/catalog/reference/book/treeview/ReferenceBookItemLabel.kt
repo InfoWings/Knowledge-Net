@@ -29,11 +29,11 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
         }
     }
 
-    private fun updateBookItem(bookItemData: ReferenceBookItemData) {
+    private suspend fun handleUpdateBookItem(bookItemData: ReferenceBookItemData) {
+        props.updateBookItem(bookItemData)
         setState {
             updatingBookItem = false
         }
-        props.updateBookItem(bookItemData)
     }
 
     override fun RBuilder.render() {
@@ -47,7 +47,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                     attrs {
                         this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, "", props.aspectId)
                         onCancel = ::cancelUpdatingBookItem
-                        onSubmit = ::updateBookItem
+                        onSubmit = { handleUpdateBookItem(it) }
                     }
                 }
             } else {
@@ -61,7 +61,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     interface Props : RProps {
         var aspectId: String
         var bookItem: ReferenceBookItem
-        var updateBookItem: (ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {

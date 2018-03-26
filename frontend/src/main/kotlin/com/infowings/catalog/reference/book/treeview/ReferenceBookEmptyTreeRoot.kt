@@ -29,6 +29,13 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         }
     }
 
+    private suspend fun handleCreateBook(bookData: ReferenceBookData) {
+        props.createBook(bookData)
+        setState {
+            creatingBook = false
+        }
+    }
+
 
     override fun RBuilder.render() {
         val selected = props.selected
@@ -46,7 +53,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                         attrs {
                             bookData = ReferenceBookData(null, "", props.aspectId)
                             onCancel = ::cancelCreatingBook
-                            onSubmit = props.createBook
+                            onSubmit = { handleCreateBook(it) }
                         }
                     }
                 } else {
@@ -63,7 +70,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         var aspectName: String
         var selected: Boolean
         var startCreatingBook: (selectedAspectName: String) -> Unit
-        var createBook: (ReferenceBookData) -> Unit
+        var createBook: suspend (ReferenceBookData) -> Unit
     }
 
     interface State : RState {

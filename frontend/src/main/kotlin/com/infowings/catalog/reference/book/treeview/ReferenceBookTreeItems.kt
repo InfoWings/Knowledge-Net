@@ -30,11 +30,11 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         }
     }
 
-    private fun createBookItem(bookItemData: ReferenceBookItemData) {
+    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
+        props.createBookItem(bookItemData)
         setState {
             creatingBookItem = false
         }
-        props.createBookItem(bookItemData)
     }
 
     override fun RBuilder.render() {
@@ -53,10 +53,11 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
             }
             if (state.creatingBookItem) {
                 bookItemEditConsole {
+                    val parentId = props.bookItem?.id ?: props.book.id
                     attrs {
-                        bookItemData = ReferenceBookItemData(null, "", props.bookItem?.id ?: props.book.id, props.aspectId)
+                        bookItemData = ReferenceBookItemData(null, "", parentId, props.aspectId)
                         onCancel = ::cancelCreatingBookItem
-                        onSubmit = ::createBookItem
+                        onSubmit = { handleCreateBookItem(it) }
                     }
                 }
             } else {
@@ -79,8 +80,8 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var book: ReferenceBook
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
-        var createBookItem: (ReferenceBookItemData) -> Unit
-        var updateBookItem: (ReferenceBookItemData) -> Unit
+        var createBookItem: suspend (ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
     }
 
     interface State : RState {
