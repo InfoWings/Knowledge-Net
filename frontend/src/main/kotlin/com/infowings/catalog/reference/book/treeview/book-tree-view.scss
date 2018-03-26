@@ -1,0 +1,86 @@
+@import "abstract";
+
+.book-tree-view {
+
+  max-width: 120rem;
+  margin: auto;
+
+  &--root {
+    display: flex;
+    align-items: center;
+    font-size: 1.6rem;
+    font-weight: 400;
+
+    &:not(:last-child) {
+      margin-bottom: .5rem;
+    }
+  }
+
+  &--item {
+    display: flex;
+    align-items: center;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: .2rem;
+  }
+
+  &--line-icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    fill: $color-icon-default;
+    margin-right: .4rem;
+
+    &__clickable:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
+  &--add-to-list-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
+
+    &:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
+  &--label {
+    display: inline-block;
+    cursor: pointer;
+    padding: .2em;
+
+    &__selected {
+      background-color: #c2e2ed;
+      border-radius: 2px;
+    }
+
+    & > span {
+      padding: 0 .5rem;
+    }
+
+    &:hover > span {
+      text-decoration: underline;
+    }
+  }
+
+  &--label-name {
+    font-weight: 600;
+  }
+
+  &--label-item {
+    color: $color-text-dark-grey;
+
+    &-name {
+      font-weight: 600;
+      padding-right: .5rem;
+    }
+
+  }
+
+  &--items-block {
+    padding-left: $tree-level-translation;
+    padding-top: .2rem;
+  }
+}
