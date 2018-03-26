@@ -136,7 +136,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     /**
      * Handler for submitting changes of currently selected [AspectData] to the server
      */
-    private fun handleSubmitSelectedAspect() {
+    private suspend fun handleSubmitSelectedAspect() {
         val selectedAspect = state.selectedAspect
         if (selectedAspect != null) {
             if (selectedAspect.id == null) {
@@ -180,7 +180,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 onCancel = ::handleCancelSelect
                 onAspectUpdate = { handleUpdateSelectedAspect(it) }
                 onAspectPropertyUpdate = { handleUpdateSelectedAspectProperty(it) }
-                onSubmit = ::handleSubmitSelectedAspect
+                onSubmit = { handleSubmitSelectedAspect() }
             }
         }
     }
