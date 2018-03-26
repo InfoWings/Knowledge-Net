@@ -176,3 +176,4 @@ class AspectPropertyModificationException(val id: String, message: String?) : As
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+class AspectInconsistentStateException(message: String) : AspectException(message)

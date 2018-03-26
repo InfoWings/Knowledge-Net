@@ -38,7 +38,7 @@ class AspectValidator(
     /**
      * Check business key of given [AspectData]
      * @throws AspectAlreadyExist
-     * @throws IllegalArgumentException
+     * @throws AspectInconsistentStateException
      */
     fun checkBusinessKey(aspectData: AspectData) {
         aspectData
@@ -49,7 +49,7 @@ class AspectValidator(
     /**
      * Data consistency check.
      * For example, conformity of measure and base type
-     * @throws IllegalArgumentException
+     * @throws AspectInconsistentStateException
      */
     fun checkAspectDataConsistent(aspectData: AspectData) {
 
@@ -61,14 +61,14 @@ class AspectValidator(
 
         when {
             measureName == null && baseType == null && aspectData.properties.isEmpty() ->
-                throw IllegalArgumentException("Measure and BaseType can't be null at the same time")
+                throw AspectInconsistentStateException("Measure and BaseType can't be null at the same time")
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
-                        ?: throw IllegalArgumentException("Measure $measureName incorrect")
+                        ?: throw AspectInconsistentStateException("Measure $measureName incorrect")
 
                 if (measure.baseType != BaseType.restoreBaseType(baseType)) {
-                    throw IllegalArgumentException("Measure $measure and base type $baseType relation incorrect")
+                    throw AspectInconsistentStateException("Measure $measure and base type $baseType relation incorrect")
                 }
             }
         }
@@ -124,13 +124,13 @@ class AspectValidator(
             properties.distinctBy { Pair(it.name, it.aspectId) }.size != properties.size
 
         if (notValid) {
-            throw IllegalArgumentException("Not correct property business key $this")
+            throw AspectInconsistentStateException("Aspect properties should have unique pairs of name and assigned aspect")
         }
     }
 
     private fun AspectVertex.checkForRemoved() = also {
         if (deleted) {
-            throw AspectModificationException(id, "aspect is removed")
+            throw AspectModificationException(id, "Aspect is removed")
         }
     }
 
@@ -166,11 +166,11 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-            if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
-                throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
+                    throw AspectPropertyModificationException(id, "Impossible to change aspectId")
+                }
             }
         }
-    }
 
     private fun AspectPropertyData.checkForRemoved() = also {
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
