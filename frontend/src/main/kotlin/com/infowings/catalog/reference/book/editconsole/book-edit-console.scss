@@ -38,4 +38,9 @@
       outline: none
     }
   }
+  &--error-message {
+    font-size: 1.4rem;
+    color: maroon;
+    white-space: nowrap;
+  }
 }

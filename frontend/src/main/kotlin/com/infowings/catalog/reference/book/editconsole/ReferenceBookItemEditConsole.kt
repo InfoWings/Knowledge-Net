@@ -7,12 +7,14 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.span
 
 class ReferenceBookItemEditConsole(props: Props) :
     RComponent<ReferenceBookItemEditConsole.Props, ReferenceBookItemEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
         value = props.bookItemData.value
+        errorMessage = null
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
@@ -27,9 +29,19 @@ class ReferenceBookItemEditConsole(props: Props) :
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
         when (keyCode) {
-            27 -> props.onCancel() //esc
+            27 -> {
+                props.onCancel()
+                setState {
+                    errorMessage = null
+                }
+            } //esc
             13 -> {
-                if (state.value.isEmpty()) error("Reference Book Item Value must not be empty!")
+                if (state.value.isEmpty()) {
+                    setState {
+                        errorMessage = "Must not be empty!"
+                    }
+                    return
+                }
                 props.onSubmit(props.bookItemData.copy(value = state.value))
             } //Enter
         }
@@ -39,6 +51,9 @@ class ReferenceBookItemEditConsole(props: Props) :
         e.preventDefault()
         e.stopPropagation()
         props.onCancel()
+        setState {
+            errorMessage = null
+        }
     }
 
     private fun handleBookItemValueChanged(name: String) {
@@ -61,6 +76,12 @@ class ReferenceBookItemEditConsole(props: Props) :
                             onChange = ::handleBookItemValueChanged
                         }
                     }
+                    val errorMessage = state.errorMessage
+                    if (errorMessage != null) {
+                        span(classes = "book-edit-console--error-message") {
+                            +errorMessage
+                        }
+                    }
                 }
             }
         }
@@ -74,6 +95,7 @@ class ReferenceBookItemEditConsole(props: Props) :
 
     interface State : RState {
         var value: String
+        var errorMessage: String?
     }
 }
 
