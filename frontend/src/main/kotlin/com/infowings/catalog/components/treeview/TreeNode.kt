@@ -9,11 +9,21 @@ import react.*
 import react.dom.div
 import react.dom.svg
 
+/**
+ * The interface may be extended by node content client that would like to influence expanded state or get information
+ * about the state.
+ */
 interface TreeNodeContentProps : RProps {
     var isExpanded: Boolean
     var setExpanded: (Boolean) -> Unit
 }
 
+/**
+ * Component represents possible node in a tree (or any list that can be expanded).
+ *
+ * [RProps.children] can be hidden or expanded (any React element), node content may influence on expansion state
+ * (by extending [TreeNodeContentProps]).
+ */
 class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props) {
 
     companion object {

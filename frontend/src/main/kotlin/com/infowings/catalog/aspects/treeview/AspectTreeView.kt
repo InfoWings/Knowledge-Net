@@ -7,6 +7,9 @@ import kotlinext.js.require
 import react.*
 import react.dom.div
 
+/**
+ * View Component. Draws List of [treeNode] for each [AspectData] in [AspectTreeView.Props.aspects] list
+ */
 class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     companion object {

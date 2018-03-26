@@ -8,6 +8,9 @@ import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 
+/**
+ * View component. Draws aspect property label along with add-to-list icon. Attaches handler to icon click
+ */
 class AspectPropertyNode : RComponent<AspectPropertyNode.CombinedProps, RState>() {
 
     private fun handleAddToListClick(e: Event) {

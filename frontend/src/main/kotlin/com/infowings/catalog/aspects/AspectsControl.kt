@@ -99,6 +99,9 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     /**
      * Handler for updating currently selected [AspectData]
+     *
+     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
+     * complete before submission to the server).
      */
     private suspend fun handleUpdateSelectedAspect(aspect: AspectData) = suspendCoroutine { cont: Continuation<Unit> ->
         setStateWithCallback({ cont.resume(Unit) }) {
@@ -114,6 +117,9 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     /**
      * Handler for updating currently selected [AspectPropertyData]
+     *
+     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
+     * complete before submission to the server).
      */
     private suspend fun handleUpdateSelectedAspectProperty(aspectProperty: AspectPropertyData) = suspendCoroutine { cont: Continuation<Unit> ->
         setStateWithCallback({ cont.resume(Unit) }) {

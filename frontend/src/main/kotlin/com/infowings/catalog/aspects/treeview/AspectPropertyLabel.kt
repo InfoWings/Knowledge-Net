@@ -6,6 +6,9 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import react.*
 
+/**
+ * View component. Draws label (or placeholder) for aspect property on all nodes of aspect tree except the root one.
+ */
 class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
 
     override fun RBuilder.render() {

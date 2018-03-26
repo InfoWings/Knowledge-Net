@@ -4,11 +4,14 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
 import react.*
 
+/**
+ * View component. Draws aspect tree node for aspect property at any level except for the root.
+ */
 class AspectProperties : RComponent<AspectProperties.Props, RState>() {
 
     private fun handleAddPropertyToAspect(aspect: AspectData) {
         props.onSelectAspect(aspect.id)
-        props.onAddAspectProperty(aspect.properties.size)
+        props.onAddAspectProperty(aspect.properties.size) // Not allow create property if last one is already empty?
     }
 
     override fun RBuilder.render() {

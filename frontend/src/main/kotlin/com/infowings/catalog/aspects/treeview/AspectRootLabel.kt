@@ -5,6 +5,9 @@ import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
 import react.*
 
+/**
+ * View component. Draws label (or placeholder) for aspect in top level of aspect tree.
+ */
 class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
 
     override fun RBuilder.render() {
