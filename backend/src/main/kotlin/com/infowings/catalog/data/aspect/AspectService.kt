@@ -46,22 +46,25 @@ class AspectService(
         return findById(save.id)
     }
 
-    fun remove(aspect: Aspect, force: Boolean = false) = transaction(db) {
-        val vertex = aspectDaoService.getVertex(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
+    fun remove(aspectData: AspectData, force: Boolean = false) {
+        transaction(db) {
 
-        val aspectVertex = vertex.toAspectVertex()
+            val aspectId = aspectData.id ?: "null"
 
-        aspectVertex.checkAspectVersion(aspect.toAspectData())
+            val aspectVertex =
+                aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
 
-        when {
-            aspectVertex.isLinkedBy() && force -> {
-                // сюда - удаление связанного
+            aspectVertex.checkAspectVersion(aspectData)
+
+            when {
+                aspectVertex.isLinkedBy() && force -> {
+                    aspectDaoService.fakeRemove(aspectVertex)
+                }
+                aspectVertex.isLinkedBy() -> {
+                    throw AspectHasLinkedEntitiesException(aspectId)
+                }
+                else -> aspectDaoService.remove(aspectVertex)
             }
-            aspectVertex.isLinkedBy() -> {
-                throw AspectHasLinkedEntitiesException(aspect.id)
-            }
-            else ->
-                aspectDaoService.remove(vertex)
         }
     }
 

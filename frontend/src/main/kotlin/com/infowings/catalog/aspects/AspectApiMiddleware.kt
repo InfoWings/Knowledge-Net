@@ -22,6 +22,7 @@ interface AspectApiReceiverProps : RProps {
     var aspectContext: Map<String, AspectData>
     var onAspectUpdate: (changedAspect: AspectData) -> Unit
     var onAspectCreate: (newAspect: AspectData) -> Unit
+    var onAspectDelete: (aspect: AspectData, force: Boolean) -> Unit
 }
 
 /**
@@ -72,6 +73,19 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
+//    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean) {
+//        try {
+//            if (force) {
+//                forceRemoveAspect(aspectData)
+//            } else {
+//                removeAspect(aspectData)
+//            }
+//        } catch (e: Exception) {
+//
+//        }
+//
+//    }
+
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
@@ -80,6 +94,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 loading = state.loading
                 onAspectCreate = ::handleCreateNewAspect
                 onAspectUpdate = ::handleUpdateAspect
+                //onAspectDelete = ::handleDeleteAspect
             }
         }
     }
@@ -105,9 +120,10 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 }
 
-fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) = child(AspectApiMiddleware::class) {
+fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) =
+    child(AspectApiMiddleware::class) {
 
-    attrs {
-        this.apiReceiverComponent = apiReceiverComponent
+        attrs {
+            this.apiReceiverComponent = apiReceiverComponent
+        }
     }
-}
