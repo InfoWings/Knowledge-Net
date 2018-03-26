@@ -40,6 +40,7 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
                                 this.aspect = aspect
                                 selectedAspectId = props.selectedAspectId
                                 selectedPropertyIndex = props.selectedPropertyIndex
+                                onSelectAspect = props.onAspectClick
                                 onAspectPropertyClick = props.onAspectPropertyClick
                                 aspectContext = props.aspectContext
                                 onAddAspectProperty = props.onAddAspectProperty

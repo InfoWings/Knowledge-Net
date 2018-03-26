@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
 import kotlinx.html.js.onClickFunction
@@ -13,8 +14,10 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
         e.preventDefault()
         e.stopPropagation()
         props.setExpanded(true)
-        props.onClick(props.aspect.id)
-        props.onAddToListIconClick(props.aspect.properties.size)
+        if (props.aspect.properties.last() != AspectPropertyData("", "", "", "")) {
+            props.onClick(props.aspect.id)
+            props.onAddToListIconClick(props.aspect.properties.size)
+        }
     }
 
     override fun RBuilder.render() {

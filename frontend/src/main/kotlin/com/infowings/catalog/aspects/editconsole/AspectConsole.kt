@@ -39,11 +39,13 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         val selectedPropertyIndex = props.propertyIndex
                 ?: error("Aspect property should be selected in order to switch to next property")
         launch {
-            props.onAspectPropertyUpdate(property)
-            if (selectedPropertyIndex + 1 > selectedAspect.properties.lastIndex) {
-                props.onCreateProperty(selectedPropertyIndex + 1)
-            } else {
-                props.onSelectProperty(selectedAspect.id, selectedPropertyIndex + 1)
+            if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != AspectPropertyData("", "", "", "")) {
+                props.onAspectPropertyUpdate(property)
+                if (selectedPropertyIndex + 1 > selectedAspect.properties.lastIndex) {
+                    props.onCreateProperty(selectedPropertyIndex + 1)
+                } else {
+                    props.onSelectProperty(selectedAspect.id, selectedPropertyIndex + 1)
+                }
             }
         }
     }

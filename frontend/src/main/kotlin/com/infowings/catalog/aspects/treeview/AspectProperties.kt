@@ -15,7 +15,7 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
         props.aspect.properties.mapIndexed { index, property ->
             treeNode {
                 val childAspect =
-                        if (property.id.isNotEmpty())
+                        if (property.aspectId.isNotEmpty())
                             props.aspectContext(property.aspectId)
                                     ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
                         else null

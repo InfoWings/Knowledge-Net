@@ -45,7 +45,11 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 else
                     AspectData(null, "", null, null, null)
             } else {
-                props.aspectContext[aspectId] ?: selectedAspect
+                if (selectedAspect?.id == aspectId) {
+                    selectedAspect
+                } else {
+                    props.aspectContext[aspectId] ?: selectedAspect
+                }
             }
             selectedAspectPropertyIndex = null
         }
@@ -70,7 +74,11 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 else
                     AspectData(null, "", null, null, null)
             } else {
-                props.aspectContext[aspectId] ?: selectedAspect
+                if (selectedAspect?.id == aspectId) {
+                    selectedAspect
+                } else {
+                    props.aspectContext[aspectId] ?: selectedAspect
+                }
             }
             selectedAspectPropertyIndex = if (index > selectedAspect!!.properties.lastIndex)
                 selectedAspect!!.properties.lastIndex else index
