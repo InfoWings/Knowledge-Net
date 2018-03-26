@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.BadRequestException
+import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
@@ -91,7 +91,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
                         baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
                 ))
-            } catch (exception: BadRequestException) {
+            } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
                 }

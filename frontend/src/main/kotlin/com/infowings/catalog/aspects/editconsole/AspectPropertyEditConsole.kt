@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.BadRequestException
+import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
 import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
@@ -170,7 +170,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspectId = state.aspectPropertyAspectId
                                 ?: error("Can't save aspect property with aspectId == null")
                 ))
-            } catch (exception: BadRequestException) {
+            } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
                 }

@@ -1,12 +1,14 @@
 package com.infowings.catalog.aspects
 
+import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.utils.ServerException
 import kotlinx.coroutines.experimental.launch
+import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-class BadRequestException(message: String?) : RuntimeException(message)
+class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
@@ -44,7 +46,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             newAspect = createAspect(aspectData)
         } catch (ex: ServerException) {
             if (ex.httpStatusCode == 400) {
-                throw BadRequestException(ex.message)
+                throw AspectBadRequestException(JSON.parse(ex.message!!))
             }
             console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
             return
@@ -65,7 +67,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             updatedAspect = updateAspect(aspectData)
         } catch (ex: ServerException) {
             if (ex.httpStatusCode == 400) {
-                throw BadRequestException(ex.message)
+                throw AspectBadRequestException(JSON.parse(ex.message!!))
             }
             console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
             return
