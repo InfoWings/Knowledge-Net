@@ -4,8 +4,6 @@ import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectsList
-import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.toAspectData
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -43,13 +41,13 @@ class AspectApi(val aspectService: AspectService) {
         return AspectsList(aspectService.getAspects().toAspectData())
     }
 
-    @GetMapping("remove")
+    @PostMapping("remove")
     fun removeAspect(@RequestBody aspect: AspectData) {
         logger.debug("Remove aspect request: ${aspect.id}")
         aspectService.remove(aspect)
     }
 
-    @GetMapping("forceRemove")
+    @PostMapping("forceRemove")
     fun forceRemoveAspect(@RequestBody aspect: AspectData) {
         logger.debug("Forced remove aspect request: ${aspect.id}")
         aspectService.remove(aspect, true)
@@ -111,7 +109,7 @@ class AspectApi(val aspectService: AspectService) {
             is AspectHasLinkedEntitiesException -> ResponseEntity.badRequest()
                     .body(JSON.stringify(
                             AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                                AspectBadRequestCode.NEED_CONFIRMATION,
                                     "Attempt to remove aspect that has linked entities pointed to it"
                             )
                     ))

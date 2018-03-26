@@ -17,7 +17,7 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
     override fun RBuilder.render() {
         val selectedAspect = props.selectedAspect
         div(classes = "aspect-tree-view") {
-            props.aspects.map { aspect ->
+            props.aspects.filter { !it.deleted }.map { aspect ->
                 aspectTreeRoot {
                     attrs {
                         key = aspect.id ?: ""

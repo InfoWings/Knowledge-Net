@@ -16,7 +16,7 @@ interface AspectApiReceiverProps : RProps {
     var aspectContext: Map<String, AspectData>
     var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
     var onAspectCreate: suspend (newAspect: AspectData) -> Unit
-    var onAspectDelete: (aspect: AspectData, force: Boolean) -> Unit
+    var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> Unit
 }
 
 /**
@@ -42,7 +42,6 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
     private suspend fun handleCreateNewAspect(aspectData: AspectData) {
         val newAspect: AspectData
-
         try {
             newAspect = createAspect(aspectData)
         } catch (ex: ServerException) {
@@ -85,18 +84,33 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
-//    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean) {
-//        try {
-//            if (force) {
-//                forceRemoveAspect(aspectData)
-//            } else {
-//                removeAspect(aspectData)
-//            }
-//        } catch (e: Exception) {
-//
-//        }
-//
-//    }
+    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean) {
+
+        try {
+            if (force) {
+                forceRemoveAspect(aspectData)
+            } else {
+                removeAspect(aspectData)
+            }
+        } catch (ex: ServerException) {
+            if (ex.httpStatusCode == 400) {
+                throw AspectBadRequestException(JSON.parse(ex.message!!))
+            }
+            console.log("Server Exception: status = ${ex.httpStatusCode}, message = ${ex.message}")
+            return
+        }
+
+        val deletedAspect: AspectData = aspectData.copy(deleted = true)
+
+        setState {
+            data = data.map {
+                if (aspectData.id == it.id) deletedAspect else it
+            }
+            if (!aspectData.id.isNullOrEmpty()) {
+                context[aspectData.id!!] = deletedAspect
+            }
+        }
+    }
 
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
@@ -106,6 +120,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 loading = state.loading
                 onAspectCreate = { handleCreateNewAspect(it) }
                 onAspectUpdate = { handleUpdateAspect(it) }
+                onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
             }
         }
     }

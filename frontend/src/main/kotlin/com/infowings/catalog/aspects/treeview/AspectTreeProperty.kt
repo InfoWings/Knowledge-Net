@@ -3,6 +3,7 @@ package com.infowings.catalog.aspects.treeview
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
 import kotlinx.html.js.onClickFunction
@@ -62,17 +63,23 @@ class AspectTreeProperty : RComponent<AspectTreeProperty.Props, AspectTreeProper
                 }
             }
             if (props.aspect != null) {
-                addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
-                    attrs {
-                        onClickFunction = ::handleAddToListClick
+                if (props.aspect!!.deleted) {
+                    ripIcon("aspect-tree-view--rip-icon") {}
+                } else {
+                    addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
+                        attrs {
+                            onClickFunction = ::handleAddToListClick
+                        }
                     }
                 }
             }
         }
+
         if (childAspect != null && childAspect.properties.isNotEmpty() && state.expanded) {
             aspectTreeProperties {
                 attrs {
-                    parentAspect = if (selectedAspect != null && selectedAspect.id == childAspect.id) selectedAspect else childAspect
+                    parentAspect =
+                            if (selectedAspect != null && selectedAspect.id == childAspect.id) selectedAspect else childAspect
                     aspectContext = props.aspectContext
                     onAspectPropertyClick = props.onAspectPropertyClick
                     this.selectedAspect = props.selectedAspect

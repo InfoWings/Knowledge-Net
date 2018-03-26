@@ -25,6 +25,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = if (!props.loading) emptyAspectData else null
         selectedAspectPropertyIndex = null
+        confirmation = false
     }
 
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
@@ -32,6 +33,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             setState {
                 selectedAspect = emptyAspectData
                 selectedAspectPropertyIndex = null
+                confirmation = false
             }
         }
     }
@@ -40,6 +42,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             selectedAspect = aspect
             selectedAspectPropertyIndex = null
+            confirmation = false
         }
     }
 
@@ -47,13 +50,27 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
+            confirmation = false
         }
     }
 
-    private fun handleDeleteAspect() {
-        setState {
-            selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+    private suspend fun handleDeleteAspect(force: Boolean) {
+
+        val aspectId = state.selectedAspect?.id
+
+        if (aspectId.isNullOrEmpty()) {
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+                confirmation = false
+            }
+        } else {
+            props.onAspectDelete(props.aspectContext[aspectId] ?: error("Incorrect aspect state"), force)
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+                confirmation = false
+            }
         }
     }
 
@@ -62,6 +79,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             props.onAspectCreate(aspectData.normalize())
             setState {
                 selectedAspect = emptyAspectData
+                confirmation = false
             }
         } else {
             val existingAspect = state.selectedAspect
@@ -70,6 +88,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             }
             setState {
                 selectedAspect = emptyAspectData
+                confirmation = false
             }
         }
     }
@@ -87,6 +106,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             selectedAspect = if (!tmpAspect.hasNextAlivePropertyIndex(0)) tmpAspect.plusEmptyProperty() else tmpAspect
             selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(0)
+            confirmation = false
         }
     }
 
@@ -107,6 +127,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         } else {
             selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(currentSelectedAspectPropertyIndex)
         }
+
+        confirmation = false
     }
 
     private fun handleSwitchToNextProperty(aspectProperty: AspectPropertyData) = setState {
@@ -127,7 +149,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
                 selectedAspect = selectedAspect!!.plusEmptyProperty()
             }
-
+            confirmation = false
             selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(currentSelectedAspectPropertyIndex)
         }
     }
@@ -140,13 +162,12 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
         val savedAspect = currentSelectedAspect.changePropertyValues(currentSelectedAspectPropertyIndex, aspectProperty)
         currentSelectedAspect.id?.let { props.onAspectUpdate(savedAspect.normalize()) }
-                ?: props.onAspectCreate(
-                    savedAspect.normalize()
-                )
+                ?: props.onAspectCreate(savedAspect.normalize())
 
         setState {
             selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
+            confirmation = false
         }
     }
 
@@ -154,6 +175,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             selectedAspect = aspect
             selectedAspectPropertyIndex = aspectPropertyIndex
+            confirmation = false
         }
     }
 
@@ -161,6 +183,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             selectedAspect = aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
             selectedAspectPropertyIndex = aspect.properties.size
+            confirmation = false
         }
     }
 
@@ -187,7 +210,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                         aspect = selectedAspect
                         onCancel = ::handleCancelChanges
                         onSubmit = { handleSubmitAspectChanges(it) }
-                        onDelete = ::handleDeleteAspect
+                        onDelete = { handleDeleteAspect(it) }
                         onSwitchToProperties = ::handleSwitchToAspectProperties
                     }
                 }
@@ -211,6 +234,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     interface State : RState {
         var selectedAspect: AspectData?
         var selectedAspectPropertyIndex: Int?
+        var confirmation: Boolean
     }
 }
 

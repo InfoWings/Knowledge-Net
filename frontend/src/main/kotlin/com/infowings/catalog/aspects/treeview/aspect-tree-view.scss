@@ -50,6 +50,17 @@
     }
   }
 
+  &--rip-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
+
+    &:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
   &--label {
     display: inline-block;
     cursor: pointer;
