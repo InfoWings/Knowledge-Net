@@ -7,6 +7,10 @@ import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
 
+
+/**
+ * Separate function for composing button group. Accepts onClick callbacks as arguments.
+ */
 fun RBuilder.consoleButtonsGroup(
         onSubmitClick: () -> Unit,
         onAddToListClick: () -> Unit,

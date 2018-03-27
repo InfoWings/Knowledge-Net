@@ -7,6 +7,10 @@ import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
 import react.*
 
+/**
+ * Business component. Serves as adapter and router to the right implementation of console (for aspect or for aspect
+ * property).
+ */
 class AspectConsole : RComponent<AspectConsole.Props, RState>() {
 
     companion object {

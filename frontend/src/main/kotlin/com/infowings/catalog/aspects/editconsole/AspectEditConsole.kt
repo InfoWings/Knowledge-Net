@@ -44,6 +44,10 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
+    private fun assignInputRef(element: HTMLInputElement?) {
+        inputRef = element
+    }
+
     private fun tryMakeSubmitAspectRequest() {
         launch {
             try {
@@ -59,10 +63,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             }
         }
-    }
-
-    private fun assignInputRef(element: HTMLInputElement?) {
-        inputRef = element
     }
 
     private fun handleSwitchToProperties() {

@@ -6,6 +6,9 @@ import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 
+/**
+ * View component. Serves as wrapper to console that handles some keystrokes for flow.
+ */
 class AspectConsoleBlock : RComponent<AspectConsoleBlock.Props, RState>() {
 
     private fun handleKeyDown(e: Event) {
