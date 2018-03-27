@@ -75,7 +75,7 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             .map { name ->
                 MeasureGroupData(
                     name,
-                    allGroups.first { it.units.map { it.name }.contains(name) }.units
+                    allGroups.first { it.units.map { it.name }.contains(name) || it.name == name }.units
                         .map { it.copy(containsFilterText = (name == it.name)) }
                 )
             }
