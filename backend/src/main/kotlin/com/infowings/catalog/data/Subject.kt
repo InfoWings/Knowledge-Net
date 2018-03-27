@@ -1,12 +1,10 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.data.aspect.Aspect
 
 data class Subject(
     val id: String,
-    val name: String,
-    val aspects: List<Aspect> = emptyList()
+    val name: String
 )
 
 fun Subject.toSubjectData() = SubjectData(
