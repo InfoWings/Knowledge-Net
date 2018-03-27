@@ -5,7 +5,6 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -44,7 +43,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name
+        aspectVertex.name = aspectData.name.trim()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -77,7 +76,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
 

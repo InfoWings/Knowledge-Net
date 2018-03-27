@@ -3,6 +3,7 @@ package com.infowings.catalog.storage
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
@@ -37,6 +38,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
                     .createProperty("name", OType.STRING).isMandatory = true
+            createIgnoreCaseIndex(session, ASPECT_CLASS)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
@@ -49,10 +51,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(MEASURE_GROUP_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_GROUP_VERTEX)
             vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            createIgnoreCaseIndex(session, MEASURE_GROUP_VERTEX)
         }
         if (session.getClass(MEASURE_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_VERTEX)
             vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            createIgnoreCaseIndex(session, MEASURE_VERTEX)
         }
         session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
         session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
@@ -122,5 +126,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.setProperty("password", password)
         user.setProperty("role", role)
         user.save<ORecord>()
+    }
+
+    private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {
+        session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
     }
 }
