@@ -20,6 +20,11 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         props.onSubmit()
     }
 
+    private suspend fun handleSaveParentAspect(property: AspectPropertyData) {
+        props.onAspectPropertyUpdate(property)
+        props.onSubmit()
+    }
+
     private fun handleSwitchToAspectProperties(aspect: AspectData) {
         val selectedAspect = props.aspect ?: error("Aspect should be selected in order to save changes")
         launch {
@@ -46,11 +51,6 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                 }
             }
         }
-    }
-
-    private suspend fun handleSaveParentAspect(property: AspectPropertyData) {
-        props.onAspectPropertyUpdate(property)
-        props.onSubmit()
     }
 
     override fun RBuilder.render() {

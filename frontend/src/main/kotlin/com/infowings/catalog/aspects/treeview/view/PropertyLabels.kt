@@ -22,20 +22,19 @@ fun RBuilder.propertyLabel(
             onClick()
         }
     }
+    span(classes = "aspect-tree-view--label-property-name") {
+        +aspectPropertyName
+    }
     span(classes = "aspect-tree-view--label-name") {
         +(aspectName)
     }
     +":"
     span(classes = "aspect-tree-view--label-property") {
-        +"("
-        span(classes = "aspect-tree-view--label-property-name") {
-            +aspectPropertyName
-        }
-        +":"
+        +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
             +aspectPropertyCardinality
         }
-        +")"
+        +"]"
     }
     +":"
     span(classes = "aspect-tree-view--label-measure") {

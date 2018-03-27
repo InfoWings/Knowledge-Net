@@ -67,11 +67,13 @@
 
     &-name {
       font-weight: 600;
-      padding-right: .5rem;
+      padding-right: .2rem;
+      font-style: italic;
+      color: $color-text-dark-grey;
     }
 
     &-cardinality {
-      padding-left: .5rem;
+      padding: 0 .2rem;
     }
   }
 
