@@ -9,10 +9,13 @@ import kotlinx.serialization.json.JSON
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.security.Principal
 import java.util.*
 
 @Serializable
-data class JwtInfo(var username: String, var role: UserRole)
+data class JwtInfo(var username: String, var role: UserRole): Principal {
+    override fun getName() = username
+}
 
 @Service
 class JWTService {

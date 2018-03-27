@@ -44,15 +44,9 @@ class AspectService(private val db: OrientDatabase,
                     .checkBusinessKey()
                     .getOrCreateAspectVertex()
 
-            logger.info("aspectVertex id-1: ${aspectVertex.id}")
-
             aspectVertex.saveAspectProperties(aspectData.properties)
 
-            logger.info("aspectVertex id-2: ${aspectVertex.id}")
-
             val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
-
-            logger.info("res: ${res.id}, ${aspectVertex.id}")
 
             if (isCreate) {
                 val event = aspectVertex.toHistoryEvent(user, aspectVertex.toCreatePayload())
@@ -62,11 +56,7 @@ class AspectService(private val db: OrientDatabase,
             return@transaction res
         }
 
-        logger.info("save.id: ${save.id}")
-
         val result =  findById(save.id)
-
-        logger.info("result: ${result.id}")
 
         return result
     }

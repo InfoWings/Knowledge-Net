@@ -4,12 +4,12 @@ import com.infowings.catalog.storage.OrientDatabase
 
 const val HISTORY_CLASS = "History"
 
-const val historyInsert = "INSERT into ${HISTORY_CLASS} (class, user, rid, rid2, name, event, data) VALUES (?, ?, ?, ?, ?, ?, ?) "
+const val historyInsert = "INSERT into ${HISTORY_CLASS} (class, user, entityRID, name, event, data) VALUES (?, ?, ?, ?, ?, ?) "
 
 class HistoryDaoService(private val db: OrientDatabase) {
     fun saveEvent(event: HistoryEvent) =
             db.command(historyInsert,
-                    event.keys.entityClass, event.user, event.keys.entityId, event.keys.vertex.identity,
+                    event.keys.entityClass, event.user, event.keys.entityId,
                     event.keys.entityName, event.payload.event, event.payload.serialize()) {
                 it
             }
