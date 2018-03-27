@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.orientechnologies.orient.core.id.ORID
@@ -79,7 +80,7 @@ fun <T>toUpdatePayload(before: T, after: T, asString: List<Pair<String, (T) -> S
 
 private fun <T>asStringOrEmpty(v: T?) = v?.toString().orEmpty()
 
-fun AspectVertex.toUpdatePayload(previous: AspectVertex): HistoryPayload.Update {
+fun AspectData.toUpdatePayload(previous: AspectData): HistoryPayload.Update {
     return toUpdatePayload(previous, this, listOf(
             Pair("name", {v -> v.name }),
             Pair("measure", {v -> asStringOrEmpty(v.measure)}),

@@ -47,7 +47,7 @@ class AspectService(private val db: OrientDatabase,
 
             // в случае обновления будем сравнивать с тем, что есть сейчас
             // (но сравнивать будем уже после сохранения)
-            val previous = if (!isCreate) aspectVertex.copy() else null
+            val previous = if (!isCreate) aspectVertex.toAspectData().copy() else null
 
             aspectVertex.saveAspectProperties(aspectData.properties)
 
@@ -56,7 +56,7 @@ class AspectService(private val db: OrientDatabase,
             val historyPayload = if (isCreate) {
                 aspectVertex.toCreatePayload()
             } else {
-                aspectVertex.toUpdatePayload(previous!!)
+                aspectVertex.toAspectData().toUpdatePayload(previous!!)
             }
 
             historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
@@ -199,3 +199,4 @@ class AspectPropertyModificationException(val id: String, message: String?) : As
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+class AspectInconsistentStateException(message: String) : AspectException(message)
