@@ -16,7 +16,7 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 /**
  * Сервис поиска в OrientDB
  */
-class SuggestionService(val database: OrientDatabase, val measureService: MeasureService) {
+class SuggestionService(private val database: OrientDatabase) {
 
     fun findMeasure(
         commonParam: CommonSuggestionParam?,
