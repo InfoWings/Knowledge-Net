@@ -53,6 +53,21 @@ class AspectService(private val db: OrientDatabase,
                 aspectData.toUpdatePayload(aspectVertex.toAspectData())
             }
 
+            /* При обновлении важно записать историю до обновления
+
+             При записи истории после обновления данных на выходе из транзакции наблюдается странная картина:
+             транзакция завершена как бы успещно,  история сохранена корректно, но обновленная запись остается
+             в старом состоянии.
+
+              Я не нашел обоснования такому поведению ни в здравом смысле, ни в документации.
+              Не исключаю баги в ориенте.
+
+              До решения вопрос приходится полагаться на контракт о том, что мы честно
+             пытаемся сохранить все, что нам пришло в aspectData.
+             Либо сохраняем, либо вывыливаемся из транзакции по исключению.
+             Иначе получим несоответствие дельты реальному изменению.
+
+             */
             if (!isCreate) {
                 historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
             }
@@ -68,14 +83,8 @@ class AspectService(private val db: OrientDatabase,
             return@transaction result
         }
 
-        logger.info("save.id: ${save.id}, save.measure: ${save.measure}, ${save.measureName}")
-
-
 
         val result =  findById(save.id)
-
-        logger.info("result.id: ${result.id}, result.measure: ${result.measure}")
-
 
         return result
     }

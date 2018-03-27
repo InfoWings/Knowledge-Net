@@ -34,6 +34,7 @@ data class HistoryKeys(
 data class HistoryEvent(
     val user: String,
     val timestamp: Long,
+    val version: Int,
     val keys: HistoryKeys,
     val payload: HistoryPayload
 )
@@ -92,4 +93,4 @@ private fun AspectVertex.toHistoryKeys(): HistoryKeys =
         HistoryKeys(this.identity, ASPECT_CLASS, name)
 
 fun AspectVertex.toHistoryEvent(user: String, payload: HistoryPayload): HistoryEvent =
-        HistoryEvent(user, System.currentTimeMillis(), toHistoryKeys(), payload)
+        HistoryEvent(user, System.currentTimeMillis(), version, toHistoryKeys(), payload)

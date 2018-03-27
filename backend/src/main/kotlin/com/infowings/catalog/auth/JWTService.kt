@@ -9,13 +9,17 @@ import kotlinx.serialization.json.JSON
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.RequestMapping
 import java.security.Principal
 import java.util.*
 
 @Serializable
 data class JwtInfo(var username: String, var role: UserRole): Principal {
-    // реализовать Principal важно для того, чтобы имя пользователя доходило
-    // до ручек
+    // реализовать Principal важно для того, чтобы в метода класслов с тегами
+    // @RestController и @RequestMapping(...) можно было использовать параметр типа
+    // Principal и в него попадал экземпляр JwtInfo
+    // А если не унаследовать, то Spring создаст свой экземпляр, чей getName()
+    // будет возвращать toString от экземплчяра JwtInfo
     override fun getName() = username
 }
 
