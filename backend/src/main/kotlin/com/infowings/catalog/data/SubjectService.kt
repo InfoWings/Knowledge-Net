@@ -20,8 +20,12 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
         rs.map { it.toVertex().toSubject() }.firstOrNull()
     }
 
-    fun createSubject(sd: SubjectData): Subject =
-        findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(sd.name) } ?: save(sd)
+    fun createSubject(sd: SubjectData): Subject {
+        val vertex = transaction(db) {
+            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(sd.name) } ?: save(sd)
+        }
+        return vertex.toSubject()
+    }
 
     fun updateSubject(sd: SubjectData): Subject =
         transaction(db) {
@@ -30,15 +34,13 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
             vertex.save<OVertex>().toSubject()
         }
 
-    private fun save(sd: SubjectData): Subject =
+    private fun save(sd: SubjectData): OVertex =
         transaction(db) { session ->
             val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
             vertex.name = sd.name
             vertex.save<OVertex>()
-            session.commit() //TODO ????
-            return@transaction vertex.toSubject()
+            return@transaction vertex
         }
-
 }
 
 const val selectSubjects = "SELECT FROM $SUBJECT_CLASS"
