@@ -38,7 +38,7 @@ data class HistoryEvent(
     val payload: HistoryPayload
 )
 
-fun AspectVertex.toCreatePayload(): HistoryPayload.Create =
+fun AspectData.toCreatePayload(): HistoryPayload.Create =
         HistoryPayload.Create(
                 listOfNotNull(
                         "name" to name,
