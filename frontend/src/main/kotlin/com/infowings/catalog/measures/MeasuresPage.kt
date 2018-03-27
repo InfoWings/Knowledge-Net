@@ -16,23 +16,21 @@ import kotlin.browser.window
 
 class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
-    private val allData = MeasureGroupMap
-        .flatMap { (measureGroupName, measureGroup) ->
-            measureGroup.measureList.map {
-                UnitsTableRowData(measureGroupName, it.name, it.symbol, containsFilterText = true)
-            }
+    private val allGroups = MeasureGroupMap.values
+        .map {
+            MeasureGroupData(
+                it.name,
+                it.measureList.map { UnitData(it.name, it.symbol, containsFilterText = true) })
         }
-
-    private val allDataMap = allData.groupBy { it.pivotBy }
 
     override fun State.init() {
         filterText = ""
-        data = emptyList()
+        groups = emptyList()
     }
 
     override fun componentDidMount() {
         setState {
-            data = allData
+            groups = allGroups
         }
     }
 
@@ -56,46 +54,31 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
     private fun updateDataState(filterText: String) {
         if (filterText.length < 3) {
             setState {
-                this.data = allData
+                groups = allGroups
             }
         } else {
             // if previous request not completed then cancel it
             job?.cancel()
             job = launch {
-                val data = getFilteredData(filterText)
+                val groups = getFilteredGroups(filterText)
                 setState {
-                    this.data = data
+                    this.groups = groups
                 }
             }
         }
     }
 
-    private suspend fun getFilteredData(filterText: String): List<UnitsTableRowData> {
-        val filteredNames = filterMeasureNames(filterText)
-
-        // get list of measureGroupName of filtered measure names
-        val measureGroupNames: List<String> = filteredNames
-            .flatMap { name -> allData.filter { it.name == name || it.pivotBy == name }.map { it.pivotBy } }
-            .distinct()
-
-        // create map where key is measureGroupName and value is list of UnitsTableRowData of this group
-        val dataByMeasureGroupNameMap: Map<String, List<UnitsTableRowData>> = measureGroupNames
-            .mapNotNull { allDataMap[it] }
-            .flatMap {
-                it.map { UnitsTableRowData(it.pivotBy, it.name, it.symbol, filteredNames.contains(it.name)) }
-            }.groupBy { it.pivotBy }
+    private suspend fun getFilteredGroups(filterText: String): List<MeasureGroupData> {
+        val filteredNames = getSuggestedMeasurementUnits(filterText, findInGroups = true)
 
         return filteredNames
-            .flatMap { name -> allData.filter { it.name == name || it.pivotBy == name }.map { name to it.pivotBy } }
-            .distinct()
-            .flatMap { (name, measureGroupName) ->
-                dataByMeasureGroupNameMap.getValue(measureGroupName)
-                    .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
+            .map { name ->
+                MeasureGroupData(
+                    name,
+                    allGroups.first { it.units.map { it.name }.contains(name) }.units
+                        .map { it.copy(containsFilterText = (name == it.name)) }
+                )
             }
-    }
-
-    private suspend fun filterMeasureNames(filterText: String): Array<String> {
-        return getSuggestedMeasurementUnits(filterText, findInGroups = true)
     }
 
     override fun RBuilder.render() {
@@ -114,25 +97,16 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
         child(MeasureTreeView::class) {
             attrs {
-                groups = state.data
-                    .groupBy({ it.pivotBy }, { UnitData(it.name, it.symbol, it.containsFilterText) })
-                    .map { MeasureGroupData(it.key, it.value) }
+                groups = state.groups
             }
         }
     }
 
     interface State : RState {
         var filterText: String
-        var data: List<UnitsTableRowData>
+        var groups: List<MeasureGroupData>
     }
 }
-
-data class UnitsTableRowData(
-    val pivotBy: String,
-    val name: String,
-    val symbol: String,
-    val containsFilterText: Boolean
-)
 
 data class MeasureGroupData(
     val name: String,

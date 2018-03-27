@@ -10,7 +10,8 @@ import react.dom.span
 
 class MeasureUnitLabel(props: MeasureUnitLabel.Props) : RComponent<MeasureUnitLabel.Props, RState>(props) {
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--label") {
+        val containsFilterText = if (props.unit.containsFilterText) "" else "not_contains_filter_text"
+        div(classes = "aspect-tree-view--label $containsFilterText") {
             span(classes = "aspect-tree-view--label-property-cardinality") {
                 +props.unit.name
             }
