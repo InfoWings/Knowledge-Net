@@ -18,7 +18,7 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
         e.preventDefault()
         e.stopPropagation()
         props.setExpanded(true)
-        if (props.aspect.properties.last() != AspectPropertyData("", "", "", "")) {
+        if (props.aspect.properties.isEmpty() || props.aspect.properties.last() != AspectPropertyData("", "", "", "")) {
             props.onClick(props.aspect.id)
             props.onAddToListIconClick(props.aspect.properties.size)
         }
