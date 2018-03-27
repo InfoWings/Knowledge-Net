@@ -27,7 +27,7 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
                     input(classes = "aspect-edit-console--input") {
                         this.attrs {
                             type = kotlinx.html.InputType.text
-                            placeholder = "Search unit..."
+                            placeholder = "Search ..."
                             value = props.filterText
                             onChangeFunction = { props.onFilterTextChange(it.target.asDynamic().value) }
                         }
