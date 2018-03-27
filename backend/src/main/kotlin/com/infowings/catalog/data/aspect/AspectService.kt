@@ -47,7 +47,7 @@ class AspectService(private val db: OrientDatabase,
 
             // в случае обновления будем сравнивать с тем, что есть сейчас
             // (но сравнивать будем уже после сохранения)
-            val previous = if (!isCreate) aspectVertex else null
+            val previous = if (!isCreate) aspectVertex.copy() else null
 
             aspectVertex.saveAspectProperties(aspectData.properties)
 
