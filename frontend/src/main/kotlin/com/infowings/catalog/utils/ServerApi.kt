@@ -21,6 +21,7 @@ private const val REFRESH_AUTH = "x-refresh-authorization"
 private const val ACCESS_AUTH = "x-access-authorization"
 
 private const val OK = 200
+private const val BAD_REQUEST = 400
 private const val UNAUTHORIZED = 401
 private const val FORBIDDEN = 403
 
@@ -48,6 +49,7 @@ suspend fun get(url: String, body: dynamic = null): String {
  * If response status 200(OK) then return response
  * if response status 401(unauthorized) then remove role cookie and redirect to login page
  * if response status 403(forbidden) then refresh token and repeat request
+ * if response status 400(bad request) then throws [BadRequestException]
  * else throws ServerException
  */
 private suspend fun authorizedRequest(method: String, url: String, body: dynamic, repeat: Boolean = false): Response {
@@ -68,6 +70,7 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
                 refreshTokenAndRepeatRequest(method, url, body)
             }
         }
+        BAD_REQUEST -> throw BadRequestException(response.text().await())
         else -> throw ServerException(response.text().await(), statusCode)
     }
 }
@@ -77,6 +80,11 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
  * except for 401(unauthorized) and 403(forbidden) cases
  */
 class ServerException(message: String, val httpStatusCode: Int) : RuntimeException(message)
+
+/**
+ * Exception that contains message about what was wrong with request to server.
+ */
+class BadRequestException(message: String) : RuntimeException(message)
 
 private fun redirectToLoginPage() {
     removeAuthRole()
