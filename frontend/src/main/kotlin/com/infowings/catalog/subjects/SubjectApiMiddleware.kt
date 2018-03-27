@@ -4,6 +4,7 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -31,13 +32,23 @@ interface SubjectApiReceiverProps : RProps {
 
 class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
 
+    private var job: Job? = null
+
     override fun State.init() {
         data = mutableMapOf()
         loading = true
     }
 
     override fun componentDidMount() {
-        launch {
+        loadAllData()
+    }
+
+    private fun loadAllData() {
+        setState {
+            loading = true
+        }
+        job?.cancel()
+        job = launch {
             val subjects = getAllSubjects()
             setState {
                 data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
@@ -47,6 +58,9 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     }
 
     private fun handleCreateSubject(subjectData: SubjectData) {
+        setState {
+            loading = true
+        }
         launch {
             val res = createSubject(subjectData)
             setState {
@@ -58,6 +72,9 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     }
 
     private fun handleUpdateSubject(subjectData: SubjectData) {
+        setState {
+            loading = true
+        }
         launch {
             val res = updateSubject(subjectData)
             setState {
@@ -68,12 +85,19 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     }
 
     private fun handleFetchData(filterParam: Map<String, String>) {
-        launch {
-            val subjects = getSuggestedSubject(filterParam["name"] ?: "", filterParam["aspects"] ?: "")
+        if (filterParam["name"].isNullOrEmpty()) {
+            loadAllData()
+            return
+        }
+        job?.cancel()
+        setState {
+            loading = true
+        }
+        job = launch {
+            val subjects = getSuggestedSubject(filterParam["name"] ?: "", "")
             setState {
                 data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
                 loading = false
-                renew = true
             }
         }
 
@@ -94,7 +118,6 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     interface State : RState {
         var data: MutableMap<String?, SubjectData>
         var loading: Boolean
-        var renew: Boolean
     }
 
 }

@@ -2,7 +2,7 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.header
-import com.infowings.catalog.wrappers.table.FilteringModel
+import com.infowings.catalog.units.SearchBar
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
@@ -11,6 +11,7 @@ import kotlinx.html.js.onBlurFunction
 import react.*
 import react.dom.defaultValue
 import react.dom.input
+import kotlin.browser.window
 
 data class SubjectViewData(
     var name: String = ""
@@ -23,17 +24,30 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
         state.subjectNames = Array(size, { "" })
     }
 
+    private var timer: Int = 0
+
     override fun RBuilder.render() {
+        child(SearchBar::class) {
+            attrs {
+                filterText = state.filterText
+                onFilterTextChange = { text ->
+                    window.clearTimeout(timer)
+                    timer = window.setTimeout({ props.onFetchData(mapOf("name" to text)) }, 200)
+                }
+            }
+        }
+
         ReactTable {
             attrs {
                 columns = arrayOf(column("name", header("name")))
                 data = if (props.loading) emptyArray() else subjectToRows()
                 showPagination = false
-                minRows = 2
+                pageSize = data.count()
+                minRows = 0
                 sortable = false
                 showPageJump = false
                 resizable = false
-                collapseOnDataChange = false
+/*
                 filterable = true
                 onFilteredChange = { ewExpanded: dynamic, index: dynamic, event: dynamic ->
                     //filtering in server side
@@ -41,6 +55,7 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                 }
                 defaultFilterMethod =
                         { filter: dynamic, row: dynamic, column: dynamic -> true } //disable filtering in frontend
+*/
             }
         }
     }
@@ -68,7 +83,9 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
             if (index < props.data.size) {
                 if (state.subjectNames[index].isNotBlank()) {
                     val curSubjectData = props.data[index]
-                    props.onSubjectUpdate(SubjectData(curSubjectData.id, state.subjectNames[index]))
+                    if (curSubjectData.name != state.subjectNames[index]) {
+                        props.onSubjectUpdate(SubjectData(curSubjectData.id, state.subjectNames[index]))
+                    }
                 }
             } else if (state.subjectNames.last().isNotBlank()) {
                 props.onSubjectsCreate(SubjectData(name = state.subjectNames.last()))
@@ -83,6 +100,7 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
 
     interface State : RState {
         var subjectNames: Array<String>
+        var filterText: String
     }
 
     private fun toSubjectViewData(data: Array<SubjectData>): Array<SubjectViewData> =
