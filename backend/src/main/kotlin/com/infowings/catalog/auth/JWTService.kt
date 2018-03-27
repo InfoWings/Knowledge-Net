@@ -14,6 +14,8 @@ import java.util.*
 
 @Serializable
 data class JwtInfo(var username: String, var role: UserRole): Principal {
+    // реализовать Principal важно для того, чтобы имя пользователя доходило
+    // до ручек
     override fun getName() = username
 }
 

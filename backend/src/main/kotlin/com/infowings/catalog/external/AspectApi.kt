@@ -21,16 +21,16 @@ class AspectApi(val aspectService: AspectService) {
     //todo: json in request body
     @PostMapping("create")
     fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
-        logger.info("New aspect create request: $aspectData")
         val user = principal.name
-        logger.info("user: $user")
+        logger.info("New aspect create request: $aspectData by $user")
         return aspectService.save(aspectData, user).toAspectData()
     }
 
     @PostMapping("update")
     fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
-        logger.info("Update aspect request: $aspectData")
-        return aspectService.save(aspectData, principal.name).toAspectData()
+        val user = principal.name
+        logger.info("Update aspect request: $aspectData by $user")
+        return aspectService.save(aspectData, user).toAspectData()
     }
 
     @GetMapping("get/{name}")

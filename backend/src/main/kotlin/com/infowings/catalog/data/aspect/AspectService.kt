@@ -34,7 +34,6 @@ class AspectService(private val db: OrientDatabase,
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
     fun save(aspectData: AspectData, user: String = ""): Aspect {
-        val isCreate = aspectData.id == null
         val logger = loggerFor<AspectService>()
 
         val save: AspectVertex = transaction(db) {
@@ -44,14 +43,23 @@ class AspectService(private val db: OrientDatabase,
                     .checkBusinessKey()
                     .getOrCreateAspectVertex()
 
+            val isCreate = aspectVertex.identity.isNew
+
+            // в случае обновления будем сравнивать с тем, что есть сейчас
+            // (но сравнивать будем уже после сохранения)
+            val previous = if (!isCreate) aspectVertex else null
+
             aspectVertex.saveAspectProperties(aspectData.properties)
 
             val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
 
-            if (isCreate) {
-                val event = aspectVertex.toHistoryEvent(user, aspectVertex.toCreatePayload())
-                historyService.storeEvent(event)
+            val historyPayload = if (isCreate) {
+                aspectVertex.toCreatePayload()
+            } else {
+                aspectVertex.toUpdatePayload(previous!!)
             }
+
+            historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
 
             return@transaction res
         }

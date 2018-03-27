@@ -3,9 +3,7 @@ package com.infowings.catalog.data.history
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
-import com.orientechnologies.orient.core.record.OVertex
 
 
 data class Delta (
@@ -58,6 +56,36 @@ fun AspectVertex.toCreatePayload(): HistoryPayload.Create =
   ("кто и когда менял measure у каких бы то ни было аспектов"), то такие атрибуты то же надо будет выносить
   в keys
  */
+
+
+fun <T>toDelta(before: T, after: T, asString: (T) -> String): Delta? {
+    val strBefore = asString(before)
+    val strAfter = asString(after)
+    return if (strBefore != strAfter) {
+        Delta(strBefore, strAfter)
+    } else {
+        null
+    }
+}
+
+fun <T>toUpdatePayload(before: T, after: T, asString: List<Pair<String, (T) -> String>>): HistoryPayload.Update {
+    val deltas = asString.map {
+        val d = toDelta(before, after, it.second)
+        if (d != null) it.first to d!! else null
+    }.filterNotNull().toMap()
+
+    return HistoryPayload.Update(deltas)
+}
+
+private fun <T>asStringOrEmpty(v: T?) = v?.toString().orEmpty()
+
+fun AspectVertex.toUpdatePayload(previous: AspectVertex): HistoryPayload.Update {
+    return toUpdatePayload(previous, this, listOf(
+            Pair("name", {v -> v.name }),
+            Pair("measure", {v -> asStringOrEmpty(v.measure)}),
+            Pair("baseType", {v -> asStringOrEmpty(v.baseType)})
+    ))
+}
 
 private fun AspectVertex.toHistoryKeys(): HistoryKeys =
         HistoryKeys(this.identity, ASPECT_CLASS, name)

@@ -62,7 +62,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
 
         return@session aspectVertex.save<OVertex>().toAspectVertex().also {
-            logger.info("Aspect ${aspectData.name} saved with id: ${it.id}")
+            logger.debug("Aspect ${aspectData.name} saved with id: ${it.id}")
         }
     }
 
