@@ -3,6 +3,7 @@ package com.infowings.catalog.measures
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.layout.Header
+import com.infowings.catalog.measures.treeview.MeasureTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
@@ -111,9 +112,11 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             }
         }
 
-        child(UnitsTable::class) {
+        child(MeasureTreeView::class) {
             attrs {
-                data = state.data.toTypedArray()
+                groups = state.data
+                    .groupBy({ it.pivotBy }, { UnitData(it.name, it.symbol, it.containsFilterText) })
+                    .map { MeasureGroupData(it.key, it.value) }
             }
         }
     }
@@ -123,3 +126,21 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
         var data: List<UnitsTableRowData>
     }
 }
+
+data class UnitsTableRowData(
+    val pivotBy: String,
+    val name: String,
+    val symbol: String,
+    val containsFilterText: Boolean
+)
+
+data class MeasureGroupData(
+    val name: String,
+    val units: List<UnitData>
+)
+
+data class UnitData(
+    val name: String,
+    val symbol: String,
+    val containsFilterText: Boolean
+)
