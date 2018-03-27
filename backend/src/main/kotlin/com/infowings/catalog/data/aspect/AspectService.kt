@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.history.*
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
@@ -34,6 +35,7 @@ class AspectService(private val db: OrientDatabase,
      */
     fun save(aspectData: AspectData, user: String = ""): Aspect {
         val isCreate = aspectData.id == null
+        val logger = loggerFor<AspectService>()
 
         val save: AspectVertex = transaction(db) {
 
@@ -42,15 +44,15 @@ class AspectService(private val db: OrientDatabase,
                     .checkBusinessKey()
                     .getOrCreateAspectVertex()
 
-            println("aspectVertex: ${aspectVertex.id}")
+            logger.info("aspectVertex id-1: ${aspectVertex.id}")
 
             aspectVertex.saveAspectProperties(aspectData.properties)
 
-            println("aspectVertex id: ${aspectVertex.id}")
+            logger.info("aspectVertex id-2: ${aspectVertex.id}")
 
             val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
 
-            println("res: ${res.id}, ${aspectVertex.id}")
+            logger.info("res: ${res.id}, ${aspectVertex.id}")
 
             if (isCreate) {
                 val event = aspectVertex.toHistoryEvent(user, aspectVertex.toCreatePayload())
@@ -60,7 +62,13 @@ class AspectService(private val db: OrientDatabase,
             return@transaction res
         }
 
-        return findById(save.id)
+        logger.info("save.id: ${save.id}")
+
+        val result =  findById(save.id)
+
+        logger.info("result: ${result.id}")
+
+        return result
     }
 
     fun remove(aspect: Aspect, force: Boolean = false) = transaction(db) {
