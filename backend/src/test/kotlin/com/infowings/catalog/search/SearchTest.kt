@@ -57,15 +57,15 @@ class SearchTest {
         val queryText = "metre"
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
 
-        logger.info("find result size: ${res.size}")
+        logger.debug("find result size: ${res.size}")
         assertFalse(res.isEmpty())
 
-        logger.info("find result: $res")
+        logger.debug("find result: $res")
         assertEquals("Metre", res.first().name)
         val m = GlobalMeasureMap[res.first().name]
         assertEquals(m, Metre)
 
-        res.forEach { logger.info("name : ${it.name}") }
+        res.forEach { logger.debug("name : ${it.name}") }
     }
 
     @Test
@@ -73,14 +73,14 @@ class SearchTest {
         val queryText = "mm"
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
 
-        logger.info("find result size: ${res.size}")
+        logger.debug("find result size: ${res.size}")
         assertFalse(res.isEmpty())
 
-        logger.info("find result: $res")
+        logger.debug("find result: $res")
         val m = GlobalMeasureMap[res.first().name]
         assertEquals(m, Millimetre)
 
-        res.forEach { logger.info("name : ${it.name}") }
+        res.forEach { logger.debug("name : ${it.name}") }
     }
 
     @Test
@@ -92,14 +92,14 @@ class SearchTest {
             findInGroups = true
         )
 
-        logger.info("find result size: ${res.size}")
+        logger.debug("find result size: ${res.size}")
         assertFalse(res.isEmpty())
 
-        logger.info("find result: $res")
+        logger.debug("find result: $res")
         assertEquals("Square meter", res.first())
         assertEquals("Area", res.last())
 
-        res.forEach { logger.info("name : $it") }
+        res.forEach { logger.debug("name : $it") }
     }
 
     @Test
@@ -107,15 +107,15 @@ class SearchTest {
         val queryText = "metre"
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), "Length")
 
-        logger.info("find result size: ${res.size}")
+        logger.debug("find result size: ${res.size}")
         assertFalse(res.isEmpty())
 
-        logger.info("find result: $res")
+        logger.debug("find result: $res")
         assertEquals("Metre", res.first().name)
         val m = GlobalMeasureMap[res.first().name]
         assertEquals(m, Metre)
 
-        res.forEach { logger.info("name : ${it.name}") }
+        res.forEach { logger.debug("name : ${it.name}") }
     }
 
     @Test
@@ -125,10 +125,10 @@ class SearchTest {
 
         val res = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = aspectName), null)
 
-        logger.info("find result size: ${res.size}")
+        logger.debug("find result size: ${res.size}")
         assertFalse("result set cannot by empty!") { res.isEmpty() }
 
-        logger.info("find result: $res")
+        logger.debug("find result: $res")
 
         assertEquals(aspectName, res.first().name)
         assertEquals(aspect.toAspectData(), res.first())
