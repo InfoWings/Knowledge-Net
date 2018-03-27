@@ -34,7 +34,7 @@ fun RBuilder.propertyLabel(
     span(classes = "aspect-tree-view--label-property") {
         +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
-            +aspectPropertyCardinality
+            +cardinalityLabel(aspectPropertyCardinality)
         }
         +"]"
     }
@@ -56,3 +56,10 @@ fun RBuilder.placeholderPropertyLabel(className: String?) =
         div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
             +"(Enter new Aspect Property)"
         }
+
+fun cardinalityLabel(cardinalityValue: String) = when (cardinalityValue) {
+    "ZERO" -> "0"
+    "ONE" -> "0..1"
+    "INFINITY" -> "0..∞"
+    else -> ""
+}
