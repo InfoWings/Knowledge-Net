@@ -53,22 +53,22 @@ class AspectService(private val db: OrientDatabase,
 
             logger.info("${aspectVertex.measureName}, ${aspectVertex.measure}, ${aspectData.measure} " +
                     "${aspectVertex.id}, ${aspectVertex.identity}")
-            val res = aspectDaoService.saveAspect(aspectVertex, aspectData)
-            logger.info("stored: ${findById(res.id).measure}")
+            val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
+            logger.info("stored: ${findById(result.id).measure}")
 
             val historyPayload = if (isCreate) {
-                res.toCreatePayload()
+                result.toCreatePayload()
             } else {
-                res.toAspectData().toUpdatePayload(previous!!)
+                result.toAspectData().toUpdatePayload(previous!!)
             }
 
             logger.info("going to store history")
 
-            historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
+            // historyService.storeEvent(result.toHistoryEvent(user, historyPayload))
 
-            logger.info("stored history: ${findById(res.id).measure}")
+            logger.info("stored history: ${findById(result.id).measure}")
 
-            return@transaction res
+            return@transaction result
         }
 
         logger.info("save.id: ${save.id}, save.measure: ${save.measure}, ${save.measureName}")
