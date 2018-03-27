@@ -1,5 +1,6 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.ODatabasePool
 import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
@@ -117,6 +118,9 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
 /**
  * DO NOT use directly, use [transaction] and [session] instead
  */
+
+val transactionLogger = loggerFor<OrientDatabase>()
+
 inline fun <U> transactionInner(
         session: ODatabaseDocument,
         retryOnFailure: Int = 0,
@@ -133,6 +137,7 @@ inline fun <U> transactionInner(
 
             return u
         } catch (e: Exception) {
+            transactionLogger.warn("Thrown inside transaction: $e")
             lastException = e
             session.rollback()
         }
