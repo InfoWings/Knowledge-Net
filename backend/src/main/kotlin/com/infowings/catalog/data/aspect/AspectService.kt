@@ -52,11 +52,18 @@ class AspectService(private val db: OrientDatabase,
             } else {
                 aspectData.toUpdatePayload(aspectVertex.toAspectData())
             }
-            historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
+
+            if (!isCreate) {
+                historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
+            }
 
             aspectVertex.saveAspectProperties(aspectData.properties)
 
             val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
+
+            if (isCreate) {
+                historyService.storeEvent(result.toHistoryEvent(user, historyPayload))
+            }
 
             return@transaction result
         }
