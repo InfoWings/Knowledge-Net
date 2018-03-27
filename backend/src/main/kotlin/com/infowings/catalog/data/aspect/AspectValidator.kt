@@ -61,7 +61,7 @@ class AspectValidator(
 
         when {
             measureName == null && baseType == null && aspectData.properties.isEmpty() ->
-                throw AspectInconsistentStateException("Measure and BaseType can't be null at the same time")
+                throw AspectInconsistentStateException("Measure and Base Type can't be null at the same time. Please, enter either Measure or Base Type")
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
