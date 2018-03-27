@@ -13,7 +13,7 @@ class HistoryDaoService(private val db: OrientDatabase) {
             db.command(historyInsert,
                     event.keys.entityClass, event.user, event.keys.entityId,
                     event.keys.entityName, event.payload.event, event.payload.serialize(),
-                    Timestamp(event.timestamp)) {
+                    Timestamp(event.timestamp), event.version) {
                 it
             }
 }
