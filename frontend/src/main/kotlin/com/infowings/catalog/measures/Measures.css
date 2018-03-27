@@ -1,3 +1,9 @@
 .not_contains_filter_text {
     opacity: 0.4
 }
+
+.measure-search-bar {
+    display: flex;
+    max-width: 122rem;
+    margin: 2rem auto 1rem;
+}

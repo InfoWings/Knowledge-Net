@@ -10,6 +10,13 @@ import react.dom.div
 import react.dom.svg
 
 class MeasureTreeRoot(props: MeasureTreeRoot.Props) : RComponent<MeasureTreeRoot.Props, MeasureTreeRoot.State>(props) {
+
+    override fun componentWillReceiveProps(nextProps: Props) {
+        setState {
+            expanded = false
+        }
+    }
+
     private fun handleExpanderClick(e: Event) {
         e.preventDefault()
         e.stopPropagation()
