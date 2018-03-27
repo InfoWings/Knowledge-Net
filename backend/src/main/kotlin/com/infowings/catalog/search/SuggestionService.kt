@@ -44,19 +44,19 @@ class SuggestionService(private val database: OrientDatabase) {
             val res =
                 findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
                     .toMutableList()
-            return@session addAnExactMatch(commonParam, res)
+            return@session addAnExactMatchToTheBeginning(commonParam, res)
         }
 
-    private fun addAnExactMatch(
+    private fun addAnExactMatchToTheBeginning(
         commonParam: CommonSuggestionParam?,
-        res: MutableList<Measure<out Any?>>
+        measureList: MutableList<Measure<out Any?>>
     ): List<Measure<*>> {
-        val m = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
-        m?.let {
-            res.remove(it)
-            res.add(0, it)
+        val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
+        measure?.let {
+            measureList.remove(it)
+            measureList.add(0, it)
         }
-        return res
+        return measureList
     }
 
     fun findAspect(
