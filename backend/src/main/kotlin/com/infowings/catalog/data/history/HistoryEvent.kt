@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.id
+import com.orientechnologies.orient.core.record.OVertex
 
 
 data class Delta (
@@ -26,6 +27,7 @@ sealed class HistoryPayload(val event: EventKind) {
 // свойства сущности, хранащиеся в каждой записи лога
 data class HistoryKeys(
         val entityId: String,
+        val vertex: OVertex,
         val entityClass: String,
         val entityName: String
 )
@@ -58,7 +60,7 @@ fun AspectVertex.toCreatePayload(): HistoryPayload.Create =
  */
 
 private fun AspectVertex.toHistoryKeys(): HistoryKeys =
-        HistoryKeys(id, ASPECT_CLASS, name)
+        HistoryKeys(id, this, ASPECT_CLASS, name)
 
 fun AspectVertex.toHistoryEvent(user: String, payload: HistoryPayload): HistoryEvent =
         HistoryEvent(user, System.currentTimeMillis(), toHistoryKeys(), payload)
