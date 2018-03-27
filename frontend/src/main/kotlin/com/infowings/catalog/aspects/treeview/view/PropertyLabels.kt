@@ -22,8 +22,10 @@ fun RBuilder.propertyLabel(
             onClick()
         }
     }
-    span(classes = "aspect-tree-view--label-property-name") {
-        +aspectPropertyName
+    if (aspectPropertyName.isNotEmpty()) {
+        span(classes = "aspect-tree-view--label-property-name") {
+            +aspectPropertyName
+        }
     }
     span(classes = "aspect-tree-view--label-name") {
         +(aspectName)
