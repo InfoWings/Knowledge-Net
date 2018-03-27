@@ -64,7 +64,7 @@ class AspectService(private val db: OrientDatabase,
 
             logger.info("going to store history")
 
-            // historyService.storeEvent(result.toHistoryEvent(user, historyPayload))
+            historyService.storeEvent(result.toHistoryEvent(user, historyPayload))
 
             logger.info("stored history: ${findById(result.id).measure}")
 
