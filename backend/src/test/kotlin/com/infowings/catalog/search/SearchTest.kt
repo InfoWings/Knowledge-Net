@@ -11,8 +11,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
@@ -40,15 +38,6 @@ class SearchTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-    @LocalServerPort
-    lateinit var port: String
-
-    @Value("\${spring.security.header.access}")
-    lateinit var headerAcess: String
-
-    @Value("\${spring.security.prefix}")
-    lateinit var securityPrefix: String
-
     @Autowired
     private val wac: WebApplicationContext? = null
 
@@ -66,7 +55,6 @@ class SearchTest {
     @Test
     fun measureSuggestion() {
         val queryText = "metre"
-        val context = SearchContext()
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
 
         logger.info("find result size: ${res.size}")
@@ -81,9 +69,23 @@ class SearchTest {
     }
 
     @Test
+    fun mmSuggestion() {
+        val queryText = "mm"
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
+
+        logger.info("find result size: ${res.size}")
+        assertFalse(res.isEmpty())
+
+        logger.info("find result: $res")
+        val m = GlobalMeasureMap[res.first().name]
+        assertEquals(m, Millimetre)
+
+        res.forEach { logger.info("name : ${it.name}") }
+    }
+
+    @Test
     fun measureSuggestionWithGroup() {
         val queryText = "Are"
-        val context = SearchContext()
         val res = suggestionService.findMeasure(
             CommonSuggestionParam(text = queryText),
             measureGroupName = null,
@@ -103,7 +105,6 @@ class SearchTest {
     @Test
     fun measureSuggestionInGroup() {
         val queryText = "metre"
-        val context = SearchContext()
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), "Length")
 
         logger.info("find result size: ${res.size}")

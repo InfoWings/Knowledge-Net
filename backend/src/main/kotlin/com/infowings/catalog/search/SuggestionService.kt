@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectVertex
@@ -15,7 +16,7 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 /**
  * Сервис поиска в OrientDB
  */
-class SuggestionService(val database: OrientDatabase) {
+class SuggestionService(val database: OrientDatabase, val measureService: MeasureService) {
 
     fun findMeasure(
         commonParam: CommonSuggestionParam?,
@@ -40,9 +41,23 @@ class SuggestionService(val database: OrientDatabase) {
         measureGroupName: String?
     ): List<Measure<*>> =
         session(database) {
-            findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
-                .toList()
+            val res =
+                findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
+                    .toMutableList()
+            return@session addAnExactMatch(commonParam, res)
         }
+
+    private fun addAnExactMatch(
+        commonParam: CommonSuggestionParam?,
+        res: MutableList<Measure<out Any?>>
+    ): List<Measure<*>> {
+        val m = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
+        m?.let {
+            res.remove(it)
+            res.add(0, it)
+        }
+        return res
+    }
 
     fun findAspect(
         context: SearchContext,
