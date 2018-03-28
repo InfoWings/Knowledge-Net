@@ -1,27 +1,21 @@
 package com.infowings.catalog.aspects
 
+import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
+import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-//private val aspects: List<AspectData> = arrayListOf(
-//        AspectData("#1:0", "Width", "Metre", "OpenDomain", "Decimal"),
-//        AspectData("#2:0", "Height", "Metre", "OpenDomain", "Decimal"),
-//        AspectData("#3:0", "Depth", "Metre", "OpenDomain", "Decimal"),
-//        AspectData("#4:0", "Dimensions", null, "OpenDomain", "Complex Type", arrayListOf(
-//                AspectPropertyData("#5:0", "Width", "#1:0", "ONE"),
-//                AspectPropertyData("#6:0", "Height", "#2:0", "ONE"),
-//                AspectPropertyData("#7:0", "Depth", "#3:0", "ONE")
-//        ))
-//)
+class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: List<AspectData>
     var aspectContext: Map<String, AspectData>
-    var onAspectUpdate: (changedAspect: AspectData) -> Unit
-    var onAspectCreate: (newAspect: AspectData) -> Unit
+    var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
+    var onAspectCreate: suspend (newAspect: AspectData) -> Unit
 }
 
 /**
@@ -45,41 +39,50 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
-    private fun handleCreateNewAspect(aspectData: AspectData) {
-        launch {
-            val newAspect = createAspect(aspectData)
-            val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+    private suspend fun handleCreateNewAspect(aspectData: AspectData) {
+        val newAspect: AspectData
 
-            setState {
-                data += newAspect
-                context[newAspectId] = newAspect
-            }
+        try {
+            newAspect = createAspect(aspectData)
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message!!))
+        }
+
+        val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+
+        setState {
+            data += newAspect
+            context[newAspectId] = newAspect
         }
     }
 
-    private fun handleUpdateAspect(aspectData: AspectData) {
-        launch {
-            val updatedAspect = updateAspect(aspectData)
-            val updatedAspectId: String = updatedAspect.id
-                    ?: throw Error("Server returned Aspect with aspectId == null")
+    private suspend fun handleUpdateAspect(aspectData: AspectData) {
+        val updatedAspect: AspectData
 
-            setState {
-                data = data.map {
-                    if (updatedAspect.id == it.id) updatedAspect else it
-                }
-                context[updatedAspectId] = updatedAspect
+        try {
+            updatedAspect = updateAspect(aspectData)
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message!!))
+        }
+
+        val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+
+        setState {
+            data = data.map {
+                if (updatedAspect.id == it.id) updatedAspect else it
             }
+            context[updatedAspectId] = updatedAspect
         }
     }
 
     override fun RBuilder.render() {
         child(props.apiReceiverComponent) {
             attrs {
-                data = /*aspects*/ state.data
-                aspectContext = /*aspects.associateBy { it.id!! }*/ state.context
+                data = state.data
+                aspectContext = state.context
                 loading = state.loading
-                onAspectCreate = ::handleCreateNewAspect
-                onAspectUpdate = ::handleUpdateAspect
+                onAspectCreate = { handleCreateNewAspect(it) }
+                onAspectUpdate = { handleUpdateAspect(it) }
             }
         }
     }
@@ -105,9 +108,9 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 }
 
-fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) = child(AspectApiMiddleware::class) {
-
-    attrs {
-        this.apiReceiverComponent = apiReceiverComponent
+fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) =
+    child(AspectApiMiddleware::class) {
+        attrs {
+            this.apiReceiverComponent = apiReceiverComponent
+        }
     }
-}

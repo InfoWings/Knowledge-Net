@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.*
@@ -44,9 +45,23 @@ class SuggestionService(
         measureGroupName: String?
     ): List<Measure<*>> =
         session(database) {
-            findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
-                .toList()
+            val res =
+                findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
+                    .toMutableList()
+            return@session addAnExactMatchToTheBeginning(commonParam, res)
         }
+
+    private fun addAnExactMatchToTheBeginning(
+        commonParam: CommonSuggestionParam?,
+        measureList: MutableList<Measure<out Any?>>
+    ): List<Measure<*>> {
+        val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
+        measure?.let {
+            measureList.remove(it)
+            measureList.add(0, it)
+        }
+        return measureList
+    }
 
     fun findAspect(
         context: SearchContext,

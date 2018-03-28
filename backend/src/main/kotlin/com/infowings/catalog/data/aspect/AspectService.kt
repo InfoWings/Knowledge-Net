@@ -7,6 +7,7 @@ import com.infowings.catalog.common.Measure
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
+import hasIncomingEdges
 
 
 /**
@@ -43,6 +44,37 @@ class AspectService(private val db: OrientDatabase,
         }
 
         return findById(save.id)
+    }
+
+    fun remove(aspect: Aspect, force: Boolean = false) = transaction(db) {
+        val vertex = aspectDaoService.getVertex(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
+
+        val aspectVertex = vertex.toAspectVertex()
+
+        aspectVertex.checkAspectVersion(aspect.toAspectData())
+
+        when {
+            aspectVertex.isLinkedBy() && force -> {
+                // сюда - удаление связанного
+            }
+            aspectVertex.isLinkedBy() -> {
+                throw AspectHasLinkedEntitiesException(aspect.id)
+            }
+            else ->
+                aspectDaoService.remove(vertex)
+        }
+    }
+
+    fun remove(property: AspectProperty) = transaction(db) {
+        val vertex = aspectDaoService.getVertex(property.id) ?: throw AspectPropertyDoesNotExist(property.id)
+
+        if (property.version != vertex.version) {
+            throw AspectPropertyConcurrentModificationException(property.id,
+                    "found aspect version ${vertex.version}" +
+                            " instead of ${vertex.version}")
+        }
+
+        aspectDaoService.remove(vertex)
     }
 
     /**
@@ -162,8 +194,11 @@ class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
 class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+class AspectPropertyConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 
 class AspectNameCannotBeNull : AspectException()
+class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+class AspectInconsistentStateException(message: String) : AspectException(message)

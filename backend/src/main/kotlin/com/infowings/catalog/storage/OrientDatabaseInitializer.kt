@@ -105,6 +105,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init reference books")
         createVertexWithAttrName(session, REFERENCE_BOOK_VERTEX)
 
+        if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
+            val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
+            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        }
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
             vertexClass.createProperty("value", OType.STRING)

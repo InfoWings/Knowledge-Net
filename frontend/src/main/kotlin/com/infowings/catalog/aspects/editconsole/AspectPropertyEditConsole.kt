@@ -1,6 +1,11 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.editconsole.aspect.*
+import com.infowings.catalog.aspects.AspectBadRequestException
+import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
@@ -11,6 +16,7 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
@@ -18,6 +24,7 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
+import react.dom.span
 
 class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
@@ -45,6 +52,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
                 childAspectBaseType = nextProps.childAspect?.baseType
+                badRequestErrorMessage = null
             }
         }
     }
@@ -121,13 +129,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun handleSubmitAspectClick(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                cardinality = state.aspectPropertyCardinality
-                        ?: error("Can't save aspect property with cardinality == null"),
-                aspectId = state.aspectPropertyAspectId
-                        ?: error("Can't save aspect property with aspectId == null")
-        ))
+        trySubmitParentAspect()
     }
 
     private fun handleNextPropertyClick(e: Event) {
@@ -162,7 +164,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspectId = state.aspectPropertyAspectId
                                 ?: error("Can't save aspect property with aspectId == null")
                 ))
-            } else {
+            } else trySubmitParentAspect()
+
+        }
+    }
+
+    private fun trySubmitParentAspect() {
+        launch {
+            try {
                 props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
                         name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
                         cardinality = state.aspectPropertyCardinality
@@ -170,6 +179,10 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspectId = state.aspectPropertyAspectId
                                 ?: error("Can't save aspect property with aspectId == null")
                 ))
+            } catch (exception: AspectBadRequestException) {
+                setState {
+                    badRequestErrorMessage = exception.message
+                }
             }
         }
     }
@@ -217,7 +230,10 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
             div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
                 aspectPropertyAspect {
                     val boundAspectId = state.aspectPropertyAspectId
+                    val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
                     attrs {
+                        parentAspectId = props.parentAspect.id
+                        this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                     boundAspectId,
@@ -266,6 +282,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     }
                 }
             }
+            val badRequestErrorMessage = state.badRequestErrorMessage
+            if (badRequestErrorMessage != null) {
+                div(classes = "aspect-edit-console--error-message-container") {
+                    span(classes = "aspect-edit-console--error-message") {
+                        +badRequestErrorMessage
+                    }
+                }
+            }
         }
     }
 
@@ -275,7 +299,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspect: AspectData?
         var onCancel: () -> Unit
         var onSwitchToNextProperty: (AspectPropertyData) -> Unit
-        var onSaveParentAspect: (AspectPropertyData) -> Unit
+        var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
     }
 
     interface State : RState {
@@ -287,6 +311,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspectDomain: String?
         var childAspectBaseType: String?
         var childAspectSubject: SubjectData?
+        var badRequestErrorMessage: String?
     }
 }
 

@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
+
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -48,7 +49,7 @@ class AspectServiceSavingTest {
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "newAspect", null, null, null, emptyList())
         aspectService.save(ad)
@@ -62,7 +63,7 @@ class AspectServiceSavingTest {
         assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testFailAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, OpenDomain(Boolean).toString(), BaseType.Boolean.name, emptyList())
         aspectService.save(ad)
@@ -113,7 +114,7 @@ class AspectServiceSavingTest {
                 Is.`is`(2))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = AspectInconsistentStateException::class)
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
         aspectService.save(ad)
@@ -207,6 +208,7 @@ class AspectServiceSavingTest {
                 Is.`is`(aspect)
         )
     }
+
 
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {

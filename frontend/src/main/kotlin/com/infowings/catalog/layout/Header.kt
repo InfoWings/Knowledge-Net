@@ -26,7 +26,7 @@ class Header : RComponent<HeaderProps, RState>() {
                             +"Aspects"
                         }
                     }
-                    li(classes = if (props.location == "/measures") "active" else "") {
+                    li(classes = if (props.location == "/units") "active" else "") {
                         reactRouter.Link {
                             attrs {
                                 to = "/units"
@@ -40,6 +40,14 @@ class Header : RComponent<HeaderProps, RState>() {
                                 to = "/subjects"
                             }
                             +"Subject"
+                        }
+                    }
+                    li(classes = if (props.location == "/reference") "active" else "") {
+                        reactRouter.Link {
+                            attrs {
+                                to = "/reference"
+                            }
+                            +"Reference books"
                         }
                     }
                 }

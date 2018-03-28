@@ -5,6 +5,7 @@ import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
@@ -102,6 +103,10 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
     fun createNewVertex(className: String): OVertex = session(database = this) {
         return@session it.newVertex(className)
+    }
+
+    fun delete(v: OVertex) = session(database = this) {
+        return@session it.delete(v.identity)
     }
 }
 
