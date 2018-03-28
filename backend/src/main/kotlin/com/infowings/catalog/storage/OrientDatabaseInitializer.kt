@@ -2,6 +2,7 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.aspect.HISTORY_EVENT_CLASS
 import com.infowings.catalog.data.history.HISTORY_CLASS
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -43,6 +44,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
         session.getClass(HISTORY_CLASS) ?: session.createVertexClass(HISTORY_CLASS)
+        session.getClass(HISTORY_EVENT_CLASS) ?: session.createVertexClass(HISTORY_EVENT_CLASS)
         return@session this
     }
 
