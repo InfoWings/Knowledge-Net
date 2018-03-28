@@ -134,7 +134,7 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad)
 
-        val ad2 = AspectData("", "Aspect", Metre.name, null, Decimal.name, emptyList(), 1)
+        val ad2 = AspectData("", "Aspect", Metre.name, null, Decimal.name, emptyList(), false, 1)
         aspectService.save(ad2)
     }
 
