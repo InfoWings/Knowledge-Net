@@ -41,9 +41,11 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            val oldData = aspectVertex.toAspectData()
+            logger.info("name: ${aspectVertex.name}, ${aspectVertex.id}")
 
             val isCreate = aspectVertex.identity.isNew
+
+            val oldData = if (!isCreate) aspectVertex.toAspectData() else null
 
 
             /* При обновлении важно записать историю до обновления
@@ -74,7 +76,7 @@ class AspectService(
             if (isCreate) {
                 historyService.storeEvent(aspectVertex.toCreateFact(user))
             } else {
-                historyService.storeEvent(aspectVertex.toUpdateFact(user, oldData))
+                historyService.storeEvent(aspectVertex.toUpdateFact(user, oldData!!))
             }
 
             return@transaction result
