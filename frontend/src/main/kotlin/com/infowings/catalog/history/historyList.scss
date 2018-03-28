@@ -63,3 +63,28 @@
 .history-item--label-guid {
   cursor: pointer;
 }
+
+.aspect-popup-container > .popup {
+  min-height: 30rem;
+  width: 50rem;
+  text-align: center;
+  font-size: large;
+}
+
+.aspect-tree-view--root {
+  margin-left: 2rem;
+  margin-top: 2rem;
+}
+
+.diff-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.diff-red {
+  color: #8b0000;
+}
+
+.diff-green {
+  color: #008000;
+}

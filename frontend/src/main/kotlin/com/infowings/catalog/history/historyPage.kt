@@ -1,6 +1,6 @@
 package com.infowings.catalog.history
 
-import com.infowings.catalog.common.history.HistoryData
+import com.infowings.catalog.common.HistoryData
 import com.infowings.catalog.layout.header
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinext.js.invoke

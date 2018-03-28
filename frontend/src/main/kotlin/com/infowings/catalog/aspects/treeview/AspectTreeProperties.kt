@@ -15,12 +15,9 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
                             key = property.id
                             parentAspect = props.parentAspect
                             aspectProperty = property
-                            aspect = if (property.aspectId == "") null
-                            else props.aspectContext[property.aspectId]
-                                    ?: throw Error(
-                                        "Aspect Property $property has aspectId that " +
-                                                "was neigher in the fetched list nor created"
-                                    )
+                            aspect =
+                                    if (property.aspectId == "") null
+                                    else props.aspectContext[property.aspectId]
                             onAspectPropertyClick = props.onAspectPropertyClick
                             onLabelClick = { props.onAspectPropertyClick(props.parentAspect, index) }
                             aspectContext = props.aspectContext
@@ -47,4 +44,5 @@ class AspectTreeProperties : RComponent<AspectTreeProperties.Props, RState>() {
 
 }
 
-fun RBuilder.aspectTreeProperties(block: RHandler<AspectTreeProperties.Props>) = child(AspectTreeProperties::class, block)
+fun RBuilder.aspectTreeProperties(block: RHandler<AspectTreeProperties.Props>) =
+    child(AspectTreeProperties::class, block)
