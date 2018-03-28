@@ -41,6 +41,8 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
+            val oldData = aspectVertex.toAspectData()
+
             val isCreate = aspectVertex.identity.isNew
 
 
@@ -59,9 +61,10 @@ class AspectService(
              Иначе получим несоответствие дельты реальному изменению.
 
              */
-            if (!isCreate) {
-                historyService.storeEvent(aspectVertex.toUpdateFact(user, aspectVertex.toAspectData()))
-            }
+
+//            if (!isCreate) {
+//                historyService.storeEvent(aspectVertex.toUpdateFact(user, aspectVertex.toAspectData()))
+ //           }
 
             aspectData.properties.filter { it.deleted }.forEach { remove(it) }
             aspectVertex.saveAspectProperties(aspectData.properties)
@@ -70,6 +73,8 @@ class AspectService(
 
             if (isCreate) {
                 historyService.storeEvent(aspectVertex.toCreateFact(user))
+            } else {
+                historyService.storeEvent(aspectVertex.toUpdateFact(user, oldData))
             }
 
             return@transaction result
