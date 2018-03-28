@@ -32,9 +32,25 @@ class HistoryService(private val db: OrientDatabase,
             elementVertex
         }
 
+        fun linksVertices(linksPayload: Map<String, List<String>>,
+                          vertexProducer: () -> HistoryLinksVertex) = linksPayload.flatMap {
+            val key = it.key
+            it.value.map {
+                val elementVertex = vertexProducer()
+                elementVertex.eventId = historyEventVertex.identity
+                elementVertex.key = key
+                elementVertex.peerId = it
+
+                elementVertex
+            }
+        }
+
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, {historyDaoService.newAddLinkVertex()})
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, {historyDaoService.newDropLinkVertex()})
+
         session(database = db) { session ->
             historyEventVertex.save<OVertex>()
-            for (e in elementVertices) {
+            for (e in elementVertices + addLinkVertices + dropLinkVertices) {
                 e.save<OVertex>()
             }
         }

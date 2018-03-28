@@ -13,14 +13,19 @@ class HistoryDaoService(private val db: OrientDatabase) {
 
     fun newHistoryElementVertex() = db.createNewVertex(HISTORY_ELEMENT_CLASS).toHistoryElementVertex()
 
+    fun newAddLinkVertex() = db.createNewVertex(HISTORY_ADD_LINK_CLASS).toHistoryLinksVertex()
 
-            /*
-    fun saveEvent(event: HistoryEvent) =
-            db.command(historyInsert,
-                    event.keys.entityClass, event.user, event.keys.entityId,
-                    event.keys.entityName, event.payload.event, event.payload.serialize(),
-                    Timestamp(event.timestamp), event.version) {
-                it
-            }
-            */
+    fun newDropLinkVertex() = db.createNewVertex(HISTORY_DROP_LINK_CLASS).toHistoryLinksVertex()
+
+
+
+    /*
+fun saveEvent(event: HistoryEvent) =
+    db.command(historyInsert,
+            event.keys.entityClass, event.user, event.keys.entityId,
+            event.keys.entityName, event.payload.event, event.payload.serialize(),
+            Timestamp(event.timestamp), event.version) {
+        it
+    }
+    */
 }
