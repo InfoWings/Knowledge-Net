@@ -43,13 +43,6 @@ class AspectService(
 
             val isCreate = aspectVertex.identity.isNew
 
-            // в случае обновления будем сравнивать с тем, что есть сейчас
-            // (но сравнивать будем уже после сохранения)
-            val historyPayload = if (isCreate) {
-                aspectData.toCreatePayload()
-            } else {
-                aspectData.toUpdatePayload(aspectVertex.toAspectData())
-            }
 
             /* При обновлении важно записать историю до обновления
 
@@ -67,7 +60,7 @@ class AspectService(
 
              */
             if (!isCreate) {
-                historyService.storeEvent(aspectVertex.toHistoryEvent(user, historyPayload))
+                historyService.storeEvent(aspectVertex.toUpdateFact(user, aspectVertex.toAspectData()))
             }
 
             aspectData.properties.filter { it.deleted }.forEach { remove(it) }
@@ -76,7 +69,7 @@ class AspectService(
             val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
 
             if (isCreate) {
-                historyService.storeEvent(result.toHistoryEvent(user, historyPayload))
+                historyService.storeEvent(aspectVertex.toCreateFact(user))
             }
 
             return@transaction result
@@ -99,8 +92,7 @@ class AspectService(
 
             when {
                 aspectVertex.isLinkedBy() && force -> {
-                    val payload = aspectVertex.toAspectData().toDeletePayload()
-                    historyService.storeEvent(aspectVertex.toHistoryEvent(user, payload))
+                    historyService.storeEvent(aspectVertex.toSoftDeleteFact(user))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 aspectVertex.isLinkedBy() -> {
@@ -108,9 +100,7 @@ class AspectService(
                 }
 
                 else -> {
-                    val payload = aspectVertex.toAspectData().toDeletePayload()
-                    historyService.storeEvent(aspectVertex.toHistoryEvent(user, payload))
-
+                    historyService.storeEvent(aspectVertex.toDeleteFact(user))
                     aspectDaoService.remove(aspectVertex)
                 }
             }

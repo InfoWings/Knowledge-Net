@@ -11,25 +11,33 @@ class HistoryService(private val db: OrientDatabase,
                      private val historyDaoService: HistoryDaoService) {
     private val logger = loggerFor<HistoryService>()
 
-    fun storeEvent(event: HistoryEvent) {
-        logger.info("event: $event")
+    fun storeEvent(fact: HistoryFact) {
+        logger.info("fact: $fact")
         val historyEventVertex = historyDaoService.newHistoryEventVertex()
 
-        historyEventVertex.entityClass = event.keys.entityClass
-        historyEventVertex.entityId = event.keys.entityId
-        historyEventVertex.entityVersion = event.version
-        historyEventVertex.timestamp = Timestamp(event.timestamp)
-        historyEventVertex.user = event.user
+        historyEventVertex.entityClass = fact.event.entityClass
+        historyEventVertex.entityId = fact.event.entityId
+        historyEventVertex.entityVersion = fact.event.version
+        historyEventVertex.timestamp = Timestamp(fact.event.timestamp)
+        historyEventVertex.user = fact.event.user
 
         logger.info("going to save history event ${historyEventVertex.propertyNames}")
 
+        val elementVertices = fact.payload.data.map {
+            val elementVertex = historyDaoService.newHistoryElementVertex()
+            elementVertex.eventId = historyEventVertex.identity
+            elementVertex.key = it.key
+            elementVertex.stringValue = it.value
+
+            elementVertex
+        }
+
         session(database = db) { session ->
             historyEventVertex.save<OVertex>()
-
-            return@session
+            for (e in elementVertices) {
+                e.save<OVertex>()
+            }
         }
         logger.info("save")
-
-        historyDaoService.saveEvent(event)
     }
 }

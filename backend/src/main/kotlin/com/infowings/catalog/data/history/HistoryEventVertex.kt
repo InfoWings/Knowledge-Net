@@ -1,4 +1,4 @@
-package com.infowings.catalog.data.aspect
+package com.infowings.catalog.data.history
 
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
@@ -47,5 +47,11 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         get() = vertex["entityVersion"]
         set(value) {
             vertex["entityVersion"] = value
+        }
+
+    var eventKind: String
+        get() = vertex["eventKind"]
+        set(value) {
+            vertex["eventKind"] = value
         }
 }

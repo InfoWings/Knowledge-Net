@@ -1,9 +1,5 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.data.aspect.HISTORY_EVENT_CLASS
-import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.aspect.toHistoryEventVertex
-import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import java.sql.Timestamp
 
@@ -15,6 +11,10 @@ const val historyInsert = "INSERT into ${HISTORY_CLASS} (class, user, entityRID,
 class HistoryDaoService(private val db: OrientDatabase) {
     fun newHistoryEventVertex() = db.createNewVertex(HISTORY_EVENT_CLASS).toHistoryEventVertex()
 
+    fun newHistoryElementVertex() = db.createNewVertex(HISTORY_ELEMENT_CLASS).toHistoryElementVertex()
+
+
+            /*
     fun saveEvent(event: HistoryEvent) =
             db.command(historyInsert,
                     event.keys.entityClass, event.user, event.keys.entityId,
@@ -22,4 +22,5 @@ class HistoryDaoService(private val db: OrientDatabase) {
                     Timestamp(event.timestamp), event.version) {
                 it
             }
+            */
 }

@@ -2,9 +2,11 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
-import com.infowings.catalog.data.aspect.HISTORY_EVENT_CLASS
+import com.infowings.catalog.data.history.HISTORY_EVENT_CLASS
 import com.infowings.catalog.data.history.HISTORY_CLASS
+import com.infowings.catalog.data.history.HISTORY_ELEMENT_CLASS
 import com.infowings.catalog.loggerFor
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.OElement
@@ -21,6 +23,14 @@ private val logger = loggerFor<OrientDatabaseInitializer>()
 
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
 class OrientDatabaseInitializer(private val database: OrientDatabase) {
+
+    private fun initVertex(session: ODatabaseDocument, name: String) {
+        session.getClass(name) ?: session.createVertexClass(name)
+    }
+
+    private fun initEdge(session: ODatabaseDocument, name: String) {
+        session.getClass(name) ?: session.createEdgeClass(name)
+    }
 
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
@@ -44,7 +54,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
         session.getClass(HISTORY_CLASS) ?: session.createVertexClass(HISTORY_CLASS)
-        session.getClass(HISTORY_EVENT_CLASS) ?: session.createVertexClass(HISTORY_EVENT_CLASS)
+        initVertex(session, HISTORY_EVENT_CLASS)
+        initVertex(session, HISTORY_ELEMENT_CLASS)
         return@session this
     }
 
