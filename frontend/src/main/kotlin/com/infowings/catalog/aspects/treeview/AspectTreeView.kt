@@ -21,34 +21,15 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
             props.aspects.map { aspect ->
-                treeNode {
+                child(AspectNodeExpandedStateWrapper::class) {
                     attrs {
-                        key = aspect.id ?: ""
-                        className = "aspect-tree-view--aspect-node"
-                        treeNodeContent = buildElement {
-                            aspectNode {
-                                attrs {
-                                    this.aspect = aspect
-                                    isAspectSelected = aspect.id == props.selectedAspectId
-                                    onClick = props.onAspectClick
-                                    onAddToListIconClick = props.onAddAspectProperty
-                                }
-                            }
-                        }!!
-                    }
-
-                    if (aspect.properties.isNotEmpty()) {
-                        aspectProperties {
-                            attrs {
-                                this.aspect = aspect
-                                selectedAspectId = props.selectedAspectId
-                                selectedPropertyIndex = props.selectedPropertyIndex
-                                onSelectAspect = props.onAspectClick
-                                onAspectPropertyClick = props.onAspectPropertyClick
-                                aspectContext = props.aspectContext
-                                onAddAspectProperty = props.onAddAspectProperty
-                            }
-                        }
+                        this.aspect = aspect
+                        onAspectClick = props.onAspectClick
+                        onAspectPropertyClick = props.onAspectPropertyClick
+                        aspectContext = props.aspectContext
+                        selectedAspectId = props.selectedAspectId
+                        selectedPropertyIndex = props.selectedPropertyIndex
+                        onAddAspectProperty = props.onAddAspectProperty
                     }
                 }
             }
@@ -57,6 +38,85 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     interface Props : RProps {
         var aspects: List<AspectData>
+        var onAspectClick: (aspectId: String?) -> Unit
+        var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
+        var aspectContext: (aspectId: String) -> AspectData?
+        var selectedAspectId: String?
+        var selectedPropertyIndex: Int?
+        var onAddAspectProperty: (propertyIndex: Int) -> Unit
+    }
+}
+
+/**
+ * Wrapper component that incapsulates and manages state of expanded aspect tree.
+ */
+class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper.Props, AspectNodeExpandedStateWrapper.State>() {
+
+    override fun State.init() {
+        expandedSubtree = false
+    }
+
+    override fun componentWillReceiveProps(nextProps: Props) {
+        setState {
+            expandedSubtree = false
+        }
+    }
+
+    private fun handleExpandAllStructure() {
+        setState {
+            expandedSubtree = true
+        }
+    }
+
+    private fun handleExpandStateChanged() {
+        setState {
+            expandedSubtree = false
+        }
+    }
+
+    override fun RBuilder.render() {
+        treeNode {
+            attrs {
+                key = props.aspect.id ?: ""
+                className = "aspect-tree-view--aspect-node"
+                onExpanded = { handleExpandStateChanged() }
+                treeNodeContent = buildElement {
+                    aspectNode {
+                        attrs {
+                            this.aspect = props.aspect
+                            isAspectSelected = props.aspect.id == props.selectedAspectId
+                            onClick = props.onAspectClick
+                            onAddToListIconClick = props.onAddAspectProperty
+                            onExpandAllStructure = ::handleExpandAllStructure
+                        }
+                    }
+                }!!
+            }
+
+            if (props.aspect.properties.isNotEmpty()) {
+                aspectProperties {
+                    attrs {
+                        this.aspect = props.aspect
+                        selectedAspectId = props.selectedAspectId
+                        selectedPropertyIndex = props.selectedPropertyIndex
+                        onSelectAspect = props.onAspectClick
+                        onAspectPropertyClick = props.onAspectPropertyClick
+                        aspectContext = props.aspectContext
+                        onAddAspectProperty = props.onAddAspectProperty
+                        onSubtreeExpandStateChanged = ::handleExpandStateChanged
+                        subtreeExpanded = state.expandedSubtree
+                    }
+                }
+            }
+        }
+    }
+
+    interface State : RState {
+        var expandedSubtree: Boolean
+    }
+
+    interface Props : RProps {
+        var aspect: AspectData
         var onAspectClick: (aspectId: String?) -> Unit
         var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
         var aspectContext: (aspectId: String) -> AspectData?

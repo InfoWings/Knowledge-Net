@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.chevronDownIcon
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -32,11 +33,19 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
                 onClick = props.onClick
             }
         }
+        if (props.aspect.properties.isNotEmpty()) {
+            chevronDownIcon(classes = "aspect-tree-view--expand-all-icon") {
+                attrs.onClickFunction = { e ->
+                    e.preventDefault()
+                    e.stopPropagation()
+                    props.setExpanded(true)
+                    props.onExpandAllStructure()
+                }
+            }
+        }
         if (props.aspect.name != "") {
             addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
-                attrs {
-                    onClickFunction = ::handleAddToListClick
-                }
+                attrs.onClickFunction = ::handleAddToListClick
             }
         }
     }
@@ -46,6 +55,7 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
         var isAspectSelected: Boolean
         var onClick: (String?) -> Unit
         var onAddToListIconClick: (propertyIndex: Int) -> Unit
+        var onExpandAllStructure: () -> Unit
     }
 
     interface CombinedProps : Props, TreeNodeContentProps

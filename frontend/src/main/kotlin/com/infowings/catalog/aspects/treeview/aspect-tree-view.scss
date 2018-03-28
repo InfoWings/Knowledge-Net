@@ -17,6 +17,13 @@
     }
   }
 
+  &--expand-all-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .2rem;
+  }
+
   &--label {
     display: inline-block;
     cursor: pointer;

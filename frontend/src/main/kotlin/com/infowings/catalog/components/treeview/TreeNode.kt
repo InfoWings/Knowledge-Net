@@ -2,6 +2,7 @@ package com.infowings.catalog.components.treeview
 
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
+import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.html.js.onClickFunction
@@ -33,7 +34,44 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
     }
 
     override fun State.init(props: Props) {
-        expanded = false
+        expanded = props.expanded ?: false
+    }
+
+    /**
+     * We need to only expand if [Props.expanded] changed to true (to expand subtree on demand), but not otherwise
+     */
+    override fun componentWillReceiveProps(nextProps: Props) {
+        if (props.expanded == false && nextProps.expanded == true) {
+            setState {
+                expanded = true
+            }
+        }
+    }
+
+    private fun expand() {
+        val onExpanded = props.onExpanded
+        if (onExpanded != null) {
+            setStateWithCallback({ onExpanded(true) }) {
+                expanded = true
+            }
+        } else {
+            setState {
+                expanded = true
+            }
+        }
+    }
+
+    private fun hide() {
+        val onExpanded = props.onExpanded
+        if (onExpanded != null) {
+            setStateWithCallback({ onExpanded(false) }) {
+                expanded = false
+            }
+        } else {
+            setState {
+                expanded = false
+            }
+        }
     }
 
     private fun setExpanded(expanded: Boolean) {
@@ -49,11 +87,11 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
             if (React.Children.count(props.children) > 0) {
                 if (state.expanded) {
                     squareMinusIcon(classes = "tree-view--expander-icon") {
-                        attrs.onClickFunction = { setExpanded(false) }
+                        attrs.onClickFunction = { hide() }
                     }
                 } else {
                     squarePlusIcon(classes = "tree-view--expander-icon") {
-                        attrs.onClickFunction = { setExpanded(true) }
+                        attrs.onClickFunction = { expand() }
                     }
                 }
             } else {
@@ -73,6 +111,12 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
 
     interface Props : RProps {
         var className: String?
+        var expanded: Boolean?
+        /**
+         * Note: [Props.onExpanded] callback is attached only on manual click on icon. If expanded state changes by
+         * callback of inner node, this callback is not called.
+         */
+        var onExpanded: ((Boolean) -> Unit)?
         var treeNodeContent: ReactElement
     }
 
