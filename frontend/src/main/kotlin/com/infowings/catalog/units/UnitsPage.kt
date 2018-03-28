@@ -38,26 +38,19 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private var timer: Int = 0
 
     private fun handleFilterTextChange(filterText: String) {
-        val before = state.filterText.length
-        val after = filterText.length
-        val skipUpdate = (before < 3 && after < 3)
         setState {
             this.filterText = filterText
         }
-        if (!skipUpdate) {
-            window.clearTimeout(timer)
-            timer = window.setTimeout({ updateDataState(filterText) }, 200)
-        }
+        window.clearTimeout(timer)
+        timer = window.setTimeout({ updateDataState(filterText) }, 200)
     }
 
     private var job: Job? = null
 
-    private fun updateDataState(filterText: String) {
-        if (filterText.length < 3) {
-            setState {
-                this.data = allData
-            }
-        } else {
+    private fun updateDataState(filterText: String) = when {
+        filterText.isNullOrBlank() -> setState { this.data = allData }
+        filterText.length < 3 -> setState { this.data = allData.filter { it.symbol == filterText } }
+        else -> {
             // if previous request not completed then cancel it
             job?.cancel()
             job = launch {
