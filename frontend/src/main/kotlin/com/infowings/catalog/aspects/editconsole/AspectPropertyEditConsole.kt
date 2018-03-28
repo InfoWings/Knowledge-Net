@@ -178,7 +178,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                     boundAspectId,
-                                    state.childAspectName!!,
+                                    state.childAspectName ?: error("Aspect.name should not be null when submitting"),
                                     state.childAspectMeasure,
                                     state.childAspectDomain,
                                     state.childAspectBaseType
