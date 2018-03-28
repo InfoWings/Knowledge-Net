@@ -22,6 +22,14 @@ sealed class HistoryPayload(val event: EventKind) {
     data class Update(val data: Map<String, Delta>) : HistoryPayload(EventKind.UPDATE) {
         override fun serialize(): String = ObjectMapper().writeValueAsString(data)
     }
+
+    data class Delete(val data: Map<String, String>) : HistoryPayload(EventKind.DELETE) {
+        override fun serialize(): String = ObjectMapper().writeValueAsString(data)
+    }
+
+    data class SoftDelete(val data: Map<String, String>) : HistoryPayload(EventKind.SOFT_DELETE) {
+        override fun serialize(): String = ObjectMapper().writeValueAsString(data)
+    }
 }
 
 // свойства сущности, хранащиеся в каждой записи лога
@@ -38,15 +46,6 @@ data class HistoryEvent(
     val keys: HistoryKeys,
     val payload: HistoryPayload
 )
-
-fun AspectData.toCreatePayload(): HistoryPayload.Create =
-        HistoryPayload.Create(
-                listOfNotNull(
-                        "name" to name,
-                        if (measure != null) ("measure" to measure.toString()) else null,
-                        if (baseType != null) ("baseType" to baseType?.toString()!!) else null
-                ).toMap()
-        )
 
 /*
   name идет и в payload, и в entity
@@ -70,6 +69,13 @@ fun <T>toDelta(before: T, after: T, asString: (T) -> String): Delta? {
     }
 }
 
+fun <T>toPlainPayload(entity: T, asString: List<Pair<String, (T) -> String>>): Map<String, String> {
+    return asString.map {
+        val value = it.second(entity)
+        if (value != null) it.first to value!! else null
+    }.filterNotNull().toMap()
+}
+
 fun <T>toUpdatePayload(before: T, after: T, asString: List<Pair<String, (T) -> String>>): HistoryPayload.Update {
     val deltas = asString.map {
         val d = toDelta(before, after, it.second)
@@ -81,13 +87,31 @@ fun <T>toUpdatePayload(before: T, after: T, asString: List<Pair<String, (T) -> S
 
 private fun <T>asStringOrEmpty(v: T?) = v?.toString().orEmpty()
 
+private val aspectExtractors = listOf<Pair<String, (AspectData) -> String>>(
+        Pair("name", {v -> v.name }),
+        Pair("measure", {v -> asStringOrEmpty(v.measure)}),
+        Pair("baseType", {v -> asStringOrEmpty(v.baseType)})
+)
+
+fun AspectData.toCreatePayload(): HistoryPayload.Create =
+        HistoryPayload.Create(
+                toPlainPayload(this, aspectExtractors)
+        )
+
+
 fun AspectData.toUpdatePayload(previous: AspectData): HistoryPayload.Update {
-    return toUpdatePayload(previous, this, listOf(
-            Pair("name", {v -> v.name }),
-            Pair("measure", {v -> asStringOrEmpty(v.measure)}),
-            Pair("baseType", {v -> asStringOrEmpty(v.baseType)})
-    ))
+    return toUpdatePayload(previous, this, aspectExtractors)
 }
+
+fun AspectData.toDeletePayload(): HistoryPayload.Delete =
+        HistoryPayload.Delete(
+                toPlainPayload(this, aspectExtractors)
+        )
+
+fun AspectData.toSoftDeletePayload(): HistoryPayload.SoftDelete =
+        HistoryPayload.SoftDelete(
+                toPlainPayload(this, aspectExtractors)
+        )
 
 private fun AspectVertex.toHistoryKeys(): HistoryKeys =
         HistoryKeys(this.identity, ASPECT_CLASS, name)

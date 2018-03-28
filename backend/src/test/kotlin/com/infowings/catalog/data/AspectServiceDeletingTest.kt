@@ -77,9 +77,9 @@ class AspectServiceDeletingTest {
         val aspectData = initialAspectData("SOME_ASPECT")
         val aspect = aspectService.save(aspectData)
 
-        aspectService.remove(aspect)
+        aspectService.remove(aspect, "")
         thrown.expect(AspectDoesNotExist::class.java)
-        aspectService.remove(aspect)
+        aspectService.remove(aspect, "")
     }
 
     @Test
@@ -93,7 +93,7 @@ class AspectServiceDeletingTest {
         aspectService.save(aspectData2)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect.id))
+        aspectService.remove(aspectService.findById(aspect.id), "")
 
     }
 
@@ -103,6 +103,6 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5))
+        aspectService.remove(aspect.copy(version = 5), "")
     }
 }

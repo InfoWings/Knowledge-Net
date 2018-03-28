@@ -89,7 +89,7 @@ class AspectService(private val db: OrientDatabase,
         return result
     }
 
-    fun remove(aspect: Aspect, force: Boolean = false) = transaction(db) {
+    fun remove(aspect: Aspect, user: String, force: Boolean = false) = transaction(db) {
         val vertex = aspectDaoService.getVertex(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
 
         val aspectVertex = vertex.toAspectVertex()
@@ -99,12 +99,17 @@ class AspectService(private val db: OrientDatabase,
         when {
             aspectVertex.isLinkedBy() && force -> {
                 // сюда - удаление связанного
+                // val payload = aspectVertex.toAspectData().toDeletePayload()
+                // historyService.storeEvent(aspectVertex.toHistoryEvent(user, payload))
             }
             aspectVertex.isLinkedBy() -> {
                 throw AspectHasLinkedEntitiesException(aspect.id)
             }
-            else ->
+            else -> {
+                val payload = aspectVertex.toAspectData().toDeletePayload()
+                historyService.storeEvent(aspectVertex.toHistoryEvent(user, payload))
                 aspectDaoService.remove(vertex)
+            }
         }
     }
 
