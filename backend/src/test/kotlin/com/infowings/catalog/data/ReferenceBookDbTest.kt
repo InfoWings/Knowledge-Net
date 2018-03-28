@@ -7,9 +7,6 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.core.Is
-import org.junit.Assert
-import org.junit.Assert.assertTrue
-import org.hamcrest.core.Is
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.time.LocalDateTime
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
@@ -35,7 +31,7 @@ class ReferenceBookDbTest {
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect ${LocalDateTime.now()}", Metre.name, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
     }
 
@@ -56,7 +52,7 @@ class ReferenceBookDbTest {
     @Test
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
-        val anotherBook = referenceBookService.createReferenceBook("Example", anotherAspect.id)
+        val anotherBook = referenceBookService.createReferenceBook("ExampleTst", anotherAspect.id)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 

@@ -23,7 +23,7 @@ class ReferenceBookService(val database: OrientDatabase) {
      */
     fun getAllReferenceBooks(): List<ReferenceBook> = transaction(database) {
         return@transaction database.query(selectFromReferenceBook) { rs ->
-            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toList()
+            rs.mapNotNull { it.toVertexOrNull()?.toReferenceBook() }.toList()
         }
     }
 
@@ -154,7 +154,7 @@ class ReferenceBookService(val database: OrientDatabase) {
     }
 
     private fun getReferenceBookVertexByAspectId(aspectId: String): OVertex? =
-        database.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        database.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNull() }.firstOrNull() }
 
     private fun OVertex.toReferenceBook(): ReferenceBook {
         val aspectId = aspect?.id ?: throw RefBookAspectNotExist(aspectId)
