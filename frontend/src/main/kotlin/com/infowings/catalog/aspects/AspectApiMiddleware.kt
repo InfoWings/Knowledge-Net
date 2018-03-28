@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
+class AspectBadRequestException(exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
@@ -45,7 +45,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             newAspect = createAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
@@ -62,7 +62,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             updatedAspect = updateAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
