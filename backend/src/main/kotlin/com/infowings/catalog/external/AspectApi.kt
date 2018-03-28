@@ -41,14 +41,14 @@ class AspectApi(val aspectService: AspectService) {
         return AspectsList(aspectService.getAspects().toAspectData())
     }
 
-    @GetMapping("remove")
-    fun removeAspect(@RequestBody aspect: Aspect) {
+    @PostMapping("remove")
+    fun removeAspect(@RequestBody aspect: AspectData) {
         logger.debug("Remove aspect request: ${aspect.id}")
         aspectService.remove(aspect)
     }
 
-    @GetMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody aspect: Aspect) {
+    @PostMapping("forceRemove")
+    fun forceRemoveAspect(@RequestBody aspect: AspectData) {
         logger.debug("Forced remove aspect request: ${aspect.id}")
         aspectService.remove(aspect, true)
     }
@@ -109,7 +109,7 @@ class AspectApi(val aspectService: AspectService) {
             is AspectHasLinkedEntitiesException -> ResponseEntity.badRequest()
                     .body(JSON.stringify(
                             AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                                AspectBadRequestCode.NEED_CONFIRMATION,
                                     "Attempt to remove aspect that has linked entities pointed to it"
                             )
                     ))

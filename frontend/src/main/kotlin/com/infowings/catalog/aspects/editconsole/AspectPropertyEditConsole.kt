@@ -14,6 +14,7 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -24,14 +25,26 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+class AspectPropertyEditConsole(props: Props) :
+    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
+
+    private val currentState
+        get() = props.parentAspect.properties[props.aspectPropertyIndex].copy(
+            name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+            cardinality = state.aspectPropertyCardinality
+                    ?: error("Can't save aspect property with cardinality == null"),
+            aspectId = state.aspectPropertyAspectId
+                    ?: error("Can't save aspect property with aspectId == null"),
+            deleted = state.aspectPropertyDeleted
+        )
 
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
         aspectPropertyCardinality = props.parentAspect.properties[props.aspectPropertyIndex].cardinality
         aspectPropertyAspectId = props.parentAspect.properties[props.aspectPropertyIndex].aspectId
+        aspectPropertyDeleted = props.parentAspect.properties[props.aspectPropertyIndex].deleted
         childAspectName = props.childAspect?.name
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
@@ -40,11 +53,13 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
 
     override fun componentWillReceiveProps(nextProps: Props) {
         if (props.parentAspect.id != nextProps.parentAspect.id
-                || props.aspectPropertyIndex != nextProps.aspectPropertyIndex) {
+            || props.aspectPropertyIndex != nextProps.aspectPropertyIndex
+        ) {
             setState {
                 aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
                 aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
                 aspectPropertyAspectId = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].aspectId
+                aspectPropertyDeleted = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].deleted
                 childAspectName = nextProps.childAspect?.name
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
@@ -126,19 +141,19 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun handleNextPropertyClick(e: Event) {
         e.stopPropagation()
         e.preventDefault()
-        props.onSwitchToNextProperty(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                cardinality = state.aspectPropertyCardinality
-                        ?: error("Can't save aspect property with cardinality == null"),
-                aspectId = state.aspectPropertyAspectId
-                        ?: error("Can't save aspect property with aspectId == null")
-        ))
+        props.onSwitchToNextProperty(currentState)
     }
 
     private fun handleCancelClick(e: Event) {
         e.stopPropagation()
         e.preventDefault()
         props.onCancel()
+    }
+
+    private fun handleDeleteClick(e: Event) {
+        e.stopPropagation()
+        e.preventDefault()
+        props.onDelete()
     }
 
     private fun handleKeyDown(e: Event) {
@@ -148,28 +163,17 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         when (keyCode) {
             27 -> props.onCancel()
             13 -> if (ctrlPressed) {
-                props.onSwitchToNextProperty(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                        name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                        cardinality = state.aspectPropertyCardinality
-                                ?: error("Can't save aspect property with cardinality == null"),
-                        aspectId = state.aspectPropertyAspectId
-                                ?: error("Can't save aspect property with aspectId == null")
-                ))
-            } else trySubmitParentAspect()
-
+                props.onSwitchToNextProperty(currentState)
+            } else {
+                trySubmitParentAspect()
+            }
         }
     }
 
     private fun trySubmitParentAspect() {
         launch {
             try {
-                props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                        name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                        cardinality = state.aspectPropertyCardinality
-                                ?: error("Can't save aspect property with cardinality == null"),
-                        aspectId = state.aspectPropertyAspectId
-                                ?: error("Can't save aspect property with aspectId == null")
-                ))
+                props.onSaveParentAspect(currentState)
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
@@ -214,7 +218,14 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         attrs {
                             onClickFunction = ::handleCancelClick
                         }
-                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__yellow") {}
+                    }
+
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleDeleteClick
+                        }
+                        ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }
@@ -227,11 +238,11 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                         this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
-                                    boundAspectId,
-                                    state.childAspectName!!,
-                                    state.childAspectMeasure,
-                                    state.childAspectDomain,
-                                    state.childAspectBaseType
+                                boundAspectId,
+                                state.childAspectName!!,
+                                state.childAspectMeasure,
+                                state.childAspectDomain,
+                                state.childAspectBaseType
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
@@ -283,6 +294,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
         var onCancel: () -> Unit
+        var onDelete: () -> Unit
         var onSwitchToNextProperty: (AspectPropertyData) -> Unit
         var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
     }
@@ -291,6 +303,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyName: String?
         var aspectPropertyCardinality: String?
         var aspectPropertyAspectId: String?
+        var aspectPropertyDeleted: Boolean
         var childAspectName: String?
         var childAspectMeasure: String?
         var childAspectDomain: String?
@@ -299,4 +312,5 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     }
 }
 
-fun RBuilder.aspectPropertyEditConsole(block: RHandler<AspectPropertyEditConsole.Props>) = child(AspectPropertyEditConsole::class, block)
+fun RBuilder.aspectPropertyEditConsole(block: RHandler<AspectPropertyEditConsole.Props>) =
+    child(AspectPropertyEditConsole::class, block)

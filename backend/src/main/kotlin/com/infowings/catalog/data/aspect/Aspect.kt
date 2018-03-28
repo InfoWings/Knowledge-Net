@@ -14,32 +14,42 @@ enum class AspectPropertyCardinality {
  * Аспект - https://iwings.atlassian.net/wiki/spaces/CHR/pages/219217938
  */
 data class Aspect(
-        val id: String,
-        val name: String,
-        val measure: Measure<*>?,
-        val domain: AspectDomain? = OpenDomain(measure?.baseType
+    val id: String,
+    val name: String,
+    val measure: Measure<*>?,
+    val domain: AspectDomain? = OpenDomain(measure?.baseType
                 ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified")),
-        val baseType: BaseType? = measure?.baseType
+    val baseType: BaseType? = measure?.baseType
                 ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
-        val properties: List<AspectProperty> = emptyList(),
-        val version: Int = 0
+    val properties: List<AspectProperty> = emptyList(),
+    val deleted: Boolean = false,
+    val version: Int = 0
 ) {
 
     operator fun get(property: String) = properties.filter { it.name == property }
 
     fun toAspectData(): AspectData =
-            AspectData(id, name, measure?.name, domain?.toString(), baseType?.name, properties.toAspectPropertyData(), version)
+        AspectData(
+            id,
+            name,
+            measure?.name,
+            domain?.toString(),
+            baseType?.name,
+            properties.toAspectPropertyData(),
+            deleted,
+            version
+        )
 }
 
 fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
 fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { it.toAspectPropertyData() }
 
 data class AspectProperty(
-        val id: String,
-        val name: String,
-        val aspect: Aspect,
-        val cardinality: AspectPropertyCardinality,
-        val version: Int
+    val id: String,
+    val name: String,
+    val aspect: Aspect,
+    val cardinality: AspectPropertyCardinality,
+    val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, false, version)
 }

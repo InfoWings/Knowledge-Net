@@ -5,6 +5,8 @@ import com.infowings.catalog.aspects.editconsole.aspectPropertyEditConsole
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
 import react.RBuilder
@@ -20,18 +22,15 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
-
     override fun State.init(props: AspectApiReceiverProps) {
-        selectedAspect = if (!props.loading)
-            AspectData(null, "", null, null, null)
-        else null
+        selectedAspect = if (!props.loading) emptyAspectData else null
         selectedAspectPropertyIndex = null
     }
 
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
         if (props.loading && !nextProps.loading) {
             setState {
-                selectedAspect = AspectData(null, "", null, null, null)
+                selectedAspect = emptyAspectData
                 selectedAspectPropertyIndex = null
             }
         }
@@ -46,83 +45,101 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     private fun handleCancelChanges() {
         setState {
-            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
+        }
+    }
+
+    private suspend fun handleDeleteAspect(force: Boolean) {
+
+        val aspectId = state.selectedAspect?.id
+
+        if (aspectId.isNullOrEmpty()) {
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+            }
+        } else {
+            props.onAspectDelete(props.aspectContext[aspectId] ?: error("Incorrect aspect state"), force)
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+            }
         }
     }
 
     private suspend fun handleSubmitAspectChanges(aspectData: AspectData) {
         if (aspectData.id == null) {
-            props.onAspectCreate(aspectData)
+            props.onAspectCreate(aspectData.normalize())
             setState {
-                selectedAspect = AspectData(null, "", null, null, null)
+                selectedAspect = emptyAspectData
             }
         } else {
             val existingAspect = state.selectedAspect
             if (existingAspect != aspectData) {
-                props.onAspectUpdate(aspectData)
+                props.onAspectUpdate(aspectData.normalize())
             }
             setState {
-                selectedAspect = AspectData(null, "", null, null, null)
+                selectedAspect = emptyAspectData
             }
         }
     }
 
     private fun handleSwitchToAspectProperties(aspect: AspectData) {
+
+        val tmpAspect = aspect.copy(
+            name = aspect.name,
+            measure = aspect.measure,
+            domain = aspect.domain,
+            baseType = aspect.baseType,
+            properties = aspect.properties
+        )
+
         setState {
-            if (aspect.properties.isEmpty()) {
-                selectedAspect = aspect.copy(
-                        name = aspect.name,
-                        measure = aspect.measure,
-                        domain = aspect.domain,
-                        baseType = aspect.baseType,
-                        properties = aspect.properties + AspectPropertyData("", "", "", "")
-                )
-            } else {
-                selectedAspect = aspect.copy(
-                        name = aspect.name,
-                        measure = aspect.measure,
-                        domain = aspect.domain,
-                        baseType = aspect.baseType
-                )
-            }
-            selectedAspectPropertyIndex = 0
+            selectedAspect = if (!tmpAspect.hasNextAlivePropertyIndex(0)) tmpAspect.plusEmptyProperty() else tmpAspect
+            selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(0)
+        }
+    }
+
+    private fun handleDeleteProperty() = setState {
+
+        val currentSelectedAspect = selectedAspect ?: error("handleSwitchToNextProperty when no aspect is selected")
+        val currentSelectedAspectPropertyIndex = selectedAspectPropertyIndex
+                ?: error("handleSwitchToNextProperty when no property is selected")
+
+        val property = currentSelectedAspect.properties[currentSelectedAspectPropertyIndex]
+        selectedAspect = currentSelectedAspect.changePropertyValues(
+            currentSelectedAspectPropertyIndex,
+            property.copy(deleted = true)
+        )
+
+        if (!selectedAspect!!.hasNextAlivePropertyIndex(currentSelectedAspectPropertyIndex)) {
+            selectedAspectPropertyIndex = null
+        } else {
+            selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(currentSelectedAspectPropertyIndex)
         }
     }
 
     private fun handleSwitchToNextProperty(aspectProperty: AspectPropertyData) = setState {
+
         val currentSelectedAspect = selectedAspect ?: error("handleSwitchToNextProperty when no aspect is selected")
-        val currentSelectedAspectPropertyIndex = selectedAspectPropertyIndex
+        var currentSelectedAspectPropertyIndex = selectedAspectPropertyIndex
                 ?: error("handleSwitchToNextProperty when no property is selected")
-        selectedAspect = if (currentSelectedAspect.properties.lastIndex == currentSelectedAspectPropertyIndex)
-            currentSelectedAspect.copy(
-                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                        if (index != currentSelectedAspectPropertyIndex) {
-                            property
-                        } else {
-                            property.copy(
-                                    name = aspectProperty.name,
-                                    cardinality = aspectProperty.cardinality,
-                                    aspectId = aspectProperty.aspectId
-                            )
-                        }
-                    } + AspectPropertyData("", "", "", "")
-            )
-        else
-            currentSelectedAspect.copy(
-                    properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                        if (index != currentSelectedAspectPropertyIndex) {
-                            property
-                        } else {
-                            property.copy(
-                                    name = aspectProperty.name,
-                                    cardinality = aspectProperty.cardinality,
-                                    aspectId = aspectProperty.aspectId
-                            )
-                        }
-                    }
-            )
-        selectedAspectPropertyIndex = currentSelectedAspectPropertyIndex + 1
+
+        if (aspectProperty != emptyAspectPropertyData) {
+
+            selectedAspect =
+                    currentSelectedAspect.changePropertyValues(currentSelectedAspectPropertyIndex, aspectProperty)
+
+            currentSelectedAspectPropertyIndex++
+            if (currentSelectedAspectPropertyIndex == currentSelectedAspect.properties.size
+                || !currentSelectedAspect.hasNextAlivePropertyIndex(currentSelectedAspectPropertyIndex)
+            ) {
+
+                selectedAspect = selectedAspect!!.plusEmptyProperty()
+            }
+            selectedAspectPropertyIndex = selectedAspect!!.nextAlivePropertyIndex(currentSelectedAspectPropertyIndex)
+        }
     }
 
     private suspend fun handleSaveParentAspect(aspectProperty: AspectPropertyData) {
@@ -130,26 +147,13 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 ?: error("handleSwitchToNextProperty when no aspect is selected")
         val currentSelectedAspectPropertyIndex = state.selectedAspectPropertyIndex
                 ?: error("handleSwitchToNextProperty when no property is selected")
-        val savedAspect = currentSelectedAspect.copy(
-                properties = currentSelectedAspect.properties.mapIndexed { index, property ->
-                    if (index != currentSelectedAspectPropertyIndex) {
-                        property
-                    } else {
-                        property.copy(
-                                name = aspectProperty.name,
-                                cardinality = aspectProperty.cardinality,
-                                aspectId = aspectProperty.aspectId
-                        )
-                    }
-                }
-        )
-        if (currentSelectedAspect.id == null) {
-            props.onAspectCreate(savedAspect)
-        } else {
-            props.onAspectUpdate(savedAspect)
-        }
+
+        val savedAspect = currentSelectedAspect.changePropertyValues(currentSelectedAspectPropertyIndex, aspectProperty)
+        currentSelectedAspect.id?.let { props.onAspectUpdate(savedAspect.normalize()) }
+                ?: props.onAspectCreate(savedAspect.normalize())
+
         setState {
-            selectedAspect = AspectData(null, "", null, null, null)
+            selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
         }
     }
@@ -163,9 +167,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
 
     private fun handleClickAddPropertyToAspect(aspect: AspectData) {
         setState {
-            selectedAspect = aspect.copy(
-                    properties = aspect.properties + AspectPropertyData("", "", "", "")
-            )
+            selectedAspect = aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
             selectedAspectPropertyIndex = aspect.properties.size
         }
     }
@@ -193,6 +195,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                         aspect = selectedAspect
                         onCancel = ::handleCancelChanges
                         onSubmit = { handleSubmitAspectChanges(it) }
+                        onDelete = { handleDeleteAspect(it) }
                         onSwitchToProperties = ::handleSwitchToAspectProperties
                     }
                 }
@@ -201,9 +204,11 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                     attrs {
                         parentAspect = selectedAspect
                         aspectPropertyIndex = selectedAspectPropertyIndex
-                        childAspect = if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
-                        else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]!!
+                        childAspect =
+                                if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
+                                else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]!!
                         onCancel = ::handleCancelChanges
+                        onDelete = ::handleDeleteProperty
                         onSwitchToNextProperty = ::handleSwitchToNextProperty
                         onSaveParentAspect = { handleSaveParentAspect(it) }
                     }
@@ -216,3 +221,33 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         var selectedAspectPropertyIndex: Int?
     }
 }
+
+/** Possibly should be moved somewhere during refactoring. For example to file AspectDataFrontendExtensions.  */
+
+private fun AspectData.hasNextAlivePropertyIndex(index: Int) =
+    properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
+
+private fun AspectData.nextAlivePropertyIndex(index: Int) =
+    properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
+
+private fun AspectData.changePropertyValues(index: Int, aspectProperty: AspectPropertyData) = copy(
+    properties = properties.mapIndexed { i, property ->
+        if (i != index) {
+            property
+        } else {
+            property.copy(
+                name = aspectProperty.name,
+                cardinality = aspectProperty.cardinality,
+                aspectId = aspectProperty.aspectId,
+                deleted = aspectProperty.deleted
+            )
+        }
+    }
+)
+
+private fun AspectData.plusEmptyProperty() = copy(
+    properties = properties + emptyAspectPropertyData
+)
+
+private fun AspectData.normalize() =
+    copy(properties = properties.filter { it != emptyAspectPropertyData && !(it.id.isEmpty() && it.deleted) })
