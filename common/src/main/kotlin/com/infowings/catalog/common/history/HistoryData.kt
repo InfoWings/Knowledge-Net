@@ -1,4 +1,4 @@
-package com.infowings.catalog.common
+package com.infowings.catalog.common.history
 
 import kotlinx.serialization.Serializable
 
@@ -7,14 +7,19 @@ enum class EventKind {
 }
 
 @Serializable
-class Delta(
-    var field: String, // null means created
+abstract class HistoryField {
+    abstract val name: String
+}
+
+@Serializable
+data class Delta(
+    var field: HistoryField, // null means created
     var before: String?,
     var after: String? // null means deleted
 )
 
 @Serializable
-class HistoryData<T>(
+data class HistoryData<T>(
     var user: String,
     var event: EventKind,
     var entityName: String,
@@ -26,10 +31,3 @@ class HistoryData<T>(
     var changes: List<Delta>
 )
 
-typealias AspectHistory = HistoryData<AspectData>
-
-@Serializable
-class AspectHistoryList(val history: List<AspectHistory>)
-
-fun createDeltaFromProperty(propertyNumber: Int, before: String?, after: String?) =
-    Delta("property[$propertyNumber]", before, after)

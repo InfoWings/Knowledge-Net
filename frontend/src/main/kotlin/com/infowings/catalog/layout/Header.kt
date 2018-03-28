@@ -2,10 +2,7 @@ package com.infowings.catalog.layout
 
 import com.infowings.catalog.utils.removeAuthRole
 import com.infowings.catalog.wrappers.reactRouter
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.div
 import react.dom.li
 import react.dom.ul
@@ -42,6 +39,14 @@ class Header : RComponent<HeaderProps, RState>() {
                             +"Reference books"
                         }
                     }
+                    li(classes = if (props.location == "/history") "active" else "") {
+                        reactRouter.Link {
+                            attrs {
+                                to = "/history"
+                            }
+                            +"History"
+                        }
+                    }
                 }
                 ul(classes = "nav navbar-nav navbar-right") {
                     li {
@@ -58,3 +63,5 @@ class Header : RComponent<HeaderProps, RState>() {
         }
     }
 }
+
+fun RBuilder.header(handler: RHandler<HeaderProps>) = child(Header::class, handler)

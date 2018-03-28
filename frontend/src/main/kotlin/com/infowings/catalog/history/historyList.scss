@@ -1,0 +1,65 @@
+
+.history-group {
+  width: 95%;
+  margin: auto;
+}
+
+/* Only add border to bottom of <li> */
+.history-item {
+  border: 1px outset #ccc;
+  width: 95%;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  border-radius: 1rem;
+}
+
+.history-item-user-icon {
+  height: 3rem;
+}
+
+.history-item-field {
+  text-align: center;
+  margin-top: 0.1rem;
+  margin-bottom: 0.1rem;
+  border-left: 1px solid #ccc;
+  width: 30rem;
+  justify-content: space-around;
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+.history-item > :first-child {
+  border-left: 0 solid #ccc;
+}
+
+.history-item--label-event-red {
+  color: darkred;
+  font-weight: bold;
+}
+
+.history-item--label-event-yellow {
+  color: #ffa500;
+  font-weight: bold;
+}
+
+.history-item--label-event-green {
+  color: green;
+  font-weight: bold;
+}
+
+.no-underline {
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.history-item--label-version {
+  cursor: pointer;
+}
+
+.history-item--label-guid {
+  cursor: pointer;
+}

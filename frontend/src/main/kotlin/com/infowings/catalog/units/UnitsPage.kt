@@ -48,7 +48,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private var job: Job? = null
 
     private fun updateDataState(filterText: String) = when {
-        filterText.isNullOrBlank() -> setState { this.data = allData }
+        filterText.isBlank() -> setState { this.data = allData }
         filterText.length < 3 -> setState { this.data = allData.filter { it.symbol == filterText } }
         else -> {
             // if previous request not completed then cancel it
