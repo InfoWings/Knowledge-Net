@@ -9,13 +9,14 @@ data class AspectsList(
 
 @Serializable
 data class AspectData(
-        val id: String?,
-        val name: String,
-        val measure: String?,
-        val domain: String?,
-        val baseType: String?,
-        val properties: List<AspectPropertyData> = emptyList(),
-        val version: Int = 0
+    val id: String?,
+    val name: String,
+    val measure: String?,
+    val domain: String?,
+    val baseType: String?,
+    val properties: List<AspectPropertyData> = emptyList(),
+    val deleted: Boolean = false,
+    val version: Int = 0
 )
 
 @Serializable
@@ -24,5 +25,15 @@ data class AspectPropertyData(
     val name: String,
     val aspectId: String,
     val cardinality: String,
+    val deleted: Boolean = false,
     val version: Int = 0
 )
+
+/** Helpful extensions */
+val emptyAspectData: AspectData
+    get() = AspectData(null, "", null, null, null)
+
+val emptyAspectPropertyData: AspectPropertyData
+    get() = AspectPropertyData("", "", "", "")
+
+fun AspectData.actualData() = copy(properties = properties.filter { !it.deleted })

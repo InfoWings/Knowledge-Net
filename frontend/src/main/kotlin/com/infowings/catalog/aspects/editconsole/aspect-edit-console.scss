@@ -106,6 +106,10 @@
     fill: green;
   }
 
+  &--button-control:hover > &--button-icon__yellow {
+    fill: #ff7200;
+  }
+
   &--button-control:hover > &--button-icon__red {
     fill: red;
   }

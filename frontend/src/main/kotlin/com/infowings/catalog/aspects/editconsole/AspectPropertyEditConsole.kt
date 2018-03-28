@@ -24,10 +24,21 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
 
     private var inputRef: HTMLInputElement? = null
 
+    private val currentState
+        get() = props.parentAspect.properties[props.aspectPropertyIndex].copy(
+            name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+            cardinality = state.aspectPropertyCardinality
+                    ?: error("Can't save aspect property with cardinality == null"),
+            aspectId = state.aspectPropertyAspectId
+                    ?: error("Can't save aspect property with aspectId == null"),
+            deleted = state.aspectPropertyDeleted
+        )
+
     override fun State.init(props: Props) {
         aspectPropertyName = props.parentAspect.properties[props.aspectPropertyIndex].name
         aspectPropertyCardinality = props.parentAspect.properties[props.aspectPropertyIndex].cardinality
         aspectPropertyAspectId = props.parentAspect.properties[props.aspectPropertyIndex].aspectId
+        aspectPropertyDeleted = props.parentAspect.properties[props.aspectPropertyIndex].deleted
         childAspectName = props.childAspect?.name
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
@@ -41,6 +52,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
                 aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
                 aspectPropertyAspectId = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].aspectId
+                aspectPropertyDeleted = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].deleted
                 childAspectName = nextProps.childAspect?.name
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
@@ -233,6 +245,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
         var onCancel: () -> Unit
+        var onDelete: () -> Unit
         var onSwitchToNextProperty: (AspectPropertyData) -> Unit
         var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
     }
@@ -241,6 +254,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var aspectPropertyName: String?
         var aspectPropertyCardinality: String?
         var aspectPropertyAspectId: String?
+        var aspectPropertyDeleted: Boolean
         var childAspectName: String?
         var childAspectMeasure: String?
         var childAspectDomain: String?
@@ -249,4 +263,5 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     }
 }
 
-fun RBuilder.aspectPropertyEditConsole(block: RHandler<AspectPropertyEditConsole.Props>) = child(AspectPropertyEditConsole::class, block)
+fun RBuilder.aspectPropertyEditConsole(block: RHandler<AspectPropertyEditConsole.Props>) =
+    child(AspectPropertyEditConsole::class, block)

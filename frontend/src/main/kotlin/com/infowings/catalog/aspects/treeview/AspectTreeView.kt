@@ -20,9 +20,10 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
-            props.aspects.map { aspect ->
+            props.aspects.filter { !it.deleted }.map { aspect ->
                 child(AspectNodeExpandedStateWrapper::class) {
                     attrs {
+                        key = aspect.id ?: ""
                         this.aspect = aspect
                         onAspectClick = props.onAspectClick
                         onAspectPropertyClick = props.onAspectPropertyClick
