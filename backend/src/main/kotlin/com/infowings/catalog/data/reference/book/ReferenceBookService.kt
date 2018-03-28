@@ -1,4 +1,4 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem

@@ -2,6 +2,10 @@ package com.infowings.catalog.storage
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType

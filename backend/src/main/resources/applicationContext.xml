@@ -41,7 +41,7 @@
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
-    <bean id="referenceBookService" class="com.infowings.catalog.data.ReferenceBookService">
+    <bean id="referenceBookService" class="com.infowings.catalog.data.reference.book.ReferenceBookService">
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
