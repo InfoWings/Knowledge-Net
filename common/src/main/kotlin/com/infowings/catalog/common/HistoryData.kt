@@ -7,14 +7,18 @@ enum class EventKind {
 }
 
 @Serializable
-class Delta(var before: String?, var after: String?) // after in null means deleted, before is null means created
+class Delta(
+    var field: String, // null means created
+    var before: String?,
+    var after: String? // null means deleted
+)
 
 @Serializable
 class HistoryData<T>(
     var user: String,
     var event: EventKind,
     var entityName: String,
-    var publicName: String, // for user identifying
+    var info: String,
     var deleted: Boolean,
     var timestamp: Long,
     var version: Int,
@@ -22,3 +26,10 @@ class HistoryData<T>(
     var changes: List<Delta>
 )
 
+typealias AspectHistory = HistoryData<AspectData>
+
+@Serializable
+class AspectHistoryList(val history: List<AspectHistory>)
+
+fun createDeltaFromProperty(propertyNumber: Int, before: String?, after: String?) =
+    Delta("property[$propertyNumber]", before, after)
