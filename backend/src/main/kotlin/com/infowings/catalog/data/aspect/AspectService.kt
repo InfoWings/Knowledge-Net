@@ -1,13 +1,9 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import hasIncomingEdges
 
 
 /**
@@ -15,9 +11,11 @@ import hasIncomingEdges
  * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
-class AspectService(private val db: OrientDatabase,
-                    private val aspectDaoService: AspectDaoService,
-                    suggestionService: SuggestionService) {
+class AspectService(
+    private val db: OrientDatabase,
+    private val aspectDaoService: AspectDaoService,
+    suggestionService: SuggestionService
+) {
 
     private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
 
@@ -34,47 +32,40 @@ class AspectService(private val db: OrientDatabase,
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
-                    .checkAspectDataConsistent()
-                    .checkBusinessKey()
-                    .getOrCreateAspectVertex()
+                .checkAspectDataConsistent()
+                .checkBusinessKey()
+                .getOrCreateAspectVertex()
 
-            aspectVertex.saveAspectProperties(aspectData.properties)
+            // delete properties with deleted flag
+            aspectData.properties.filter { it.deleted }.forEach { remove(it) }
 
-            return@transaction aspectDaoService.saveAspect(aspectVertex, aspectData)
+            aspectVertex.saveAspectProperties(aspectData.actualData().properties)
+            return@transaction aspectDaoService.saveAspect(aspectVertex, aspectData.actualData())
         }
 
         return findById(save.id)
     }
 
-    fun remove(aspect: Aspect, force: Boolean = false) = transaction(db) {
-        val vertex = aspectDaoService.getVertex(aspect.id) ?: throw AspectDoesNotExist(aspect.id)
+    fun remove(aspectData: AspectData, force: Boolean = false) {
+        transaction(db) {
 
-        val aspectVertex = vertex.toAspectVertex()
+            val aspectId = aspectData.id ?: "null"
 
-        aspectVertex.checkAspectVersion(aspect.toAspectData())
+            val aspectVertex =
+                aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
 
-        when {
-            aspectVertex.isLinkedBy() && force -> {
-                // сюда - удаление связанного
+            aspectVertex.checkAspectVersion(aspectData)
+
+            when {
+                aspectVertex.isLinkedBy() && force -> {
+                    aspectDaoService.fakeRemove(aspectVertex)
+                }
+                aspectVertex.isLinkedBy() -> {
+                    throw AspectHasLinkedEntitiesException(aspectId)
+                }
+                else -> aspectDaoService.remove(aspectVertex)
             }
-            aspectVertex.isLinkedBy() -> {
-                throw AspectHasLinkedEntitiesException(aspect.id)
-            }
-            else ->
-                aspectDaoService.remove(vertex)
         }
-    }
-
-    fun remove(property: AspectProperty) = transaction(db) {
-        val vertex = aspectDaoService.getVertex(property.id) ?: throw AspectPropertyDoesNotExist(property.id)
-
-        if (property.version != vertex.version) {
-            throw AspectPropertyConcurrentModificationException(property.id,
-                    "found aspect version ${vertex.version}" +
-                            " instead of ${vertex.version}")
-        }
-
-        aspectDaoService.remove(vertex)
     }
 
     /**
@@ -91,13 +82,21 @@ class AspectService(private val db: OrientDatabase,
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
+    /** Method is private and it is supposed that version checking successfully accepted before. */
+    private fun remove(property: AspectPropertyData) = transaction(db) {
+        val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
+                ?: throw AspectPropertyDoesNotExist(property.id)
+
+        return@transaction aspectDaoService.remove(vertex)
+    }
+
     /**
      * Load property by id
      * @throws AspectPropertyDoesNotExist
      */
     private fun loadAspectProperty(propertyId: String): AspectProperty =
-            aspectDaoService.getAspectPropertyVertex(propertyId)?.toAspectProperty()
-                    ?: throw AspectPropertyDoesNotExist(propertyId)
+        aspectDaoService.getAspectPropertyVertex(propertyId)?.toAspectProperty()
+                ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
         aspectVertex.properties.map { loadAspectProperty(it.id) }
@@ -117,7 +116,7 @@ class AspectService(private val db: OrientDatabase,
 
 
         return aspectDaoService.getAspectVertex(aspectId!!)
-                ?.validateExistingAspect(this)
+            ?.validateExistingAspect(this)
                 ?: throw IllegalArgumentException("Incorrect aspect id")
 
     }
@@ -136,24 +135,36 @@ class AspectService(private val db: OrientDatabase,
 
 
         return aspectDaoService.getAspectPropertyVertex(propertyId)
-                ?.validateExistingAspectProperty(this)
+            ?.validateExistingAspectProperty(this)
                 ?: throw IllegalArgumentException("Incorrect property id")
 
     }
 
     private fun AspectVertex.toAspect(): Aspect {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        return Aspect(id, name, measure, baseTypeObj?.let { OpenDomain(it) }, baseTypeObj, loadProperties(this), version)
+        return Aspect(
+            id,
+            name,
+            measure,
+            baseTypeObj?.let { OpenDomain(it) },
+            baseTypeObj,
+            loadProperties(this),
+            deleted,
+            version
+        )
     }
 
     private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
-            AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
+        AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
 
-    private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex = this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
+    private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex =
+        this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
 
-    private fun AspectVertex.validateExistingAspect(aspectData: AspectData): AspectVertex = this.also { aspectValidator.validateExistingAspect(this, aspectData) }
+    private fun AspectVertex.validateExistingAspect(aspectData: AspectData): AspectVertex =
+        this.also { aspectValidator.validateExistingAspect(this, aspectData) }
 
-    private fun AspectData.checkAspectDataConsistent(): AspectData = this.also { aspectValidator.checkAspectDataConsistent(this) }
+    private fun AspectData.checkAspectDataConsistent(): AspectData =
+        this.also { aspectValidator.checkAspectDataConsistent(this) }
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
@@ -167,13 +178,24 @@ class AspectService(private val db: OrientDatabase,
 
 sealed class AspectException(message: String? = null) : Exception(message)
 class AspectAlreadyExist(val name: String) : AspectException("name = $name")
+
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
+
 class AspectPropertyDoesNotExist(val id: String) : AspectException("id = $id")
-class AspectConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+
+class AspectConcurrentModificationException(val id: String, message: String?) :
+    AspectException("id = $id, message = $message")
+
 class AspectModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
-class AspectPropertyConcurrentModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
-class AspectPropertyModificationException(val id: String, message: String?) : AspectException("id = $id, message = $message")
+
+class AspectPropertyConcurrentModificationException(val id: String, message: String?) :
+    AspectException("id = $id, message = $message")
+
+class AspectPropertyModificationException(val id: String, message: String?) :
+    AspectException("id = $id, message = $message")
+
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
         AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+
 class AspectInconsistentStateException(message: String) : AspectException(message)
