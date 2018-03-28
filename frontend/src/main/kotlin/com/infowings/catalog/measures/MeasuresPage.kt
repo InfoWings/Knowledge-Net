@@ -37,30 +37,27 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
     private var timer: Int = 0
 
     private fun handleFilterTextChange(filterText: String) {
-        val before = state.filterText.length
-        val after = filterText.length
-        val skipUpdate = (before < 3 && after < 3)
         setState {
             this.filterText = filterText
         }
-        if (!skipUpdate) {
-            window.clearTimeout(timer)
-            timer = window.setTimeout({ updateDataState(filterText) }, 200)
-        }
+        window.clearTimeout(timer)
+        timer = window.setTimeout({ updateDataState(filterText) }, 200)
     }
 
     private var job: Job? = null
 
-    private fun updateDataState(filterText: String) {
-        if (filterText.length < 3) {
-            setState {
-                groups = allGroups
-            }
-        } else {
+    private fun updateDataState(filterText: String) = when {
+        filterText.isBlank() -> setState {
+            groups = allGroups
+        }
+        filterText.length <= 2 -> setState {
+            groups = filterGroupsBySymbol(filterText)
+        }
+        else -> {
             // if previous request not completed then cancel it
             job?.cancel()
             job = launch {
-                val groups = getFilteredGroups(filterText)
+                val groups = filterGroupsByUnitOrMeasureName(filterText)
                 setState {
                     this.groups = groups
                 }
@@ -68,7 +65,21 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
         }
     }
 
-    private suspend fun getFilteredGroups(filterText: String): List<MeasureGroupData> {
+    private fun filterGroupsBySymbol(filterText: String): List<MeasureGroupData> {
+        val unitNames = allGroups
+            .flatMap { it.units.filter { it.symbol == filterText }.map { it.name } }
+
+        return unitNames
+            .map { name ->
+                MeasureGroupData(
+                    name,
+                    allGroups.first { it.units.map { it.name }.contains(name) }.units
+                        .map { it.copy(containsFilterText = (name == it.name)) }
+                )
+            }
+    }
+
+    private suspend fun filterGroupsByUnitOrMeasureName(filterText: String): List<MeasureGroupData> {
         val filteredNames = getSuggestedMeasurementUnits(filterText, findInGroups = true)
 
         return filteredNames
