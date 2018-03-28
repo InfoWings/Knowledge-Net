@@ -25,15 +25,28 @@ expect sealed class BaseType(_name: String) {
     object Binary : BaseType
 }
 
-fun createDecimalMeasure(name: String, symbol: String, coefficient: Double): Measure<DecimalNumber> =
-    Measure(name, symbol, { it * DecimalNumber(coefficient) }, { it / DecimalNumber(coefficient) }, BaseType.Decimal)
+fun createDecimalMeasure(
+    name: String,
+    symbol: String,
+    coefficient: Double,
+    desc: String? = null
+): Measure<DecimalNumber> =
+    Measure(
+        name,
+        symbol,
+        { it * DecimalNumber(coefficient) },
+        { it / DecimalNumber(coefficient) },
+        BaseType.Decimal,
+        desc
+    )
 
 class Measure<T>(
     val name: String,
     val symbol: String,
     val toBase: (T) -> T,
     val fromBase: (T) -> T,
-    val baseType: BaseType
+    val baseType: BaseType,
+    val description: String? = null
 ) {
     override fun toString(): String = "Measure($name, $symbol, $baseType)"
 }
@@ -42,8 +55,11 @@ class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val b
     val elementGroupMap = measureList.map { it.name to base }.toMap()
 }
 
+const val kmDesc =
+    "The kilometre (International spelling as used by the International Bureau of Weights and Measures; SI symbol: km; /ˈkɪləmiːtər/ or /kɪˈlɒmɪtər/) or kilometer (American spelling) is a unit of length in the metric system, equal to one thousand metres (kilo- being the SI prefix for 1000). It is now the measurement unit used officially for expressing distances between geographical places on land in most of the world; notable exceptions are the United States and the road network of the United Kingdom where the statute mile is the official unit used."
+
 /** Length group */
-val Kilometre = createDecimalMeasure("Kilometer", "km", 1000.0)
+val Kilometre = createDecimalMeasure("Kilometer", "km", 1000.0, kmDesc)
 val Metre = createDecimalMeasure("Metre", "m", 1.0)
 val Decimeter = createDecimalMeasure("Decimeter", "dm", 0.1)
 val Centimeter = createDecimalMeasure("Centimeter", "cm", 0.01)
@@ -278,3 +294,4 @@ val MeasureGroupMap = setOf<MeasureGroup<*>>(
     .toMap()
 
 val GlobalMeasureMap = MeasureGroupMap.values.flatMap { it.measureList.map { it.name to it } }.toMap()
+
