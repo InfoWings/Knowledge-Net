@@ -22,13 +22,12 @@ private val logger = loggerFor<OrientDatabaseInitializer>()
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
 class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
-    private fun initVertex(session: ODatabaseDocument, name: String) {
+    private fun initVertex(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createVertexClass(name)
-    }
 
-    private fun initEdge(session: ODatabaseDocument, name: String) {
+    private fun initEdge(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createEdgeClass(name)
-    }
+
 
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->

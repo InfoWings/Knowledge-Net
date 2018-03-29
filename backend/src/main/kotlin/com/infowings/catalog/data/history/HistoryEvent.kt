@@ -2,6 +2,7 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.orientechnologies.orient.core.id.ORID
 
@@ -46,6 +47,8 @@ private fun AspectData.toRemovePayload() = Payload(toPayload(this, aspectExtract
         removedLinks = toPayload(this, aspectLinksExtractors), addedLinks = emptyMap())
 
 private fun AspectData.toUpdatePayload(previous: AspectData): Payload {
+    val logger = loggerFor<AspectData>()
+
     val currentData = toPayload(this, aspectExtractors)
     val previousData = toPayload(previous, aspectExtractors)
 
@@ -57,8 +60,15 @@ private fun AspectData.toUpdatePayload(previous: AspectData): Payload {
         previousData.containsKey(it.key) && previousData[it.key] == it.value
     }
 
+    logger.info("currentData: $currentData")
+    logger.info("previousData: $previousData")
+    logger.info("updateData: $updateData")
+
     val currentLinksData = toPayload(this, aspectLinksExtractors)
     val previousLinksData = toPayload(previous, aspectLinksExtractors)
+
+    logger.info("currentLinksData: $currentLinksData")
+    logger.info("previousLinksData: $previousLinksData")
 
     val addedLinks = currentLinksData.mapValues {
         it.value.toSet().minus(previousLinksData.getOrElse(it.key, {emptyList()})).toList()
@@ -68,8 +78,10 @@ private fun AspectData.toUpdatePayload(previous: AspectData): Payload {
         it.value.toSet().minus(currentLinksData.getOrElse(it.key, {emptyList()})).toList()
     }
 
-    return Payload(updateData, addedLinks = addedLinks, removedLinks = removedLinks)
-    }
+    logger.info("addedLinks: $addedLinks")
+    logger.info("removedLinks: $removedLinks")
+
+    return Payload(updateData, addedLinks = addedLinks, removedLinks = removedLinks)}
 
 private fun AspectVertex.toHistoryEvent(user: String, event: EventKind): HistoryEvent =
         HistoryEvent(user = user, timestamp = System.currentTimeMillis(), version = version, event = event,
