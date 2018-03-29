@@ -1,13 +1,11 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.loggerFor
-import com.orientechnologies.orient.core.db.ODatabasePool
-import com.orientechnologies.orient.core.db.ODatabaseType
-import com.orientechnologies.orient.core.db.OrientDB
-import com.orientechnologies.orient.core.db.OrientDBConfig
+import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
+import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
@@ -51,10 +49,10 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
-                .initAspects()
-                .initUsers()
-                .initMeasures()
-                .initReferenceBooks()
+            .initAspects()
+            .initUsers()
+            .initMeasures()
+            .initReferenceBooks()
     }
 
     @PreDestroy
@@ -74,7 +72,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, *args)
-                    .use { rs: OResultSet -> block(rs.asSequence()) }
+                .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
 
@@ -94,20 +92,26 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     }
 
     fun getVertexById(id: String): OVertex? =
-            query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
 
     fun createNewVertex(className: String): OVertex = session(database = this) {
         return@session it.newVertex(className)
     }
 
-    fun delete(v: OVertex) = session(database = this) {
+    fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
         return@session it.delete(v.identity)
     }
 
     fun <T> command(command: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.command(command, *args)
-                    .use { rs: OResultSet -> block(rs.asSequence()) }
+                .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
+    fun saveAll(vertice: List<OVertex>) = session(database = this) {
+        for (v in vertice) {
+            v.save<OVertex>()
         }
     }
 }
@@ -121,10 +125,10 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
 val transactionLogger = loggerFor<OrientDatabase>()
 
 inline fun <U> transactionInner(
-        session: ODatabaseDocument,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    session: ODatabaseDocument,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -172,10 +176,10 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-        database: OrientDatabase,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    database: OrientDatabase,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)

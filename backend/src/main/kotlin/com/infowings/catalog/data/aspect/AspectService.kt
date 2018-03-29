@@ -5,7 +5,6 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.history.*
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
@@ -32,8 +31,6 @@ class AspectService(
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
     fun save(aspectData: AspectData, user: String = ""): Aspect {
-        val logger = loggerFor<AspectService>()
-
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
@@ -41,12 +38,9 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            logger.info("name: ${aspectVertex.name}, ${aspectVertex.id}")
-
             val isCreate = aspectVertex.identity.isNew
 
-            val oldData = if (!isCreate) aspectVertex.toSnapshot() else null
-
+            val baseSnapshot = if (!isCreate) aspectVertex.toSnapshot() else null
 
             aspectData.properties.filter { it.deleted }.forEach { remove(it) }
             aspectVertex.saveAspectProperties(aspectData.properties)
@@ -54,17 +48,15 @@ class AspectService(
             val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
 
             if (isCreate) {
-                historyService.storeEvent(aspectVertex.toCreateFact(user))
+                historyService.storeFact(aspectVertex.toCreateFact(user))
             } else {
-                historyService.storeEvent(aspectVertex.toUpdateFact(user, oldData!!))
+                historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot!!))
             }
 
             return@transaction result
         }
 
-        val result =  findById(save.id)
-
-        return result
+        return findById(save.id)
     }
 
 
@@ -79,7 +71,7 @@ class AspectService(
 
             when {
                 aspectVertex.isLinkedBy() && force -> {
-                    historyService.storeEvent(aspectVertex.toSoftDeleteFact(user))
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 aspectVertex.isLinkedBy() -> {
@@ -87,7 +79,7 @@ class AspectService(
                 }
 
                 else -> {
-                    historyService.storeEvent(aspectVertex.toDeleteFact(user))
+                    historyService.storeFact(aspectVertex.toDeleteFact(user))
                     aspectDaoService.remove(aspectVertex)
                 }
             }
@@ -129,7 +121,7 @@ class AspectService(
     }
 
     /**
-     * Create empty vertex in case [aspectData.id] is null or empty
+     * Create empty vertex in case [AspectData.id] is null or empty
      * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
      * @throws IllegalStateException
      * @throws AspectConcurrentModificationException
@@ -148,7 +140,7 @@ class AspectService(
     }
 
     /**
-     * Create empty vertex in case [aspectPropertyData.id] is null or empty
+     * Create empty vertex in case [AspectPropertyData.id] is null or empty
      * Otherwise validate and return vertex of class [ASPECT_PROPERTY_CLASS] with given id
      * @throws IllegalStateException
      * @throws AspectPropertyModificationException
@@ -221,7 +213,8 @@ class AspectPropertyModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
-        AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
-class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+    AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 
 class AspectInconsistentStateException(message: String) : AspectException(message)

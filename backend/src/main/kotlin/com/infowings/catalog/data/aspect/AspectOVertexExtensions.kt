@@ -23,14 +23,15 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return AspectData(
-                id,
-                name,
-                measureName,
-                baseTypeObj?.let { OpenDomain(it).toString() },
-                baseType,
-                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            id,
+            name,
+            measureName,
+            baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType,
+            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
             deleted,
-                version)
+            version
+        )
     }
 
     val properties: List<OVertex>

@@ -1,19 +1,12 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.id.ORID
-import com.orientechnologies.orient.core.record.OVertex
 import java.sql.Timestamp
 
 
-class HistoryService(private val db: OrientDatabase,
-                     private val historyDaoService: HistoryDaoService) {
-    private val logger = loggerFor<HistoryService>()
-
-    fun storeEvent(fact: HistoryFact) {
-        logger.info("fact: $fact")
+class HistoryService(private val db: OrientDatabase, private val historyDaoService: HistoryDaoService) {
+    fun storeFact(fact: HistoryFact) {
         val historyEventVertex = historyDaoService.newHistoryEventVertex()
 
         historyEventVertex.entityClass = fact.event.entityClass
@@ -21,8 +14,6 @@ class HistoryService(private val db: OrientDatabase,
         historyEventVertex.entityVersion = fact.event.version
         historyEventVertex.timestamp = Timestamp(fact.event.timestamp)
         historyEventVertex.user = fact.event.user
-
-        logger.info("going to save history event ${historyEventVertex.propertyNames}")
 
         val elementVertices = fact.payload.data.map {
             val elementVertex = historyDaoService.newHistoryElementVertex()
@@ -33,32 +24,25 @@ class HistoryService(private val db: OrientDatabase,
             elementVertex
         }
 
-        fun linksVertices(linksPayload: Map<String, List<ORID>>,
-                          vertexProducer: () -> HistoryLinksVertex) = linksPayload.flatMap {
-            val key = it.key
-            logger.info("key: $key, value: ${it.value}")
-            it.value.map {
-                val elementVertex = vertexProducer()
-                elementVertex.eventId = historyEventVertex.identity
-                elementVertex.key = key
-                elementVertex.peerId = it
-
-                elementVertex
+        fun linksVertices(linksPayload: Map<String, List<ORID>>, vertexProducer: () -> HistoryLinksVertex) =
+            linksPayload.flatMap {
+                val key = it.key
+                it.value.map {
+                    val elementVertex = vertexProducer()
+                    elementVertex.eventId = historyEventVertex.identity
+                    elementVertex.key = key
+                    elementVertex.peerId = it
+                    elementVertex
+                }
             }
-        }
 
-        val addLinkVertices = linksVertices(fact.payload.addedLinks, {historyDaoService.newAddLinkVertex()})
-        val dropLinkVertices = linksVertices(fact.payload.removedLinks, {historyDaoService.newDropLinkVertex()})
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, {
+            historyDaoService.newAddLinkVertex()
+        })
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, {
+            historyDaoService.newDropLinkVertex()
+        })
 
-        logger.info("addLinksVertices: $addLinkVertices")
-        logger.info("dropLinksVertices: $dropLinkVertices")
-
-        session(database = db) { session ->
-            historyEventVertex.save<OVertex>()
-            for (e in elementVertices + addLinkVertices + dropLinkVertices) {
-                e.save<OVertex>()
-            }
-        }
-        logger.info("save")
+        db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
     }
 }
