@@ -53,7 +53,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name
+        aspectVertex.name = aspectData.name.trim()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -88,7 +88,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
 
