@@ -35,7 +35,7 @@ class HistoryService(private val db: OrientDatabase,
         fun linksVertices(linksPayload: Map<String, List<String>>,
                           vertexProducer: () -> HistoryLinksVertex) = linksPayload.flatMap {
             val key = it.key
-            logger.info("key: $key, value: $value")
+            logger.info("key: $key, value: ${it.value}")
             it.value.map {
                 val elementVertex = vertexProducer()
                 elementVertex.eventId = historyEventVertex.identity
