@@ -186,12 +186,6 @@ private var OVertex.aspectId: String
         this["aspectId"] = value
     }
 
-var OVertex.name: String
-    get() = this["name"]
-    set(value) {
-        this["name"] = value
-    }
-
 private var OVertex.value: String
     get() = this["value"]
     set(value) {

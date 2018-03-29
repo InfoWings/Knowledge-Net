@@ -5,7 +5,6 @@ import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
@@ -29,6 +28,11 @@ val OElement.id: String
 fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
 fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
+var OVertex.name: String
+    get() = this["name"]
+    set(value) {
+        this["name"] = value
+    }
 
 /**
  * Main class for work with database
