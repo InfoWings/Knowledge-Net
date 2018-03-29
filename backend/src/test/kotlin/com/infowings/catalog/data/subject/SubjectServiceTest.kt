@@ -55,6 +55,29 @@ class SubjectServiceTest {
         aspectService.save(ad2)
     }
 
+    @Test(expected = AspectAlreadyExist::class)
+    fun testAddAspectsSameNameGlobalSubject() {
+        val ad1 = AspectData(
+            null,
+            "aspect",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList()
+        )
+        aspectService.save(ad1)
+
+        val ad2 = AspectData(
+            null,
+            "aspect",
+            Metre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList()
+        )
+        aspectService.save(ad2)
+    }
+
     @Test
     fun testAddAspectsSameNameDiffSubject() {
         val subject1 = createTestSubject("TestSubjectUpdate")
