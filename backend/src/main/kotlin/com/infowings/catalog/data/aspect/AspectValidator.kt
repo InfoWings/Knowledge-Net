@@ -98,7 +98,7 @@ class AspectValidator(
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
         val name = this.name ?: throw AspectNameCannotBeNull()
-        id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(name)
+        id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this)
     }
 
     private fun checkAspectBusinessKeyForExistingAspect(aspectData: AspectData, name: String) {
@@ -109,13 +109,15 @@ class AspectValidator(
         }
     }
 
-    private fun checkAspectBusinessKeyForNewAspect(name: String) =
-        aspectDaoService.findByName(name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name, null)
+    private fun checkAspectBusinessKeyForNewAspect(aspectData: AspectData) {
+        val name = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, null)
+            .let {
+                if (it.isNotEmpty()) {
+                    throw AspectAlreadyExist(name, aspectData.subject?.name)
+                }
             }
-        }
-
+    }
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
 
         // check aspect properties business key

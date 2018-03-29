@@ -8,6 +8,8 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
+import org.hamcrest.core.Is
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,6 +53,44 @@ class SubjectServiceTest {
             subject = subject.toSubjectData()
         )
         aspectService.save(ad2)
+    }
+
+    @Test
+    fun testAddAspectsSameNameDiffSubject() {
+        val subject1 = createTestSubject("TestSubjectUpdate")
+        val subject2 = createTestSubject("TestSubjectUpdate1")
+        val ad1 = AspectData(
+            null,
+            "DiffSubject",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            subject = subject1.toSubjectData()
+        )
+        val newAspect1 = aspectService.save(ad1)
+
+        val ad2 = AspectData(
+            null,
+            "DiffSubject",
+            Metre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            subject = subject2.toSubjectData()
+        )
+        aspectService.save(ad2)
+        Assert.assertThat(
+            "aspect 'DiffSubject' should be saved and restored",
+            aspectService.findByName("DiffSubject").firstOrNull(),
+            Is.`is`(newAspect1)
+        )
+
+        Assert.assertThat(
+            "aspect 'DiffSubject' should be saved and restored",
+            aspectService.findByName("DiffSubject").firstOrNull(),
+            Is.`is`(newAspect1)
+        )
     }
 
     private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject =

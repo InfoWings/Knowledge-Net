@@ -49,6 +49,7 @@ class AspectServiceDeletingTest {
     @Test
     fun testAddSameNameAfterRemoving() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
+        aspectService.remove(aspectService.findById(initialAspect.id), true)
         val aspect = aspectService.save(ad)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
     }
