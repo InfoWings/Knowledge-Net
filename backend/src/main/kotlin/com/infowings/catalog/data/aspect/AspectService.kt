@@ -42,8 +42,8 @@ class AspectService(
 
             val baseSnapshot = if (!isCreate) aspectVertex.toSnapshot() else null
 
-            aspectData.properties.filter { it.deleted }.forEach { remove(it) }
-            aspectVertex.saveAspectProperties(aspectData.properties)
+            aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
+            aspectVertex.saveAspectProperties(aspectData.properties, user)
 
             val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
 
@@ -100,8 +100,14 @@ class AspectService(
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
+    fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+            ?: throw AspectPropertyDoesNotExist(id)
+
+
     /** Method is private and it is supposed that version checking successfully accepted before. */
-    private fun remove(property: AspectPropertyData) = transaction(db) {
+    private fun remove(property: AspectPropertyData, user: String) = transaction(db) {
+        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(user))
+        
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
@@ -186,10 +192,17 @@ class AspectService(
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
-    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>) {
+    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, user: String) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
-            aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
+            if (aspectPropertyVertex.isJustCreated()) {
+                aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
+                historyService.storeFact(aspectPropertyVertex.toCreateFact(user))
+            } else {
+                val previous = aspectPropertyVertex.toSnapshot()
+                aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
+                historyService.storeFact(aspectPropertyVertex.toUpdateFact(user, previous))
+            }
         }
     }
 }

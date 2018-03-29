@@ -12,6 +12,7 @@ import hasIncomingEdges
 
 fun OVertex.toAspectVertex() = AspectVertex(this)
 fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
+fun OVertex.isJustCreated() = this.identity.isNew
 
 /**
  * Kotlin does not provide package-level declarations.

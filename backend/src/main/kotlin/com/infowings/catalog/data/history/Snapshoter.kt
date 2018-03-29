@@ -1,14 +1,23 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.data.aspect.AspectVertex
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
 
-interface Snapshoter<in T> {
+interface Snapshoter<in T: OVertex> {
     fun dataExtractors(): List<Pair<String, (T) -> String>>
-    fun linksExtractors(): List<Pair<String, (T) -> List<ORID>>>
+
+    fun entityClass(): String
+
+    fun linksExtractors() = emptyList<Pair<String, (T) -> List<ORID>>>()
 
     private fun <T, S> toPlainPayload(entity: T, extractors: List<Pair<String, (T) -> S>>): Map<String, S> =
         extractors.map { it.first to it.second(entity) }.toMap()
+
+    private fun historyEvent(user: String, entity: T, event: EventKind): HistoryEvent =
+        HistoryEvent(
+            user = user, timestamp = System.currentTimeMillis(), version = entity.version,
+            event = event, entityId = entity.identity, entityClass = entityClass()
+        )
 
     fun snapshot(entity: T): Snapshot = Snapshot(
         toPlainPayload(entity, dataExtractors()),
@@ -20,19 +29,14 @@ interface Snapshoter<in T> {
         dataExtractors().map { it.first to emptyList<ORID>() }.toMap()
     )
 
-    fun toCreateFact(event: HistoryEvent, entity: T) = toHistoryFact(
-        event.copy(event = EventKind.CREATE), emptySnapshot(), snapshot(entity)
-    )
+    private fun toFact(user: String, entity: T, event: EventKind, before: Snapshot) =
+        toHistoryFact(historyEvent(user, entity, event), before, snapshot(entity))
 
-    fun toDeleteFact(event: HistoryEvent, entity: T) = toHistoryFact(
-        event.copy(event = EventKind.DELETE), emptySnapshot(), snapshot(entity)
-    )
+    fun toCreateFact(user: String, entity: T) = toFact(user, entity, EventKind.CREATE, emptySnapshot())
 
-    fun toSoftDeleteFact(event: HistoryEvent, entity: T) = toHistoryFact(
-        event.copy(event = EventKind.SOFT_DELETE), emptySnapshot(), snapshot(entity)
-    )
+    fun toDeleteFact(user: String, entity: T) = toFact(user, entity, EventKind.DELETE, emptySnapshot())
 
-    fun toUpdateFact(event: HistoryEvent, entity: T, previous: Snapshot) = toHistoryFact(
-        event.copy(event = EventKind.UPDATE), previous, snapshot(entity)
-    )
+    fun toSoftDeleteFact(user: String, entity: T) = toFact(user, entity, EventKind.SOFT_DELETE, emptySnapshot())
+
+    fun toUpdateFact(user: String, entity: T, previous: Snapshot) = toFact(user, entity, EventKind.UPDATE, previous)
 }

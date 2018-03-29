@@ -6,7 +6,10 @@ import com.orientechnologies.orient.core.id.ORID
 
 
 object AspectSnaphoter : Snapshoter<AspectVertex> {
+    override fun entityClass(): String = ASPECT_CLASS
+
     override fun dataExtractors() = listOf<Pair<String, (AspectVertex) -> String>>(
+        Pair("name", { v -> asStringOrEmpty(v.name) }),
         Pair("measure", { v -> asStringOrEmpty(v.measure) }),
         Pair("baseType", { v -> asStringOrEmpty(v.baseType) })
     )
@@ -18,17 +21,10 @@ object AspectSnaphoter : Snapshoter<AspectVertex> {
 
 fun AspectVertex.toSnapshot() = AspectSnaphoter.snapshot(this)
 
-private fun AspectVertex.noneEvent(user: String): HistoryEvent =
-    HistoryEvent(
-        user = user, timestamp = System.currentTimeMillis(), version = version,
-        event = null, entityId = identity, entityClass = ASPECT_CLASS
-    )
+fun AspectVertex.toCreateFact(user: String) = AspectSnaphoter.toCreateFact(user, this)
 
-fun AspectVertex.toCreateFact(user: String) = AspectSnaphoter.toCreateFact(noneEvent(user), this)
+fun AspectVertex.toDeleteFact(user: String) = AspectSnaphoter.toDeleteFact(user, this)
 
-fun AspectVertex.toDeleteFact(user: String) = AspectSnaphoter.toDeleteFact(noneEvent(user), this)
+fun AspectVertex.toSoftDeleteFact(user: String) = AspectSnaphoter.toSoftDeleteFact(user, this)
 
-fun AspectVertex.toSoftDeleteFact(user: String) = AspectSnaphoter.toSoftDeleteFact(noneEvent(user), this)
-
-fun AspectVertex.toUpdateFact(user: String, previous: Snapshot) =
-    AspectSnaphoter.toUpdateFact(noneEvent(user), this, previous)
+fun AspectVertex.toUpdateFact(user: String, previous: Snapshot) = AspectSnaphoter.toUpdateFact(user, this, previous)
