@@ -3,6 +3,7 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.sql.Timestamp
 
@@ -32,7 +33,7 @@ class HistoryService(private val db: OrientDatabase,
             elementVertex
         }
 
-        fun linksVertices(linksPayload: Map<String, List<String>>,
+        fun linksVertices(linksPayload: Map<String, List<ORID>>,
                           vertexProducer: () -> HistoryLinksVertex) = linksPayload.flatMap {
             val key = it.key
             logger.info("key: $key, value: ${it.value}")

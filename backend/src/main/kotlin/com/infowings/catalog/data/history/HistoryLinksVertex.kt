@@ -30,7 +30,7 @@ class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["key"] = value
         }
 
-    var peerId: String
+    var peerId: ORID
         get() = vertex["peerId"]
         set(value) {
             vertex["peerId"] = value

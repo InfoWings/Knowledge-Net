@@ -45,8 +45,8 @@ class AspectService(
 
             val isCreate = aspectVertex.identity.isNew
 
-            val oldData = if (!isCreate) aspectVertex.toAspectData() else null
-            
+            val oldData = if (!isCreate) aspectVertex.toSnapshot() else null
+
 
             aspectData.properties.filter { it.deleted }.forEach { remove(it) }
             aspectVertex.saveAspectProperties(aspectData.properties)
