@@ -30,7 +30,7 @@ class SuggestionService(private val database: OrientDatabase) {
         if (text == null) {
             return emptyList()
         }
-        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_CLASS(?) = true"
+        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_GROUP_VERTEX)}, ?) = true"
         return database.query(q, luceneQuery(text)) {
             it.mapNotNull { it.toVertexOrNUll()?.getProperty<String>("name") }.toList()
         }
@@ -71,13 +71,13 @@ class SuggestionService(private val database: OrientDatabase) {
 
     private fun findMeasureInDb(measureGroupName: String?, text: String): Sequence<OVertex> {
         val q = if (measureGroupName == null) {
-            "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(?) = true"
+            "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
         } else {
             val edgeSelector = "both(\"$MEASURE_BASE_EDGE\", \"$MEASURE_BASE_AND_GROUP_EDGE\")"
             val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name like \"$measureGroupName\")"
             "SELECT FROM $MEASURE_VERTEX WHERE " +
                     "@rid IN (SELECT @rid FROM (TRAVERSE $edgeSelector FROM $traversFrom)) " +
-                    "AND SEARCH_CLASS(?) = true"
+                    "AND SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
         }
         return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
             it.mapNotNull { it.toVertexOrNUll() }
@@ -99,8 +99,10 @@ class SuggestionService(private val database: OrientDatabase) {
                         "    AND @rid IN " +
                         "          (SELECT @rid FROM " +
                         "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
-                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_CLASS(:$lqm) = true OR name = :$unitName ))) " +
-                        " AND SEARCH_CLASS(:$lq) = true"
+                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(
+                            MEASURE_VERTEX
+                        )}, :$lqm) = true OR name = :$unitName ))) " +
+                        " AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true"
                 if (aspectId == null) { //т.к. не задан текущий аспект, то поикс идет без учета циклов
                     database.query(
                         q, mapOf(
@@ -122,7 +124,8 @@ class SuggestionService(private val database: OrientDatabase) {
                 }
             } else {
                 if (aspectId == null) {
-                    val q = "$selectFromAspectWithoutDeleted AND SEARCH_CLASS(:$lq) = true"
+                    val q =
+                        "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true"
                     database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
@@ -145,7 +148,8 @@ class SuggestionService(private val database: OrientDatabase) {
     }
 
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
-        val q = "$selectFromAspectWithoutDeleted AND SEARCH_CLASS(:$lq) = true AND $noCycle"
+        val q =
+            "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true AND $noCycle"
         database.query(q, mapOf(lq to luceneQuery(text), aspectRecord to ORecordId(aspectId))) { it }
     }
 
@@ -159,6 +163,8 @@ class SuggestionService(private val database: OrientDatabase) {
             it.mapNotNull { it.toVertexOrNUll()?.toAspectVertex()?.toAspectData() }.toList()
         }
     }
+
+    private fun luceneIdxName(classType: String) = "\"$classType.lucene.name\""
 
     private val aspectRecord = "a"
     private val unitName = "un"

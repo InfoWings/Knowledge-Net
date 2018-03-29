@@ -35,8 +35,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
-            session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING).isMandatory = true
+            val vertexClass = session.createVertexClass(ASPECT_CLASS)
+            vertexClass.createProperty("name", OType.STRING).isMandatory = true
+            vertexClass.createProperty("description", OType.STRING)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
@@ -49,10 +50,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(MEASURE_GROUP_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_GROUP_VERTEX)
             vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            vertexClass.createProperty("description", OType.STRING)
         }
         if (session.getClass(MEASURE_VERTEX) == null) {
             val vertexClass = session.createVertexClass(MEASURE_VERTEX)
             vertexClass.createProperty("name", OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            vertexClass.createProperty("description", OType.STRING)
         }
         session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
         session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
@@ -124,3 +127,4 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.save<ORecord>()
     }
 }
+
