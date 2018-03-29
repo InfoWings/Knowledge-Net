@@ -71,17 +71,20 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         this.inputRef = inputRef
     }
 
+    private fun copyParentSelectedProperty() =
+        props.parentAspect.properties[props.aspectPropertyIndex].copy(
+            name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
+            cardinality = state.aspectPropertyCardinality
+                    ?: error("Can't save aspect property with cardinality == null"),
+            aspectId = state.aspectPropertyAspectId
+                    ?: error("Can't save aspect property with aspectId == null")
+        )
+
     /**
      * Business logic function (handler for add-to-list icon click and ctrl-enter keystoke)
      */
     private fun switchToNextProperty() {
-        props.onSwitchToNextProperty(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                cardinality = state.aspectPropertyCardinality
-                        ?: error("Can't save aspect property with cardinality == null"),
-                aspectId = state.aspectPropertyAspectId
-                        ?: error("Can't save aspect property with aspectId == null")
-        ))
+        props.onSwitchToNextProperty(copyParentSelectedProperty())
     }
 
     /**
@@ -90,13 +93,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun trySubmitParentAspect() {
         launch {
             try {
-                props.onSaveParentAspect(props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                        name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-                        cardinality = state.aspectPropertyCardinality
-                                ?: error("Can't save aspect property with cardinality == null"),
-                        aspectId = state.aspectPropertyAspectId
-                                ?: error("Can't save aspect property with aspectId == null")
-                ))
+                props.onSaveParentAspect(copyParentSelectedProperty())
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message

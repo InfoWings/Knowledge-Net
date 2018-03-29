@@ -206,22 +206,11 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     }
 }
 
-private fun List<AspectPropertyData>.insertEmptyAtIndex(atIndex: Int): List<AspectPropertyData> {
-    return if (atIndex > this.lastIndex) {
-        this + emptyAspectPropertyData
-    } else {
-        val folded = this.foldRightIndexed(mutableListOf<AspectPropertyData>()) { index, aspectProperty, list ->
-            if (index == atIndex) {
-                list.add(emptyAspectPropertyData)
-                list.add(aspectProperty)
-                list
-            } else {
-                list.add(aspectProperty)
-                list
-            }
-        }
-        folded.toList()
-    }
+private fun List<AspectPropertyData>.insertEmptyAtIndex(suggestedIndex: Int): List<AspectPropertyData> {
+    val tempProperties = this.toMutableList()
+    val targetIndex = if (suggestedIndex > this.size) this.size else suggestedIndex
+    tempProperties.add(targetIndex, emptyAspectPropertyData)
+    return tempProperties.toList()
 }
 
 private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: AspectPropertyData) =

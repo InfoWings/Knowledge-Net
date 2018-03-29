@@ -37,10 +37,10 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         launch {
             props.onAspectPropertyUpdate(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
 
-            if (selectedAspect.hasNextAlivePropertyIndex(selectedPropertyIndex.inc())) {
+            if (selectedAspect.hasNextAliveProperty(selectedPropertyIndex.inc())) {
                 props.onSelectProperty(
                     selectedAspect.id,
-                    selectedAspect.nextAlivePropertyIndex(selectedPropertyIndex.inc())
+                    selectedAspect.getNextAlivePropertyIndex(selectedPropertyIndex.inc())
                 )
             } else {
                 props.onSelectAspect(selectedAspect.id)
@@ -53,8 +53,8 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         launch {
             props.onAspectUpdate(aspect)
             if (selectedAspect.properties.isNotEmpty()) {
-                if (selectedAspect.hasNextAlivePropertyIndex(0))
-                    props.onSelectProperty(selectedAspect.id, selectedAspect.nextAlivePropertyIndex(0))
+                if (selectedAspect.hasNextAliveProperty(0))
+                    props.onSelectProperty(selectedAspect.id, selectedAspect.getNextAlivePropertyIndex(0))
                 else
                     props.onCreateProperty(selectedAspect.properties.size)
             } else {
@@ -70,13 +70,14 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         launch {
             if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != AspectPropertyData("", "", "", "")) {
                 props.onAspectPropertyUpdate(property)
+                val nextPropertyIndex = selectedPropertyIndex.inc()
                 if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {
-                    props.onCreateProperty(selectedPropertyIndex.inc())
+                    props.onCreateProperty(nextPropertyIndex)
                 } else {
-                    if (selectedAspect.hasNextAlivePropertyIndex(selectedPropertyIndex.inc())) {
+                    if (selectedAspect.hasNextAliveProperty(nextPropertyIndex)) {
                         props.onSelectProperty(
                             selectedAspect.id,
-                            selectedAspect.nextAlivePropertyIndex(selectedPropertyIndex.inc())
+                            selectedAspect.getNextAlivePropertyIndex(nextPropertyIndex)
                         )
                     } else {
                         props.onCreateProperty(selectedAspect.properties.size)
@@ -130,10 +131,10 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
     }
 }
 
-private fun AspectData.hasNextAlivePropertyIndex(index: Int) = if (index >= properties.size) false else
+private fun AspectData.hasNextAliveProperty(index: Int) = if (index >= properties.size) false else
     properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
 
-private fun AspectData.nextAlivePropertyIndex(index: Int) =
+private fun AspectData.getNextAlivePropertyIndex(index: Int) =
     properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
 
 fun RBuilder.aspectConsole(block: RHandler<AspectConsole.Props>) = child(AspectConsole::class, block)
