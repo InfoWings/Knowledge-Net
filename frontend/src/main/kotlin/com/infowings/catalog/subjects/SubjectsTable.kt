@@ -8,6 +8,9 @@ import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
 import kotlinx.html.InputType
 import kotlinx.html.js.onBlurFunction
+import kotlinx.html.js.onKeyPressFunction
+import org.w3c.dom.events.Event
+import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.defaultValue
 import react.dom.input
@@ -68,15 +71,25 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                 input(type = InputType.text, classes = "rtable-input") {
                     attrs {
                         defaultValue = props.value?.toString() ?: ""
+                        autoFocus = true
                         onBlurFunction = {
-                            state.subjectNames[props.index] = it.asDynamic().target.value as String
-                            onSaveChangedSubjectName(props.index)
+                            updateSubject(props, it)
+                        }
+                        onKeyPressFunction = {
+                            if (it.unsafeCast<KeyboardEvent>().key == "Enter") {
+                                updateSubject(props, it)
+                            }
                         }
                     }
                 }
 
             }
         }
+
+    private fun updateSubject(props: RTableRendererProps, event: Event) {
+        state.subjectNames[props.index] = event.asDynamic().target.value as String
+        onSaveChangedSubjectName(props.index)
+    }
 
     private fun onSaveChangedSubjectName(index: Int) {
         setState {
