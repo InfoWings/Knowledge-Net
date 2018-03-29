@@ -25,7 +25,6 @@ class SubjectService(private val db: OrientDatabase, private val aspectService: 
             findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(sd.name) } ?: save(sd)
         }.toSubject()
 
-
     fun updateSubject(sd: SubjectData): Subject =
         transaction(db) {
             val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull()]
