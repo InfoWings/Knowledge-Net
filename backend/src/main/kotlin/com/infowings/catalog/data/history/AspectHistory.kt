@@ -18,32 +18,17 @@ object AspectSnaphoter : Snapshoter<AspectVertex> {
 
 fun AspectVertex.toSnapshot() = AspectSnaphoter.snapshot(this)
 
-fun AspectVertex.toHistoryEvent(user: String, event: EventKind): HistoryEvent =
+private fun AspectVertex.noneEvent(user: String): HistoryEvent =
     HistoryEvent(
-        user = user, timestamp = System.currentTimeMillis(), version = version, event = event,
-        entityId = identity, entityClass = ASPECT_CLASS
+        user = user, timestamp = System.currentTimeMillis(), version = version,
+        event = null, entityId = identity, entityClass = ASPECT_CLASS
     )
 
-fun AspectVertex.toCreateFact(user: String) =
-    toHistoryFact(
-        toHistoryEvent(user, EventKind.CREATE), AspectSnaphoter.emptySnapshot(),
-        AspectSnaphoter.snapshot(this)
-    )
+fun AspectVertex.toCreateFact(user: String) = AspectSnaphoter.toCreateFact(noneEvent(user), this)
 
-fun AspectVertex.toDeleteFact(user: String) =
-    toHistoryFact(
-        toHistoryEvent(user, EventKind.DELETE), AspectSnaphoter.emptySnapshot(),
-        AspectSnaphoter.snapshot(this)
-    )
+fun AspectVertex.toDeleteFact(user: String) = AspectSnaphoter.toDeleteFact(noneEvent(user), this)
 
-fun AspectVertex.toSoftDeleteFact(user: String) =
-    HistoryFact(
-        toHistoryEvent(user, EventKind.SOFT_DELETE),
-        diffShapshots(AspectSnaphoter.emptySnapshot(), AspectSnaphoter.snapshot(this))
-    )
+fun AspectVertex.toSoftDeleteFact(user: String) = AspectSnaphoter.toSoftDeleteFact(noneEvent(user), this)
 
 fun AspectVertex.toUpdateFact(user: String, previous: Snapshot) =
-    HistoryFact(
-        toHistoryEvent(user, EventKind.SOFT_DELETE),
-        diffShapshots(previous, AspectSnaphoter.snapshot(this))
-    )
+    AspectSnaphoter.toUpdateFact(noneEvent(user), this, previous)

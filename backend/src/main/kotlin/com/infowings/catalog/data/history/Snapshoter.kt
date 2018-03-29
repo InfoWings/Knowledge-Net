@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.orientechnologies.orient.core.id.ORID
 
 interface Snapshoter<in T> {
@@ -17,5 +18,21 @@ interface Snapshoter<in T> {
     fun emptySnapshot(): Snapshot = Snapshot(
         dataExtractors().map { it.first to "" }.toMap(),
         dataExtractors().map { it.first to emptyList<ORID>() }.toMap()
+    )
+
+    fun toCreateFact(event: HistoryEvent, entity: T) = toHistoryFact(
+        event.copy(event = EventKind.CREATE), emptySnapshot(), snapshot(entity)
+    )
+
+    fun toDeleteFact(event: HistoryEvent, entity: T) = toHistoryFact(
+        event.copy(event = EventKind.DELETE), emptySnapshot(), snapshot(entity)
+    )
+
+    fun toSoftDeleteFact(event: HistoryEvent, entity: T) = toHistoryFact(
+        event.copy(event = EventKind.SOFT_DELETE), emptySnapshot(), snapshot(entity)
+    )
+
+    fun toUpdateFact(event: HistoryEvent, entity: T, previous: Snapshot) = toHistoryFact(
+        event.copy(event = EventKind.UPDATE), previous, snapshot(entity)
     )
 }

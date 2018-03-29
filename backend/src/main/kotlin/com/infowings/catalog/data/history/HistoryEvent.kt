@@ -14,7 +14,7 @@ data class HistoryEvent(
     val user: String,
     val timestamp: Long,
     val version: Int,
-    val event: EventKind,
+    val event: EventKind?,
     val entityId: ORID,
     val entityClass: String
 )
