@@ -37,7 +37,7 @@ private val aspectExtractors = listOf<Pair<String, (AspectData) -> String>>(
 )
 
 private val aspectLinksExtractors = listOf<Pair<String, (AspectData) -> List<String>>>(
-        Pair("properties", {v -> v.properties.map {it.id}})
+        Pair("properties", {v -> v.properties.map {it}})
 )
 
 private fun AspectData.toCreatePayload() = Payload(toPayload(this, aspectExtractors),
