@@ -1,67 +1,52 @@
+$color-green: green;
+$color-red: darkred;
+$color-yellow: #ffa500;
 
 .history-group {
   width: 95%;
   margin: auto;
 }
 
-/* Only add border to bottom of <li> */
 .history-item {
-  border: 1px outset #ccc;
   width: 95%;
-  margin: auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  flex-direction: row;
-  border-radius: 1rem;
-}
+  margin: 3rem auto auto;
 
-.history-item-user-icon {
-  height: 3rem;
-}
+  &--field {
 
-.history-item-field {
-  text-align: center;
-  margin-top: 0.1rem;
-  margin-bottom: 0.1rem;
-  border-left: 1px solid #ccc;
-  width: 30rem;
-  justify-content: space-around;
-  display: flex;
-  align-items: center;
-  cursor: default;
-}
+    margin: 0.1rem 1rem 0.1rem 0;
+    cursor: default;
 
-.history-item > :first-child {
-  border-left: 0 solid #ccc;
-}
+    &__cursive {
+      font-style: italic;
+    }
 
-.history-item--label-event-red {
-  color: darkred;
-  font-weight: bold;
-}
+    &__pointer {
+      cursor: pointer;
+    }
 
-.history-item--label-event-yellow {
-  color: #ffa500;
-  font-weight: bold;
-}
+    &__red {
+      color: $color-red;
+      font-weight: bold;
+    }
 
-.history-item--label-event-green {
-  color: green;
-  font-weight: bold;
-}
+    &__yellow {
+      color: $color-yellow;
+      font-weight: bold;
+    }
 
-.no-underline {
-  text-decoration: none !important;
-  cursor: pointer;
-}
+    &__green {
+      color: $color-green;
+      font-weight: bold;
+    }
 
-.history-item--label-version {
-  cursor: pointer;
-}
+  }
 
-.history-item--label-guid {
-  cursor: pointer;
+  &--icon {
+    height: 3rem;
+  }
 }
 
 .aspect-popup-container > .popup {
@@ -69,22 +54,27 @@
   width: 50rem;
   text-align: center;
   font-size: large;
+
+  .aspect-tree-view--root {
+    margin-left: 2rem;
+    margin-top: 2rem;
+  }
 }
 
-.aspect-tree-view--root {
-  margin-left: 2rem;
-  margin-top: 2rem;
-}
+.history-diff {
+  margin-left: 20%;
+  margin-right: 20%;
 
-.diff-group {
-  display: flex;
-  justify-content: space-between;
-}
+  &--item {
+    display: flex;
+    justify-content: space-between;
 
-.diff-red {
-  color: #8b0000;
-}
+    &__red {
+      color: $color-red;
+    }
 
-.diff-green {
-  color: #008000;
+    &__green {
+      color: $color-green;
+    }
+  }
 }

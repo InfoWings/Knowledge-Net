@@ -16,7 +16,6 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
 
     override fun State.init(props: HistoryEventComponent.Props) {
         showFullVersion = false
-        showDiff = false
     }
 
     private fun openFullVersion() {
@@ -25,44 +24,38 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
         }
     }
 
-    private fun openDiffVersion() {
-        setState {
-            showDiff = true
-        }
-    }
-
     override fun RBuilder.render() {
         div("history-item") {
-            div(classes = "history-item-field history-item--label-user") {
-                userIcon("history-item-user-icon") { }
-                span {
-                    +props.historyData.user
-                }
+            userIcon("history-item--icon") { }
+            span("history-item--field") {
+                +props.historyData.user
             }
-            span(classes = "history-item-field history-item--label-event-${props.historyData.event.color}") {
+            span(classes = "history-item--field history-item--field__${props.historyData.event.color}") {
                 +props.historyData.event.name
             }
 
-            span(classes = "history-item-field history-item--label-class") {
+            span(classes = "history-item--field") {
                 +props.historyData.entityName
             }
-            span(classes = "history-item-field history-item--label-guid") {
-                a(classes = "no-underline") {
-                    attrs.onClickFunction = { openDiffVersion() }
-                    +props.historyData.info
-                }
+            span(classes = "history-item--field history-item--field__cursive") {
+                +props.historyData.info
             }
             if (props.historyData.deleted) {
-                ripIcon("history-item-field aspect-tree-view--rip-icon") {}
+                ripIcon("history-item--field aspect-tree-view--rip-icon") {}
             }
-            span(classes = "history-item-field history-item--label-timestamp") {
+            span(classes = "history-item--field") {
                 +Date(props.historyData.timestamp).toDateString()
             }
-            span(classes = "history-item-field history-item--label-version") {
-                a(classes = "no-underline") {
+            span(classes = "history-item--field history-item--field__pointer") {
+                a {
                     attrs.onClickFunction = { openFullVersion() }
                     +"ver. ${props.historyData.version}"
                 }
+            }
+        }
+        aspectDiffContainer {
+            attrs {
+                this.changes = props.historyData.changes
             }
         }
         if (state.showFullVersion) {
@@ -76,14 +69,6 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                 else -> Unit
             }
         }
-        if (state.showDiff) {
-            aspectDiffContainer {
-                attrs {
-                    changes = props.historyData.changes
-                    onExit = { setState { showDiff = false } }
-                }
-            }
-        }
     }
 
     interface Props : RProps {
@@ -92,7 +77,6 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
 
     interface State : RState {
         var showFullVersion: Boolean
-        var showDiff: Boolean
     }
 }
 

@@ -39,7 +39,8 @@ class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>() {
             attrs.location = props.location.pathname
         }
         div("row") {
-            div("col-md-8") {
+            div("col-md-3") { }
+            div("col-md-6") {
                 div("history-group") {
                     state.data.forEach {
                         historyEventComponent {
@@ -48,7 +49,7 @@ class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>() {
                     }
                 }
             }
-            div("col-md-4") { }
+            div("col-md-3") { }
         }
     }
 

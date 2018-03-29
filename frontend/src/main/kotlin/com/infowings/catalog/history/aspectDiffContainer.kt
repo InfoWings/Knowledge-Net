@@ -1,30 +1,21 @@
 package com.infowings.catalog.history
 
-import com.infowings.catalog.aspects.editconsole.popup.popup
 import com.infowings.catalog.common.Delta
 import react.*
 import react.dom.div
-import react.dom.li
 import react.dom.span
-import react.dom.ul
 
 class AspectDiffContainer : RComponent<AspectDiffContainer.Props, RState>() {
 
     override fun RBuilder.render() {
-        div("aspect-popup-container") {
-            popup {
-                attrs.closePopup = { props.onExit() }
-
-                ul("list-group") {
-                    props.changes.forEach {
-                        li("diff-group list-group-item diff-${it.color}") {
-                            span("field") {
-                                +it.field
-                            }
-                            span {
-                                +it.line
-                            }
-                        }
+        div("history-diff") {
+            props.changes.forEach {
+                div("history-diff--item history-diff--item__${it.color}") {
+                    span {
+                        +it.field
+                    }
+                    span {
+                        +it.line
                     }
                 }
             }
@@ -32,7 +23,6 @@ class AspectDiffContainer : RComponent<AspectDiffContainer.Props, RState>() {
     }
 
     interface Props : RProps {
-        var onExit: () -> Unit
         var changes: List<Delta>
     }
 }
