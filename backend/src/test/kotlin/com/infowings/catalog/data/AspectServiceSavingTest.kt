@@ -46,6 +46,24 @@ class AspectServiceSavingTest {
     }
 
     @Test
+    fun testAddAspectTrim() {
+        val aspectBase =
+            aspectService.save(AspectData("", "AspectBase", Kilometre.name, null, Decimal.name, emptyList()))
+        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.id, AspectPropertyCardinality.INFINITY.name)
+        val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
+        val createAspect: Aspect = aspectService.save(ad)
+
+        val aspect = aspectService.findByName("newAspectTrim").firstOrNull()
+        assertThat("aspect should be saved and restored with trim name", aspect, Is.`is`(createAspect))
+        assertThat(
+            "aspect should be saved and restored with trim property name",
+            aspect?.properties?.first()?.name,
+            Is.`is`("propTrim")
+        )
+        aspect
+    }
+
+    @Test
     fun testAddAspectWithEmptyParams() {
         val ad = AspectData("", "newAspect", null, null, Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.save(ad)
@@ -109,6 +127,15 @@ class AspectServiceSavingTest {
         aspectService.save(ad2)
 
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
+    }
+
+    @Test(expected = AspectAlreadyExist::class)
+    fun testAddTwoAspectsSameNameIgnoreCase() {
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        aspectService.save(ad)
+
+        val ad2 = AspectData("", "Aspect", Metre.name, null, Decimal.name, emptyList(), false, 1)
+        aspectService.save(ad2)
     }
 
     @Test(expected = AspectAlreadyExist::class)
