@@ -175,9 +175,10 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                     }
                 }
                 consoleButtonsGroup(
-                        onSubmitClick = ::trySubmitParentAspect,
-                        onCancelClick = props.onCancel,
-                        onAddToListClick = ::switchToNextProperty
+                    onSubmitClick = ::trySubmitParentAspect,
+                    onCancelClick = props.onCancel,
+                    onAddToListClick = ::switchToNextProperty,
+                    onDeleteClick = props.onDelete
                 )
             }
             div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {

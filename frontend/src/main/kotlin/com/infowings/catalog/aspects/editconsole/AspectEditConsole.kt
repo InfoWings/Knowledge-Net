@@ -79,12 +79,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     confirmation = false
                 }
             } catch (ex: AspectBadRequestException) {
-                if (ex.exceptionInfo.code == AspectBadRequestCode.NEED_CONFIRMATION) {
-                    setState {
+                when (ex.exceptionInfo.code) {
+                    AspectBadRequestCode.NEED_CONFIRMATION -> setState {
                         confirmation = true
                     }
-                } else {
-                    throw ex
+                    AspectBadRequestCode.INCORRECT_INPUT -> setState {
+                        badRequestErrorMessage = ex.exceptionInfo.message
+                    }
                 }
             }
         }
@@ -154,9 +155,10 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     }
                 }
                 consoleButtonsGroup(
-                        onSubmitClick = ::tryMakeSubmitAspectRequest,
-                        onAddToListClick = ::handleSwitchToProperties,
-                        onCancelClick = props.onCancel
+                    onSubmitClick = ::tryMakeSubmitAspectRequest,
+                    onAddToListClick = ::handleSwitchToProperties,
+                    onCancelClick = props.onCancel,
+                    onDeleteClick = { tryDelete(false) }
                 )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage

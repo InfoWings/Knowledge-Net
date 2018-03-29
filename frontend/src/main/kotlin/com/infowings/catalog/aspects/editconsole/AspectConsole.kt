@@ -29,12 +29,34 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         props.onSubmit()
     }
 
+    private fun handleDeleteSelectedAspectProperty() {
+        val selectedAspect = props.aspect ?: error("Aspect should be selected in order to delete property")
+        val selectedPropertyIndex = props.propertyIndex
+                ?: error("Aspect property should be selected in order to delete property")
+
+        launch {
+            props.onAspectPropertyUpdate(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
+
+            if (selectedAspect.hasNextAlivePropertyIndex(selectedPropertyIndex + 1)) {
+                props.onSelectProperty(
+                    selectedAspect.id,
+                    selectedAspect.nextAlivePropertyIndex(selectedPropertyIndex + 1)
+                )
+            } else {
+                props.onSelectAspect(selectedAspect.id)
+            }
+        }
+    }
+
     private fun handleSwitchToAspectProperties(aspect: AspectData) {
         val selectedAspect = props.aspect ?: error("Aspect should be selected in order to save changes")
         launch {
             props.onAspectUpdate(aspect)
             if (selectedAspect.properties.isNotEmpty()) {
-                props.onSelectProperty(selectedAspect.id, 0)
+                if (selectedAspect.hasNextAlivePropertyIndex(0))
+                    props.onSelectProperty(selectedAspect.id, selectedAspect.nextAlivePropertyIndex(0))
+                else
+                    props.onCreateProperty(selectedAspect.properties.size)
             } else {
                 props.onCreateProperty(0)
             }
@@ -68,6 +90,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                         onCancel = props.onCancel
                         onSubmit = { handleSubmitAspectChanges(it) }
                         onSwitchToProperties = ::handleSwitchToAspectProperties
+                        onDelete = props.onAspectDelete
                     }
                 }
             selectedAspect != null && selectedAspectPropertyIndex != null ->
@@ -80,6 +103,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                         onCancel = props.onCancel
                         onSwitchToNextProperty = ::handleSwitchToNextProperty
                         onSaveParentAspect = { handleSaveParentAspect(it) }
+                        onDelete = ::handleDeleteSelectedAspectProperty
                     }
                 }
         }
@@ -90,12 +114,20 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         var propertyIndex: Int?
         var aspectContext: (String) -> AspectData?
         var onSelectProperty: (String?, Int) -> Unit
+        var onSelectAspect: (String?) -> Unit
         var onCreateProperty: (Int) -> Unit
         var onCancel: () -> Unit
         var onAspectUpdate: suspend (AspectData) -> Unit
         var onAspectPropertyUpdate: suspend (AspectPropertyData) -> Unit
+        var onAspectDelete: suspend (force: Boolean) -> Unit
         var onSubmit: suspend () -> Unit
     }
 }
+
+private fun AspectData.hasNextAlivePropertyIndex(index: Int) = if (index >= properties.size) false else
+    properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
+
+private fun AspectData.nextAlivePropertyIndex(index: Int) =
+    properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
 
 fun RBuilder.aspectConsole(block: RHandler<AspectConsole.Props>) = child(AspectConsole::class, block)

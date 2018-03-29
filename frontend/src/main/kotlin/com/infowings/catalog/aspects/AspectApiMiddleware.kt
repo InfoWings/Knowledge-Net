@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-class AspectBadRequestException(exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
+class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
@@ -84,7 +84,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 removeAspect(aspectData)
             }
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)

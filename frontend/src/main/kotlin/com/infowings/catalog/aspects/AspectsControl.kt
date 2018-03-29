@@ -4,9 +4,9 @@ import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.wrappers.react.setStateWithCallback
 import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.common.emptyAspectPropertyData
+import com.infowings.catalog.wrappers.react.setStateWithCallback
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -90,7 +90,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setState {
             val currentlySelectedAspect = selectedAspect ?: error("Currently selected aspect should not be null")
             selectedAspect = currentlySelectedAspect.copy(
-                    properties = currentlySelectedAspect.properties.insertEmptyAtIndex(index)
+                properties = currentlySelectedAspect.properties.insertEmptyAtIndex(index)
             )
             selectedAspectPropertyIndex = if (0 <= index && index <= currentlySelectedAspect.properties.size)
                 index else null
@@ -107,10 +107,10 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         setStateWithCallback({ cont.resume(Unit) }) {
             val currentlySelectedAspect = selectedAspect ?: error("Currently selected aspect should not be null")
             selectedAspect = currentlySelectedAspect.copy(
-                    name = aspect.name,
-                    measure = aspect.measure,
-                    domain = aspect.domain,
-                    baseType = aspect.baseType
+                name = aspect.name,
+                measure = aspect.measure,
+                domain = aspect.domain,
+                baseType = aspect.baseType
             )
         }
     }
@@ -127,8 +127,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
                     ?: error("Currently selected aspect property index should not be null")
             selectedAspect = currentlySelectedAspect.updatePropertyAtIndex(
-                    currentlySelectedPropertyIndex,
-                    aspectProperty
+                currentlySelectedPropertyIndex,
+                aspectProperty
             )
         }
     }
@@ -194,10 +194,12 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                 propertyIndex = selectedAspectPropertyIndex
                 aspectContext = props.aspectContext::get
                 onSelectProperty = ::handleSelectAspectProperty
+                onSelectAspect = ::handleSelectAspect
                 onCreateProperty = ::handleCreateNewProperty
                 onCancel = ::handleCancelSelect
                 onAspectUpdate = { handleUpdateSelectedAspect(it) }
                 onAspectPropertyUpdate = { handleUpdateSelectedAspectProperty(it) }
+                onAspectDelete = { handleDeleteSelectedAspect(it) }
                 onSubmit = { handleSubmitSelectedAspect() }
             }
         }
@@ -229,17 +231,18 @@ private fun List<AspectPropertyData>.insertEmptyAtIndex(atIndex: Int): List<Aspe
 
 private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: AspectPropertyData) =
         this.copy(
-                properties = this.properties.mapIndexed { index, existingProperty ->
-                    if (index == atIndex) {
-                        existingProperty.copy(
-                                name = aspectProperty.name,
-                                cardinality = aspectProperty.cardinality,
-                                aspectId = aspectProperty.aspectId
-                        )
-                    } else {
-                        existingProperty
-                    }
+            properties = this.properties.mapIndexed { index, existingProperty ->
+                if (index == atIndex) {
+                    existingProperty.copy(
+                        name = aspectProperty.name,
+                        cardinality = aspectProperty.cardinality,
+                        aspectId = aspectProperty.aspectId,
+                        deleted = aspectProperty.deleted
+                    )
+                } else {
+                    existingProperty
                 }
+            }
         )
 
 private fun List<AspectData>.withSelected(aspect: AspectData?) =
@@ -254,27 +257,6 @@ private fun List<AspectData>.withSelected(aspect: AspectData?) =
         }
 
 /** Possibly should be moved somewhere during refactoring. For example to file AspectDataFrontendExtensions.  */
-
-private fun AspectData.hasNextAlivePropertyIndex(index: Int) =
-    properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
-
-private fun AspectData.nextAlivePropertyIndex(index: Int) =
-    properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
-
-private fun AspectData.changePropertyValues(index: Int, aspectProperty: AspectPropertyData) = copy(
-    properties = properties.mapIndexed { i, property ->
-        if (i != index) {
-            property
-        } else {
-            property.copy(
-                name = aspectProperty.name,
-                cardinality = aspectProperty.cardinality,
-                aspectId = aspectProperty.aspectId,
-                deleted = aspectProperty.deleted
-            )
-        }
-    }
-)
 
 private fun AspectData.plusEmptyProperty() = copy(
     properties = properties + emptyAspectPropertyData

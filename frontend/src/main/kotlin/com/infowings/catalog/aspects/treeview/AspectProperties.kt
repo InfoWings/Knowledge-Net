@@ -17,21 +17,23 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        props.aspect.properties.mapIndexed { index, property ->
-            child(AspectPropertyNodeExpandedWrapper::class) {
-                attrs {
-                    parentAspect = props.aspect
-                    propertyIndex = index
-                    aspectProperty = property
-                    selectedAspectId = props.selectedAspectId
-                    selectedPropertyIndex = props.selectedPropertyIndex
-                    onSelectAspect = props.onSelectAspect
-                    onAspectPropertyClick = props.onAspectPropertyClick
-                    aspectContext = props.aspectContext
-                    onAddAspectProperty = props.onAddAspectProperty
-                    onAddPropertyToAspect = ::handleAddPropertyToAspect
-                    subtreeExpanded = props.subtreeExpanded
-                    onSubtreeExpandStateChanged = props.onSubtreeExpandStateChanged
+        props.aspect.properties.forEachIndexed { index, property ->
+            if (!property.deleted) {
+                child(AspectPropertyNodeExpandedWrapper::class) {
+                    attrs {
+                        parentAspect = props.aspect
+                        propertyIndex = index
+                        aspectProperty = property
+                        selectedAspectId = props.selectedAspectId
+                        selectedPropertyIndex = props.selectedPropertyIndex
+                        onSelectAspect = props.onSelectAspect
+                        onAspectPropertyClick = props.onAspectPropertyClick
+                        aspectContext = props.aspectContext
+                        onAddAspectProperty = props.onAddAspectProperty
+                        onAddPropertyToAspect = ::handleAddPropertyToAspect
+                        subtreeExpanded = props.subtreeExpanded
+                        onSubtreeExpandStateChanged = props.onSubtreeExpandStateChanged
+                    }
                 }
             }
         }

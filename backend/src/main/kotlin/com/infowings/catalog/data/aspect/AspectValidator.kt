@@ -54,7 +54,7 @@ class AspectValidator(
     fun checkAspectDataConsistent(aspectData: AspectData) {
 
         // check properties not link to deleted aspects
-        aspectData.properties.forEach { it.checkForRemoved() }
+        aspectData.properties.filterNot { it.deleted }.forEach { it.checkForRemoved() }
 
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType

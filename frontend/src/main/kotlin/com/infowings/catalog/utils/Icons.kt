@@ -58,7 +58,7 @@ fun RBuilder.chevronDownIcon(classes: String? = null, block: RDOMBuilder<SVG>.()
 
 fun RBuilder.ripIcon(classes: String? = null, block: RDOMBuilder<SVG>.() -> Unit) {
     svg(classes, "0 0 512 512") {
-        title("rip")
+        title("Delete")
         path(
             """M473.043,411.826h-33.391V183.651C439.652,82.224,357.428,0,256.001,0H256C154.572,0,72.348,82.224,72.348,183.651
 			v228.175H38.957c-18.441,0-33.391,14.95-33.391,33.391v50.087c0,9.22,7.475,16.696,16.696,16.696h467.478

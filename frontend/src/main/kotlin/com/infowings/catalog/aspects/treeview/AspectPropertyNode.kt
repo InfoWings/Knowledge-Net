@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -32,10 +33,13 @@ class AspectPropertyNode : RComponent<AspectPropertyNode.CombinedProps, RState>(
             }
         }
 
-        if (props.correspondingAspect != null) {
-            addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
-                attrs {
-                    onClickFunction = ::handleAddToListClick
+        val correspondingAspect = props.correspondingAspect
+        if (props.aspectProperty.id.isNotEmpty() && correspondingAspect != null) {
+            if (correspondingAspect.deleted) {
+                ripIcon("aspect-tree-view--rip-icon") {}
+            } else {
+                addToListIcon(classes = "aspect-tree-view--add-to-list-icon") {
+                    attrs.onClickFunction = ::handleAddToListClick
                 }
             }
         }
