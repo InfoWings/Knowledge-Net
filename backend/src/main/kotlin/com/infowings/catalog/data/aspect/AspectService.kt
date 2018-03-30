@@ -144,7 +144,7 @@ class AspectService(
 
     private fun AspectVertex.toAspect(): Aspect = transaction(db) {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        return Aspect(
+        Aspect(
             id,
             name,
             measure,
@@ -153,8 +153,8 @@ class AspectService(
             loadProperties(this),
             version,
             subject,
-             deleted
-            )
+            deleted
+        )
     }
 
     private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
@@ -200,9 +200,9 @@ class AspectPropertyModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
-        AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+    AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 
 class AspectNameCannotBeNull : AspectException()
-class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 
 class AspectInconsistentStateException(message: String) : AspectException(message)

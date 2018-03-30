@@ -55,5 +55,5 @@ data class AspectProperty(
     val cardinality: AspectPropertyCardinality,
     val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, false, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
 }

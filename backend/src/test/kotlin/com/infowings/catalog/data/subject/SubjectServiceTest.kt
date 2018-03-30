@@ -58,25 +58,23 @@ class SubjectServiceTest {
         val ad1 = createTestAspect(aspectName, subject = subject1.toSubjectData())
         val newAspect1 = aspectService.save(ad1)
         val ad2 = createTestAspect(aspectName, subject = subject2.toSubjectData())
-        aspectService.save(ad2)
-        Assert.assertThat(
-            "aspect '$aspectName' should be saved and restored",
-            aspectService.findByName(aspectName).firstOrNull(),
-            Is.`is`(newAspect1)
-        )
+        val newAspect2 = aspectService.save(ad2)
+        aspectService.findByName(aspectName).forEach {
+            if (it.subject?.name == subject1.name) {
+                Assert.assertThat("aspect '$aspectName' should be saved", newAspect1, Is.`is`(it))
+            }
+            if (it.subject?.name == subject2.name) {
+                Assert.assertThat("aspect '$aspectName' should be saved", newAspect2, Is.`is`(it))
+            }
+        }
 
-        Assert.assertThat(
-            "aspect '$aspectName' should be saved and restored",
-            aspectService.findByName(aspectName).firstOrNull(),
-            Is.`is`(newAspect1)
-        )
     }
 
     @Test
     fun testAddAspectsAfterRemoveSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.remove(aspectService.save(ad1))
+        aspectService.remove(aspectService.save(ad1).toAspectData())
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad2)

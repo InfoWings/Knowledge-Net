@@ -53,7 +53,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
