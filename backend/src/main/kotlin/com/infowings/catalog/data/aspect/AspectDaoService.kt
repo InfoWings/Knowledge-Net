@@ -11,11 +11,12 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /** Should be used externally for query building. */
-const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId)"
-const val notDeletedSql = "deleted is NULL or deleted = false"
-const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE ($notDeletedSql)"
+const val notDeletedSql = "(deleted is NULL or deleted = false)"
+const val selectWithNameDifferentId =
+    "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId) and $notDeletedSql"
+const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
-const val selectAspectByName = "SELECT FROM Aspect where name = ? AND ($notDeletedSql)"
+const val selectAspectByName = "SELECT FROM Aspect where name = ? AND $notDeletedSql"
 
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {

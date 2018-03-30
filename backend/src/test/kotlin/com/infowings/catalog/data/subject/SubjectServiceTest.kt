@@ -1,14 +1,12 @@
 package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Kilometre
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.core.Is
@@ -87,6 +85,37 @@ class SubjectServiceTest {
         )
     }
 
+    @Test
+    fun testAddAspectsAfterRemoveForceSameSubject() {
+        /*
+         *  aspectBase
+         *    level1_property
+         *       aspect
+         */
+        val subject = createTestSubject("TestSubjectUpdate")
+        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()))
+        val level1_property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
+        aspectService.save(
+            createTestAspect(
+                "aspectBase",
+                subject = subject.toSubjectData(),
+                properties = listOf(level1_property)
+            )
+        )
+
+        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), true)
+
+        val ad2 = createTestAspect(subject = subject.toSubjectData())
+        aspectService.save(ad2)
+
+        val aspects = aspectService.findByName("aspect")
+        Assert.assertThat(
+            "aspect should be saved",
+            aspectService.findByName("aspect").firstOrNull(),
+            Is.`is`(aspects.first())
+        )
+    }
+
 
     private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject =
         createTestSubject(name, aspectNames, aspectService, subjectService)
@@ -94,7 +123,8 @@ class SubjectServiceTest {
     private fun createTestAspect(
         name: String = "aspect",
         measure: String = Kilometre.name,
-        subject: SubjectData? = null
+        subject: SubjectData? = null,
+        properties: List<AspectPropertyData> = emptyList()
     ) =
         AspectData(
             null,
@@ -102,7 +132,7 @@ class SubjectServiceTest {
             measure,
             null,
             BaseType.Decimal.name,
-            emptyList(),
+            properties,
             subject = subject
         )
 
