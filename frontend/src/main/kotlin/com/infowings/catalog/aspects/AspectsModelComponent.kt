@@ -13,13 +13,64 @@ import react.RState
 import react.setState
 
 interface AspectsModel {
+    /**
+     * Method for selecting existing aspect (or new but not yet saved if [AspectData.id] == null)
+     *
+     * if supplied [AspectData.id] does not exist in context (should not happen at all), does nothing
+     *
+     * @param aspectId - [AspectData.id] of [AspectData] to select.
+     */
     fun selectAspect(aspectId: String?)
+
+    /**
+     * Method for selecting property of existing (or new) aspect by index of the property inside the aspect.
+     *
+     * The reason for selecting aspect property by index instead of by id or instance is that new aspect properties
+     * have all the same id (empty string) and there are no restrictions on the state of the properties while editing,
+     * which means that there may be two properties with exact same content inside one aspect (may be use case for
+     * copying). Validation regarding possible restrictions is performed on server side.
+     *
+     * @param aspectId - [AspectData.id] of parent [AspectData] of [AspectPropertyData] to select.
+     * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
+     */
     fun selectAspectProperty(aspectId: String?, index: Int)
+
+    /**
+     * Method for canceling selected state.
+     *
+     * By default resets state to creating new aspect.
+     */
     fun discardSelect()
+
+    /**
+     * Method for creating new [AspectPropertyData] inside currently selected [AspectData] at index.
+     */
     fun createProperty(index: Int)
+
+    /**
+     * Method for updating currently selected [AspectData]
+     *
+     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
+     * complete before submission to the server).
+     */
     suspend fun updateAspect(aspect: AspectData)
+
+    /**
+     * Method for updating currently selected [AspectPropertyData]
+     *
+     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
+     * complete before submission to the server).
+     */
     suspend fun updateProperty(property: AspectPropertyData)
+
+    /**
+     * Method for submitting changes of currently selected [AspectData] to the server
+     */
     suspend fun submitAspect()
+
+    /**
+     * Method for requesting delete of currently selected [AspectData] to the server
+     */
     suspend fun deleteAspect(force: Boolean)
 }
 
@@ -40,13 +91,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    /**
-     * Handler for selecting existing aspect (or new but not yet saved if [AspectData.id] == null)
-     *
-     * if supplied [AspectData.id] does not exist in context (should not happen at all), does nothing
-     *
-     * @param aspectId - [AspectData.id] of [AspectData] to select.
-     */
     override fun selectAspect(aspectId: String?) {
         setState {
             selectedAspect = when (aspectId) {
@@ -59,17 +103,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    /**
-     * Handler for selecting property of existing (or new) aspect by index of the property inside the aspect.
-     *
-     * The reason for selecting aspect property by index instead of by id or instance is that new aspect properties
-     * have all the same id (empty string) and there are no restrictions on the state of the properties while editing,
-     * which means that there may be two properties with exact same content inside one aspect (may be use case for
-     * copying). Validation regarding possible restrictions is performed on server side.
-     *
-     * @param aspectId - [AspectData.id] of parent [AspectData] of [AspectPropertyData] to select.
-     * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
-     */
     override fun selectAspectProperty(aspectId: String?, index: Int) {
         setState {
             selectedAspect = when (aspectId) {
@@ -83,11 +116,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    /**
-     * Handler for canceling selected state.
-     *
-     * By default resets state to creating new aspect.
-     */
     override fun discardSelect() {
         setState {
             selectedAspect = emptyAspectData
@@ -95,9 +123,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    /**
-     * Handler for creating new [AspectPropertyData] inside currently selected [AspectData] at index.
-     */
     override fun createProperty(index: Int) {
         setState {
             val currentlySelectedAspect = selectedAspect
@@ -111,12 +136,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    /**
-     * Handler for updating currently selected [AspectData]
-     *
-     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
-     * complete before submission to the server).
-     */
     override suspend fun updateAspect(aspect: AspectData) =
         suspendSetState {
             selectedAspect = selectedAspect.copy(
@@ -127,12 +146,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
             )
         }
 
-    /**
-     * Handler for updating currently selected [AspectPropertyData]
-     *
-     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
-     * complete before submission to the server).
-     */
     override suspend fun updateProperty(property: AspectPropertyData) =
         suspendSetState {
             val currentlySelectedAspect = selectedAspect
@@ -145,9 +158,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
             )
         }
 
-    /**
-     * Handler for submitting changes of currently selected [AspectData] to the server
-     */
     override suspend fun submitAspect() {
         val selectedAspect = state.selectedAspect
 

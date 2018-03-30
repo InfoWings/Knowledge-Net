@@ -9,16 +9,50 @@ import kotlinx.coroutines.experimental.launch
 import react.*
 
 interface AspectEditConsoleModel {
+    /**
+     * Save [AspectData] that is currently being edited and then submitting changes to the server
+     */
     suspend fun submitAspect(aspect: AspectData)
+
+    /**
+     * Save [AspectData] that is currently being edited and then switch to editing first visible (not
+     * deleted) [AspectPropertyData]
+     */
     fun switchToProperties(aspect: AspectData)
+
+    /**
+     * Discard all saved but not yet updated changes
+     */
     fun discardChanges()
+
+    /**
+     * Request delete of [AspectData] that is currently being edited
+     */
     suspend fun deleteAspect(force: Boolean)
 }
 
 interface AspectPropertyEditConsoleModel {
+    /**
+     * Save [AspectPropertyData] that is currently being edited and then submit all changes made to parent [AspectData]
+     * to the server
+     */
     suspend fun submitParentAspect(property: AspectPropertyData)
+
+    /**
+     * Save [AspectPropertyData] that is currently being edited and then switch to editing next available
+     * [AspectPropertyData] if such exist or to parent [AspectData] otherwise
+     */
     fun switchToNextProperty(property: AspectPropertyData)
+
+    /**
+     * Discard all saved but not yet updated changes
+     */
     fun discardChanges()
+
+    /**
+     * Save currently edited [AspectPropertyData] as deleted and switch to editing next available [AspectPropertyData]
+     * if such exist or to parent [AspectData] otherwise
+     */
     fun deleteProperty()
 }
 
