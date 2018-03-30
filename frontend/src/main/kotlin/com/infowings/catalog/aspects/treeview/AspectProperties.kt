@@ -30,6 +30,7 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
                         selectedPropertyIndex = props.selectedPropertyIndex
                         subtreeExpanded = props.subtreeExpanded
                         onSubtreeExpandStateChanged = props.onSubtreeExpandStateChanged
+                        aspectContext = props.aspectContext
                         onAddPropertyToAspect = ::addPropertyToAspect
                         aspectsModel = props.aspectsModel
                     }
