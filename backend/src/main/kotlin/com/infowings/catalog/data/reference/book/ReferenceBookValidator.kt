@@ -4,7 +4,7 @@ package com.infowings.catalog.data.reference.book
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.id
 
-class ReferenceBookValidator {
+class ReferenceBookValidator(private val dao: ReferenceBookDao) {
     fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         checkRefBookVersion(bookItemVertex, bookItem)
         checkRefBookChildrenVersions(bookItemVertex, bookItem)
