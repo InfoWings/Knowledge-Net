@@ -1,13 +1,17 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.*
+import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
+import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -22,6 +26,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     private var inputRef: HTMLInputElement? = null
     private var aspectChanged: Boolean = false
+    private val currentState
+        get() = props.aspect.copy(
+            name = state.aspectName ?: error("Aspect Name is null"),
+            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
+            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
+            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+        )
 
     override fun State.init(props: Props) {
         aspectName = props.aspect.name
@@ -29,6 +40,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
         aspectName = props.aspect.subject?.name ?: ""
+        confirmation = false
     }
 
     override fun componentDidMount() {
@@ -66,14 +78,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         aspectChanged = true
         inputRef?.blur()
-        props.onSwitchToProperties(
-            props.aspect.copy(
-                name = state.aspectName ?: error("Aspect Name is null"),
-                measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-            )
-        )
+        props.onSwitchToProperties(currentState)
     }
 
     private fun handleSubmitAspectClick(e: Event) {
@@ -87,13 +92,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun tryMakeSubmitAspectRequest() {
         launch {
             try {
-                props.onSubmit(props.aspect.copy(
-                        name = state.aspectName ?: error("Aspect Name is null"),
-                        measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                        domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                        baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
-                        subject = state.aspectSubject
-                ))
+                props.onSubmit(currentState)
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
@@ -110,6 +109,33 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         props.onCancel()
     }
 
+    private fun handleDeleteClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        aspectChanged = true
+        inputRef?.blur()
+        tryDelete(false)
+    }
+
+    private fun tryDelete(force: Boolean) {
+        launch {
+            try {
+                props.onDelete(force)
+                setState {
+                    confirmation = false
+                }
+            } catch (ex: AspectBadRequestException) {
+                if (ex.exceptionInfo.code == AspectBadRequestCode.NEED_CONFIRMATION) {
+                    setState {
+                        confirmation = true
+                    }
+                } else {
+                    throw ex
+                }
+            }
+        }
+    }
+
     private fun assignInputRef(element: HTMLInputElement?) {
         inputRef = element
     }
@@ -118,29 +144,21 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         e.stopPropagation()
         val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
         val ctrlPressed = e.unsafeCast<KeyboardEvent>().ctrlKey
-        when (keyCode) {
-            27 -> {
+        when {
+            keyCode == 27 -> {
                 aspectChanged = true
                 inputRef?.blur()
                 props.onCancel()
             }
-            13 -> {
-                if (ctrlPressed) {
-                    aspectChanged = true
-                    inputRef?.blur()
-                    props.onSwitchToProperties(
-                        props.aspect.copy(
-                            name = state.aspectName ?: error("Aspect Name is null"),
-                            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-                            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-                            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
-                        )
-                    )
-                } else {
-                    aspectChanged = true
-                    inputRef?.blur()
-                    tryMakeSubmitAspectRequest()
-                }
+            keyCode == 13 && ctrlPressed -> {
+                aspectChanged = true
+                inputRef?.blur()
+                props.onSwitchToProperties(currentState)
+            }
+            keyCode == 13 && !ctrlPressed -> {
+                aspectChanged = true
+                inputRef?.blur()
+                tryMakeSubmitAspectRequest()
             }
         }
     }
@@ -231,7 +249,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         attrs {
                             onClickFunction = ::handleCancelClick
                         }
-                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
+                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__yellow") {}
+                    }
+                    div(classes = "aspect-edit-console--button-control") {
+                        attrs {
+                            onClickFunction = ::handleDeleteClick
+                        }
+                        ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
                     }
                 }
             }
@@ -244,12 +268,25 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             }
         }
+        if (state.confirmation) {
+            popup {
+                attrs.closePopup = { setState { confirmation = false } }
+
+                removeConfirmWindow {
+                    attrs {
+                        onCancel = { setState { confirmation = false } }
+                        onConfirm = { tryDelete(true) }
+                    }
+                }
+            }
+        }
     }
 
     interface Props : RProps {
         var aspect: AspectData
         var onCancel: () -> Unit
         var onSubmit: suspend (AspectData) -> Unit
+        var onDelete: suspend (Boolean) -> Unit
         var onSwitchToProperties: (AspectData) -> Unit
     }
 
@@ -260,6 +297,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectBaseType: String?
         var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
+        var confirmation: Boolean
     }
 }
 

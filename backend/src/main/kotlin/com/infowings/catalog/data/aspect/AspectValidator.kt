@@ -11,8 +11,8 @@ import com.infowings.catalog.storage.id
 fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
     if (version != aspectData.version) {
         throw AspectConcurrentModificationException(
-                id,
-                "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
+            id,
+            "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
         )
     }
 
@@ -60,7 +60,9 @@ class AspectValidator(
         when {
             measureName == null && baseType == null && aspectData.properties.isEmpty() ->
                 throw AspectInconsistentStateException("Measure and BaseType can't be null at the same time")
+
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
+
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
                         ?: throw AspectInconsistentStateException("Measure $measureName incorrect")
@@ -122,8 +124,10 @@ class AspectValidator(
         // check aspect properties business key
         // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
         // not call db because we suppose that Aspect Property business key is exist only inside concrete aspect
+        val aliveProperties = actualData().properties
+
         val notValid =
-            properties.distinctBy { Pair(it.name, it.aspectId) }.size != properties.size
+            aliveProperties.distinctBy { Pair(it.name, it.aspectId) }.size != aliveProperties.size
 
         if (notValid) {
             throw AspectInconsistentStateException("Aspect properties should have unique pairs of name and assigned aspect")

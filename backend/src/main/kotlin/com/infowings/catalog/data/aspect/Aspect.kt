@@ -25,7 +25,8 @@ data class Aspect(
                 ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
     val properties: List<AspectProperty> = emptyList(),
     val version: Int = 0,
-    val subject: Subject? = null
+    val subject: Subject? = null,
+    val deleted: Boolean = false
 ) {
 
     operator fun get(property: String) = properties.filter { it.name == property }
@@ -39,7 +40,8 @@ data class Aspect(
             baseType?.name,
             properties.toAspectPropertyData(),
             version,
-            subject?.toSubjectData()
+            subject?.toSubjectData(),
+            deleted
         )
 }
 
@@ -47,11 +49,11 @@ fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
 fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { it.toAspectPropertyData() }
 
 data class AspectProperty(
-        val id: String,
-        val name: String,
-        val aspect: Aspect,
-        val cardinality: AspectPropertyCardinality,
-        val version: Int
+    val id: String,
+    val name: String,
+    val aspect: Aspect,
+    val cardinality: AspectPropertyCardinality,
+    val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, false, version)
 }

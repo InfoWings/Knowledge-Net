@@ -38,7 +38,29 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.save(ad)
 
-        assertThat("aspect should be saved and restored", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
+        assertThat(
+            "aspect should be saved and restored",
+            aspectService.findByName("newAspect").firstOrNull(),
+            Is.`is`(createAspect)
+        )
+    }
+
+    @Test
+    fun testAddAspectTrim() {
+        val aspectBase =
+            aspectService.save(AspectData("", "AspectBase", Kilometre.name, null, Decimal.name, emptyList()))
+        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.id, AspectPropertyCardinality.INFINITY.name)
+        val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
+        val createAspect: Aspect = aspectService.save(ad)
+
+        val aspect = aspectService.findByName("newAspectTrim").firstOrNull()
+        assertThat("aspect should be saved and restored with trim name", aspect, Is.`is`(createAspect))
+        assertThat(
+            "aspect should be saved and restored with trim property name",
+            aspect?.properties?.first()?.name,
+            Is.`is`("propTrim")
+        )
+        aspect
     }
 
     @Test
@@ -46,7 +68,11 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "newAspect", null, null, Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.save(ad)
 
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
+        assertThat(
+            "aspect should be saved and restored event when some params are missing",
+            aspectService.findByName("newAspect").firstOrNull(),
+            Is.`is`(createAspect)
+        )
     }
 
     @Test(expected = AspectInconsistentStateException::class)
@@ -60,12 +86,23 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
         val createAspect: Aspect = aspectService.save(ad)
 
-        assertThat("aspect should be saved and restored event when some params are missing", aspectService.findByName("newAspect").firstOrNull(), Is.`is`(createAspect))
+        assertThat(
+            "aspect should be saved and restored event when some params are missing",
+            aspectService.findByName("newAspect").firstOrNull(),
+            Is.`is`(createAspect)
+        )
     }
 
     @Test(expected = AspectInconsistentStateException::class)
     fun testFailAddAspect() {
-        val ad = AspectData("", "newAspect", Kilometre.name, OpenDomain(Boolean).toString(), BaseType.Boolean.name, emptyList())
+        val ad = AspectData(
+            "",
+            "newAspect",
+            Kilometre.name,
+            OpenDomain(Boolean).toString(),
+            BaseType.Boolean.name,
+            emptyList()
+        )
         aspectService.save(ad)
     }
 
@@ -74,7 +111,7 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
         val aspect = aspectService.save(ad)
 
-        val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, Decimal.name, emptyList(), 1)
+        val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, Decimal.name, emptyList(), false, 1)
         val newAspect = aspectService.save(ad2)
 
         assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
@@ -86,10 +123,19 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad)
 
-        val ad2 = AspectData("", "aspect", Metre.name, null, Decimal.name, emptyList(), 1)
+        val ad2 = AspectData("", "aspect", Metre.name, null, Decimal.name, emptyList(), false, 1)
         aspectService.save(ad2)
 
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
+    }
+
+    @Test(expected = AspectAlreadyExist::class)
+    fun testAddTwoAspectsSameNameIgnoreCase() {
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        aspectService.save(ad)
+
+        val ad2 = AspectData("", "Aspect", Metre.name, null, Decimal.name, emptyList(), false, 1)
+        aspectService.save(ad2)
     }
 
     @Test(expected = AspectAlreadyExist::class)
@@ -109,9 +155,11 @@ class AspectServiceSavingTest {
         val ad2 = AspectData("", "aspect2", Kilometre.name, null, Decimal.name, emptyList())
         aspectService.save(ad2)
 
-        assertThat("should return two aspects with same measure",
-                aspectService.getAspects().filter { it.measure == Kilometre }.size,
-                Is.`is`(2))
+        assertThat(
+            "should return two aspects with same measure",
+            aspectService.getAspects().filter { it.measure == Kilometre }.size,
+            Is.`is`(2)
+        )
     }
 
     @Test(expected = AspectInconsistentStateException::class)
@@ -156,7 +204,8 @@ class AspectServiceSavingTest {
         field.isAccessible = true
         field.set(Gram, Boolean)
 
-        val newAspect = aspectService.save(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name))
+        val newAspect =
+            aspectService.save(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name))
 
         assertTrue("aspect should have new measure", newAspect.measure == Gram)
 
@@ -186,13 +235,22 @@ class AspectServiceSavingTest {
         assertTrue("base type should be decimal", aspect.baseType == Decimal)
         assertTrue("measure should be litre", aspect.measure == Litre)
 
-        val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
+        val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), false, aspect.version)
         val aspect2 = aspectService.save(ad2)
 
         assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean)
         assertTrue("measure should be null", aspect2.measure == null)
 
-        val ad3 = AspectData(aspect.id, "aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), aspect2.version)
+        val ad3 = AspectData(
+            aspect.id,
+            "aspect",
+            Metre.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            false,
+            aspect2.version
+        )
         val aspect3 = aspectService.save(ad3)
 
         assertTrue("base type should be decimal", aspect3.baseType == BaseType.Decimal)
@@ -203,9 +261,9 @@ class AspectServiceSavingTest {
     fun testAspectWithoutCyclicDependency() {
         val aspect = prepareAspect()
         assertThat(
-                "aspect should be saved and restored if no cyclic dependencies",
-                aspectService.findByName("aspect").firstOrNull(),
-                Is.`is`(aspect)
+            "aspect should be saved and restored if no cyclic dependencies",
+            aspectService.findByName("aspect").firstOrNull(),
+            Is.`is`(aspect)
         )
     }
 
@@ -216,13 +274,15 @@ class AspectServiceSavingTest {
         val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, AspectPropertyCardinality.INFINITY.name)
         val aspect1 = aspect.properties.first().aspect
         val editedAspectData1 = AspectData(
-                aspect1.id,
-                "aspect1",
-                Metre.name,
-                null,
-                Decimal.name,
-                aspect1.properties.toAspectPropertyData().plus(editedPropertyData1),
-                aspect1.version)
+            aspect1.id,
+            "aspect1",
+            Metre.name,
+            null,
+            Decimal.name,
+            aspect1.properties.toAspectPropertyData().plus(editedPropertyData1),
+            false,
+            aspect1.version
+        )
 
         aspectService.save(editedAspectData1)
     }

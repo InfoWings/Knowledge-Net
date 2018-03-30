@@ -13,6 +13,10 @@ suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/a
 
 suspend fun updateAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/update", JSON.stringify(body)))
 
+suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.stringify(body))
+
+suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(body))
+
 suspend fun getSuggestedAspects(query: String, aspectId: String?, aspectPropertyId: String?): AspectsList {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""

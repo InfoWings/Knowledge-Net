@@ -101,6 +101,7 @@ class AspectServiceRestTest {
                 null,
                 BaseType.Decimal.name,
                 listOf(saved["p1"][0].toAspectPropertyData(), newProperty, updatedProperty.copy(id = saved["p2"][0].id, version = saved["p2"][0].version)),
+            false,
                 saved.version)
 
         val result = mockMvc.perform(

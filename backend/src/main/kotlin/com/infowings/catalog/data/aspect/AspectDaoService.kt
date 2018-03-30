@@ -34,7 +34,17 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun remove(vertex: OVertex) = db.delete(vertex)
+    fun remove(vertex: OVertex) {
+        db.delete(vertex)
+    }
+
+    fun fakeRemove(vertex: AspectVertex) {
+        session(db) {
+            vertex.deleted = true
+            vertex.save<OVertex>()
+        }
+    }
+
 
     fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
@@ -70,9 +80,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun saveAspectProperty(ownerAspectVertex: AspectVertex,
-                           aspectPropertyVertex: AspectPropertyVertex,
-                           aspectPropertyData: AspectPropertyData): AspectPropertyVertex = transaction(db) {
+    fun saveAspectProperty(
+        ownerAspectVertex: AspectVertex,
+        aspectPropertyVertex: AspectPropertyVertex,
+        aspectPropertyData: AspectPropertyData
+    ): AspectPropertyVertex = transaction(db) {
 
         logger.debug("Saving aspect property ${aspectPropertyData.name} linked with aspect ${aspectPropertyData.aspectId}")
 
@@ -81,7 +93,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
 

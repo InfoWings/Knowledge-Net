@@ -45,6 +45,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
                     .createProperty("name", OType.STRING).isMandatory = true
+            createIgnoreCaseIndex(session, ASPECT_CLASS)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
@@ -59,6 +60,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
                 .createProperty(ATTR_NAME, OType.STRING)
                 .setMandatory(true)
                 .createIndex(OClass.INDEX_TYPE.UNIQUE)
+            createIgnoreCaseIndex(session, className)
         }
     }
 
@@ -151,5 +153,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.setProperty("password", password)
         user.setProperty("role", role)
         user.save<ORecord>()
+    }
+
+    private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {
+        session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
     }
 }

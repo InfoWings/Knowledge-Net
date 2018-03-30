@@ -31,7 +31,7 @@
   &--line-icon {
     height: 1.6rem;
     width: 1.6rem;
-    fill: $color-icon-default;
+    stroke: $color-icon-default;
     margin-right: .4rem;
 
     &__clickable:hover {
@@ -40,6 +40,17 @@
   }
 
   &--add-to-list-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
+
+    &:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
+  &--rip-icon {
     height: 1.5rem;
     width: 1.5rem;
     fill: $color-icon-default;
@@ -114,7 +125,7 @@
 
   &--properties-block {
     padding-left: $tree-level-translation;
-    padding-top: .2rem;
+    padding-bottom: .7rem;
   }
 
 }
