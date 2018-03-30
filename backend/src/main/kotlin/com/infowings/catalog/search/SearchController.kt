@@ -48,7 +48,7 @@ class SearchController(val suggestionService: SuggestionService) {
         context: SearchContext,
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam
-    ): SubjectsList = SubjectsList(suggestionService.findSubject(context, commonParam, subjectParam))
+    ): SubjectsList = SubjectsList(suggestionService.findSubject(commonParam, subjectParam))
 
 }
 

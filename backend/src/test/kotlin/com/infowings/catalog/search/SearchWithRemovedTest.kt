@@ -5,10 +5,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.Metre
 import com.infowings.catalog.common.Tonne
-import com.infowings.catalog.data.aspect.Aspect
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
-import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
@@ -32,6 +29,9 @@ class SearchWithRemovedTest {
 
     @Autowired
     lateinit var aspectService: AspectService
+
+    @Autowired
+    lateinit var aspectDaoService: AspectDaoService
 
     @Autowired
     lateinit var database: OrientDatabase
@@ -89,7 +89,7 @@ class SearchWithRemovedTest {
     @Test
     fun testFindAsParent() {
 
-        val searched = aspectService.findParentAspects(initialAspect.id)
+        val searched = aspectDaoService.findParentAspects(initialAspect.id)
 
         assertThat(
             "Search parents must contain aspect and his parent",

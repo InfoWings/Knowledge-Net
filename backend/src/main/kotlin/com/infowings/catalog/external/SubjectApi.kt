@@ -14,7 +14,7 @@ class SubjectApi(val subjectService: SubjectService) {
 
     @PostMapping("create")
     fun createSubject(@RequestBody subjectData: SubjectData): SubjectData {
-        logger.info("New subject create request: $subjectData")
+        logger.debug("New subject create request: $subjectData")
         return subjectService.createSubject(subjectData).toSubjectData()
     }
 
@@ -26,7 +26,7 @@ class SubjectApi(val subjectService: SubjectService) {
 
     @PostMapping("update")
     fun updateSubject(@RequestBody subjectData: SubjectData): SubjectData {
-        logger.info("Update subject create request: $subjectData")
+        logger.debug("Update subject create request: $subjectData")
         return subjectService.updateSubject(subjectData).toSubjectData()
     }
 }

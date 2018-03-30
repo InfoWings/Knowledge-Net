@@ -5,7 +5,6 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -110,6 +109,18 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             mapOf("name" to name, "aspectId" to ORecordId(id), "subjectId" to ORecordId(subjectId))
         return db.query(q, args) { it.map { it.toVertex() }.toSet() }
     }
+
+    /**
+     * @param aspectId aspect id to start
+     * @return list of the current aspect and all its parents
+     */
+    fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
+        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
+        return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
+            it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
+        }
+    }
+
 }
 
 private val logger = loggerFor<AspectDaoService>()

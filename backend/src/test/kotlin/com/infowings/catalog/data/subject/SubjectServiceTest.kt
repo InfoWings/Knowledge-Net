@@ -1,7 +1,10 @@
 package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Kilometre
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -28,96 +31,83 @@ class SubjectServiceTest {
     @Autowired
     private lateinit var aspectService: AspectService
 
-
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
-        val ad1 = AspectData(
-            null,
-            "aspect",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject.toSubjectData()
-        )
+        val ad1 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad1)
 
-        val ad2 = AspectData(
-            null,
-            "aspect",
-            Metre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject.toSubjectData()
-        )
+        val ad2 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad2)
     }
 
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameGlobalSubject() {
-        val ad1 = AspectData(
-            null,
-            "aspect",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList()
-        )
+        val ad1 = createTestAspect()
         aspectService.save(ad1)
 
-        val ad2 = AspectData(
-            null,
-            "aspect",
-            Metre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList()
-        )
+        val ad2 = createTestAspect()
         aspectService.save(ad2)
     }
 
     @Test
     fun testAddAspectsSameNameDiffSubject() {
-        val subject1 = createTestSubject("TestSubjectUpdate")
-        val subject2 = createTestSubject("TestSubjectUpdate1")
-        val ad1 = AspectData(
-            null,
-            "DiffSubject",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject1.toSubjectData()
-        )
+        val subject1 = createTestSubject("TestSubjectUpdate1")
+        val subject2 = createTestSubject("TestSubjectUpdate2")
+        val aspectName = "aspectDiffSubject"
+        val ad1 = createTestAspect(aspectName, subject = subject1.toSubjectData())
         val newAspect1 = aspectService.save(ad1)
-
-        val ad2 = AspectData(
-            null,
-            "DiffSubject",
-            Metre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            subject = subject2.toSubjectData()
-        )
+        val ad2 = createTestAspect(aspectName, subject = subject2.toSubjectData())
         aspectService.save(ad2)
         Assert.assertThat(
-            "aspect 'DiffSubject' should be saved and restored",
-            aspectService.findByName("DiffSubject").firstOrNull(),
+            "aspect '$aspectName' should be saved and restored",
+            aspectService.findByName(aspectName).firstOrNull(),
             Is.`is`(newAspect1)
         )
 
         Assert.assertThat(
-            "aspect 'DiffSubject' should be saved and restored",
-            aspectService.findByName("DiffSubject").firstOrNull(),
+            "aspect '$aspectName' should be saved and restored",
+            aspectService.findByName(aspectName).firstOrNull(),
             Is.`is`(newAspect1)
         )
     }
 
+    @Test
+    fun testAddAspectsAfterRemoveSameSubject() {
+        val subject = createTestSubject("TestSubjectUpdate")
+        val ad1 = createTestAspect(subject = subject.toSubjectData())
+        aspectService.remove(aspectService.save(ad1))
+
+        val ad2 = createTestAspect(subject = subject.toSubjectData())
+        aspectService.save(ad2)
+
+        val aspects = aspectService.findByName("aspect")
+        Assert.assertThat(
+            "aspect should be saved",
+            aspectService.findByName("aspect").firstOrNull(),
+            Is.`is`(aspects.first())
+        )
+    }
+
+
     private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject =
         createTestSubject(name, aspectNames, aspectService, subjectService)
+
+    private fun createTestAspect(
+        name: String = "aspect",
+        measure: String = Kilometre.name,
+        subject: SubjectData? = null
+    ) =
+        AspectData(
+            null,
+            name,
+            measure,
+            null,
+            BaseType.Decimal.name,
+            emptyList(),
+            subject = subject
+        )
+
 }
 
 fun createTestSubject(

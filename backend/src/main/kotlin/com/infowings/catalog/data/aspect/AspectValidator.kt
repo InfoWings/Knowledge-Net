@@ -30,8 +30,7 @@ fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
 }
 
 class AspectValidator(
-    private val aspectDaoService: AspectDaoService,
-    private val aspectService: AspectService
+    private val aspectDaoService: AspectDaoService
 ) {
 
     /**
@@ -138,7 +137,7 @@ class AspectValidator(
     }
 
     private fun AspectVertex.checkCyclicDependencies(aspectData: AspectData) = this.also {
-        val parentsIds = aspectService.findParentAspects(id).mapNotNull { it.id }
+        val parentsIds = aspectDaoService.findParentAspects(id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
             .map { it.aspectId }
             .filter { parentsIds.contains(it) }

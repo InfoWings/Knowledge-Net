@@ -18,8 +18,7 @@ import com.orientechnologies.orient.core.sql.executor.OResult
  * Сервис поиска в OrientDB
  */
 class SuggestionService(
-    private val database: OrientDatabase,
-    private val subjectService: SubjectService
+    private val database: OrientDatabase
 ) {
 
     fun findMeasure(
@@ -74,17 +73,15 @@ class SuggestionService(
     }
 
     fun findSubject(
-        context: SearchContext,
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam
     ): List<SubjectData> = session(database) {
-        findSubjectInDb(context, commonParam, subjectParam)
-            .mapNotNull { subjectService.getSubject(it).toSubjectData() }
+        findSubjectInDb(commonParam, subjectParam)
+            .mapNotNull { it.toSubject().toSubjectData() }
             .toList()
     }
 
     private fun findSubjectInDb(
-        context: SearchContext,
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam?
     ): Sequence<OVertex> {

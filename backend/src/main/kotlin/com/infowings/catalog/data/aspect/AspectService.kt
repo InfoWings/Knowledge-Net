@@ -6,8 +6,6 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.id.ORecordId
-import hasIncomingEdges
 
 
 /**
@@ -19,7 +17,7 @@ class AspectService(private val db: OrientDatabase,
                     private val aspectDaoService: AspectDaoService
 ) {
 
-    private val aspectValidator = AspectValidator(aspectDaoService, this)
+    private val aspectValidator = AspectValidator(aspectDaoService)
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
@@ -92,17 +90,6 @@ class AspectService(private val db: OrientDatabase,
      * @throws AspectDoesNotExist
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
-
-    /**
-     * @param aspectId aspect id to start
-     * @return list of the current aspect and all its parents
-     */
-    fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
-        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
-        return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
-            it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
-        }
-    }
 
     /**
      * Load property by id

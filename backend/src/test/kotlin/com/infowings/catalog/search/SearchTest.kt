@@ -4,6 +4,7 @@ package com.infowings.catalog.search
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
@@ -39,6 +40,10 @@ class SearchTest {
 
     @Autowired
     lateinit var aspectService: AspectService
+
+    @Autowired
+    lateinit var aspectDaoService: AspectDaoService
+
 
     @Autowired
     private val wac: WebApplicationContext? = null
@@ -144,7 +149,7 @@ class SearchTest {
         assertEquals("level1_1", res[0].name)
         assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
 
-        res = aspectService.findParentAspects(child.id)
+        res = aspectDaoService.findParentAspects(child.id)
         assertEquals(3, res.size)
         assertEquals("level2", res[0].name)
         assertEquals("level1", res[1].name)

@@ -20,7 +20,6 @@ const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 const val SUBJECT_CLASS = "Subject"
 const val ASPECT_SUBJECT_EDGE = "AspectSubjectEdge"
 
-const val SELECT_FROM = "SELECT FROM ?"
 const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? "
 
 

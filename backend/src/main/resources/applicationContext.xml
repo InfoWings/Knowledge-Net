@@ -52,7 +52,6 @@
 
     <bean id="suggestionService" class="com.infowings.catalog.search.SuggestionService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="subjectService"/>
     </bean>
 
     <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">

@@ -17,8 +17,9 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view--label${if (props.selected) " aspect-tree-view--label__selected" else ""}") {
-            if (props.aspect.name.isNullOrEmpty() || !props.aspect.measure.isNullOrEmpty()
-                    || !props.aspect.domain.isNullOrEmpty() || !props.aspect.baseType.isNullOrEmpty()) {
+            if (!props.aspect.name.isNullOrEmpty() || !props.aspect.measure.isNullOrEmpty()
+                || !props.aspect.domain.isNullOrEmpty() || !props.aspect.baseType.isNullOrEmpty() || props.aspect.subject != null
+            ) {
                 attrs {
                     onClickFunction = ::handleAspectRootLabelClick
                 }

@@ -1,11 +1,7 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
@@ -240,7 +236,8 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                                     state.childAspectName!!,
                                     state.childAspectMeasure,
                                     state.childAspectDomain,
-                                    state.childAspectBaseType
+                                state.childAspectBaseType,
+                                subject = state.childAspectSubject
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
