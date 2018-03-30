@@ -45,7 +45,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                 bookItemEditConsole {
                     val bookItem = props.bookItem
                     attrs {
-                        this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, "", props.aspectId)
+                        this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, "", props.aspectId, bookItem.version)
                         onCancel = ::cancelUpdatingBookItem
                         onSubmit = { handleUpdateBookItem(it) }
                     }

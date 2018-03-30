@@ -37,13 +37,13 @@ data class ReferenceBookItem(
 data class ReferenceBooksList(val books: List<ReferenceBook>)
 
 @Serializable
-data class ReferenceBookData(val id: String?, val name: String, val aspectId: String, val version: Int)
+data class ReferenceBookData(val name: String, val aspectId: String, val version: Int)
 
 @Serializable
 data class ReferenceBookItemData(
-    val id: String?,
+    val id: String,
     val value: String,
     val parentId: String,
     val aspectId: String,
-    val version: Int = 0
+    val version: Int
 )

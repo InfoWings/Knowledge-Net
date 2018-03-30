@@ -50,7 +50,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
                 val book = props.book
                 bookEditConsole {
                     attrs {
-                        this.bookData = ReferenceBookData(book.id, book.name, book.aspectId)
+                        this.bookData = ReferenceBookData(book.name, book.aspectId, book.version)
                         onCancel = ::cancelUpdatingBook
                         onSubmit = { handleUpdateBook(it) }
                     }

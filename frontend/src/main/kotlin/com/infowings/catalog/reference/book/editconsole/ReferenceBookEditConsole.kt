@@ -20,7 +20,7 @@ class ReferenceBookEditConsole(props: Props) :
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.bookData.id != nextProps.bookData.id) {
+        if (props.bookData.aspectId != nextProps.bookData.aspectId) {
             setState {
                 bookName = nextProps.bookData.name
             }

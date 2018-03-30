@@ -97,7 +97,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         if (state.creatingBookItem) {
             bookItemEditConsole {
                 attrs {
-                    bookItemData = ReferenceBookItemData(null, "", props.book.id, props.aspectId)
+                    bookItemData = ReferenceBookItemData("", "", props.book.id, props.aspectId, 0)
                     onCancel = ::cancelCreatingBookItem
                     onSubmit = { handleCreateBookItem(it)}
                 }

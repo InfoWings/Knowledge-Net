@@ -57,7 +57,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         logger.debug("Updating reference book item with id=${bookItemData.id}")
         return referenceBookService.updateItemAndGetReferenceBook(
             bookItemData.aspectId,
-            bookItemData.id!!,
+            bookItemData.id,
             bookItemData.value
         )
     }

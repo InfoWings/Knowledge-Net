@@ -31,19 +31,17 @@ class ReferenceBookVertex(private val vertex: OVertex) : OVertex by vertex {
             this["deleted"] = value
         }
 
-    private val children: List<ReferenceBookItemVertex>
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
-
-
-    private val child: ReferenceBookItemVertex
-        get() = children.first()
+    private val root: ReferenceBookItemVertex
+        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
+            .map { it.toReferenceBookItemVertex() }
+            .first()
 
     private val aspect: OVertex?
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
 
     fun toReferenceBook(): ReferenceBook {
         val aspectId = aspect?.id ?: throw RefBookAspectNotExist(aspectId)
-        val root = child.toReferenceBookItem()
+        val root = root.toReferenceBookItem()
         return ReferenceBook(name, aspectId, root)
     }
 

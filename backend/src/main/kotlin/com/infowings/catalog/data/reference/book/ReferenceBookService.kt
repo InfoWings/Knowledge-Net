@@ -2,8 +2,11 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.data.aspect.AspectHasLinkedEntitiesException
+import com.infowings.catalog.data.aspect.notDeletedSql
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
-
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
@@ -17,6 +20,7 @@ const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
 
 
 class ReferenceBookService(val database: OrientDatabase) {
+    private val validator = ReferenceBookValidator()
 
     /**
      * Get all ReferenceBook instances
@@ -76,7 +80,7 @@ class ReferenceBookService(val database: OrientDatabase) {
      * @throws RefBookItemNotExist
      */
     fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(database) {
-        val rootVertex = database.getVertexById(id)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(id)
+        val rootVertex = getReferenceBookItemVertexById(id) ?: throw RefBookItemNotExist(id)
         return@transaction rootVertex.toReferenceBookItem()
     }
 
@@ -86,8 +90,7 @@ class ReferenceBookService(val database: OrientDatabase) {
      * @throws RefBookChildAlreadyExist if item with id [parentId] already has child with value equals to [value]
      */
     internal fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
-        val parentVertex =
-            database.getVertexById(parentId)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(parentId)
+        val parentVertex = getReferenceBookItemVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
 
         if (parentVertex.children.any { it.value == value }) {
             throw RefBookChildAlreadyExist(parentId, value)
@@ -107,7 +110,7 @@ class ReferenceBookService(val database: OrientDatabase) {
      */
     internal fun changeValue(id: String, value: String) {
         transaction(database) {
-            val vertex = database.getVertexById(id)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(id)
+            val vertex = getReferenceBookItemVertexById(id) ?: throw RefBookItemNotExist(id)
             val parentVertex = vertex.parent!!
             val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
 
@@ -137,10 +140,8 @@ class ReferenceBookService(val database: OrientDatabase) {
      */
     fun moveReferenceBookItem(sourceId: String, targetId: String) {
         transaction(database) {
-            val sourceVertex =
-                database.getVertexById(sourceId)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(sourceId)
-            val targetVertex =
-                database.getVertexById(targetId)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(targetId)
+            val sourceVertex = getReferenceBookItemVertexById(sourceId) ?: throw RefBookItemNotExist(sourceId)
+            val targetVertex = getReferenceBookItemVertexById(targetId) ?: throw RefBookItemNotExist(targetId)
 
             var tmpPointer = targetVertex
             while (tmpPointer.parent != null) {
@@ -156,11 +157,49 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
+    fun removeReferenceBookItem(referenceBookItemData: ReferenceBookItemData, force: Boolean = false) {
+        transaction(database) {
+            val aspectId = referenceBookItemData.aspectId
+
+            val bookItemVertex = getReferenceBookItemVertexById(aspectId) ?: throw RefBookItemNotExist(aspectId)
+            val aspectVertex =
+                database.getVertexById(aspectId)?.toAspectVertex() ?: throw RefBookAspectNotExist(aspectId)
+
+            validator.checkReferenceBookItemVersion(bookItemVertex, referenceBookItemData)
+
+            when {
+                aspectVertex.isLinkedBy() && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                aspectVertex.isLinkedBy() -> throw AspectHasLinkedEntitiesException(aspectId)
+                else -> remove(bookItemVertex)
+            }
+        }
+    }
+
     private fun getReferenceBookVertexByAspectId(aspectId: String): ReferenceBookVertex? =
         database.query(searchReferenceBookByAspectId, aspectId) {
             it.map { it.toVertexOrNUll()?.toReferenceBookVertex() }.firstOrNull()
         }
 
+    private fun getReferenceBookItemVertexById(id: String): ReferenceBookItemVertex? =
+        database.getVertexById(id)?.toReferenceBookItemVertex()
+
+    private fun remove(vertex: OVertex) {
+        database.delete(vertex)
+    }
+
+    private fun fakeRemoveReferenceBookVertex(vertex: ReferenceBookVertex) {
+        session(database) {
+            vertex.deleted = true
+            vertex.save<OVertex>()
+        }
+    }
+
+    private fun fakeRemoveReferenceBookItemVertex(vertex: ReferenceBookItemVertex) {
+        session(database) {
+            vertex.deleted = true
+            vertex.save<OVertex>()
+        }
+    }
 }
 
 sealed class ReferenceBookException(message: String? = null) : Exception(message)
@@ -172,5 +211,10 @@ class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspe
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
 
+class RefBookHasLinkedEntitiesException(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
+class RefBookItemConcurrentModificationException(id: String, currentVersion: Int, oldVersion: Int) :
+    ReferenceBookException("Old ReferenceBookItem version. id: $id. Expected: $currentVersion. Actual: $oldVersion")
+
+private const val notDeletedSql = "deleted is NULL or deleted = false"
 private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
-private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
+private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX $notDeletedSql"
