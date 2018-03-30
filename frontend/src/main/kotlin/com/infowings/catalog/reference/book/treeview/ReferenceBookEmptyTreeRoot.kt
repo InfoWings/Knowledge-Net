@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
-import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -29,8 +30,8 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         }
     }
 
-    private suspend fun handleCreateBook(bookData: ReferenceBookData) {
-        props.createBook(bookData)
+    private suspend fun handleCreateBook(book: ReferenceBook) {
+        props.createBook(book)
         setState {
             creatingBook = false
         }
@@ -51,7 +52,13 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
                 if (state.creatingBook && selected) {
                     bookEditConsole {
                         attrs {
-                            bookData = ReferenceBookData("", props.aspectId, 0)
+                            book = ReferenceBook(
+                                props.aspectId,
+                                "",
+                                ReferenceBookItem(props.aspectId, null, "", "", emptyList(), false, 0),
+                                false,
+                                0
+                            )
                             onCancel = ::cancelCreatingBook
                             onSubmit = { handleCreateBook(it) }
                         }
@@ -70,7 +77,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
         var aspectName: String
         var selected: Boolean
         var startCreatingBook: (selectedAspectName: String) -> Unit
-        var createBook: suspend (ReferenceBookData) -> Unit
+        var createBook: suspend (ReferenceBook) -> Unit
     }
 
     interface State : RState {

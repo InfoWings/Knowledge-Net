@@ -1,6 +1,6 @@
 package com.infowings.catalog.reference.book.editconsole
 
-import com.infowings.catalog.common.ReferenceBookData
+import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onBlurFunction
@@ -15,14 +15,14 @@ class ReferenceBookEditConsole(props: Props) :
     RComponent<ReferenceBookEditConsole.Props, ReferenceBookEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
-        bookName = props.bookData.name
+        bookName = props.book.name
         errorMessage = null
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.bookData.aspectId != nextProps.bookData.aspectId) {
+        if (props.book.aspectId != nextProps.book.aspectId) {
             setState {
-                bookName = nextProps.bookData.name
+                bookName = nextProps.book.name
             }
         }
     }
@@ -52,7 +52,7 @@ class ReferenceBookEditConsole(props: Props) :
     private fun submit() {
         launch {
             try {
-                props.onSubmit(props.bookData.copy(name = state.bookName))
+                props.onSubmit(props.book.copy(name = state.bookName))
             } catch (e: BadRequestException) {
                 setState {
                     errorMessage = e.message
@@ -100,9 +100,9 @@ class ReferenceBookEditConsole(props: Props) :
     }
 
     interface Props : RProps {
-        var bookData: ReferenceBookData
+        var book: ReferenceBook
         var onCancel: () -> Unit
-        var onSubmit: suspend (ReferenceBookData) -> Unit
+        var onSubmit: suspend (ReferenceBook) -> Unit
     }
 
     interface State : RState {

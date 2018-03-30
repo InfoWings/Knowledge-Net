@@ -1,7 +1,6 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -29,8 +28,8 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
         }
     }
 
-    private suspend fun handleUpdateBookItem(bookItemData: ReferenceBookItemData) {
-        props.updateBookItem(bookItemData)
+    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem) {
+        props.updateBookItem(bookItem)
         setState {
             updatingBookItem = false
         }
@@ -43,9 +42,8 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
             }
             if (state.updatingBookItem) {
                 bookItemEditConsole {
-                    val bookItem = props.bookItem
                     attrs {
-                        this.bookItemData = ReferenceBookItemData(bookItem.id, bookItem.value, "", props.aspectId, bookItem.version)
+                        this.bookItem = props.bookItem
                         onCancel = ::cancelUpdatingBookItem
                         onSubmit = { handleUpdateBookItem(it) }
                     }
@@ -61,7 +59,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     interface Props : RProps {
         var aspectId: String
         var bookItem: ReferenceBookItem
-        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem) -> Unit
     }
 
     interface State : RState {

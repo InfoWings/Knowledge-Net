@@ -1,16 +1,17 @@
 package com.infowings.catalog.data.reference.book
 
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBookItem
+
 
 class ReferenceBookValidator {
 
-    fun checkReferenceBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItemData: ReferenceBookItemData) =
-        bookItemVertex.checkRefBookItemVersion(bookItemData)
+    fun checkReferenceBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) =
+        bookItemVertex.checkRefBookItemVersion(bookItem)
 
-    private fun ReferenceBookItemVertex.checkRefBookItemVersion(bookItemData: ReferenceBookItemData) =
+    private fun ReferenceBookItemVertex.checkRefBookItemVersion(bookItem: ReferenceBookItem) =
         this.also {
-            if (version != bookItemData.version) {
-                throw RefBookItemConcurrentModificationException(bookItemData.id, version, bookItemData.version)
+            if (version != bookItem.version) {
+                throw RefBookItemConcurrentModificationException(bookItem.id, version, bookItem.version)
             }
 
             //todo: check versions of all root children if it is need

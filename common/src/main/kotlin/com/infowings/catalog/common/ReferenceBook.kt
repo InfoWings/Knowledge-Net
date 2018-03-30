@@ -8,11 +8,11 @@ import kotlinx.serialization.Transient
  * */
 @Serializable
 data class ReferenceBook(
-    val name: String,
     val aspectId: String,
+    val name: String,
     val root: ReferenceBookItem,
-    val deleted: Boolean = false,
-    val version: Int = 0
+    val deleted: Boolean,
+    val version: Int
 ) {
     val id: String = root.id
     val children: List<ReferenceBookItem> = root.children
@@ -21,11 +21,13 @@ data class ReferenceBook(
 
 @Serializable
 data class ReferenceBookItem(
+    val aspectId: String,
+    val parentId: String?,
     val id: String,
     val value: String,
-    val children: List<ReferenceBookItem> = emptyList(),
-    val deleted: Boolean = false,
-    val version: Int = 0
+    val children: List<ReferenceBookItem>,
+    val deleted: Boolean,
+    val version: Int
 ) {
     @Transient
     private val accessChildrenMap = children.map { it.value to it }.toMap()
@@ -35,15 +37,3 @@ data class ReferenceBookItem(
 
 @Serializable
 data class ReferenceBooksList(val books: List<ReferenceBook>)
-
-@Serializable
-data class ReferenceBookData(val name: String, val aspectId: String, val version: Int)
-
-@Serializable
-data class ReferenceBookItemData(
-    val id: String,
-    val value: String,
-    val parentId: String,
-    val aspectId: String,
-    val version: Int
-)

@@ -1,8 +1,7 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.reference.book.*
 import com.infowings.catalog.loggerFor
@@ -29,13 +28,13 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("create")
-    fun create(@RequestBody book: ReferenceBookData): ReferenceBook {
+    fun create(@RequestBody book: ReferenceBook): ReferenceBook {
         logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
         return referenceBookService.createReferenceBook(book.name, book.aspectId)
     }
 
     @PostMapping("update")
-    fun update(@RequestBody book: ReferenceBookData): ReferenceBook {
+    fun update(@RequestBody book: ReferenceBook): ReferenceBook {
         val aspectId = book.aspectId
         val newName: String = book.name
         logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
@@ -43,23 +42,15 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+    fun createItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
         logger.debug("Creating reference book item")
-        return referenceBookService.addItemAndGetReferenceBook(
-            bookItemData.aspectId,
-            bookItemData.parentId,
-            bookItemData.value
-        )
+        return referenceBookService.addItemAndGetReferenceBook(bookItem)
     }
 
     @PostMapping("item/update")
-    fun updateItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
-        logger.debug("Updating reference book item with id=${bookItemData.id}")
-        return referenceBookService.updateItemAndGetReferenceBook(
-            bookItemData.aspectId,
-            bookItemData.id,
-            bookItemData.value
-        )
+    fun updateItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
+        logger.debug("Updating reference book item with id=${bookItem.id}")
+        return referenceBookService.updateItemAndGetReferenceBook(bookItem)
     }
 
     @ExceptionHandler(Exception::class)

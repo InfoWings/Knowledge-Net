@@ -36,13 +36,12 @@ class ReferenceBookVertex(private val vertex: OVertex) : OVertex by vertex {
             .map { it.toReferenceBookItemVertex() }
             .first()
 
-    private val aspect: OVertex?
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
+    private val aspect: OVertex
+        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).first()
 
     fun toReferenceBook(): ReferenceBook {
-        val aspectId = aspect?.id ?: throw RefBookAspectNotExist(aspectId)
         val root = root.toReferenceBookItem()
-        return ReferenceBook(name, aspectId, root)
+        return ReferenceBook(aspect.id, name, root, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -55,6 +54,12 @@ class ReferenceBookVertex(private val vertex: OVertex) : OVertex by vertex {
 }
 
 class ReferenceBookItemVertex(private val vertex: OVertex) : OVertex by vertex {
+
+    var aspectId: String
+        get() = this["aspectId"]
+        set(value) {
+            this["aspectId"] = value
+        }
 
     var value: String
         get() = this["value"]
@@ -72,11 +77,17 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : OVertex by vertex {
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
 
     val parent: ReferenceBookItemVertex?
-        get() = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull()?.toReferenceBookItemVertex()
+        get() {
+            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first() //this maybe bookVertex
+            return if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull() != null)
+                oVertex.toReferenceBookItemVertex()
+            else
+                null
+        }
 
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }
-        return ReferenceBookItem(id, value, children)
+        return ReferenceBookItem(aspectId, parent?.id, id, value, children, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {

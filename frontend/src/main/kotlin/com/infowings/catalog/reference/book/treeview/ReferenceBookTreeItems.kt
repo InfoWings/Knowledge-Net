@@ -2,7 +2,6 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -30,8 +29,8 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         }
     }
 
-    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
-        props.createBookItem(bookItemData)
+    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
+        props.createBookItem(bookItem)
         setState {
             creatingBookItem = false
         }
@@ -55,7 +54,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                 bookItemEditConsole {
                     val parentId = props.bookItem?.id ?: props.book.id
                     attrs {
-                        bookItemData = ReferenceBookItemData("", "", parentId, props.aspectId, 0)
+                        bookItem = ReferenceBookItem(props.aspectId, parentId, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { handleCreateBookItem(it) }
                     }
@@ -80,8 +79,8 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var book: ReferenceBook
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
-        var createBookItem: suspend (ReferenceBookItemData) -> Unit
-        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
+        var createBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem) -> Unit
     }
 
     interface State : RState {

@@ -2,9 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.data.aspect.AspectHasLinkedEntitiesException
-import com.infowings.catalog.data.aspect.notDeletedSql
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -53,6 +51,7 @@ class ReferenceBookService(val database: OrientDatabase) {
 
         val rootVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
         rootVertex.value = "root"
+        rootVertex.aspectId = aspectId
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
 
@@ -63,7 +62,20 @@ class ReferenceBookService(val database: OrientDatabase) {
             referenceBookVertex.save<OVertex>().toReferenceBookVertex(),
             rootVertex.save<OVertex>().toReferenceBookItemVertex()
         )
-    }.let { ReferenceBook(it.first.name, aspectId, ReferenceBookItem(it.second.id, it.second.value)) }
+    }.let {
+        val bookVertex = it.first
+        val itemVertex = it.second
+        val bookItem = ReferenceBookItem(
+            aspectId,
+            null,
+            itemVertex.id,
+            itemVertex.value,
+            emptyList(),
+            itemVertex.deleted,
+            itemVertex.version
+        )
+        ReferenceBook(aspectId, bookVertex.name, bookItem, bookVertex.deleted, bookVertex.version)
+    }
 
     /**
      * Change ReferenceBook name to [newName] where aspect id equals to [aspectId]
@@ -89,19 +101,21 @@ class ReferenceBookService(val database: OrientDatabase) {
      * @throws RefBookItemNotExist if item with id [parentId] doesn't exist
      * @throws RefBookChildAlreadyExist if item with id [parentId] already has child with value equals to [value]
      */
-    internal fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
-        val parentVertex = getReferenceBookItemVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
+    internal fun addReferenceBookItem(aspectId: String, parentId: String, value: String): String =
+        transaction(database) {
+            val parentVertex = getReferenceBookItemVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
 
-        if (parentVertex.children.any { it.value == value }) {
-            throw RefBookChildAlreadyExist(parentId, value)
-        }
+            if (parentVertex.children.any { it.value == value }) {
+                throw RefBookChildAlreadyExist(parentId, value)
+            }
 
-        val childVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
-        parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-        childVertex.value = value
+            val childVertex = database.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
+            parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+            childVertex.aspectId = aspectId
+            childVertex.value = value
 
-        return@transaction childVertex.save<OVertex>()
-    }.id
+            return@transaction childVertex.save<OVertex>()
+        }.id
 
     /**
      * Change value of ReferenceBookItem with id [id]
@@ -123,14 +137,14 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
-    fun addItemAndGetReferenceBook(aspectId: String, parentId: String, value: String): ReferenceBook {
-        addReferenceBookItem(parentId, value)
-        return getReferenceBook(aspectId)
+    fun addItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
+        addReferenceBookItem(bookItem.aspectId, bookItem.parentId!!, bookItem.value)
+        return getReferenceBook(bookItem.aspectId)
     }
 
-    fun updateItemAndGetReferenceBook(aspectId: String, id: String, newValue: String): ReferenceBook {
-        changeValue(id, newValue)
-        return getReferenceBook(aspectId)
+    fun updateItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
+        changeValue(bookItem.id, bookItem.value)
+        return getReferenceBook(bookItem.aspectId)
     }
 
     /**
@@ -157,15 +171,15 @@ class ReferenceBookService(val database: OrientDatabase) {
         }
     }
 
-    fun removeReferenceBookItem(referenceBookItemData: ReferenceBookItemData, force: Boolean = false) {
+    fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(database) {
-            val aspectId = referenceBookItemData.aspectId
+            val aspectId = bookItem.aspectId
 
             val bookItemVertex = getReferenceBookItemVertexById(aspectId) ?: throw RefBookItemNotExist(aspectId)
             val aspectVertex =
                 database.getVertexById(aspectId)?.toAspectVertex() ?: throw RefBookAspectNotExist(aspectId)
 
-            validator.checkReferenceBookItemVersion(bookItemVertex, referenceBookItemData)
+            validator.checkReferenceBookItemVersion(bookItemVertex, bookItem)
 
             when {
                 aspectVertex.isLinkedBy() && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
@@ -217,4 +231,4 @@ class RefBookItemConcurrentModificationException(id: String, currentVersion: Int
 
 private const val notDeletedSql = "deleted is NULL or deleted = false"
 private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
-private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX $notDeletedSql"
+private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
