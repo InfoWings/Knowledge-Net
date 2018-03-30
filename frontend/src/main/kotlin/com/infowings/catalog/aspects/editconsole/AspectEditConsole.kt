@@ -1,10 +1,10 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
+import com.infowings.catalog.aspects.editconsole.popup.popup
+import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
+import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
