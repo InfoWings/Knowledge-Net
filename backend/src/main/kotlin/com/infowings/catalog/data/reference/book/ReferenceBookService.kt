@@ -29,7 +29,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Get ReferenceBook instance by aspect id
      * @throws RefBookNotExist
      */
-    fun getReferenceBook(aspectId: String): ReferenceBook = transaction(db){
+    fun getReferenceBook(aspectId: String): ReferenceBook = transaction(db) {
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
         return@transaction referenceBookVertex.toReferenceBook()
     }
@@ -87,7 +87,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Get ReferenceBookItem by id
      * @throws RefBookItemNotExist
      */
-    fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db){
+    fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db) {
         val bookItemVertex = dao.getReferenceBookItemVertex(id)
         return@transaction bookItemVertex?.toReferenceBookItem() ?: throw RefBookItemNotExist(id)
     }
@@ -97,20 +97,19 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookItemNotExist if item with id [parentId] doesn't exist
      * @throws RefBookChildAlreadyExist if item with id [parentId] already has child with value equals to [value]
      */
-    internal fun addReferenceBookItem(aspectId: String, parentId: String, value: String): String =
+    internal fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
         transaction(db) {
-            val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
+            val parentId = bookItem.parentId!!
+            val value = bookItem.value
 
+            val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
             if (parentVertex.children.any { it.value == value }) {
                 throw RefBookChildAlreadyExist(parentId, value)
             }
 
             val childVertex = dao.createReferenceBookItemVertex()
-            parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-            childVertex.aspectId = aspectId
-            childVertex.value = value
 
-            return@transaction childVertex.save<OVertex>()
+            return@transaction dao.saveBookItem(childVertex, bookItem)
         }.id
 
     /**
@@ -118,8 +117,11 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
-    internal fun changeValue(id: String, value: String) {
+    internal fun changeValue(bookItem: ReferenceBookItem) {
         transaction(db) {
+            val id = bookItem.id
+            val value = bookItem.value
+
             val vertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
             val parentVertex = vertex.parent!!
             val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
@@ -128,18 +130,20 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
                 throw RefBookChildAlreadyExist(parentVertex.id, value)
             }
 
-            vertex.value = value
-            return@transaction vertex.save<OVertex>()
+            return@transaction dao.saveBookItem(
+                vertex,
+                bookItem.copy(aspectId = parentVertex.aspectId, parentId = parentVertex.id)
+            )
         }
     }
 
     fun addItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
-        addReferenceBookItem(bookItem.aspectId, bookItem.parentId!!, bookItem.value)
+        addReferenceBookItem(bookItem)
         return getReferenceBook(bookItem.aspectId)
     }
 
     fun updateItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
-        changeValue(bookItem.id, bookItem.value)
+        changeValue(bookItem)
         return getReferenceBook(bookItem.aspectId)
     }
 

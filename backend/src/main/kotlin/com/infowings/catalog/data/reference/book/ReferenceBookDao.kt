@@ -4,6 +4,7 @@ import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
@@ -35,7 +36,9 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         session(db) {
             val parentId = bookItem.parentId!!
             val parentVertex = db.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
-            parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+            if (!parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_VERTEX).contains(bookItemVertex)) {
+                parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+            }
             bookItemVertex.value = bookItem.value
             bookItemVertex.aspectId = bookItem.aspectId
             return@session bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
