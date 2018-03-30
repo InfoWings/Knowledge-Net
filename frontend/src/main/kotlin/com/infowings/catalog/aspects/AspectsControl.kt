@@ -21,15 +21,6 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         selectedAspectPropertyIndex = null
     }
 
-    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
-        if (props.loading && !nextProps.loading) {
-            setState {
-                selectedAspect = emptyAspectData
-                selectedAspectPropertyIndex = null
-            }
-        }
-    }
-
     /**
      * Handler for selecting existing aspect (or new but not yet saved if [AspectData.id] == null)
      *
