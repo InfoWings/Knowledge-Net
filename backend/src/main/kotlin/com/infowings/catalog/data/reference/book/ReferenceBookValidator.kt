@@ -1,22 +1,50 @@
 package com.infowings.catalog.data.reference.book
 
-import com.infowings.catalog.common.ReferenceBookItem
 
+import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.storage.id
 
 class ReferenceBookValidator {
+    fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+        checkRefBookVersion(bookItemVertex, bookItem)
+        checkRefBookChildrenVersions(bookItemVertex, bookItem)
+    }
 
-    fun checkReferenceBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) =
-        bookItemVertex.checkRefBookItemVersion(bookItem)
+    fun checkRefBookVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+        if (bookItemVertex.version != bookItem.version) {
+            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")
+        }
+    }
 
-    private fun ReferenceBookItemVertex.checkRefBookItemVersion(bookItem: ReferenceBookItem) =
-        this.also {
-            if (version != bookItem.version) {
-                throw RefBookItemConcurrentModificationException(bookItem.id, version, bookItem.version)
-            }
+    private fun checkRefBookChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+        val realVersionMap = idToVersionMapFromBookItemVertex(bookItemVertex)
+        val receivedVersionMap = idToVersionMapFromBookItem(bookItem)
 
-            //todo: check versions of all root children if it is need
-            //or maybe we can update version of book when some of his child is updated
-            //then it is sufficient to check only book version
+        if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
+            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
         }
 
+        val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
+        if (different) {
+            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
+        }
+    }
+}
+
+private fun idToVersionMapFromBookItemVertex(itemVertex: ReferenceBookItemVertex): HashMap<String, Int> {
+    val map = HashMap<String, Int>()
+    for (child in itemVertex.children) {
+        map[child.id] = child.version
+        map.putAll(idToVersionMapFromBookItemVertex(child))
+    }
+    return map
+}
+
+private fun idToVersionMapFromBookItem(item: ReferenceBookItem): HashMap<String, Int> {
+    val map = HashMap<String, Int>()
+    for (child in item.children) {
+        map[child.id] = child.version
+        map.putAll(idToVersionMapFromBookItem(child))
+    }
+    return map
 }

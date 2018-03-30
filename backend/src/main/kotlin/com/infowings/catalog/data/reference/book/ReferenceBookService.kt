@@ -2,8 +2,6 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.data.aspect.AspectHasLinkedEntitiesException
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -173,17 +171,16 @@ class ReferenceBookService(val database: OrientDatabase) {
 
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(database) {
-            val aspectId = bookItem.aspectId
+            val bookItemVertex =
+                getReferenceBookItemVertexById(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
 
-            val bookItemVertex = getReferenceBookItemVertexById(aspectId) ?: throw RefBookItemNotExist(aspectId)
-            val aspectVertex =
-                database.getVertexById(aspectId)?.toAspectVertex() ?: throw RefBookAspectNotExist(aspectId)
+            validator.checkRefBookItemAndChildrenVersion(bookItemVertex, bookItem)
 
-            validator.checkReferenceBookItemVersion(bookItemVertex, bookItem)
-
+            //TODO: add correct checking for clause is item linked by Object entities
+            val isLinkedByObjects = false
             when {
-                aspectVertex.isLinkedBy() && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
-                aspectVertex.isLinkedBy() -> throw AspectHasLinkedEntitiesException(aspectId)
+                isLinkedByObjects && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                isLinkedByObjects -> throw RefBookItemHasLinkedEntitiesException(bookItem.id)
                 else -> remove(bookItemVertex)
             }
         }
@@ -201,17 +198,17 @@ class ReferenceBookService(val database: OrientDatabase) {
         database.delete(vertex)
     }
 
-    private fun fakeRemoveReferenceBookVertex(vertex: ReferenceBookVertex) {
+    private fun fakeRemoveReferenceBookVertex(bookVertex: ReferenceBookVertex) {
         session(database) {
-            vertex.deleted = true
-            vertex.save<OVertex>()
+            bookVertex.deleted = true
+            bookVertex.save<OVertex>()
         }
     }
 
-    private fun fakeRemoveReferenceBookItemVertex(vertex: ReferenceBookItemVertex) {
+    private fun fakeRemoveReferenceBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
         session(database) {
-            vertex.deleted = true
-            vertex.save<OVertex>()
+            bookItemVertex.deleted = true
+            bookItemVertex.save<OVertex>()
         }
     }
 }
@@ -225,10 +222,9 @@ class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspe
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
 
-class RefBookHasLinkedEntitiesException(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
-class RefBookItemConcurrentModificationException(id: String, currentVersion: Int, oldVersion: Int) :
-    ReferenceBookException("Old ReferenceBookItem version. id: $id. Expected: $currentVersion. Actual: $oldVersion")
+class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
+class RefBookItemConcurrentModificationException(id: String, message: String) :
+    ReferenceBookException("id = $id, message = $message")
 
-private const val notDeletedSql = "deleted is NULL or deleted = false"
 private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
 private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"

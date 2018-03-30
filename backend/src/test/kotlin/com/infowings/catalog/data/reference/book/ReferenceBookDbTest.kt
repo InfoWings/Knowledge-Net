@@ -86,12 +86,14 @@ class ReferenceBookDbTest {
 
     @Test
     fun addChildrenTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
-        referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value2")
-        val child11 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, child1, "value11")
-        referenceBookService.addReferenceBookItem(referenceBook.aspectId, child11, "value111")
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
+        referenceBookService.addReferenceBookItem(aspectId, parentId, "value2")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
+        referenceBookService.addReferenceBookItem(aspectId, child11, "value111")
 
-        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
         assertTrue("Root has 2 children", updatedReferenceBook.children.size == 2)
         assertTrue("`root.value1` has 1 child", updatedReferenceBook["value1"]!!.children.size == 1)
         assertTrue(
@@ -102,26 +104,31 @@ class ReferenceBookDbTest {
 
     @Test(expected = RefBookChildAlreadyExist::class)
     fun addChildrenWithSameValueAsOtherChildrenTest() {
-        referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
-        referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
+        referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
     }
 
     @Test
     fun correctMoveItemsTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
-        val child2 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value2")
-        val child11 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, child1, "value11")
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
+        val child2 = referenceBookService.addReferenceBookItem(aspectId, parentId, "value2")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
         referenceBookService.moveReferenceBookItem(child11, child2)
 
-        val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
         assertTrue("`root.value1` has no child", updatedReferenceBook["value1"]!!.children.isEmpty())
         assertTrue("`root.value2` has 1 child", updatedReferenceBook["value2"]!!.children.size == 1)
     }
 
     @Test(expected = RefBookItemMoveImpossible::class)
     fun unCorrectMoveItemsTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
-        val child11 = referenceBookService.addReferenceBookItem(referenceBook.aspectId, child1, "value11")
+        val aspectId = referenceBook.aspectId
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, referenceBook.id, "value1")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
         referenceBookService.moveReferenceBookItem(child1, child11)
     }
 
@@ -138,5 +145,55 @@ class ReferenceBookDbTest {
         val childId = referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
         referenceBookService.addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value2")
         referenceBookService.changeValue(childId, "value2")
+    }
+
+    @Test
+    fun removeBookItemTest() {
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
+
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child1))
+
+        val updatedBook = referenceBookService.getReferenceBook(aspectId)
+        assertNull(updatedBook["value1"])
+    }
+
+    @Test(expected = RefBookItemConcurrentModificationException::class)
+    fun removeBookItemConcurrentRemoveChildTest() {
+        val aspectId = referenceBook.aspectId
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, referenceBook.id, "value1")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
+        val child111 = referenceBookService.addReferenceBookItem(aspectId, child11, "value111")
+
+        val forRemoving = referenceBookService.getReferenceBookItem(child1)
+
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child111))
+        referenceBookService.removeReferenceBookItem(forRemoving)
+    }
+
+    @Test(expected = RefBookItemConcurrentModificationException::class)
+    fun removeBookItemConcurrentUpdatingChildTest() {
+        val aspectId = referenceBook.aspectId
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, referenceBook.id, "value1")
+        val child11 = referenceBookService.addReferenceBookItem(aspectId, child1, "value11")
+
+        val forRemoving = referenceBookService.getReferenceBookItem(child1)
+
+        referenceBookService.changeValue(child11, "newValue")
+        referenceBookService.removeReferenceBookItem(forRemoving)
+    }
+
+    @Test(expected = RefBookItemConcurrentModificationException::class)
+    fun removeBookItemConcurrentUpdatingTest() {
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        val child1 = referenceBookService.addReferenceBookItem(aspectId, parentId, "value1")
+
+        val forRemoving = referenceBookService.getReferenceBookItem(child1)
+
+        referenceBookService.changeValue(child1, "newValue")
+        referenceBookService.removeReferenceBookItem(forRemoving)
     }
 }
