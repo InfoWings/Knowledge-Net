@@ -46,22 +46,26 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+    fun createItem(@RequestBody bookItemData: ReferenceBookItemData, principal: Principal): ReferenceBook {
+        val user = principal.name
         logger.debug("Creating reference book item")
         return referenceBookService.addItemAndGetReferenceBook(
             bookItemData.aspectId,
             bookItemData.parentId,
-            bookItemData.value
+            bookItemData.value,
+            user
         )
     }
 
     @PostMapping("item/update")
-    fun updateItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+    fun updateItem(@RequestBody bookItemData: ReferenceBookItemData, principal: Principal): ReferenceBook {
+        val user = principal.name
         logger.debug("Updating reference book item with id=${bookItemData.id}")
         return referenceBookService.updateItemAndGetReferenceBook(
             bookItemData.aspectId,
             bookItemData.id!!,
-            bookItemData.value
+            bookItemData.value,
+            user
         )
     }
 

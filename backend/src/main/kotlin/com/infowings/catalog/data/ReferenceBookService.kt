@@ -87,18 +87,25 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      * @throws RefBookItemNotExist if item with id [parentId] doesn't exist
      * @throws RefBookChildAlreadyExist if item with id [parentId] already has child with value equals to [value]
      */
-    internal fun addReferenceBookItem(parentId: String, value: String): String = transaction(database) {
+    internal fun addReferenceBookItem(parentId: String, value: String, user: String): String = transaction(database) {
         val parentVertex = daoService.findReferenceBookItemVertex(parentId)
 
         if (parentVertex.children.any { it.toReferenceBookItemVertex().value == value }) {
             throw RefBookChildAlreadyExist(parentId, value)
         }
 
+        val parentBefore = parentVertex.toSnapshot()
+
         val childVertex = daoService.newReferenceBookItemVertex()
         parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         childVertex.value = value
 
-        return@transaction childVertex.save<OVertex>()
+        val savedChild = childVertex.save<OVertex>()
+
+        historyService.storeFact(savedChild.toReferenceBookItemVertex().toCreateFact(user))
+        historyService.storeFact(parentVertex.toUpdateFact(user, parentBefore))
+
+        return@transaction savedChild
     }.id
 
     /**
@@ -106,29 +113,36 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
-    internal fun changeValue(id: String, value: String) {
+    internal fun changeValue(id: String, value: String, user: String) {
         transaction(database) {
 
             val vertex = daoService.findReferenceBookItemVertex(id)
             val parentVertex = vertex.parent?.toReferenceBookItemVertex() ?: throw RefBookParentNotFound(vertex)
             val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.toReferenceBookItemVertex().value == value && it.id != id }
 
+            val before = vertex.toSnapshot()
+
             if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
                 throw RefBookChildAlreadyExist(parentVertex.id, value)
             }
 
             vertex.value = value
-            return@transaction vertex.save<OVertex>()
+
+            val saved = vertex.save<OVertex>()
+
+            historyService.storeFact(vertex.toUpdateFact(user, before))
+
+            return@transaction saved
         }
     }
 
-    fun addItemAndGetReferenceBook(aspectId: String, parentId: String, value: String): ReferenceBook {
-        addReferenceBookItem(parentId, value)
+    fun addItemAndGetReferenceBook(aspectId: String, parentId: String, value: String, user: String): ReferenceBook {
+        addReferenceBookItem(parentId, value, user)
         return getReferenceBook(aspectId)
     }
 
-    fun updateItemAndGetReferenceBook(aspectId: String, id: String, newValue: String): ReferenceBook {
-        changeValue(id, newValue)
+    fun updateItemAndGetReferenceBook(aspectId: String, id: String, newValue: String, user: String): ReferenceBook {
+        changeValue(id, newValue, user)
         return getReferenceBook(aspectId)
     }
 
