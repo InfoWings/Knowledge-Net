@@ -12,6 +12,7 @@ import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -44,7 +45,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.aspect != nextProps.aspect || nextProps.aspect == AspectData(null, "", null, null, null)) {
+        if (props.aspect != nextProps.aspect || nextProps.aspect == emptyAspectData) {
             setStateWithCallback({ inputRef?.focus(); inputRef?.select() }) {
                 aspectName = nextProps.aspect.name
                 aspectMeasure = nextProps.aspect.measure
@@ -62,7 +63,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun tryMakeSubmitAspectRequest() {
         launch {
             try {
-                props.onSubmit(currentState)
+                props.editConsoleModel.submitAspect(currentState)
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
@@ -74,7 +75,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun tryDelete(force: Boolean) {
         launch {
             try {
-                props.onDelete(force)
+                props.editConsoleModel.deleteAspect(force)
                 setState {
                     confirmation = false
                 }
@@ -92,7 +93,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     private fun handleSwitchToProperties() {
-        props.onSwitchToProperties(currentState)
+        props.editConsoleModel.switchToProperties(currentState)
     }
 
     private fun handleAspectNameChanged(name: String) {
@@ -123,7 +124,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     override fun RBuilder.render() {
         aspectConsoleBlock {
             attrs {
-                onEscape = props.onCancel
+                onEscape = props.editConsoleModel::discardChanges
                 onEnter = ::tryMakeSubmitAspectRequest
                 onCtrlEnter = ::handleSwitchToProperties
             }
@@ -157,7 +158,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 consoleButtonsGroup(
                     onSubmitClick = ::tryMakeSubmitAspectRequest,
                     onAddToListClick = ::handleSwitchToProperties,
-                    onCancelClick = props.onCancel,
+                    onCancelClick = props.editConsoleModel::discardChanges,
                     onDeleteClick = { tryDelete(false) }
                 )
             }
@@ -186,10 +187,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     interface Props : RProps {
         var aspect: AspectData
-        var onCancel: () -> Unit
-        var onSubmit: suspend (AspectData) -> Unit
-        var onDelete: suspend (Boolean) -> Unit
-        var onSwitchToProperties: (AspectData) -> Unit
+        var editConsoleModel: AspectEditConsoleModel
     }
 
     interface State : RState {

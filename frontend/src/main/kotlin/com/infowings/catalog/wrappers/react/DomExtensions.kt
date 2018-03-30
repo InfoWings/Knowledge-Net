@@ -8,6 +8,8 @@ import react.React
 import react.ReactElement
 import react.dom.RDOMBuilder
 import react.dom.tag
+import kotlin.coroutines.experimental.Continuation
+import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Custom SVG tag for inlining all svg icons (sets default attributes like version, xmlns, viewBox)
@@ -63,3 +65,8 @@ inline fun RBuilder.label(classes: String? = null, htmlFor: String? = null, bloc
  */
 fun <S : RState> React.Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
         setState({ assign(it, buildState) }, callback)
+
+suspend fun <S : RState> React.Component<*, S>.suspendSetState(buildState: S.() -> Unit) =
+    suspendCoroutine { cont: Continuation<Unit> ->
+        setStateWithCallback({ cont.resume(Unit) }, buildState)
+    }

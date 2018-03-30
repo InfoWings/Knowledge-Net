@@ -2,7 +2,7 @@ package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.treeview.view.aspectRootLabel
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.chevronDownIcon
@@ -19,7 +19,7 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
         e.preventDefault()
         e.stopPropagation()
         props.setExpanded(true)
-        if (props.aspect.properties.isEmpty() || props.aspect.properties.last() != AspectPropertyData("", "", "", "")) {
+        if (props.aspect.properties.isEmpty() || props.aspect.properties.last() != emptyAspectPropertyData) {
             props.onClick(props.aspect.id)
             props.onAddToListIconClick(props.aspect.properties.size)
         }

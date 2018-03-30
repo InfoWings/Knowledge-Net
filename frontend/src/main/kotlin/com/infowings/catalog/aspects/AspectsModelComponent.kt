@@ -6,19 +6,38 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.common.emptyAspectPropertyData
-import com.infowings.catalog.wrappers.react.setStateWithCallback
+import com.infowings.catalog.wrappers.react.suspendSetState
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
 
-class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiverProps, AspectsControl.State>(props) {
+interface AspectsModel {
+    fun selectAspect(aspectId: String?)
+    fun selectAspectProperty(aspectId: String?, index: Int)
+    fun discardSelect()
+    fun createProperty(index: Int)
+    suspend fun updateAspect(aspect: AspectData)
+    suspend fun updateProperty(property: AspectPropertyData)
+    suspend fun submitAspect()
+    suspend fun deleteAspect(force: Boolean)
+}
+
+class AspectsModelComponent(props: AspectApiReceiverProps) :
+    RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(props), AspectsModel {
 
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
+    }
+
+    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
+        if (props.loading && !nextProps.loading) {
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+            }
+        }
     }
 
     /**
@@ -28,13 +47,14 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      *
      * @param aspectId - [AspectData.id] of [AspectData] to select.
      */
-    private fun handleSelectAspect(aspectId: String?) {
+    override fun selectAspect(aspectId: String?) {
         setState {
             selectedAspect = when (aspectId) {
                 selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
                 null -> emptyAspectData
                 else -> props.aspectContext[aspectId] ?: selectedAspect
             }
+
             selectedAspectPropertyIndex = null
         }
     }
@@ -50,13 +70,14 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      * @param aspectId - [AspectData.id] of parent [AspectData] of [AspectPropertyData] to select.
      * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
      */
-    private fun handleSelectAspectProperty(aspectId: String?, index: Int) {
+    override fun selectAspectProperty(aspectId: String?, index: Int) {
         setState {
             selectedAspect = when (aspectId) {
                 selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
                 null -> emptyAspectData
                 else -> props.aspectContext[aspectId] ?: selectedAspect
             }
+
             selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
                 selectedAspect.properties.lastIndex else index
         }
@@ -67,7 +88,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      *
      * By default resets state to creating new aspect.
      */
-    private fun handleCancelSelect() {
+    override fun discardSelect() {
         setState {
             selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
@@ -77,12 +98,14 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
     /**
      * Handler for creating new [AspectPropertyData] inside currently selected [AspectData] at index.
      */
-    private fun handleCreateNewProperty(index: Int) {
+    override fun createProperty(index: Int) {
         setState {
             val currentlySelectedAspect = selectedAspect
+
             selectedAspect = currentlySelectedAspect.copy(
                 properties = currentlySelectedAspect.properties.insertEmptyAtIndex(index)
             )
+
             selectedAspectPropertyIndex = if (0 <= index && index <= currentlySelectedAspect.properties.size)
                 index else null
         }
@@ -94,17 +117,15 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    private suspend fun handleUpdateSelectedAspect(aspect: AspectData) = suspendCoroutine { cont: Continuation<Unit> ->
-        setStateWithCallback({ cont.resume(Unit) }) {
-            val currentlySelectedAspect = selectedAspect
-            selectedAspect = currentlySelectedAspect.copy(
+    override suspend fun updateAspect(aspect: AspectData) =
+        suspendSetState {
+            selectedAspect = selectedAspect.copy(
                 name = aspect.name,
                 measure = aspect.measure,
                 domain = aspect.domain,
                 baseType = aspect.baseType
             )
         }
-    }
 
     /**
      * Handler for updating currently selected [AspectPropertyData]
@@ -112,31 +133,34 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    private suspend fun handleUpdateSelectedAspectProperty(aspectProperty: AspectPropertyData) = suspendCoroutine { cont: Continuation<Unit> ->
-        setStateWithCallback({ cont.resume(Unit) }) {
+    override suspend fun updateProperty(property: AspectPropertyData) =
+        suspendSetState {
             val currentlySelectedAspect = selectedAspect
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
                     ?: error("Currently selected aspect property index should not be null")
+
             selectedAspect = currentlySelectedAspect.updatePropertyAtIndex(
                 currentlySelectedPropertyIndex,
-                aspectProperty
+                property
             )
         }
-    }
 
     /**
      * Handler for submitting changes of currently selected [AspectData] to the server
      */
-    private suspend fun handleSubmitSelectedAspect() {
+    override suspend fun submitAspect() {
         val selectedAspect = state.selectedAspect
+
         if (selectedAspect.id == null) {
             props.onAspectCreate(selectedAspect.normalize())
+
             setState {
                 this.selectedAspect = emptyAspectData
                 selectedAspectPropertyIndex = null
             }
         } else {
             props.onAspectUpdate(selectedAspect.normalize())
+
             setState {
                 this.selectedAspect = emptyAspectData
                 selectedAspectPropertyIndex = null
@@ -144,7 +168,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
         }
     }
 
-    private suspend fun handleDeleteSelectedAspect(force: Boolean) {
+    override suspend fun deleteAspect(force: Boolean) {
 
         val aspectId = state.selectedAspect.id
 
@@ -168,9 +192,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                     aspectContext = { if (it == selectedAspect.id) selectedAspect else props.aspectContext[it] }
                     selectedAspectId = state.selectedAspect.id
                     selectedPropertyIndex = state.selectedAspectPropertyIndex
-                    onAspectClick = ::handleSelectAspect
-                    onAspectPropertyClick = ::handleSelectAspectProperty
-                    onAddAspectProperty = ::handleCreateNewProperty
+                    aspectsModel = this@AspectsModelComponent
                 }
             }
             aspectConsole {
@@ -178,14 +200,7 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
                     aspect = selectedAspect
                     propertyIndex = selectedAspectPropertyIndex
                     aspectContext = props.aspectContext::get
-                    onSelectProperty = ::handleSelectAspectProperty
-                    onSelectAspect = ::handleSelectAspect
-                    onCreateProperty = ::handleCreateNewProperty
-                    onCancel = ::handleCancelSelect
-                    onAspectUpdate = { handleUpdateSelectedAspect(it) }
-                    onAspectPropertyUpdate = { handleUpdateSelectedAspectProperty(it) }
-                    onAspectDelete = { handleDeleteSelectedAspect(it) }
-                    onSubmit = { handleSubmitSelectedAspect() }
+                    aspectsModel = this@AspectsModelComponent
                 }
             }
         }

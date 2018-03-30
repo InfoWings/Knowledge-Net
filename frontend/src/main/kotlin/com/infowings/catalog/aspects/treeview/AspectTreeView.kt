@@ -1,11 +1,13 @@
 package com.infowings.catalog.aspects.treeview
 
+import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
 import kotlinext.js.invoke
 import kotlinext.js.require
 import react.*
 import react.dom.div
+
 
 /**
  * View Component. Draws List of [treeNode] for each [AspectData] in [AspectTreeView.Props.aspects] list
@@ -25,12 +27,10 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
                     attrs {
                         key = aspect.id ?: ""
                         this.aspect = aspect
-                        onAspectClick = props.onAspectClick
-                        onAspectPropertyClick = props.onAspectPropertyClick
-                        aspectContext = props.aspectContext
                         selectedAspectId = props.selectedAspectId
                         selectedPropertyIndex = props.selectedPropertyIndex
-                        onAddAspectProperty = props.onAddAspectProperty
+                        aspectsModel = props.aspectsModel
+                        aspectContext = props.aspectContext
                     }
                 }
             }
@@ -39,12 +39,10 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
 
     interface Props : RProps {
         var aspects: List<AspectData>
-        var onAspectClick: (aspectId: String?) -> Unit
-        var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
-        var aspectContext: (aspectId: String) -> AspectData?
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var onAddAspectProperty: (propertyIndex: Int) -> Unit
+        var aspectContext: (aspectId: String) -> AspectData?
+        var aspectsModel: AspectsModel
     }
 }
 
@@ -86,8 +84,8 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
                         attrs {
                             this.aspect = props.aspect
                             isAspectSelected = props.aspect.id == props.selectedAspectId
-                            onClick = props.onAspectClick
-                            onAddToListIconClick = props.onAddAspectProperty
+                            onClick = props.aspectsModel::selectAspect
+                            onAddToListIconClick = props.aspectsModel::createProperty
                             onExpandAllStructure = ::handleExpandAllStructure
                         }
                     }
@@ -100,12 +98,10 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
                         this.aspect = props.aspect
                         selectedAspectId = props.selectedAspectId
                         selectedPropertyIndex = props.selectedPropertyIndex
-                        onSelectAspect = props.onAspectClick
-                        onAspectPropertyClick = props.onAspectPropertyClick
-                        aspectContext = props.aspectContext
-                        onAddAspectProperty = props.onAddAspectProperty
                         onSubtreeExpandStateChanged = ::handleExpandStateChanged
+                        aspectContext = props.aspectContext
                         subtreeExpanded = state.expandedSubtree
+                        aspectsModel = props.aspectsModel
                     }
                 }
             }
@@ -118,12 +114,10 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
 
     interface Props : RProps {
         var aspect: AspectData
-        var onAspectClick: (aspectId: String?) -> Unit
-        var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
-        var aspectContext: (aspectId: String) -> AspectData?
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var onAddAspectProperty: (propertyIndex: Int) -> Unit
+        var aspectContext: (aspectId: String) -> AspectData?
+        var aspectsModel: AspectsModel
     }
 }
 

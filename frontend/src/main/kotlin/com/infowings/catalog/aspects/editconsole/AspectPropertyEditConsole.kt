@@ -11,7 +11,6 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
@@ -71,20 +70,11 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         this.inputRef = inputRef
     }
 
-    private fun copyParentSelectedProperty() =
-        props.parentAspect.properties[props.aspectPropertyIndex].copy(
-            name = state.aspectPropertyName ?: error("Can't save aspect property with name == null"),
-            cardinality = state.aspectPropertyCardinality
-                    ?: error("Can't save aspect property with cardinality == null"),
-            aspectId = state.aspectPropertyAspectId
-                    ?: error("Can't save aspect property with aspectId == null")
-        )
-
     /**
      * Business logic function (handler for add-to-list icon click and ctrl-enter keystoke)
      */
     private fun switchToNextProperty() {
-        props.onSwitchToNextProperty(copyParentSelectedProperty())
+        props.propertyEditConsoleModel.switchToNextProperty(currentState)
     }
 
     /**
@@ -93,7 +83,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     private fun trySubmitParentAspect() {
         launch {
             try {
-                props.onSaveParentAspect(copyParentSelectedProperty())
+                props.propertyEditConsoleModel.submitParentAspect(currentState)
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
@@ -153,7 +143,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
     override fun RBuilder.render() {
         aspectConsoleBlock {
             attrs {
-                onEscape = props.onCancel
+                onEscape = props.propertyEditConsoleModel::discardChanges
                 onEnter = ::trySubmitParentAspect
                 onCtrlEnter = ::switchToNextProperty
             }
@@ -173,9 +163,9 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                 }
                 consoleButtonsGroup(
                     onSubmitClick = ::trySubmitParentAspect,
-                    onCancelClick = props.onCancel,
+                    onCancelClick = props.propertyEditConsoleModel::discardChanges,
                     onAddToListClick = ::switchToNextProperty,
-                    onDeleteClick = props.onDelete
+                    onDeleteClick = props.propertyEditConsoleModel::deleteProperty
                 )
             }
             div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
@@ -242,10 +232,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var parentAspect: AspectData
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
-        var onCancel: () -> Unit
-        var onDelete: () -> Unit
-        var onSwitchToNextProperty: (AspectPropertyData) -> Unit
-        var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
+        var propertyEditConsoleModel: AspectPropertyEditConsoleModel
     }
 
     interface State : RState {

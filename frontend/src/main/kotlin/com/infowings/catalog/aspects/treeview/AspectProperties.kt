@@ -1,7 +1,8 @@
 package com.infowings.catalog.aspects.treeview
 
+import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import react.*
@@ -11,9 +12,11 @@ import react.*
  */
 class AspectProperties : RComponent<AspectProperties.Props, RState>() {
 
-    private fun handleAddPropertyToAspect(aspect: AspectData) {
-        props.onSelectAspect(aspect.id)
-        props.onAddAspectProperty(aspect.properties.size) // Not allow create property if last one is already empty?
+    private fun addPropertyToAspect(aspect: AspectData) {
+        props.aspectsModel.selectAspect(aspect.id)
+        if (aspect.properties.isEmpty() || aspect.properties.last() != emptyAspectPropertyData) {
+            props.aspectsModel.createProperty(aspect.properties.size) // Not allow create property if last one is already empty?
+        }
     }
 
     override fun RBuilder.render() {
@@ -23,16 +26,12 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
                     attrs {
                         parentAspect = props.aspect
                         propertyIndex = index
-                        aspectProperty = property
                         selectedAspectId = props.selectedAspectId
                         selectedPropertyIndex = props.selectedPropertyIndex
-                        onSelectAspect = props.onSelectAspect
-                        onAspectPropertyClick = props.onAspectPropertyClick
-                        aspectContext = props.aspectContext
-                        onAddAspectProperty = props.onAddAspectProperty
-                        onAddPropertyToAspect = ::handleAddPropertyToAspect
                         subtreeExpanded = props.subtreeExpanded
                         onSubtreeExpandStateChanged = props.onSubtreeExpandStateChanged
+                        onAddPropertyToAspect = ::addPropertyToAspect
+                        aspectsModel = props.aspectsModel
                     }
                 }
             }
@@ -43,12 +42,10 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
         var aspect: AspectData
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var onSelectAspect: (aspectId: String?) -> Unit
-        var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
-        var aspectContext: (aspectId: String) -> AspectData?
-        var onAddAspectProperty: (propertyIndex: Int) -> Unit
         var subtreeExpanded: Boolean
+        var aspectContext: (aspectId: String) -> AspectData?
         var onSubtreeExpandStateChanged: () -> Unit
+        var aspectsModel: AspectsModel
     }
 
 }
@@ -76,27 +73,33 @@ class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropert
 
     override fun RBuilder.render() {
         treeNode {
+            val aspectProperty = props.parentAspect.properties[props.propertyIndex]
             val childAspect =
-                    if (props.aspectProperty.aspectId.isNotEmpty())
-                        props.aspectContext(props.aspectProperty.aspectId)
-                                ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
-                    else null
+                if (aspectProperty.aspectId.isNotEmpty())
+                    props.aspectContext(aspectProperty.aspectId)
+                            ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
+                else null
 
             attrs {
-                key = if (props.aspectProperty.id.isEmpty()) props.propertyIndex.toString() else props.aspectProperty.id
+                key = if (aspectProperty.id.isEmpty()) props.propertyIndex.toString() else aspectProperty.id
                 className = "aspect-tree-view--aspect-property-node"
                 expanded = props.subtreeExpanded
                 onExpanded = { onSubtreeExpandStateChanged() }
                 treeNodeContent = buildElement {
                     aspectPropertyNode {
                         attrs {
-                            aspectProperty = props.aspectProperty
+                            this.aspectProperty = aspectProperty
                             isPropertySelected = props.parentAspect.id == props.selectedAspectId
                                     && props.propertyIndex == props.selectedPropertyIndex
                             correspondingAspect = childAspect
                             isCorrespondingAspectSelected =
                                     if (childAspect == null) false else childAspect.id == props.selectedAspectId
-                            onClick = { props.onAspectPropertyClick(props.parentAspect.id, props.propertyIndex) }
+                            onClick = {
+                                props.aspectsModel.selectAspectProperty(
+                                    props.parentAspect.id,
+                                    props.propertyIndex
+                                )
+                            }
                             onAddToListIconClick = if (childAspect == null) null else {
                                 { props.onAddPropertyToAspect(childAspect) }
                             }
@@ -111,11 +114,9 @@ class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropert
                         aspect = childAspect
                         selectedAspectId = props.selectedAspectId
                         selectedPropertyIndex = props.selectedPropertyIndex
-                        onSelectAspect = props.onSelectAspect
-                        onAspectPropertyClick = props.onAspectPropertyClick
                         aspectContext = props.aspectContext
-                        onAddAspectProperty = props.onAddAspectProperty
                         subtreeExpanded = state.subtreeExpanded
+                        aspectsModel = props.aspectsModel
                     }
                 }
             }
@@ -125,16 +126,16 @@ class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropert
     interface Props : RProps {
         var parentAspect: AspectData
         var propertyIndex: Int
-        var aspectProperty: AspectPropertyData
+
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var onSelectAspect: (aspectId: String?) -> Unit
-        var onAspectPropertyClick: (aspectId: String?, propertyIndex: Int) -> Unit
         var aspectContext: (aspectId: String) -> AspectData?
-        var onAddAspectProperty: (propertyIndex: Int) -> Unit
-        var onAddPropertyToAspect: (AspectData) -> Unit
+
         var subtreeExpanded: Boolean
         var onSubtreeExpandStateChanged: () -> Unit
+
+        var onAddPropertyToAspect: (AspectData) -> Unit
+        var aspectsModel: AspectsModel
     }
 
     interface State : RState {

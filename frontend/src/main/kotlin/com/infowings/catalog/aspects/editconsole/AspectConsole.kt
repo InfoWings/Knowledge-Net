@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
+import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import kotlinext.js.invoke
@@ -7,11 +8,26 @@ import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
 import react.*
 
+interface AspectEditConsoleModel {
+    suspend fun submitAspect(aspect: AspectData)
+    fun switchToProperties(aspect: AspectData)
+    fun discardChanges()
+    suspend fun deleteAspect(force: Boolean)
+}
+
+interface AspectPropertyEditConsoleModel {
+    suspend fun submitParentAspect(property: AspectPropertyData)
+    fun switchToNextProperty(property: AspectPropertyData)
+    fun discardChanges()
+    fun deleteProperty()
+}
+
 /**
  * Business component. Serves as adapter and router to the right implementation of console (for aspect or for aspect
  * property).
  */
-class AspectConsole : RComponent<AspectConsole.Props, RState>() {
+class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConsoleModel,
+    AspectPropertyEditConsoleModel {
 
     companion object {
         init {
@@ -19,72 +35,83 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         }
     }
 
-    private suspend fun handleSubmitAspectChanges(aspect: AspectData) {
-        props.onAspectUpdate(aspect)
-        props.onSubmit()
+    override suspend fun submitAspect(aspect: AspectData) {
+        props.aspectsModel.updateAspect(aspect)
+        props.aspectsModel.submitAspect()
     }
 
-    private suspend fun handleSaveParentAspect(property: AspectPropertyData) {
-        props.onAspectPropertyUpdate(property)
-        props.onSubmit()
+    override suspend fun submitParentAspect(property: AspectPropertyData) {
+        props.aspectsModel.updateProperty(property)
+        props.aspectsModel.submitAspect()
     }
 
-    private fun handleDeleteSelectedAspectProperty() {
-        val selectedAspect = props.aspect
-        val selectedPropertyIndex = props.propertyIndex
-                ?: error("Aspect property should be selected in order to delete property")
-
-        launch {
-            props.onAspectPropertyUpdate(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
-
-            if (selectedAspect.hasNextAliveProperty(selectedPropertyIndex.inc())) {
-                props.onSelectProperty(
-                    selectedAspect.id,
-                    selectedAspect.getNextAlivePropertyIndex(selectedPropertyIndex.inc())
-                )
-            } else {
-                props.onSelectAspect(selectedAspect.id)
-            }
-        }
-    }
-
-    private fun handleSwitchToAspectProperties(aspect: AspectData) {
+    override fun switchToProperties(aspect: AspectData) {
         val selectedAspect = props.aspect
         launch {
-            props.onAspectUpdate(aspect)
+            props.aspectsModel.updateAspect(aspect)
             if (selectedAspect.properties.isNotEmpty()) {
                 if (selectedAspect.hasNextAliveProperty(0))
-                    props.onSelectProperty(selectedAspect.id, selectedAspect.getNextAlivePropertyIndex(0))
+                    props.aspectsModel.selectAspectProperty(
+                        selectedAspect.id,
+                        selectedAspect.getNextAlivePropertyIndex(0)
+                    )
                 else
-                    props.onCreateProperty(selectedAspect.properties.size)
+                    props.aspectsModel.createProperty(selectedAspect.properties.size)
             } else {
-                props.onCreateProperty(0)
+                props.aspectsModel.createProperty(0)
             }
         }
     }
 
-    private fun handleSwitchToNextProperty(property: AspectPropertyData) {
+    override fun switchToNextProperty(property: AspectPropertyData) {
         val selectedAspect = props.aspect
         val selectedPropertyIndex = props.propertyIndex
                 ?: error("Aspect property should be selected in order to switch to next property")
         launch {
             if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != AspectPropertyData("", "", "", "")) {
-                props.onAspectPropertyUpdate(property)
+                props.aspectsModel.updateProperty(property)
                 val nextPropertyIndex = selectedPropertyIndex.inc()
                 if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {
-                    props.onCreateProperty(nextPropertyIndex)
+                    props.aspectsModel.createProperty(nextPropertyIndex)
                 } else {
                     if (selectedAspect.hasNextAliveProperty(nextPropertyIndex)) {
-                        props.onSelectProperty(
+                        props.aspectsModel.selectAspectProperty(
                             selectedAspect.id,
                             selectedAspect.getNextAlivePropertyIndex(nextPropertyIndex)
                         )
                     } else {
-                        props.onCreateProperty(selectedAspect.properties.size)
+                        props.aspectsModel.createProperty(selectedAspect.properties.size)
                     }
                 }
             }
         }
+    }
+
+    override suspend fun deleteAspect(force: Boolean) {
+        props.aspectsModel.deleteAspect(force)
+    }
+
+    override fun deleteProperty() {
+        val selectedAspect = props.aspect
+        val selectedPropertyIndex = props.propertyIndex
+                ?: error("Aspect property should be selected in order to delete property")
+
+        launch {
+            props.aspectsModel.updateProperty(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
+
+            if (selectedAspect.hasNextAliveProperty(selectedPropertyIndex.inc())) {
+                props.aspectsModel.selectAspectProperty(
+                    selectedAspect.id,
+                    selectedAspect.getNextAlivePropertyIndex(selectedPropertyIndex.inc())
+                )
+            } else {
+                props.aspectsModel.selectAspect(selectedAspect.id)
+            }
+        }
+    }
+
+    override fun discardChanges() {
+        props.aspectsModel.discardSelect()
     }
 
     override fun RBuilder.render() {
@@ -94,10 +121,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
             aspectEditConsole {
                 attrs {
                     aspect = selectedAspect
-                    onCancel = props.onCancel
-                    onSubmit = { handleSubmitAspectChanges(it) }
-                    onSwitchToProperties = ::handleSwitchToAspectProperties
-                    onDelete = props.onAspectDelete
+                    editConsoleModel = this@AspectConsole
                 }
             }
         } else {
@@ -107,10 +131,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
                     aspectPropertyIndex = selectedAspectPropertyIndex
                     childAspect = if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
                     else props.aspectContext(selectedAspect.properties[selectedAspectPropertyIndex].aspectId)
-                    onCancel = props.onCancel
-                    onSwitchToNextProperty = ::handleSwitchToNextProperty
-                    onSaveParentAspect = { handleSaveParentAspect(it) }
-                    onDelete = ::handleDeleteSelectedAspectProperty
+                    propertyEditConsoleModel = this@AspectConsole
                 }
             }
         }
@@ -120,14 +141,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>() {
         var aspect: AspectData
         var propertyIndex: Int?
         var aspectContext: (String) -> AspectData?
-        var onSelectProperty: (String?, Int) -> Unit
-        var onSelectAspect: (String?) -> Unit
-        var onCreateProperty: (Int) -> Unit
-        var onCancel: () -> Unit
-        var onAspectUpdate: suspend (AspectData) -> Unit
-        var onAspectPropertyUpdate: suspend (AspectPropertyData) -> Unit
-        var onAspectDelete: suspend (force: Boolean) -> Unit
-        var onSubmit: suspend () -> Unit
+        var aspectsModel: AspectsModel
     }
 }
 

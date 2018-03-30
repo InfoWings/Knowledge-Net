@@ -11,6 +11,6 @@ class AspectsPage : RComponent<RouteSuppliedProps, RState>() {
         child(Header::class) {
             attrs.location = props.location.pathname
         }
-        aspectApiMiddleware(AspectsControl::class)
+        aspectApiMiddleware(AspectsModelComponent::class)
     }
 }
