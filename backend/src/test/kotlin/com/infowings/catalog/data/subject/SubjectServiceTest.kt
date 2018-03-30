@@ -86,7 +86,7 @@ class SubjectServiceTest {
     }
 
     @Test
-    fun testAddAspectsAfterRemoveForceSameSubject() {
+    fun testAddAspectsAfterRemoveForce() {
         /*
          *  aspectBase
          *    level1_property
