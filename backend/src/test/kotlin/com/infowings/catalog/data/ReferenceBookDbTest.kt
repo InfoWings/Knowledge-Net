@@ -32,7 +32,7 @@ class ReferenceBookDbTest {
     @Before
     fun initTestData() {
         aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
-        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
+        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, "")
     }
 
     @Test
@@ -52,7 +52,7 @@ class ReferenceBookDbTest {
     @Test
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
-        val anotherBook = referenceBookService.createReferenceBook("Example", anotherAspect.id)
+        val anotherBook = referenceBookService.createReferenceBook("Example", anotherAspect.id, "")
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
@@ -70,13 +70,13 @@ class ReferenceBookDbTest {
     @Test
     fun updateReferenceBookTest() {
         val newName = "newName"
-        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName)
+        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName, "")
         assertEquals(ReferenceBook(newName, referenceBook.aspectId, referenceBook.root), updatedReferenceBook)
     }
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
-        referenceBookService.updateReferenceBook("random", "newName")
+        referenceBookService.updateReferenceBook("random", "newName", "")
     }
 
     @Test

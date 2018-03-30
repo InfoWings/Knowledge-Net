@@ -39,9 +39,10 @@ class ReferenceBookVertex(private val vertex: OVertex) : OVertex by vertex {
     val aspect: OVertex?
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
 
+    fun aspectOVertex() = aspect ?: throw RefBookAspectNotExist(aspectId)
 
     fun toReferenceBook(): ReferenceBook {
-        val aspectId = aspect?.id ?: throw RefBookAspectNotExist(aspectId)
+        val aspectId = aspectOVertex().id
         val root = toReferenceBookVertex().child!!.toReferenceBookItem()
         return ReferenceBook(name, aspectId, root)
     }

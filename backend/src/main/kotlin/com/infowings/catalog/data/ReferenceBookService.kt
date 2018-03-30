@@ -2,6 +2,7 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.storage.*
 
 import com.orientechnologies.orient.core.record.ODirection
@@ -10,7 +11,8 @@ import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
 
-class ReferenceBookService(val database: OrientDatabase, val daoService: ReferenceBookDaoService) {
+class ReferenceBookService(val database: OrientDatabase, val daoService: ReferenceBookDaoService,
+                           val historyService: HistoryService) {
 
     /**
      * Get all ReferenceBook instances
@@ -34,7 +36,7 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      * Create ReferenceBook with name [name]
      * @throws RefBookAlreadyExist
      */
-    fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(database) {
+    fun createReferenceBook(name: String, aspectId: String, user: String): ReferenceBook = transaction(database) {
         daoService.noReferenceBookVertexByAspectId(aspectId)
 
         val referenceBookVertex = daoService.newReferenceBookVertex()
@@ -49,17 +51,26 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
         val aspectVertex = database.getVertexById(aspectId)
         referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
 
-        return@transaction Pair(referenceBookVertex.save<OVertex>(), rootVertex.save<OVertex>())
-    }.let { ReferenceBook(it.first.toReferenceBookVertex().name, aspectId, ReferenceBookItem(it.second.id, it.second.toReferenceBookItemVertex().value)) }
+        val savedBookVertex  = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
+        val savedRootVertex = rootVertex.save<OVertex>().toReferenceBookItemVertex()
+
+        historyService.storeFact(savedBookVertex.toCreateFact(user))
+        historyService.storeFact(savedRootVertex.toCreateFact(user))
+
+        return@transaction Pair(savedBookVertex, savedRootVertex)
+    }.let { ReferenceBook(it.first.name, aspectId, ReferenceBookItem(it.second.id, it.second.value)) }
 
     /**
      * Change ReferenceBook name to [newName] where aspect id equals to [aspectId]
      * @throws RefBookNotExist if ReferenceBook with [aspectId] not found
      * */
-    fun updateReferenceBook(aspectId: String, newName: String) = transaction(database) {
+    fun updateReferenceBook(aspectId: String, newName: String, user: String) = transaction(database) {
         val referenceBookVertex = daoService.findReferenceBookVertexByAspectId(aspectId)
+        val before = referenceBookVertex.toSnapshot()
         referenceBookVertex.name = newName
-        return@transaction referenceBookVertex.save<OVertex>().toReferenceBook()
+        val saved = referenceBookVertex.save<OVertex>().toReferenceBook()
+        historyService.storeFact(referenceBookVertex.toUpdateFact(user, before))
+        return@transaction saved
     }
 
     /**

@@ -53,6 +53,7 @@
     <bean id="referenceBookService" class="com.infowings.catalog.data.ReferenceBookService">
         <constructor-arg name="database" ref="orientDatabase"/>
         <constructor-arg name="daoService" ref="referenceBookDaoService"/>
+        <constructor-arg name="historyService" ref="historyService"/>
     </bean>
 
     <bean id="suggestionService" class="com.infowings.catalog.search.SuggestionService">
