@@ -1,10 +1,7 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.popup.popup
 import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
@@ -12,6 +9,7 @@ import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
@@ -28,7 +26,8 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             name = state.aspectName ?: error("Aspect Name is null"),
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+            subject = state.aspectSubject
         )
 
     override fun State.init(props: Props) {
@@ -36,6 +35,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectMeasure = props.aspect.measure
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
+        aspectSubject = props.aspect.subject
         confirmation = false
     }
 
@@ -51,6 +51,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 aspectMeasure = nextProps.aspect.measure
                 aspectDomain = nextProps.aspect.domain
                 aspectBaseType = nextProps.aspect.baseType
+                aspectSubject = nextProps.aspect.subject
                 badRequestErrorMessage = null
             }
         }
@@ -109,6 +110,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
+    private fun handleAspectSubjectChanged(subjectName: String, subjetId: String) {
+        setState {
+            aspectSubject = SubjectData(id = subjetId, name = subjectName)
+        }
+    }
+
     private fun handleAspectDomainChanged(domain: String) {
         setState {
             aspectDomain = domain
@@ -155,6 +162,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         onChange = ::handleAspectBaseTypeChanged
                     }
                 }
+                aspectSubjectInput {
+                    attrs {
+                        value = state.aspectSubject?.name ?: ""
+                        onChange = ::handleAspectSubjectChanged
+                    }
+                }
                 consoleButtonsGroup(
                     onSubmitClick = ::tryMakeSubmitAspectRequest,
                     onAddToListClick = ::handleSwitchToProperties,
@@ -195,6 +208,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
         var confirmation: Boolean
     }

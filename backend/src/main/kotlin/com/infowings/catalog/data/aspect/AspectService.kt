@@ -17,7 +17,7 @@ class AspectService(
     suggestionService: SuggestionService
 ) {
 
-    private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
+    private val aspectValidator = AspectValidator(aspectDaoService)
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
@@ -75,6 +75,8 @@ class AspectService(
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
     fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
+
+    fun getAspect(vertex: AspectVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id
@@ -140,17 +142,18 @@ class AspectService(
 
     }
 
-    private fun AspectVertex.toAspect(): Aspect {
+    private fun AspectVertex.toAspect(): Aspect = transaction(db) {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        return Aspect(
+        Aspect(
             id,
             name,
             measure,
             baseTypeObj?.let { OpenDomain(it) },
             baseTypeObj,
             loadProperties(this),
-            deleted,
-            version
+            version,
+            subject,
+            deleted
         )
     }
 
@@ -177,7 +180,9 @@ class AspectService(
 }
 
 sealed class AspectException(message: String? = null) : Exception(message)
-class AspectAlreadyExist(val name: String) : AspectException("name = $name")
+
+class AspectAlreadyExist(val name: String, subject: String?) :
+    AspectException("name = $name, subject ${subject ?: "GLOBAL"}")
 
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")
 
@@ -195,7 +200,9 @@ class AspectPropertyModificationException(val id: String, message: String?) :
     AspectException("id = $id, message = $message")
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
-        AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
-class AspectHasLinkedEntitiesException(val id: String): AspectException("Some entities refer to aspect $id")
+    AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectNameCannotBeNull : AspectException()
+class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 
 class AspectInconsistentStateException(message: String) : AspectException(message)

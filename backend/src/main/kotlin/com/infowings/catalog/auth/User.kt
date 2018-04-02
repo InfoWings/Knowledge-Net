@@ -12,9 +12,11 @@ val user = UserEntity("user", "user", UserRole.USER)
 val poweredUser = UserEntity("powereduser", "powereduser", UserRole.POWERED_USER)
 
 @Serializable
-data class UserEntity(var username: String,
-                      var password: String,
-                      var role: UserRole)
+data class UserEntity(
+    var username: String,
+    var password: String,
+    var role: UserRole
+)
 
 class UserAcceptService(var database: OrientDatabase) {
     fun findByUsername(username: String): UserEntity? = session(database) {

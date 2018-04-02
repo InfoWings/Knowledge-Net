@@ -12,13 +12,11 @@ import react.dom.div
 
 interface AspectOption : SelectOption {
     var aspectData: AspectData
-    var aspectName: String
     var aspectLabel: String
 }
 
 fun aspectOption(data: AspectData) = jsObject<AspectOption> {
-    aspectLabel = "${data.name} ${data.measure?.let { "(${data.measure})" } ?: ""}"
-    aspectName = data.name
+    aspectLabel = "${data.name} ${data.subject?.let { "(${it.name})" } ?: "(Global)"}"
     aspectData = data
 }
 
@@ -38,9 +36,12 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                 asyncSelect<AspectOption> {
                     attrs {
                         className = "aspect-table-select"
-                        value = boundAspect?.name ?: ""
+                        value = boundAspect?.let {
+                            if (it.name != null) "${it.name} ${it.subject?.let { "(${it.name})" }
+                                    ?: "(Global)"}" else ""
+                        } ?: ""
                         labelKey = "aspectLabel"
-                        valueKey = "aspectName"
+                        valueKey = "aspectLabel"
                         onChange = ::handleSelectAspectOption
                         cache = false
                         clearable = false
