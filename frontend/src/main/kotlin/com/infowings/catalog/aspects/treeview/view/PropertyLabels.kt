@@ -6,14 +6,15 @@ import react.dom.div
 import react.dom.span
 
 fun RBuilder.propertyLabel(
-        className: String?,
-        aspectPropertyName: String,
-        aspectPropertyCardinality: String,
-        aspectName: String,
-        aspectMeasure: String,
-        aspectDomain: String,
-        aspectBaseType: String,
-        onClick: () -> Unit
+    className: String?,
+    aspectPropertyName: String,
+    aspectPropertyCardinality: String,
+    aspectName: String,
+    aspectMeasure: String,
+    aspectDomain: String,
+    aspectBaseType: String,
+    aspectSubjectName: String,
+    onClick: () -> Unit
 ) = div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
         onClickFunction = {
@@ -50,6 +51,11 @@ fun RBuilder.propertyLabel(
     span(classes = "aspect-tree-view--label-base-type") {
         +aspectBaseType
     }
+    +"( Subject: "
+    span(classes = "aspect-tree-view--label-subject") {
+        +aspectSubjectName
+    }
+    +" )"
 }
 
 fun RBuilder.placeholderPropertyLabel(className: String?) =

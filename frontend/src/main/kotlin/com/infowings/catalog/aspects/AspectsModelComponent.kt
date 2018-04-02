@@ -82,15 +82,6 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         selectedAspectPropertyIndex = null
     }
 
-    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
-        if (props.loading && !nextProps.loading) {
-            setState {
-                selectedAspect = emptyAspectData
-                selectedAspectPropertyIndex = null
-            }
-        }
-    }
-
     override fun selectAspect(aspectId: String?) {
         setState {
             selectedAspect = when (aspectId) {
@@ -142,7 +133,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 name = aspect.name,
                 measure = aspect.measure,
                 domain = aspect.domain,
-                baseType = aspect.baseType
+                baseType = aspect.baseType,
+                subject = aspect.subject
             )
         }
 

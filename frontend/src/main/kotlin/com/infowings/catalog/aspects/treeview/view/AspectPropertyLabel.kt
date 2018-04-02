@@ -17,14 +17,15 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
         }
         if (props.aspectProperty.name != "" || props.aspectProperty.cardinality != "" || props.aspectProperty.aspectId != "") {
             propertyLabel(
-                    className = selectedClass,
-                    aspectPropertyName = props.aspectProperty.name,
-                    aspectPropertyCardinality = props.aspectProperty.cardinality,
-                    aspectName = props.aspect?.name ?: "",
-                    aspectMeasure = props.aspect?.measure ?: "",
-                    aspectDomain = props.aspect?.domain ?: "",
-                    aspectBaseType = props.aspect?.baseType ?: "",
-                    onClick = props.onClick
+                className = selectedClass,
+                aspectPropertyName = props.aspectProperty.name,
+                aspectPropertyCardinality = props.aspectProperty.cardinality,
+                aspectName = props.aspect?.name ?: "",
+                aspectMeasure = props.aspect?.measure ?: "",
+                aspectDomain = props.aspect?.domain ?: "",
+                aspectBaseType = props.aspect?.baseType ?: "",
+                aspectSubjectName = props.aspect?.subject?.name ?: "Global",
+                onClick = props.onClick
             )
         } else {
             placeholderPropertyLabel(className = selectedClass)
