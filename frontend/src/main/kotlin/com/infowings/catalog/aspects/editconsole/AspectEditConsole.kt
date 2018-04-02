@@ -31,7 +31,8 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             name = state.aspectName ?: error("Aspect Name is null"),
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType
+            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+            subject = if (state.aspectSubject != null) null else state.aspectSubject
         )
 
     override fun State.init(props: Props) {
