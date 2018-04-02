@@ -20,11 +20,7 @@ class ReferenceBookDaoService(private val db: OrientDatabase) {
     fun findReferenceBookItemVertex(id: String): ReferenceBookItemVertex =
         db.getVertexById(id)?.toReferenceBookItemVertex() ?: throw RefBookItemNotExist(id)
 
-    fun findReferenceBookVertexByAspectId(aspectId: String): ReferenceBookVertex =
+    fun findReferenceBookVertexByAspectId(aspectId: String): ReferenceBookVertex? =
         db.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNUll() }.firstOrNull() }
-            ?.toReferenceBookVertex() ?: throw RefBookNotExist(aspectId)
-
-    fun noReferenceBookVertexByAspectId(aspectId: String) =
-        db.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNUll() }.firstOrNull() }
-            ?.let { throw RefBookAlreadyExist(aspectId) }
+            ?.toReferenceBookVertex()
 }

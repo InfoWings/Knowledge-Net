@@ -11,7 +11,8 @@ import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
 
-class ReferenceBookService(val database: OrientDatabase, val daoService: ReferenceBookDaoService,
+class ReferenceBookService(val database: OrientDatabase,
+                           val daoService: ReferenceBookDaoService,
                            val historyService: HistoryService) {
 
     /**
@@ -29,6 +30,7 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      */
     fun getReferenceBook(aspectId: String): ReferenceBook = transaction(database) {
         val referenceBookVertex = daoService.findReferenceBookVertexByAspectId(aspectId)
+                ?: throw RefBookNotExist(aspectId)
         return@transaction referenceBookVertex.toReferenceBook()
     }
 
@@ -37,7 +39,7 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      * @throws RefBookAlreadyExist
      */
     fun createReferenceBook(name: String, aspectId: String, user: String): ReferenceBook = transaction(database) {
-        daoService.noReferenceBookVertexByAspectId(aspectId)
+        daoService.findReferenceBookVertexByAspectId(aspectId) ?.let { throw RefBookAlreadyExist(aspectId) }
 
         val referenceBookVertex = daoService.newReferenceBookVertex()
         referenceBookVertex.aspectId = aspectId
@@ -66,6 +68,7 @@ class ReferenceBookService(val database: OrientDatabase, val daoService: Referen
      * */
     fun updateReferenceBook(aspectId: String, newName: String, user: String) = transaction(database) {
         val referenceBookVertex = daoService.findReferenceBookVertexByAspectId(aspectId)
+                ?: throw RefBookNotExist(aspectId)
         val before = referenceBookVertex.toSnapshot()
         referenceBookVertex.name = newName
         val saved = referenceBookVertex.save<OVertex>().toReferenceBook()
