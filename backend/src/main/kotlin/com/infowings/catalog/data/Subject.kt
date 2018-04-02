@@ -1,4 +1,4 @@
-package com.infowings.catalog.data.subject
+package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
 

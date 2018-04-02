@@ -1,37 +1,40 @@
-package com.infowings.catalog.data.subject
+package com.infowings.catalog.data
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
 
+fun OVertex.toSubject(): Subject =
+    Subject(this.id, this.name)
+
 class SubjectService(private val db: OrientDatabase, private val aspectService: AspectService) {
 
     fun getSubjects(): List<Subject> = db.query(selectSubjects) { rs ->
-        rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
+        rs.mapNotNull { it.toVertexOrNull()?.toSubject() }.toList()
     }
 
-    fun getSubject(vertex: SubjectVertex): Subject = vertex.toSubject()
+    fun getSubject(vertex: OVertex): Subject = vertex.toSubject()
 
     fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
-        rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
+        rs.map { it.toVertex().toSubject() }.firstOrNull()
     }
 
     fun createSubject(sd: SubjectData): Subject =
         transaction(db) {
             findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(sd.name) } ?: save(sd)
-        }.toSubjectVertex().toSubject()
+        }.toSubject()
 
     fun updateSubject(sd: SubjectData): Subject =
         transaction(db) {
-            val vertex: SubjectVertex = db[sd.id ?: throw SubjectIdIsNull()].toSubjectVertex()
+            val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull()]
             vertex.name = sd.name
-            vertex.save<OVertex>().toSubjectVertex().toSubject()
+            vertex.save<OVertex>().toSubject()
         }
 
     private fun save(sd: SubjectData): OVertex =
         transaction(db) { session ->
-            val vertex: SubjectVertex = session.newVertex(SUBJECT_CLASS).toSubjectVertex()
+            val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
             vertex.name = sd.name
             return@transaction vertex.save<OVertex>()
         }

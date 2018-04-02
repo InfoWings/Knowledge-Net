@@ -1,10 +1,10 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.data.subject.Subject
+import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.subject.toSubjectData
+import com.infowings.catalog.data.toSubjectData
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired

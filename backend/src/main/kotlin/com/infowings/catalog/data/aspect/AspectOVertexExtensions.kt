@@ -1,9 +1,9 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.subject.Subject
-import com.infowings.catalog.data.subject.toSubjectData
-import com.infowings.catalog.data.subject.toSubjectVertex
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.toSubject
+import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -23,12 +23,12 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return AspectData(
-            id,
-            name,
-            measureName,
-            baseTypeObj?.let { OpenDomain(it).toString() },
-            baseType,
-            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+                id,
+                name,
+                measureName,
+                baseTypeObj?.let { OpenDomain(it).toString() },
+                baseType,
+                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
             version,
             subject?.toSubjectData(),
             deleted
@@ -71,8 +71,7 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-
-            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
+            return subjects.firstOrNull()?.toSubject()
         }
 
     fun isLinkedBy() = hasIncomingEdges()

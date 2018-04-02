@@ -3,9 +3,12 @@ package com.infowings.catalog.data.subject
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Test

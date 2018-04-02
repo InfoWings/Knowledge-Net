@@ -8,8 +8,6 @@ import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.subject.toSubjectData
-import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
@@ -79,7 +77,7 @@ class SuggestionService(
         subjectParam: SubjectSuggestionParam
     ): List<SubjectData> = session(database) {
         findSubjectInDb(commonParam, subjectParam)
-            .mapNotNull { it.toSubjectVertex().toSubject().toSubjectData() }
+            .mapNotNull { it.toSubject().toSubjectData() }
             .toList()
     }
 
