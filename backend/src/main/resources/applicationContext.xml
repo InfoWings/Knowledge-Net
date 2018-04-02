@@ -59,7 +59,7 @@
         <constructor-arg ref="orientDatabase"/>
     </bean>
 
-    <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">
+    <bean id="subjectService" class="com.infowings.catalog.data.subject.SubjectService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="aspectService"/>
     </bean>

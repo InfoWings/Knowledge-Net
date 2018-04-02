@@ -28,12 +28,6 @@ val OElement.id: String
 fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
 fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
-var OVertex.name: String
-    get() = this["name"]
-    set(value) {
-        this["name"] = value
-    }
-
 /**
  * Main class for work with database
  * */

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.infowings.catalog.AbstractMvcTest
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.createTestAspect
-import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.not
 import org.junit.Test

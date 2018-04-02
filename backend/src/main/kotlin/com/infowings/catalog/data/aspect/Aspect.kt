@@ -4,8 +4,8 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
-import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.data.subject.Subject
+import com.infowings.catalog.data.subject.toSubjectData
 
 
 enum class AspectPropertyCardinality {

@@ -2,8 +2,8 @@ package com.infowings.catalog.external
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
-import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.data.subject.SubjectService
+import com.infowings.catalog.data.subject.toSubjectData
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 
