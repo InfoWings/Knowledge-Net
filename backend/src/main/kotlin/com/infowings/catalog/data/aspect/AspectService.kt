@@ -22,6 +22,44 @@ class AspectService(
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService, suggestionService)
 
+    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
+        aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
+        aspectVertex.saveAspectProperties(aspectData.properties, user)
+        return aspectDaoService.saveAspect(aspectVertex, aspectData)
+    }
+
+    /*
+    Вспомогательный метод для save
+    Завершает обновление на случай обновления
+    Запускается изнутри транзакции на database
+     */
+    private fun updateFinish(database: OrientDatabase,
+                             aspectVertex: AspectVertex,
+                             aspectData: AspectData,
+                             user: String): AspectVertex {
+        val baseSnapshot = aspectVertex.toSnapshot()
+
+        val res = savePlain(aspectVertex, aspectData, user)
+
+        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot!!))
+
+        return res
+    }
+
+    /*
+    Вспомогательный метод для save
+    Завершает обновление на случай создания
+    Запускается изнутри транзакции на database
+    */
+    private fun createFinish(database: OrientDatabase,
+                             aspectVertex: AspectVertex,
+                             aspectData: AspectData,
+                             user: String): AspectVertex {
+        val res = savePlain(aspectVertex, aspectData, user)
+        historyService.storeFact(aspectVertex.toCreateFact(user))
+        return res
+    }
+
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
      * @param aspectData data that represents Aspect, which will be saved or updated
@@ -38,22 +76,9 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            val isCreate = aspectVertex.identity.isNew
+            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            val baseSnapshot = if (!isCreate) aspectVertex.toSnapshot() else null
-
-            aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
-            aspectVertex.saveAspectProperties(aspectData.properties, user)
-
-            val result = aspectDaoService.saveAspect(aspectVertex, aspectData)
-
-            if (isCreate) {
-                historyService.storeFact(aspectVertex.toCreateFact(user))
-            } else {
-                historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot!!))
-            }
-
-            return@transaction result
+            return@transaction finishMethod(db, aspectVertex, aspectData, user)
         }
 
         return findById(save.id)
