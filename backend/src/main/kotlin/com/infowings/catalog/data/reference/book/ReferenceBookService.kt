@@ -215,3 +215,4 @@ class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
 class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
 class RefBookItemConcurrentModificationException(id: String, message: String) :
     ReferenceBookException("id = $id, message = $message")
+class RefBookIllegalArgument(message: String) : ReferenceBookException(message)

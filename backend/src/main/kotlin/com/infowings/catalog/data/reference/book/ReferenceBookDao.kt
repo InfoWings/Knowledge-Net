@@ -34,7 +34,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun saveBookItem(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem): ReferenceBookItemVertex =
         session(db) {
-            val parentId = bookItem.parentId!!
+            val parentId = bookItem.parentId ?: throw RefBookIllegalArgument("parent id must not be null")
             val parentVertex = db.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
             if (!parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_VERTEX).contains(bookItemVertex)) {
                 parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
