@@ -54,9 +54,9 @@ class JWTService {
 
         try {
             val obj = Jwts.parser()
-                    .setSigningKey(SECRET)
-                    .parseClaimsJws(token.replace("$PREFIX ", ""))
-                    .body
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token.replace("$PREFIX ", ""))
+                .body
 
             return if (obj.subject != null && Date().before(obj.expiration))
                 JSON.parse(obj.subject) else null
@@ -67,9 +67,9 @@ class JWTService {
     }
 
     private fun createTokenString(jwtInfo: JwtInfo, expirationTime: Long) =
-            Jwts.builder()
-                    .setSubject(JSON.stringify(jwtInfo))
-                    .setExpiration(Date(System.currentTimeMillis() + expirationTime))
-                    .signWith(SignatureAlgorithm.HS512, SECRET)
-                    .compact()
+        Jwts.builder()
+            .setSubject(JSON.stringify(jwtInfo))
+            .setExpiration(Date(System.currentTimeMillis() + expirationTime))
+            .signWith(SignatureAlgorithm.HS512, SECRET)
+            .compact()
 }

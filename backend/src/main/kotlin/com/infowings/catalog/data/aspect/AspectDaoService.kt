@@ -11,11 +11,12 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /** Should be used externally for query building. */
-const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name=? and @rid <> ?"
-const val notDeletedSql = "deleted is NULL or deleted = false"
-const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE ($notDeletedSql)"
+const val notDeletedSql = "(deleted is NULL or deleted = false)"
+const val selectWithNameDifferentId =
+    "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId) and $notDeletedSql"
+const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
-const val selectAspectByName = "SELECT FROM Aspect where name = ? AND ($notDeletedSql)"
+const val selectAspectByName = "SELECT FROM Aspect where name = ? AND $notDeletedSql"
 
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
@@ -47,13 +48,13 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
 
     fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
-        rs.mapNotNull { it.toVertexOrNUll()?.toAspectVertex() }.toSet()
+        rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
     }
 
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name
+        aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -68,6 +69,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             if (!aspectVertex.getVertices(ODirection.OUT, ASPECT_MEASURE_CLASS).contains(it)) {
                 aspectVertex.addEdge(it, ASPECT_MEASURE_CLASS).save<OEdge>()
             }
+        }
+
+        aspectData.subject?.id?.let {
+            aspectVertex.getEdges(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList().forEach { it.delete<OEdge>() }
+            aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
         return@session aspectVertex.save<OVertex>().toAspectVertex().also {
@@ -88,7 +94,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
         val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
 
-        aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
 
@@ -106,10 +112,28 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsByNameWithDifferentId(id: String, name: String): Set<AspectVertex> =
-        db.query("$selectWithNameDifferentId and ($notDeletedSql)", name, ORecordId(id)) {
-            it.map { it.toVertex().toAspectVertex() }.toSet()
+    fun getAspectsByNameAndSubjectWithDifferentId(name: String, subjectId: String?, id: String?): Set<OVertex> {
+        val q = if (subjectId == null) {
+            selectWithNameDifferentId
+        } else {
+            "$selectWithNameDifferentId and (@rid in (select out.@rid from $ASPECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
         }
+        val args: Map<String, Any?> =
+            mapOf("name" to name, "aspectId" to ORecordId(id), "subjectId" to ORecordId(subjectId))
+        return db.query(q, args) { it.map { it.toVertex() }.toSet() }
+    }
+
+    /**
+     * @param aspectId aspect id to start
+     * @return list of the current aspect and all its parents
+     */
+    fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
+        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
+        return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
+            it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
+        }
+    }
+
 }
 
 private val logger = loggerFor<AspectDaoService>()

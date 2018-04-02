@@ -4,6 +4,8 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.toSubjectData
 
 
 enum class AspectPropertyCardinality {
@@ -24,8 +26,9 @@ data class Aspect(
     val baseType: BaseType? = measure?.baseType
             ?: throw IllegalArgumentException("Measure unit cannot be null if no base type specified"),
     val properties: List<AspectProperty> = emptyList(),
-    val deleted: Boolean = false,
-    val version: Int = 0
+    val version: Int = 0,
+    val subject: Subject? = null,
+    val deleted: Boolean = false
 ) {
 
     operator fun get(property: String) = properties.filter { it.name == property }
@@ -38,8 +41,9 @@ data class Aspect(
             domain?.toString(),
             baseType?.name,
             properties.toAspectPropertyData(),
-            deleted,
-            version
+            version,
+            subject?.toSubjectData(),
+            deleted
         )
 }
 
@@ -53,5 +57,5 @@ data class AspectProperty(
     val cardinality: AspectPropertyCardinality,
     val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, false, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
 }

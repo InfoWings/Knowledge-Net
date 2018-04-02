@@ -57,6 +57,10 @@ class UserAccessController(var userAcceptService: UserAcceptService, var jwtServ
 class UserDetailsServiceImpl(var userAcceptService: UserAcceptService) : UserDetailsService {
     override fun loadUserByUsername(username: String?): UserDetails? {
         val user = userAcceptService.findByUsername(username!!) ?: return null
-        return User(user.username, user.password, mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name)))
+        return User(
+            user.username,
+            user.password,
+            mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
+        )
     }
 }

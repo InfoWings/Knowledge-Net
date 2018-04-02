@@ -20,7 +20,7 @@ class ReferenceBookService(val database: OrientDatabase,
      */
     fun getAllReferenceBooks(): List<ReferenceBook> = transaction(database) {
         return@transaction database.query(selectFromReferenceBook) { rs ->
-            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBook() }.toList()
+            rs.mapNotNull { it.toVertexOrNull()?.toReferenceBook() }.toList()
         }
     }
 
@@ -172,6 +172,27 @@ class ReferenceBookService(val database: OrientDatabase,
             return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
         }
     }
+
+    /*
+<<<<<<< HEAD
+=======
+
+    private fun getReferenceBookVertexByAspectId(aspectId: String): OVertex? =
+        database.query(searchReferenceBookByAspectId, aspectId) { it.map { it.toVertexOrNull() }.firstOrNull() }
+
+    private fun OVertex.toReferenceBook(): ReferenceBook {
+        val aspectId = aspect?.id ?: throw RefBookAspectNotExist(aspectId)
+        val root = child!!.toReferenceBookItem()
+        return ReferenceBook(name, aspectId, root)
+    }
+
+    private fun OVertex.toReferenceBookItem(): ReferenceBookItem {
+        val children = children.map { it.toReferenceBookItem() }
+        return ReferenceBookItem(id, value, children)
+    }
+>>>>>>> master
+
+*/
 }
 
 sealed class ReferenceBookException(message: String? = null) : Exception(message)
@@ -185,5 +206,34 @@ class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
 class RefBookParentNotFound(val vertex: ReferenceBookItemVertex) :
     ReferenceBookException("Not found parent for item ${vertex.id}")
 
+
+/*
+<<<<<<< HEAD
+=======
+private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
+private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
+
+private var OVertex.aspectId: String
+    get() = this["aspectId"]
+    set(value) {
+        this["aspectId"] = value
+    }
+
+private var OVertex.value: String
+    get() = this["value"]
+    set(value) {
+        this["value"] = value
+    }
+
+private var OVertex.deleted: Boolean
+    get() = this["deleted"] ?: false
+    set(value) {
+        this["deleted"] = value
+    }
+
+private val OVertex.children: List<OVertex>
+    get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).toList()
+>>>>>>> master
+*/
 
 private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"

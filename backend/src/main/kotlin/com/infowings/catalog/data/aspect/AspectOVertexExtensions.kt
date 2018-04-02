@@ -4,6 +4,9 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.toSubject
+import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -36,14 +39,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return AspectData(
-            id,
-            name,
-            measureName,
-            baseTypeObj?.let { OpenDomain(it).toString() },
-            baseType,
-            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
-            deleted,
-            version
+                id,
+                name,
+                measureName,
+                baseTypeObj?.let { OpenDomain(it).toString() },
+                baseType,
+                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            version,
+            subject?.toSubjectData(),
+            deleted
         )
     }
 
@@ -77,6 +81,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             vertex["deleted"] = value
         }
 
+    val subject: Subject?
+        get() {
+            val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
+            if (subjects.size > 1) {
+                throw OnlyOneSubjectForAspectIsAllowed(name)
+            }
+            return subjects.firstOrNull()?.toSubject()
+        }
+
     fun isLinkedBy() = hasIncomingEdges()
 
     override fun equals(other: Any?): Boolean {
@@ -87,6 +100,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         return vertex.hashCode()
     }
 }
+
+class OnlyOneSubjectForAspectIsAllowed(name: String) : Throwable("Too many subject for aspect '$name'")
 
 class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = ASPECT_PROPERTY_CLASS
@@ -101,7 +116,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
     )
 
     fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, false, version)
+        AspectPropertyData(id, name, aspect, cardinality, version)
 
     var name: String
         get() = vertex["name"]

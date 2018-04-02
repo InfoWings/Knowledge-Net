@@ -52,7 +52,7 @@ class ReferenceBookDbTest {
     @Test
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
-        val anotherBook = referenceBookService.createReferenceBook("Example", anotherAspect.id, "")
+        val anotherBook = referenceBookService.createReferenceBook("ExampleTst", anotherAspect.id, "")
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
