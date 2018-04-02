@@ -32,7 +32,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
-            subject = if (state.aspectSubject != null) null else state.aspectSubject
+            subject = state.aspectSubject
         )
 
     override fun State.init(props: Props) {
@@ -40,7 +40,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectMeasure = props.aspect.measure
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
-        aspectName = props.aspect.subject?.name ?: ""
+        aspectSubject = props.aspect.subject
         confirmation = false
     }
 

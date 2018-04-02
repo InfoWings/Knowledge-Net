@@ -63,6 +63,7 @@ class AspectPropertyEditConsole(props: Props) :
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
                 childAspectBaseType = nextProps.childAspect?.baseType
+                childAspectSubject = nextProps.childAspect?.subject
                 badRequestErrorMessage = null
             }
         }
@@ -103,6 +104,7 @@ class AspectPropertyEditConsole(props: Props) :
             childAspectMeasure = aspect.measure
             childAspectDomain = aspect.domain
             childAspectBaseType = aspect.baseType
+            childAspectSubject = aspect.subject
         }
     }
 
@@ -248,7 +250,7 @@ class AspectPropertyEditConsole(props: Props) :
                                     state.childAspectMeasure,
                                     state.childAspectDomain,
                                     state.childAspectBaseType,
-                                            subject = state.childAspectSubject
+                                subject = state.childAspectSubject
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
