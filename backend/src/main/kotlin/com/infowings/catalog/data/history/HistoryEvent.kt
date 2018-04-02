@@ -36,11 +36,11 @@ fun diffShapshots(before: Snapshot, after: Snapshot): DiffPayload {
 
     val addedLinks = after.links.mapValues {
         it.value.toSet().minus(before.links.getOrElse(it.key, { emptyList() })).toList()
-    }
+    }.filterValues { !it.isEmpty() }
 
     val removedLinks = before.links.mapValues {
         it.value.toSet().minus(after.links.getOrElse(it.key, { emptyList() })).toList()
-    }
+    }.filterValues { !it.isEmpty() }
 
     return DiffPayload(updateData, addedLinks = addedLinks, removedLinks = removedLinks)
 }
