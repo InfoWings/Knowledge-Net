@@ -136,16 +136,26 @@ class ReferenceBookDbTest {
     @Test
     fun correctChangeValueTest() {
         val childId = addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
-        changeValue(childId, "value2")
+        val childVertex = referenceBookService.getReferenceBookItem(childId)
+        changeValue(childId, "value2", childVertex.version)
         val updated = referenceBookService.getReferenceBookItem(childId)
         assertTrue("Value should be changed", updated.value == "value2")
+    }
+
+    @Test(expected = RefBookItemConcurrentModificationException::class)
+    fun concurrentChangeValueTest() {
+        val childId = addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
+        val version = referenceBookService.getReferenceBookItem(childId).version
+        changeValue(childId, "value2", version)
+        changeValue(childId, "value3", version)
     }
 
     @Test(expected = RefBookChildAlreadyExist::class)
     fun unCorrectChangeValueTest() {
         val childId = addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value1")
+        val childVertex = referenceBookService.getReferenceBookItem(childId)
         addReferenceBookItem(referenceBook.aspectId, referenceBook.id, "value2")
-        changeValue(childId, "value2")
+        changeValue(childId, "value2", childVertex.version)
     }
 
     @Test
@@ -211,7 +221,7 @@ class ReferenceBookDbTest {
             )
         )
     
-    private fun changeValue(id: String, value: String) = referenceBookService.changeValue(
+    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
         ReferenceBookItem(
             "",
             "",
@@ -219,7 +229,7 @@ class ReferenceBookDbTest {
             value,
             emptyList(),
             false,
-            0
+            version
         )
     )
 }

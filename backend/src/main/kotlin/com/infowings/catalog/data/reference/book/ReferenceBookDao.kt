@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.reference.book
 
-import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
@@ -32,15 +31,14 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex? =
         db.getVertexById(id)?.toReferenceBookItemVertex()
 
-    fun saveBookItem(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem): ReferenceBookItemVertex =
+    fun saveBookItemVertex(
+        parentVertex: ReferenceBookItemVertex,
+        bookItemVertex: ReferenceBookItemVertex
+    ): ReferenceBookItemVertex =
         session(db) {
-            val parentId = bookItem.parentId ?: throw RefBookIllegalArgument("parent id must not be null")
-            val parentVertex = db.getVertexById(parentId) ?: throw RefBookItemNotExist(parentId)
             if (!parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_VERTEX).contains(bookItemVertex)) {
                 parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
             }
-            bookItemVertex.value = bookItem.value
-            bookItemVertex.aspectId = bookItem.aspectId
             return@session bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 

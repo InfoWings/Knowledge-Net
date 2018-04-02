@@ -6,11 +6,11 @@ import com.infowings.catalog.storage.id
 
 class ReferenceBookValidator(private val dao: ReferenceBookDao) {
     fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
-        checkRefBookVersion(bookItemVertex, bookItem)
+        checkRefBookItemVersion(bookItemVertex, bookItem)
         checkRefBookChildrenVersions(bookItemVertex, bookItem)
     }
 
-    fun checkRefBookVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         if (bookItemVertex.version != bookItem.version) {
             throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")
         }
@@ -27,6 +27,13 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
         if (different) {
             throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
+        }
+    }
+
+    fun checkRefBookItemValue(parentVertex: ReferenceBookItemVertex, value: String, id: String?) {
+        val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
+        if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
+            throw RefBookChildAlreadyExist(parentVertex.id, value)
         }
     }
 }

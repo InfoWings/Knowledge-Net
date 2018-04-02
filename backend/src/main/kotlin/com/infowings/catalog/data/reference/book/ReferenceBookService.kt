@@ -2,7 +2,10 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.storage.*
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
+import com.infowings.catalog.storage.session
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
@@ -79,7 +82,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * */
     fun updateReferenceBook(aspectId: String, newName: String) = transaction(db) {
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-        referenceBookVertex["name"] = newName
+        referenceBookVertex.name = newName
         return@transaction referenceBookVertex.save<OVertex>().toReferenceBookVertex().toReferenceBook()
     }
 
@@ -99,17 +102,17 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      */
     internal fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
         transaction(db) {
-            val parentId = bookItem.parentId!!
+            val parentId = bookItem.parentId ?: throw RefBookIllegalArgument("parentId must not be null")
             val value = bookItem.value
 
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
-            if (parentVertex.children.any { it.value == value }) {
-                throw RefBookChildAlreadyExist(parentId, value)
-            }
+            validator.checkRefBookItemValue(parentVertex, value, null)
 
-            val childVertex = dao.createReferenceBookItemVertex()
+            val itemVertex = dao.createReferenceBookItemVertex()
+            itemVertex.aspectId = bookItem.aspectId
+            itemVertex.value = value
 
-            return@transaction dao.saveBookItem(childVertex, bookItem)
+            return@transaction dao.saveBookItemVertex(parentVertex, itemVertex)
         }.id
 
     /**
@@ -122,18 +125,14 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val id = bookItem.id
             val value = bookItem.value
 
-            val vertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
-            val parentVertex = vertex.parent!!
-            val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
+            val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
+            val parentVertex = itemVertex.parent ?: throw RefBookIllegalArgument("parent vertex must not be null")
+            validator.checkRefBookItemVersion(itemVertex, bookItem)
+            validator.checkRefBookItemValue(parentVertex, value, id)
 
-            if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
-                throw RefBookChildAlreadyExist(parentVertex.id, value)
-            }
+            itemVertex.value = value
 
-            return@transaction dao.saveBookItem(
-                vertex,
-                bookItem.copy(aspectId = parentVertex.aspectId, parentId = parentVertex.id)
-            )
+            return@transaction dao.saveBookItemVertex(parentVertex, itemVertex)
         }
     }
 
@@ -215,4 +214,5 @@ class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
 class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
 class RefBookItemConcurrentModificationException(id: String, message: String) :
     ReferenceBookException("id = $id, message = $message")
+
 class RefBookIllegalArgument(message: String) : ReferenceBookException(message)
