@@ -3,6 +3,10 @@ package com.infowings.catalog.data.history
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
+enum class EventKind {
+    CREATE, UPDATE, SOFT_DELETE, DELETE
+}
+
 interface HistoryAware: OVertex {
     val entityClass: String
 

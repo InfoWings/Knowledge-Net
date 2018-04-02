@@ -65,14 +65,13 @@
         <constructor-arg ref="orientDatabase"/>
     </bean>
 
-<<<<<<< HEAD
     <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="historyDaoService"/>
-=======
+    </bean>
+
     <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="aspectService"/>
->>>>>>> master
     </bean>
 </beans>
