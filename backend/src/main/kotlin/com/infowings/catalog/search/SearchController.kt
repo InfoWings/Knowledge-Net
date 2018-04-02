@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -27,7 +28,7 @@ class SearchController(val suggestionService: SuggestionService) {
     }
 
     /**
-     * Полнотекстовый поиск по аспектам
+     * Fulltext search of aspects
      */
     @GetMapping("/aspect/suggestion")
     fun aspectSuggestion(
@@ -38,6 +39,17 @@ class SearchController(val suggestionService: SuggestionService) {
         logger.debug("measureSuggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
         return AspectsList(suggestionService.findAspect(context, commonParam, aspectParam))
     }
+
+    /**
+     * Fulltext search of subjects
+     */
+    @GetMapping("/subject/suggestion")
+    fun subjectSuggestion(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        subjectParam: SubjectSuggestionParam
+    ): SubjectsList = SubjectsList(suggestionService.findSubject(commonParam, subjectParam))
+
 }
 
 private val logger = loggerFor<SearchController>()

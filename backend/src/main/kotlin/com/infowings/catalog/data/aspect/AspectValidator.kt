@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 
 /**
@@ -31,8 +30,7 @@ fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
 }
 
 class AspectValidator(
-    private val aspectDaoService: AspectDaoService,
-    private val suggestionService: SuggestionService
+    private val aspectDaoService: AspectDaoService
 ) {
 
     /**
@@ -100,23 +98,27 @@ class AspectValidator(
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
-        id?.let { checkAspectBusinessKeyForExistingAspect(id!!, name) } ?: checkAspectBusinessKeyForNewAspect(name)
+        val name = this.name ?: throw AspectNameCannotBeNull()
+        id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this)
     }
 
-    private fun checkAspectBusinessKeyForExistingAspect(id: String, name: String) =
-        aspectDaoService.getAspectsByNameWithDifferentId(id, name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+    private fun checkAspectBusinessKeyForExistingAspect(aspectData: AspectData, name: String) {
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, aspectData.id).let {
+            if (it.any()) {
+                throw AspectAlreadyExist(name, null)
             }
         }
+    }
 
-    private fun checkAspectBusinessKeyForNewAspect(name: String) =
-        aspectDaoService.findByName(name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+    private fun checkAspectBusinessKeyForNewAspect(aspectData: AspectData) {
+        val name = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, null)
+            .let {
+                if (it.isNotEmpty()) {
+                    throw AspectAlreadyExist(name, aspectData.subject?.name)
+                }
             }
-        }
-
+    }
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
 
         // check aspect properties business key
@@ -139,7 +141,7 @@ class AspectValidator(
     }
 
     private fun AspectVertex.checkCyclicDependencies(aspectData: AspectData) = this.also {
-        val parentsIds = suggestionService.findParentAspects(id).mapNotNull { it.id }
+        val parentsIds = aspectDaoService.findParentAspects(id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
             .map { it.aspectId }
             .filter { parentsIds.contains(it) }

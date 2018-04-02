@@ -34,6 +34,14 @@ class Header : RComponent<HeaderProps, RState>() {
                             +"Measures"
                         }
                     }
+                    li(classes = if (props.location == "/subjects") "active" else "") {
+                        reactRouter.Link {
+                            attrs {
+                                to = "/subjects"
+                            }
+                            +"Subject"
+                        }
+                    }
                     li(classes = if (props.location == "/reference") "active" else "") {
                         reactRouter.Link {
                             attrs {

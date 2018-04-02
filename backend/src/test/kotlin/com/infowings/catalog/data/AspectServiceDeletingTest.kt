@@ -37,7 +37,7 @@ class AspectServiceDeletingTest {
 
     @Before
     fun saveAspectAndRemoveIt() {
-        val ad = AspectData("", "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad)
         session(database) {
             val aspectVertex = database.getVertexById(initialAspect.id)!!.toAspectVertex()
@@ -48,7 +48,8 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testAddSameNameAfterRemoving() {
-        val ad = AspectData("", "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, "aspect1", Metre.name, null, null)
+        aspectService.remove(aspectService.findById(initialAspect.id).toAspectData(), true)
         val aspect = aspectService.save(ad)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
     }
@@ -123,7 +124,7 @@ class AspectServiceDeletingTest {
     fun testDeleteLinkedAspect() {
         var a1 = aspectService.save(initialAspectData("a1"))
         val p1 = AspectPropertyData("", "", a1.id, AspectPropertyCardinality.ONE.name)
-        val ad = AspectData("", "aspect1", Metre.name, null, null, listOf(p1))
+        val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
         val saved = aspectService.save(ad)
 
         a1 = aspectService.findById(a1.id)

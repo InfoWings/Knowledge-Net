@@ -1,16 +1,14 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
@@ -49,6 +47,7 @@ class AspectPropertyEditConsole(props: Props) :
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
         childAspectBaseType = props.childAspect?.baseType
+        childAspectSubject = props.childAspect?.subject
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
@@ -64,6 +63,7 @@ class AspectPropertyEditConsole(props: Props) :
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
                 childAspectBaseType = nextProps.childAspect?.baseType
+                childAspectSubject = nextProps.childAspect?.subject
                 badRequestErrorMessage = null
             }
         }
@@ -104,6 +104,7 @@ class AspectPropertyEditConsole(props: Props) :
             childAspectMeasure = aspect.measure
             childAspectDomain = aspect.domain
             childAspectBaseType = aspect.baseType
+            childAspectSubject = aspect.subject
         }
     }
 
@@ -129,6 +130,12 @@ class AspectPropertyEditConsole(props: Props) :
     private fun handleChildAspectBaseTypeChanged(baseType: String) {
         setState {
             childAspectBaseType = baseType
+        }
+    }
+
+    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
+        setState {
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
         }
     }
 
@@ -238,11 +245,12 @@ class AspectPropertyEditConsole(props: Props) :
                         this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
-                                boundAspectId,
-                                state.childAspectName!!,
-                                state.childAspectMeasure,
-                                state.childAspectDomain,
-                                state.childAspectBaseType
+                                    boundAspectId,
+                                    state.childAspectName!!,
+                                    state.childAspectMeasure,
+                                    state.childAspectDomain,
+                                    state.childAspectBaseType,
+                                subject = state.childAspectSubject
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
@@ -273,6 +281,12 @@ class AspectPropertyEditConsole(props: Props) :
                                 measureUnit = state.childAspectMeasure
                                 value = state.childAspectBaseType
                                 onChange = ::handleChildAspectBaseTypeChanged
+                            }
+                        }
+                        aspectSubjectInput {
+                            attrs {
+                                value = state.childAspectSubject?.name ?: ""
+                                onChange = ::handleAspectSubjectChanged
                             }
                         }
                     }
@@ -308,6 +322,7 @@ class AspectPropertyEditConsole(props: Props) :
         var childAspectMeasure: String?
         var childAspectDomain: String?
         var childAspectBaseType: String?
+        var childAspectSubject: SubjectData?
         var badRequestErrorMessage: String?
     }
 }

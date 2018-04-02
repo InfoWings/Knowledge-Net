@@ -13,8 +13,8 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Environment, var jwtService: JWTService)
-    : BasicAuthenticationFilter(authManager) {
+class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Environment, var jwtService: JWTService) :
+    BasicAuthenticationFilter(authManager) {
 
     override fun doFilterInternal(request: HttpServletRequest?, response: HttpServletResponse?, chain: FilterChain?) {
         if (request!!.requestURI.startsWith("/api/access")) {
@@ -23,9 +23,9 @@ class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Enviro
         }
 
         val forDecoding = request.cookies
-                ?.filter { it.name == env.getProperty("spring.security.header.access") }
-                ?.getOrNull(0)
-                ?.value
+            ?.filter { it.name == env.getProperty("spring.security.header.access") }
+            ?.getOrNull(0)
+            ?.value
 
         if (forDecoding == null) {
             chain?.doFilter(request, response)
@@ -45,7 +45,11 @@ class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Enviro
     private fun getAuthentication(token: String): UsernamePasswordAuthenticationToken? {
         val user = jwtService.parseTokenString(token)
         return if (user != null) {
-            UsernamePasswordAuthenticationToken(user, null, mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name)))
+            UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
+            )
         } else null
     }
 }
