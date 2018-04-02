@@ -1,22 +1,35 @@
 package com.infowings.catalog.data.reference.book
 
 
+import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.id
 
-class ReferenceBookValidator(private val dao: ReferenceBookDao) {
-    fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
-        checkRefBookItemVersion(bookItemVertex, bookItem)
-        checkRefBookChildrenVersions(bookItemVertex, bookItem)
+class ReferenceBookValidator {
+
+    fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
+        checkRefBookVersion(bookVertex, book)
+        checkRefBookItemAndChildrenVersion(bookVertex.root, book.root)
     }
 
-    fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    private fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
+        if (bookVertex.version != book.version) {
+            throw RefBookItemConcurrentModificationException(book.id, "ReferenceBook changed.")
+        }
+    }
+
+    fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+        checkRefBookItemVersion(bookItemVertex, bookItem)
+        checkChildrenVersions(bookItemVertex, bookItem)
+    }
+
+    private fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         if (bookItemVertex.version != bookItem.version) {
             throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")
         }
     }
 
-    private fun checkRefBookChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    private fun checkChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         val realVersionMap = idToVersionMapFromBookItemVertex(bookItemVertex)
         val receivedVersionMap = idToVersionMapFromBookItem(bookItem)
 
@@ -34,6 +47,18 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
         if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
             throw RefBookChildAlreadyExist(parentVertex.id, value)
+        }
+    }
+
+    fun checkForBookRemoved(bookVertex: ReferenceBookVertex) {
+        if (bookVertex.deleted) {
+            throw RefBookNotExist(bookVertex.id)
+        }
+    }
+
+    fun checkForBookItemRemoved(bookItemVertex: ReferenceBookItemVertex) {
+        if (bookItemVertex.deleted) {
+            throw RefBookItemNotExist(bookItemVertex.id)
         }
     }
 }

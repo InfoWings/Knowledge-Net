@@ -31,7 +31,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : OVertex by vertex {
             this["deleted"] = value
         }
 
-    private val root: ReferenceBookItemVertex
+    val root: ReferenceBookItemVertex
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
             .map { it.toReferenceBookItemVertex() }
             .first()

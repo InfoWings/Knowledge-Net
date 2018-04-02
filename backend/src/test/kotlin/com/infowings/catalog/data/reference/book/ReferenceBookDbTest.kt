@@ -70,13 +70,13 @@ class ReferenceBookDbTest {
     @Test
     fun updateReferenceBookTest() {
         val newName = "newName"
-        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName)
-        assertEquals(referenceBook.copy(name = newName), updatedReferenceBook)
+        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.copy(name = newName))
+        assertEquals(referenceBook.copy(name = newName, version = updatedReferenceBook.version), updatedReferenceBook)
     }
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
-        referenceBookService.updateReferenceBook("random", "newName")
+        referenceBookService.updateReferenceBook(referenceBook.copy(aspectId = "random", name = "newName"))
     }
 
     @Test
@@ -220,7 +220,7 @@ class ReferenceBookDbTest {
                 0
             )
         )
-    
+
     private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
         ReferenceBookItem(
             "",

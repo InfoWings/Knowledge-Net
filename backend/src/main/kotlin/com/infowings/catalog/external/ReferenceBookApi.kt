@@ -35,10 +35,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("update")
     fun update(@RequestBody book: ReferenceBook): ReferenceBook {
-        val aspectId = book.aspectId
-        val newName: String = book.name
-        logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
-        return referenceBookService.updateReferenceBook(aspectId, newName)
+        return referenceBookService.updateReferenceBook(book)
     }
 
     @PostMapping("item/create")
