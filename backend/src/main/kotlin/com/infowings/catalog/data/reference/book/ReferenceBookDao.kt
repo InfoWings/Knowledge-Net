@@ -4,7 +4,7 @@ import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
-import com.infowings.catalog.storage.toVertexOrNUll
+import com.infowings.catalog.storage.toVertexOrNull
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -18,12 +18,12 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun getAllReferenceBookVertex(): List<ReferenceBookVertex> =
         db.query(selectFromReferenceBook) { rs ->
-            rs.mapNotNull { it.toVertexOrNUll()?.toReferenceBookVertex() }.toList()
+            rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookVertex() }.toList()
         }
 
     fun getReferenceBookVertex(aspectId: String): ReferenceBookVertex? =
         db.query(searchReferenceBookByAspectId, aspectId) {
-            it.map { it.toVertexOrNUll()?.toReferenceBookVertex() }.firstOrNull()
+            it.map { it.toVertexOrNull()?.toReferenceBookVertex() }.firstOrNull()
         }
 
     fun createReferenceBookVertex() = db.createNewVertex(REFERENCE_BOOK_VERTEX).toReferenceBookVertex()
