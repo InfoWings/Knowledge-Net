@@ -45,6 +45,11 @@ class ReferenceBookDbTest {
         )
     }
 
+    @Test(expected = RefBookAlreadyExist::class)
+    fun saveAlreadyExistBookTest() {
+        referenceBookService.createReferenceBook("some", aspect.id)
+    }
+
     @Test
     fun saveReferenceBookTest() {
         assertTrue("Saved reference book must contains generated id", referenceBook.name == "Example")
@@ -214,18 +219,51 @@ class ReferenceBookDbTest {
         referenceBookService.removeReferenceBookItem(forRemoving)
     }
 
+    @Test
+    fun removeBookTest() {
+        val aspectId = referenceBook.aspectId
+        val book =
+            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        referenceBookService.removeReferenceBook(book)
+        assertTrue(referenceBookService.getAllReferenceBooks().isEmpty())
+    }
+
+    @Test(expected = RefBookConcurrentModificationException::class)
+    fun removeBookConcurrentNameUpdating() {
+        val aspectId = referenceBook.aspectId
+        val book =
+            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        referenceBookService.updateReferenceBook(book.copy(name = "newName"))
+        referenceBookService.removeReferenceBook(book)
+    }
+
+    @Test(expected = RefBookItemConcurrentModificationException::class)
+    fun removeBookConcurrentAddingItem() {
+        val aspectId = referenceBook.aspectId
+        val book =
+            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        addReferenceBookItem(aspectId, book.id, "another")
+        referenceBookService.removeReferenceBook(book)
+    }
+
     private fun addReferenceBookItem(aspectId: String, parentId: String, value: String): String =
-        referenceBookService.addReferenceBookItem(
-            ReferenceBookItem(
-                aspectId,
-                parentId,
-                "",
-                value,
-                emptyList(),
-                false,
-                0
-            )
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, parentId, value))
+
+    private fun createReferenceBookItem(
+        aspectId: String,
+        parentId: String,
+        value: String
+    ): ReferenceBookItem {
+        return ReferenceBookItem(
+            aspectId,
+            parentId,
+            "",
+            value,
+            emptyList(),
+            false,
+            0
         )
+    }
 
     private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
         ReferenceBookItem(

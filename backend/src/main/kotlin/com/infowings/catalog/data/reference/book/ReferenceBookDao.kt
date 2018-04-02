@@ -1,5 +1,7 @@
 package com.infowings.catalog.data.reference.book
 
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNUll
@@ -12,7 +14,7 @@ private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
 
 class ReferenceBookDao(private val db: OrientDatabase) {
 
-    fun getVertex(id: String): OVertex? = db.getVertexById(id)
+    fun getAspectVertex(aspectId: String): AspectVertex? = db.getVertexById(aspectId)?.toAspectVertex()
 
     fun getAllReferenceBookVertex(): List<ReferenceBookVertex> =
         db.query(selectFromReferenceBook) { rs ->

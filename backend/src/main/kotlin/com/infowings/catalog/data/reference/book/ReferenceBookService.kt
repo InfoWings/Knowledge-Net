@@ -3,7 +3,6 @@ package com.infowings.catalog.data.reference.book
 import allIncomingEdges
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -60,8 +59,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         rootVertex.aspectId = aspectId
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-
-        val aspectVertex = dao.getVertex(aspectId)
+        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
         referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
 
         return@transaction Pair(
@@ -107,7 +105,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
         validator.checkRefBookAndItemsVersion(referenceBookVertex, referenceBook)
 
-        val aspectVertex = dao.getVertex(aspectId)?.toAspectVertex() ?: throw RefBookAspectNotExist(aspectId)
+        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
         val isLinked = aspectVertex.allIncomingEdges().count() > 1
         when {
             isLinked && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
@@ -246,12 +244,14 @@ class RefBookNotExist(val aspectId: String) : ReferenceBookException("aspectId: 
 class RefBookItemNotExist(val id: String) : ReferenceBookException("id: $id")
 class RefBookChildAlreadyExist(val id: String, val value: String) : ReferenceBookException("id: $id, value: $value")
 class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
+class RefBookIllegalArgument(message: String) : ReferenceBookException(message)
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
 
 class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
 class RefBookHasLinkedEntitiesException(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemConcurrentModificationException(id: String, message: String) :
-    ReferenceBookException("id = $id, message = $message")
+    ReferenceBookException("id: $id, message: $message")
 
-class RefBookIllegalArgument(message: String) : ReferenceBookException(message)
+class RefBookConcurrentModificationException(aspectId: String, message: String) :
+    ReferenceBookException("aspectId: $aspectId, message: $message")
