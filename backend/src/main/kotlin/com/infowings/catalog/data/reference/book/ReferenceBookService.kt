@@ -181,31 +181,6 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         return getReferenceBook(bookItem.aspectId)
     }
 
-    /**
-     * Make ReferenceBookItem with id [sourceId] to be a child of ReferenceBookItem with id [targetId]
-     * @throws RefBookItemNotExist
-     * @throws RefBookItemMoveImpossible in case of [sourceId] is a parent pf [targetId]
-     */
-    fun moveReferenceBookItem(sourceId: String, targetId: String) {
-        transaction(db) {
-            val sourceVertex = dao.getReferenceBookItemVertex(sourceId) ?: throw RefBookItemNotExist(sourceId)
-            val targetVertex = dao.getReferenceBookItemVertex(targetId) ?: throw RefBookItemNotExist(targetId)
-            //todo add versions and removed validation
-
-            var tmpPointer = targetVertex
-            while (tmpPointer.parent != null) {
-                val parent = tmpPointer.parent!!
-                if (tmpPointer.id == sourceId) {
-                    throw RefBookItemMoveImpossible(sourceId, targetId)
-                }
-                tmpPointer = parent
-            }
-
-            sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
-            return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
-        }
-    }
-
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(db) {
             val bookItemVertex =
@@ -220,6 +195,31 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
                 isLinkedByObjects -> throw RefBookItemHasLinkedEntitiesException(bookItem.id)
                 else -> dao.remove(bookItemVertex)
             }
+        }
+    }
+
+    /**
+     * Make ReferenceBookItem [source] child of ReferenceBookItem [target]
+     * @throws RefBookItemNotExist
+     * @throws RefBookItemMoveImpossible in case of [source] is a parent of [target]
+     */
+    fun moveReferenceBookItem(source: ReferenceBookItem, target: ReferenceBookItem) {
+        transaction(db) {
+            val sourceId = source.id
+            val targetId = target.id
+            logger.debug("Moving ReferenceBookItem. sourceId: $sourceId, targetId: $targetId")
+
+            val sourceVertex = dao.getReferenceBookItemVertex(sourceId) ?: throw RefBookItemNotExist(sourceId)
+            val targetVertex = dao.getReferenceBookItemVertex(targetId) ?: throw RefBookItemNotExist(targetId)
+
+            validator.checkForBookItemRemoved(sourceVertex)
+            validator.checkForBookItemRemoved(targetVertex)
+            validator.checkRefBookItemAndChildrenVersion(sourceVertex, source)
+            validator.checkRefBookItemAndChildrenVersion(targetVertex, target)
+            validator.checkForMoving(sourceVertex, targetVertex)
+
+            sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
+            return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
         }
     }
 

@@ -61,6 +61,17 @@ class ReferenceBookValidator {
             throw RefBookItemNotExist(bookItemVertex.id)
         }
     }
+
+    fun checkForMoving(sourceVertex: ReferenceBookItemVertex, targetVertex: ReferenceBookItemVertex) {
+        var tmpPointer = targetVertex
+        while (tmpPointer.parent != null) {
+            val parent = tmpPointer.parent!!
+            if (tmpPointer.id == sourceVertex.id) {
+                throw RefBookItemMoveImpossible(sourceVertex.id, targetVertex.id)
+            }
+            tmpPointer = parent
+        }
+    }
 }
 
 private fun idToVersionMapFromBookItemVertex(itemVertex: ReferenceBookItemVertex): HashMap<String, Int> {
