@@ -78,6 +78,7 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
             attrs {
                 key = props.aspect.id ?: ""
                 className = "aspect-tree-view--aspect-node"
+                expanded = props.aspect.id == props.selectedAspectId && props.selectedPropertyIndex != null
                 onExpanded = { handleExpandStateChanged() }
                 treeNodeContent = buildElement {
                     aspectNode {

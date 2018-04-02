@@ -3,6 +3,7 @@ package com.infowings.catalog.aspects.editconsole
 import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
@@ -102,7 +103,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
         val selectedPropertyIndex = props.propertyIndex
                 ?: error("Aspect property should be selected in order to switch to next property")
         launch {
-            if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != AspectPropertyData("", "", "", "")) {
+            if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != emptyAspectPropertyData) {
                 props.aspectsModel.updateProperty(property)
                 val nextPropertyIndex = selectedPropertyIndex.inc()
                 if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {

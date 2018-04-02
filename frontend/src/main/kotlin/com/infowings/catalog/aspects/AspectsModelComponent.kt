@@ -157,20 +157,14 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
     override suspend fun submitAspect() {
         val selectedAspect = state.selectedAspect
 
-        if (selectedAspect.id == null) {
-            props.onAspectCreate(selectedAspect.normalize())
+        when (selectedAspect.id) {
+            null -> props.onAspectCreate(selectedAspect.normalize())
+            else -> props.onAspectUpdate(selectedAspect.normalize())
+        }
 
-            setState {
-                this.selectedAspect = emptyAspectData
-                selectedAspectPropertyIndex = null
-            }
-        } else {
-            props.onAspectUpdate(selectedAspect.normalize())
-
-            setState {
-                this.selectedAspect = emptyAspectData
-                selectedAspectPropertyIndex = null
-            }
+        setState {
+            this.selectedAspect = emptyAspectData
+            selectedAspectPropertyIndex = null
         }
     }
 
@@ -242,11 +236,7 @@ private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: Aspec
         )
 
 private fun List<AspectData>.withSelected(aspect: AspectData) =
-            if (aspect.id == null) {
-                this + aspect
-            } else {
-                this.map { if (it.id == aspect.id) aspect else it }
-            }
+    aspect.id?.let { id -> this.map { if (it.id == id) aspect else it } } ?: this+aspect
 
 private fun AspectData.normalize() =
     copy(properties = properties.filter { it != emptyAspectPropertyData && !(it.id.isEmpty() && it.deleted) })
