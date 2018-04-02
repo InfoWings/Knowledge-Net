@@ -53,6 +53,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookChildAlreadyExist -> ResponseEntity.badRequest().body("Reference Book Item '${e.value}' already exists")
             is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
+        //todo: add new Exceptions
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${e.message}")
         }
     }

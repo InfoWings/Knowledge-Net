@@ -118,7 +118,10 @@ class ReferenceBookDbTest {
         val child1 = addReferenceBookItem(aspectId, parentId, "value1")
         val child2 = addReferenceBookItem(aspectId, parentId, "value2")
         val child11 = addReferenceBookItem(aspectId, child1, "value11")
-        referenceBookService.moveReferenceBookItem(child11, child2)
+        referenceBookService.moveReferenceBookItem(
+            referenceBookService.getReferenceBookItem(child11),
+            referenceBookService.getReferenceBookItem(child2)
+        )
 
         val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
         assertTrue("`root.value1` has no child", updatedReferenceBook["value1"]!!.children.isEmpty())
@@ -130,7 +133,10 @@ class ReferenceBookDbTest {
         val aspectId = referenceBook.aspectId
         val child1 = addReferenceBookItem(aspectId, referenceBook.id, "value1")
         val child11 = addReferenceBookItem(aspectId, child1, "value11")
-        referenceBookService.moveReferenceBookItem(child1, child11)
+        referenceBookService.moveReferenceBookItem(
+            referenceBookService.getReferenceBookItem(child1),
+            referenceBookService.getReferenceBookItem(child11)
+        )
     }
 
     @Test
