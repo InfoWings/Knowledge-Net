@@ -116,7 +116,16 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
         return props.data.map {
             val pending = state.pending[it.aspectId]
             if (pending == null) {
-                AspectPropertyRow(it, props.aspectContext[it.aspectId] ?: AspectData(null, "", null, null, null), false)
+                AspectPropertyRow(
+                    it, props.aspectContext[it.aspectId] ?: AspectData(
+                        null,
+                        "",
+                        null,
+                        null,
+                        null,
+                        description = desc
+                    ), false
+                )
             } else {
                 AspectPropertyRow(it, pending, true)
             }

@@ -26,7 +26,8 @@ data class Aspect(
     val properties: List<AspectProperty> = emptyList(),
     val version: Int = 0,
     val subject: Subject? = null,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val description: String? = null
 ) {
 
     operator fun get(property: String) = properties.filter { it.name == property }
@@ -41,7 +42,8 @@ data class Aspect(
             properties.toAspectPropertyData(),
             version,
             subject?.toSubjectData(),
-            deleted
+            deleted,
+            description
         )
 }
 

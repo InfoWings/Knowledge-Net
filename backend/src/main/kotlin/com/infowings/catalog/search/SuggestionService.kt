@@ -35,7 +35,10 @@ class SuggestionService(
         if (text == null) {
             return emptyList()
         }
-        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_GROUP_VERTEX)}, ?) = true"
+        val q = "SELECT FROM $MEASURE_GROUP_VERTEX WHERE SEARCH_INDEX(${luceneIdx(
+            MEASURE_GROUP_VERTEX,
+            ATTR_NAME
+        )}, ?) = true"
         return database.query(q, luceneQuery(text)) {
             it.mapNotNull { it.toVertexOrNull()?.getProperty<String>("name") }.toList()
         }
@@ -52,22 +55,10 @@ class SuggestionService(
                     .toMutableList()
             res = addAnExactMatchToTheBeginning(commonParam, res)
             if (res.size < maxResultSize) {
-                res.addAll(descMeasureSuggestion(text).mapNotNull { it.toMeasure() })
+                res.addAll(descSuggestion(text, MEASURE_VERTEX).mapNotNull { it.toMeasure() })
             }
-            return@session res.subList(0, maxResultSize)
+            return@session res.subList(0, Math.min(res.size, maxResultSize))
         }
-    }
-
-    private fun addAnExactMatchToTheBeginning(
-        commonParam: CommonSuggestionParam?,
-        measureList: MutableList<Measure<*>>
-    ): MutableList<Measure<*>> {
-        val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
-        measure?.let {
-            measureList.remove(it)
-            measureList.add(0, it)
-        }
-        return measureList
     }
 
     fun findAspect(
@@ -75,9 +66,14 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         aspectParam: AspectSuggestionParam?
     ): List<AspectData> = session(database) {
-        findAspectInDb(context, commonParam, aspectParam)
+        val res = findAspectInDb(context, commonParam, aspectParam)
             .mapNotNull { it.toAspectData() }
-            .toList()
+            .toMutableList()
+        if (res.size < maxResultSize) {
+            res.addAll(descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
+                .mapNotNull { it.toAspectVertex().toAspectData() })
+        }
+        res
     }
 
     fun findSubject(
@@ -93,11 +89,14 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam?
     ): Sequence<OVertex> {
-        val q = "SELECT FROM $SUBJECT_CLASS WHERE SEARCH_CLASS(:$lq) = true"
+        val q = "SELECT FROM $SUBJECT_CLASS WHERE SEARCH_INDEX(${luceneIdx(SUBJECT_CLASS, ATTR_NAME)}, :$lq) = true"
         val aspectFilter = if (subjectParam?.aspectText.isNullOrBlank()) {
             ""
         } else {
-            " AND @rid IN (SELECT expand(out($ASPECT_SUBJECT_EDGE)).@rid FROM Aspect WHERE SEARCH_CLASS(:$lqa) = true)"
+            " AND @rid IN (SELECT expand(out($ASPECT_SUBJECT_EDGE)).@rid FROM Aspect WHERE SEARCH_INDEX(${luceneIdx(
+                ASPECT_CLASS,
+                ATTR_NAME
+            )}, :$lqa) = true)"
         }
         return database.query(
             q + aspectFilter,
@@ -112,24 +111,36 @@ class SuggestionService(
 
     private fun findMeasureInDb(measureGroupName: String?, text: String): Sequence<OVertex> {
         val q = if (measureGroupName == null) {
-            "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
+            "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdx(MEASURE_VERTEX, ATTR_NAME)}, ?) = true"
         } else {
             val edgeSelector = "both(\"$MEASURE_BASE_EDGE\", \"$MEASURE_BASE_AND_GROUP_EDGE\")"
             val traversFrom = "(SELECT FROM $MEASURE_GROUP_VERTEX WHERE name like \"$measureGroupName\")"
             "SELECT FROM $MEASURE_VERTEX WHERE " +
                     "@rid IN (SELECT @rid FROM (TRAVERSE $edgeSelector FROM $traversFrom)) " +
-                    "AND SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
+                    "AND SEARCH_INDEX(${luceneIdx(MEASURE_VERTEX, ATTR_NAME)}, ?) = true"
         }
         return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
             it.mapNotNull { it.toVertexOrNull() }
         }
     }
 
-    private fun descMeasureSuggestion(text: String): Sequence<OVertex> {
-        val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
+    private fun descSuggestion(text: String, vertexClass: String): Sequence<OVertex> {
+        val q = "SELECT FROM $vertexClass WHERE SEARCH_INDEX(${luceneIdx(vertexClass, ATTR_DESC)}, ?) = true"
         return database.query(q, "($text~1)") {
-            it.mapNotNull { it.toVertexOrNUll() }
+            it.mapNotNull { it.toVertexOrNull() }
         }
+    }
+
+    private fun addAnExactMatchToTheBeginning(
+        commonParam: CommonSuggestionParam?,
+        measureList: MutableList<Measure<*>>
+    ): MutableList<Measure<*>> {
+        val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
+        measure?.let {
+            measureList.remove(it)
+            measureList.add(0, it)
+        }
+        return measureList
     }
 
     private fun findAspectInDb(
@@ -147,10 +158,10 @@ class SuggestionService(
                         "    AND @rid IN " +
                         "          (SELECT @rid FROM " +
                         "              (TRAVERSE both(\"$MEASURE_BASE_EDGE\", \"$ASPECT_MEASURE_CLASS\") " +
-                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(
-                            MEASURE_VERTEX
+                        "               FROM (SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdx(
+                            MEASURE_VERTEX, ATTR_NAME
                         )}, :$lqm) = true OR name = :$unitName ))) " +
-                        " AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true"
+                        " AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_NAME)}, :$lq) = true"
                 if (aspectId == null) { //т.к. не задан текущий аспект, то поикс идет без учета циклов
                     database.query(
                         q, mapOf(
@@ -173,7 +184,10 @@ class SuggestionService(
             } else {
                 if (aspectId == null) {
                     val q =
-                        "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true"
+                        "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(
+                            ASPECT_CLASS,
+                            ATTR_NAME
+                        )}, :$lq) = true"
                     database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
@@ -198,9 +212,14 @@ class SuggestionService(
 
     private fun findAspectVertexNoCycle(aspectId: String, text: String): Sequence<OResult> = session(database) {
         val q =
-            "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdxName(ASPECT_CLASS)}, :$lq) = true AND $noCycle"
+            "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(
+                ASPECT_CLASS,
+                ATTR_NAME
+            )}, :$lq) = true AND $noCycle"
         database.query(q, mapOf(lq to luceneQuery(text), aspectRecord to ORecordId(aspectId))) { it }
     }
+
+    private fun luceneIdx(classType: String, attr: String) = "\"$classType.lucene.$attr\""
 
     private val aspectRecord = "a"
     private val unitName = "un"

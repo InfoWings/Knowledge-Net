@@ -67,8 +67,10 @@ class AspectServiceDeletingTest {
     }
 
     private fun initialAspectData(name: String, properties: List<AspectPropertyData> = emptyList()) =
-            AspectData(id = "", version = 0, baseType = null,
-                    domain = null, measure = Kilometre.name, name = name, properties = properties)
+        AspectData(
+            id = "", name = name, measure = Kilometre.name,
+            domain = null, baseType = null, properties = properties, version = 0
+        )
 
     @get:Rule
     val thrown = ExpectedException.none()

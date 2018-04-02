@@ -245,12 +245,13 @@ class AspectPropertyEditConsole(props: Props) :
                         this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
-                                    boundAspectId,
-                                    state.childAspectName!!,
-                                    state.childAspectMeasure,
-                                    state.childAspectDomain,
-                                    state.childAspectBaseType,
-                                subject = state.childAspectSubject
+                                boundAspectId,
+                                state.childAspectName!!,
+                                state.childAspectMeasure,
+                                state.childAspectDomain,
+                                state.childAspectBaseType,
+                                subject = state.childAspectSubject,
+                                description = desc
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
