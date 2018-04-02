@@ -90,6 +90,10 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 else -> props.aspectContext[aspectId] ?: selectedAspect
             }
 
+            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
+            }
+
             selectedAspectPropertyIndex = null
         }
     }
