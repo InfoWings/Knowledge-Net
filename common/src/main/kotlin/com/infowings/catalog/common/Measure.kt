@@ -82,6 +82,38 @@ val MeasureDesc: Map<String, String> = mapOf(
     "Euro" to ""
 )
 
+val MeasureGroupDesc: Map<String, String> = mapOf(
+    "Length" to "In geometric measurements, length is the most extended dimension of an object. In the International System of Quantities, length is any quantity with dimension distance. In other contexts, length is a measured dimension of an object. Length may be distinguished from height, which is vertical extent, and width or breadth, which are the distance from side to side, measuring across the object at right angles to the length. For example, it is possible to cut a length of wire shorter than the wire's width. In most systems of measurement, the unit of length is a base unit, from which other units are derived.",
+    "Speed" to "In everyday use and in kinematics, the speed of an object is the magnitude of its velocity (the rate of change of its position); it is thus a scalar quantity.[1] The average speed of an object in an interval of time is the distance travelled by the object divided by the duration of the interval;[2] the instantaneous speed is the limit of the average speed as the duration of the time interval approaches zero.",
+    "Area" to "Area is the quantity that expresses the extent of a two-dimensional figure or shape, or planar lamina, in the plane. Surface area is its analog on the two-dimensional surface of a three-dimensional object. Area can be understood as the amount of material with a given thickness that would be necessary to fashion a model of the shape, or the amount of paint necessary to cover the surface with a single coat.[1] It is the two-dimensional analog of the length of a curve (a one-dimensional concept) or the volume of a solid (a three-dimensional concept).",
+    "Volume" to "Volume is the quantity of three-dimensional space enclosed by a closed surface, for example, the space that a substance (solid, liquid, gas, or plasma) or shape occupies or contains.[1] Volume is often quantified numerically using the SI derived unit, the cubic metre. The volume of a container is generally understood to be the capacity of the container; i. e., the amount of fluid (gas or liquid) that the container could hold, rather than the amount of space the container itself displaces.",
+    "Mass" to "Mass is both a property of a physical body and a measure of its resistance to acceleration (a change in its state of motion) when a net force is applied.[1] It also determines the strength of its mutual gravitational attraction to other bodies.",
+    "Power" to "In physics, power is the rate of doing work, the amount of energy transferred per unit time. Having no direction, it is a scalar quantity.",
+    "Voltage" to "Voltage, electric potential difference, electric pressure or electric tension (formally denoted ∆V or ∆U, but more often simply as V or U, for instance in the context of Ohm's or Kirchhoff's circuit laws) is the difference in electric potential between two points.",
+    "Reactive Power" to "",
+    "Work and Energy" to "",
+    "Electric Current" to "An electric current is a flow of electric charge.[1]:2 In electric circuits this charge is often carried by moving electrons in a wire. It can also be carried by ions in an electrolyte, or by both ions and electrons such as in an ionised gas (plasma)",
+    "Electric charge" to "Electric charge is the physical property of matter that causes it to experience a force when placed in an electromagnetic field. There are two types of electric charges; positive and negative (commonly carried by protons and electrons respectively). Like charges repel and unlike attract.",
+    "Electrical Resistance" to "The electrical resistance of an electrical conductor is a measure of the difficulty to pass an electric current through that conductor. The inverse quantity is electrical conductance, and is the ease with which an electric current passes. Electrical resistance shares some conceptual parallels with the notion of mechanical friction. The SI unit of electrical resistance is the ohm (Ω), while electrical conductance is measured in siemens (S).",
+    "Temperature" to "Temperature is a physical quantity expressing hot and cold.",
+    "Force" to "In physics, a force is any interaction that, when unopposed, will change the motion of an object.",
+    "Frequency" to "Frequency is the number of occurrences of a repeating event per unit of time.[1] It is also referred to as temporal frequency, which emphasizes the contrast to spatial frequency and angular frequency.",
+    "Pressure" to "Pressure (symbol: p or P) is the force applied perpendicular to the surface of an object per unit area over which that force is distributed. Gauge pressure (also spelled gage pressure)[a] is the pressure relative to the ambient pressure.",
+    "Density" to "The density, or more precisely, the volumetric mass density, of a substance is its mass per unit volume. The symbol most often used for density is ρ (the lower case Greek letter rho), although the Latin letter D can also be used. Mathematically, density is defined as mass divided by volume",
+    "Rotation Frequency" to "In physics, angular frequency ω (also referred to by the terms angular speed, radial frequency, circular frequency, orbital frequency, radian frequency, and pulsatance) is a scalar measure of rotation rate",
+    "Torque" to "Torque, moment, or moment of force is rotational force.[1] Just as a linear force is a push or a pull, a torque can be thought of as a twist to an object. In three dimensions, the torque is a pseudovector; for point particles, it is given by the cross product of the position vector (distance vector) and the force vector.",
+    "Acceleration" to "In physics, acceleration is the rate of change of velocity of an object with respect to time. An object's acceleration is the net result of any and all forces acting on the object, as described by Newton's Second Law.[1] The SI unit for acceleration is metre per second squared (m s−2). Accelerations are vector quantities (they have magnitude and direction) and add according to the parallelogram law.[2][3] As a vector, the calculated net force is equal to the product of the object's mass (a scalar quantity) and its acceleration.",
+    "Induction" to "Electromagnetic or magnetic induction is the production of an electromotive force (i.e., voltage) across an electrical conductor in a changing magnetic field.",
+    "Magnetic Flux Density" to "In physics, specifically electromagnetism, the magnetic flux (often denoted Φ or ΦB) through a surface is the surface integral of the normal component of the magnetic field B passing through that surface. The SI unit of magnetic flux is the weber (Wb) (in derived units: volt-seconds), and the CGS unit is the maxwell. Magnetic flux is usually measured with a fluxmeter, which contains measuring coils and electronics, that evaluates the change of voltage in the measuring coils to calculate the magnetic flux.",
+    "Time" to "Time is the indefinite continued progress of existence and events that occur in apparently irreversible succession from the past through the present to the future.[1][2][3] Time is a component quantity of various measurements used to sequence events, to compare the duration of events or the intervals between them, and to quantify rates of change of quantities in material reality or in the conscious experience.[4][5][6][7] Time is often referred to as a fourth dimension, along with three spatial dimensions.",
+    "Quantity" to "",
+    "Percentage" to "In mathematics, a percentage is a number or ratio expressed as a fraction of 100.",
+    "Human" to "",
+    "UK Money Group" to "",
+    "USA Money Group" to "",
+    "Euro Money Group" to ""
+)
+
 expect class DecimalNumber(value: Double) {
     constructor(value: Int)
 
@@ -132,7 +164,12 @@ class Measure<T>(
     override fun toString(): String = "Measure($name, $symbol, $baseType)"
 }
 
-class MeasureGroup<T>(val name: String, val measureList: List<Measure<T>>, val base: Measure<T>) {
+class MeasureGroup<T>(
+    val name: String,
+    val measureList: List<Measure<T>>,
+    val base: Measure<T>,
+    val description: String? = MeasureGroupDesc[name]
+) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
 }
 

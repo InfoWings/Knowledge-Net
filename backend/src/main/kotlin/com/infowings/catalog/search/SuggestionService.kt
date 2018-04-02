@@ -18,6 +18,8 @@ import com.orientechnologies.orient.core.sql.executor.OResult
  */
 class SuggestionService(private val database: OrientDatabase) {
 
+    private val maxResultSize = 20
+
     fun findMeasure(
         commonParam: CommonSuggestionParam?,
         measureGroupName: String?,
@@ -39,18 +41,24 @@ class SuggestionService(private val database: OrientDatabase) {
     fun findMeasure(
         commonParam: CommonSuggestionParam?,
         measureGroupName: String?
-    ): List<Measure<*>> =
-        session(database) {
-            val res =
-                findMeasureInDb(measureGroupName, textOrAllWildcard(commonParam?.text)).mapNotNull { it.toMeasure() }
+    ): List<Measure<*>> {
+        val text = textOrAllWildcard(commonParam?.text)
+        return session(database) {
+            var res =
+                findMeasureInDb(measureGroupName, text).mapNotNull { it.toMeasure() }
                     .toMutableList()
-            return@session addAnExactMatchToTheBeginning(commonParam, res)
+            res = addAnExactMatchToTheBeginning(commonParam, res)
+            if (res.size < maxResultSize) {
+                res.addAll(descMeasureSuggestion(text).mapNotNull { it.toMeasure() })
+            }
+            return@session res.subList(0, maxResultSize)
         }
+    }
 
     private fun addAnExactMatchToTheBeginning(
         commonParam: CommonSuggestionParam?,
-        measureList: MutableList<Measure<out Any?>>
-    ): List<Measure<*>> {
+        measureList: MutableList<Measure<*>>
+    ): MutableList<Measure<*>> {
         val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
         measure?.let {
             measureList.remove(it)
@@ -80,6 +88,13 @@ class SuggestionService(private val database: OrientDatabase) {
                     "AND SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
         }
         return database.query(q, "($text*)^3 (*$text*)^2 ($text~1)") {
+            it.mapNotNull { it.toVertexOrNUll() }
+        }
+    }
+
+    private fun descMeasureSuggestion(text: String): Sequence<OVertex> {
+        val q = "SELECT FROM $MEASURE_VERTEX WHERE SEARCH_INDEX(${luceneIdxName(MEASURE_VERTEX)}, ?) = true"
+        return database.query(q, "($text~1)") {
             it.mapNotNull { it.toVertexOrNUll() }
         }
     }

@@ -1,6 +1,7 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.MeasureGroup
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -33,7 +34,7 @@ class MeasureService(val database: OrientDatabase) {
     /** Возвращает вершину типа {MeasureGroupVertex}, описывающую запрашиваемую группу измерений.
      *  Если группа измерений с указанным именем не найдена, возвращает null. */
     fun findMeasureGroup(groupName: String): OVertex? {
-        val query = "SELECT * from $MEASURE_GROUP_VERTEX where name = ?"
+        val query = "SELECT * from $MEASURE_GROUP_VERTEX where name like ?"
         return database.query(query, groupName) {
             it.map { it.toVertex() }.firstOrNull()
         }
@@ -42,7 +43,7 @@ class MeasureService(val database: OrientDatabase) {
     /** Возвращает вершину типа {MeasureVertex}, описывающую запрашиваемое измерение.
      *  Если измерение с указанным именем не найдена, возвращает null. */
     fun findMeasure(measureName: String): OVertex? {
-        val query = "SELECT * from $MEASURE_VERTEX where name = ?"
+        val query = "SELECT * from $MEASURE_VERTEX where name like ?"
         return database.query(query, measureName) {
             it.map { it.toVertex() }.firstOrNull()
         }
@@ -58,14 +59,17 @@ class MeasureService(val database: OrientDatabase) {
             return@transaction null
         }
 
-        val groupVertex = database.createNewVertex(MEASURE_GROUP_VERTEX).also { it["name"] = group.name }
-        val baseVertex = createMeasureVertexWithoutSaving(group.base.name)
+        val groupVertex = database.createNewVertex(MEASURE_GROUP_VERTEX).also {
+            it["name"] = group.name
+            it["description"] = group.description
+        }
+        val baseVertex = createMeasureVertexWithoutSaving(group.base)
 
         groupVertex.addEdge(baseVertex, MEASURE_BASE_AND_GROUP_EDGE).save<ORecord>()
         baseVertex.addEdge(groupVertex, MEASURE_BASE_AND_GROUP_EDGE).save<ORecord>()
 
         group.measureList.forEach {
-            createMeasureVertexWithoutSaving(it.name).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
+            createMeasureVertexWithoutSaving(it).addEdge(baseVertex, MEASURE_BASE_EDGE).save<ORecord>()
         }
 
         baseVertex.save<ORecord>()
@@ -95,10 +99,11 @@ class MeasureService(val database: OrientDatabase) {
         return firstVertexGroup.addEdge(secondVertexGroup, MEASURE_GROUP_EDGE).save()
     }
 
-    private fun createMeasureVertexWithoutSaving(measureName: String): OVertex {
-        findMeasure(measureName).let { if (it != null) return it }
-        val groupVertex = database.createNewVertex(MEASURE_VERTEX)
-        groupVertex.setProperty("name", measureName)
-        return groupVertex
+    private fun createMeasureVertexWithoutSaving(measure: Measure<*>): OVertex {
+        findMeasure(measure.name).let { if (it != null) return it }
+        val measureVertex = database.createNewVertex(MEASURE_VERTEX)
+        measureVertex["name"] = measure.name
+        measureVertex["description"] = measure.description
+        return measureVertex
     }
 }
