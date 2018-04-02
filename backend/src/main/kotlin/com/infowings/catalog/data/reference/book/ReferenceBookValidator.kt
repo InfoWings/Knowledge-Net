@@ -12,7 +12,7 @@ class ReferenceBookValidator {
         checkRefBookItemAndChildrenVersion(bookVertex.root, book.root)
     }
 
-    private fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
+    fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         if (bookVertex.version != book.version) {
             throw RefBookConcurrentModificationException(book.id, "ReferenceBook changed.")
         }

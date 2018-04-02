@@ -92,7 +92,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
 
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-        validator.checkRefBookAndItemsVersion(referenceBookVertex, book)
+        validator.checkRefBookVersion(referenceBookVertex, book)
         validator.checkForBookRemoved(referenceBookVertex)
         referenceBookVertex.name = newName
         return@transaction referenceBookVertex.save<OVertex>().toReferenceBookVertex().toReferenceBook()

@@ -79,6 +79,12 @@ class ReferenceBookDbTest {
         assertEquals(referenceBook.copy(name = newName, version = updatedReferenceBook.version), updatedReferenceBook)
     }
 
+    @Test(expected = RefBookConcurrentModificationException::class)
+    fun updateReferenceBookConcurrentModificationTest() {
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name1"))
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name2"))
+    }
+
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
         referenceBookService.updateReferenceBook(referenceBook.copy(aspectId = "random", name = "newName"))
