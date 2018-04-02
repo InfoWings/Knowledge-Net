@@ -4,7 +4,6 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.reference.book.*
-import com.infowings.catalog.loggerFor
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -16,20 +15,17 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @GetMapping("all")
     fun getAll(): ReferenceBooksList {
-        logger.debug("Getting all reference books")
         return ReferenceBooksList(referenceBookService.getAllReferenceBooks())
     }
 
     @GetMapping("get")
     fun get(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBook {
         val aspectId = URLDecoder.decode(encodedAspectId, "UTF-8")
-        logger.debug("Getting reference books by aspectId=$aspectId")
         return referenceBookService.getReferenceBook(aspectId)
     }
 
     @PostMapping("create")
     fun create(@RequestBody book: ReferenceBook): ReferenceBook {
-        logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
         return referenceBookService.createReferenceBook(book.name, book.aspectId)
     }
 
@@ -40,13 +36,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("item/create")
     fun createItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
-        logger.debug("Creating reference book item")
         return referenceBookService.addItemAndGetReferenceBook(bookItem)
     }
 
     @PostMapping("item/update")
     fun updateItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
-        logger.debug("Updating reference book item with id=${bookItem.id}")
         return referenceBookService.updateItemAndGetReferenceBook(bookItem)
     }
 
@@ -63,5 +57,3 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         }
     }
 }
-
-private val logger = loggerFor<ReferenceBookApi>()
