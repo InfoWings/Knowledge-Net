@@ -41,12 +41,12 @@
   }
 
   &--aspect-input-container {
-    flex: 0 1 30rem;
+    flex: 0 1 20rem;
     padding: 0 1rem;
   }
 
   &--aspect-property-input-container {
-    flex: 0 1 30rem;
+    flex: 0 1 20rem;
     padding: 0 1rem;
   }
 
@@ -106,6 +106,10 @@
     fill: green;
   }
 
+  &--button-control:hover > &--button-icon__yellow {
+    fill: #ff7200;
+  }
+
   &--button-control:hover > &--button-icon__red {
     fill: red;
   }
@@ -135,11 +139,11 @@
 }
 
 .aspect-table-select.Select {
-  width: 30rem;
+  width: 20rem;
 }
 
 .aspect-table-select.Select > .Select-control {
-  width: 30rem;
+  width: 20rem;
   border-radius: 3px;
   border: none;
   background-color: transparent !important;

@@ -4,6 +4,7 @@ package com.infowings.catalog.search
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -30,6 +32,7 @@ private val logger = loggerFor<SearchTest>()
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SearchTest {
 
     @Autowired
@@ -37,6 +40,10 @@ class SearchTest {
 
     @Autowired
     lateinit var aspectService: AspectService
+
+    @Autowired
+    lateinit var aspectDaoService: AspectDaoService
+
 
     @Autowired
     private val wac: WebApplicationContext? = null
@@ -142,7 +149,7 @@ class SearchTest {
         assertEquals("level1_1", res[0].name)
         assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
 
-        res = suggestionService.findParentAspects(child.id)
+        res = aspectDaoService.findParentAspects(child.id)
         assertEquals(3, res.size)
         assertEquals("level2", res[0].name)
         assertEquals("level1", res[1].name)

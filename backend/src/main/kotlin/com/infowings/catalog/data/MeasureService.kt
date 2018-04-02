@@ -92,7 +92,8 @@ class MeasureService(val database: OrientDatabase) {
     fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>): OEdge? {
         val firstVertexGroup = findMeasureGroup(source.name) ?: return null
         val secondVertexGroup = findMeasureGroup(target.name) ?: return null
-        val addedBefore = firstVertexGroup.getEdges(ODirection.OUT, MEASURE_GROUP_EDGE).find { it.to.id == secondVertexGroup.id }
+        val addedBefore =
+            firstVertexGroup.getEdges(ODirection.OUT, MEASURE_GROUP_EDGE).find { it.to.id == secondVertexGroup.id }
         if (addedBefore != null) {
             return addedBefore
         }

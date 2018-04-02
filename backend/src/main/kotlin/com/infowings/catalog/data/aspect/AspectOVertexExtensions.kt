@@ -1,10 +1,10 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.ASPECT_ASPECTPROPERTY_EDGE
-import com.infowings.catalog.storage.get
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.set
+import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.toSubject
+import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
@@ -29,7 +29,10 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
                 baseTypeObj?.let { OpenDomain(it).toString() },
                 baseType,
                 properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
-                version)
+            version,
+            subject?.toSubjectData(),
+            deleted
+        )
     }
 
     val properties: List<OVertex>
@@ -62,6 +65,15 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["deleted"] = value
         }
 
+    val subject: Subject?
+        get() {
+            val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
+            if (subjects.size > 1) {
+                throw OnlyOneSubjectForAspectIsAllowed(name)
+            }
+            return subjects.firstOrNull()?.toSubject()
+        }
+
     fun isLinkedBy() = hasIncomingEdges()
 
     override fun equals(other: Any?): Boolean {
@@ -73,10 +85,12 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 }
 
+class OnlyOneSubjectForAspectIsAllowed(name: String) : Throwable("Too many subject for aspect '$name'")
+
 class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
 
     fun toAspectPropertyData(): AspectPropertyData =
-            AspectPropertyData(id, name, aspect, cardinality, version)
+        AspectPropertyData(id, name, aspect, cardinality, version)
 
     var name: String
         get() = vertex["name"]

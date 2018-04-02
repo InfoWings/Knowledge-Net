@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.id
 
 /**
@@ -12,8 +11,8 @@ import com.infowings.catalog.storage.id
 fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
     if (version != aspectData.version) {
         throw AspectConcurrentModificationException(
-                id,
-                "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
+            id,
+            "Old Aspect version. Expected: $version. Actual: ${aspectData.version}"
         )
     }
 
@@ -31,8 +30,7 @@ fun AspectVertex.checkAspectVersion(aspectData: AspectData) = this.also {
 }
 
 class AspectValidator(
-    private val aspectDaoService: AspectDaoService,
-    private val suggestionService: SuggestionService
+    private val aspectDaoService: AspectDaoService
 ) {
 
     /**
@@ -62,7 +60,9 @@ class AspectValidator(
         when {
             measureName == null && baseType == null && aspectData.properties.isEmpty() ->
                 throw AspectInconsistentStateException("Measure and BaseType can't be null at the same time")
+
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
+
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
                         ?: throw AspectInconsistentStateException("Measure $measureName incorrect")
@@ -98,30 +98,36 @@ class AspectValidator(
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
-        id?.let { checkAspectBusinessKeyForExistingAspect(id!!, name) } ?: checkAspectBusinessKeyForNewAspect(name)
+        val name = this.name ?: throw AspectNameCannotBeNull()
+        id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this)
     }
 
-    private fun checkAspectBusinessKeyForExistingAspect(id: String, name: String) =
-        aspectDaoService.getAspectsByNameWithDifferentId(id, name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+    private fun checkAspectBusinessKeyForExistingAspect(aspectData: AspectData, name: String) {
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, aspectData.id).let {
+            if (it.any()) {
+                throw AspectAlreadyExist(name, null)
             }
         }
+    }
 
-    private fun checkAspectBusinessKeyForNewAspect(name: String) =
-        aspectDaoService.findByName(name).let {
-            if (it.isNotEmpty()) {
-                throw AspectAlreadyExist(name)
+    private fun checkAspectBusinessKeyForNewAspect(aspectData: AspectData) {
+        val name = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, null)
+            .let {
+                if (it.isNotEmpty()) {
+                    throw AspectAlreadyExist(name, aspectData.subject?.name)
+                }
             }
-        }
-
+    }
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
 
         // check aspect properties business key
         // there should be aspectData.properties.size unique pairs (name, aspectId) in property list
         // not call db because we suppose that Aspect Property business key is exist only inside concrete aspect
+        val aliveProperties = actualData().properties
+
         val notValid =
-            properties.distinctBy { Pair(it.name, it.aspectId) }.size != properties.size
+            aliveProperties.distinctBy { Pair(it.name, it.aspectId) }.size != aliveProperties.size
 
         if (notValid) {
             throw AspectInconsistentStateException("Aspect properties should have unique pairs of name and assigned aspect")
@@ -135,7 +141,7 @@ class AspectValidator(
     }
 
     private fun AspectVertex.checkCyclicDependencies(aspectData: AspectData) = this.also {
-        val parentsIds = suggestionService.findParentAspects(id).mapNotNull { it.id }
+        val parentsIds = aspectDaoService.findParentAspects(id).mapNotNull { it.id }
         val cyclicIds = aspectData.properties
             .map { it.aspectId }
             .filter { parentsIds.contains(it) }
