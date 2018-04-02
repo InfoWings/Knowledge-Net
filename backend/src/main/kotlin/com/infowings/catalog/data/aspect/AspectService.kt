@@ -217,17 +217,23 @@ class AspectService(
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
+    private fun AspectVertex.savePropertyWithHistory(vertex: AspectPropertyVertex,
+                                        data: AspectPropertyData,
+                                        user: String): HistoryFact {
+        if (vertex.isJustCreated()) {
+            aspectDaoService.saveAspectProperty(this, vertex, data)
+            return vertex.toCreateFact(user)
+        } else {
+            val previous = vertex.toSnapshot()
+            aspectDaoService.saveAspectProperty(this, vertex, data)
+            return vertex.toUpdateFact(user, previous)
+        }
+    }
+
     private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, user: String) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
-            if (aspectPropertyVertex.isJustCreated()) {
-                aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
-                historyService.storeFact(aspectPropertyVertex.toCreateFact(user))
-            } else {
-                val previous = aspectPropertyVertex.toSnapshot()
-                aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
-                historyService.storeFact(aspectPropertyVertex.toUpdateFact(user, previous))
-            }
+            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, user))
         }
     }
 }
