@@ -62,12 +62,11 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
 
     private fun hide() {
         val onExpanded = props.onExpanded
-        if (onExpanded != null) {
-            setStateWithCallback({ onExpanded(false) }) {
+        when (onExpanded) {
+            null -> setState {
                 expanded = false
             }
-        } else {
-            setState {
+            else -> setStateWithCallback({ onExpanded(false) }) {
                 expanded = false
             }
         }
