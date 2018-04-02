@@ -18,7 +18,7 @@ interface Option : SelectOption {
 
 fun aspectOption(data: AspectData) = jsObject<Option> {
     aspectLabel = "${data.name} ${data.measure?.let { "(${data.measure})" } ?: ""}"
-    aspectName = data.name
+    aspectName = data.name ?: ""
     aspectData = data
 }
 
@@ -34,7 +34,7 @@ class AspectSuggestingInput : RComponent<AspectSuggestingInput.Props, AspectSugg
         asyncCreatableSelect<Option> {
             attrs {
                 className = "aspect-table-select"
-                value = props.associatedAspect.name
+                value = props.associatedAspect.name ?: ""
                 labelKey = "aspectLabel"
                 valueKey = "aspectName"
                 onChange = { props.onOptionSelected(it.aspectData) }

@@ -92,7 +92,8 @@ class AspectsControl(props: AspectApiReceiverProps) : RComponent<AspectApiReceiv
             measure = aspect.measure,
             domain = aspect.domain,
             baseType = aspect.baseType,
-            properties = aspect.properties
+            properties = aspect.properties,
+            subject = aspect.subject
         )
 
         setState {

@@ -5,7 +5,6 @@ import com.orientechnologies.orient.core.db.ODatabaseType
 import com.orientechnologies.orient.core.db.OrientDB
 import com.orientechnologies.orient.core.db.OrientDBConfig
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.OVertex
@@ -14,6 +13,7 @@ import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
+
 
 /**
  * Public OVertex Extensions.
@@ -26,8 +26,13 @@ val OElement.id: String
     get() = identity.toString()
 
 fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("Not a vertex")
-fun OResult.toVertexOrNUll(): OVertex? = vertex.orElse(null)
+fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
+var OVertex.name: String
+    get() = this["name"]
+    set(value) {
+        this["name"] = value
+    }
 
 /**
  * Main class for work with database
@@ -51,10 +56,12 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
-                .initAspects()
-                .initUsers()
-                .initMeasures()
-                .initReferenceBooks()
+            .initAspects()
+            .initUsers()
+            .initMeasures()
+            .initReferenceBooks()
+            .initSubject()
+            .initSearch() // this call should be latest
     }
 
     @PreDestroy
@@ -69,7 +76,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * usage example:
      *
      * database.query(selectFromAspect) { rs, session ->
-     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
@@ -84,9 +91,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
      * usage example:
      *
      * database.query(selectFromAspect) { rs, session ->
-     * rs.mapNotNull { it.toVertexOrNUll()?.toAspect(session) }.toList()}
+     * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
-    fun <T> query(query: String, args: Map<String, Any>, block: (Sequence<OResult>) -> T): T {
+    fun <T> query(query: String, args: Map<String, Any?>, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }
@@ -94,7 +101,9 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     }
 
     fun getVertexById(id: String): OVertex? =
-            query(selectById, ORecordId(id)) { it.map { it.toVertexOrNUll() }.firstOrNull() }
+        query(selectById, ORecordId(id)) { it.map { it.toVertexOrNull() }.firstOrNull() }
+
+    operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
     fun createNewVertex(className: String): OVertex = session(database = this) {
         return@session it.newVertex(className)
@@ -184,5 +193,6 @@ inline fun <U> transaction(
 }
 
 class OrientException(reason: String) : Throwable(reason)
+class VertexNotFound(id: String) : Throwable("No vertex for id: $id")
 
 private const val selectById = "SELECT FROM ?"

@@ -18,7 +18,7 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
             input {
                 this.attrs {
                     type = kotlinx.html.InputType.text
-                    placeholder = "Search unit..."
+                    placeholder = "Search..."
                     value = props.filterText
                     onChangeFunction = { props.onFilterTextChange(it.target.asDynamic().value) }
                 }

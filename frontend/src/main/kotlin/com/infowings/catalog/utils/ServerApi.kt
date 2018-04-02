@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JSON as KJSON
 
 private const val POST = "POST"
 private const val GET = "GET"
+private const val PUT = "PUT"
 
 private const val AUTH_ROLE = "auth-role"
 private const val REFRESH_AUTH = "x-refresh-authorization"
@@ -43,6 +44,15 @@ suspend fun post(url: String, body: dynamic): String {
 suspend fun get(url: String, body: dynamic = null): String {
     return authorizedRequest(GET, url, body).text().await()
 }
+
+/**
+ * Http PUT request to server.
+ * Returns response text.
+ */
+suspend fun put(url: String, body: dynamic = null): String {
+    return authorizedRequest(PUT, url, body).text().await()
+}
+
 
 /**
  * Http request to server after authorization.
