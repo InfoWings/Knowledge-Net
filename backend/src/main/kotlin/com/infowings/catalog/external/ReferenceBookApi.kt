@@ -34,6 +34,16 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         return referenceBookService.updateReferenceBook(book)
     }
 
+    @PostMapping("remove")
+    fun remove(@RequestBody book: ReferenceBook) {
+        referenceBookService.removeReferenceBook(book)
+    }
+
+    @PostMapping("forceRemove")
+    fun forceRemove(@RequestBody book: ReferenceBook) {
+        referenceBookService.removeReferenceBook(book, true)
+    }
+
     @PostMapping("item/create")
     fun createItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
         return referenceBookService.addItemAndGetReferenceBook(bookItem)
@@ -42,6 +52,16 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     @PostMapping("item/update")
     fun updateItem(@RequestBody bookItem: ReferenceBookItem): ReferenceBook {
         return referenceBookService.updateItemAndGetReferenceBook(bookItem)
+    }
+
+    @PostMapping("item/remove")
+    fun removeItem(@RequestBody bookItem: ReferenceBookItem) {
+        referenceBookService.removeReferenceBookItem(bookItem)
+    }
+
+    @PostMapping("item/forceRemove")
+    fun forceRemoveItem(@RequestBody bookItem: ReferenceBookItem) {
+        referenceBookService.removeReferenceBookItem(bookItem, true)
     }
 
     @ExceptionHandler(Exception::class)
@@ -53,7 +73,13 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookChildAlreadyExist -> ResponseEntity.badRequest().body("Reference Book Item '${e.value}' already exists")
             is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
-        //todo: add new Exceptions
+            is RefBookModificationException -> ResponseEntity.badRequest().body("Cannot find parent Reference Book Item")
+            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book Item has linked entities")
+            is RefBookHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book has linked entities")
+            is RefBookItemConcurrentModificationException ->
+                ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
+            is RefBookConcurrentModificationException ->
+                ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${e.message}")
         }
     }

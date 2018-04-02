@@ -131,7 +131,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      */
     internal fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
         transaction(db) {
-            val parentId = bookItem.parentId ?: throw RefBookIllegalArgument("parentId must not be null")
+            val parentId = bookItem.parentId ?: throw RefBookModificationException("parent id must not be null")
             val value = bookItem.value
 
             logger.debug("Adding reference book item. parentId: $parentId, value: $value")
@@ -159,7 +159,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             logger.debug("Updating reference book item. id: $id, value: $value")
 
             val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
-            val parentVertex = itemVertex.parent ?: throw RefBookIllegalArgument("parent vertex must not be null")
+            val parentVertex = itemVertex.parent ?: throw RefBookModificationException("parent vertex must not be null")
             validator.checkForBookItemRemoved(itemVertex)
             validator.checkRefBookItemAndChildrenVersion(itemVertex, bookItem)
             validator.checkRefBookItemValue(parentVertex, value, id)
@@ -244,9 +244,10 @@ class RefBookNotExist(val aspectId: String) : ReferenceBookException("aspectId: 
 class RefBookItemNotExist(val id: String) : ReferenceBookException("id: $id")
 class RefBookChildAlreadyExist(val id: String, val value: String) : ReferenceBookException("id: $id, value: $value")
 class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
-class RefBookIllegalArgument(message: String) : ReferenceBookException(message)
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
+
+class RefBookModificationException(message: String) : ReferenceBookException(message)
 
 class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
 class RefBookHasLinkedEntitiesException(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
