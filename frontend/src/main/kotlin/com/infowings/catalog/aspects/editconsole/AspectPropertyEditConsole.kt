@@ -250,8 +250,7 @@ class AspectPropertyEditConsole(props: Props) :
                                 state.childAspectMeasure,
                                 state.childAspectDomain,
                                 state.childAspectBaseType,
-                                subject = state.childAspectSubject,
-                                description = desc
+                                subject = state.childAspectSubject
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged

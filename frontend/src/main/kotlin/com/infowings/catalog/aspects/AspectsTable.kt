@@ -121,7 +121,7 @@ class AspectsTable(props: AspectApiReceiverProps) : RComponent<AspectApiReceiver
      */
     private fun startCreatingNewAspect() {
         setState {
-            newAspect = AspectData(null, "", null, null, null, description = desc)
+            newAspect = AspectData(null, "", null, null, null)
         }
     }
 

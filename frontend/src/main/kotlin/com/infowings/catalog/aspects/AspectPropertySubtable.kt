@@ -122,8 +122,7 @@ class AspectPropertySubtable : RComponent<AspectPropertySubtable.Props, AspectPr
                         "",
                         null,
                         null,
-                        null,
-                        description = desc
+                        null
                     ), false
                 )
             } else {
