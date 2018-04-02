@@ -10,8 +10,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
 
     override fun RBuilder.render() {
         val className = if (props.selected) "aspect-tree-view--label__selected" else null
-        if (!props.aspect.name.isNullOrEmpty() || !props.aspect.measure.isNullOrEmpty()
-                || !props.aspect.domain.isNullOrEmpty() || !props.aspect.baseType.isNullOrEmpty()) {
+        if (props.aspect.hasContentToDisplay()) {
             aspectLabel(
                 className = className,
                 aspectName = props.aspect.name ?: "",
@@ -32,5 +31,12 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
         var selected: Boolean
     }
 }
+
+private fun AspectData.hasContentToDisplay() =
+    !this.name.isNullOrEmpty()
+            || !this.measure.isNullOrEmpty()
+            || !this.domain.isNullOrEmpty()
+            || !this.baseType.isNullOrEmpty()
+
 
 fun RBuilder.aspectRootLabel(block: RHandler<AspectRootLabel.Props>) = child(AspectRootLabel::class, block)

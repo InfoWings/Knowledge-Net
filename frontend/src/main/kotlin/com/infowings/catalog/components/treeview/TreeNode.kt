@@ -50,12 +50,11 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
 
     private fun expand() {
         val onExpanded = props.onExpanded
-        if (onExpanded != null) {
-            setStateWithCallback({ onExpanded(true) }) {
+        when (onExpanded) {
+            null -> setState {
                 expanded = true
             }
-        } else {
-            setState {
+            else -> setStateWithCallback({ onExpanded(true) }) {
                 expanded = true
             }
         }

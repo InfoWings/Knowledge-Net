@@ -101,9 +101,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropert
                                     props.propertyIndex
                                 )
                             }
-                            onAddToListIconClick = if (childAspect == null) null else {
-                                { props.onAddPropertyToAspect(childAspect) }
-                            }
+                            onAddToListIconClick = childAspect?.let { { props.onAddPropertyToAspect(childAspect) } }
                         }
                     }
                 }!!
