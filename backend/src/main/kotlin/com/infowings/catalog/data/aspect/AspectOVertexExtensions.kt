@@ -1,10 +1,10 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.storage.ASPECT_ASPECTPROPERTY_EDGE
-import com.infowings.catalog.storage.get
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.set
+import com.infowings.catalog.data.history.HistoryAware
+import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
@@ -19,7 +19,19 @@ fun OVertex.isJustCreated() = this.identity.isNew
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
  * by vertex means simple delegating OVertex calls to property [vertex]
  * */
-class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
+class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+    override val entityClass = ASPECT_CLASS
+
+    override fun currentSnapshot(): Snapshot = Snapshot(
+        data = mapOf(
+            "name" to asStringOrEmpty(name),
+            "measure" to asStringOrEmpty(measure),
+            "baseType" to asStringOrEmpty(baseType)
+            ),
+        links = mapOf(
+            "properties" to properties.map{it.identity}
+        )
+    )
 
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
@@ -76,7 +88,17 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 }
 
-class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
+class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+    override val entityClass = ASPECT_PROPERTY_CLASS
+
+    override fun currentSnapshot(): Snapshot = Snapshot(
+        data = mapOf(
+            "name" to asStringOrEmpty(name),
+            "aspect" to asStringOrEmpty(aspect),
+            "cardinality" to asStringOrEmpty(cardinality)
+        ),
+        links = emptyMap()
+    )
 
     fun toAspectPropertyData(): AspectPropertyData =
         AspectPropertyData(id, name, aspect, cardinality, false, version)

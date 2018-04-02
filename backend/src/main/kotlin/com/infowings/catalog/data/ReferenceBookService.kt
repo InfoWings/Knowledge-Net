@@ -69,7 +69,7 @@ class ReferenceBookService(val database: OrientDatabase,
     fun updateReferenceBook(aspectId: String, newName: String, user: String) = transaction(database) {
         val referenceBookVertex = daoService.findReferenceBookVertexByAspectId(aspectId)
                 ?: throw RefBookNotExist(aspectId)
-        val before = referenceBookVertex.toSnapshot()
+        val before = referenceBookVertex.currentSnapshot()
         referenceBookVertex.name = newName
         val saved = referenceBookVertex.save<OVertex>().toReferenceBook()
         historyService.storeFact(referenceBookVertex.toUpdateFact(user, before))
@@ -97,7 +97,7 @@ class ReferenceBookService(val database: OrientDatabase,
             throw RefBookChildAlreadyExist(parentId, value)
         }
 
-        val parentBefore = parentVertex.toSnapshot()
+        val parentBefore = parentVertex.currentSnapshot()
 
         val childVertex = daoService.newReferenceBookItemVertex()
         parentVertex.addEdge(childVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
@@ -123,7 +123,7 @@ class ReferenceBookService(val database: OrientDatabase,
             val parentVertex = vertex.parent?.toReferenceBookItemVertex() ?: throw RefBookParentNotFound(vertex)
             val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.toReferenceBookItemVertex().value == value && it.id != id }
 
-            val before = vertex.toSnapshot()
+            val before = vertex.currentSnapshot()
 
             if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
                 throw RefBookChildAlreadyExist(parentVertex.id, value)

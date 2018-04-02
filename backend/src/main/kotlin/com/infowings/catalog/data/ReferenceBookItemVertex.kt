@@ -1,6 +1,10 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.data.history.HistoryAware
+import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.set
@@ -10,7 +14,18 @@ import com.orientechnologies.orient.core.record.OVertex
 fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 fun OVertex.toReferenceBookItem() = ReferenceBookItemVertex(this).toReferenceBookItem()
 
-class ReferenceBookItemVertex(private val vertex: OVertex) : OVertex by vertex {
+class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+    override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
+
+    override fun currentSnapshot(): Snapshot = Snapshot(
+        data = mapOf(
+            "value" to asStringOrEmpty(value)
+        ),
+        links = mapOf(
+            "children" to children.map {it.identity}
+        )
+    )
+
     var value: String
         get() = vertex["value"]
         set(v) {

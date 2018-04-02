@@ -37,7 +37,7 @@ class AspectService(
                              aspectVertex: AspectVertex,
                              aspectData: AspectData,
                              user: String): AspectVertex {
-        val baseSnapshot = aspectVertex.toSnapshot()
+        val baseSnapshot = aspectVertex.currentSnapshot()
 
         val res = savePlain(aspectVertex, aspectData, user)
 
@@ -224,7 +224,7 @@ class AspectService(
             aspectDaoService.saveAspectProperty(this, vertex, data)
             return vertex.toCreateFact(user)
         } else {
-            val previous = vertex.toSnapshot()
+            val previous = vertex.currentSnapshot()
             aspectDaoService.saveAspectProperty(this, vertex, data)
             return vertex.toUpdateFact(user, previous)
         }
