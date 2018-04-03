@@ -21,8 +21,10 @@ internal suspend fun createReferenceBook(book: ReferenceBook): ReferenceBook =
 internal suspend fun updateReferenceBook(book: ReferenceBook): ReferenceBook =
     JSON.parse(post("/api/book/update", JSON.stringify(book)))
 
-internal suspend fun createReferenceBookItem(bookItem: ReferenceBookItem): ReferenceBook =
-    JSON.parse(post("/api/book/item/create", JSON.stringify(bookItem)))
+internal suspend fun createReferenceBookItem(bookItem: ReferenceBookItem) {
+    post("/api/book/item/create", JSON.stringify(bookItem))
+}
 
-internal suspend fun updateReferenceBookItem(bookItem: ReferenceBookItem): ReferenceBook =
-    JSON.parse(post("/api/book/item/update", JSON.stringify(bookItem)))
+internal suspend fun updateReferenceBookItem(bookItem: ReferenceBookItem) {
+    post("/api/book/item/update", JSON.stringify(bookItem))
+}

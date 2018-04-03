@@ -20,7 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class ReferenceBookDbTest {
+class ReferenceBookServiceTest {
 
     @Autowired
     private lateinit var referenceBookService: ReferenceBookService
@@ -228,8 +228,8 @@ class ReferenceBookDbTest {
     @Test
     fun removeBookTest() {
         val aspectId = referenceBook.aspectId
-        val book =
-            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        val book = referenceBookService.getReferenceBook(aspectId)
         referenceBookService.removeReferenceBook(book)
         assertTrue(referenceBookService.getAllReferenceBooks().isEmpty())
     }
@@ -237,8 +237,8 @@ class ReferenceBookDbTest {
     @Test(expected = RefBookConcurrentModificationException::class)
     fun removeBookConcurrentNameUpdating() {
         val aspectId = referenceBook.aspectId
-        val book =
-            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        val book = referenceBookService.getReferenceBook(aspectId)
         referenceBookService.updateReferenceBook(book.copy(name = "newName"))
         referenceBookService.removeReferenceBook(book)
     }
@@ -246,8 +246,8 @@ class ReferenceBookDbTest {
     @Test(expected = RefBookItemConcurrentModificationException::class)
     fun removeBookConcurrentAddingItem() {
         val aspectId = referenceBook.aspectId
-        val book =
-            referenceBookService.addItemAndGetReferenceBook(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"))
+        val book = referenceBookService.getReferenceBook(aspectId)
         addReferenceBookItem(aspectId, book.id, "another")
         referenceBookService.removeReferenceBook(book)
     }

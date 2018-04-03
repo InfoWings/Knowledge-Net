@@ -129,7 +129,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookItemNotExist if parent item doesn't exist
      * @throws RefBookChildAlreadyExist if parent item already has child with the same value
      */
-    internal fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
+    fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
         transaction(db) {
             val parentId = bookItem.parentId ?: throw RefBookModificationException("parent id must not be null")
             val value = bookItem.value
@@ -151,7 +151,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
-    internal fun changeValue(bookItem: ReferenceBookItem) =
+    fun changeValue(bookItem: ReferenceBookItem) =
         transaction(db) {
             val id = bookItem.id
             val value = bookItem.value
@@ -168,16 +168,6 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
             return@transaction dao.saveBookItemVertex(parentVertex, itemVertex)
         }
-
-    fun addItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
-        addReferenceBookItem(bookItem)
-        return getReferenceBook(bookItem.aspectId)
-    }
-
-    fun updateItemAndGetReferenceBook(bookItem: ReferenceBookItem): ReferenceBook {
-        changeValue(bookItem)
-        return getReferenceBook(bookItem.aspectId)
-    }
 
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(db) {
