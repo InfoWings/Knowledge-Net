@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.editconsole.popup
+package com.infowings.catalog.components.popup
 
 import kotlinext.js.invoke
 import kotlinext.js.require
@@ -19,7 +19,7 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
 
     override fun RBuilder.render() {
         div("popup-container") {
-            h3 { +"This aspect is not free" }
+            h3 { +props.message }
             p { +"Are you sure you want to delete it?" }
 
             div("button-area") {
@@ -42,6 +42,7 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
     }
 
     interface Props : RProps {
+        var message: String
         var onConfirm: () -> Unit
         var onCancel: () -> Unit
     }

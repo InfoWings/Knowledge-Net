@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.editconsole.popup
+package com.infowings.catalog.components.popup
 
 import kotlinx.html.js.onClickFunction
 import react.*
