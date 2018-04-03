@@ -1,9 +1,12 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.reference.book.*
+import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -74,8 +77,22 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
             is RefBookModificationException -> ResponseEntity.badRequest().body("Cannot find parent Reference Book Item")
-            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book Item has linked entities")
-            is RefBookHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book has linked entities")
+            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body(
+                JSON.stringify(
+                    BadRequest(
+                        NEED_CONFIRMATION,
+                        "Attempt to remove Reference Book Item that has linked entities pointed to it"
+                    )
+                )
+            )
+            is RefBookHasLinkedEntitiesException -> ResponseEntity.badRequest().body(
+                JSON.stringify(
+                    BadRequest(
+                        NEED_CONFIRMATION,
+                        "Attempt to remove Reference Book that has linked entities pointed to it"
+                    )
+                )
+            )
             is RefBookItemConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
             is RefBookConcurrentModificationException ->

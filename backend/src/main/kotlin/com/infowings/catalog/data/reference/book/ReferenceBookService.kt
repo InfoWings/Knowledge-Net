@@ -181,6 +181,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(db) {
+            logger.debug("Removing Reference Book Item. id: ${bookItem.id}")
             val bookItemVertex =
                 dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
 
