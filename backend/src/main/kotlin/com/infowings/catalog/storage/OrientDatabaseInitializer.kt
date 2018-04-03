@@ -43,32 +43,38 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
-        if (session.getClass(ASPECT_CLASS) == null) {
-            val vertexClass = session.createVertexClass(ASPECT_CLASS)
-            vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
-            vertexClass.createProperty(ATTR_DESC, OType.STRING)
-            createIgnoreCaseIndex(session, ASPECT_CLASS)
-        }
+        val aspectClass = session.getClass(ASPECT_CLASS) ?: createAspectVertex(session)
+        aspectClass.getProperty(ATTR_DESC) ?: aspectClass.createProperty(ATTR_DESC, OType.STRING)
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
         return@session this
     }
 
-    private fun createVertexWithAttrNameAndDesc(session: ODatabaseDocument, className: String) {
-        if (session.getClass(className) == null) {
-            logger.info("create vertex: $className")
-            val vertex = session.createVertexClass(className)
-            vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
-            createIgnoreCaseIndex(session, className)
-            vertex.createProperty(ATTR_DESC, OType.STRING)
-        }
+    private fun createAspectVertex(session: ODatabaseDocument): OClass {
+        val vertexClass = session.createVertexClass(ASPECT_CLASS)
+        vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        createIgnoreCaseIndex(session, ASPECT_CLASS)
+        return vertexClass
+    }
+
+    private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String) {
+        val vertex = session.getClass(className) ?: createVertexWithName(className, session)
+        vertex.getProperty(ATTR_DESC) ?: vertex.createProperty(ATTR_DESC, OType.STRING)
+    }
+
+    private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
+        logger.info("create vertex: $className")
+        val vertex = session.createVertexClass(className)
+        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        createIgnoreCaseIndex(session, className)
+        return vertex
     }
 
     /** Initializes measures */
     fun initMeasures(): OrientDatabaseInitializer = session(database) { session ->
-        createVertexWithAttrNameAndDesc(session, MEASURE_GROUP_VERTEX)
-        createVertexWithAttrNameAndDesc(session, MEASURE_VERTEX)
+        createVertexWithNameAndDesc(session, MEASURE_GROUP_VERTEX)
+        createVertexWithNameAndDesc(session, MEASURE_VERTEX)
         session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
         session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
         session.getClass(MEASURE_BASE_AND_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
@@ -105,7 +111,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
-        createVertexWithAttrNameAndDesc(session, REFERENCE_BOOK_VERTEX)
+        createVertexWithNameAndDesc(session, REFERENCE_BOOK_VERTEX)
 
         if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
@@ -123,7 +129,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initSubject(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init subject")
-        createVertexWithAttrNameAndDesc(session, SUBJECT_CLASS)
+        createVertexWithNameAndDesc(session, SUBJECT_CLASS)
         session.getClass(ASPECT_SUBJECT_EDGE) ?: session.createEdgeClass(ASPECT_SUBJECT_EDGE)
         return@session this
     }

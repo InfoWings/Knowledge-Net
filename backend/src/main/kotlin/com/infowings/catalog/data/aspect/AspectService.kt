@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -13,8 +12,7 @@ import com.infowings.catalog.storage.transaction
  */
 class AspectService(
     private val db: OrientDatabase,
-    private val aspectDaoService: AspectDaoService,
-    suggestionService: SuggestionService
+    private val aspectDaoService: AspectDaoService
 ) {
 
     private val aspectValidator = AspectValidator(aspectDaoService)
@@ -75,8 +73,6 @@ class AspectService(
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
     fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
-
-    fun getAspect(vertex: AspectVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id

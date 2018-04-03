@@ -9,6 +9,9 @@ import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.search.CommonSuggestionParam
+import com.infowings.catalog.search.SubjectSuggestionParam
+import com.infowings.catalog.search.SuggestionService
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Test
@@ -28,6 +31,9 @@ class SubjectServiceTest {
 
     @Autowired
     private lateinit var aspectService: AspectService
+
+    @Autowired
+    private lateinit var suggestionService: SuggestionService
 
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameSameSubject() {
@@ -116,9 +122,25 @@ class SubjectServiceTest {
         )
     }
 
+    @Test
+    fun testSuggestionByDescription() {
+        val subject = createTestSubject(
+            "testSuggestionByDescription",
+            description = "The subject in a simple English sentence such as John runs, John is a teacher, or John was hit by a car is the person or thing about whom the statement is made, in this case 'John'."
+        )
+        val res = suggestionService.findSubject(
+            CommonSuggestionParam(text = "in this case 'John'"),
+            SubjectSuggestionParam(null)
+        )
+        Assert.assertEquals("subject should be founded by description", res.first(), subject.toSubjectData())
+    }
 
-    private fun createTestSubject(name: String, aspectNames: List<String> = listOf("TestSubjectAspect")): Subject =
-        createTestSubject(name, aspectNames, aspectService, subjectService)
+    private fun createTestSubject(
+        name: String,
+        aspectNames: List<String> = listOf("TestSubjectAspect"),
+        description: String? = null
+    ): Subject =
+        createTestSubject(name, aspectNames, aspectService, subjectService, description)
 
     private fun createTestAspect(
         name: String = "aspect",
@@ -142,9 +164,10 @@ fun createTestSubject(
     name: String,
     aspectNames: List<String> = listOf("TestSubjectAspect"),
     aspectService: AspectService,
-    subjectService: SubjectService
+    subjectService: SubjectService,
+    description: String? = null
 ): Subject {
-    val sd = SubjectData(name = name)
+    val sd = SubjectData(name = name, description = description)
     val subject = subjectService.findByName(name) ?: subjectService.createSubject(sd)
     aspectNames.map { createTestAspect(it, aspectService, subject) }
     return subject

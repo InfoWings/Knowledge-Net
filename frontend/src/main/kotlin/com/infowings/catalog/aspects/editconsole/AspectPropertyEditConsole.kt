@@ -135,7 +135,7 @@ class AspectPropertyEditConsole(props: Props) :
 
     private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
         setState {
-            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
         }
     }
 

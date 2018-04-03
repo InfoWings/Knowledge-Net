@@ -80,9 +80,14 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam
     ): List<SubjectData> = session(database) {
-        findSubjectInDb(commonParam, subjectParam)
+        val res = findSubjectInDb(commonParam, subjectParam)
             .mapNotNull { it.toSubject().toSubjectData() }
-            .toList()
+            .toMutableList()
+        if (res.size < maxResultSize) {
+            res.addAll(descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
+                .mapNotNull { it.toSubject().toSubjectData() })
+        }
+        res
     }
 
     private fun findSubjectInDb(
