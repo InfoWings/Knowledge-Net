@@ -1,68 +1,72 @@
 package com.infowings.catalog.layout
 
 import com.infowings.catalog.utils.removeAuthRole
-import com.infowings.catalog.wrappers.reactRouter
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
-import react.dom.div
-import react.dom.li
-import react.dom.ul
+import com.infowings.catalog.wrappers.History
+import com.infowings.catalog.wrappers.blueprint.*
+import react.*
 
-class HeaderProps(var location: String) : RProps
-
-class Header : RComponent<HeaderProps, RState>() {
+class Header : RComponent<Header.Props, RState>() {
 
     override fun RBuilder.render() {
-        div(classes = "navbar navbar-default") {
-            div(classes = "container-fluid") {
-                ul(classes = "nav navbar-nav") {
-                    li(classes = if (props.location == "/aspects") "active" else "") {
-                        reactRouter.Link {
-                            attrs {
-                                to = "/aspects"
-                            }
-                            +"Aspects"
-                        }
-                    }
-                    li(classes = if (props.location == "/units") "active" else "") {
-                        reactRouter.Link {
-                            attrs {
-                                to = "/units"
-                            }
-                            +"Units"
-                        }
-                    }
-                    li(classes = if (props.location == "/subjects") "active" else "") {
-                        reactRouter.Link {
-                            attrs {
-                                to = "/subjects"
-                            }
-                            +"Subject"
-                        }
-                    }
-                    li(classes = if (props.location == "/reference") "active" else "") {
-                        reactRouter.Link {
-                            attrs {
-                                to = "/reference"
-                            }
-                            +"Reference books"
-                        }
+        Navbar {
+            NavbarGroup {
+                attrs.align = Alignment.LEFT
+                NavbarHeading {
+                    +"Knowledge Net"
+                }
+                NavbarDivider {}
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/aspects"
+                        onClick = { props.history.push("/aspects") }
+                        text = buildElement { +"Aspects" }
                     }
                 }
-                ul(classes = "nav navbar-nav navbar-right") {
-                    li {
-                        reactRouter.Link {
-                            attrs {
-                                to = "/"
-                                onClick = { removeAuthRole() }
-                            }
-                            +"Logout"
-                        }
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/units"
+                        onClick = { props.history.push("/units") }
+                        text = buildElement { +"Units" }
+                    }
+                }
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/subjects"
+                        onClick = { props.history.push("/subjects") }
+                        text = buildElement { +"Subjects" }
+                    }
+                }
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/reference"
+                        onClick = { props.history.push("/reference") }
+                        text = buildElement { +"Reference Books" }
                     }
                 }
             }
+            NavbarGroup {
+                attrs.align = Alignment.RIGHT
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        onClick = {
+                            removeAuthRole()
+                            props.history.push("/aspects")
+                        }
+                        text = buildElement { +"Logout" }
+                    }
+                }
+            }
+
         }
+    }
+
+    interface Props : RProps {
+        var location: String
+        var history: History
     }
 }
