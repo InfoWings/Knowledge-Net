@@ -36,7 +36,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookNotExist
      */
     fun getReferenceBook(aspectId: String): ReferenceBook = transaction(db) {
-        logger.debug("Getting reference books by aspectId=$aspectId")
+        logger.debug("Getting Reference Book aspectId: $aspectId")
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
         return@transaction referenceBookVertex.toReferenceBook()
     }

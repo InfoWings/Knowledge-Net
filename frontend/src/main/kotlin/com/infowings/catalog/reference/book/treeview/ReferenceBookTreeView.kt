@@ -48,6 +48,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 selected = rowData.aspectName == state.selectedAspectName
                                 startUpdatingBook = ::startUpdatingBook
                                 updateBook = props.updateBook
+                                deleteBook = props.deleteBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
                                 deleteBookItem = props.deleteBookItem

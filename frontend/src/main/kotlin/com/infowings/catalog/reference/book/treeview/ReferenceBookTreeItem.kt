@@ -77,7 +77,6 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         }
     }
 
-
     override fun RBuilder.render() {
         div(classes = "book-tree-view--item") {
             if (props.bookItem.children.isNotEmpty()) {
@@ -149,7 +148,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
                 removeConfirmWindow {
                     attrs {
-                        message = "This reference book is not free"
+                        message = "This reference book item is not free"
                         onCancel = { setState { confirmation = false } }
                         onConfirm = { tryDelete(true) }
                     }

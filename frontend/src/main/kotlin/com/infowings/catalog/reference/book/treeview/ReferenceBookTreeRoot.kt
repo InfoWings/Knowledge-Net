@@ -1,11 +1,17 @@
 package com.infowings.catalog.reference.book.treeview
 
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.popup.popup
+import com.infowings.catalog.components.popup.removeConfirmWindow
+import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -15,6 +21,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
 
     override fun State.init() {
         creatingBookItem = false
+        confirmation = false
     }
 
     private fun handleExpanderClick(e: Event) {
@@ -43,6 +50,30 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         props.createBookItem(bookItem)
         setState {
             creatingBookItem = false
+        }
+    }
+
+    private fun handleDeleteClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        tryDelete(false)
+    }
+
+    private fun tryDelete(force: Boolean) {
+        launch {
+            try {
+                props.deleteBook(props.book, force)
+                setState {
+                    confirmation = false
+                }
+            } catch (e: RefBookBadRequestException) {
+                when (e.exceptionInfo.code) {
+                    NEED_CONFIRMATION -> setState {
+                        confirmation = true
+                    }
+                    else -> throw e
+                }
+            }
         }
     }
 
@@ -81,7 +112,14 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     }
                 }
             }
+
+            ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
+                attrs {
+                    onClickFunction = ::handleDeleteClick
+                }
+            }
         }
+
         if (props.book.children.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
@@ -94,12 +132,27 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
         }
+
         if (state.creatingBookItem) {
             bookItemEditConsole {
                 attrs {
                     bookItem = ReferenceBookItem(props.aspectId, props.book.id, "", "", emptyList(), false, 0)
                     onCancel = ::cancelCreatingBookItem
                     onSubmit = { handleCreateBookItem(it) }
+                }
+            }
+        }
+
+        if (state.confirmation) {
+            popup {
+                attrs.closePopup = { setState { confirmation = false } }
+
+                removeConfirmWindow {
+                    attrs {
+                        message = "This reference book is not free"
+                        onCancel = { setState { confirmation = false } }
+                        onConfirm = { tryDelete(true) }
+                    }
                 }
             }
         }
@@ -112,6 +165,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: suspend (ReferenceBook) -> Unit
+        var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
         var createBookItem: suspend (ReferenceBookItem) -> Unit
         var updateBookItem: suspend (ReferenceBookItem) -> Unit
         var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
@@ -120,6 +174,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     interface State : RState {
         var expanded: Boolean
         var creatingBookItem: Boolean
+        var confirmation: Boolean
     }
 }
 
