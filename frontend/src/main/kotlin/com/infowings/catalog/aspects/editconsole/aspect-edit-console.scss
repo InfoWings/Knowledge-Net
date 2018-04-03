@@ -72,6 +72,10 @@
     border: none;
     background-color: transparent;
     width: 100%;
+
+    &:focus {
+      outline: none
+    }
   }
 
   &--button-control-tab {
