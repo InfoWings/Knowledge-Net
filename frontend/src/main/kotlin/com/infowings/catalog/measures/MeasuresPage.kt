@@ -95,7 +95,8 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
     override fun RBuilder.render() {
         child(Header::class) {
-            attrs { location = props.location.pathname }
+            attrs.location = props.location.pathname
+            attrs.history = props.history
         }
 
         h1 { +"Measure Page" }
