@@ -4,8 +4,8 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
-import com.infowings.catalog.data.history.*
-import com.infowings.catalog.search.SuggestionService
+import com.infowings.catalog.data.history.HistoryFact
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -32,15 +32,14 @@ class AspectService(
     Завершает обновление на случай обновления
     Запускается изнутри транзакции на database
      */
-    private fun updateFinish(database: OrientDatabase,
-                             aspectVertex: AspectVertex,
+    private fun updateFinish(aspectVertex: AspectVertex,
                              aspectData: AspectData,
                              user: String): AspectVertex {
         val baseSnapshot = aspectVertex.currentSnapshot()
 
         val res = savePlain(aspectVertex, aspectData, user)
 
-        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot!!))
+        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot))
 
         return res
     }
@@ -50,8 +49,7 @@ class AspectService(
     Завершает обновление на случай создания
     Запускается изнутри транзакции на database
     */
-    private fun createFinish(database: OrientDatabase,
-                             aspectVertex: AspectVertex,
+    private fun createFinish(aspectVertex: AspectVertex,
                              aspectData: AspectData,
                              user: String): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, user)
@@ -77,7 +75,7 @@ class AspectService(
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(db, aspectVertex, aspectData, user)
+            return@transaction finishMethod(aspectVertex, aspectData, user)
         }
 
         return findById(save.id)
@@ -117,8 +115,6 @@ class AspectService(
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
     fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
-
-    fun getAspect(vertex: AspectVertex): Aspect = vertex.toAspect()
 
     /**
      * Search [Aspect] by it's id
@@ -222,13 +218,13 @@ class AspectService(
     private fun AspectVertex.savePropertyWithHistory(vertex: AspectPropertyVertex,
                                         data: AspectPropertyData,
                                         user: String): HistoryFact {
-        if (vertex.isJustCreated()) {
+        return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            return vertex.toCreateFact(user)
+            vertex.toCreateFact(user)
         } else {
             val previous = vertex.currentSnapshot()
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            return vertex.toUpdateFact(user, previous)
+            vertex.toUpdateFact(user, previous)
         }
     }
 
