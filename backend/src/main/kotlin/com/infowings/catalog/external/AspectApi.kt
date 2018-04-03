@@ -1,9 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.AspectBadRequest
-import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -59,57 +59,57 @@ class AspectApi(val aspectService: AspectService) {
         return when (exception) {
             is AspectAlreadyExist -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Aspect with such name already exists (${exception.name})."
                             )
                     ))
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Attempt to modify old version of aspect, please refresh."
                             )
                     ))
             is AspectModificationException -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Updates to aspect ${exception.id} violates update constraints: ${exception.message}"
                             )
                     ))
             is AspectPropertyModificationException -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Updates to aspect property ${exception.id} violates update constraints: ${exception.message}"
                             )
                     ))
             is AspectCyclicDependencyException -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Failed to create/modify aspect due to emerging cycle among aspects"
                             )
                     ))
             is AspectInconsistentStateException -> ResponseEntity.badRequest()
                     .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     exception.message
                             )
                     ))
             is AspectPropertyConcurrentModificationException -> ResponseEntity.badRequest()
                     .body(JSON.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
+                            BadRequest(
+                                    BadRequestCode.INCORRECT_INPUT,
                                     "Attempt to modify old version of aspect property (${exception.id}), please refresh."
                             )
                     ))
             is AspectHasLinkedEntitiesException -> ResponseEntity.badRequest()
                     .body(JSON.stringify(
-                            AspectBadRequest(
-                                AspectBadRequestCode.NEED_CONFIRMATION,
+                            BadRequest(
+                                BadRequestCode.NEED_CONFIRMATION,
                                     "Attempt to remove aspect that has linked entities pointed to it"
                             )
                     ))

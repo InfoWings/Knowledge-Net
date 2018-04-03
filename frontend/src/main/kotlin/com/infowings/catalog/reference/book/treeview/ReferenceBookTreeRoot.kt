@@ -90,6 +90,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     bookItems = props.book.children
                     createBookItem = props.createBookItem
                     updateBookItem = props.updateBookItem
+                    deleteBookItem = props.deleteBookItem
                 }
             }
         }
@@ -113,6 +114,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var updateBook: suspend (ReferenceBook) -> Unit
         var createBookItem: suspend (ReferenceBookItem) -> Unit
         var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

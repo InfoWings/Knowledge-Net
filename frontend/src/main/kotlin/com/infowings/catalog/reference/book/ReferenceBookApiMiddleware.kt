@@ -1,12 +1,14 @@
 package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
+import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
 
+class RefBookBadRequestException(val exceptionInfo: BadRequest) : RuntimeException(exceptionInfo.message)
 
 interface ReferenceBookApiReceiverProps : RProps {
     var rowDataList: List<RowData>
@@ -14,6 +16,7 @@ interface ReferenceBookApiReceiverProps : RProps {
     var createBook: suspend (ReferenceBook) -> Unit
     var createBookItem: suspend (ReferenceBookItem) -> Unit
     var updateBookItem: suspend (ReferenceBookItem) -> Unit
+    var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
 }
 
 
@@ -77,6 +80,20 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
+    private suspend fun handleDeleteBookItem(bookItem: ReferenceBookItem, force: Boolean) {
+        /*
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Actually we need only to know is updating was successful.
+        */
+        if (force) {
+            forceDeleteReferenceBookItem(bookItem)
+        } else {
+            deleteReferenceBookItem(bookItem)
+        }
+        val updatedBook = getReferenceBook(bookItem.aspectId)
+        updateRowDataList(updatedBook.aspectId, updatedBook)
+    }
+
     private fun updateRowDataList(aspectId: String, book: ReferenceBook) {
         setState {
             rowDataList = rowDataList.map {
@@ -94,6 +111,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 updateBook = { handleUpdateBook(it) }
                 createBookItem = { handleCreateBookItem(it) }
                 updateBookItem = { handleUpdateBookItem(it) }
+                deleteBookItem = { bookItem, force -> handleDeleteBookItem(bookItem, force) }
             }
         }
     }

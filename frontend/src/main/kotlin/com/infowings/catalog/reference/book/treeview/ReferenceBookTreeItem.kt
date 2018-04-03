@@ -1,11 +1,17 @@
 package com.infowings.catalog.reference.book.treeview
 
+import com.infowings.catalog.aspects.editconsole.popup.popup
+import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
+import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -15,6 +21,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     override fun State.init() {
         creatingBookItem = false
+        confirmation = false
     }
 
     private fun handleExpanderClick(e: Event) {
@@ -45,6 +52,32 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             creatingBookItem = false
         }
     }
+
+    private fun handleDeleteClick(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        tryDelete(false)
+    }
+
+    private fun tryDelete(force: Boolean) {
+        launch {
+            try {
+                props.deleteBookItem(props.bookItem, force)
+                setState {
+                    confirmation = false
+                }
+            } catch (e: RefBookBadRequestException) {
+                if (e.exceptionInfo.code == NEED_CONFIRMATION) {
+                    setState {
+                        confirmation = true
+                    }
+                } else {
+                    throw e
+                }
+            }
+        }
+    }
+
 
     override fun RBuilder.render() {
         div(classes = "book-tree-view--item") {
@@ -79,6 +112,12 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     }
                 }
             }
+
+            ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
+                attrs {
+                    onClickFunction = ::handleDeleteClick
+                }
+            }
         }
 
         if (props.bookItem.children.isNotEmpty() && state.expanded) {
@@ -90,6 +129,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     bookItems = props.bookItem.children
                     createBookItem = props.createBookItem
                     updateBookItem = props.updateBookItem
+                    deleteBookItem = props.deleteBookItem
                 }
             }
         }
@@ -104,6 +144,18 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             }
         }
+        if (state.confirmation) {
+            popup {
+                attrs.closePopup = { setState { confirmation = false } }
+
+                removeConfirmWindow { //todo: generify remove confirm window
+                    attrs {
+                        onCancel = { setState { confirmation = false } }
+                        onConfirm = { tryDelete(true) }
+                    }
+                }
+            }
+        }
     }
 
     interface Props : RProps {
@@ -112,11 +164,14 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         var bookItem: ReferenceBookItem
         var createBookItem: suspend (ReferenceBookItem) -> Unit
         var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+
     }
 
     interface State : RState {
         var expanded: Boolean
         var creatingBookItem: Boolean
+        var confirmation: Boolean
     }
 }
 

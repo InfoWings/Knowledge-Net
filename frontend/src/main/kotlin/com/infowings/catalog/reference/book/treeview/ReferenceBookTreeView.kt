@@ -50,6 +50,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 updateBook = props.updateBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
+                                deleteBookItem = props.deleteBookItem
                             }
                         }
                     } else {

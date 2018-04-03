@@ -46,6 +46,17 @@
     }
   }
 
+  &--delete-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: 1rem;
+
+    &:hover {
+      fill: red;
+    }
+  }
+
   &--label {
     display: inline-block;
     cursor: pointer;

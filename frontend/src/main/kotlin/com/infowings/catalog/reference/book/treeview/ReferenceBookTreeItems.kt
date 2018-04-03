@@ -47,6 +47,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                         bookItem = it
                         createBookItem = props.createBookItem
                         updateBookItem = props.updateBookItem
+                        deleteBookItem = props.deleteBookItem
                     }
                 }
             }
@@ -81,6 +82,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var bookItems: List<ReferenceBookItem>
         var createBookItem: suspend (ReferenceBookItem) -> Unit
         var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

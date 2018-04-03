@@ -4,8 +4,8 @@ import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.popup.popup
 import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
-import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.utils.addToListIcon
@@ -126,7 +126,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     confirmation = false
                 }
             } catch (ex: AspectBadRequestException) {
-                if (ex.exceptionInfo.code == AspectBadRequestCode.NEED_CONFIRMATION) {
+                if (ex.exceptionInfo.code == BadRequestCode.NEED_CONFIRMATION) {
                     setState {
                         confirmation = true
                     }
