@@ -2,7 +2,7 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.header
-import com.infowings.catalog.units.SearchBar
+import com.infowings.catalog.measures.SearchBar
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
