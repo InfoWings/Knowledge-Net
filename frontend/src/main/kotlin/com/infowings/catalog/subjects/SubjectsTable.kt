@@ -2,7 +2,7 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.header
-import com.infowings.catalog.measures.SearchBar
+import com.infowings.catalog.components.SearchBar
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
@@ -14,6 +14,7 @@ import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.defaultValue
 import react.dom.input
+import kotlin.browser.window
 
 data class SubjectViewData(
     var name: String = ""

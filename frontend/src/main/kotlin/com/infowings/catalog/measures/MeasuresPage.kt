@@ -2,6 +2,7 @@ package com.infowings.catalog.measures
 
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
+import com.infowings.catalog.components.SearchBar
 import com.infowings.catalog.layout.Header
 import com.infowings.catalog.measures.treeview.MeasureTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
