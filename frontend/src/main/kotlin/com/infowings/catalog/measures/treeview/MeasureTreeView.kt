@@ -1,27 +1,40 @@
 package com.infowings.catalog.measures.treeview
 
+import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.measures.MeasureGroupData
 import kotlinext.js.invoke
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import kotlinext.js.require
+import react.*
 import react.dom.div
 
 class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView.Props, RState>(props) {
     companion object {
         init {
-            kotlinext.js.require("styles/aspect-tree-view.scss")
+            require("styles/aspect-tree-view.scss")
         }
     }
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
             props.groups.map { group ->
-                child(MeasureTreeRoot::class) {
+                treeNode {
                     attrs {
-                        groupName = group.name
-                        units = group.units
+                        key = group.name
+                        className = "aspect-tree-view--aspect-node"
+                        treeNodeContent = buildElement {
+                            child(MeasureRootLabel::class) {
+                                attrs {
+                                    groupName = group.name
+                                }
+                            }
+                        }!!
+                    }
+                    if (group.units.isNotEmpty()) {
+                        child(MeasureTreeUnits::class) {
+                            attrs {
+                                units = group.units
+                            }
+                        }
                     }
                 }
             }

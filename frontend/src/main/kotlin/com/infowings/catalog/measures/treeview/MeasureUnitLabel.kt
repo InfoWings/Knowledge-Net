@@ -12,11 +12,11 @@ class MeasureUnitLabel(props: MeasureUnitLabel.Props) : RComponent<MeasureUnitLa
     override fun RBuilder.render() {
         val containsFilterText = if (props.unit.containsFilterText) "" else "not_contains_filter_text"
         div(classes = "aspect-tree-view--label $containsFilterText") {
-            span(classes = "aspect-tree-view--label-property-cardinality") {
+            span(classes = "aspect-tree-view--label-property-name") {
                 +props.unit.name
             }
             +":"
-            span(classes = "aspect-tree-view--label-property-cardinality") {
+            span(classes = "aspect-tree-view--label-property") {
                 +props.unit.symbol
             }
         }

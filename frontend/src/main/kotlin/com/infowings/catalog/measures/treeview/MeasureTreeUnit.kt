@@ -9,7 +9,7 @@ import react.dom.div
 
 class MeasureTreeUnit(props: MeasureTreeUnit.Props) : RComponent<MeasureTreeUnit.Props, RState>(props) {
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--property") {
+        div(classes = "aspect-tree-view--property-node") {
             child(MeasureUnitLabel::class) {
                 attrs {
                     unit = props.unit
