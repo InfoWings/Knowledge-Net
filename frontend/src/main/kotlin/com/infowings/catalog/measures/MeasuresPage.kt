@@ -10,6 +10,7 @@ import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
+import react.dom.div
 import react.dom.h1
 import react.setState
 import kotlin.browser.window
@@ -99,10 +100,12 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
         h1 { +"Measure Page" }
 
-        child(SearchBar::class) {
-            attrs {
-                filterText = state.filterText
-                onFilterTextChange = ::handleFilterTextChange
+        div(classes = "measure-search-bar") {
+            child(SearchBar::class) {
+                attrs {
+                    filterText = state.filterText
+                    onFilterTextChange = ::handleFilterTextChange
+                }
             }
         }
 

@@ -14,7 +14,6 @@ import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.defaultValue
 import react.dom.input
-import kotlin.browser.window
 
 data class SubjectViewData(
     var name: String = ""
