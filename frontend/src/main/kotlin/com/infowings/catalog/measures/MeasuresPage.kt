@@ -2,7 +2,7 @@ package com.infowings.catalog.measures
 
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
-import com.infowings.catalog.components.SearchBar
+import com.infowings.catalog.components.searchbar.SearchBar
 import com.infowings.catalog.layout.Header
 import com.infowings.catalog.measures.treeview.MeasureTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.dom.div
 import react.dom.h1
 import react.setState
 import kotlin.browser.window
@@ -101,12 +100,10 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
         h1 { +"Measure Page" }
 
-        div(classes = "measure-search-bar") {
-            child(SearchBar::class) {
-                attrs {
-                    filterText = state.filterText
-                    onFilterTextChange = ::handleFilterTextChange
-                }
+        child(SearchBar::class) {
+            attrs {
+                filterText = state.filterText
+                onFilterTextChange = ::handleFilterTextChange
             }
         }
 
