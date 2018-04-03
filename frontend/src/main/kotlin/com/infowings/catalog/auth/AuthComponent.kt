@@ -4,19 +4,19 @@ import com.infowings.catalog.common.UserDto
 import com.infowings.catalog.utils.getAuthorizationRole
 import com.infowings.catalog.utils.login
 import com.infowings.catalog.wrappers.RouteSuppliedProps
+import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.Label
 import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
-import kotlinx.html.ButtonType
 import kotlinx.html.InputType
-import kotlinx.html.id
 import kotlinx.html.js.onSubmitFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
-import react.RBuilder
-import react.RComponent
-import react.RState
-import react.dom.*
-import react.setState
+import react.*
+import react.dom.div
+import react.dom.form
+import react.dom.input
+import react.dom.p
 import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
@@ -54,34 +54,36 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
         if (state.authorized) {
             reactRouter.Redirect { attrs.to = "/" }
         } else {
-            form(classes = "auth-form-iwings") {
-                attrs.onSubmitFunction = ::logIn
-                div("form-group") {
-                    label {
-                        attrs.htmlFor = "loginInput"
-                        +"Login"
+            div(classes = "iwings-auth-form") {
+                form(classes = "iwings-auth-form--form") {
+                    attrs.onSubmitFunction = ::logIn
+                    Label {
+                        attrs {
+                            text = buildElement { +"Login" }
+                        }
+                        input(InputType.text, classes = "pt-input") {
+                            attrs.placeholder = "Login"
+                            ref { loginInput = it }
+                        }
                     }
-                    input(InputType.text, classes = "form-control") {
-                        attrs.id = "loginInput"
-                        ref { loginInput = it }
+                    Label {
+                        attrs {
+                            text = buildElement { +"Password" }
+                        }
+                        input(InputType.password, classes = "pt-input") {
+                            attrs.placeholder = "Password"
+                            ref { passwordInput = it }
+                        }
                     }
-                }
-                div("form-group") {
-                    label {
-                        attrs.htmlFor = "passwordInput"
-                        +"Password"
+                    Button {
+                        attrs.className = "pt-fill"
+                        attrs.type = InputType.submit.realValue
+                        +"Sign In"
                     }
-                    input(InputType.password, classes = "form-control") {
-                        attrs.id = "passwordInput"
-                        ref { passwordInput = it }
-                    }
-                }
-                button(type = ButtonType.submit, classes = "btn btn-primary") {
-                    +"Sign in"
-                }
-                if (state.wrongAuth) {
-                    p {
-                        +"Wrong login and password pair"
+                    if (state.wrongAuth) {
+                        p {
+                            +"Wrong login and password pair"
+                        }
                     }
                 }
             }

@@ -1,10 +1,12 @@
-.auth-form-iwings {
-    text-align: center;
+.iwings-auth-form {
+    margin: 50px auto;
     background-color: #eeeeee;
     padding: 30px 30px 30px 30px;
     width: 20%;
+    min-width: 400px;
     border-radius: 10px;
-    position: absolute;
-    left: 40%;
-    top: 35%;
+}
+
+.iwings-auth-form--form > label > input {
+    width: 100%;
 }

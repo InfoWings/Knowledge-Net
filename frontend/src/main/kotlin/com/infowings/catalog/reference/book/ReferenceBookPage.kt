@@ -12,7 +12,10 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, RState>() {
     override fun RBuilder.render() {
 
         child(Header::class) {
-            attrs { location = props.location.pathname }
+            attrs {
+                location = props.location.pathname
+                history = props.history
+            }
         }
 
         referenceBookApiMiddleware(ReferenceBookTreeView::class)
