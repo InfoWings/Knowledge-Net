@@ -16,7 +16,7 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
 
     companion object {
         init {
-            kotlinext.js.require("styles/aspect-edit-console.scss") // Styles regarding aspect console
+            kotlinext.js.require("styles/aspect-edit-console.scss")
         }
     }
 
@@ -29,7 +29,7 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
                             type = kotlinx.html.InputType.text
                             placeholder = "Search ..."
                             value = props.filterText
-                            onChangeFunction = { props.onFilterTextChange(it.target.asDynamic().value) }
+                            onChangeFunction = { props.onFilterTextChange(it.target.asDynamic().value as String) }
                         }
                     }
                 }

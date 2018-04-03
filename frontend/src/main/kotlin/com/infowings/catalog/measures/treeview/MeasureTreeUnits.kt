@@ -19,7 +19,6 @@ class MeasureTreeUnits(props: MeasureTreeUnits.Props) : RComponent<MeasureTreeUn
                             }
                         }!!
                     }
-
                 }
             }
         }
