@@ -1,5 +1,7 @@
 package com.infowings.catalog.aspects
 
+import com.infowings.catalog.aspects.editconsole.aspect.MeasurementUnitOption
+import com.infowings.catalog.aspects.editconsole.aspect.measurementUnitOption
 import com.infowings.catalog.wrappers.select.OptionComponentProps
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.onMouseMoveFunction

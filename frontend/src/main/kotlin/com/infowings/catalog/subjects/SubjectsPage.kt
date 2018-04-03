@@ -12,6 +12,7 @@ class SubjectsPage : RComponent<RouteSuppliedProps, RState>() {
     override fun RBuilder.render() {
         child(Header::class) {
             attrs.location = props.location.pathname
+            attrs.history = props.history
         }
         h1 { +"Subjects Page" }
 

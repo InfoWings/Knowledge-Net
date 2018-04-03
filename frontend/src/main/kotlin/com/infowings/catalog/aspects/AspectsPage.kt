@@ -10,7 +10,8 @@ class AspectsPage : RComponent<RouteSuppliedProps, RState>() {
     override fun RBuilder.render() {
         child(Header::class) {
             attrs.location = props.location.pathname
+            attrs.history = props.history
         }
-        aspectApiMiddleware(AspectsControl::class)
+        aspectApiMiddleware(AspectsModelComponent::class)
     }
 }
