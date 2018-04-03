@@ -11,6 +11,7 @@ class MeasureTreeUnits(props: MeasureTreeUnits.Props) : RComponent<MeasureTreeUn
             props.units.map { unit ->
                 treeNode {
                     attrs {
+                        key = unit.name
                         treeNodeContent = buildElement {
                             child(MeasureTreeUnit::class) {
                                 attrs {

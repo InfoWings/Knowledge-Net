@@ -16,10 +16,10 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
 
     override fun RBuilder.render() {
         div(classes = "aspect-tree-view") {
-            props.groups.map { group ->
+            props.groups.mapIndexed { index, group ->
                 treeNode {
                     attrs {
-                        key = group.name
+                        key = group.name + index.toString()
                         className = "aspect-tree-view--aspect-node"
                         treeNodeContent = buildElement {
                             child(MeasureRootLabel::class) {

@@ -2,4 +2,5 @@
     display: flex;
     max-width: 122rem;
     margin: 2rem auto 1rem;
+    outline: none
 }
