@@ -7,7 +7,8 @@ import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BadRequestCode
+import com.infowings.catalog.common.BadRequestCode.INCORRECT_INPUT
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptyAspectData
