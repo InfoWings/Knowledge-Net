@@ -20,7 +20,7 @@ const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
 
 
 class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBookDao) {
-    private val validator = ReferenceBookValidator()
+    private val validator = ReferenceBookValidator(dao)
 
     /**
      * Get all ReferenceBook instances

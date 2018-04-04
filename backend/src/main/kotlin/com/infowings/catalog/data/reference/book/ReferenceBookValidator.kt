@@ -9,7 +9,7 @@ import com.infowings.catalog.storage.id
  * Class for validating reference books and reference book items.
  * Methods should be called in transaction
  */
-class ReferenceBookValidator {
+class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
     fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         checkRefBookVersion(bookVertex, book)
@@ -67,13 +67,10 @@ class ReferenceBookValidator {
     }
 
     fun checkForMoving(sourceVertex: ReferenceBookItemVertex, targetVertex: ReferenceBookItemVertex) {
-        var tmpPointer = targetVertex
-        while (tmpPointer.parent != null) {
-            val parent = tmpPointer.parent!!
-            if (tmpPointer.id == sourceVertex.id) {
-                throw RefBookItemMoveImpossible(sourceVertex.id, targetVertex.id)
-            }
-            tmpPointer = parent
+        val sourceId = sourceVertex.id
+        val targetId = targetVertex.id
+        if (dao.getRefBookItemVertexParents(targetId).map { it.id }.contains(sourceId)) {
+            throw RefBookItemMoveImpossible(sourceId, targetId)
         }
     }
 }
