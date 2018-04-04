@@ -3,21 +3,27 @@ package com.infowings.catalog.aspects.treeview
 import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
-import kotlinext.js.invoke
+import com.infowings.catalog.wrappers.blueprint.Alert
 import kotlinext.js.require
 import react.*
 import react.dom.div
+import react.dom.h3
+import react.dom.p
 
 
 /**
  * View Component. Draws List of [treeNode] for each [AspectData] in [AspectTreeView.Props.aspects] list
  */
-class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
+class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() {
 
     companion object {
         init {
             require("styles/aspect-tree-view.scss")
         }
+    }
+
+    override fun State.init() {
+        unsafeSelection = false
     }
 
     override fun RBuilder.render() {
@@ -35,6 +41,27 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
                 }
             }
         }
+        Alert {
+            attrs {
+                isOpen = state.unsafeSelection
+                onConfirm = {
+                    it.preventDefault()
+                    it.stopPropagation()
+                    setState {
+                        unsafeSelection = false
+                    }
+                }
+            }
+            div {
+                h3 { +"Unsaved changes." }
+                p { +"You was editing aspect, but don't save and don't reject it" }
+                p { +"Click to one of corresponding buttons in the bottom of the page" }
+            }
+        }
+    }
+
+    interface State : RState {
+        var unsafeSelection: Boolean
     }
 
     interface Props : RProps {
@@ -45,6 +72,11 @@ class AspectTreeView : RComponent<AspectTreeView.Props, RState>() {
         var aspectsModel: AspectsModel
     }
 }
+
+/**
+ * Thrown in case we cannot select new aspect
+ */
+class UnsafeSelectionException : Throwable()
 
 /**
  * Wrapper component that incapsulates and manages state of expanded aspect tree.

@@ -1,6 +1,8 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
+import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
+import com.infowings.catalog.aspects.treeview.UnsafeSelectionException
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
@@ -80,34 +82,41 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
+        unsafeSelection = false
     }
 
     override fun selectAspect(aspectId: String?) {
-        setState {
-            selectedAspect = when (aspectId) {
-                selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
-                null -> emptyAspectData
-                else -> props.aspectContext[aspectId] ?: selectedAspect
-            }
+        try {
+            val newSelectedAspect = newAspectSelection(aspectId)
+            setState {
+                selectedAspect = newSelectedAspect
 
-            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
-                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
-            }
+                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
+                }
 
-            selectedAspectPropertyIndex = null
+                selectedAspectPropertyIndex = null
+            }
+        } catch (e: UnsafeSelectionException) {
+            setState {
+                unsafeSelection = true
+            }
         }
     }
 
     override fun selectAspectProperty(aspectId: String?, index: Int) {
-        setState {
-            selectedAspect = when (aspectId) {
-                selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
-                null -> emptyAspectData
-                else -> props.aspectContext[aspectId] ?: selectedAspect
-            }
+        try {
+            val newSelectedAspect = newAspectSelection(aspectId)
+            setState {
+                selectedAspect = newSelectedAspect
 
-            selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
-                selectedAspect.properties.lastIndex else index
+                selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
+                    selectedAspect.properties.lastIndex else index
+            }
+        } catch (e: UnsafeSelectionException) {
+            setState {
+                unsafeSelection = true
+            }
         }
     }
 
@@ -181,6 +190,18 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
+    private fun newAspectSelection(aspectId: String?): AspectData {
+        val selectedAspect = state.selectedAspect
+        return when (aspectId) {
+            selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
+            null -> emptyAspectData
+            else -> {
+                if (selectedAspect == props.aspectContext[selectedAspect.id] || selectedAspect == emptyAspectData) {
+                    props.aspectContext[aspectId] ?: selectedAspect
+                } else throw UnsafeSelectionException()
+            }
+        }
+    }
 
     override fun RBuilder.render() {
         val selectedAspect = state.selectedAspect
@@ -203,12 +224,16 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                     aspectsModel = this@AspectsModelComponent
                 }
             }
+            unsafeChangesWindow(state.unsafeSelection) {
+                setState { unsafeSelection = false }
+            }
         }
     }
 
     interface State : RState {
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
+        var unsafeSelection: Boolean
     }
 }
 
@@ -220,20 +245,20 @@ private fun List<AspectPropertyData>.insertEmptyAtIndex(suggestedIndex: Int): Li
 }
 
 private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: AspectPropertyData) =
-        this.copy(
-            properties = this.properties.mapIndexed { index, existingProperty ->
-                if (index == atIndex) {
-                    existingProperty.copy(
-                        name = aspectProperty.name,
-                        cardinality = aspectProperty.cardinality,
-                        aspectId = aspectProperty.aspectId,
-                        deleted = aspectProperty.deleted
-                    )
-                } else {
-                    existingProperty
-                }
+    this.copy(
+        properties = this.properties.mapIndexed { index, existingProperty ->
+            if (index == atIndex) {
+                existingProperty.copy(
+                    name = aspectProperty.name,
+                    cardinality = aspectProperty.cardinality,
+                    aspectId = aspectProperty.aspectId,
+                    deleted = aspectProperty.deleted
+                )
+            } else {
+                existingProperty
             }
-        )
+        }
+    )
 
 private fun List<AspectData>.withSelected(aspect: AspectData) =
     aspect.id?.let { id -> this.map { if (it.id == id) aspect else it } } ?: this+aspect
