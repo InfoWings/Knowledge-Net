@@ -9,11 +9,11 @@ import com.infowings.catalog.storage.id
  * Class for validating reference books and reference book items.
  * Methods should be called in transaction
  */
-class ReferenceBookValidator {
+class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
-    fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
+    fun checkRefBookAndItemsVersions(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         checkRefBookVersion(bookVertex, book)
-        checkRefBookItemAndChildrenVersion(bookVertex.root, book.root)
+        checkRefBookItemAndChildrenVersions(bookVertex.root, book.root)
     }
 
     fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
@@ -22,7 +22,7 @@ class ReferenceBookValidator {
         }
     }
 
-    fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    fun checkRefBookItemAndChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         checkRefBookItemVersion(bookItemVertex, bookItem)
         checkChildrenVersions(bookItemVertex, bookItem)
     }
@@ -67,14 +67,15 @@ class ReferenceBookValidator {
     }
 
     fun checkForMoving(sourceVertex: ReferenceBookItemVertex, targetVertex: ReferenceBookItemVertex) {
-        var tmpPointer = targetVertex
-        while (tmpPointer.parent != null) {
-            val parent = tmpPointer.parent!!
-            if (tmpPointer.id == sourceVertex.id) {
-                throw RefBookItemMoveImpossible(sourceVertex.id, targetVertex.id)
-            }
-            tmpPointer = parent
+        val sourceId = sourceVertex.id
+        val targetId = targetVertex.id
+        if (dao.getRefBookItemVertexParents(targetId).map { it.id }.contains(sourceId)) {
+            throw RefBookItemMoveImpossible(sourceId, targetId)
         }
+    }
+
+    fun checkIsNotRoot(bookItemVertex: ReferenceBookItemVertex) {
+        if (bookItemVertex.parent == null) throw RefBookModificationException("Root cannot be modified")
     }
 }
 

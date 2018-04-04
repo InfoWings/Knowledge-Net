@@ -86,15 +86,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
                 JSON.stringify(
                     BadRequest(
                         NEED_CONFIRMATION,
-                        "Attempt to remove Reference Book Item that has linked entities pointed to it"
-                    )
-                )
-            )
-            is RefBookHasLinkedEntitiesException -> ResponseEntity.badRequest().body(
-                JSON.stringify(
-                    BadRequest(
-                        NEED_CONFIRMATION,
-                        "Attempt to remove Reference Book that has linked entities pointed to it"
+                        "These Reference Book Items has linked entities: ${e.itemsWithLinkedObjects.map { it.value }}"
                     )
                 )
             )
