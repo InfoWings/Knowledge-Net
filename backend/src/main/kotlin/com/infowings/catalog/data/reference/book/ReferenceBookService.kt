@@ -30,7 +30,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     }
 
     /**
-     * Get ReferenceBook instance by aspect id
+     * Get ReferenceBook instance by [aspectId]
      * @throws RefBookNotExist
      */
     fun getReferenceBook(aspectId: String): ReferenceBook = transaction(db) {
@@ -40,7 +40,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     }
 
     /**
-     * Create ReferenceBook with name [name]
+     * Create ReferenceBook with name = [name]
      * @throws RefBookAlreadyExist
      */
     fun createReferenceBook(name: String, aspectId: String): ReferenceBook = transaction(db) {
@@ -82,7 +82,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     /**
      * Update ReferenceBook name
      * @throws RefBookNotExist
-     * */
+     */
     fun updateReferenceBook(book: ReferenceBook) = transaction(db) {
         val aspectId = book.aspectId
         val newName: String = book.name
@@ -96,6 +96,12 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         return@transaction referenceBookVertex.save<OVertex>().toReferenceBookVertex().toReferenceBook()
     }
 
+    /**
+     * Remove ReferenceBook [referenceBook] if it has not linked by Object child
+     * or if it has linked by Object child and [force] == true
+     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
+     * @throws RefBookNotExist
+     */
     fun removeReferenceBook(referenceBook: ReferenceBook, force: Boolean = false) = transaction(db) {
         val aspectId = referenceBook.aspectId
         logger.debug("Removing reference book. aspectId: $aspectId")
@@ -114,7 +120,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     }
 
     /**
-     * Get ReferenceBookItem by id
+     * Get ReferenceBookItem by [id]
      * @throws RefBookItemNotExist
      */
     fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db) {
@@ -146,7 +152,9 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         }.id
 
     /**
-     * Change value of ReferenceBookItem with id [id]
+     * Change value of ReferenceBookItem [bookItem] if it has not linked by Object child
+     * or if it has linked by Object child and [force] == true
+     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
@@ -177,6 +185,12 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             return@transaction dao.saveBookItemVertex(parentVertex, itemVertex)
         }
 
+    /**
+     * Remove [bookItem] if it has not linked by Object child
+     * If it has linked by Object child and [force] == true then mark [bookItem] and its children as deleted
+     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
+     * @throws RefBookItemNotExist
+     */
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
         transaction(db) {
             val bookItemVertex =
