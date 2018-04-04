@@ -1,49 +1,40 @@
 package com.infowings.catalog.aspects.editconsole.popup
 
-import kotlinext.js.invoke
-import kotlinext.js.require
-import kotlinx.html.js.onClickFunction
+import com.infowings.catalog.wrappers.blueprint.Alert
 import react.*
-import react.dom.button
 import react.dom.div
 import react.dom.h3
 import react.dom.p
 
 class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
 
-    companion object {
-        init {
-            require("styles/remove-confirm-window.scss")
-        }
-    }
-
     override fun RBuilder.render() {
-        div("popup-container") {
-            h3 { +"This aspect is not free" }
-            p { +"Are you sure you want to delete it?" }
-
-            div("button-area") {
-                button {
-                    attrs {
-                        onClickFunction = { props.onConfirm() }
-                    }
-                    +"Yes"
+        Alert {
+            attrs {
+                onCancel = {
+                    it.preventDefault()
+                    it.stopPropagation()
+                    props.onCancel()
                 }
-
-                button {
-                    attrs {
-                        onClickFunction = { props.onCancel() }
-                    }
-                    +"No"
+                onConfirm = {
+                    it.preventDefault()
+                    it.stopPropagation()
+                    props.onConfirm()
                 }
+                cancelButtonText = "Cancel"
+                isOpen = props.isOpen
             }
-
+            div {
+                h3 { +"Aspect has linked entities." }
+                p { +"Are you sure you want to delete it?" }
+            }
         }
     }
 
     interface Props : RProps {
         var onConfirm: () -> Unit
         var onCancel: () -> Unit
+        var isOpen: Boolean
     }
 }
 
