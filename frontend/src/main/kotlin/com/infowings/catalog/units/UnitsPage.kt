@@ -100,7 +100,10 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
 
     override fun RBuilder.render() {
         child(Header::class) {
-            attrs { location = props.location.pathname }
+            attrs {
+                location = props.location.pathname
+                history = props.history
+            }
         }
 
         h1 { +"Units Page" }
