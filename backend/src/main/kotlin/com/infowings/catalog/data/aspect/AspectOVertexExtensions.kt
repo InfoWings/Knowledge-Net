@@ -30,21 +30,21 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             "name" to asStringOrEmpty(name),
             "measure" to asStringOrEmpty(measure),
             "baseType" to asStringOrEmpty(baseType)
-            ),
+        ),
         links = mapOf(
-            "properties" to properties.map{it.identity}
+            "properties" to properties.map { it.identity }
         )
     )
 
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return AspectData(
-                id,
-                name,
-                measureName,
-                baseTypeObj?.let { OpenDomain(it).toString() },
-                baseType,
-                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            id,
+            name,
+            measureName,
+            baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType,
+            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
             version,
             subject?.toSubjectData(),
             deleted

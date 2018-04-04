@@ -120,7 +120,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     }
 
     fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
-        vertices.forEach {it.save<OVertex>()}
+        vertices.forEach { it.save<OVertex>() }
     }
 }
 

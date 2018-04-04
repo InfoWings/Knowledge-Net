@@ -32,7 +32,7 @@ class UserAcceptService(var database: OrientDatabase) {
     }
 
     fun findByUsername(username: String): UserEntity? =
-        findByUsernameAsJson(username) ?.let {JSON.nonstrict.parse(it)}
+        findByUsernameAsJson(username)?.let { JSON.nonstrict.parse(it) }
 }
 
-class UserNotFoundException(username: String): Exception("user $username not found")
+class UserNotFoundException(username: String) : Exception("user $username not found")

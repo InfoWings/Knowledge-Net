@@ -32,9 +32,11 @@ class AspectService(
     Завершает обновление на случай обновления
     Запускается изнутри транзакции на database
      */
-    private fun updateFinish(aspectVertex: AspectVertex,
-                             aspectData: AspectData,
-                             user: String): AspectVertex {
+    private fun updateFinish(
+        aspectVertex: AspectVertex,
+        aspectData: AspectData,
+        user: String
+    ): AspectVertex {
         val baseSnapshot = aspectVertex.currentSnapshot()
 
         val res = savePlain(aspectVertex, aspectData, user)
@@ -49,9 +51,11 @@ class AspectService(
     Завершает обновление на случай создания
     Запускается изнутри транзакции на database
     */
-    private fun createFinish(aspectVertex: AspectVertex,
-                             aspectData: AspectData,
-                             user: String): AspectVertex {
+    private fun createFinish(
+        aspectVertex: AspectVertex,
+        aspectData: AspectData,
+        user: String
+    ): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, user)
         historyService.storeFact(aspectVertex.toCreateFact(user))
         return res
@@ -129,7 +133,7 @@ class AspectService(
     /** Method is private and it is supposed that version checking successfully accepted before. */
     private fun remove(property: AspectPropertyData, user: String) = transaction(db) {
         historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(user))
-        
+
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
@@ -215,9 +219,11 @@ class AspectService(
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
-    private fun AspectVertex.savePropertyWithHistory(vertex: AspectPropertyVertex,
-                                        data: AspectPropertyData,
-                                        user: String): HistoryFact {
+    private fun AspectVertex.savePropertyWithHistory(
+        vertex: AspectPropertyVertex,
+        data: AspectPropertyData,
+        user: String
+    ): HistoryFact {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
             vertex.toCreateFact(user)

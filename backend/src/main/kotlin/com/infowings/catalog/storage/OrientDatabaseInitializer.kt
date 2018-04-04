@@ -50,7 +50,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING).isMandatory = true
+                .createProperty("name", OType.STRING).isMandatory = true
             createIgnoreCaseIndex(session, ASPECT_CLASS)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)

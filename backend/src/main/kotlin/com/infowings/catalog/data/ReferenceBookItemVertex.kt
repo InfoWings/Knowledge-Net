@@ -18,7 +18,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf("value" to asStringOrEmpty(value)),
-        links = mapOf("children" to children.map {it.identity})
+        links = mapOf("children" to children.map { it.identity })
     )
 
     var value: String
