@@ -99,7 +99,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     /**
      * Remove ReferenceBook [referenceBook] if it has not linked by Object child
      * or if it has linked by Object child and [force] == true
-     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
+     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and it has linked by Objects child
      * @throws RefBookNotExist
      */
     fun removeReferenceBook(referenceBook: ReferenceBook, force: Boolean = false) = transaction(db) {
