@@ -14,7 +14,7 @@ class MeasureTreeUnits(props: MeasureTreeUnits.Props) : RComponent<MeasureTreeUn
         div(classes = "aspect-tree-view--aspect-node") {
             ul(classes = "pt-list-unstyled") {
                 props.units.map { unit ->
-                    li {
+                    li(classes = "unit-row") {
                         attrs {
                             key = unit.name
                             child(MeasureTreeUnit::class) {
