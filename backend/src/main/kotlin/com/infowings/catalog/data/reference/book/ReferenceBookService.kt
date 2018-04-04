@@ -104,11 +104,11 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
         validator.checkRefBookAndItemsVersion(referenceBookVertex, referenceBook)
 
-        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
-        val isLinkedByOtherEntities = aspectVertex.isLinkedByEntitiesExceptForReferenceBooks()
+        //TODO: add correct checking for clause is some item linked by Object entities
+        val someItemLinkedByOtherEntities = false
         when {
-            isLinkedByOtherEntities && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
-            isLinkedByOtherEntities -> throw RefBookHasLinkedEntitiesException(aspectId)
+            someItemLinkedByOtherEntities && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
+            someItemLinkedByOtherEntities -> throw RefBookHasLinkedEntitiesException(aspectId)
             else -> dao.remove(referenceBookVertex)
         }
     }
@@ -150,7 +150,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
-    fun changeValue(bookItem: ReferenceBookItem) =
+    fun changeValue(bookItem: ReferenceBookItem, force: Boolean = false) =
         transaction(db) {
             val id = bookItem.id
             val value = bookItem.value
@@ -162,6 +162,14 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             validator.checkForBookItemRemoved(itemVertex)
             validator.checkRefBookItemAndChildrenVersion(itemVertex, bookItem)
             validator.checkRefBookItemValue(parentVertex, value, id)
+
+            //TODO: add correct checking for clause is item linked by Object entities
+            val isLinkedByObjects = false
+            when {
+                isLinkedByObjects && force -> itemVertex.value = value
+                isLinkedByObjects -> throw RefBookItemHasLinkedEntitiesException(bookItem.id)
+                else -> itemVertex.value = value
+            }
 
             itemVertex.value = value
 

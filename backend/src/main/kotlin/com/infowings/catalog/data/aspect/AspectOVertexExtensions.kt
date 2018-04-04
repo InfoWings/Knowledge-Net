@@ -77,9 +77,6 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
 
     fun isLinkedBy() = hasIncomingEdges()
 
-    fun isLinkedByEntitiesExceptForReferenceBooks() =
-        this.getEdges(ODirection.IN).filterNot { it.schemaType.get().name == REFERENCE_BOOK_ASPECT_EDGE}.any()
-
     override fun equals(other: Any?): Boolean {
         return vertex == other
     }
