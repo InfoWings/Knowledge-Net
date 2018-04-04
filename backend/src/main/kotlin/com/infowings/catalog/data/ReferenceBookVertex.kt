@@ -4,7 +4,6 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
-import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.set
@@ -22,7 +21,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware,  OVertex 
             "name" to asStringOrEmpty(name)
         ),
         links = mapOf(
-            "aspect" to listOf(aspectOVertex().identity)
+            "aspect" to listOf(aspectVertex().identity)
         )
     )
 
@@ -45,19 +44,17 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware,  OVertex 
         get() = children.first()
 
 
-    var deleted: Boolean
-        get() = this["deleted"] ?: false
-        set(value) {
-            this["deleted"] = value
-        }
+    //var deleted: Boolean
+    //    get() = this["deleted"] ?: false
+    //    set(value) {
+    //        this["deleted"] = value
+    //    }
 
-    val aspect: OVertex?
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
-
-    fun aspectOVertex() = aspect ?: throw RefBookAspectNotExist(aspectId)
+    private fun aspectVertex() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
+            ?: throw RefBookAspectNotExist(aspectId)
 
     fun toReferenceBook(): ReferenceBook {
-        val aspectId = aspectOVertex().id
+        val aspectId = aspectVertex().id
         val root = toReferenceBookVertex().child!!.toReferenceBookItem()
         return ReferenceBook(name, aspectId, root)
     }

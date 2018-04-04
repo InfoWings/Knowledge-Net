@@ -54,13 +54,13 @@ class ReferenceBookService(
         val aspectVertex = database.getVertexById(aspectId)
         referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
 
-        val savedBookVertex  = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
-        val savedRootVertex = rootVertex.save<OVertex>().toReferenceBookItemVertex()
+        val bookSaved  = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
+        historyService.storeFact(bookSaved.toCreateFact(user))
 
-        historyService.storeFact(savedBookVertex.toCreateFact(user))
-        historyService.storeFact(savedRootVertex.toCreateFact(user))
+        val rootSaved = rootVertex.save<OVertex>().toReferenceBookItemVertex()
+        historyService.storeFact(rootSaved.toCreateFact(user))
 
-        return@transaction Pair(savedBookVertex, savedRootVertex)
+        return@transaction Pair(bookSaved, rootSaved)
     }.let { ReferenceBook(it.first.name, aspectId, ReferenceBookItem(it.second.id, it.second.value)) }
 
     /**
@@ -106,7 +106,9 @@ class ReferenceBookService(
 
         val savedChild = childVertex.save<OVertex>()
 
+        // фиксируем создание элемента
         historyService.storeFact(savedChild.toReferenceBookItemVertex().toCreateFact(user))
+        // и изменение в его родителе
         historyService.storeFact(parentVertex.toUpdateFact(user, parentBefore))
 
         return@transaction savedChild

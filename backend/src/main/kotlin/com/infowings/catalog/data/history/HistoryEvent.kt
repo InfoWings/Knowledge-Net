@@ -25,25 +25,25 @@ data class HistoryFact(val event: HistoryEvent, val payload: DiffPayload)
 fun <T> asStringOrEmpty(v: T?) = v?.toString().orEmpty()
 
 
-fun diffShapshots(before: Snapshot, after: Snapshot): DiffPayload {
+fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
     // предполагаем, что поля не выкидываются, но могут добавляться
     // выкинутое поле отследить не сложно, но его надо как-то особо в базе
     // представить. Без явной необходимости не хочется
 
-    val updateData = after.data.filterNot {
-        before.data.containsKey(it.key) && before.data[it.key] == it.value
+    val updateData = other.data.filterNot {
+        base.data[it.key] == it.value
     }
 
-    val addedLinks = after.links.mapValues {
-        it.value.toSet().minus(before.links.getOrElse(it.key, { emptyList() })).toList()
+    val addedLinks = other.links.mapValues {
+        it.value - (base.links.getOrElse(it.key, { emptyList() }))
     }.filterValues { !it.isEmpty() }
 
-    val removedLinks = before.links.mapValues {
-        it.value.toSet().minus(after.links.getOrElse(it.key, { emptyList() })).toList()
+    val removedLinks = base.links.mapValues {
+        it.value - (other.links.getOrElse(it.key, { emptyList() }))
     }.filterValues { !it.isEmpty() }
 
     return DiffPayload(updateData, addedLinks = addedLinks, removedLinks = removedLinks)
 }
 
-fun toHistoryFact(event: HistoryEvent, before: Snapshot, after: Snapshot) =
-    HistoryFact(event, diffShapshots(before, after))
+fun toHistoryFact(event: HistoryEvent, base: Snapshot, other: Snapshot) =
+    HistoryFact(event, diffSnapshots(base, other))

@@ -109,7 +109,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     }
 
     fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
-        return@session it.delete(v.identity)
+        it.delete(v.identity)
     }
 
     fun <T> command(command: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
@@ -119,10 +119,8 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         }
     }
 
-    fun saveAll(vertice: List<OVertex>) = session(database = this) {
-        for (v in vertice) {
-            v.save<OVertex>()
-        }
+    fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
+        vertices.forEach {it.save<OVertex>()}
     }
 }
 

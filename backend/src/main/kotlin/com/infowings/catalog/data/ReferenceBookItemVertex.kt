@@ -4,7 +4,6 @@ import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
-import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.set
@@ -18,12 +17,8 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
 
     override fun currentSnapshot(): Snapshot = Snapshot(
-        data = mapOf(
-            "value" to asStringOrEmpty(value)
-        ),
-        links = mapOf(
-            "children" to children.map {it.identity}
-        )
+        data = mapOf("value" to asStringOrEmpty(value)),
+        links = mapOf("children" to children.map {it.identity})
     )
 
     var value: String
@@ -35,8 +30,8 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val children: List<OVertex>
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).toList()
 
-    val child: OVertex?
-        get() = children.first()
+    //val child: OVertex?
+    //    get() = children.first()
 
     val parent: OVertex?
         get() = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull()

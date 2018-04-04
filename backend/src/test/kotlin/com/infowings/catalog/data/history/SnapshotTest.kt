@@ -1,18 +1,16 @@
-package com.infowings.catalog.data.measure
+package com.infowings.catalog.data.history
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.LengthGroup
-import com.infowings.catalog.common.MeasureGroupMap
-import com.infowings.catalog.common.PressureGroup
-import com.infowings.catalog.common.SpeedGroup
-import com.infowings.catalog.data.MEASURE_BASE_AND_GROUP_EDGE
-import com.infowings.catalog.data.MEASURE_BASE_EDGE
-import com.infowings.catalog.data.MEASURE_GROUP_EDGE
-import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
-import com.orientechnologies.orient.core.record.ODirection
-import org.junit.Assert.assertTrue
+import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
+import org.hamcrest.core.Is
+import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,67 +22,89 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class DatabaseMeasureTest2 {
+class SnapshotTest {
+    private fun initVertex(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createVertexClass(name)
 
-    @Autowired
-    lateinit var measureService: MeasureService
+    val EmptyDiffPayload = DiffPayload(emptyMap(), emptyMap(), emptyMap())
 
     @Autowired
     lateinit var database: OrientDatabase
 
-    @Test
-    fun everyGroupExist() = session(database) {
-        MeasureGroupMap.values.forEach {
-            assertTrue("${it.name} group must exist", measureService.findMeasureGroup(it.name) != null)
-        }
-    }
+    var ids: List<ORID> = emptyList()
 
-    @Test
-    fun everyGroupBaseMeasureExist() = session(database) {
-        MeasureGroupMap.values.forEach {
-            val baseVertex = measureService.findMeasure(it.base.name)
-            val groupVertex = measureService.findMeasureGroup(it.name)
-            assertTrue("${it.name} base measure must exist", baseVertex != null)
-            assertTrue("${it.name} base measure must be linked with ${it.name} group",
-                baseVertex!!.getVertices(ODirection.BOTH, MEASURE_BASE_AND_GROUP_EDGE).contains(groupVertex!!)
+    @Before
+    fun addAspectWithProperty() {
+        val data = session(database) {
+            initVertex(it, "SOME_CLASS")
+        }
+        println(data)
+
+        val vertices = transaction(database) {
+            val verts = listOf(
+                it.newVertex("SOME_CLASS"), it.newVertex("SOME_CLASS")
             )
-        }
-    }
-
-    @Test
-    fun everyGroupContainsAllTheirMeasures() = session(database) {
-        MeasureGroupMap.values.forEach { group ->
-            val baseVertex = measureService.findMeasure(group.base.name)
-            group.measureList.forEach { measure ->
-                assertTrue("Measure $measure must exist", measureService.findMeasure(measure.name) != null)
-                assertTrue("Measure ${measure.name} must be linked with ${group.base.name}",
-                    measureService.findMeasure(measure.name)!!.getVertices(ODirection.OUT, MEASURE_BASE_EDGE).contains(baseVertex!!)
-                )
+            for (v in verts) {
+                v.save<OVertex>()
             }
+            return@transaction verts
+        }
+        ids = vertices.map {it?.identity ?: throw IllegalStateException("null identity")}
+    }
+
+    @Test
+    fun diffSnapshotsSame() {
+        println(ids)
+
+        val snapshots = listOf(
+            Snapshot(emptyMap(), emptyMap()),
+            Snapshot(mapOf("name" to "value"), emptyMap()),
+            Snapshot(mapOf("name" to "value"), mapOf("property" to listOf(ODocument().identity)))
+        )
+
+        for (s in snapshots) {
+            val diffCopy = diffSnapshots(s, s.copy())
+            Assert.assertThat("(1) diff should be empty", diffCopy, Is.`is`(EmptyDiffPayload))
+
+            val diff = diffSnapshots(s, s.copy())
+            Assert.assertThat("(2) diff should be empty", diff, Is.`is`(EmptyDiffPayload))
         }
     }
 
 
+    private fun diffDataPayload(key: String, value: String) = DiffPayload(mapOf(key to value), emptyMap(), emptyMap())
+
     @Test
-    fun measureDirectDependencies() = session(database) {
-        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name)
-        val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name)
-        assertTrue("Length group must be linked with Speed group",
-            lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(speedGroupVertex!!)
+    fun diffSnapshotsUpdatedDataElement() {
+        val snapshots = listOf(
+            Pair(Snapshot(mapOf("name" to "value"), emptyMap()), Snapshot(mapOf("name" to "value2"), emptyMap())),
+            Pair(Snapshot(mapOf("name" to "value", "other" to "another"), emptyMap()),
+                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap()))
         )
+
+        for (s in snapshots) {
+            val expected = diffDataPayload("name", s.second.data.getValue("name"))
+            val diffCopy = diffSnapshots(s.first, s.second)
+            Assert.assertThat("diff should contain one changed value and nothing more", diffCopy, Is.`is`(expected))
+
+            val expectedRev = diffDataPayload("name", s.first.data.getValue("name"))
+            val diffCopyRev = diffSnapshots(s.second, s.first)
+            Assert.assertThat("diff should contain one changed value and nothing more", diffCopyRev, Is.`is`(expectedRev))
+        }
     }
 
-
     @Test
-    fun measureTransitiveDependencies() = session(database) {
-        val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name)
-        val pressureGroupVertex = measureService.findMeasureGroup(PressureGroup.name)
-        assertTrue("Length group must not be linked with Pressure group directly",
-            !lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(pressureGroupVertex!!)
+    fun diffSnapshotsNewDataElement() {
+        val snapshots = listOf(
+            Pair(Snapshot(emptyMap(), emptyMap()), Snapshot(mapOf("name" to "value2"), emptyMap())),
+            Pair(Snapshot(mapOf("other" to "another"), emptyMap()),
+                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap()))
         )
-        assertTrue("Length group must be linked by another vertex with Pressure group",
-            lengthGroupVertex.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).flatMap { it.getVertices(ODirection.BOTH) }
-                .contains(pressureGroupVertex)
-        )
+
+        for (s in snapshots) {
+            val expected = diffDataPayload("name", s.second.data.getValue("name"))
+            val diffCopy = diffSnapshots(s.first, s.second)
+            Assert.assertThat("diff should contain one changed value and nothing more", diffCopy, Is.`is`(expected))
+        }
     }
 }

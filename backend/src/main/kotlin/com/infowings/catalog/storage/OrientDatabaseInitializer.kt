@@ -1,5 +1,7 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
@@ -32,17 +34,13 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun initVertex(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createVertexClass(name)
 
-    private fun initEdge(session: ODatabaseDocument, name: String) =
-        session.getClass(name) ?: session.createEdgeClass(name)
-
-
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
             logger.info("Init users")
-            initUser("user", "user", "USER")
-            initUser("admin", "admin", "ADMIN")
-            initUser("powereduser", "powereduser", "POWERED_USER")
+            initUser(Users.user)
+            initUser(Users.admin)
+            initUser(Users.poweredUser)
         }
         return@session this
     }
@@ -166,6 +164,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.setProperty("password", password)
         user.setProperty("role", role)
         user.save<ORecord>()
+    }
+
+    private fun initUser(user: UserEntity) = user.apply {
+        initUser(username, password, role.name)
     }
 
     private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {

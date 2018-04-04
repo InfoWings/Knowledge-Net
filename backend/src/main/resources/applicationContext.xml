@@ -68,6 +68,7 @@
     <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="historyDaoService"/>
+        <constructor-arg ref="userAcceptService"/>
     </bean>
 
     <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">
