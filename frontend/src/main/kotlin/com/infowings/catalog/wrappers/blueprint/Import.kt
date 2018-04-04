@@ -54,14 +54,6 @@ external interface LabelProps : BlueprintComponentProps {
     var text: ReactElement? // TODO: Or just String
 }
 
-external enum class Alignment {
-    CENTER, LEFT, RIGHT
-}
-
-external enum class Intent {
-    DANGER, NONE, PRIMARY, SUCCESS, WARNING
-}
-
 external val Alert: RClass<IAlertProps>
 
 external interface IAlertProps : RProps {
