@@ -48,8 +48,8 @@ class ReferenceBookValidator {
     }
 
     fun checkRefBookItemValue(parentVertex: ReferenceBookItemVertex, value: String, id: String?) {
-        val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
-        if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
+        val vertexWithSameValueAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
+        if (vertexWithSameValueAlreadyExist) {
             throw RefBookChildAlreadyExist(parentVertex.id, value)
         }
     }
