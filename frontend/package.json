@@ -16,6 +16,7 @@
     "node-watch": "0.5.5",
     "npm-run": "^4.1.2",
     "npm-run-all": "4.1.1",
+    "popper.js": "1.14.1",
     "sass-loader": "^6.0.7",
     "source-map-loader": "0.2.1",
     "style-loader": "^0.19.1",

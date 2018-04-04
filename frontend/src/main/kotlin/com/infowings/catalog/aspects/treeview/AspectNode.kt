@@ -62,4 +62,4 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
 }
 
 fun RBuilder.aspectNode(block: RHandler<AspectNode.Props>) =
-        child(AspectNode::class, block)
+    child(AspectNode::class, block)
