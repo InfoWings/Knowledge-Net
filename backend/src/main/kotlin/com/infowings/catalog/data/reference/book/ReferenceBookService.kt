@@ -224,6 +224,8 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val sourceVertex = dao.getReferenceBookItemVertex(sourceId) ?: throw RefBookItemNotExist(sourceId)
             val targetVertex = dao.getReferenceBookItemVertex(targetId) ?: throw RefBookItemNotExist(targetId)
 
+            validator.checkIsNotRoot(sourceVertex)
+            validator.checkIsNotRoot(targetVertex)
             validator.checkForBookItemRemoved(sourceVertex)
             validator.checkForBookItemRemoved(targetVertex)
             validator.checkRefBookItemAndChildrenVersion(sourceVertex, source)
