@@ -113,7 +113,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
         val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
         when {
-            hasChildItemLinkedByObject && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
+            hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookVertex(referenceBookVertex)
             hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             else -> dao.remove(referenceBookVertex)
         }
@@ -202,7 +202,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                hasChildItemLinkedByObject && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookItemVertex(bookItemVertex)
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
                 else -> dao.remove(bookItemVertex)
             }
@@ -231,22 +231,6 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
             sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
             return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
-        }
-    }
-
-    private fun fakeRemoveReferenceBookVertex(bookVertex: ReferenceBookVertex) {
-        transaction(db) {
-            bookVertex.deleted = true
-            bookVertex.root.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
-            bookVertex.save<OVertex>()
-        }
-    }
-
-    private fun fakeRemoveReferenceBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
-        transaction(db) {
-            bookItemVertex.deleted = true
-            bookItemVertex.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
-            bookItemVertex.save<OVertex>()
         }
     }
 }

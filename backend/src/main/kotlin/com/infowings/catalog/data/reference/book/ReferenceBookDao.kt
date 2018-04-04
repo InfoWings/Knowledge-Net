@@ -54,4 +54,20 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             it.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
         }
     }
+
+    fun fakeRemoveReferenceBookVertex(bookVertex: ReferenceBookVertex) {
+        transaction(db) {
+            bookVertex.deleted = true
+            bookVertex.root.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
+            bookVertex.save<OVertex>()
+        }
+    }
+
+    fun fakeRemoveReferenceBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
+        transaction(db) {
+            bookItemVertex.deleted = true
+            bookItemVertex.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
+            bookItemVertex.save<OVertex>()
+        }
+    }
 }
