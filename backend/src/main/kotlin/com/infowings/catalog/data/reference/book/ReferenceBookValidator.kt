@@ -11,9 +11,9 @@ import com.infowings.catalog.storage.id
  */
 class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
-    fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
+    fun checkRefBookAndItemsVersions(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         checkRefBookVersion(bookVertex, book)
-        checkRefBookItemAndChildrenVersion(bookVertex.root, book.root)
+        checkRefBookItemAndChildrenVersions(bookVertex.root, book.root)
     }
 
     fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
@@ -22,7 +22,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         }
     }
 
-    fun checkRefBookItemAndChildrenVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    fun checkRefBookItemAndChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         checkRefBookItemVersion(bookItemVertex, bookItem)
         checkChildrenVersions(bookItemVertex, bookItem)
     }

@@ -90,8 +90,11 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
 
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-        validator.checkRefBookVersion(referenceBookVertex, book)
-        validator.checkForBookRemoved(referenceBookVertex)
+
+        referenceBookVertex
+            .validateForRemoved()
+            .validateVersion(book)
+
         referenceBookVertex.name = newName
         return@transaction referenceBookVertex.save<OVertex>().toReferenceBookVertex().toReferenceBook()
     }
@@ -107,7 +110,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         logger.debug("Removing reference book. aspectId: $aspectId")
 
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-        validator.checkRefBookAndItemsVersion(referenceBookVertex, referenceBook)
+        referenceBookVertex.validateRefBookAndItemsVersions(referenceBook)
 
         //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
         val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
@@ -142,7 +145,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             logger.debug("Adding reference book item. parentId: $parentId, value: $value")
 
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
-            validator.checkRefBookItemValue(parentVertex, value, null)
+            parentVertex.validateValue(value, null)
 
             val itemVertex = dao.createReferenceBookItemVertex()
             itemVertex.aspectId = bookItem.aspectId
@@ -167,9 +170,13 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
             val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
             val parentVertex = itemVertex.parent ?: throw RefBookModificationException("parent vertex must not be null")
-            validator.checkForBookItemRemoved(itemVertex)
-            validator.checkRefBookItemAndChildrenVersion(itemVertex, bookItem)
-            validator.checkRefBookItemValue(parentVertex, value, id)
+
+            itemVertex
+                .validateForRemoved()
+                .validateItemAndChildrenVersions(bookItem)
+
+            parentVertex
+                .validateValue(value, id)
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
@@ -196,8 +203,9 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val bookItemVertex =
                 dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
 
-            validator.checkIsNotRoot(bookItemVertex)
-            validator.checkRefBookItemAndChildrenVersion(bookItemVertex, bookItem)
+            bookItemVertex
+                .validateIsNotRoot()
+                .validateItemAndChildrenVersions(bookItem)
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
@@ -224,18 +232,45 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val sourceVertex = dao.getReferenceBookItemVertex(sourceId) ?: throw RefBookItemNotExist(sourceId)
             val targetVertex = dao.getReferenceBookItemVertex(targetId) ?: throw RefBookItemNotExist(targetId)
 
-            validator.checkIsNotRoot(sourceVertex)
-            validator.checkIsNotRoot(targetVertex)
-            validator.checkForBookItemRemoved(sourceVertex)
-            validator.checkForBookItemRemoved(targetVertex)
-            validator.checkRefBookItemAndChildrenVersion(sourceVertex, source)
-            validator.checkRefBookItemAndChildrenVersion(targetVertex, target)
-            validator.checkForMoving(sourceVertex, targetVertex)
+            targetVertex
+                .validateForRemoved()
+                .validateItemAndChildrenVersions(target)
+
+            sourceVertex
+                .validateForRemoved()
+                .validateIsNotRoot()
+                .validateItemAndChildrenVersions(source)
+                .validateForMoving(targetVertex)
 
             sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
             return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
         }
     }
+
+    private fun ReferenceBookItemVertex.validateIsNotRoot(): ReferenceBookItemVertex =
+        this.also { validator.checkIsNotRoot(this) }
+
+    private fun ReferenceBookItemVertex.validateForRemoved(): ReferenceBookItemVertex =
+        this.also { validator.checkForBookItemRemoved(this) }
+
+    private fun ReferenceBookItemVertex.validateItemAndChildrenVersions(bookItem: ReferenceBookItem): ReferenceBookItemVertex =
+        this.also { validator.checkRefBookItemAndChildrenVersions(this, bookItem) }
+
+    private fun ReferenceBookItemVertex.validateForMoving(targetVertex: ReferenceBookItemVertex): ReferenceBookItemVertex =
+        this.also { validator.checkForMoving(this, targetVertex) }
+
+    private fun ReferenceBookItemVertex.validateValue(value: String, id: String?): ReferenceBookItemVertex =
+        this.also { validator.checkRefBookItemValue(this, value, id) }
+
+    private fun ReferenceBookVertex.validateVersion(book: ReferenceBook): ReferenceBookVertex =
+        this.also { validator.checkRefBookVersion(this, book) }
+
+    private fun ReferenceBookVertex.validateForRemoved(): ReferenceBookVertex =
+        this.also { validator.checkForBookRemoved(this) }
+
+    private fun ReferenceBookVertex.validateRefBookAndItemsVersions(book: ReferenceBook): ReferenceBookVertex =
+        this.also { validator.checkRefBookAndItemsVersions(this, book) }
+
 }
 
 private val logger = loggerFor<ReferenceBookService>()
