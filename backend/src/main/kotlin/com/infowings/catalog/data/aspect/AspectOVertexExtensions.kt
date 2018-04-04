@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
 import com.infowings.catalog.data.toSubject
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
@@ -75,6 +76,9 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
         }
 
     fun isLinkedBy() = hasIncomingEdges()
+
+    fun isLinkedByEntitiesExceptForReferenceBooks() =
+        this.getEdges(ODirection.IN).filterNot { it.schemaType.get().name == REFERENCE_BOOK_ASPECT_EDGE}.any()
 
     override fun equals(other: Any?): Boolean {
         return vertex == other

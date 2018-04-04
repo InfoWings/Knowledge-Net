@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.reference.book
 
-import allIncomingEdges
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.loggerFor
@@ -106,10 +105,10 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         validator.checkRefBookAndItemsVersion(referenceBookVertex, referenceBook)
 
         val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
-        val isLinked = aspectVertex.allIncomingEdges().count() > 1
+        val isLinkedByOtherEntities = aspectVertex.isLinkedByEntitiesExceptForReferenceBooks()
         when {
-            isLinked && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
-            isLinked -> throw RefBookHasLinkedEntitiesException(aspectId)
+            isLinkedByOtherEntities && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
+            isLinkedByOtherEntities -> throw RefBookHasLinkedEntitiesException(aspectId)
             else -> dao.remove(referenceBookVertex)
         }
     }
