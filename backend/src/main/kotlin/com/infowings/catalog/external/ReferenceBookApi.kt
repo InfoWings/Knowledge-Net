@@ -54,6 +54,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         referenceBookService.changeValue(bookItem)
     }
 
+    @PostMapping("item/forceUpdate")
+    fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem) {
+        referenceBookService.changeValue(bookItem, true)
+    }
+
     @PostMapping("item/remove")
     fun removeItem(@RequestBody bookItem: ReferenceBookItem) {
         referenceBookService.removeReferenceBookItem(bookItem)
