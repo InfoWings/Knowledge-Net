@@ -5,6 +5,10 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.id
 
+/**
+ * Class for validating reference books and reference book items.
+ * Methods should be called in transaction
+ */
 class ReferenceBookValidator {
 
     fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
