@@ -13,7 +13,7 @@ import com.orientechnologies.orient.core.record.OVertex
 fun OVertex.toReferenceBookVertex() = ReferenceBookVertex(this)
 fun OVertex.toReferenceBook() = ReferenceBookVertex(this).toReferenceBook()
 
-class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware,  OVertex by vertex {
+class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_VERTEX
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -37,10 +37,10 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware,  OVertex 
             this["name"] = value
         }
 
-    val children: List<OVertex>
+    private val children: List<OVertex>
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).toList()
 
-    val child: OVertex?
+    private val child: OVertex?
         get() = children.first()
 
 
@@ -55,7 +55,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware,  OVertex 
 
     fun toReferenceBook(): ReferenceBook {
         val aspectId = aspectVertex().id
-        val root = toReferenceBookVertex().child!!.toReferenceBookItem()
+        val root = toReferenceBookVertex().child?.toReferenceBookItem() ?: throw RefBookChildDoesNotExist(this)
         return ReferenceBook(name, aspectId, root)
     }
 }
