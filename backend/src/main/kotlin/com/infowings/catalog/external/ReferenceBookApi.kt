@@ -79,8 +79,8 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
             is RefBookModificationException -> ResponseEntity.badRequest().body("Cannot find parent Reference Book Item")
-            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book Item has linked entities")
-            is RefBookHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Reference Book has linked entities")
+            is RefBookItemHasLinkedEntitiesException ->
+                ResponseEntity.badRequest().body("These Reference Book Items has linked entities: ${e.itemsWithLinkedObjects.map { it.value }}")
             is RefBookItemConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
             is RefBookConcurrentModificationException ->

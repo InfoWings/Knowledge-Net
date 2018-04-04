@@ -5,7 +5,6 @@ import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -104,11 +103,12 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
         validator.checkRefBookAndItemsVersion(referenceBookVertex, referenceBook)
 
-        //TODO: add correct checking for clause is some item linked by Object entities
-        val someItemLinkedByOtherEntities = false
+        //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
+        val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
+        val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
         when {
-            someItemLinkedByOtherEntities && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
-            someItemLinkedByOtherEntities -> throw RefBookHasLinkedEntitiesException(aspectId)
+            hasChildItemLinkedByObject && force -> fakeRemoveReferenceBookVertex(referenceBookVertex)
+            hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             else -> dao.remove(referenceBookVertex)
         }
     }
@@ -163,11 +163,12 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             validator.checkRefBookItemAndChildrenVersion(itemVertex, bookItem)
             validator.checkRefBookItemValue(parentVertex, value, id)
 
-            //TODO: add correct checking for clause is item linked by Object entities
-            val isLinkedByObjects = false
+            //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
+            val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
+            val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                isLinkedByObjects && force -> itemVertex.value = value
-                isLinkedByObjects -> throw RefBookItemHasLinkedEntitiesException(bookItem.id)
+                hasChildItemLinkedByObject && force -> itemVertex.value = value
+                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
                 else -> itemVertex.value = value
             }
 
@@ -183,11 +184,12 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
             validator.checkRefBookItemAndChildrenVersion(bookItemVertex, bookItem)
 
-            //TODO: add correct checking for clause is item linked by Object entities
-            val isLinkedByObjects = false
+            //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
+            val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
+            val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                isLinkedByObjects && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
-                isLinkedByObjects -> throw RefBookItemHasLinkedEntitiesException(bookItem.id)
+                hasChildItemLinkedByObject && force -> fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
                 else -> dao.remove(bookItemVertex)
             }
         }
@@ -219,15 +221,17 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
     }
 
     private fun fakeRemoveReferenceBookVertex(bookVertex: ReferenceBookVertex) {
-        session(db) {
+        transaction(db) {
             bookVertex.deleted = true
+            bookVertex.root.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
             bookVertex.save<OVertex>()
         }
     }
 
     private fun fakeRemoveReferenceBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
-        session(db) {
+        transaction(db) {
             bookItemVertex.deleted = true
+            bookItemVertex.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
             bookItemVertex.save<OVertex>()
         }
     }
@@ -246,8 +250,9 @@ class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
 
 class RefBookModificationException(message: String) : ReferenceBookException(message)
 
-class RefBookItemHasLinkedEntitiesException(val id: String) : ReferenceBookException("id: $id")
-class RefBookHasLinkedEntitiesException(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
+class RefBookItemHasLinkedEntitiesException(val itemsWithLinkedObjects: List<ReferenceBookItem>) :
+    ReferenceBookException("${itemsWithLinkedObjects.map { it.id }}")
+
 class RefBookItemConcurrentModificationException(id: String, message: String) :
     ReferenceBookException("id: $id, message: $message")
 
