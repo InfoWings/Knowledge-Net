@@ -93,7 +93,7 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
                 }!!
             }
 
-            if (props.aspect.properties.isNotEmpty()) {
+            if (props.aspect.properties.isNotEmpty() && props.aspect.properties.any { !it.deleted }) {
                 aspectProperties {
                     attrs {
                         this.aspect = props.aspect

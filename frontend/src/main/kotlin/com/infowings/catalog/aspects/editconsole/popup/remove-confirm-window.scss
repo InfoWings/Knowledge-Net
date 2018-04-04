@@ -1,0 +1,20 @@
+@import "abstract";
+
+.remove-confirm-window {
+
+  padding: 2rem;
+
+  p {
+    text-align: center;
+  }
+
+  &--buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 3rem;
+
+    :first-child {
+      margin-right: 1rem;
+    }
+  }
+}

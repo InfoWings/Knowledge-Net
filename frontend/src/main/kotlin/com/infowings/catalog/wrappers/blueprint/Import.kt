@@ -53,21 +53,3 @@ external interface LabelProps : BlueprintComponentProps {
     var helperText: ReactElement? // TODO: Or just String
     var text: ReactElement? // TODO: Or just String
 }
-
-external val Alert: RClass<IAlertProps>
-
-external interface IAlertProps : RProps {
-    var cancelButtonText: String
-    var canEscapeKeyCancel: Boolean
-    var canOutsideClickCancel: Boolean
-    var className: String
-    var confirmButtonText: String
-    var icon: String
-    var intent: Intent
-    var isOpen: Boolean
-    var onCancel: (MouseEvent) -> Unit
-    var onClose: (confirmed: Boolean, evt: MouseEvent) -> Unit
-    var onConfirm: (MouseEvent) -> Unit
-    var style: dynamic // todo CSSProperties
-    var transitionDuration: Int
-}

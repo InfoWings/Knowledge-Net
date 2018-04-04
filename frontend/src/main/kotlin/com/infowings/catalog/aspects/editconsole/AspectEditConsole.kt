@@ -2,7 +2,7 @@ package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.*
-import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
+import com.infowings.catalog.aspects.editconsole.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.*
@@ -179,7 +179,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             }
         }
-        removeConfirmWindow {
+        forceRemoveConfirmWindow {
             attrs {
                 onConfirm = { tryDelete(true) }
                 onCancel = { setState { confirmation = false } }
