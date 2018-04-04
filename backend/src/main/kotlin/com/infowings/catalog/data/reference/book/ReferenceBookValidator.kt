@@ -5,6 +5,10 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.id
 
+/**
+ * Class for validating reference books and reference book items.
+ * Methods should be called in transaction
+ */
 class ReferenceBookValidator {
 
     fun checkRefBookAndItemsVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
@@ -44,8 +48,8 @@ class ReferenceBookValidator {
     }
 
     fun checkRefBookItemValue(parentVertex: ReferenceBookItemVertex, value: String, id: String?) {
-        val vertexWithSameNameAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
-        if (parentVertex.schemaType.get().name == REFERENCE_BOOK_ITEM_VERTEX && vertexWithSameNameAlreadyExist) {
+        val vertexWithSameValueAlreadyExist = parentVertex.children.any { it.value == value && it.id != id }
+        if (vertexWithSameValueAlreadyExist) {
             throw RefBookChildAlreadyExist(parentVertex.id, value)
         }
     }

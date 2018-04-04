@@ -3,9 +3,8 @@ package com.infowings.catalog.data.reference.book
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNull
-import com.orientechnologies.orient.core.record.ODirection
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
@@ -37,11 +36,11 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         parentVertex: ReferenceBookItemVertex,
         bookItemVertex: ReferenceBookItemVertex
     ): ReferenceBookItemVertex =
-        session(db) {
-            if (!parentVertex.getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_VERTEX).contains(bookItemVertex)) {
+        transaction(db) {
+            if (!parentVertex.children.contains(bookItemVertex)) {
                 parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
             }
-            return@session bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
+            return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 
     fun remove(vertex: OVertex) {

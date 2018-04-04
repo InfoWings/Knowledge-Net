@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
 import com.infowings.catalog.data.toSubject
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
