@@ -24,15 +24,15 @@ fun RBuilder.propertyLabel(
         }
     }
     if (aspectPropertyName.isNotEmpty()) {
-        span(classes = "aspect-tree-view--label-property-name") {
+        span(classes = "text-bold text-italic aspect-tree-view--label-property-name") {
             +aspectPropertyName
         }
     }
-    span(classes = "aspect-tree-view--label-name") {
-        +(aspectName)
+    span(classes = "text-bold") {
+        +aspectName
     }
     +":"
-    span(classes = "aspect-tree-view--label-property") {
+    span(classes = "text-grey") {
         +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
             +cardinalityLabel(aspectPropertyCardinality)
@@ -40,28 +40,28 @@ fun RBuilder.propertyLabel(
         +"]"
     }
     +":"
-    span(classes = "aspect-tree-view--label-measure") {
+    span(classes = "text-grey") {
         +aspectMeasure
     }
     +":"
-    span(classes = "aspect-tree-view--label-domain") {
+    span(classes = "text-grey") {
         +aspectDomain
     }
     +":"
-    span(classes = "aspect-tree-view--label-base-type") {
+    span(classes = "text-grey") {
         +aspectBaseType
     }
     +"( Subject: "
-    span(classes = "aspect-tree-view--label-subject") {
+    span(classes = "text-grey") {
         +aspectSubjectName
     }
     +" )"
 }
 
 fun RBuilder.placeholderPropertyLabel(className: String?) =
-        div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
-            +"(Enter new Aspect Property)"
-        }
+    div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
+        +"(Enter new Aspect Property)"
+    }
 
 fun cardinalityLabel(cardinalityValue: String) = when (cardinalityValue) {
     "ZERO" -> "0"

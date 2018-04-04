@@ -5,15 +5,12 @@ import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
-import react.dom.div
 
 class MeasureTreeUnit(props: MeasureTreeUnit.Props) : RComponent<MeasureTreeUnit.Props, RState>(props) {
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--property-node") {
-            child(MeasureUnitLabel::class) {
-                attrs {
-                    unit = props.unit
-                }
+        child(MeasureUnitLabel::class) {
+            attrs {
+                unit = props.unit
             }
         }
     }

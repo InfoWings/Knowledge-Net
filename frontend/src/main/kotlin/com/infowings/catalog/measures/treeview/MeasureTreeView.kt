@@ -10,12 +10,12 @@ import react.dom.div
 class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView.Props, RState>(props) {
     companion object {
         init {
-            require("styles/aspect-tree-view.scss")
+            require("styles/measures-list.scss")
         }
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view") {
+        div(classes = "measures-list") {
             props.groups.mapIndexed { index, group ->
                 treeNode {
                     attrs {

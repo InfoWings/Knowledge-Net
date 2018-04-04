@@ -9,8 +9,8 @@ import react.dom.span
 
 class MeasureRootLabel(props: MeasureRootLabel.Props) : RComponent<MeasureRootLabel.Props, RState>(props) {
     override fun RBuilder.render() {
-        div(classes = "aspect-tree-view--label") {
-            span(classes = "aspect-tree-view--label-name") {
+        div(classes = "measures-list--measure-group") {
+            span(classes = "text-bold") {
                 +props.groupName
             }
         }
