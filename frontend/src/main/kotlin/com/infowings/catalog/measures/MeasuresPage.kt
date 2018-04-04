@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.dom.h1
 import react.setState
 import kotlin.browser.window
 
@@ -98,8 +97,6 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             attrs.location = props.location.pathname
             attrs.history = props.history
         }
-
-        h1 { +"Measure Page" }
 
         child(SearchBar::class) {
             attrs {
