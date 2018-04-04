@@ -7,18 +7,17 @@ enum class EventKind {
     CREATE, UPDATE, SOFT_DELETE, DELETE
 }
 
-interface HistoryAware: OVertex {
+interface HistoryAware : OVertex {
     val entityClass: String
 
     fun currentSnapshot(): Snapshot
 
     /**
-    * по-хорошему здесь lazy property просится - мы один раз делаем слепок со структуры снепшота
-    * мы не может этого делать в момент инициализации интерфейса,
-    * но в рантайме каждый вызов вернет одно и то же
-
-    * Kotlin не дает их заводить в интерфейсе,
-    * хотя не очент понятно, что мешает
+     * по-хорошему здесь lazy property просится - мы один раз делаем слепок со структуры снепшота
+     * мы не может этого делать в момент инициализации интерфейса,
+     * но в рантайме каждый вызов вернет одно и то же
+     * Kotlin не дает их заводить в интерфейсе,
+     * хотя не очент понятно, что мешает
      */
     fun emptySnapshot(): Snapshot {
         val base = currentSnapshot()
@@ -76,7 +75,7 @@ interface HistoryAware: OVertex {
      *  возможных связей)
      *
      *  Надо вызывать до удаления сущности.
-    */
+     */
     fun toDeleteFact(user: String) = toFact(user, EventKind.DELETE, emptySnapshot())
 
     /**

@@ -182,6 +182,7 @@ class RefBookAlreadyExist(val aspectId: String) : ReferenceBookException("aspect
 class RefBookNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemNotExist(val id: String) : ReferenceBookException("id: $id")
 class RefBookChildAlreadyExist(val id: String, val value: String) : ReferenceBookException("id: $id, value: $value")
+class RefBookChildDoesNotExist(val vertex: ReferenceBookVertex): ReferenceBookException("vertex: $vertex")
 class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")

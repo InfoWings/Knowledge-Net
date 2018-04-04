@@ -49,7 +49,7 @@ class SnapshotTest {
             }
             return@transaction verts
         }
-        ids = vertices.map {it?.identity ?: throw IllegalStateException("null identity")}
+        ids = vertices.map { it?.identity ?: throw IllegalStateException("null identity") }
     }
 
     @Test
@@ -78,8 +78,10 @@ class SnapshotTest {
     fun diffSnapshotsUpdatedDataElement() {
         val snapshots = listOf(
             Pair(Snapshot(mapOf("name" to "value"), emptyMap()), Snapshot(mapOf("name" to "value2"), emptyMap())),
-            Pair(Snapshot(mapOf("name" to "value", "other" to "another"), emptyMap()),
-                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap()))
+            Pair(
+                Snapshot(mapOf("name" to "value", "other" to "another"), emptyMap()),
+                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap())
+            )
         )
 
         for (s in snapshots) {
@@ -89,7 +91,11 @@ class SnapshotTest {
 
             val expectedRev = diffDataPayload("name", s.first.data.getValue("name"))
             val diffCopyRev = diffSnapshots(s.second, s.first)
-            Assert.assertThat("diff should contain one changed value and nothing more", diffCopyRev, Is.`is`(expectedRev))
+            Assert.assertThat(
+                "diff should contain one changed value and nothing more",
+                diffCopyRev,
+                Is.`is`(expectedRev)
+            )
         }
     }
 
@@ -97,8 +103,10 @@ class SnapshotTest {
     fun diffSnapshotsNewDataElement() {
         val snapshots = listOf(
             Pair(Snapshot(emptyMap(), emptyMap()), Snapshot(mapOf("name" to "value2"), emptyMap())),
-            Pair(Snapshot(mapOf("other" to "another"), emptyMap()),
-                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap()))
+            Pair(
+                Snapshot(mapOf("other" to "another"), emptyMap()),
+                Snapshot(mapOf("name" to "value2", "other" to "another"), emptyMap())
+            )
         )
 
         for (s in snapshots) {

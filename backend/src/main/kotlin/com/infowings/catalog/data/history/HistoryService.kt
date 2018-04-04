@@ -63,7 +63,9 @@ class HistoryService(
 
     private inline fun HistoryEventVertex.linksVertices(
         linksPayload: Map<String, List<ORID>>,
-        vertexProducer: () -> HistoryLinksVertex): List<HistoryLinksVertex> = linksPayload.flatMap {
+        vertexProducer: () -> HistoryLinksVertex
+    ): List<HistoryLinksVertex> =
+        linksPayload.flatMap {
             val linkKey = it.key
             val eventVertex = this
             it.value.map {
