@@ -76,6 +76,10 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : OVertex by vertex {
     val children: List<ReferenceBookItemVertex>
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
 
+    /**
+     * Return parent ReferenceBookItemVertex if it's not root
+     * else [parent] is null
+     */
     val parent: ReferenceBookItemVertex?
         get() {
             val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first() //this maybe bookVertex

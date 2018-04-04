@@ -66,17 +66,17 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
         )
     }.let {
         val bookVertex = it.first
-        val itemVertex = it.second
-        val bookItem = ReferenceBookItem(
+        val rootVertex = it.second
+        val root = ReferenceBookItem(
             aspectId,
             null,
-            itemVertex.id,
-            itemVertex.value,
+            rootVertex.id,
+            rootVertex.value,
             emptyList(),
-            itemVertex.deleted,
-            itemVertex.version
+            rootVertex.deleted,
+            rootVertex.version
         )
-        ReferenceBook(aspectId, bookVertex.name, bookItem, bookVertex.deleted, bookVertex.version)
+        ReferenceBook(aspectId, bookVertex.name, root, bookVertex.deleted, bookVertex.version)
     }
 
     /**
@@ -196,6 +196,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             val bookItemVertex =
                 dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
 
+            validator.checkIsNotRoot(bookItemVertex)
             validator.checkRefBookItemAndChildrenVersion(bookItemVertex, bookItem)
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
