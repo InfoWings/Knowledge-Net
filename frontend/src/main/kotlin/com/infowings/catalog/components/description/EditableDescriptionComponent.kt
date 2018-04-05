@@ -28,54 +28,55 @@ class EditableDescriptionComponent(props: Props) :
         }
     }
 
-    private fun RBuilder.editableInput() =
-        div(classes = "description-input--container") {
-            EditableText {
-                attrs {
-                    className = "description-input--editable-text"
-                    multiline = true
-                    minLines = 2
-                    isEditing = state.editing
-                    value = state.value
-                    onEdit = {
-                        setState {
-                            editing = true
+    private val RBuilder.editableInput
+        get() =
+            div(classes = "description-input--container") {
+                EditableText {
+                    attrs {
+                        className = "description-input--editable-text"
+                        multiline = true
+                        minLines = 2
+                        isEditing = state.editing
+                        value = state.value
+                        onEdit = {
+                            setState {
+                                editing = true
+                            }
                         }
-                    }
-                    onChange = {
-                        setState {
-                            value = it
+                        onChange = {
+                            setState {
+                                value = it
+                            }
                         }
-                    }
-                    onCancel = {
-                        setState {
-                            value = props.description ?: ""
-                            editing = false
+                        onCancel = {
+                            setState {
+                                value = props.description ?: ""
+                                editing = false
+                            }
                         }
-                    }
-                    onConfirm = {
-                        props.onNewDescriptionConfirmed(it)
-                        setState {
-                            editing = false
-                            opened = false
+                        onConfirm = {
+                            props.onNewDescriptionConfirmed(it)
+                            setState {
+                                editing = false
+                                opened = false
+                            }
                         }
                     }
                 }
             }
-        }
 
     override fun RBuilder.render() {
         Popover {
             attrs {
                 popoverClassName = "description-popover"
-                content = buildElement { editableInput() }
+                content = buildElement { editableInput }
                 isOpen = state.opened
                 onInteraction = {
                     setState {
                         editing = it
                         opened = it
                     }
-                    props.onEditStarted?.invoke()
+                    if (it) props.onEditStarted?.invoke()
                 }
             }
             descriptionTooltip(props.className, props.description)
