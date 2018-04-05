@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.*
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
@@ -17,7 +16,6 @@ import com.infowings.catalog.storage.transaction
  */
 class AspectService(
     private val db: OrientDatabase,
-    private val aspectDaoService: AspectDaoService
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService
 ) {
