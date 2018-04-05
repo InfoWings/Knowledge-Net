@@ -83,7 +83,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : OVertex by vertex {
     val parent: ReferenceBookItemVertex?
         get() {
             val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first() //this maybe bookVertex
-            return if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull() != null)
+            return if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).any())
                 oVertex.toReferenceBookItemVertex()
             else
                 null

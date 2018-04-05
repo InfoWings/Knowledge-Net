@@ -3,14 +3,17 @@ package com.infowings.catalog.data.reference.book
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNull
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
-private const val searchReferenceBookByAspectId = "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ?"
-private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX"
+private const val notDeletedSql = "(deleted is NULL or deleted = false)"
+private const val searchReferenceBookByAspectId =
+    "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ? AND $notDeletedSql"
+private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX WHERE $notDeletedSql"
 
 class ReferenceBookDao(private val db: OrientDatabase) {
 
@@ -48,9 +51,9 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         db.delete(vertex)
     }
 
-    fun getRefBookItemVertexParents(id: String): List<ReferenceBookItemVertex> = transaction(db) {
+    fun getRefBookItemVertexParents(id: String): List<ReferenceBookItemVertex> = session(db) {
         val query = "TRAVERSE IN(\"$REFERENCE_BOOK_CHILD_EDGE\") FROM :itemRecord"
-        return@transaction db.query(query, mapOf("itemRecord" to ORecordId(id))) {
+        return@session db.query(query, mapOf("itemRecord" to ORecordId(id))) {
             it.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
         }
     }

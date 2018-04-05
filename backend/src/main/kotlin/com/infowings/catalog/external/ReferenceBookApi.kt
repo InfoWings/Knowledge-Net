@@ -81,7 +81,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookChildAlreadyExist -> ResponseEntity.badRequest().body("Reference Book Item '${e.value}' already exists")
             is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
-            is RefBookModificationException -> ResponseEntity.badRequest().body("Cannot find parent Reference Book Item")
+            is RefBookItemIllegalArgumentException -> ResponseEntity.badRequest().body(e.message)
             is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body(
                 JSON.stringify(
                     BadRequest(
@@ -94,7 +94,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
-            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${e.message}")
+            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }
 }
