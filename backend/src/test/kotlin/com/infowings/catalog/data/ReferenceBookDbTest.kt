@@ -32,7 +32,7 @@ class ReferenceBookDbTest {
     @Before
     fun initTestData() {
         aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
-        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id)
+        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, "")
     }
 
     @Test
@@ -52,7 +52,7 @@ class ReferenceBookDbTest {
     @Test
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
-        val anotherBook = referenceBookService.createReferenceBook("ExampleTst", anotherAspect.id)
+        val anotherBook = referenceBookService.createReferenceBook("ExampleTst", anotherAspect.id, "")
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
@@ -70,27 +70,27 @@ class ReferenceBookDbTest {
     @Test
     fun updateReferenceBookTest() {
         val newName = "newName"
-        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName)
+        val updatedReferenceBook = referenceBookService.updateReferenceBook(referenceBook.aspectId, newName, "")
         assertEquals(ReferenceBook(newName, referenceBook.aspectId, referenceBook.root), updatedReferenceBook)
     }
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
-        referenceBookService.updateReferenceBook("random", "newName")
+        referenceBookService.updateReferenceBook("random", "newName", "")
     }
 
     @Test
     fun addReferenceBookItemAsAChildToExistingItemTest() {
-        val newId = referenceBookService.addReferenceBookItem(referenceBook.id, "value")
+        val newId = referenceBookService.addReferenceBookItem(referenceBook.id, "value", "")
         assertTrue("New item was created", referenceBookService.getReferenceBookItem(newId).value == "value")
     }
 
     @Test
     fun addChildrenTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        referenceBookService.addReferenceBookItem(referenceBook.id, "value2")
-        val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
-        referenceBookService.addReferenceBookItem(child11, "value111")
+        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        referenceBookService.addReferenceBookItem(referenceBook.id, "value2", "")
+        val child11 = referenceBookService.addReferenceBookItem(child1, "value11", "")
+        referenceBookService.addReferenceBookItem(child11, "value111", "")
 
         val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
         assertTrue("Root has 2 children", updatedReferenceBook.children.size == 2)
@@ -103,15 +103,15 @@ class ReferenceBookDbTest {
 
     @Test(expected = RefBookChildAlreadyExist::class)
     fun addChildrenWithSameValueAsOtherChildrenTest() {
-        referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
+        referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
     }
 
     @Test
     fun correctMoveItemsTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        val child2 = referenceBookService.addReferenceBookItem(referenceBook.id, "value2")
-        val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
+        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        val child2 = referenceBookService.addReferenceBookItem(referenceBook.id, "value2", "")
+        val child11 = referenceBookService.addReferenceBookItem(child1, "value11", "")
         referenceBookService.moveReferenceBookItem(child11, child2)
 
         val updatedReferenceBook = referenceBookService.getReferenceBook(referenceBook.aspectId)
@@ -121,23 +121,23 @@ class ReferenceBookDbTest {
 
     @Test(expected = RefBookItemMoveImpossible::class)
     fun unCorrectMoveItemsTest() {
-        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        val child11 = referenceBookService.addReferenceBookItem(child1, "value11")
+        val child1 = referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        val child11 = referenceBookService.addReferenceBookItem(child1, "value11", "")
         referenceBookService.moveReferenceBookItem(child1, child11)
     }
 
     @Test
     fun correctChangeValueTest() {
-        val childId = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        referenceBookService.changeValue(childId, "value2")
+        val childId = referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        referenceBookService.changeValue(childId, "value2", "")
         val updated = referenceBookService.getReferenceBookItem(childId)
         assertTrue("Value should be changed", updated.value == "value2")
     }
 
     @Test(expected = RefBookChildAlreadyExist::class)
     fun unCorrectChangeValueTest() {
-        val childId = referenceBookService.addReferenceBookItem(referenceBook.id, "value1")
-        referenceBookService.addReferenceBookItem(referenceBook.id, "value2")
-        referenceBookService.changeValue(childId, "value2")
+        val childId = referenceBookService.addReferenceBookItem(referenceBook.id, "value1", "")
+        referenceBookService.addReferenceBookItem(referenceBook.id, "value2", "")
+        referenceBookService.changeValue(childId, "value2", "")
     }
 }

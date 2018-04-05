@@ -1,12 +1,11 @@
 package com.infowings.catalog.storage
 
-import com.orientechnologies.orient.core.db.ODatabasePool
-import com.orientechnologies.orient.core.db.ODatabaseType
-import com.orientechnologies.orient.core.db.OrientDB
-import com.orientechnologies.orient.core.db.OrientDBConfig
+import com.infowings.catalog.loggerFor
+import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
+import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
@@ -63,6 +62,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
+            .initHistory()
             .initUsers()
             .initMeasures()
             .initReferenceBooks()
@@ -87,7 +87,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, *args)
-                    .use { rs: OResultSet -> block(rs.asSequence()) }
+                .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
 
@@ -115,8 +115,19 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         return@session it.newVertex(className)
     }
 
-    fun delete(v: OVertex) = session(database = this) {
-        return@session it.delete(v.identity)
+    fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
+        it.delete(v.identity)
+    }
+
+    fun <T> command(command: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
+        return session(database = this) { session ->
+            return@session session.command(command, *args)
+                .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
+    fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
+        vertices.forEach { it.save<OVertex>() }
     }
 }
 
@@ -125,11 +136,14 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
 /**
  * DO NOT use directly, use [transaction] and [session] instead
  */
+
+val transactionLogger = loggerFor<OrientDatabase>()
+
 inline fun <U> transactionInner(
-        session: ODatabaseDocument,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    session: ODatabaseDocument,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -141,6 +155,7 @@ inline fun <U> transactionInner(
 
             return u
         } catch (e: Exception) {
+            transactionLogger.warn("Thrown inside transaction: $e")
             lastException = e
             session.rollback()
         }
@@ -176,10 +191,10 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-        database: OrientDatabase,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    database: OrientDatabase,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)

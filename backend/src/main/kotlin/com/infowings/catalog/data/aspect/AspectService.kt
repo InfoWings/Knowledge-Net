@@ -1,21 +1,67 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
+import com.infowings.catalog.data.history.HistoryFact
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
-
 /**
  * Data layer for Aspect & Aspect properties
- * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
+ * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECT_PROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
 class AspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService
+    private val aspectDaoService: AspectDaoService,
+    private val historyService: HistoryService
 ) {
-
     private val aspectValidator = AspectValidator(aspectDaoService)
+
+    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
+        aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
+        aspectVertex.saveAspectProperties(aspectData.properties, user)
+        return aspectDaoService.saveAspect(aspectVertex, aspectData)
+    }
+
+    /*
+    Вспомогательный метод для save
+    Завершает обновление на случай обновления
+    Запускается изнутри транзакции на database
+     */
+    private fun updateFinish(
+        aspectVertex: AspectVertex,
+        aspectData: AspectData,
+        user: String
+    ): AspectVertex {
+        val baseSnapshot = aspectVertex.currentSnapshot()
+
+        val res = savePlain(aspectVertex, aspectData, user)
+
+        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot))
+
+        return res
+    }
+
+    /*
+    Вспомогательный метод для save
+    Завершает обновление на случай создания
+    Запускается изнутри транзакции на database
+    */
+    private fun createFinish(
+        aspectVertex: AspectVertex,
+        aspectData: AspectData,
+        user: String
+    ): AspectVertex {
+        val res = savePlain(aspectVertex, aspectData, user)
+        historyService.storeFact(aspectVertex.toCreateFact(user))
+        return res
+    }
 
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
@@ -25,8 +71,7 @@ class AspectService(
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
-    fun save(aspectData: AspectData): Aspect {
-
+    fun save(aspectData: AspectData, user: String = ""): Aspect {
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
@@ -34,19 +79,17 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            // delete properties with deleted flag
-            aspectData.properties.filter { it.deleted }.forEach { remove(it) }
+            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            aspectVertex.saveAspectProperties(aspectData.actualData().properties)
-            return@transaction aspectDaoService.saveAspect(aspectVertex, aspectData.actualData())
+            return@transaction finishMethod(aspectVertex, aspectData, user)
         }
 
         return findById(save.id)
     }
 
-    fun remove(aspectData: AspectData, force: Boolean = false) {
-        transaction(db) {
 
+    fun remove(aspectData: AspectData, user: String, force: Boolean = false) {
+        transaction(db) {
             val aspectId = aspectData.id ?: "null"
 
             val aspectVertex =
@@ -56,12 +99,17 @@ class AspectService(
 
             when {
                 aspectVertex.isLinkedBy() && force -> {
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 aspectVertex.isLinkedBy() -> {
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
-                else -> aspectDaoService.remove(aspectVertex)
+
+                else -> {
+                    historyService.storeFact(aspectVertex.toDeleteFact(user))
+                    aspectDaoService.remove(aspectVertex)
+                }
             }
         }
     }
@@ -80,8 +128,14 @@ class AspectService(
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
+    fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+            ?: throw AspectPropertyDoesNotExist(id)
+
+
     /** Method is private and it is supposed that version checking successfully accepted before. */
-    private fun remove(property: AspectPropertyData) = transaction(db) {
+    private fun remove(property: AspectPropertyData, user: String) = transaction(db) {
+        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(user))
+
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
@@ -101,7 +155,7 @@ class AspectService(
     }
 
     /**
-     * Create empty vertex in case [aspectData.id] is null or empty
+     * Create empty vertex in case [AspectData.id] is null or empty
      * Otherwise validate and return vertex of class [ASPECT_CLASS] with given id
      * @throws IllegalStateException
      * @throws AspectConcurrentModificationException
@@ -120,7 +174,7 @@ class AspectService(
     }
 
     /**
-     * Create empty vertex in case [aspectPropertyData.id] is null or empty
+     * Create empty vertex in case [AspectPropertyData.id] is null or empty
      * Otherwise validate and return vertex of class [ASPECT_PROPERTY_CLASS] with given id
      * @throws IllegalStateException
      * @throws AspectPropertyModificationException
@@ -168,10 +222,25 @@ class AspectService(
 
     private fun AspectData.checkBusinessKey() = this.also { aspectValidator.checkBusinessKey(this) }
 
-    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>) {
+    private fun AspectVertex.savePropertyWithHistory(
+        vertex: AspectPropertyVertex,
+        data: AspectPropertyData,
+        user: String
+    ): HistoryFact {
+        return if (vertex.isJustCreated()) {
+            aspectDaoService.saveAspectProperty(this, vertex, data)
+            vertex.toCreateFact(user)
+        } else {
+            val previous = vertex.currentSnapshot()
+            aspectDaoService.saveAspectProperty(this, vertex, data)
+            vertex.toUpdateFact(user, previous)
+        }
+    }
+
+    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, user: String) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
-            aspectDaoService.saveAspectProperty(this, aspectPropertyVertex, it)
+            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, user))
         }
     }
 }
@@ -198,6 +267,7 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
 
 class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")

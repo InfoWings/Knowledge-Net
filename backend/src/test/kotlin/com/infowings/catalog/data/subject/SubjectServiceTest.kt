@@ -78,7 +78,7 @@ class SubjectServiceTest {
     fun testAddAspectsAfterRemoveSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.remove(aspectService.save(ad1).toAspectData())
+        aspectService.remove(aspectService.save(ad1).toAspectData(), "")
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad2)
@@ -109,7 +109,7 @@ class SubjectServiceTest {
             )
         )
 
-        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), true)
+        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), "", true)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad2)
