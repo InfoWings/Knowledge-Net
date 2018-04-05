@@ -34,11 +34,13 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     override fun componentDidMount() {
         launch {
-            val aspectIdToBookMap = getAllReferenceBooks().books //todo: filter deleted
+            val aspectIdToBookMap = getAllReferenceBooks().books
+                .filter { !it.deleted }
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
-            val rowDataList = getAllAspects().aspects.filter { !it.deleted }
+            val rowDataList = getAllAspects().aspects
+                .filter { !it.deleted }
                 .map { RowData(it.id ?: "", it.name ?: "", aspectIdToBookMap[it.id!!]) }
 
             setState {
@@ -76,7 +78,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             } else {
                 deleteReferenceBook(book)
             }
-            updateRowDataList(book.aspectId, null) //todo: what should do if book was only marked as Deleted?
+            updateRowDataList(book.aspectId, null)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
         }

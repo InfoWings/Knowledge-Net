@@ -78,8 +78,11 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 
     override fun RBuilder.render() {
+
+        val notDeletedBookItems = props.book.children.filter { !it.deleted }
+
         div(classes = "book-tree-view--root") {
-            if (props.book.children.isNotEmpty()) {
+            if (notDeletedBookItems.isNotEmpty()) {
                 if (state.expanded) {
                     squareMinusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
                         attrs {
@@ -105,7 +108,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
 
-            if (props.book.children.isEmpty()) {
+            if (notDeletedBookItems.isEmpty()) {
                 addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                     attrs {
                         onClickFunction = ::startCreatingBookItem
@@ -120,12 +123,12 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
             }
         }
 
-        if (props.book.children.isNotEmpty() && state.expanded) {
+        if (notDeletedBookItems.isNotEmpty() && state.expanded) {
             referenceBookTreeItems {
                 attrs {
                     aspectId = props.aspectId
                     book = props.book
-                    bookItems = props.book.children
+                    bookItems = notDeletedBookItems
                     createBookItem = props.createBookItem
                     updateBookItem = props.updateBookItem
                     deleteBookItem = props.deleteBookItem
