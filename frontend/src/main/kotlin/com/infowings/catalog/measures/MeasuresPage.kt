@@ -2,9 +2,9 @@ package com.infowings.catalog.measures
 
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
-import com.infowings.catalog.components.searchbar.SearchBar
+import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.layout.header
-import com.infowings.catalog.measures.treeview.MeasureTreeView
+import com.infowings.catalog.measures.treeview.measureTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
@@ -100,14 +100,14 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             }
         }
 
-        child(SearchBar::class) {
+        searchBar {
             attrs {
                 filterText = state.filterText
                 onFilterTextChange = ::handleFilterTextChange
             }
         }
 
-        child(MeasureTreeView::class) {
+        measureTreeView {
             attrs {
                 groups = state.groups
             }

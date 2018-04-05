@@ -3,10 +3,7 @@ package com.infowings.catalog.components.searchbar
 import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.html.js.onChangeFunction
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.div
 import react.dom.input
 
@@ -37,4 +34,8 @@ class SearchBar(props: SearchBarProperties) : RComponent<SearchBarProperties, RS
             }
         }
     }
+}
+
+fun RBuilder.searchBar(block: RHandler<SearchBarProperties>) {
+    child(SearchBar::class, block)
 }

@@ -1,14 +1,11 @@
 package com.infowings.catalog.measures.treeview
 
 import com.infowings.catalog.measures.UnitData
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 
 class MeasureTreeUnit(props: MeasureTreeUnit.Props) : RComponent<MeasureTreeUnit.Props, RState>(props) {
     override fun RBuilder.render() {
-        child(MeasureUnitLabel::class) {
+        measureUnitLabel {
             attrs {
                 unit = props.unit
             }
@@ -18,4 +15,8 @@ class MeasureTreeUnit(props: MeasureTreeUnit.Props) : RComponent<MeasureTreeUnit
     interface Props : RProps {
         var unit: UnitData
     }
+}
+
+fun RBuilder.measureTreeUnit(block: RHandler<MeasureTreeUnit.Props>) {
+    child(MeasureTreeUnit::class, block)
 }

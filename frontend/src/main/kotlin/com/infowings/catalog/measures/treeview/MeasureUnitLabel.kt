@@ -1,10 +1,7 @@
 package com.infowings.catalog.measures.treeview
 
 import com.infowings.catalog.measures.UnitData
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.div
 import react.dom.span
 
@@ -25,4 +22,8 @@ class MeasureUnitLabel(props: MeasureUnitLabel.Props) : RComponent<MeasureUnitLa
     interface Props : RProps {
         var unit: UnitData
     }
+}
+
+fun RBuilder.measureUnitLabel(block: RHandler<MeasureUnitLabel.Props>) {
+    child(MeasureUnitLabel::class, block)
 }

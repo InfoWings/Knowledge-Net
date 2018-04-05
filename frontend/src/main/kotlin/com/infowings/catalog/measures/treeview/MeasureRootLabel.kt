@@ -1,9 +1,6 @@
 package com.infowings.catalog.measures.treeview
 
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.div
 import react.dom.span
 
@@ -19,4 +16,8 @@ class MeasureRootLabel(props: MeasureRootLabel.Props) : RComponent<MeasureRootLa
     interface Props : RProps {
         var groupName: String
     }
+}
+
+fun RBuilder.measureRootLabel(block: RHandler<MeasureRootLabel.Props>) {
+    child(MeasureRootLabel::class, block)
 }

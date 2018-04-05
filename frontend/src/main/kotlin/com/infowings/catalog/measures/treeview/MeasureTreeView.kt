@@ -16,23 +16,23 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
 
     override fun RBuilder.render() {
         div(classes = "measures-list") {
-            props.groups.mapIndexed { index, group ->
+            props.groups.mapIndexed { index, (name, units) ->
                 treeNode {
                     attrs {
-                        key = group.name + index.toString()
+                        key = name + index.toString()
                         className = "aspect-tree-view--aspect-node"
                         treeNodeContent = buildElement {
-                            child(MeasureRootLabel::class) {
+                            measureRootLabel {
                                 attrs {
-                                    groupName = group.name
+                                    groupName = name
                                 }
                             }
                         }!!
                     }
-                    if (group.units.isNotEmpty()) {
-                        child(MeasureTreeUnits::class) {
+                    if (units.isNotEmpty()) {
+                        measureTreeUnits {
                             attrs {
-                                units = group.units
+                                this.units = units
                             }
                         }
                     }
@@ -44,4 +44,8 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
     interface Props : RProps {
         var groups: List<MeasureGroupData>
     }
+}
+
+fun RBuilder.measureTreeView(block: RHandler<MeasureTreeView.Props>) {
+    child(MeasureTreeView::class, block)
 }
