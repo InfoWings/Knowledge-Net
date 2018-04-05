@@ -29,6 +29,7 @@ class ReferenceBookDaoTest {
 
     private lateinit var aspect: Aspect
 
+    private val userName = ""
 
     @Before
     fun initTestData() {
@@ -38,14 +39,14 @@ class ReferenceBookDaoTest {
     //todo: after Object entity will added this test could be moved to ReferenceBookDaoTest
     @Test
     fun fakeRemoveTest() {
-        val book1 = referenceBookService.createReferenceBook("book1", aspect.id)
+        val book1 = referenceBookService.createReferenceBook("book1", aspect.id, userName)
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
         val anotherAspectId = anotherAspect.id
-        val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId)
+        val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId, userName)
         val item1 = createReferenceBookItem(anotherAspectId, book2.id, "v1")
-        val idItem1 = referenceBookService.addReferenceBookItem(item1)
+        val idItem1 = referenceBookService.addReferenceBookItem(item1, userName)
         val item11 = createReferenceBookItem(anotherAspectId, idItem1, "v2")
-        val idItem11 = referenceBookService.addReferenceBookItem(item11)
+        val idItem11 = referenceBookService.addReferenceBookItem(item11, userName)
         dao.fakeRemoveReferenceBookVertex(
             dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
         )

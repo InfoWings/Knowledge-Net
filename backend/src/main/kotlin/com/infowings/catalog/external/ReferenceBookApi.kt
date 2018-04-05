@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
+import java.security.Principal
 
 @RestController
 @RequestMapping("api/book")
@@ -28,48 +29,48 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("create")
-    fun create(@RequestBody book: ReferenceBook): ReferenceBook {
-        return referenceBookService.createReferenceBook(book.name, book.aspectId)
+    fun create(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
+        return referenceBookService.createReferenceBook(book.name, book.aspectId, principal.name)
     }
 
     @PostMapping("update")
-    fun update(@RequestBody book: ReferenceBook): ReferenceBook {
-        return referenceBookService.updateReferenceBook(book)
+    fun update(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
+        return referenceBookService.updateReferenceBook(book, principal.name)
     }
 
     @PostMapping("remove")
-    fun remove(@RequestBody book: ReferenceBook) {
-        referenceBookService.removeReferenceBook(book)
+    fun remove(@RequestBody book: ReferenceBook, principal: Principal) {
+        referenceBookService.removeReferenceBook(book, principal.name)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemove(@RequestBody book: ReferenceBook) {
-        referenceBookService.removeReferenceBook(book, true)
+    fun forceRemove(@RequestBody book: ReferenceBook, principal: Principal) {
+        referenceBookService.removeReferenceBook(book, principal.name, true)
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.addReferenceBookItem(bookItem)
+    fun createItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.addReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/update")
-    fun updateItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.changeValue(bookItem)
+    fun updateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.changeValue(bookItem, principal.name)
     }
 
     @PostMapping("item/forceUpdate")
-    fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.changeValue(bookItem, true)
+    fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.changeValue(bookItem, principal.name, true)
     }
 
     @PostMapping("item/remove")
-    fun removeItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.removeReferenceBookItem(bookItem)
+    fun removeItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.removeReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/forceRemove")
-    fun forceRemoveItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.removeReferenceBookItem(bookItem, true)
+    fun forceRemoveItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.removeReferenceBookItem(bookItem, principal.name, true)
     }
 
     @ExceptionHandler(Exception::class)
