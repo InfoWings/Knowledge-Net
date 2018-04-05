@@ -36,13 +36,13 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("remove")
-    fun remove(@RequestBody book: ReferenceBook) {
-        referenceBookService.removeReferenceBook(book)
+    fun remove(@RequestBody book: ReferenceBook, principal: Principal) {
+        referenceBookService.removeReferenceBook(book, principal.name)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemove(@RequestBody book: ReferenceBook) {
-        referenceBookService.removeReferenceBook(book, true)
+    fun forceRemove(@RequestBody book: ReferenceBook, principal: Principal) {
+        referenceBookService.removeReferenceBook(book, principal.name, true)
     }
 
     @PostMapping("item/create")
@@ -56,18 +56,18 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/forceUpdate")
-    fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.changeValue(bookItem, true)
+    fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.changeValue(bookItem, principal.name, true)
     }
 
     @PostMapping("item/remove")
-    fun removeItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.removeReferenceBookItem(bookItem)
+    fun removeItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.removeReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/forceRemove")
-    fun forceRemoveItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.removeReferenceBookItem(bookItem, true)
+    fun forceRemoveItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.removeReferenceBookItem(bookItem, principal.name, true)
     }
 
     @ExceptionHandler(Exception::class)
