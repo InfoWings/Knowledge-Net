@@ -101,7 +101,7 @@ class MeasureService(val database: OrientDatabase) {
     }
 
     private fun createMeasureVertexWithoutSaving(measure: Measure<*>): OVertex {
-        findMeasure(measure.name).let { if (it != null) return it }
+        findMeasure(measure.name)?.let { return it }
         val measureVertex = database.createNewVertex(MEASURE_VERTEX)
         measureVertex["name"] = measure.name
         measureVertex["description"] = measure.description
