@@ -1,18 +1,15 @@
 package com.infowings.catalog.storage
 
-import com.orientechnologies.orient.core.db.ODatabasePool
-import com.orientechnologies.orient.core.db.ODatabaseType
-import com.orientechnologies.orient.core.db.OrientDB
-import com.orientechnologies.orient.core.db.OrientDBConfig
+import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
+import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
-import org.springframework.beans.factory.annotation.Value
 import javax.annotation.PreDestroy
 
 /**
@@ -37,13 +34,7 @@ var OVertex.name: String
 /**
  * Main class for work with database
  * */
-class OrientDatabase(
-    @Value("\${orient.url}") url: String,
-    @Value("\${orient.database}") database: String,
-    @Value("\${orient.user}") user: String,
-    @Value("\${orient.password}") password: String
-) {
-
+class OrientDatabase(url: String, database: String, user: String, password: String) {
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
 
@@ -114,7 +105,7 @@ class OrientDatabase(
         return@session it.newVertex(className)
     }
 
-    fun delete(v: OVertex) = session(database = this) {
+    fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
         return@session it.delete(v.identity)
     }
 }
