@@ -189,8 +189,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    private fun newAspectSelection(aspectId: String?): AspectData {
-        val selectedAspect = state.selectedAspect
+    private fun State.newAspectSelection(aspectId: String?): AspectData {
+        val selectedAspect = selectedAspect
         return when (aspectId) {
             selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
             null -> emptyAspectData
