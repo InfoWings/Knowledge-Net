@@ -138,6 +138,7 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 measure = aspect.measure,
                 domain = aspect.domain,
                 baseType = aspect.baseType,
+                description = aspect.description,
                 subject = aspect.subject
             )
         }
@@ -220,20 +221,20 @@ private fun List<AspectPropertyData>.insertEmptyAtIndex(suggestedIndex: Int): Li
 }
 
 private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: AspectPropertyData) =
-        this.copy(
-            properties = this.properties.mapIndexed { index, existingProperty ->
-                if (index == atIndex) {
-                    existingProperty.copy(
-                        name = aspectProperty.name,
-                        cardinality = aspectProperty.cardinality,
-                        aspectId = aspectProperty.aspectId,
-                        deleted = aspectProperty.deleted
-                    )
-                } else {
-                    existingProperty
-                }
+    this.copy(
+        properties = this.properties.mapIndexed { index, existingProperty ->
+            if (index == atIndex) {
+                existingProperty.copy(
+                    name = aspectProperty.name,
+                    cardinality = aspectProperty.cardinality,
+                    aspectId = aspectProperty.aspectId,
+                    deleted = aspectProperty.deleted
+                )
+            } else {
+                existingProperty
             }
-        )
+        }
+    )
 
 private fun List<AspectData>.withSelected(aspect: AspectData) =
     aspect.id?.let { id -> this.map { if (it.id == id) aspect else it } } ?: this+aspect

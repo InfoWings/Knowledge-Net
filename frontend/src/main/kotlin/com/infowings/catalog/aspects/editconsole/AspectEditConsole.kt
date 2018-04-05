@@ -24,6 +24,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+            description = if (state.aspectDescription.isNullOrEmpty()) null else state.aspectDescription,
             subject = state.aspectSubject
         )
 
@@ -33,8 +34,8 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
         aspectSubject = props.aspect.subject
+        aspectDescription = props.aspect.description
         confirmation = false
-        aspectDescription = null
     }
 
     override fun componentDidMount() {
@@ -50,6 +51,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 aspectDomain = nextProps.aspect.domain
                 aspectBaseType = nextProps.aspect.baseType
                 aspectSubject = nextProps.aspect.subject
+                aspectDescription = nextProps.aspect.description
                 badRequestErrorMessage = null
             }
         }
