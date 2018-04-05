@@ -76,6 +76,22 @@ class SearchTest {
     }
 
     @Test
+    fun measureSuggestionByDesc() {
+        val queryText = "charge is the physical property"
+        val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
+
+        logger.debug("find result size: ${res.size}")
+        assertFalse(res.isEmpty())
+
+        logger.debug("find result: $res")
+        assertEquals("Coulomb", res.first().name)
+        val m = GlobalMeasureMap[res.first().name]
+        assertEquals(m, Coulomb)
+
+        res.forEach { logger.debug("name : ${it.name}") }
+    }
+
+    @Test
     fun mmSuggestion() {
         val queryText = "mm"
         val res = suggestionService.findMeasure(CommonSuggestionParam(text = queryText), null)
@@ -142,6 +158,30 @@ class SearchTest {
     }
 
     @Test
+    fun aspectDescSuggestion() {
+        val aspectName = "descAspect"
+        val aspect: Aspect = createTestAspect(
+            aspectName,
+            "Aspect is a grammatical category that expresses how an action, event, or state, denoted by a verb, extends over time. Perfective aspect is used in referring to an event conceived as bounded and unitary, without reference to any flow of time during (\"I helped him\"). Imperfective aspect is used for situations conceived as existing continuously or repetitively as time flows "
+        )
+
+        val res = suggestionService.findAspect(
+            SearchContext(),
+            CommonSuggestionParam(text = "grammatical category that expresses"),
+            null
+        )
+
+        logger.debug("find result size: ${res.size}")
+        assertFalse("result set cannot by empty!") { res.isEmpty() }
+
+        logger.debug("find result: $res")
+
+        assertEquals(aspectName, res.first().name)
+        assertEquals(aspect.toAspectData(), res.first())
+    }
+
+
+    @Test
     fun findCycle() {
         val child = createTestAspectTree()
         var res = suggestionService.findAspectNoCycle(child.id, "level")
@@ -156,8 +196,8 @@ class SearchTest {
         assertEquals("root", res[2].name)
     }
 
-    private fun createTestAspect(aspectName: String): Aspect {
-        val ad = AspectData("", aspectName, Metre.name, null, null, emptyList())
+    private fun createTestAspect(aspectName: String, desc: String? = null): Aspect {
+        val ad = AspectData("", aspectName, Metre.name, null, null, emptyList(), description = desc)
         return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
     }
 
@@ -174,20 +214,48 @@ class SearchTest {
          *       level1_1
          */
 
-        val level2_data = AspectData("", "level2", Kilogram.name, null, BaseType.Decimal.name, emptyList())
+        val level2_data = AspectData(
+            "",
+            "level2",
+            Kilogram.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList()
+        )
         val level2: Aspect = aspectService.save(level2_data)
         val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyCardinality.INFINITY.name)
 
 
-        val level1_1_data = AspectData("", "level1_1", Kilogram.name, null, BaseType.Decimal.name, emptyList())
+        val level1_1_data = AspectData(
+            "",
+            "level1_1",
+            Kilogram.name,
+            null,
+            BaseType.Decimal.name,
+            emptyList()
+        )
         val level1_1: Aspect = aspectService.save(level1_1_data)
         val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
 
-        val level1_data = AspectData("", "level1", Kilometre.name, null, BaseType.Decimal.name, listOf(level2_property))
+        val level1_data = AspectData(
+            "",
+            "level1",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(level2_property)
+        )
         val level1: Aspect = aspectService.save(level1_data)
         val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
 
-        val ad = AspectData("", "root", Kilometre.name, null, BaseType.Decimal.name, listOf(level1_1_property, level1_property))
+        val ad = AspectData(
+            "",
+            "root",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(level1_1_property, level1_property)
+        )
         aspectService.save(ad)
 
 

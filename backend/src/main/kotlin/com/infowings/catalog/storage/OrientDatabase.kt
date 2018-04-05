@@ -28,9 +28,15 @@ fun OResult.toVertex(): OVertex = vertex.orElse(null) ?: throw OrientException("
 fun OResult.toVertexOrNull(): OVertex? = vertex.orElse(null)
 
 var OVertex.name: String
-    get() = this["name"]
+    get() = this[ATTR_NAME]
     set(value) {
-        this["name"] = value
+        this[ATTR_NAME] = value
+    }
+
+var OVertex.description: String?
+    get() = this[ATTR_DESC]
+    set(value) {
+        this[ATTR_DESC] = value
     }
 
 /**
