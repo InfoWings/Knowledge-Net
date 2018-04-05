@@ -52,7 +52,7 @@ class ReferenceBookServiceTest {
 
     @Test
     fun saveReferenceBookTest() {
-        assertTrue("Saved reference book must contains generated id", referenceBook.name == "Example")
+        assertTrue("Saved reference book name should be equals before saving name", referenceBook.name == "Example")
     }
 
     @Test
@@ -180,7 +180,7 @@ class ReferenceBookServiceTest {
         val aspectId = referenceBook.aspectId
         val parentId = referenceBook.id
         val child1 = addReferenceBookItem(aspectId, parentId, "value1")
-        val child11 = addReferenceBookItem(aspectId, child1, "value11")
+        addReferenceBookItem(aspectId, child1, "value11")
 
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child1))
 
@@ -227,11 +227,15 @@ class ReferenceBookServiceTest {
 
     @Test
     fun removeBookTest() {
-        val aspectId = referenceBook.aspectId
-        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"))
-        val book = referenceBookService.getReferenceBook(aspectId)
-        referenceBookService.removeReferenceBook(book)
-        assertTrue(referenceBookService.getAllReferenceBooks().isEmpty())
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspectId = anotherAspect.id
+        var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId)
+        referenceBookService.addReferenceBookItem(
+            createReferenceBookItem(anotherAspectId, bookForRemoving.id, "itemValue")
+        )
+        bookForRemoving = referenceBookService.getReferenceBook(anotherAspectId)
+        referenceBookService.removeReferenceBook(bookForRemoving)
+        assertEquals(listOf(referenceBook), referenceBookService.getAllReferenceBooks())
     }
 
     @Test(expected = RefBookConcurrentModificationException::class)

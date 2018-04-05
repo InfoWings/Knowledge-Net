@@ -75,7 +75,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
     }
 
     fun checkIsNotRoot(bookItemVertex: ReferenceBookItemVertex) {
-        if (bookItemVertex.parent == null) throw RefBookModificationException("Root cannot be modified")
+        if (bookItemVertex.parent == null) throw RefBookItemIllegalArgumentException("Root cannot be modified")
     }
 }
 

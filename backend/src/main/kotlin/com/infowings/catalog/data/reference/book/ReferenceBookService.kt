@@ -2,6 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -58,6 +59,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
+        aspectVertex.validateForRemoved()
         referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
 
         return@transaction Pair(
@@ -136,10 +138,11 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Add ReferenceBookItem instance to item parent
      * @throws RefBookItemNotExist if parent item doesn't exist
      * @throws RefBookChildAlreadyExist if parent item already has child with the same value
+     * @throws RefBookItemIllegalArgumentException if parentId is null
      */
     fun addReferenceBookItem(bookItem: ReferenceBookItem): String =
         transaction(db) {
-            val parentId = bookItem.parentId ?: throw RefBookModificationException("parent id must not be null")
+            val parentId = bookItem.parentId ?: throw RefBookItemIllegalArgumentException("parent id must not be null")
             val value = bookItem.value
 
             logger.debug("Adding reference book item. parentId: $parentId, value: $value")
@@ -158,6 +161,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Change value of ReferenceBookItem [bookItem] if it has not linked by Object child
      * or if it has linked by Object child and [force] == true
      * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
+     * @throws RefBookItemIllegalArgumentException if cannot parent vertex is null
      * @throws RefBookItemNotExist
      * @throws RefBookChildAlreadyExist
      */
@@ -169,7 +173,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             logger.debug("Updating reference book item. id: $id, value: $value")
 
             val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
-            val parentVertex = itemVertex.parent ?: throw RefBookModificationException("parent vertex must not be null")
+            val parentVertex = itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must not be null")
 
             itemVertex
                 .validateForRemoved()
@@ -196,6 +200,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Remove [bookItem] if it has not linked by Object child
      * If it has linked by Object child and [force] == true then mark [bookItem] and its children as deleted
      * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
+     * @throws RefBookItemIllegalArgumentException if [bookItem] is root
      * @throws RefBookItemNotExist
      */
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, force: Boolean = false) {
@@ -222,6 +227,7 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
      * Make ReferenceBookItem [source] child of ReferenceBookItem [target]
      * @throws RefBookItemNotExist
      * @throws RefBookItemMoveImpossible in case of [source] is a parent of [target]
+     * @throws RefBookItemIllegalArgumentException if [source] is root
      */
     fun moveReferenceBookItem(source: ReferenceBookItem, target: ReferenceBookItem) {
         transaction(db) {
@@ -246,6 +252,9 @@ class ReferenceBookService(val db: OrientDatabase, private val dao: ReferenceBoo
             return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
         }
     }
+
+    private fun AspectVertex.validateForRemoved() =
+        this.also { if (it.deleted) throw RefBookAspectNotExist(it.id) }
 
     private fun ReferenceBookItemVertex.validateIsNotRoot(): ReferenceBookItemVertex =
         this.also { validator.checkIsNotRoot(this) }
@@ -284,7 +293,7 @@ class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspe
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
 
-class RefBookModificationException(message: String) : ReferenceBookException(message)
+class RefBookItemIllegalArgumentException(message: String) : ReferenceBookException(message)
 
 class RefBookItemHasLinkedEntitiesException(val itemsWithLinkedObjects: List<ReferenceBookItem>) :
     ReferenceBookException("${itemsWithLinkedObjects.map { it.id }}")
