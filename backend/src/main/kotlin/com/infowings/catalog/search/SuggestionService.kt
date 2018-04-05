@@ -50,15 +50,19 @@ class SuggestionService(
     ): List<Measure<*>> {
         val text = textOrAllWildcard(commonParam?.text)
         return session(database) {
-            var res =
-                findMeasureInDb(measureGroupName, text).mapNotNull { it.toMeasure() }
-                    .toMutableList()
-            res = addAnExactMatchToTheBeginning(commonParam, res)
-            if (res.size < maxResultSize) {
-                res.addAll(descSuggestion(text, MEASURE_VERTEX).mapNotNull { it.toMeasure() })
-            }
-            return@session res.subList(0, Math.min(res.size, maxResultSize))
+            findMeasureInDb(measureGroupName, text).mapNotNull { it.toMeasure() }
+                .toMutableList()
+                .addAnExactMatchToTheBeginning(commonParam)
+                .addMeasureDescSuggestion(text, MEASURE_VERTEX)
+                .take(maxResultSize)
         }
+    }
+
+    private fun MutableList<Measure<*>>.addMeasureDescSuggestion(text: String, clazz: String): MutableList<Measure<*>> {
+        if (this.size < maxResultSize) {
+            this.addAll(descSuggestion(text, clazz).mapNotNull { it.toMeasure() })
+        }
+        return this
     }
 
     fun findAspect(
@@ -66,28 +70,39 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         aspectParam: AspectSuggestionParam?
     ): List<AspectData> = session(database) {
-        val res = findAspectInDb(context, commonParam, aspectParam)
+        findAspectInDb(context, commonParam, aspectParam)
             .mapNotNull { it.toAspectData() }
             .toMutableList()
-        if (res.size < maxResultSize) {
-            res.addAll(descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
+            .addAspectDescSuggestion(commonParam)
+            .take(maxResultSize)
+    }
+
+    private fun MutableList<AspectData>.addAspectDescSuggestion(commonParam: CommonSuggestionParam?): MutableList<AspectData> {
+        if (this.size < maxResultSize) {
+            this.addAll(
+                descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
                 .mapNotNull { it.toAspectVertex().toAspectData() })
         }
-        res
+        return this
     }
 
     fun findSubject(
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam
     ): List<SubjectData> = session(database) {
-        val res = findSubjectInDb(commonParam, subjectParam)
+        findSubjectInDb(commonParam, subjectParam)
             .mapNotNull { it.toSubject().toSubjectData() }
             .toMutableList()
-        if (res.size < maxResultSize) {
-            res.addAll(descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
+            .addSubjectDescSuggestion(commonParam)
+    }
+
+    private fun MutableList<SubjectData>.addSubjectDescSuggestion(commonParam: CommonSuggestionParam?): MutableList<SubjectData> {
+        if (this.size < maxResultSize) {
+            this.addAll(
+                descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
                 .mapNotNull { it.toSubject().toSubjectData() })
         }
-        res
+        return this
     }
 
     private fun findSubjectInDb(
@@ -136,16 +151,15 @@ class SuggestionService(
         }
     }
 
-    private fun addAnExactMatchToTheBeginning(
-        commonParam: CommonSuggestionParam?,
-        measureList: MutableList<Measure<*>>
+    private fun MutableList<Measure<*>>.addAnExactMatchToTheBeginning(
+        commonParam: CommonSuggestionParam?
     ): MutableList<Measure<*>> {
         val measure = commonParam?.text?.let { GlobalMeasureMap.values.find { m -> m.symbol == it } }
         measure?.let {
-            measureList.remove(it)
-            measureList.add(0, it)
+            this.remove(it)
+            this.add(0, it)
         }
-        return measureList
+        return this
     }
 
     private fun findAspectInDb(
