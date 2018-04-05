@@ -74,7 +74,15 @@ class AspectService(
      */
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
-    fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
+    fun getAspects(
+        orderBy: List<AspectOrderBy> = listOf(
+            AspectOrderBy(
+                AspectSortField.NAME,
+                Direction.ASC
+            )
+        )
+    ): List<Aspect> =
+        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
 
     fun getAspect(vertex: AspectVertex): Aspect = vertex.toAspect()
 
@@ -83,6 +91,30 @@ class AspectService(
      * @throws AspectDoesNotExist
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+
+    private class CompareString(val value: String, val direction: Direction) : Comparable<String> {
+        override fun compareTo(other: String): Int = direction.dir * value.compareTo(other)
+    }
+
+    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+
+        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+
+        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+            AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
+            AspectSortField.SUBJECT to mapOf(
+                Direction.ASC to ::aspectSubjectNameAsc,
+                Direction.DESC to ::aspectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
+
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
     private fun remove(property: AspectPropertyData) = transaction(db) {

@@ -31,6 +31,8 @@ data class Aspect(
 
     operator fun get(property: String) = properties.filter { it.name == property }
 
+    fun getSubjectName() = subject?.name
+
     fun toAspectData(): AspectData =
         AspectData(
             id,
