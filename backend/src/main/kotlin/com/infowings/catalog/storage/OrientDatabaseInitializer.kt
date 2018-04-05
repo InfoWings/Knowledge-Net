@@ -18,7 +18,7 @@ const val ATTR_NAME = "name"
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
 const val ASPECT_PROPERTY_CLASS = "AspectProperty"
-const val ASPECT_ASPECTPROPERTY_EDGE = "AspectPropertyEdge"
+const val ASPECT_ASPECT_PROPERTY_EDGE = "AspectPropertyEdge"
 const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 const val SUBJECT_CLASS = "Subject"
 const val ASPECT_SUBJECT_EDGE = "AspectSubjectEdge"
@@ -33,6 +33,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     private fun initVertex(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createVertexClass(name)
+
+    private fun initEdge(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createEdgeClass(name)
 
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
@@ -55,12 +58,20 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
-        session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+        session.getClass(ASPECT_ASPECT_PROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECT_PROPERTY_EDGE)
+
+        return@session this
+    }
+
+    fun initHistory(): OrientDatabaseInitializer = session(database) { session ->
         initVertex(session, HISTORY_CLASS)
         initVertex(session, HISTORY_EVENT_CLASS)
         initVertex(session, HISTORY_ELEMENT_CLASS)
         initVertex(session, HISTORY_ADD_LINK_CLASS)
         initVertex(session, HISTORY_DROP_LINK_CLASS)
+
+        initEdge(session, HISTORY_EDGE)
+
         return@session this
     }
 

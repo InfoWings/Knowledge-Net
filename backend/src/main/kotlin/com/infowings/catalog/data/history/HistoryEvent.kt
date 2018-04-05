@@ -19,7 +19,7 @@ data class HistoryEvent(
     val entityClass: String
 )
 
-data class HistoryFact(val event: HistoryEvent, val payload: DiffPayload)
+data class HistoryFact(val event: HistoryEvent, val payload: DiffPayload, val subject: HistoryAware)
 
 
 fun <T> asStringOrEmpty(v: T?) = v?.toString().orEmpty()
@@ -45,5 +45,5 @@ fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
     return DiffPayload(updateData, addedLinks = addedLinks, removedLinks = removedLinks)
 }
 
-fun toHistoryFact(event: HistoryEvent, base: Snapshot, other: Snapshot) =
-    HistoryFact(event, diffSnapshots(base, other))
+fun toHistoryFact(event: HistoryEvent, subject: HistoryAware, base: Snapshot, other: Snapshot) =
+    HistoryFact(event, diffSnapshots(base, other), subject)

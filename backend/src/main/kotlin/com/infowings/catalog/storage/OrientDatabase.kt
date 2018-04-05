@@ -56,6 +56,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
+            .initHistory()
             .initUsers()
             .initMeasures()
             .initReferenceBooks()

@@ -12,7 +12,7 @@ class HistoryService(
     private val userAcceptService: UserAcceptService
 ) {
 
-    fun storeFact(fact: HistoryFact) {
+    fun storeFact(fact: HistoryFact): HistoryEventVertex {
         val historyEventVertex = fact.newHistoryEventVertex()
 
         val elementVertices = fact.payload.data.map {
@@ -28,7 +28,11 @@ class HistoryService(
         val dropLinkVertices = historyEventVertex.linksVertices(fact.payload.removedLinks,
             { historyDaoService.newDropLinkVertex() })
 
+        fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
+
         db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
+
+        return historyEventVertex
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =

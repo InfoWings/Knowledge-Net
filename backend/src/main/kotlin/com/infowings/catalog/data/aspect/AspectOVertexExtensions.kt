@@ -52,7 +52,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     }
 
     val properties: List<OVertex>
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]

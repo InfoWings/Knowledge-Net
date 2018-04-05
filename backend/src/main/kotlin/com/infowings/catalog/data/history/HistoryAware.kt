@@ -7,6 +7,8 @@ enum class EventKind {
     CREATE, UPDATE, SOFT_DELETE, DELETE
 }
 
+const val HISTORY_EDGE = "HistoryEdge"
+
 interface HistoryAware : OVertex {
     val entityClass: String
 
@@ -52,7 +54,7 @@ interface HistoryAware : OVertex {
        Это кажется соответствующим опыту юзера и избавляет нас от лишних разборов.
      */
     private fun toFact(user: String, event: EventKind, base: Snapshot) =
-        toHistoryFact(historyEvent(user, event), base, currentSnapshot())
+        toHistoryFact(historyEvent(user, event), this, base, currentSnapshot())
 
     /**
      *  Факт создания сущности.

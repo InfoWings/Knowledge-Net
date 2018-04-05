@@ -11,7 +11,7 @@ import com.infowings.catalog.storage.transaction
 
 /**
  * Data layer for Aspect & Aspect properties
- * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECTPROPERTY_EDGE]
+ * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECT_PROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
 class AspectService(
