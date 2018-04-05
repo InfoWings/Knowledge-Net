@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
+import java.security.Principal
 
 @RestController
 @RequestMapping("api/book")
@@ -25,13 +26,13 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("create")
-    fun create(@RequestBody book: ReferenceBook): ReferenceBook {
-        return referenceBookService.createReferenceBook(book.name, book.aspectId)
+    fun create(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
+        return referenceBookService.createReferenceBook(book.name, book.aspectId, principal.name)
     }
 
     @PostMapping("update")
-    fun update(@RequestBody book: ReferenceBook): ReferenceBook {
-        return referenceBookService.updateReferenceBook(book)
+    fun update(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
+        return referenceBookService.updateReferenceBook(book, principal.name)
     }
 
     @PostMapping("remove")
@@ -45,13 +46,13 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.addReferenceBookItem(bookItem)
+    fun createItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.addReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/update")
-    fun updateItem(@RequestBody bookItem: ReferenceBookItem) {
-        referenceBookService.changeValue(bookItem)
+    fun updateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
+        referenceBookService.changeValue(bookItem, principal.name)
     }
 
     @PostMapping("item/forceUpdate")

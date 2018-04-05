@@ -189,5 +189,5 @@ class SuggestionService(
     private val lqm = "lqm"
     private val lqa = "lqa"
     private val noCycle =
-        "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :$aspectRecord))"
+        "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :$aspectRecord))"
 }
