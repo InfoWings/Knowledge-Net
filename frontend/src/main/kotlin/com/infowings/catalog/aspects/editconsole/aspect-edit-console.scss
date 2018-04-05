@@ -12,10 +12,16 @@
   right: 0;
   padding: 0 10rem 0 20rem;
 
+  &--description-icon {
+    height: 3rem;
+    width: 3rem;
+    fill: $color-icon-default;
+  }
+
   &--input-group-aspect {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: end;
     padding: 2rem 0;
   }
 
@@ -41,7 +47,7 @@
   }
 
   &--aspect-input-container {
-    flex: 0 1 20rem;
+    flex: 1 1 20rem;
     padding: 0 1rem;
   }
 
@@ -80,7 +86,7 @@
 
   &--button-control-tab {
     flex: 0 1 10rem;
-    padding: 1rem 2rem 0;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -143,11 +149,10 @@
 }
 
 .aspect-table-select.Select {
-  width: 20rem;
+  width: 100%;
 }
 
 .aspect-table-select.Select > .Select-control {
-  width: 20rem;
   border-radius: 3px;
   border: none;
   background-color: transparent !important;

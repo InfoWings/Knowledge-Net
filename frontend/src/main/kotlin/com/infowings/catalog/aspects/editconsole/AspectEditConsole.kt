@@ -6,11 +6,8 @@ import com.infowings.catalog.aspects.editconsole.popup.popup
 import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
-import com.infowings.catalog.common.AspectBadRequestCode
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.common.*
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -37,6 +34,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectBaseType = props.aspect.baseType
         aspectSubject = props.aspect.subject
         confirmation = false
+        aspectDescription = null
     }
 
     override fun componentDidMount() {
@@ -174,6 +172,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     onCancelClick = props.editConsoleModel::discardChanges,
                     onDeleteClick = { tryDelete(false) }
                 )
+                descriptionComponent(
+                    className = "aspect-edit-console--description-icon",
+                    description = state.aspectDescription,
+                    onEditStarted = null,
+                    onNewDescriptionConfirmed = { setState { aspectDescription = it } }
+                )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage
             if (badRequestErrorMessage != null) {
@@ -208,6 +212,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var aspectDescription: String?
         var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
         var confirmation: Boolean

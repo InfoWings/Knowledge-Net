@@ -4,6 +4,7 @@ import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Popover
 import kotlinext.js.invoke
 import kotlinext.js.require
+import kotlinx.html.js.onKeyDownFunction
 import react.*
 import react.dom.div
 
@@ -31,6 +32,9 @@ class EditableDescriptionComponent(props: Props) :
     private val RBuilder.editableInput
         get() =
             div(classes = "description-input--container") {
+                attrs {
+                    onKeyDownFunction = { it.stopPropagation() }
+                }
                 EditableText {
                     attrs {
                         className = "description-input--editable-text"
@@ -52,6 +56,7 @@ class EditableDescriptionComponent(props: Props) :
                             setState {
                                 value = props.description ?: ""
                                 editing = false
+                                opened = false
                             }
                         }
                         onConfirm = {
