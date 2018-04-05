@@ -12,8 +12,8 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
+import org.springframework.beans.factory.annotation.Value
 import javax.annotation.PreDestroy
-
 
 /**
  * Public OVertex Extensions.
@@ -37,7 +37,12 @@ var OVertex.name: String
 /**
  * Main class for work with database
  * */
-class OrientDatabase(url: String, database: String, user: String, password: String) {
+class OrientDatabase(
+    @Value("\${orient.url}") url: String,
+    @Value("\${orient.database}") database: String,
+    @Value("\${orient.user}") user: String,
+    @Value("\${orient.password}") password: String
+) {
 
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
@@ -81,7 +86,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
             return@session session.query(query, *args)
-                    .use { rs: OResultSet -> block(rs.asSequence()) }
+                .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }
 
@@ -120,10 +125,10 @@ val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
  * DO NOT use directly, use [transaction] and [session] instead
  */
 inline fun <U> transactionInner(
-        session: ODatabaseDocument,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    session: ODatabaseDocument,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     var lastException: Exception? = null
 
@@ -170,10 +175,10 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
  * transactions can be nested, sessions nested into transaction will become transaction
  */
 inline fun <U> transaction(
-        database: OrientDatabase,
-        retryOnFailure: Int = 0,
-        txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
-        crossinline block: (db: ODatabaseDocument) -> U
+    database: OrientDatabase,
+    retryOnFailure: Int = 0,
+    txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
+    crossinline block: (db: ODatabaseDocument) -> U
 ): U {
     val session = sessionStore.get()
     if (session != null && session.transaction !is OTransactionNoTx)

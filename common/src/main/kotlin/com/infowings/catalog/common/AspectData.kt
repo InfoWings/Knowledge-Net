@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AspectsList(
-        val aspects: List<AspectData> = emptyList()
+    val aspects: List<AspectData> = emptyList()
 )
 
 @Serializable

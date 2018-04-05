@@ -13,7 +13,6 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 
-
 /**
  * Сервис поиска в OrientDB
  */

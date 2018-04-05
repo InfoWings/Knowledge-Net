@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -13,8 +12,7 @@ import com.infowings.catalog.storage.transaction
  */
 class AspectService(
     private val db: OrientDatabase,
-    private val aspectDaoService: AspectDaoService,
-    suggestionService: SuggestionService
+    private val aspectDaoService: AspectDaoService
 ) {
 
     private val aspectValidator = AspectValidator(aspectDaoService)

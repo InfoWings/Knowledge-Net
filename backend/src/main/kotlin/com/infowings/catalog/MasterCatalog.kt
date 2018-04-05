@@ -1,20 +1,51 @@
 package com.infowings.catalog
 
+import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.UserAccessController
+import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.ReferenceBookService
+import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.external.AspectApi
+import com.infowings.catalog.external.ReferenceBookApi
+import com.infowings.catalog.external.SubjectApi
+import com.infowings.catalog.search.SearchController
+import com.infowings.catalog.search.SuggestionService
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.OrientHeartBeat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.ImportResource
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.support.GenericApplicationContext
+import org.springframework.context.support.beans
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
-@ImportResource("classpath:applicationContext.xml")
-@ComponentScan(basePackages = ["com.infowings.catalog"])
-@EnableAutoConfiguration
 @EnableScheduling
 class MasterCatalog
+
+class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
+    override fun initialize(ctx: GenericApplicationContext) = beans {
+        bean<UserAcceptService>()
+        bean<MeasureService>()
+        bean<ReferenceBookService>()
+        bean<AspectDaoService>()
+        bean<AspectService>()
+        bean<SubjectService>()
+        bean<SuggestionService>()
+        bean<OrientDatabase>()
+        bean<OrientHeartBeat>()
+
+        bean<UserAccessController>()
+        bean<SearchController>()
+        bean<AspectApi>()
+        bean<SubjectApi>()
+        bean<ReferenceBookApi>()
+    }.initialize(ctx)
+}
 
 fun main(args: Array<String>) {
     SpringApplication.run(MasterCatalog::class.java, *args)

@@ -11,15 +11,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.stereotype.Controller
-import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLDecoder
 
-@Controller
 @RequestMapping("/api/access")
 class UserAccessController(var userAcceptService: UserAcceptService, var jwtService: JWTService) {
 
@@ -53,7 +50,6 @@ class UserAccessController(var userAcceptService: UserAcceptService, var jwtServ
     }
 }
 
-@Service
 class UserDetailsServiceImpl(var userAcceptService: UserAcceptService) : UserDetailsService {
     override fun loadUserByUsername(username: String?): UserDetails? {
         val user = userAcceptService.findByUsername(username!!) ?: return null

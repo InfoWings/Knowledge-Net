@@ -3,18 +3,15 @@ package com.infowings.catalog.data
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.*
-
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
-
 const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
 const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
-
 
 class ReferenceBookService(val database: OrientDatabase) {
 
