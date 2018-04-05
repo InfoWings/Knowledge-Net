@@ -1,7 +1,10 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -15,7 +18,7 @@ const val ATTR_NAME = "name"
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
 const val ASPECT_PROPERTY_CLASS = "AspectProperty"
-const val ASPECT_ASPECTPROPERTY_EDGE = "AspectPropertyEdge"
+const val ASPECT_ASPECT_PROPERTY_EDGE = "AspectPropertyEdge"
 const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 const val SUBJECT_CLASS = "Subject"
 const val ASPECT_SUBJECT_EDGE = "AspectSubjectEdge"
@@ -28,13 +31,19 @@ private val logger = loggerFor<OrientDatabaseInitializer>()
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
 class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
+    private fun initVertex(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createVertexClass(name)
+
+    private fun initEdge(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createEdgeClass(name)
+
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
             logger.info("Init users")
-            initUser("user", "user", "USER")
-            initUser("admin", "admin", "ADMIN")
-            initUser("powereduser", "powereduser", "POWERED_USER")
+            initUser(Users.user)
+            initUser(Users.admin)
+            initUser(Users.poweredUser)
         }
         return@session this
     }
@@ -44,12 +53,25 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING).isMandatory = true
+                .createProperty("name", OType.STRING).isMandatory = true
             createIgnoreCaseIndex(session, ASPECT_CLASS)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
-        session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+        session.getClass(ASPECT_ASPECT_PROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECT_PROPERTY_EDGE)
+
+        return@session this
+    }
+
+    fun initHistory(): OrientDatabaseInitializer = session(database) { session ->
+        initVertex(session, HISTORY_CLASS)
+        initVertex(session, HISTORY_EVENT_CLASS)
+        initVertex(session, HISTORY_ELEMENT_CLASS)
+        initVertex(session, HISTORY_ADD_LINK_CLASS)
+        initVertex(session, HISTORY_DROP_LINK_CLASS)
+
+        initEdge(session, HISTORY_EDGE)
+
         return@session this
     }
 
@@ -153,6 +175,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.setProperty("password", password)
         user.setProperty("role", role)
         user.save<ORecord>()
+    }
+
+    private fun initUser(user: UserEntity) = user.apply {
+        initUser(username, password, role.name)
     }
 
     private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {

@@ -49,7 +49,7 @@ class AspectServiceDeletingTest {
     @Test
     fun testAddSameNameAfterRemoving() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
-        aspectService.remove(aspectService.findById(initialAspect.id).toAspectData(), true)
+        aspectService.remove(aspectService.findById(initialAspect.id).toAspectData(), "", true)
         val aspect = aspectService.save(ad)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
     }
@@ -78,9 +78,9 @@ class AspectServiceDeletingTest {
         val aspectData = initialAspectData("SOME_ASPECT")
         val aspect = aspectService.save(aspectData)
 
-        aspectService.remove(aspect.toAspectData())
+        aspectService.remove(aspect.toAspectData(), "")
         thrown.expect(AspectDoesNotExist::class.java)
-        aspectService.remove(aspect.toAspectData())
+        aspectService.remove(aspect.toAspectData(), "")
     }
 
     @Test
@@ -94,7 +94,7 @@ class AspectServiceDeletingTest {
         aspectService.save(aspectData2)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect.id).toAspectData())
+        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), "")
 
     }
 
@@ -104,14 +104,14 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5).toAspectData())
+        aspectService.remove(aspect.copy(version = 5).toAspectData(), "")
     }
 
     @Test
     fun testDeleteSimpleAspect() {
         val aspect = initialAspectData("A1")
         val saved = aspectService.save(aspect)
-        aspectService.remove(saved.toAspectData())
+        aspectService.remove(saved.toAspectData(), "")
 
         assertThat(
             "There are no aspect instance in db",
@@ -130,17 +130,16 @@ class AspectServiceDeletingTest {
         a1 = aspectService.findById(a1.id)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(a1.toAspectData())
+        aspectService.remove(a1.toAspectData(), "")
 
         val found = database.getVertexById(a1.id)
         assertThat("Aspect exists in db", found, Is.`is`(Matchers.nullValue()))
         assertThat("Aspect not deleted", found!!.getProperty<String>("deleted"), Is.`is`(Matchers.nullValue()))
 
         a1 = aspectService.findById(a1.id)
-        aspectService.remove(a1.toAspectData(), true)
+        aspectService.remove(a1.toAspectData(), "", true)
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
         assertThat("Aspect exists in db", found2, Is.`is`(Matchers.not(null)))
         assertThat("Aspect not deleted", found2!!.deleted, Is.`is`(true))
-
     }
 }

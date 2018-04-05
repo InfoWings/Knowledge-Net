@@ -1,5 +1,6 @@
 package com.infowings.catalog.external
 
+
 import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
@@ -10,6 +11,8 @@ import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
+
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
 @RestController
@@ -18,15 +21,17 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(@RequestBody aspectData: AspectData): AspectData {
-        logger.info("New aspect create request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+    fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
+        val user = principal.name
+        logger.debug("New aspect create request: $aspectData by $user")
+        return aspectService.save(aspectData, user).toAspectData()
     }
 
     @PostMapping("update")
-    fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
-        logger.info("Update aspect request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+    fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
+        val user = principal.name
+        logger.debug("Update aspect request: $aspectData by $user")
+        return aspectService.save(aspectData, user).toAspectData()
     }
 
     @GetMapping("get/{name}")
@@ -42,15 +47,17 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @PostMapping("remove")
-    fun removeAspect(@RequestBody aspect: AspectData) {
-        logger.debug("Remove aspect request: ${aspect.id}")
-        aspectService.remove(aspect)
+    fun removeAspect(@RequestBody aspect: Aspect, principal: Principal) {
+        val user = principal.name
+        logger.debug("Remove aspect request: ${aspect.id} by $user")
+        aspectService.remove(aspect.toAspectData(), user)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody aspect: AspectData) {
-        logger.debug("Forced remove aspect request: ${aspect.id}")
-        aspectService.remove(aspect, true)
+    fun forceRemoveAspect(@RequestBody aspect: Aspect, principal: Principal) {
+        val user = principal.name
+        logger.debug("Forced remove aspect request: ${aspect.id} by $user")
+        aspectService.remove(aspect.toAspectData(), user, true)
     }
 
     @ExceptionHandler(AspectException::class)
