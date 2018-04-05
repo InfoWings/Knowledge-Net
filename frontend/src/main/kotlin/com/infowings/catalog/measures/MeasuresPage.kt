@@ -3,7 +3,7 @@ package com.infowings.catalog.measures
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.components.searchbar.SearchBar
-import com.infowings.catalog.layout.Header
+import com.infowings.catalog.layout.header
 import com.infowings.catalog.measures.treeview.MeasureTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.Job
@@ -93,9 +93,11 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
     }
 
     override fun RBuilder.render() {
-        child(Header::class) {
-            attrs.location = props.location.pathname
-            attrs.history = props.history
+        header {
+            attrs {
+                location = props.location.pathname
+                history = props.history
+            }
         }
 
         child(SearchBar::class) {

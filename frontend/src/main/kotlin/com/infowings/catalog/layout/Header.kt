@@ -70,3 +70,7 @@ class Header : RComponent<Header.Props, RState>() {
         var history: History
     }
 }
+
+fun RBuilder.header(block: RHandler<Header.Props>) {
+    child(Header::class, block)
+}
