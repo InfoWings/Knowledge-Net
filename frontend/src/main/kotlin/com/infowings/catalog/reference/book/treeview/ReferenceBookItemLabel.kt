@@ -1,7 +1,12 @@
 package com.infowings.catalog.reference.book.treeview
 
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.popup.popup
+import com.infowings.catalog.components.popup.removeConfirmWindow
+import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
@@ -12,6 +17,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
 
     override fun State.init() {
         updatingBookItem = false
+        confirmation = false
     }
 
     private fun startUpdatingBookItem(e: Event) {
@@ -29,9 +35,27 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     }
 
     private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem) {
-        props.updateBookItem(bookItem)
+        props.updateBookItem(bookItem, false)
         setState {
             updatingBookItem = false
+        }
+    }
+
+    private fun tryUpdate(force: Boolean) {
+        launch {
+            try {
+                props.updateBookItem(props.bookItem, force)
+                setState {
+                    confirmation = false
+                }
+            } catch (e: RefBookBadRequestException) {
+                when (e.exceptionInfo.code) {
+                    BadRequestCode.NEED_CONFIRMATION -> setState {
+                        confirmation = true
+                    }
+                    else -> throw e
+                }
+            }
         }
     }
 
@@ -54,16 +78,31 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                 }
             }
         }
+
+        if (state.confirmation) {
+            popup {
+                attrs.closePopup = { setState { confirmation = false } }
+
+                removeConfirmWindow {
+                    attrs {
+                        message = "This reference book item has linked Object"
+                        onCancel = { setState { confirmation = false } }
+                        onConfirm = { tryUpdate(true) }
+                    }
+                }
+            }
+        }
     }
 
     interface Props : RProps {
         var aspectId: String
         var bookItem: ReferenceBookItem
-        var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {
         var updatingBookItem: Boolean
+        var confirmation: Boolean
     }
 }
 

@@ -131,6 +131,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             }
         }
+
         div(classes = "book-tree-view--item") {
             if (state.creatingBookItem) {
                 bookItemEditConsole {
@@ -142,13 +143,14 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                 }
             }
         }
+
         if (state.confirmation) {
             popup {
                 attrs.closePopup = { setState { confirmation = false } }
 
                 removeConfirmWindow {
                     attrs {
-                        message = "This reference book item is not free"
+                        message = "This reference book item has linked Object"
                         onCancel = { setState { confirmation = false } }
                         onConfirm = { tryDelete(true) }
                     }
@@ -162,7 +164,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         var book: ReferenceBook
         var bookItem: ReferenceBookItem
         var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
         var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
 
     }

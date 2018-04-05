@@ -167,7 +167,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var updateBook: suspend (ReferenceBook) -> Unit
         var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
         var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
         var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 

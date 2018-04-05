@@ -18,7 +18,7 @@ interface ReferenceBookApiReceiverProps : RProps {
     var updateBook: suspend (ReferenceBook) -> Unit
     var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
     var createBookItem: suspend (ReferenceBookItem) -> Unit
-    var updateBookItem: suspend (ReferenceBookItem) -> Unit
+    var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
 }
 
@@ -34,7 +34,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     override fun componentDidMount() {
         launch {
-            val aspectIdToBookMap = getAllReferenceBooks().books
+            val aspectIdToBookMap = getAllReferenceBooks().books //todo: filter deleted
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
@@ -92,14 +92,22 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
-    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem) {
+    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem, force: Boolean) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
         */
-        updateReferenceBookItem(bookItem)
-        val updatedBook = getReferenceBook(bookItem.aspectId)
-        updateRowDataList(updatedBook.aspectId, updatedBook)
+        try {
+            if (force) {
+                forceUpdateReferenceBookItem(bookItem)
+            } else {
+                updateReferenceBookItem(bookItem)
+            }
+            val updatedBook = getReferenceBook(bookItem.aspectId)
+            updateRowDataList(updatedBook.aspectId, updatedBook)
+        } catch (e: BadRequestException) {
+            throw RefBookBadRequestException(JSON.parse(e.message))
+        }
     }
 
     private suspend fun handleDeleteBookItem(bookItem: ReferenceBookItem, force: Boolean) {
@@ -137,7 +145,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 updateBook = { handleUpdateBook(it) }
                 deleteBook = { book, force -> handleDeleteBook(book, force) }
                 createBookItem = { handleCreateBookItem(it) }
-                updateBookItem = { handleUpdateBookItem(it) }
+                updateBookItem = { bookItem, force -> handleUpdateBookItem(bookItem, force) }
                 deleteBookItem = { bookItem, force -> handleDeleteBookItem(bookItem, force) }
             }
         }

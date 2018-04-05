@@ -36,6 +36,11 @@ internal suspend fun createReferenceBookItem(bookItem: ReferenceBookItem) {
 internal suspend fun updateReferenceBookItem(bookItem: ReferenceBookItem) {
     post("/api/book/item/update", JSON.stringify(bookItem))
 }
+
+internal suspend fun forceUpdateReferenceBookItem(bookItem: ReferenceBookItem) {
+    post("/api/book/item/forceUpdate", JSON.stringify(bookItem))
+}
+
 internal suspend fun deleteReferenceBookItem(bookItem: ReferenceBookItem) {
     post("/api/book/item/remove", JSON.stringify(bookItem))
 }

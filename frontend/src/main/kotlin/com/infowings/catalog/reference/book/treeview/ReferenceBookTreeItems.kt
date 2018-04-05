@@ -81,7 +81,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
         var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
         var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
