@@ -12,11 +12,11 @@ import kotlinx.coroutines.experimental.withTimeoutOrNull
 import react.*
 import react.dom.div
 
-private interface MeasurementUnitOption : SelectOption {
+interface MeasurementUnitOption : SelectOption {
     var measurementUnit: String
 }
 
-private fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnitOption> {
+fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnitOption> {
     measurementUnit = optionName
 }
 

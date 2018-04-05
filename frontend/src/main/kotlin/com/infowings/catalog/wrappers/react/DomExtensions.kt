@@ -1,10 +1,15 @@
 package com.infowings.catalog.wrappers.react
 
+import kotlinext.js.assign
 import kotlinx.html.*
 import react.RBuilder
+import react.RState
+import react.React
 import react.ReactElement
 import react.dom.RDOMBuilder
 import react.dom.tag
+import kotlin.coroutines.experimental.Continuation
+import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Custom SVG tag for inlining all svg icons (sets default attributes like version, xmlns, viewBox)
@@ -53,3 +58,15 @@ fun RDOMBuilder<SVG>.path(path: String): ReactElement = tag({}) { PATH(attribute
  * Custom label builder that supports 'htmlFor' attribute instead of for in react
  */
 inline fun RBuilder.label(classes: String? = null, htmlFor: String? = null, block: RDOMBuilder<LABEL>.() -> Unit): ReactElement = tag(block) { LABEL(attributesMapOf("class", classes, "htmlFor", htmlFor), it) }
+
+
+/**
+ * Extension for setState with additional callback. Intended to be used to make suspended calls inside coroutines
+ */
+fun <S : RState> React.Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
+        setState({ assign(it, buildState) }, callback)
+
+suspend fun <S : RState> React.Component<*, S>.suspendSetState(buildState: S.() -> Unit) =
+    suspendCoroutine { cont: Continuation<Unit> ->
+        setStateWithCallback({ cont.resume(Unit) }, buildState)
+    }

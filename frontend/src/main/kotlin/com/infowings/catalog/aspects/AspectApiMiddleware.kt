@@ -45,7 +45,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             newAspect = createAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
@@ -62,7 +62,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             updatedAspect = updateAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
@@ -84,7 +84,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 removeAspect(aspectData)
             }
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message!!))
+            throw AspectBadRequestException(JSON.parse(e.message))
         }
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)

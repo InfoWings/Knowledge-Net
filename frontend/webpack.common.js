@@ -22,7 +22,7 @@ module.exports = {
                 enforce: "pre"
             },
             {
-                test: /\.(png|jpg|gif|svg)$/,
+              test: /\.(png|jpg|gif|svg|eot|woff|ttf)$/,
               loader: "file-loader"
             },
             {

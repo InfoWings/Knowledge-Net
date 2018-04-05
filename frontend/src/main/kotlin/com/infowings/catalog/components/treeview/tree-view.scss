@@ -1,0 +1,32 @@
+@import "abstract";
+
+.tree-view {
+
+  &--node {
+    display: flex;
+    align-items: center;
+    font-size: 1.6rem;
+    font-weight: 400;
+
+    &:not(:last-child) {
+      margin-bottom: .4rem;
+    }
+  }
+
+  &--expander-icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    fill: $color-icon-default;
+    margin-right: .25rem;
+
+    &:hover {
+      fill: $color-icon-hover;
+    }
+  }
+
+  &--children {
+    padding-left: 1.85rem;
+    padding-top: .15rem;
+  }
+
+}
