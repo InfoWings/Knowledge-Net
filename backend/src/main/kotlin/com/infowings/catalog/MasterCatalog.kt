@@ -1,16 +1,11 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.auth.UserAcceptService
-import com.infowings.catalog.auth.UserAccessController
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.ReferenceBookService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.external.AspectApi
-import com.infowings.catalog.external.ReferenceBookApi
-import com.infowings.catalog.external.SubjectApi
-import com.infowings.catalog.search.SearchController
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.OrientHeartBeat
@@ -38,12 +33,6 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean<SuggestionService>()
         bean<OrientDatabase>()
         bean<OrientHeartBeat>()
-
-        bean<UserAccessController>()
-        bean<SearchController>()
-        bean<AspectApi>()
-        bean<SubjectApi>()
-        bean<ReferenceBookApi>()
     }.initialize(ctx)
 }
 

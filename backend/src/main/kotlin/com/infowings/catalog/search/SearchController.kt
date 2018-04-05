@@ -5,10 +5,12 @@ import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * REST API поиска
  */
+@RestController
 @RequestMapping("/api/search")
 class SearchController(val suggestionService: SuggestionService) {
 

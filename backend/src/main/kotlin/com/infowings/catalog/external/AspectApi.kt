@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
+@RestController
 @RequestMapping("/api/aspect")
 class AspectApi(val aspectService: AspectService) {
 
