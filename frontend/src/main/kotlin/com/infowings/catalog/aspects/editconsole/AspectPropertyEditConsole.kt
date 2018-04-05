@@ -1,32 +1,23 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
-import com.infowings.catalog.aspects.editconsole.aspect.aspectBaseTypeInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectDomainInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectMeasureInput
-import com.infowings.catalog.aspects.editconsole.aspect.aspectNameInput
+import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
+import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
+import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.utils.addToListIcon
-import com.infowings.catalog.utils.checkIcon
-import com.infowings.catalog.utils.crossIcon
-import com.infowings.catalog.utils.ripIcon
+import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.div
 import react.dom.span
 
-class AspectPropertyEditConsole(props: Props) :
-    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -49,13 +40,13 @@ class AspectPropertyEditConsole(props: Props) :
         childAspectMeasure = props.childAspect?.measure
         childAspectDomain = props.childAspect?.domain
         childAspectBaseType = props.childAspect?.baseType
+        childAspectSubject = props.childAspect?.subject
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
         if (props.parentAspect.id != nextProps.parentAspect.id
-            || props.aspectPropertyIndex != nextProps.aspectPropertyIndex
-        ) {
-            setState {
+                || props.aspectPropertyIndex != nextProps.aspectPropertyIndex) {
+            setStateWithCallback({ inputRef?.focus(); inputRef?.select() }) {
                 aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
                 aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
                 aspectPropertyAspectId = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].aspectId
@@ -64,6 +55,7 @@ class AspectPropertyEditConsole(props: Props) :
                 childAspectMeasure = nextProps.childAspect?.measure
                 childAspectDomain = nextProps.childAspect?.domain
                 childAspectBaseType = nextProps.childAspect?.baseType
+                childAspectSubject = nextProps.childAspect?.subject
                 badRequestErrorMessage = null
             }
         }
@@ -74,16 +66,32 @@ class AspectPropertyEditConsole(props: Props) :
         inputRef?.select()
     }
 
-    override fun componentDidUpdate(prevProps: Props, prevState: State) {
-        if (props.parentAspect.id != prevProps.parentAspect.id || props.aspectPropertyIndex != prevProps.aspectPropertyIndex) {
-            inputRef?.focus()
-            inputRef?.select()
-        }
-    }
-
     private fun assignInputRef(inputRef: HTMLInputElement?) {
         this.inputRef = inputRef
     }
+
+    /**
+     * Business logic function (handler for add-to-list icon click and ctrl-enter keystoke)
+     */
+    private fun switchToNextProperty() {
+        props.propertyEditConsoleModel.switchToNextProperty(currentState)
+    }
+
+    /**
+     * Business logic function (handler for check icon click and enter keystoke)
+     */
+    private fun trySubmitParentAspect() {
+        launch {
+            try {
+                props.propertyEditConsoleModel.submitParentAspect(currentState)
+            } catch (exception: AspectBadRequestException) {
+                setState {
+                    badRequestErrorMessage = exception.message
+                }
+            }
+        }
+    }
+
 
     private fun handlePropertyNameChanged(name: String) {
         setState {
@@ -104,6 +112,7 @@ class AspectPropertyEditConsole(props: Props) :
             childAspectMeasure = aspect.measure
             childAspectDomain = aspect.domain
             childAspectBaseType = aspect.baseType
+            childAspectSubject = aspect.subject
         }
     }
 
@@ -132,60 +141,18 @@ class AspectPropertyEditConsole(props: Props) :
         }
     }
 
-    private fun handleSubmitAspectClick(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        trySubmitParentAspect()
-    }
-
-    private fun handleNextPropertyClick(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onSwitchToNextProperty(currentState)
-    }
-
-    private fun handleCancelClick(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onCancel()
-    }
-
-    private fun handleDeleteClick(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        props.onDelete()
-    }
-
-    private fun handleKeyDown(e: Event) {
-        e.stopPropagation()
-        val keyCode = e.unsafeCast<KeyboardEvent>().keyCode
-        val ctrlPressed = e.unsafeCast<KeyboardEvent>().ctrlKey
-        when (keyCode) {
-            27 -> props.onCancel()
-            13 -> if (ctrlPressed) {
-                props.onSwitchToNextProperty(currentState)
-            } else {
-                trySubmitParentAspect()
-            }
-        }
-    }
-
-    private fun trySubmitParentAspect() {
-        launch {
-            try {
-                props.onSaveParentAspect(currentState)
-            } catch (exception: AspectBadRequestException) {
-                setState {
-                    badRequestErrorMessage = exception.message
-                }
-            }
+    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
+        setState {
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
         }
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-edit-console") {
+        aspectConsoleBlock {
             attrs {
-                onKeyDownFunction = ::handleKeyDown
+                onEscape = props.propertyEditConsoleModel::discardChanges
+                onEnter = ::trySubmitParentAspect
+                onCtrlEnter = ::switchToNextProperty
             }
             div(classes = "aspect-edit-console--input-group-aspect-property") {
                 aspectPropertyNameInput {
@@ -201,33 +168,12 @@ class AspectPropertyEditConsole(props: Props) :
                         onChange = ::handlePropertyCardinalityChanged
                     }
                 }
-                div(classes = "aspect-edit-console--button-control-tab") {
-                    div(classes = "aspect-edit-console--button-control") {
-                        attrs {
-                            onClickFunction = ::handleSubmitAspectClick
-                        }
-                        checkIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
-                    }
-                    div(classes = "aspect-edit-console--button-control") {
-                        attrs {
-                            onClickFunction = ::handleNextPropertyClick
-                        }
-                        addToListIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__green") {}
-                    }
-                    div(classes = "aspect-edit-console--button-control") {
-                        attrs {
-                            onClickFunction = ::handleCancelClick
-                        }
-                        crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__yellow") {}
-                    }
-
-                    div(classes = "aspect-edit-console--button-control") {
-                        attrs {
-                            onClickFunction = ::handleDeleteClick
-                        }
-                        ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
-                    }
-                }
+                consoleButtonsGroup(
+                    onSubmitClick = ::trySubmitParentAspect,
+                    onCancelClick = props.propertyEditConsoleModel::discardChanges,
+                    onAddToListClick = ::switchToNextProperty,
+                    onDeleteClick = props.propertyEditConsoleModel::deleteProperty
+                )
             }
             div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
                 aspectPropertyAspect {
@@ -239,10 +185,11 @@ class AspectPropertyEditConsole(props: Props) :
                         aspect = props.childAspect ?: if (!boundAspectId.isNullOrEmpty()) {
                             AspectData(
                                 boundAspectId,
-                                state.childAspectName!!,
+                                state.childAspectName ?: error("Aspect.name should not be null when submitting"),
                                 state.childAspectMeasure,
                                 state.childAspectDomain,
-                                state.childAspectBaseType
+                                state.childAspectBaseType,
+                                subject = state.childAspectSubject
                             )
                         } else null
                         onAspectSelected = ::handlePropertyAspectIdChanged
@@ -275,6 +222,12 @@ class AspectPropertyEditConsole(props: Props) :
                                 onChange = ::handleChildAspectBaseTypeChanged
                             }
                         }
+                        aspectSubjectInput {
+                            attrs {
+                                value = state.childAspectSubject?.name ?: ""
+                                onChange = ::handleAspectSubjectChanged
+                            }
+                        }
                     }
                 }
             }
@@ -293,10 +246,7 @@ class AspectPropertyEditConsole(props: Props) :
         var parentAspect: AspectData
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
-        var onCancel: () -> Unit
-        var onDelete: () -> Unit
-        var onSwitchToNextProperty: (AspectPropertyData) -> Unit
-        var onSaveParentAspect: suspend (AspectPropertyData) -> Unit
+        var propertyEditConsoleModel: AspectPropertyEditConsoleModel
     }
 
     interface State : RState {
@@ -308,6 +258,7 @@ class AspectPropertyEditConsole(props: Props) :
         var childAspectMeasure: String?
         var childAspectDomain: String?
         var childAspectBaseType: String?
+        var childAspectSubject: SubjectData?
         var badRequestErrorMessage: String?
     }
 }

@@ -33,8 +33,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
-            val rowDataList = getAllAspects().aspects
-                .map { RowData(it.id!!, it.name, aspectIdToBookMap[it.id!!]) }
+            val rowDataList = getAllAspects().aspects.filter { !it.deleted }
+                .map { RowData(it.id ?: "", it.name ?: "", aspectIdToBookMap[it.id!!]) }
 
             setState {
                 this.rowDataList = rowDataList

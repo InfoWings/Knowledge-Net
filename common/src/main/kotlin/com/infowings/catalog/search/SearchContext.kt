@@ -8,10 +8,12 @@ const val FUZZY_MIN_DIST: Double = 1.0
  *
  * @param aspectId - ID of current aspect
  * @param aspectPropertyId - ID of current aspect property
+ * @param subjectId - ID of current subject
  */
 data class SearchContext(
     var aspectId: String? = null,
-    var aspectPropertyId: String? = null
+    var aspectPropertyId: String? = null,
+    var subjectId: String? = null
 )
 
 /**
@@ -28,7 +30,7 @@ data class CommonSuggestionParam(
 )
 
 /**
- * Aspect suggestion request data
+ * Additional params of aspect suggestion
  *
  * @param measureText - part of name of measure for fulltext search
  * @param measureName - exactly name of measure
@@ -36,4 +38,13 @@ data class CommonSuggestionParam(
 data class AspectSuggestionParam(
     var measureText: String? = null,
     var measureName: String? = null
+)
+
+/**
+ * Additional params of subject suggestion
+ *
+ * @param measureText - part of name of aspect for fulltext search
+ */
+data class SubjectSuggestionParam(
+    var aspectText: String? = null
 )

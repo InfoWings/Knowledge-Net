@@ -19,7 +19,7 @@
 
     <bean id="orientHeartBeat" class="com.infowings.catalog.storage.OrientHeartBeat">
         <constructor-arg name="database" ref="orientDatabase"/>
-        <constructor-arg name="seconds" value="${orient.heartbeat.timeout}"/>
+        <constructor-arg name="seconds" value="${orient.heartbeat.timeout:600}"/>
     </bean>
 
     <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
@@ -27,25 +27,52 @@
         <constructor-arg ref="measureService"/>
     </bean>
 
-    <bean id="metadataService" class="com.infowings.catalog.data.aspect.AspectService">
+    <bean id="historyDaoService" class="com.infowings.catalog.data.history.HistoryDaoService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="aspectDaoService"/>
-        <constructor-arg ref="suggestionService"/>
     </bean>
 
+    <bean id="aspectService" class="com.infowings.catalog.data.aspect.AspectService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="aspectDaoService"/>
+        <constructor-arg ref="historyService"/>
+    </bean>
+
+    <!-- Контроллеры также необходимо добавлять в xml конфиг т.к. без этого их api не виден.
+         Возможно что-то изменится с переходом на kotlin config.  -->
     <bean id="aspectApi" class="com.infowings.catalog.external.AspectApi">
-        <constructor-arg ref="metadataService"/>
+        <constructor-arg ref="aspectService"/>
+    </bean>
+
+    <bean id="subjectApi" class="com.infowings.catalog.external.SubjectApi">
+        <constructor-arg ref="subjectService"/>
     </bean>
 
     <bean id="measureService" class="com.infowings.catalog.data.MeasureService">
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
+    <bean id="referenceBookDaoService" class="com.infowings.catalog.data.ReferenceBookDaoService">
+        <constructor-arg name="db" ref="orientDatabase"/>
+    </bean>
+
     <bean id="referenceBookService" class="com.infowings.catalog.data.ReferenceBookService">
         <constructor-arg name="database" ref="orientDatabase"/>
+        <constructor-arg name="daoService" ref="referenceBookDaoService"/>
+        <constructor-arg name="historyService" ref="historyService"/>
     </bean>
 
     <bean id="suggestionService" class="com.infowings.catalog.search.SuggestionService">
         <constructor-arg ref="orientDatabase"/>
+    </bean>
+
+    <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="historyDaoService"/>
+        <constructor-arg ref="userAcceptService"/>
+    </bean>
+
+    <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">
+        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg ref="aspectService"/>
     </bean>
 </beans>

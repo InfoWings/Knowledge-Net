@@ -8,17 +8,19 @@ import react.*
 import react.dom.div
 
 private interface CardinalityOption : SelectOption {
-    var cardinality: String
+    var cardinalityLabel: String
+    var cardinalityEnumValue: String
 }
 
-private fun cardinalityOption(cardinality: String) = jsObject<CardinalityOption> {
-    this.cardinality = cardinality
+private fun cardinalityOption(cardinalityLabel: String, cardinalityEnumValue: String) = jsObject<CardinalityOption> {
+    this.cardinalityLabel = cardinalityLabel
+    this.cardinalityEnumValue = cardinalityEnumValue
 }
 
 class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput.Props, RState>() {
 
     private fun handleSelectCardinalityOption(option: CardinalityOption) {
-        props.onChange(option.cardinality)
+        props.onChange(option.cardinalityEnumValue)
     }
 
     override fun RBuilder.render() {
@@ -31,14 +33,14 @@ class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput
                     attrs {
                         className = "aspect-table-select"
                         value = props.value ?: ""
-                        labelKey = "cardinality"
-                        valueKey = "cardinality"
+                        labelKey = "cardinalityLabel"
+                        valueKey = "cardinalityEnumValue"
                         onChange = ::handleSelectCardinalityOption
                         clearable = false
                         options = arrayOf(
-                                cardinalityOption("ZERO"),
-                                cardinalityOption("ONE"),
-                                cardinalityOption("INFINITY")
+                                cardinalityOption("0", "ZERO"),
+                                cardinalityOption("0..1", "ONE"),
+                                cardinalityOption("0..∞", "INFINITY")
                         )
                     }
                 }

@@ -3,41 +3,8 @@
 .aspect-tree-view {
 
   max-width: 120rem;
-  margin: 0 auto;
+  margin: 3rem auto;
   padding-bottom: 20rem;
-
-  &--root {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--property {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--line-icon {
-    height: 1.6rem;
-    width: 1.6rem;
-    stroke: $color-icon-default;
-    margin-right: .4rem;
-
-    &__clickable:hover {
-      fill: $color-icon-hover;
-    }
-  }
 
   &--add-to-list-icon {
     height: 1.5rem;
@@ -48,6 +15,13 @@
     &:hover {
       fill: $color-icon-hover;
     }
+  }
+
+  &--expand-all-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: .2rem;
   }
 
   &--rip-icon {
@@ -98,6 +72,10 @@
     color: $color-text-dark-grey;
   }
 
+  &--label-subject {
+    color: $color-text-dark-grey;
+  }
+
   &--label-domain {
     color: $color-text-dark-grey;
   }
@@ -111,17 +89,13 @@
 
     &-name {
       font-weight: 600;
-      padding-right: .5rem;
+      padding-right: .2rem;
+      font-style: italic;
     }
 
     &-cardinality {
-      padding-left: .5rem;
+      padding: 0 .2rem;
     }
-  }
-
-  &--properties-block {
-    padding-left: $tree-level-translation;
-    padding-bottom: .7rem;
   }
 
 }

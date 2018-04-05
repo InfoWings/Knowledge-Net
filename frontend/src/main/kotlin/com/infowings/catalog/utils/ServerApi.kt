@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JSON as KJSON
 
 private const val POST = "POST"
 private const val GET = "GET"
+private const val PUT = "PUT"
 
 private const val AUTH_ROLE = "auth-role"
 private const val REFRESH_AUTH = "x-refresh-authorization"
@@ -45,6 +46,15 @@ suspend fun get(url: String, body: dynamic = null): String {
 }
 
 /**
+ * Http PUT request to server.
+ * Returns response text.
+ */
+suspend fun put(url: String, body: dynamic = null): String {
+    return authorizedRequest(PUT, url, body).text().await()
+}
+
+
+/**
  * Http request to server after authorization.
  * If response status 200(OK) then return response
  * if response status 401(unauthorized) then remove role cookie and redirect to login page
@@ -71,7 +81,7 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
             }
         }
         BAD_REQUEST -> throw BadRequestException(response.text().await())
-        else -> throw ServerException(response.text().await(), statusCode)
+        else -> throw ServerException(response.text().await())
     }
 }
 
@@ -79,12 +89,13 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
  * Exception that represents unsuccessful response on http request to server,
  * except for 401(unauthorized) and 403(forbidden) cases
  */
-class ServerException(message: String, val httpStatusCode: Int) : RuntimeException(message)
+
+class ServerException(message: String) : RuntimeException(message)
 
 /**
  * Exception that contains message about what was wrong with request to server.
  */
-class BadRequestException(message: String) : RuntimeException(message)
+class BadRequestException(override val message: String) : RuntimeException(message)
 
 private fun redirectToLoginPage() {
     removeAuthRole()
@@ -125,7 +136,7 @@ private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, bo
             redirectToLoginPage()
             responseToRefresh
         }
-        else -> throw ServerException(responseToRefresh.text().await(), refreshStatus)
+        else -> throw ServerException(responseToRefresh.text().await())
     }
 }
 
