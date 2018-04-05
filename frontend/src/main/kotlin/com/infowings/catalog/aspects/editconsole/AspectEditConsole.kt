@@ -108,9 +108,9 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
-    private fun handleAspectSubjectChanged(subjectName: String, subjetId: String) {
+    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
         setState {
-            aspectSubject = SubjectData(id = subjetId, name = subjectName)
+            aspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
         }
     }
 

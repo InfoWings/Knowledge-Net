@@ -75,7 +75,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
 
-            if(props.book.children.isEmpty()) {
+            if (props.book.children.isEmpty()) {
                 addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                     attrs {
                         onClickFunction = ::startCreatingBookItem
@@ -99,7 +99,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     bookItemData = ReferenceBookItemData(null, "", props.book.id, props.aspectId)
                     onCancel = ::cancelCreatingBookItem
-                    onSubmit = { handleCreateBookItem(it)}
+                    onSubmit = { handleCreateBookItem(it) }
                 }
             }
         }
