@@ -24,6 +24,7 @@ data class UnitsTableRowData(
     val pivotBy: String,
     val name: String,
     val symbol: String,
+    val description: String?,
     val containsFilterText: Boolean
 )
 
@@ -38,7 +39,8 @@ class UnitsTable : RComponent<UnitsTableProperties, RState>() {
                 columns = arrayOf(
                     column("pivotBy", header("pivotBy")),
                     column("name", header("Unit"), 300.0),
-                    column("symbol", header("Symbol"))
+                    column("symbol", header("Symbol")),
+                    column("description", header("description"))
                 )
                 data = props.data
                 showPagination = false

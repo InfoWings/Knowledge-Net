@@ -48,7 +48,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
             version,
             subject?.toSubjectData(),
-            deleted
+            deleted,
+            description
         )
     }
 
@@ -62,9 +63,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         }
 
     var name: String
-        get() = vertex["name"]
+        get() = vertex[ATTR_NAME]
         set(value) {
-            vertex["name"] = value
+            vertex[ATTR_NAME] = value
         }
 
     val measure: Measure<*>?
@@ -89,6 +90,12 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
             return subjects.firstOrNull()?.toSubject()
+        }
+
+    var description: String?
+        get() = vertex[ATTR_DESC]
+        set(value) {
+            vertex[ATTR_DESC] = value
         }
 
     fun isLinkedBy() = hasIncomingEdges()

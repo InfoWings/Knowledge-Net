@@ -48,6 +48,14 @@ fun createTestAspect(
     aspectService: AspectService,
     subject: Subject? = null
 ): Aspect {
-    val ad = AspectData("", aspectName, "Metre", null, null, emptyList(), subject = subject?.toSubjectData())
+    val ad = AspectData(
+        "",
+        aspectName,
+        "Metre",
+        null,
+        null,
+        emptyList(),
+        subject = subject?.toSubjectData()
+    )
     return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
 }

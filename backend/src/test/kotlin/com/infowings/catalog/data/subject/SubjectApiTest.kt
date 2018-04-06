@@ -39,9 +39,7 @@ class SubjectApiTest : AbstractMvcTest() {
     @Test
     fun create() {
         createTestAspect("TestCreateSubjectAspect", aspectService)
-        val sd = SubjectData(
-            name = "TestSubject_CreateApi_${LocalDateTime.now()}"
-        )
+        val sd = SubjectData(name = "TestSubject_CreateApi_${LocalDateTime.now()}", description = null)
         val subjectDataJson: String = ObjectMapper().writeValueAsString(sd)
 
         mockMvc.perform(
