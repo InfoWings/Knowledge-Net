@@ -14,10 +14,10 @@ fun RBuilder.descriptionTooltip(className: String?, description: String?) =
             span {
                 (description?.let {
                     if (it.isEmpty())
-                        listOf(span { +"Description is not provided" })
+                        span { +"Description is not provided" }
                     else
-                        it.split("\n").map { p { +it } }
-                } ?: listOf(span { +"Description is not provided" }))
+                        it.split("\n").forEach { p { +it } }
+                } ?: span { +"Description is not provided" })
             }
 
         }
