@@ -26,9 +26,9 @@ private fun createTestList(): AspectHistoryList {
     val volumeAspect = AspectData("4:0", "Volume", CubicCentimetre.name, null, BaseType.Decimal.name, listOf())
 
     val ap1 = AspectPropertyData("", "", "#25:47", AspectPropertyCardinality.ONE.name)
-    val ap2 = AspectPropertyData("", "Height", "#1:0", AspectPropertyCardinality.ONE.name)
+    val ap2 = AspectPropertyData("", "Height", "#2:0", AspectPropertyCardinality.ONE.name)
     val ap3 = AspectPropertyData("", "Width", "#2:0", AspectPropertyCardinality.ONE.name)
-    val ap4 = AspectPropertyData("", "Length", "#3:0", AspectPropertyCardinality.INFINITY.name)
+    val ap4 = AspectPropertyData("", "Length", "#1:0", AspectPropertyCardinality.INFINITY.name)
     val ap5 = AspectPropertyData("", "Volume", "#4:0", AspectPropertyCardinality.ZERO.name)
     val ad =
         AspectData("a1", "Tree Measuring", null, null, BaseType.Decimal.name, listOf(ap1))

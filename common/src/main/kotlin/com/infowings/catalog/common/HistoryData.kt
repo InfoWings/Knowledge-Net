@@ -18,7 +18,7 @@ data class HistoryData<T>(
     var user: String,
     var event: EventKind,
     var entityName: String,
-    var info: String,
+    var info: String?,
     var deleted: Boolean,
     var timestamp: Long,
     var version: Int,

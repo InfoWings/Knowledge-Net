@@ -75,6 +75,9 @@ class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropert
     override fun RBuilder.render() {
         treeNode {
             val aspectProperty = props.parentAspect.properties[props.propertyIndex]
+            console.log(props.parentAspect)
+            console.log(aspectProperty)
+            console.log(props.aspectContext(aspectProperty.aspectId))
             val childAspect =
                 if (aspectProperty.aspectId.isNotEmpty())
                     props.aspectContext(aspectProperty.aspectId)

@@ -5,6 +5,7 @@ import com.infowings.catalog.common.EventKind
 import com.infowings.catalog.common.HistoryData
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.userIcon
+import com.infowings.catalog.wrappers.blueprint.Collapse
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.a
@@ -16,12 +17,6 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
 
     override fun State.init(props: HistoryEventComponent.Props) {
         showFullVersion = false
-    }
-
-    private fun openFullVersion() {
-        setState {
-            showFullVersion = true
-        }
     }
 
     override fun RBuilder.render() {
@@ -38,7 +33,7 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                 +props.historyData.entityName
             }
             span(classes = "history-item--field history-item--field__cursive") {
-                +props.historyData.info
+                +(props.historyData.info ?: "")
             }
             if (props.historyData.deleted) {
                 ripIcon("history-item--field aspect-tree-view--rip-icon") {}
@@ -48,25 +43,36 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
             }
             span(classes = "history-item--field history-item--field__pointer") {
                 a {
-                    attrs.onClickFunction = { openFullVersion() }
+                    attrs.onClickFunction = {
+                        setState {
+                            showFullVersion = !showFullVersion
+                        }
+                    }
                     +"ver. ${props.historyData.version}"
                 }
             }
         }
+        when (props.historyData.fullData) {
+            is AspectDataView ->
+                Collapse {
+                    attrs {
+                        className = "history-aspect-view--wrapper"
+                        isOpen = state.showFullVersion
+                    }
+                    aspectFullContainer {
+                        attrs {
+                            view = props.historyData.fullData as AspectDataView
+                            onExit = { setState { showFullVersion = false } }
+                        }
+                    }
+                }
+
+            else -> Unit
+        }
+
         aspectDiffContainer {
             attrs {
                 this.changes = props.historyData.changes
-            }
-        }
-        if (state.showFullVersion) {
-            when (props.historyData.fullData) {
-                is AspectDataView -> aspectFullContainer {
-                    attrs {
-                        view = props.historyData.fullData as AspectDataView
-                        onExit = { setState { showFullVersion = false } }
-                    }
-                }
-                else -> Unit
             }
         }
     }

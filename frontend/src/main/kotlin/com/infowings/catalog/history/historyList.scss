@@ -5,6 +5,8 @@ $color-yellow: #ffa500;
 .history-group {
   width: 95%;
   margin: auto;
+  max-width: 90rem;
+  min-width: 60rem;
 }
 
 .history-item {
@@ -12,7 +14,7 @@ $color-yellow: #ffa500;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin: 3rem auto auto;
+  margin: 3rem auto 3rem;
 
   &--field {
 
@@ -49,15 +51,22 @@ $color-yellow: #ffa500;
   }
 }
 
-.aspect-popup-container > .popup {
-  min-height: 30rem;
-  width: 50rem;
-  text-align: center;
-  font-size: large;
+.history_properties {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
-  .aspect-tree-view--root {
-    margin-left: 2rem;
-    margin-top: 2rem;
+.history-aspect-view {
+
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &--wrapper {
+    margin-top: -2rem;
+    margin-bottom: 2rem;
   }
 }
 

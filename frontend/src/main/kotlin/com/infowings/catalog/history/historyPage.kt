@@ -37,19 +37,17 @@ class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>() {
     override fun RBuilder.render() {
         header {
             attrs.location = props.location.pathname
+            attrs.history = props.history
         }
-        div("row") {
-            div("col-md-3") { }
-            div("col-md-6") {
-                div("history-group") {
-                    state.data.forEach {
-                        historyEventComponent {
-                            attrs.historyData = it
-                        }
+
+        if (!state.loading) {
+            div("history-group") {
+                state.data.forEach {
+                    historyEventComponent {
+                        attrs.historyData = it
                     }
                 }
             }
-            div("col-md-3") { }
         }
     }
 

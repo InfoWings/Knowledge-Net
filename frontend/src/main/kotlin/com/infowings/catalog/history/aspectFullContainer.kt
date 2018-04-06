@@ -1,19 +1,14 @@
 package com.infowings.catalog.history
 
-import com.infowings.catalog.aspects.editconsole.popup.popup
-import com.infowings.catalog.aspects.treeview.aspectRootLabel
-import com.infowings.catalog.aspects.treeview.aspectTreeProperties
+import com.infowings.catalog.aspects.treeview.view.aspectLabel
+import com.infowings.catalog.aspects.treeview.view.propertyLabel
 import com.infowings.catalog.common.AspectDataView
-import com.infowings.catalog.utils.squareMinusIcon
-import com.infowings.catalog.utils.squarePlusIcon
+import com.infowings.catalog.components.treeview.treeNode
 import kotlinext.js.invoke
-import kotlinx.html.js.onClickFunction
-import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
-import react.dom.svg
 
-class AspectFullContainer : RComponent<AspectFullContainer.Props, AspectFullContainer.State>() {
+class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
 
     companion object {
         init {
@@ -21,63 +16,37 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, AspectFullCont
         }
     }
 
-    override fun State.init(props: Props) {
-        expanded = true
-    }
-
-    override fun componentDidMount() {
-        setState {
-            expanded = true
-        }
-    }
-
-    private fun handleExpanderClick(e: Event) {
-        e.preventDefault()
-        e.stopPropagation()
-        setState {
-            expanded = !expanded
-        }
-    }
-
     override fun RBuilder.render() {
-        div("aspect-popup-container") {
-            popup {
-                attrs.closePopup = { props.onExit() }
-
-                div(classes = "aspect-tree-view--root") {
-                    if (props.view.aspectData.properties.isNotEmpty()) {
-                        if (state.expanded) {
-                            squareMinusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
-                                attrs.onClickFunction = ::handleExpanderClick
-                            }
-                        } else {
-                            squarePlusIcon(classes = "aspect-tree-view--line-icon aspect-tree-view--line-icon__clickable") {
-                                attrs.onClickFunction = ::handleExpanderClick
-                            }
-                        }
-                    } else {
-                        svg(classes = "aspect-tree-view--line-icon")
-                    }
-                    aspectRootLabel {
-                        attrs {
-                            aspect = props.view.aspectData
-                            onClick = {}
-                            selected = false
-                        }
-                    }
+        div("history-aspect-view") {
+            treeNode {
+                attrs {
+                    expanded = true
+                    treeNodeContent = buildElement {
+                        aspectLabel(
+                            className = null,
+                            aspectName = props.view.aspectData.name ?: "",
+                            aspectMeasure = props.view.aspectData.measure ?: "",
+                            aspectDomain = props.view.aspectData.domain ?: "",
+                            aspectBaseType = props.view.aspectData.baseType ?: "",
+                            aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
+                            onClick = { }
+                        )
+                    }!!
                 }
-                if (props.view.aspectData.properties.isNotEmpty() && state.expanded) {
-                    val children = props.view.related.map { it.copy(properties = emptyList()) }
-                    aspectTreeProperties {
-                        attrs {
-                            parentAspect = props.view.aspectData
-                            aspectContext = children.filter { it.id != null }.map { it.id!! to it }.toMap()
-                            onAspectPropertyClick = { _, _ -> Unit }
-                            this.selectedAspect = null
-                            selectedPropertyIndex = null
-                            parentSelected = false
-                            onAspectPropertyRequest = {}
-                        }
+                val propMap = props.view.related.map { it.id to it }.toMap()
+                div("history_properties") {
+                    props.view.aspectData.properties.forEach {
+                        propertyLabel(
+                            className = null,
+                            aspectPropertyName = it.name,
+                            aspectPropertyCardinality = it.cardinality,
+                            aspectName = propMap[it.aspectId]?.name ?: "",
+                            aspectMeasure = propMap[it.aspectId]?.measure ?: "",
+                            aspectDomain = propMap[it.aspectId]?.domain ?: "",
+                            aspectBaseType = propMap[it.aspectId]?.baseType ?: "",
+                            aspectSubjectName = propMap[it.aspectId]?.subject?.name ?: "Global",
+                            onClick = {}
+                        )
                     }
                 }
             }
@@ -87,10 +56,6 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, AspectFullCont
     interface Props : RProps {
         var onExit: () -> Unit
         var view: AspectDataView
-    }
-
-    interface State : RState {
-        var expanded: Boolean
     }
 }
 
