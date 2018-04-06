@@ -1,58 +1,61 @@
-package com.infowings.catalog.components.popup
+package com.infowings.catalog.aspects.editconsole.popup
 
+import com.infowings.catalog.wrappers.blueprint.Button
 import kotlinext.js.invoke
 import kotlinext.js.require
-import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.button
 import react.dom.div
-import react.dom.h3
+import react.dom.h5
 import react.dom.p
 
-class ConfirmWindow : RComponent<ConfirmWindow.Props, RState>() {
+class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RState>() {
 
     companion object {
         init {
-            require("styles/confirm-window.scss")
+            require("styles/remove-confirm-window.scss")
         }
     }
 
     override fun RBuilder.render() {
-        div("popup-container") {
-            h3 { +props.message }
-            p { +"Are you sure you want to ${props.action.name.toLowerCase()} it?" }
-
-            div("button-area") {
-                button {
+        div("remove-confirm-window") {
+            h5 {
+                +"Confirm deletion"
+            }
+            p {
+                +"Are you sure you want to delete it?"
+            }
+            div("remove-confirm-window--buttons") {
+                Button {
                     attrs {
-                        onClickFunction = { props.onConfirm() }
+                        onClick = {
+                            it.stopPropagation()
+                            it.preventDefault()
+                            props.onCancel()
+                        }
+                        className = "pt-small"
                     }
-                    +"Yes"
+                    +"Cancel"
                 }
-
-                button {
+                Button {
                     attrs {
-                        onClickFunction = { props.onCancel() }
+                        onClick = {
+                            it.stopPropagation()
+                            it.preventDefault()
+                            props.onConfirm()
+                        }
+                        className = "pt-small pt-intent-danger"
                     }
-                    +"No"
+                    +"Delete"
                 }
             }
-
         }
     }
 
     interface Props : RProps {
-        var action: Action
-        var message: String
         var onConfirm: () -> Unit
         var onCancel: () -> Unit
     }
-
-    enum class Action {
-        DELETE,
-        UPDATE
-    }
 }
 
-fun RBuilder.confirmWindow(block: RHandler<ConfirmWindow.Props>) = child(ConfirmWindow::class, block)
-
+fun RBuilder.removeConfirmationWindow(block: RHandler<RemoveConfirmationWindow.Props>) =
+    child(RemoveConfirmationWindow::class, block)
