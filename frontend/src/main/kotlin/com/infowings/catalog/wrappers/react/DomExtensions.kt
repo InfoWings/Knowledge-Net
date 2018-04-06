@@ -68,10 +68,10 @@ inline fun RBuilder.label(
 /**
  * Extension for setState with additional callback. Intended to be used to make suspended calls inside coroutines
  */
-fun <S : RState> React.Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
+fun <S : RState> Component<*, S>.setStateWithCallback(callback: () -> Unit, buildState: S.() -> Unit) =
     setState({ assign(it, buildState) }, callback)
 
-suspend fun <S : RState> React.Component<*, S>.suspendSetState(buildState: S.() -> Unit) =
+suspend fun <S : RState> Component<*, S>.suspendSetState(buildState: S.() -> Unit) =
     suspendCoroutine { cont: Continuation<Unit> ->
         setStateWithCallback({ cont.resume(Unit) }, buildState)
     }

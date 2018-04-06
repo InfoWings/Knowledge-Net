@@ -2,8 +2,7 @@ package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBookItem
 import kotlinx.coroutines.experimental.launch
 import react.*
 import kotlin.reflect.KClass
@@ -11,10 +10,10 @@ import kotlin.reflect.KClass
 
 interface ReferenceBookApiReceiverProps : RProps {
     var rowDataList: List<RowData>
-    var updateBook: suspend (bookData: ReferenceBookData) -> Unit
-    var createBook: suspend (ReferenceBookData) -> Unit
-    var createBookItem: suspend (ReferenceBookItemData) -> Unit
-    var updateBookItem: suspend (ReferenceBookItemData) -> Unit
+    var updateBook: suspend (book: ReferenceBook) -> Unit
+    var createBook: suspend (ReferenceBook) -> Unit
+    var createBookItem: suspend (ReferenceBookItem) -> Unit
+    var updateBookItem: suspend (ReferenceBookItem) -> Unit
 }
 
 
@@ -42,39 +41,41 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private suspend fun handleCreateBook(bookData: ReferenceBookData) {
+    private suspend fun handleCreateBook(book: ReferenceBook) {
         /*
         Maybe get ReferenceBook is not optimal way.
         Actually we need only created ReferenceBook id.
         */
-        val newBook = createReferenceBook(bookData)
-        updateRowDataList(bookData.aspectId, newBook)
+        val newBook = createReferenceBook(book)
+        updateRowDataList(book.aspectId, newBook)
     }
 
-    private suspend fun handleUpdateBook(bookData: ReferenceBookData) {
+    private suspend fun handleUpdateBook(book: ReferenceBook) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
         */
-        val updatedBook = updateReferenceBook(bookData)
-        updateRowDataList(bookData.aspectId, updatedBook)
+        val updatedBook = updateReferenceBook(book)
+        updateRowDataList(book.aspectId, updatedBook)
     }
 
-    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
+    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only created ReferenceBookItem id.
         */
-        val updatedBook = createReferenceBookItem(bookItemData)
+        createReferenceBookItem(bookItem)
+        val updatedBook = getReferenceBook(bookItem.aspectId)
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
-    private suspend fun handleUpdateBookItem(bookItemData: ReferenceBookItemData) {
+    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
         */
-        val updatedBook = updateReferenceBookItem(bookItemData)
+        updateReferenceBookItem(bookItem)
+        val updatedBook = getReferenceBook(bookItem.aspectId)
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 

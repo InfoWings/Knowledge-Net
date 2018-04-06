@@ -3,7 +3,6 @@ package com.infowings.catalog.components.treeview
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
 import com.infowings.catalog.wrappers.react.setStateWithCallback
-import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.html.js.onClickFunction
 import react.*
@@ -82,7 +81,7 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
         val className = props.className
         val additionalClasses = className?.let { " $it" } ?: ""
         div(classes = "tree-view--node$additionalClasses") {
-            if (React.Children.count(props.children) > 0) {
+            if (Children.count(props.children) > 0) {
                 if (state.expanded) {
                     squareMinusIcon(classes = "tree-view--expander-icon") {
                         attrs.onClickFunction = { hide() }
@@ -95,12 +94,12 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
             } else {
                 svg(classes = "tree-view--expander-icon")
             }
-            child(React.cloneElement<TreeNodeContentProps>(props.treeNodeContent) {
+            child(cloneElement<TreeNodeContentProps>(props.treeNodeContent) {
                 isExpanded = state.expanded
                 setExpanded = ::setExpanded
             })
         }
-        if (React.Children.count(props.children) > 0 && state.expanded) {
+        if (Children.count(props.children) > 0 && state.expanded) {
             div(classes = "tree-view--children$additionalClasses") {
                 children()
             }

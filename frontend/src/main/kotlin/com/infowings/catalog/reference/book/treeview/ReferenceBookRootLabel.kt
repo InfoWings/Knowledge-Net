@@ -1,7 +1,6 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookData
 import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -15,8 +14,8 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         updatingBook = false
     }
 
-    private suspend fun handleUpdateBook(bookData: ReferenceBookData) {
-        props.updateBook(bookData)
+    private suspend fun handleUpdateBook(book: ReferenceBook) {
+        props.updateBook(book)
         setState {
             updatingBook = false
         }
@@ -47,10 +46,9 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
             }
             +":"
             if (props.selected && state.updatingBook) {
-                val book = props.book
                 bookEditConsole {
                     attrs {
-                        this.bookData = ReferenceBookData(book.id, book.name, book.aspectId)
+                        this.book = props.book
                         onCancel = ::cancelUpdatingBook
                         onSubmit = { handleUpdateBook(it) }
                     }
@@ -68,7 +66,7 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: suspend (ReferenceBookData) -> Unit
+        var updateBook: suspend (ReferenceBook) -> Unit
     }
 
     interface State : RState {

@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
+import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
@@ -80,34 +81,32 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
     override fun State.init(props: AspectApiReceiverProps) {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
+        unsafeSelection = false
     }
 
     override fun selectAspect(aspectId: String?) {
         setState {
-            selectedAspect = when (aspectId) {
-                selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
-                null -> emptyAspectData
-                else -> props.aspectContext[aspectId] ?: selectedAspect
+            if (unsavedDataSelection(aspectId)) {
+                unsafeSelection = true
+            } else {
+                selectedAspect = newAspectSelection(aspectId)
+                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
+                }
+                selectedAspectPropertyIndex = null
             }
-
-            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
-                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
-            }
-
-            selectedAspectPropertyIndex = null
         }
     }
 
     override fun selectAspectProperty(aspectId: String?, index: Int) {
         setState {
-            selectedAspect = when (aspectId) {
-                selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
-                null -> emptyAspectData
-                else -> props.aspectContext[aspectId] ?: selectedAspect
+            if (unsavedDataSelection(aspectId)) {
+                unsafeSelection = true
+            } else {
+                selectedAspect = newAspectSelection(aspectId)
+                selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
+                    selectedAspect.properties.lastIndex else index
             }
-
-            selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
-                selectedAspect.properties.lastIndex else index
         }
     }
 
@@ -182,6 +181,23 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
+    private fun State.unsavedDataSelection(aspectId: String?): Boolean {
+        return when {
+            aspectId == null -> false
+            selectedAspect.id == aspectId -> false
+            selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData -> true
+            else -> false
+        }
+    }
+
+    private fun State.newAspectSelection(aspectId: String?): AspectData {
+        val selectedAspect = selectedAspect
+        return when (aspectId) {
+            selectedAspect.id -> selectedAspect // If we select aspect that is already selected, do nothing
+            null -> emptyAspectData
+            else -> props.aspectContext[aspectId] ?: selectedAspect
+        }
+    }
 
     override fun RBuilder.render() {
         val selectedAspect = state.selectedAspect
@@ -204,12 +220,16 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                     aspectsModel = this@AspectsModelComponent
                 }
             }
+            unsafeChangesWindow(state.unsafeSelection) {
+                setState { unsafeSelection = false }
+            }
         }
     }
 
     interface State : RState {
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
+        var unsafeSelection: Boolean
     }
 }
 
