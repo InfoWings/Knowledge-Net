@@ -209,14 +209,11 @@ class ReferenceBookService(
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
-            when {
-                hasChildItemLinkedByObject && force -> itemVertex.value = value
-                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> itemVertex.value = value
+            if (hasChildItemLinkedByObject && !force) {
+                throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             }
 
             itemVertex.value = value
-
             val savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
 
             historyService.storeFact(itemVertex.toUpdateFact(userName, before))
