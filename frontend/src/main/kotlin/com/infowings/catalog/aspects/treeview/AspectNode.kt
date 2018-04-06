@@ -3,6 +3,7 @@ package com.infowings.catalog.aspects.treeview
 import com.infowings.catalog.aspects.treeview.view.aspectRootLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.emptyAspectPropertyData
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.chevronDownIcon
@@ -33,6 +34,12 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
                 onClick = props.onClick
             }
         }
+        if (props.aspect.name != "") {
+            descriptionComponent(
+                className = "aspect-tree-view--description-icon",
+                description = props.aspect.description
+            )
+        }
         if (props.aspect.properties.isNotEmpty()) {
             chevronDownIcon(classes = "aspect-tree-view--expand-all-icon") {
                 attrs.onClickFunction = { e ->
@@ -62,4 +69,4 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
 }
 
 fun RBuilder.aspectNode(block: RHandler<AspectNode.Props>) =
-        child(AspectNode::class, block)
+    child(AspectNode::class, block)

@@ -137,6 +137,7 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 measure = aspect.measure,
                 domain = aspect.domain,
                 baseType = aspect.baseType,
+                description = aspect.description,
                 subject = aspect.subject
             )
         }
