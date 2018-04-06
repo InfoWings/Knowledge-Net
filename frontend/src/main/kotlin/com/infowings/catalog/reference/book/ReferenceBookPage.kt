@@ -1,6 +1,6 @@
 package com.infowings.catalog.reference.book
 
-import com.infowings.catalog.layout.Header
+import com.infowings.catalog.layout.header
 import com.infowings.catalog.reference.book.treeview.ReferenceBookTreeView
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
@@ -11,7 +11,7 @@ class ReferenceBookPage : RComponent<RouteSuppliedProps, RState>() {
 
     override fun RBuilder.render() {
 
-        child(Header::class) {
+        header {
             attrs {
                 location = props.location.pathname
                 history = props.history
