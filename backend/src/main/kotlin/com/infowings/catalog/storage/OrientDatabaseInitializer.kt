@@ -4,11 +4,11 @@ import com.infowings.catalog.auth.UserEntity
 import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
-import com.infowings.catalog.data.history.*
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -146,7 +146,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
-            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
+            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
         }
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
