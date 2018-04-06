@@ -9,18 +9,18 @@ import react.dom.div
 import react.dom.h3
 import react.dom.p
 
-class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
+class ConfirmWindow : RComponent<ConfirmWindow.Props, RState>() {
 
     companion object {
         init {
-            require("styles/remove-confirm-window.scss")
+            require("styles/confirm-window.scss")
         }
     }
 
     override fun RBuilder.render() {
         div("popup-container") {
             h3 { +props.message }
-            p { +"Are you sure you want to delete it?" }
+            p { +"Are you sure you want to ${props.action.name.toLowerCase()} it?" }
 
             div("button-area") {
                 button {
@@ -42,11 +42,17 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
     }
 
     interface Props : RProps {
+        var action: Action
         var message: String
         var onConfirm: () -> Unit
         var onCancel: () -> Unit
     }
+
+    enum class Action {
+        DELETE,
+        UPDATE
+    }
 }
 
-fun RBuilder.removeConfirmWindow(block: RHandler<RemoveConfirmWindow.Props>) = child(RemoveConfirmWindow::class, block)
+fun RBuilder.confirmWindow(block: RHandler<ConfirmWindow.Props>) = child(ConfirmWindow::class, block)
 

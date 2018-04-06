@@ -10,8 +10,9 @@ import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.components.popup.ConfirmWindow
+import com.infowings.catalog.components.popup.confirmWindow
 import com.infowings.catalog.components.popup.popup
-import com.infowings.catalog.components.popup.removeConfirmWindow
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -189,8 +190,9 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             popup {
                 attrs.closePopup = { setState { confirmation = false } }
 
-                removeConfirmWindow {
+                confirmWindow {
                     attrs {
+                        action = ConfirmWindow.Action.DELETE
                         message = "This aspect is not free"
                         onCancel = { setState { confirmation = false } }
                         onConfirm = { tryDelete(true) }

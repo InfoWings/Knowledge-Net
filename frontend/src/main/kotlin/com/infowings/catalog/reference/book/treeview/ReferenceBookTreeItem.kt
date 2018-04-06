@@ -3,8 +3,9 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.popup.ConfirmWindow
+import com.infowings.catalog.components.popup.confirmWindow
 import com.infowings.catalog.components.popup.popup
-import com.infowings.catalog.components.popup.removeConfirmWindow
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
@@ -63,14 +64,10 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
         launch {
             try {
                 props.deleteBookItem(props.bookItem, force)
-                setState {
-                    confirmation = false
-                }
+                setState { confirmation = false }
             } catch (e: RefBookBadRequestException) {
                 when (e.exceptionInfo.code) {
-                    NEED_CONFIRMATION -> setState {
-                        confirmation = true
-                    }
+                    NEED_CONFIRMATION -> setState { confirmation = true }
                     else -> throw e
                 }
             }
@@ -141,7 +138,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     attrs {
                         bookItem = ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
-                        onSubmit = { handleCreateBookItem(it) }
+                        onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
                 }
             }
@@ -151,8 +148,9 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             popup {
                 attrs.closePopup = { setState { confirmation = false } }
 
-                removeConfirmWindow {
+                confirmWindow {
                     attrs {
+                        action = ConfirmWindow.Action.DELETE
                         message = "This reference book item has linked Object"
                         onCancel = { setState { confirmation = false } }
                         onConfirm = { tryDelete(true) }

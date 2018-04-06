@@ -57,7 +57,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                     attrs {
                         bookItem = ReferenceBookItem(props.aspectId, parentId, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
-                        onSubmit = { handleCreateBookItem(it) }
+                        onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
                 }
             } else {

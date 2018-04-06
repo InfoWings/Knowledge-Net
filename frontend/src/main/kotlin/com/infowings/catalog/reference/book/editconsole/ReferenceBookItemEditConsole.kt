@@ -52,7 +52,7 @@ class ReferenceBookItemEditConsole(props: Props) :
     private fun submit() {
         launch {
             try {
-                props.onSubmit(props.bookItem.copy(value = state.value))
+                props.onSubmit(props.bookItem.copy(value = state.value), false)
             } catch (e: BadRequestException) {
                 setState {
                     errorMessage = e.message
@@ -104,7 +104,7 @@ class ReferenceBookItemEditConsole(props: Props) :
     interface Props : RProps {
         var bookItem: ReferenceBookItem
         var onCancel: () -> Unit
-        var onSubmit: suspend (ReferenceBookItem) -> Unit
+        var onSubmit: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

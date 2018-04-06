@@ -3,8 +3,9 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.popup.ConfirmWindow
+import com.infowings.catalog.components.popup.confirmWindow
 import com.infowings.catalog.components.popup.popup
-import com.infowings.catalog.components.popup.removeConfirmWindow
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
@@ -141,7 +142,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 attrs {
                     bookItem = ReferenceBookItem(props.aspectId, props.book.id, "", "", emptyList(), false, 0)
                     onCancel = ::cancelCreatingBookItem
-                    onSubmit = { handleCreateBookItem(it) }
+                    onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                 }
             }
         }
@@ -150,8 +151,9 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
             popup {
                 attrs.closePopup = { setState { confirmation = false } }
 
-                removeConfirmWindow {
+                confirmWindow {
                     attrs {
+                        action = ConfirmWindow.Action.DELETE
                         message = "This reference book is not free"
                         onCancel = { setState { confirmation = false } }
                         onConfirm = { tryDelete(true) }
