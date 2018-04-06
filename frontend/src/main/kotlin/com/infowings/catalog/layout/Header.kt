@@ -26,9 +26,9 @@ class Header : RComponent<Header.Props, RState>() {
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/units"
-                        onClick = { props.history.push("/units") }
-                        text = buildElement { +"Units" }
+                        active = props.location == "/measures"
+                        onClick = { props.history.push("/measures") }
+                        text = buildElement { +"Measures" }
                     }
                 }
                 Button {
@@ -42,17 +42,17 @@ class Header : RComponent<Header.Props, RState>() {
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/history"
-                        onClick = { props.history.push("/history") }
-                        text = buildElement { +"History" }
+                        active = props.location == "/reference"
+                        onClick = { props.history.push("/reference") }
+                        text = buildElement { +"Reference Books" }
                     }
                 }
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/reference"
-                        onClick = { props.history.push("/reference") }
-                        text = buildElement { +"Reference Books" }
+                        active = props.location == "/history"
+                        onClick = { props.history.push("/history") }
+                        text = buildElement { +"History" }
                     }
                 }
             }
@@ -79,4 +79,6 @@ class Header : RComponent<Header.Props, RState>() {
     }
 }
 
-fun RBuilder.header(handler: RHandler<Header.Props>) = child(Header::class, handler)
+fun RBuilder.header(block: RHandler<Header.Props>) {
+    child(Header::class, block)
+}

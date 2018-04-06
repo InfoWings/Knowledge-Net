@@ -46,7 +46,14 @@ class AspectServicePropertyTest {
 
         val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
-        val ad2 = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property))
+        val ad2 = AspectData(
+            "",
+            "complex",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
         complexAspect = aspectService.save(ad2)
     }
 
@@ -81,7 +88,14 @@ class AspectServicePropertyTest {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
         val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
 
-        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val ad2 = AspectData(
+            "",
+            "new",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property, property2)
+        )
         val loaded = aspectService.save(ad2)
 
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
@@ -96,7 +110,14 @@ class AspectServicePropertyTest {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
         val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
 
-        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val ad2 = AspectData(
+            "",
+            "new",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property, property2)
+        )
         aspectService.save(ad2)
     }
 
@@ -105,7 +126,14 @@ class AspectServicePropertyTest {
         val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name)
         val property2 = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
-        val ad2 = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, listOf(property, property2))
+        val ad2 = AspectData(
+            "",
+            "new",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property, property2)
+        )
         val saved = aspectService.save(ad2)
 
         assertThat("aspect should have two properties with same name", saved.properties.count { it.name == "p" }, Is.`is`(2))

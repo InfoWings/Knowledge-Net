@@ -7,7 +7,6 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.*
 
-
 @RestController
 @RequestMapping("/api/subject")
 class SubjectApi(val subjectService: SubjectService) {

@@ -4,9 +4,10 @@ import com.infowings.catalog.aspects.AspectsPage
 import com.infowings.catalog.auth.AuthComponent
 import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
-import com.infowings.catalog.reference.book.ReferenceBookPage
+import com.infowings.catalog.measures.MeasuresPage
 import com.infowings.catalog.subjects.SubjectsPage
-import com.infowings.catalog.units.UnitsPage
+import com.infowings.catalog.reference.book.ReferenceBookPage
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.RComponent
@@ -23,53 +24,25 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
                     component = ::AuthComponent
                 }
             }
-            privateRoute(
-                "/reference",
-                renderFunction = { rprops ->
-                    child(ReferenceBookPage::class) {
-                        attrs {
-                            location = rprops.location; history = rprops.history; match = rprops.match
-                        }
-                    }
-                })
-            privateRoute(
-                "/aspects",
-                renderFunction = { rprops ->
-                    child(AspectsPage::class) {
-                        attrs {
-                            location = rprops.location; history = rprops.history; match = rprops.match
-                        }
-                    }
-                })
-            privateRoute(
-                "/units",
-                renderFunction = { rprops ->
-                    child(UnitsPage::class) {
-                        attrs {
-                            location = rprops.location; history = rprops.history; match = rprops.match
-                        }
-                    }
-                })
-            privateRoute(
-                "/subjects",
-                renderFunction = { rprops ->
-                    child(SubjectsPage::class) {
-                        attrs {
-                            location = rprops.location; history = rprops.history; match = rprops.match
-                        }
-                    }
-                })
-            privateRoute("/history") { rprops ->
-                child(HistoryPage::class) {
-                    attrs {
-                        location = rprops.location; history = rprops.history; match = rprops.match
-                    }
-                }
-            }
+            privateRoute("/aspects", renderFunction<AspectsPage>())
+            privateRoute("/measures", renderFunction<MeasuresPage>())
+            privateRoute("/reference", renderFunction<ReferenceBookPage>())
+            privateRoute("/subjects", renderFunction<SubjectsPage>())
+            privateRoute("/history", renderFunction<HistoryPage>())
             reactRouter.Route {
                 attrs {
                     path = "/"
                     render = { reactRouter.Redirect { attrs.to = "/aspects" } }
+                }
+            }
+        }
+    }
+
+    private inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFunction(): RBuilder.(RouteSuppliedProps) -> Unit {
+        return { props ->
+            child(T::class) {
+                attrs {
+                    location = props.location; history = props.history; match = props.match
                 }
             }
         }
