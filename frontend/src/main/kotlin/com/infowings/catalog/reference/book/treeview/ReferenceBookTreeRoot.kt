@@ -151,7 +151,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                     onConfirm = { tryDelete(true) }
                     onCancel = { setState { confirmation = false } }
                     isOpen = state.confirmation
-                    message = "Reference book item has linked entities."
+                    message = "There is reference book item which has linked entities."
                 }
             }
         }
