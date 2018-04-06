@@ -1,3 +1,5 @@
+@import "abstract";
+
 .measures-list {
 
   max-width: 120rem;
@@ -21,8 +23,16 @@
   }
 
   &--measure-group {
-    display: inline-block;
+    display: flex;
+    align-items: center;
     padding: .2rem;
+  }
+
+  &--description-icon {
+    height: 1.4rem;
+    width: 1.4rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
   }
 
 }
