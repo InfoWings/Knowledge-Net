@@ -18,7 +18,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
     private val allData = MeasureGroupMap
         .flatMap { (measureGroupName, measureGroup) ->
             measureGroup.measureList.map {
-                UnitsTableRowData(measureGroupName, it.name, it.symbol, containsFilterText = true)
+                UnitsTableRowData(measureGroupName, it.name, it.symbol, it.description, containsFilterText = true)
             }
         }
 
@@ -74,7 +74,15 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
         val dataByMeasureGroupNameMap: Map<String, List<UnitsTableRowData>> = measureGroupNames
             .mapNotNull { allDataMap[it] }
             .flatMap {
-                it.map { UnitsTableRowData(it.pivotBy, it.name, it.symbol, filteredNames.contains(it.name)) }
+                it.map {
+                    UnitsTableRowData(
+                        it.pivotBy,
+                        it.name,
+                        it.symbol,
+                        it.description,
+                        filteredNames.contains(it.name)
+                    )
+                }
             }.groupBy { it.pivotBy }
 
         return filteredNames
@@ -82,7 +90,7 @@ class UnitsPage : RComponent<RouteSuppliedProps, UnitsPage.State>() {
             .distinct()
             .flatMap { (name, measureGroupName) ->
                 dataByMeasureGroupNameMap.getValue(measureGroupName)
-                    .map { UnitsTableRowData(name, it.name, it.symbol, it.containsFilterText) }
+                    .map { UnitsTableRowData(name, it.name, it.symbol, it.description, it.containsFilterText) }
             }
     }
 

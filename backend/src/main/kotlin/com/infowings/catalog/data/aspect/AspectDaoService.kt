@@ -18,7 +18,6 @@ const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeleted
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
 const val selectAspectByName = "SELECT FROM Aspect where name = ? AND $notDeletedSql"
 
-
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
     fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
@@ -55,6 +54,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
         aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
+        aspectVertex.description = aspectData.description?.trim()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType

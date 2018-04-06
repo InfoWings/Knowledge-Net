@@ -47,7 +47,7 @@ class ReferenceBookDaoTest {
         val idItem1 = referenceBookService.addReferenceBookItem(item1, userName)
         val item11 = createReferenceBookItem(anotherAspectId, idItem1, "v2")
         val idItem11 = referenceBookService.addReferenceBookItem(item11, userName)
-        dao.fakeRemoveReferenceBookVertex(
+        dao.markBookVertexAsDeleted(
             dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
         )
         assertEquals(listOf(book1), referenceBookService.getAllReferenceBooks())

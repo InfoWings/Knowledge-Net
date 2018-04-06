@@ -131,7 +131,7 @@ class ReferenceBookService(
         val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
         val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
         when {
-            hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookVertex(referenceBookVertex)
+            hasChildItemLinkedByObject && force -> dao.markBookVertexAsDeleted(referenceBookVertex)
             hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             else -> dao.remove(referenceBookVertex)
         }
@@ -209,14 +209,11 @@ class ReferenceBookService(
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
-            when {
-                hasChildItemLinkedByObject && force -> itemVertex.value = value
-                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> itemVertex.value = value
+            if (hasChildItemLinkedByObject && !force) {
+                throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             }
 
             itemVertex.value = value
-
             val savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
 
             historyService.storeFact(itemVertex.toUpdateFact(userName, before))
@@ -246,7 +243,7 @@ class ReferenceBookService(
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                hasChildItemLinkedByObject && force -> dao.markItemVertexAsDeleted(bookItemVertex)
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
                 else -> dao.remove(bookItemVertex)
             }

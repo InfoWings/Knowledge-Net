@@ -201,7 +201,8 @@ class AspectService(
             loadProperties(this),
             version,
             subject,
-            deleted
+            deleted,
+            description
         )
     }
 
