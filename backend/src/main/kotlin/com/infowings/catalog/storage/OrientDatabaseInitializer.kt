@@ -1,7 +1,10 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -11,11 +14,12 @@ import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
 
 const val ATTR_NAME = "name"
+const val ATTR_DESC = "description"
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
 const val ASPECT_PROPERTY_CLASS = "AspectProperty"
-const val ASPECT_ASPECTPROPERTY_EDGE = "AspectPropertyEdge"
+const val ASPECT_ASPECT_PROPERTY_EDGE = "AspectPropertyEdge"
 const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 const val SUBJECT_CLASS = "Subject"
 const val ASPECT_SUBJECT_EDGE = "AspectSubjectEdge"
@@ -28,13 +32,19 @@ private val logger = loggerFor<OrientDatabaseInitializer>()
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
 class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
+    private fun initVertex(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createVertexClass(name)
+
+    private fun initEdge(session: ODatabaseDocument, name: String) =
+        session.getClass(name) ?: session.createEdgeClass(name)
+
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
             logger.info("Init users")
-            initUser("user", "user", "USER")
-            initUser("admin", "admin", "ADMIN")
-            initUser("powereduser", "powereduser", "POWERED_USER")
+            initUser(Users.user)
+            initUser(Users.admin)
+            initUser(Users.poweredUser)
         }
         return@session this
     }
@@ -42,32 +52,56 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
+        val aspectClass = session.getClass(ASPECT_CLASS) ?: createAspectVertex(session)
+        aspectClass.getProperty(ATTR_DESC) ?: aspectClass.createProperty(ATTR_DESC, OType.STRING)
         if (session.getClass(ASPECT_CLASS) == null) {
             session.createVertexClass(ASPECT_CLASS)
-                    .createProperty("name", OType.STRING).isMandatory = true
+                .createProperty("name", OType.STRING).isMandatory = true
             createIgnoreCaseIndex(session, ASPECT_CLASS)
         }
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
-        session.getClass(ASPECT_ASPECTPROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECTPROPERTY_EDGE)
+        session.getClass(ASPECT_ASPECT_PROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECT_PROPERTY_EDGE)
+
         return@session this
     }
 
-    private fun createVertexWithAttrName(session: ODatabaseDocument, className: String) {
-        if (session.getClass(className) == null) {
-            logger.info("create vertex: $className")
-            session.createVertexClass(className)
-                .createProperty(ATTR_NAME, OType.STRING)
-                .setMandatory(true)
-                .createIndex(OClass.INDEX_TYPE.UNIQUE)
-            createIgnoreCaseIndex(session, className)
-        }
+    fun initHistory(): OrientDatabaseInitializer = session(database) { session ->
+        initVertex(session, HISTORY_CLASS)
+        initVertex(session, HISTORY_EVENT_CLASS)
+        initVertex(session, HISTORY_ELEMENT_CLASS)
+        initVertex(session, HISTORY_ADD_LINK_CLASS)
+        initVertex(session, HISTORY_DROP_LINK_CLASS)
+
+        initEdge(session, HISTORY_EDGE)
+
+        return@session this
+    }
+
+    private fun createAspectVertex(session: ODatabaseDocument): OClass {
+        val vertexClass = session.createVertexClass(ASPECT_CLASS)
+        vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        createIgnoreCaseIndex(session, ASPECT_CLASS)
+        return vertexClass
+    }
+
+    private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String) {
+        val vertex = session.getClass(className) ?: createVertexWithName(className, session)
+        vertex.getProperty(ATTR_DESC) ?: vertex.createProperty(ATTR_DESC, OType.STRING)
+    }
+
+    private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
+        logger.info("create vertex: $className")
+        val vertex = session.createVertexClass(className)
+        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        createIgnoreCaseIndex(session, className)
+        return vertex
     }
 
     /** Initializes measures */
     fun initMeasures(): OrientDatabaseInitializer = session(database) { session ->
-        createVertexWithAttrName(session, MEASURE_GROUP_VERTEX)
-        createVertexWithAttrName(session, MEASURE_VERTEX)
+        createVertexWithNameAndDesc(session, MEASURE_GROUP_VERTEX)
+        createVertexWithNameAndDesc(session, MEASURE_VERTEX)
         session.getClass(MEASURE_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_GROUP_EDGE)
         session.getClass(MEASURE_BASE_EDGE) ?: session.createEdgeClass(MEASURE_BASE_EDGE)
         session.getClass(MEASURE_BASE_AND_GROUP_EDGE) ?: session.createEdgeClass(MEASURE_BASE_AND_GROUP_EDGE)
@@ -104,7 +138,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
-        createVertexWithAttrName(session, REFERENCE_BOOK_VERTEX)
+        createVertexWithNameAndDesc(session, REFERENCE_BOOK_VERTEX)
 
         if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
@@ -122,14 +156,19 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initSubject(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init subject")
-        createVertexWithAttrName(session, SUBJECT_CLASS)
+        createVertexWithNameAndDesc(session, SUBJECT_CLASS)
         session.getClass(ASPECT_SUBJECT_EDGE) ?: session.createEdgeClass(ASPECT_SUBJECT_EDGE)
         return@session this
     }
 
-    private fun initLuceneIndex(classType: String) =
+    private fun initLuceneIndex(classType: String) {
+        initLuceneIndex(classType, ATTR_NAME)
+        initLuceneIndex(classType, ATTR_DESC)
+    }
+
+    private fun initLuceneIndex(classType: String, attrName: String) =
         session(database) { session ->
-            val iName = "$classType.lucene.$ATTR_NAME"
+            val iName = "$classType.lucene.$attrName"
             val oClass = session.getClass(classType)
             if (oClass.getClassIndex(iName) == null) {
                 val metadata = ODocument()
@@ -141,7 +180,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
                     null,
                     metadata,
                     "LUCENE",
-                    arrayOf(ATTR_NAME)
+                    arrayOf(attrName)
                 )
             }
         }
@@ -155,7 +194,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         user.save<ORecord>()
     }
 
+    private fun initUser(user: UserEntity) = user.apply {
+        initUser(username, password, role.name)
+    }
+
     private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {
         session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
     }
 }
+

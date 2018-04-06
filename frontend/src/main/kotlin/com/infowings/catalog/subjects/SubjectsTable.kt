@@ -17,14 +17,15 @@ import react.dom.input
 import kotlin.browser.window
 
 data class SubjectViewData(
-    var name: String = ""
+    var name: String = "",
+    var description: String? = ""
 )
 
 class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>() {
 
     override fun componentWillUpdate(nextProps: SubjectApiReceiverProps, nextState: State) {
         val size = nextProps.data.size + 1
-        state.subjectNames = Array(size, { "" })
+        state.subjectNames = Array(size, { SubjectViewData() })
     }
 
     private var timer: Int = 0
@@ -42,7 +43,10 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
 
         ReactTable {
             attrs {
-                columns = arrayOf(column("name", header("name")))
+                columns = arrayOf(
+                    column("name", header("name"), ::updateSubjectName),
+                    column("description", header("description"), ::updateSubjectDesc)
+                )
                 data = if (props.loading) emptyArray() else subjectToRows()
                 showPagination = false
                 pageSize = data.count()
@@ -50,20 +54,15 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                 sortable = false
                 showPageJump = false
                 resizable = false
-/*
-                filterable = true
-                onFilteredChange = { ewExpanded: dynamic, index: dynamic, event: dynamic ->
-                    //filtering in server side
-                    props.onFetchData((ewExpanded as Array<FilteringModel>).map { it.id to it.value }.toMap())
-                }
-                defaultFilterMethod =
-                        { filter: dynamic, row: dynamic, column: dynamic -> true } //disable filtering in frontend
-*/
             }
         }
     }
 
-    private fun column(accessor: String, header: RClass<RTableRendererProps>) =
+    private fun column(
+        accessor: String,
+        header: RClass<RTableRendererProps>,
+        updater: (props: RTableRendererProps, event: Event) -> Unit
+    ) =
         RTableColumnDescriptor {
             this.accessor = accessor
             this.Header = header
@@ -73,11 +72,11 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
                         defaultValue = props.value?.toString() ?: ""
                         autoFocus = true
                         onBlurFunction = {
-                            updateSubject(props, it)
+                            updater(props, it)
                         }
                         onKeyPressFunction = {
                             if (it.unsafeCast<KeyboardEvent>().key == "Enter") {
-                                updateSubject(props, it)
+                                updater(props, it)
                             }
                         }
                     }
@@ -86,23 +85,39 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
             }
         }
 
-    private fun updateSubject(props: RTableRendererProps, event: Event) {
-        state.subjectNames[props.index] = event.asDynamic().target.value as String
+    private fun updateSubjectName(props: RTableRendererProps, event: Event) {
+        state.subjectNames[props.index].name = event.asDynamic().target.value as String
+        onSaveChangedSubjectName(props.index)
+    }
+
+    private fun updateSubjectDesc(props: RTableRendererProps, event: Event) {
+        state.subjectNames[props.index].description = event.asDynamic().target.value as String
         onSaveChangedSubjectName(props.index)
     }
 
     private fun onSaveChangedSubjectName(index: Int) {
         setState {
             if (index < props.data.size) {
-                if (state.subjectNames[index].isNotBlank()) {
+                if (state.subjectNames[index].name.isNotBlank()) {
                     val curSubjectData = props.data[index]
-                    if (curSubjectData.name != state.subjectNames[index]) {
-                        props.onSubjectUpdate(SubjectData(curSubjectData.id, state.subjectNames[index]))
+                    if (curSubjectData.name != state.subjectNames[index].name ||
+                        curSubjectData.description != state.subjectNames[index].description
+                    ) {
+                        props.onSubjectUpdate(
+                            SubjectData(
+                                curSubjectData.id,
+                                state.subjectNames[index].name,
+                                state.subjectNames[index].description
+                            )
+                        )
                     }
                 }
-            } else if (state.subjectNames.last().isNotBlank()) {
-                props.onSubjectsCreate(SubjectData(name = state.subjectNames.last()))
-                state.subjectNames += ""
+            } else {
+                val last = state.subjectNames.last()
+                if (last.name.isNotBlank()) {
+                    props.onSubjectsCreate(SubjectData(name = last.name, description = last.description))
+                    state.subjectNames += SubjectViewData()
+                }
             }
         }
     }
@@ -112,11 +127,11 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
     }
 
     interface State : RState {
-        var subjectNames: Array<String>
+        var subjectNames: Array<SubjectViewData>
         var filterText: String
     }
 
     private fun toSubjectViewData(data: Array<SubjectData>): Array<SubjectViewData> =
-        if (data == undefined) emptyArray() else data.map { SubjectViewData(it.name) }.toTypedArray()
+        if (data == undefined) emptyArray() else data.map { SubjectViewData(it.name, it.description) }.toTypedArray()
 
 }

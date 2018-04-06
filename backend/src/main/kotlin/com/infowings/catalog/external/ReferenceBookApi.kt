@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
+import java.security.Principal
 
 @RestController
 @RequestMapping("api/book")
@@ -29,36 +30,42 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("create")
-    fun create(@RequestBody book: ReferenceBookData): ReferenceBook {
-        logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId}")
-        return referenceBookService.createReferenceBook(book.name, book.aspectId)
+    fun create(@RequestBody book: ReferenceBookData, principal: Principal): ReferenceBook {
+        val user = principal.name
+        logger.debug("Creating reference book with name=${book.name} for aspectId=${book.aspectId} by $user")
+        return referenceBookService.createReferenceBook(book.name, book.aspectId, user)
     }
 
     @PostMapping("update")
-    fun update(@RequestBody book: ReferenceBookData): ReferenceBook {
+    fun update(@RequestBody book: ReferenceBookData, principal: Principal): ReferenceBook {
+        val user = principal.name
         val aspectId = book.aspectId
         val newName: String = book.name
         logger.debug("Updating reference book name to $newName where aspectId=$aspectId")
-        return referenceBookService.updateReferenceBook(aspectId, newName)
+        return referenceBookService.updateReferenceBook(aspectId, newName, user)
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+    fun createItem(@RequestBody bookItemData: ReferenceBookItemData, principal: Principal): ReferenceBook {
+        val user = principal.name
         logger.debug("Creating reference book item")
         return referenceBookService.addItemAndGetReferenceBook(
             bookItemData.aspectId,
             bookItemData.parentId,
-            bookItemData.value
+            bookItemData.value,
+            user
         )
     }
 
     @PostMapping("item/update")
-    fun updateItem(@RequestBody bookItemData: ReferenceBookItemData): ReferenceBook {
+    fun updateItem(@RequestBody bookItemData: ReferenceBookItemData, principal: Principal): ReferenceBook {
+        val user = principal.name
         logger.debug("Updating reference book item with id=${bookItemData.id}")
         return referenceBookService.updateItemAndGetReferenceBook(
             bookItemData.aspectId,
             bookItemData.id!!,
-            bookItemData.value
+            bookItemData.value,
+            user
         )
     }
 
