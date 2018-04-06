@@ -13,3 +13,6 @@ data class SubjectData(
     val name: String,
     val description: String?
 )
+
+val emptySubjectData
+    get() = SubjectData(name = "", description = null)
