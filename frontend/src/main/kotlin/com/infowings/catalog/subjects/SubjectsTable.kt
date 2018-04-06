@@ -4,7 +4,7 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptySubjectData
 import com.infowings.catalog.common.header
 import com.infowings.catalog.components.description.descriptionComponent
-import com.infowings.catalog.units.SearchBar
+import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.wrappers.table.RTableColumnDescriptor
 import com.infowings.catalog.wrappers.table.RTableRendererProps
 import com.infowings.catalog.wrappers.table.ReactTable
@@ -30,7 +30,7 @@ class SubjectsTable : RComponent<SubjectApiReceiverProps, SubjectsTable.State>()
         get() = props.data.map { SubjectRowData(it) }.toTypedArray()
 
     override fun RBuilder.render() {
-        child(SearchBar::class) {
+        searchBar {
             attrs {
                 filterText = state.filterText
                 onFilterTextChange = { text ->

@@ -71,33 +71,9 @@
     }
   }
 
-  &--label-name {
-    font-weight: 600;
-  }
-
-  &--label-measure {
-    color: $color-text-dark-grey;
-  }
-
-  &--label-subject {
-    color: $color-text-dark-grey;
-  }
-
-  &--label-domain {
-    color: $color-text-dark-grey;
-  }
-
-  &--label-base-type {
-    color: $color-text-dark-grey;
-  }
-
   &--label-property {
-    color: $color-text-dark-grey;
-
     &-name {
-      font-weight: 600;
       padding-right: .2rem;
-      font-style: italic;
     }
 
     &-cardinality {

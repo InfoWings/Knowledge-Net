@@ -1,5 +1,6 @@
 package com.infowings.catalog.storage
 
+
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
@@ -12,7 +13,6 @@ import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import javax.annotation.PreDestroy
-
 
 /**
  * Public OVertex Extensions.
@@ -43,7 +43,6 @@ var OVertex.description: String?
  * Main class for work with database
  * */
 class OrientDatabase(url: String, database: String, user: String, password: String) {
-
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
     private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
 

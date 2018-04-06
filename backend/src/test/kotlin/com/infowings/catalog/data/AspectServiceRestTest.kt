@@ -54,7 +54,6 @@ class AspectServiceRestTest {
 
     @Test
     fun createAspectTest() {
-
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData)
 

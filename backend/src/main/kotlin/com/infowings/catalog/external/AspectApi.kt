@@ -47,17 +47,17 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @PostMapping("remove")
-    fun removeAspect(@RequestBody aspect: Aspect, principal: Principal) {
+    fun removeAspect(@RequestBody aspect: AspectData, principal: Principal) {
         val user = principal.name
         logger.debug("Remove aspect request: ${aspect.id} by $user")
-        aspectService.remove(aspect.toAspectData(), user)
+        aspectService.remove(aspect, user)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody aspect: Aspect, principal: Principal) {
+    fun forceRemoveAspect(@RequestBody aspect: AspectData, principal: Principal) {
         val user = principal.name
         logger.debug("Forced remove aspect request: ${aspect.id} by $user")
-        aspectService.remove(aspect.toAspectData(), user, true)
+        aspectService.remove(aspect, user, true)
     }
 
     @ExceptionHandler(AspectException::class)
