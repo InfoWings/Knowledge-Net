@@ -1,8 +1,7 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookData
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.squareMinusIcon
@@ -40,8 +39,8 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         }
     }
 
-    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
-        props.createBookItem(bookItemData)
+    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
+        props.createBookItem(bookItem)
         setState {
             creatingBookItem = false
         }
@@ -97,7 +96,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         if (state.creatingBookItem) {
             bookItemEditConsole {
                 attrs {
-                    bookItemData = ReferenceBookItemData(null, "", props.book.id, props.aspectId)
+                    bookItem = ReferenceBookItem(props.aspectId, props.book.id, "", "", emptyList(), false, 0)
                     onCancel = ::cancelCreatingBookItem
                     onSubmit = { handleCreateBookItem(it) }
                 }
@@ -111,9 +110,9 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
-        var updateBook: suspend (ReferenceBookData) -> Unit
-        var createBookItem: suspend (ReferenceBookItemData) -> Unit
-        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
+        var updateBook: suspend (ReferenceBook) -> Unit
+        var createBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem) -> Unit
     }
 
     interface State : RState {

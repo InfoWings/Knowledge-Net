@@ -51,13 +51,13 @@
         <constructor-arg name="database" ref="orientDatabase"/>
     </bean>
 
-    <bean id="referenceBookDaoService" class="com.infowings.catalog.data.ReferenceBookDaoService">
-        <constructor-arg name="db" ref="orientDatabase"/>
+    <bean id="referenceBookDao" class="com.infowings.catalog.data.reference.book.ReferenceBookDao">
+        <constructor-arg ref="orientDatabase"/>
     </bean>
 
-    <bean id="referenceBookService" class="com.infowings.catalog.data.ReferenceBookService">
-        <constructor-arg name="database" ref="orientDatabase"/>
-        <constructor-arg name="daoService" ref="referenceBookDaoService"/>
+    <bean id="referenceBookService" class="com.infowings.catalog.data.reference.book.ReferenceBookService">
+        <constructor-arg name="db" ref="orientDatabase"/>
+        <constructor-arg name="dao" ref="referenceBookDao"/>
         <constructor-arg name="historyService" ref="historyService"/>
     </bean>
 
