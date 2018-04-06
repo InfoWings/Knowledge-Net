@@ -131,7 +131,7 @@ class ReferenceBookService(
         val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
         val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
         when {
-            hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookVertex(referenceBookVertex)
+            hasChildItemLinkedByObject && force -> dao.markBookVertexAsDeleted(referenceBookVertex)
             hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
             else -> dao.remove(referenceBookVertex)
         }
@@ -243,7 +243,7 @@ class ReferenceBookService(
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                hasChildItemLinkedByObject && force -> dao.fakeRemoveReferenceBookItemVertex(bookItemVertex)
+                hasChildItemLinkedByObject && force -> dao.markItemVertexAsDeleted(bookItemVertex)
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
                 else -> dao.remove(bookItemVertex)
             }

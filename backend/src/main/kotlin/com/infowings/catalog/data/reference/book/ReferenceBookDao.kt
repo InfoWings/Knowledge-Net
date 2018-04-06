@@ -58,18 +58,18 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         }
     }
 
-    fun fakeRemoveReferenceBookVertex(bookVertex: ReferenceBookVertex) {
+    fun markBookVertexAsDeleted(bookVertex: ReferenceBookVertex) {
         transaction(db) {
             bookVertex.deleted = true
-            bookVertex.root.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
+            markItemVertexAsDeleted(bookVertex.root)
             bookVertex.save<OVertex>()
         }
     }
 
-    fun fakeRemoveReferenceBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
+    fun markItemVertexAsDeleted(bookItemVertex: ReferenceBookItemVertex) {
         transaction(db) {
             bookItemVertex.deleted = true
-            bookItemVertex.children.forEach { fakeRemoveReferenceBookItemVertex(it) }
+            bookItemVertex.children.forEach { markItemVertexAsDeleted(it) }
             bookItemVertex.save<OVertex>()
         }
     }
