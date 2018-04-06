@@ -1,0 +1,28 @@
+.measures-list {
+
+  max-width: 120rem;
+  margin: 3rem auto;
+  padding-bottom: 20rem;
+
+  &--measure {
+    display: inline-block;
+    padding: .2rem;
+
+    & > span {
+
+      &:first-child {
+        padding-right: .5rem;
+      }
+
+      &:last-child {
+        padding-left: .5rem;
+      }
+    }
+  }
+
+  &--measure-group {
+    display: inline-block;
+    padding: .2rem;
+  }
+
+}
