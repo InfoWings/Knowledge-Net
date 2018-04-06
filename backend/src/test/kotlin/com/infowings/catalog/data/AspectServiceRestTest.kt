@@ -61,7 +61,14 @@ class AspectServiceRestTest {
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData =
-            AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
+            AspectData(
+                "",
+                "t1",
+                Metre.name,
+                null,
+                BaseType.Decimal.name,
+                listOf(testProperty1, testProperty2)
+            )
 
         val result = mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
@@ -86,7 +93,14 @@ class AspectServiceRestTest {
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
         val testData =
-            AspectData("", "t1", Metre.name, null, BaseType.Decimal.name, listOf(testProperty1, testProperty2))
+            AspectData(
+                "",
+                "t1",
+                Metre.name,
+                null,
+                BaseType.Decimal.name,
+                listOf(testProperty1, testProperty2)
+            )
 
         val saved = aspectService.save(testData)
 
@@ -94,13 +108,18 @@ class AspectServiceRestTest {
         val updatedProperty = testProperty2.copy(name = "p4", cardinality = AspectPropertyCardinality.ZERO.name)
 
         val updateData = AspectData(
-                saved.id,
-                "t2",
-                Kilometre.name,
-                null,
-                BaseType.Decimal.name,
-                listOf(saved["p1"][0].toAspectPropertyData(), newProperty, updatedProperty.copy(id = saved["p2"][0].id, version = saved["p2"][0].version)),
-                saved.version)
+            saved.id,
+            "t2",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(
+                saved["p1"][0].toAspectPropertyData(),
+                newProperty,
+                updatedProperty.copy(id = saved["p2"][0].id, version = saved["p2"][0].version)
+            ),
+            saved.version
+        )
 
         val result = mockMvc.perform(
                 MockMvcRequestBuilders.post("/api/aspect/update").with(authorities)

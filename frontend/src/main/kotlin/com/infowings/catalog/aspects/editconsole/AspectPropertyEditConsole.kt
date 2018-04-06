@@ -143,7 +143,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
 
     private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
         setState {
-            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
         }
     }
 
