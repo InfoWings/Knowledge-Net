@@ -1,9 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.AspectBadRequest
-import com.infowings.catalog.common.AspectBadRequestCode
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -36,9 +33,14 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("all")
-    fun getAspects(): AspectsList {
-        logger.debug("Get all aspects request")
-        return AspectsList(aspectService.getAspects().toAspectData())
+    fun getAspects(@RequestParam(required = false) orderFields: List<String>, @RequestParam(required = false) direct: List<String>): AspectsList {
+        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}  direct: ${direct.joinToString { it }}")
+        val directIterator = direct.map { Direction.valueOf(it) }.iterator()
+        val orderBy = mutableListOf<AspectOrderBy>()
+        orderFields.map { AspectSortField.valueOf(it) }.forEach {
+            orderBy += AspectOrderBy(it, directIterator.next())
+        }
+        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
     }
 
     @PostMapping("remove")

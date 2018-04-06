@@ -92,18 +92,22 @@ class AspectService(
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
-    private class CompareString(val value: String, val direction: Direction) : Comparable<String> {
-        override fun compareTo(other: String): Int = direction.dir * value.compareTo(other)
+    private class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
+        override fun compareTo(other: CompareString): Int =
+            direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
     }
 
     private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
         fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
         fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
         fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.ASC)
 
         fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
-            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+            CompareString(aspect.subject?.name ?: "", Direction.DESC)
 
         val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
             AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
