@@ -1,11 +1,9 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.common.EventKind
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
-enum class EventKind {
-    CREATE, UPDATE, SOFT_DELETE, DELETE
-}
 
 const val HISTORY_EDGE = "HistoryEdge"
 

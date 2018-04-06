@@ -9,6 +9,7 @@ fun OVertex.toHistoryLinksVertex() = HistoryLinksVertex(this)
 const val HISTORY_ADD_LINK_CLASS = "HistoryAddLink"
 const val HISTORY_DROP_LINK_CLASS = "HistoryDropLink"
 
+
 class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
     override fun equals(other: Any?): Boolean {
         return vertex == other

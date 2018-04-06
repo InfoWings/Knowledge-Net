@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.common.EventKind
 import com.orientechnologies.orient.core.id.ORID
 
 data class DiffPayload(
