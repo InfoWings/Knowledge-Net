@@ -2,9 +2,7 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.components.popup.ConfirmWindow
-import com.infowings.catalog.components.popup.confirmWindow
-import com.infowings.catalog.components.popup.popup
+import com.infowings.catalog.components.popup.forceUpdateConfirmWindow
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import kotlinx.coroutines.experimental.launch
@@ -80,16 +78,12 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
         }
 
         if (state.confirmation) {
-            popup {
-                attrs.closePopup = { setState { confirmation = false } }
-
-                confirmWindow {
-                    attrs {
-                        action = ConfirmWindow.Action.UPDATE
-                        message = "This reference book item has linked Object"
-                        onCancel = { setState { confirmation = false } }
-                        onConfirm = { tryUpdate(true) }
-                    }
+            forceUpdateConfirmWindow {
+                attrs {
+                    onConfirm = { tryUpdate(true) }
+                    onCancel = { setState { confirmation = false } }
+                    isOpen = state.confirmation
+                    message = "Reference book item has linked entities."
                 }
             }
         }

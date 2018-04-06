@@ -2,10 +2,15 @@ package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.*
-import com.infowings.catalog.aspects.editconsole.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequestCode.INCORRECT_INPUT
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
+import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -184,6 +189,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 onConfirm = { tryDelete(true) }
                 onCancel = { setState { confirmation = false } }
                 isOpen = state.confirmation
+                message = "Aspect has linked entities."
             }
         }
     }

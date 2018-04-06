@@ -3,9 +3,7 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.components.popup.ConfirmWindow
-import com.infowings.catalog.components.popup.confirmWindow
-import com.infowings.catalog.components.popup.popup
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
@@ -148,16 +146,12 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
         }
 
         if (state.confirmation) {
-            popup {
-                attrs.closePopup = { setState { confirmation = false } }
-
-                confirmWindow {
-                    attrs {
-                        action = ConfirmWindow.Action.DELETE
-                        message = "This reference book is not free"
-                        onCancel = { setState { confirmation = false } }
-                        onConfirm = { tryDelete(true) }
-                    }
+            forceRemoveConfirmWindow {
+                attrs {
+                    onConfirm = { tryDelete(true) }
+                    onCancel = { setState { confirmation = false } }
+                    isOpen = state.confirmation
+                    message = "Reference book item has linked entities."
                 }
             }
         }

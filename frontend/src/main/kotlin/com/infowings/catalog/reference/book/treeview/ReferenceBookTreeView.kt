@@ -1,7 +1,6 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.reference.book.ReferenceBookApiReceiverProps
-import kotlinext.js.invoke
 import kotlinext.js.require
 import react.RBuilder
 import react.RComponent
