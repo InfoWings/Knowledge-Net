@@ -77,8 +77,8 @@ class ReferenceBookServiceTest {
     @Test
     fun updateReferenceBookTest() {
         val newName = "newName"
-        val updatedReferenceBook =
-            referenceBookService.updateReferenceBook(referenceBook.copy(name = newName), userName)
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = newName), userName)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(aspect.id)
         assertEquals(referenceBook.copy(name = newName, version = updatedReferenceBook.version), updatedReferenceBook)
     }
 

@@ -93,7 +93,7 @@ class ReferenceBookService(
      * Update ReferenceBook name
      * @throws RefBookNotExist
      */
-    fun updateReferenceBook(book: ReferenceBook, userName: String) = transaction(db) {
+    fun updateReferenceBook(book: ReferenceBook, userName: String): Unit = transaction(db) {
         val aspectId = book.aspectId
         val newName: String = book.name
 
@@ -107,11 +107,9 @@ class ReferenceBookService(
             .validateVersion(book)
 
         referenceBookVertex.name = newName
-        val updatedReferenceBook = referenceBookVertex.save<OVertex>().toReferenceBookVertex().toReferenceBook()
+        referenceBookVertex.save<OVertex>()
 
         historyService.storeFact(referenceBookVertex.toUpdateFact(userName, before))
-
-        return@transaction updatedReferenceBook
     }
 
     /**

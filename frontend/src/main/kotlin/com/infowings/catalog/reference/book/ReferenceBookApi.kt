@@ -18,8 +18,9 @@ internal suspend fun getReferenceBook(aspectId: String): ReferenceBook =
 internal suspend fun createReferenceBook(book: ReferenceBook): ReferenceBook =
     JSON.parse(post("/api/book/create", JSON.stringify(book)))
 
-internal suspend fun updateReferenceBook(book: ReferenceBook): ReferenceBook =
-    JSON.parse(post("/api/book/update", JSON.stringify(book)))
+internal suspend fun updateReferenceBook(book: ReferenceBook) {
+    post("/api/book/update", JSON.stringify(book))
+}
 
 internal suspend fun deleteReferenceBook(book: ReferenceBook) {
     post("/api/book/remove", JSON.stringify(book))

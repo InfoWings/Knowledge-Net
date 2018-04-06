@@ -63,7 +63,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
         */
-        val updatedBook = updateReferenceBook(book)
+        updateReferenceBook(book)
+        val updatedBook = getReferenceBook(book.aspectId)
         updateRowDataList(book.aspectId, updatedBook)
     }
 

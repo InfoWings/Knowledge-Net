@@ -34,8 +34,8 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("update")
-    fun update(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
-        return referenceBookService.updateReferenceBook(book, principal.name)
+    fun update(@RequestBody book: ReferenceBook, principal: Principal) {
+        referenceBookService.updateReferenceBook(book, principal.name)
     }
 
     @PostMapping("remove")
