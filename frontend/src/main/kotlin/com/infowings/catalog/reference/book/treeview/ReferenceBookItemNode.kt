@@ -80,11 +80,9 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
                             }
                         }
 
-                        if (notDeletedBookItems.isEmpty()) {
-                            addToListIcon(classes = "book-tree-view--add-to-list-icon") {
-                                attrs {
-                                    onClickFunction = ::startCreatingBookItem
-                                }
+                        addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                            attrs {
+                                onClickFunction = ::startCreatingBookItem
                             }
                         }
 
@@ -109,15 +107,17 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             }
 
             if (notDeletedBookItems.isNotEmpty()) {
-                referenceBookItems {
-                    attrs {
-                        aspectId = props.aspectId
-                        book = props.book
-                        bookItem = props.bookItem
-                        bookItems = notDeletedBookItems
-                        createBookItem = props.createBookItem
-                        updateBookItem = props.updateBookItem
-                        deleteBookItem = props.deleteBookItem
+                notDeletedBookItems.map { bookItem ->
+                    referenceBookItemNode {
+                        attrs {
+                            key = bookItem.id
+                            aspectId = props.aspectId
+                            book = props.book
+                            this.bookItem = bookItem
+                            createBookItem = props.createBookItem
+                            updateBookItem = props.updateBookItem
+                            deleteBookItem = props.deleteBookItem
+                        }
                     }
                 }
             }

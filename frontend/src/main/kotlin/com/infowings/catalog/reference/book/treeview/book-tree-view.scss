@@ -1,7 +1,6 @@
 @import "abstract";
 
 .book-tree-view {
-
   max-width: 120rem;
   margin: 3rem auto;
 
@@ -60,7 +59,7 @@
   &--label {
     display: inline-block;
     cursor: pointer;
-    padding: .2em;
+    padding: .2em 0;
 
     &__selected {
       background-color: #c2e2ed;
@@ -87,7 +86,6 @@
       font-weight: 600;
       padding-right: .5rem;
     }
-
   }
 
   &--items-block {
