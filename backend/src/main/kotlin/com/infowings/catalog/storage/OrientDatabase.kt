@@ -2,8 +2,10 @@ package com.infowings.catalog.storage
 
 
 import com.infowings.catalog.loggerFor
+import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
+import com.orientechnologies.orient.core.exception.OStorageException
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
@@ -12,6 +14,9 @@ import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
+import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PreDestroy
 
 /**
@@ -39,17 +44,73 @@ var OVertex.description: String?
         this[ATTR_DESC] = value
     }
 
+data class Versioned<T>(val entity: T, val version: Int)
+
 /**
  * Main class for work with database
  * */
-class OrientDatabase(url: String, database: String, user: String, password: String) {
+class OrientDatabase(url: String, val database: String, user: String, password: String) {
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
-    private var dbPool = ODatabasePool(orientDB, database, "admin", "admin")
+
+    private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
+
+    private val dbPool = AtomicReference<Versioned<ODatabasePool>>(Versioned(createDbPool(), 1))
 
     /**
      * DO NOT use directly, use [transaction] and [session] instead
      */
-    fun acquire(): ODatabaseDocument = dbPool.acquire()
+    fun getPool(): Versioned<ODatabasePool> = dbPool.get()
+
+    fun acquire(): ODatabaseDocument = dbPool.get().entity.acquire()
+
+    /*
+      Изначально хотелось обойтись одним экземпляром пула.
+      Но ориентовская реализация ведет себя странно и пулом в традиционном смысле слова не является
+
+      На это сделан тикет на ориент https://github.com/orientechnologies/orientdb/issues/8195
+
+      А здесь - наша надстройка для преодоления проблемы
+
+      Что хочется: чтобы был механизм восстановления от сбоев/отказов сети/базы
+      Чтобы при сбое попробовали пересоединиться. Если не получилось дали фронту код ответа,
+      соответствующий ситуации. И чтобы после воостановления связи сервис работал без перезапуска.
+
+      Без этого механизма, на одном раз и навсегда созданном dbPool одна неудача в соединении выводит систему
+      из строя и требует перезапуска
+
+      В методе transactionInner есть некий механизм ловли исключений и повторных попыток, но он не имеет отношентя к
+      данной проблеме. Он про исключения внутри транзакции, не требующие пересоединения
+
+      Исходим из следующих предпосылок:
+
+       - одновременно могут быть несколько нитей работаюющих над одним элземпляром dbPool. Они все могут обнаружить
+       проблему с соеднением и сделать это не совсем в один и тот же момент
+       - закрываться должен ровно тот экзмпляр dbPool, на котором обнаружена проблема
+       - если проблему на экземпляре dbPool обнаружили в несколько нитях одновременно, надо чтобы первый удачный
+       экземпляр, созданный взамен сломавшегося, использовался всеми
+       - не должно оставаться незакрытых экземпляров dbPool. Только тот, который удачно создан
+        и является текущим рабочим. Плюс еще могут оставаться незакрытые сессии/транзакции на том пуле, на который
+        кто-то пожаловался и его закрыли, но в другой нити транзакция не дошла до операции с базой и не знает, что
+        пула больше нет.
+       - следует избегать многократных удалений
+
+       Сделано через версионирование пула.
+       Каждый клиент получает структуру, в которой лежит экземпляр пула с номером версии.
+       При обнаружении проблемы с соединением он запрашивает новый пул, сообщая данные о том, с которым он работад.
+
+       reOpenPool сверяется версии текущего пула и того, на который жалуются.
+       Если они совпадают, то это первая жалоба на текущий пул. Он закрывается и вместо него создается новый.
+       Если не совпадают, значит значит на этот пуд уже кто-то жаловался и его закрыли.
+       Ничего не закрываем и не создаем. Возращаем текущий.
+     */
+
+    fun reOpenPool(from: Versioned<ODatabasePool>) : Versioned<ODatabasePool> =
+        dbPool.accumulateAndGet(from, {current, given ->
+            if (current.version == given.version) {
+                current.entity.close()
+                Versioned(createDbPool(), current.version + 1)
+            } else current
+        })
 
     init {
 
@@ -71,7 +132,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
 
     @PreDestroy
     fun cleanUp() {
-        dbPool.close()
+        dbPool.get().entity.close()
         orientDB.close()
     }
 
@@ -169,20 +230,53 @@ inline fun <U> transactionInner(
  *
  * sessions can be nested
  */
+
+val orientLogger = loggerFor<OrientDatabase>()
+
+fun handleRetriable(e: Throwable, database: OrientDatabase, pool: Versioned<ODatabasePool>): Throwable {
+    orientLogger.info("Thrown $e on acquire. version ${pool.version}")
+    database.reOpenPool(pool)
+    return e
+}
+
+val POOL_RETRIES = 2
+
+@ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
+class DatabaseConnectionFailedException(reason: Throwable) : Exception("last thrown: $reason")
+
 inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODatabaseDocument) -> U): U {
     val session = sessionStore.get()
 
     if (session != null)
         return block(session)
 
-    val newSession = database.acquire()
-    try {
-        sessionStore.set(newSession)
-        return block(newSession)
-    } finally {
-        sessionStore.remove()
-        newSession.close()
+    var lastThrown: Throwable? = null
+
+    repeat (times = POOL_RETRIES) {
+        val pool = database.getPool()
+
+        try {
+            val newSession = pool.entity.acquire()
+            try {
+                sessionStore.set(newSession)
+                return block(newSession)
+            } finally {
+                sessionStore.remove()
+                newSession.close()
+            }
+        } catch (e: OIOException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: OStorageException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: Throwable) {
+            orientLogger.info("Thrown $e")
+            throw e
+        }
     }
+
+    lastThrown ?.let {
+        throw DatabaseConnectionFailedException(it)
+    } ?: throw Exception("failed to complete session without any exception noticed")
 }
 
 /**
@@ -201,6 +295,7 @@ inline fun <U> transaction(
 
     if (session != null && session.transaction is OTransactionNoTx)
         return transactionInner(session, retryOnFailure, txtype, block)
+
 
     val newSession = database.acquire()
     try {
