@@ -12,10 +12,17 @@ import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
+import react.dom.div
 import react.setState
 import kotlin.browser.window
 
 class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
+
+    companion object {
+        init {
+            kotlinext.js.require("styles/measures.scss")
+        }
+    }
 
     private val allGroups = MeasureGroupMap.values
         .map {
@@ -104,16 +111,18 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             }
         }
 
-        searchBar {
-            attrs {
-                filterText = state.filterText
-                onFilterTextChange = ::handleFilterTextChange
+        div(classes = "measures-page") {
+            searchBar {
+                attrs {
+                    filterText = state.filterText
+                    onFilterTextChange = ::handleFilterTextChange
+                }
             }
-        }
 
-        measureTreeView {
-            attrs {
-                groups = state.groups
+            measureTreeView {
+                attrs {
+                    groups = state.groups
+                }
             }
         }
     }

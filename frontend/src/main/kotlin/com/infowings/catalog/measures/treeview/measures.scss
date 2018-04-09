@@ -1,10 +1,12 @@
 @import "abstract";
 
-.measures-list {
-
+.measures-page {
   max-width: 120rem;
-  margin: 3rem auto;
-  padding-bottom: 20rem;
+  margin: 2rem auto;
+}
+
+.measures-list {
+  padding-bottom: 5rem;
 
   &--measure {
     display: inline-block;
@@ -34,5 +36,14 @@
     fill: $color-icon-default;
     margin-left: .5rem;
   }
+}
 
+.not_contains_filter_text {
+  opacity: 0.4
+}
+
+.unit-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
 }
