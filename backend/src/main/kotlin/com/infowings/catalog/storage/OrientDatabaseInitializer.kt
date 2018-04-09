@@ -97,7 +97,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
         logger.info("create vertex: $className")
         val vertex = session.createVertexClass(className)
-        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
         createIgnoreCaseIndex(session, className)
         return vertex
     }
@@ -146,7 +146,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
-            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
+            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
         }
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)

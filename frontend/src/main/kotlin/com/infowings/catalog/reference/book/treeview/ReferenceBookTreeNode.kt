@@ -15,7 +15,7 @@ import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceBookTreeItem.State>() {
+class ReferenceBookTreeNode : RComponent<ReferenceBookTreeNode.Props, ReferenceBookTreeNode.State>() {
 
     override fun State.init() {
         creatingBookItem = false
@@ -52,11 +52,15 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     private fun tryDelete(force: Boolean) {
         launch {
             try {
-                props.deleteBookItem(props.bookItem, force)
-                setState { confirmation = false }
+                props.deleteBook(props.book, force)
+                setState {
+                    confirmation = false
+                }
             } catch (e: RefBookBadRequestException) {
                 when (e.exceptionInfo.code) {
-                    NEED_CONFIRMATION -> setState { confirmation = true }
+                    NEED_CONFIRMATION -> setState {
+                        confirmation = true
+                    }
                     else -> throw e
                 }
             }
@@ -65,18 +69,20 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     override fun RBuilder.render() {
 
-        val notDeletedBookItems = props.bookItem.children.filter { !it.deleted }
+        val notDeletedBookItems = props.book.children.filter { !it.deleted }
 
         treeNode {
             attrs {
                 expanded = state.creatingBookItem
                 treeNodeContent = buildElement {
-                    div(classes = "book-tree-view--item") {
-                        referenceBookItemLabel {
+                    div {
+                        referenceBookLabel {
                             attrs {
-                                aspectId = props.aspectId
-                                bookItem = props.bookItem
-                                updateBookItem = props.updateBookItem
+                                aspectName = props.aspectName
+                                book = props.book
+                                startUpdatingBook = props.startUpdatingBook
+                                updateBook = props.updateBook
+                                selected = props.selected
                             }
                         }
 
@@ -100,7 +106,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                                     onConfirm = { tryDelete(true) }
                                     onCancel = { setState { confirmation = false } }
                                     isOpen = state.confirmation
-                                    message = "Reference book item has linked entities."
+                                    message = "There is reference book item which has linked entities."
                                 }
                             }
                         }
@@ -113,7 +119,6 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
                     attrs {
                         aspectId = props.aspectId
                         book = props.book
-                        bookItem = props.bookItem
                         bookItems = notDeletedBookItems
                         createBookItem = props.createBookItem
                         updateBookItem = props.updateBookItem
@@ -125,7 +130,7 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem(props.aspectId, props.book.id, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -136,12 +141,15 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
     interface Props : RProps {
         var aspectId: String
+        var aspectName: String
         var book: ReferenceBook
-        var bookItem: ReferenceBookItem
+        var selected: Boolean
+        var startUpdatingBook: (aspectName: String) -> Unit
+        var updateBook: suspend (ReferenceBook) -> Unit
+        var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
         var createBookItem: suspend (ReferenceBookItem) -> Unit
         var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
         var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-
     }
 
     interface State : RState {
@@ -150,5 +158,5 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     }
 }
 
-fun RBuilder.referenceBookTreeItem(block: RHandler<ReferenceBookTreeItem.Props>) =
-    child(ReferenceBookTreeItem::class, block)
+fun RBuilder.referenceBookTreeNode(block: RHandler<ReferenceBookTreeNode.Props>) =
+    child(ReferenceBookTreeNode::class, block)

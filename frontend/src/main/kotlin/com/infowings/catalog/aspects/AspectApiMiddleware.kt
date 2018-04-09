@@ -1,14 +1,14 @@
 package com.infowings.catalog.aspects
 
-import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
+class AspectBadRequestException(val exceptionInfo: BadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
