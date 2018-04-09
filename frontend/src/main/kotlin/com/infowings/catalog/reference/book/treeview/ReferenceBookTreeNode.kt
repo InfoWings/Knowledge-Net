@@ -16,7 +16,7 @@ import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceBookTreeRoot.State>() {
+class ReferenceBookTreeNode : RComponent<ReferenceBookTreeNode.Props, ReferenceBookTreeNode.State>() {
 
     override fun State.init() {
         creatingBookItem = false
@@ -80,7 +80,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
 
         val notDeletedBookItems = props.book.children.filter { !it.deleted }
 
-        div(classes = "book-tree-view--root") {
+        div(classes = "book-tree-view--node") {
             if (notDeletedBookItems.isNotEmpty()) {
                 if (state.expanded) {
                     squareMinusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
@@ -97,7 +97,7 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
                 }
             }
 
-            referenceBookRootLabel {
+            referenceBookLabel {
                 attrs {
                     aspectName = props.aspectName
                     book = props.book
@@ -177,5 +177,5 @@ class ReferenceBookTreeRoot : RComponent<ReferenceBookTreeRoot.Props, ReferenceB
     }
 }
 
-fun RBuilder.referenceBookTreeRoot(block: RHandler<ReferenceBookTreeRoot.Props>) =
-    child(ReferenceBookTreeRoot::class, block)
+fun RBuilder.referenceBookTreeNode(block: RHandler<ReferenceBookTreeNode.Props>) =
+    child(ReferenceBookTreeNode::class, block)

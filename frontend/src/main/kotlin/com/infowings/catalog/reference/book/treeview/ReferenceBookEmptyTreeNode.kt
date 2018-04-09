@@ -9,9 +9,9 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, ReferenceBookEmptyTreeRoot.State>() {
+class ReferenceBookEmptyTreeNode : RComponent<ReferenceBookEmptyTreeNode.Props, ReferenceBookEmptyTreeNode.State>() {
 
-    override fun State.init(props: ReferenceBookEmptyTreeRoot.Props) {
+    override fun State.init(props: ReferenceBookEmptyTreeNode.Props) {
         creatingBook = false
     }
 
@@ -40,7 +40,7 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
 
     override fun RBuilder.render() {
         val selected = props.selected
-        div(classes = "book-tree-view--root") {
+        div(classes = "book-tree-view--node") {
             div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
                 attrs {
                     onClickFunction = ::startCreatingBook
@@ -85,5 +85,5 @@ class ReferenceBookEmptyTreeRoot : RComponent<ReferenceBookEmptyTreeRoot.Props, 
     }
 }
 
-fun RBuilder.referenceBookEmptyTreeRoot(block: RHandler<ReferenceBookEmptyTreeRoot.Props>) =
-    child(ReferenceBookEmptyTreeRoot::class, block)
+fun RBuilder.referenceBookEmptyTreeNode(block: RHandler<ReferenceBookEmptyTreeNode.Props>) =
+    child(ReferenceBookEmptyTreeNode::class, block)
