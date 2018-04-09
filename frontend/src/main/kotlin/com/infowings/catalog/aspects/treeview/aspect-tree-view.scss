@@ -17,6 +17,13 @@
     }
   }
 
+  &--description-icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    fill: $color-icon-default;
+    margin-left: .2rem;
+  }
+
   &--expand-all-icon {
     height: 1.5rem;
     width: 1.5rem;

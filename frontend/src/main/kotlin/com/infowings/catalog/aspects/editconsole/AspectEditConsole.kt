@@ -11,6 +11,8 @@ import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.common.*
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -27,6 +29,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+            description = if (state.aspectDescription.isNullOrEmpty()) null else state.aspectDescription,
             subject = state.aspectSubject
         )
 
@@ -36,6 +39,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
         aspectSubject = props.aspect.subject
+        aspectDescription = props.aspect.description
         confirmation = false
     }
 
@@ -52,6 +56,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 aspectDomain = nextProps.aspect.domain
                 aspectBaseType = nextProps.aspect.baseType
                 aspectSubject = nextProps.aspect.subject
+                aspectDescription = nextProps.aspect.description
                 badRequestErrorMessage = null
             }
         }
@@ -174,6 +179,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     onCancelClick = props.editConsoleModel::discardChanges,
                     onDeleteClick = { tryDelete(false) }
                 )
+                descriptionComponent(
+                    className = "aspect-edit-console--description-icon",
+                    description = state.aspectDescription,
+                    onEditStarted = null,
+                    onNewDescriptionConfirmed = { setState { aspectDescription = it } }
+                )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage
             if (badRequestErrorMessage != null) {
@@ -204,6 +215,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var aspectDescription: String?
         var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
         var confirmation: Boolean

@@ -2,10 +2,7 @@ package com.infowings.catalog.wrappers.react
 
 import kotlinext.js.assign
 import kotlinx.html.*
-import react.Component
-import react.RBuilder
-import react.RState
-import react.ReactElement
+import react.*
 import react.dom.RDOMBuilder
 import react.dom.tag
 import kotlin.coroutines.experimental.Continuation
@@ -78,3 +75,8 @@ suspend fun <S : RState> Component<*, S>.suspendSetState(buildState: S.() -> Uni
     suspendCoroutine { cont: Continuation<Unit> ->
         setStateWithCallback({ cont.resume(Unit) }, buildState)
     }
+
+/**
+ * String extension for fast transformation to react element
+ */
+fun String.asReactElement() = buildElement { +this@asReactElement }!!

@@ -16,7 +16,7 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
 
     override fun RBuilder.render() {
         div(classes = "measures-list") {
-            props.groups.mapIndexed { index, (name, units) ->
+            props.groups.mapIndexed { index, (name, description, units) ->
                 treeNode {
                     attrs {
                         key = name + index.toString()
@@ -25,6 +25,7 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
                             measureRootLabel {
                                 attrs {
                                     groupName = name
+                                    groupDescription = description
                                 }
                             }
                         }!!
