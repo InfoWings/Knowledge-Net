@@ -58,8 +58,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
                         bookItemEditConsole {
                             val parentId = props.bookItem?.id ?: props.book.id
                             attrs {
-                                bookItem =
-                                        ReferenceBookItem(props.aspectId, parentId, "", "", emptyList(), false, 0)
+                                bookItem = ReferenceBookItem(props.aspectId, parentId, "", "", emptyList(), false, 0)
                                 onCancel = ::cancelCreatingBookItem
                                 onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                             }

@@ -81,7 +81,7 @@ class ReferenceBookItemEditConsole(props: Props) :
         treeNode {
             attrs {
                 treeNodeContent = buildElement {
-                    div (classes = "book-edit-console") {
+                    div(classes = "book-edit-console") {
                         attrs {
                             onKeyDownFunction = ::handleKeyDown
                             onBlurFunction = ::handleBlur
