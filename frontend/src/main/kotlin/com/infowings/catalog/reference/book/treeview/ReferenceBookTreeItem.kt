@@ -4,12 +4,11 @@ import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.ripIcon
-import com.infowings.catalog.utils.squareMinusIcon
-import com.infowings.catalog.utils.squarePlusIcon
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -21,14 +20,6 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     override fun State.init() {
         creatingBookItem = false
         confirmation = false
-    }
-
-    private fun handleExpanderClick(e: Event) {
-        e.stopPropagation()
-        e.preventDefault()
-        setState {
-            expanded = !expanded
-        }
     }
 
     private fun startCreatingBookItem(e: Event) {
@@ -76,79 +67,69 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
 
         val notDeletedBookItems = props.bookItem.children.filter { !it.deleted }
 
-        div(classes = "book-tree-view--item") {
+        treeNode {
+            attrs {
+                expanded = state.creatingBookItem
+                treeNodeContent = buildElement {
+                    div(classes = "book-tree-view--item") {
+                        referenceBookItemLabel {
+                            attrs {
+                                aspectId = props.aspectId
+                                bookItem = props.bookItem
+                                updateBookItem = props.updateBookItem
+                            }
+                        }
+
+                        if (notDeletedBookItems.isEmpty()) {
+                            addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                                attrs {
+                                    onClickFunction = ::startCreatingBookItem
+                                }
+                            }
+                        }
+
+                        ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
+                            attrs {
+                                onClickFunction = ::handleDeleteClick
+                            }
+                        }
+
+                        if (state.confirmation) {
+                            forceRemoveConfirmWindow {
+                                attrs {
+                                    onConfirm = { tryDelete(true) }
+                                    onCancel = { setState { confirmation = false } }
+                                    isOpen = state.confirmation
+                                    message = "Reference book item has linked entities."
+                                }
+                            }
+                        }
+                    }
+                }!!
+            }
+
             if (notDeletedBookItems.isNotEmpty()) {
-                if (state.expanded) {
-                    squareMinusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
-                        attrs {
-                            onClickFunction = ::handleExpanderClick
-                        }
-                    }
-                } else {
-                    squarePlusIcon(classes = "book-tree-view--line-icon book-tree-view--line-icon__clickable") {
-                        attrs {
-                            onClickFunction = ::handleExpanderClick
-                        }
-                    }
-                }
-            }
-
-            referenceBookItemLabel {
-                attrs {
-                    aspectId = props.aspectId
-                    bookItem = props.bookItem
-                    updateBookItem = props.updateBookItem
-                }
-            }
-
-            if (notDeletedBookItems.isEmpty()) {
-                addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                referenceBookTreeItems {
                     attrs {
-                        onClickFunction = ::startCreatingBookItem
+                        aspectId = props.aspectId
+                        book = props.book
+                        bookItem = props.bookItem
+                        bookItems = notDeletedBookItems
+                        createBookItem = props.createBookItem
+                        updateBookItem = props.updateBookItem
+                        deleteBookItem = props.deleteBookItem
                     }
                 }
             }
 
-            ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
-                attrs {
-                    onClickFunction = ::handleDeleteClick
-                }
-            }
-        }
-
-        if (notDeletedBookItems.isNotEmpty() && state.expanded) {
-            referenceBookTreeItems {
-                attrs {
-                    aspectId = props.aspectId
-                    book = props.book
-                    bookItem = props.bookItem
-                    bookItems = notDeletedBookItems
-                    createBookItem = props.createBookItem
-                    updateBookItem = props.updateBookItem
-                    deleteBookItem = props.deleteBookItem
-                }
-            }
-        }
-
-        div(classes = "book-tree-view--item") {
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
+                        bookItem =
+                                ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
-                }
-            }
-        }
-
-        if (state.confirmation) {
-            forceRemoveConfirmWindow {
-                attrs {
-                    onConfirm = { tryDelete(true) }
-                    onCancel = { setState { confirmation = false } }
-                    isOpen = state.confirmation
-                    message = "Reference book item has linked entities."
                 }
             }
         }
@@ -165,7 +146,6 @@ class ReferenceBookTreeItem : RComponent<ReferenceBookTreeItem.Props, ReferenceB
     }
 
     interface State : RState {
-        var expanded: Boolean
         var creatingBookItem: Boolean
         var confirmation: Boolean
     }

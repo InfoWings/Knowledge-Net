@@ -2,6 +2,7 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -37,37 +38,42 @@ class ReferenceBookEmptyTreeNode : RComponent<ReferenceBookEmptyTreeNode.Props, 
         }
     }
 
-
     override fun RBuilder.render() {
         val selected = props.selected
-        div(classes = "book-tree-view--node") {
-            div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
-                attrs {
-                    onClickFunction = ::startCreatingBook
-                }
-                span(classes = "book-tree-view--label-name") {
-                    +props.aspectName
-                }
-                +":"
-                if (state.creatingBook && selected) {
-                    bookEditConsole {
-                        attrs {
-                            book = ReferenceBook(
-                                props.aspectId,
-                                "",
-                                ReferenceBookItem(props.aspectId, null, "", "", emptyList(), false, 0),
-                                false,
-                                0
-                            )
-                            onCancel = ::cancelCreatingBook
-                            onSubmit = { handleCreateBook(it) }
+        treeNode {
+            attrs {
+                treeNodeContent = buildElement {
+                    div {
+                        div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
+                            attrs {
+                                onClickFunction = ::startCreatingBook
+                            }
+                            span(classes = "book-tree-view--label-name") {
+                                +props.aspectName
+                            }
+                            +":"
+                            if (state.creatingBook && selected) {
+                                bookEditConsole {
+                                    attrs {
+                                        book = ReferenceBook(
+                                            props.aspectId,
+                                            "",
+                                            ReferenceBookItem(props.aspectId, null, "", "", emptyList(), false, 0),
+                                            false,
+                                            0
+                                        )
+                                        onCancel = ::cancelCreatingBook
+                                        onSubmit = { handleCreateBook(it) }
+                                    }
+                                }
+                            } else {
+                                span(classes = "book-tree-view--empty") {
+                                    +"(Add Reference Book ...)"
+                                }
+                            }
                         }
                     }
-                } else {
-                    span(classes = "book-tree-view--empty") {
-                        +"(Add Reference Book ...)"
-                    }
-                }
+                }!!
             }
         }
     }
