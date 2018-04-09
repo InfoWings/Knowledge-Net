@@ -10,7 +10,7 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, ReferenceBookTreeItems.State>() {
+class ReferenceBookItems : RComponent<ReferenceBookItems.Props, ReferenceBookItems.State>() {
 
     override fun State.init() {
         creatingBookItem = false
@@ -39,7 +39,7 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
 
     override fun RBuilder.render() {
         props.bookItems.map {
-            referenceBookTreeItem {
+            referenceBookItemNode {
                 attrs {
                     aspectId = props.aspectId
                     book = props.book
@@ -95,5 +95,5 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
     }
 }
 
-fun RBuilder.referenceBookTreeItems(block: RHandler<ReferenceBookTreeItems.Props>) =
-    child(ReferenceBookTreeItems::class, block)
+fun RBuilder.referenceBookItems(block: RHandler<ReferenceBookItems.Props>) =
+    child(ReferenceBookItems::class, block)

@@ -39,7 +39,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
             props.rowDataList
                 .map { (aspectId, aspectName, book) ->
                     if (book != null) {
-                        referenceBookTreeNode {
+                        referenceBookNode {
                             attrs {
                                 this.aspectId = aspectId
                                 this.aspectName = aspectName
@@ -54,7 +54,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                             }
                         }
                     } else {
-                        referenceBookEmptyTreeNode {
+                        referenceBookEmptyNode {
                             attrs {
                                 selected = aspectName == state.selectedAspectName
                                 this.aspectId = aspectId

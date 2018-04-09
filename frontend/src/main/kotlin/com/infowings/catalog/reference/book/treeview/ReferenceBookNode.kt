@@ -15,7 +15,7 @@ import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class ReferenceBookTreeNode : RComponent<ReferenceBookTreeNode.Props, ReferenceBookTreeNode.State>() {
+class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.State>() {
 
     override fun State.init() {
         creatingBookItem = false
@@ -115,7 +115,7 @@ class ReferenceBookTreeNode : RComponent<ReferenceBookTreeNode.Props, ReferenceB
             }
 
             if (notDeletedBookItems.isNotEmpty()) {
-                referenceBookTreeItems {
+                referenceBookItems {
                     attrs {
                         aspectId = props.aspectId
                         book = props.book
@@ -158,5 +158,5 @@ class ReferenceBookTreeNode : RComponent<ReferenceBookTreeNode.Props, ReferenceB
     }
 }
 
-fun RBuilder.referenceBookTreeNode(block: RHandler<ReferenceBookTreeNode.Props>) =
-    child(ReferenceBookTreeNode::class, block)
+fun RBuilder.referenceBookNode(block: RHandler<ReferenceBookNode.Props>) =
+    child(ReferenceBookNode::class, block)
