@@ -75,7 +75,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
             attrs {
                 expanded = state.creatingBookItem
                 treeNodeContent = buildElement {
-                    div {
+                    div(classes = "book-tree-view--book") {
                         referenceBookLabel {
                             attrs {
                                 aspectName = props.aspectName

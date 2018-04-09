@@ -4,25 +4,6 @@
   max-width: 120rem;
   margin: 3rem auto;
 
-  &--node {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--item {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-    margin-bottom: .2rem;
-  }
-
   &--line-icon {
     height: 1.6rem;
     width: 1.6rem;
@@ -86,10 +67,5 @@
       font-weight: 600;
       padding-right: .5rem;
     }
-  }
-
-  &--items-block {
-    padding-left: $tree-level-translation;
-    padding-top: .2rem;
   }
 }
