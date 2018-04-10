@@ -1,5 +1,17 @@
 @import "abstract";
 
+.left-column {
+  flex: 0 0 50%;
+}
+
+.right-column {
+  flex: 1;
+}
+
+.columns-wrapper {
+  display: flex;
+}
+
 .measures-page {
   max-width: 120rem;
   margin: 2rem auto;
