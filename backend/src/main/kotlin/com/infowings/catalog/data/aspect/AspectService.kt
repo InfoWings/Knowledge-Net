@@ -23,7 +23,7 @@ class AspectService(
 
     private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
         aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
-        aspectVertex.saveAspectProperties(aspectData.properties, user)
+        aspectVertex.saveAspectProperties(aspectData.properties.filterNot { it.deleted }, user)
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 
