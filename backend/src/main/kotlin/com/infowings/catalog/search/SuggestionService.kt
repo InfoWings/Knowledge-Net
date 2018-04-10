@@ -53,6 +53,7 @@ class SuggestionService(
                 .toMutableList()
                 .addAnExactMatchToTheBeginning(commonParam)
                 .addMeasureDescSuggestion(text, MEASURE_VERTEX)
+                .distinct()
                 .take(maxResultSize)
         }
     }
@@ -80,7 +81,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
-                .mapNotNull { it.toAspectVertex().toAspectData() })
+                    .mapNotNull { it.toAspectVertex().toAspectData() })
         }
         return this
     }
@@ -99,7 +100,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
-                .mapNotNull { it.toSubject().toSubjectData() })
+                    .mapNotNull { it.toSubject().toSubjectData() })
         }
         return this
     }
