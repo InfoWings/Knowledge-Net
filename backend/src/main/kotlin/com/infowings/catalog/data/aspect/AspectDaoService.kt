@@ -76,9 +76,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
-        return@session aspectVertex.save<OVertex>().toAspectVertex().also {
-            logger.debug("Aspect ${aspectData.name} saved with id: ${it.id}")
-        }
+        return@session aspectVertex.save<OVertex>().toAspectVertex()
     }
 
     fun saveAspectProperty(

@@ -6,6 +6,7 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -61,6 +62,8 @@ class AspectService(
         return res
     }
 
+    private val logger = loggerFor<AspectService>()
+
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
      * @param aspectData data that represents Aspect, which will be saved or updated
@@ -82,7 +85,18 @@ class AspectService(
             return@transaction finishMethod(aspectVertex, aspectData, user)
         }
 
-        return findById(save.id)
+        logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
+
+        return if (save.identity.clusterPosition < 0) {
+            // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
+            // Но воспроизвести не удалось.
+            // Оставим эту веточку. Последим за логами
+            val res = findById(save.id)
+
+            logger.warn("Cluster position is negative: ${save.identity}. Aspect: ${save.toAspect()}. Recovered: $res")
+
+            res
+        } else save.toAspect()
     }
 
 
