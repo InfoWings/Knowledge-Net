@@ -1,11 +1,11 @@
 @import "abstract";
 
 .left-column {
-  flex: 0 0 50%;
+  flex: 50%;
 }
 
 .right-column {
-  flex: 1;
+  flex: 50%;
 }
 
 .columns-wrapper {
