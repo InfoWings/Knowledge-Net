@@ -1,9 +1,6 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.Measure
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
@@ -26,9 +23,10 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         measureGroupName: String?,
         findInGroups: Boolean
-    ): List<String> =
-        findMeasure(commonParam, measureGroupName).map { it.name } +
-                if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+    ) = SuggestedMeasureData(
+        findMeasure(commonParam, measureGroupName).map { it.name },
+        if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+    )
 
     private fun findMeasureGroups(text: String?): List<String> {
         if (text == null) {
