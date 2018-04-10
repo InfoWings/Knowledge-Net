@@ -1,6 +1,7 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.UserProperties
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
@@ -37,7 +38,8 @@ import org.springframework.core.env.get
  */
 class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(ctx: GenericApplicationContext) = beans {
-        bean { UserAcceptService(database = ref()) }
+        bean { UserProperties() }
+        bean { UserAcceptService(database = ref())}
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
@@ -49,11 +51,13 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { HistoryService(db = ref(), historyDaoService = ref(), userAcceptService = ref()) }
 
         bean {
+            env.systemProperties
             OrientDatabase(
                 url = env["orient.url"],
                 database = env["orient.database"],
                 user = env["orient.user"],
-                password = env["orient.password"]
+                password = env["orient.password"],
+                userProperties = ref()
             )
         }
 

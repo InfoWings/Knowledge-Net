@@ -1,7 +1,6 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.auth.UserEntity
-import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
@@ -43,12 +42,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         session.getClass(name) ?: session.createEdgeClass(name)
 
     /** Executes only if there is no Class $USER_CLASS in db */
-    fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
+    fun initUsers(entities: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
-            logger.info("Init users")
-            initUser(Users.user)
-            initUser(Users.admin)
-            initUser(Users.poweredUser)
+            logger.info("Init users: " + entities.map{it.username})
+            entities.forEach {initUser(it)}
         }
         return@session this
     }
