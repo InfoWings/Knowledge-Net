@@ -1,7 +1,6 @@
 package com.infowings.catalog.aspects.editconsole.popup
 
 import com.infowings.catalog.wrappers.blueprint.Button
-import kotlinext.js.invoke
 import kotlinext.js.require
 import react.*
 import react.dom.div

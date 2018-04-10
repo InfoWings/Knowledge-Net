@@ -8,7 +8,7 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, ReferenceBookRootLabel.State>() {
+class ReferenceBookLabel : RComponent<ReferenceBookLabel.Props, ReferenceBookLabel.State>() {
 
     override fun State.init() {
         updatingBook = false
@@ -74,5 +74,5 @@ class ReferenceBookRootLabel : RComponent<ReferenceBookRootLabel.Props, Referenc
     }
 }
 
-fun RBuilder.referenceBookRootLabel(block: RHandler<ReferenceBookRootLabel.Props>) =
-    child(ReferenceBookRootLabel::class, block)
+fun RBuilder.referenceBookLabel(block: RHandler<ReferenceBookLabel.Props>) =
+    child(ReferenceBookLabel::class, block)
