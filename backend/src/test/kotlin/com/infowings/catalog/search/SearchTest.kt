@@ -116,7 +116,6 @@ class SearchTest {
             findInGroups = true
         )
 
-        logger.debug("find result: $result")
         assertEquals("Square meter", result.measureNames.first())
         assertEquals("Area", result.measureGroupNames.first())
     }
