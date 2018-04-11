@@ -35,13 +35,17 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     override fun componentDidMount() {
         launch {
             val aspectIdToBookMap = getAllReferenceBooks().books
-                .filter { !it.deleted }
+                .filterNot { it.deleted }
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
             val rowDataList = getAllAspects().aspects
                 .filter { !it.deleted }
-                .map { RowData(it.id ?: "", it.name ?: "", aspectIdToBookMap[it.id!!]) }
+                .map {
+                    val aspectId = it.id ?: ""
+                    val book = if (it.id != null) aspectIdToBookMap[aspectId] else null
+                    RowData(aspectId, it.name ?: "", book)
+                }
 
             setState {
                 this.rowDataList = rowDataList
