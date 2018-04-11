@@ -47,8 +47,18 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 
-    fun remove(vertex: OVertex) {
-        db.delete(vertex)
+    fun removeRefBookVertex(bookVertex: ReferenceBookVertex) {
+        transaction(db) {
+            removeRefBookItemVertex(bookVertex.root)
+            db.delete(bookVertex)
+        }
+    }
+
+    fun removeRefBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
+        transaction(db) {
+            bookItemVertex.children.forEach { removeRefBookItemVertex(it) }
+            db.delete(bookItemVertex)
+        }
     }
 
     fun getRefBookItemVertexParents(id: String): List<ReferenceBookItemVertex> = session(db) {

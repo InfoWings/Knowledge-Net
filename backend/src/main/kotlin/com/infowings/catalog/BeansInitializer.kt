@@ -39,12 +39,19 @@ import org.springframework.core.env.get
 class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(ctx: GenericApplicationContext) = beans {
         bean { UserProperties() }
-        bean { UserAcceptService(database = ref())}
+        bean { UserAcceptService(database = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
-        bean { AspectService(db = ref(), aspectDaoService = ref(), historyService = ref()) }
+        bean {
+            AspectService(
+                db = ref(),
+                aspectDaoService = ref(),
+                referenceBookDao = ref(),
+                historyService = ref()
+            )
+        }
         bean { SubjectService(db = ref()) }
         bean { SuggestionService(database = ref()) }
         bean { HistoryDaoService(db = ref()) }

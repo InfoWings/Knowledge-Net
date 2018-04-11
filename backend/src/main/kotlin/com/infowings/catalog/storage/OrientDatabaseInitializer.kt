@@ -4,7 +4,7 @@ import com.infowings.catalog.auth.UserEntity
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
@@ -151,7 +151,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         }
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
-        session.getClass(REFERENCE_BOOK_ASPECT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
+        session.getClass(ASPECT_REFERENCE_BOOK_EDGE) ?: session.createEdgeClass(ASPECT_REFERENCE_BOOK_EDGE)
         return@session this
     }
 

@@ -17,7 +17,7 @@ import com.orientechnologies.orient.core.record.OVertex
 const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
-const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
+const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 
 
 class ReferenceBookService(
@@ -63,9 +63,11 @@ class ReferenceBookService(
         rootVertex.aspectId = aspectId
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
+        val aspectVertex = dao.getAspectVertex(aspectId)
+                ?: throw RefBookAspectNotExist(aspectId) //todo: change exception to AspectDoesNotExist
         aspectVertex.validateForRemoved()
-        referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
+        aspectVertex.addEdge(referenceBookVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
+        aspectVertex.save<OVertex>()
 
         val savedReferenceBookVertex = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
         historyService.storeFact(savedReferenceBookVertex.toCreateFact(userName))
@@ -131,7 +133,7 @@ class ReferenceBookService(
         when {
             hasChildItemLinkedByObject && force -> dao.markBookVertexAsDeleted(referenceBookVertex)
             hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-            else -> dao.remove(referenceBookVertex)
+            else -> dao.removeRefBookVertex(referenceBookVertex)
         }
 
         //TODO: add history
@@ -243,7 +245,7 @@ class ReferenceBookService(
             when {
                 hasChildItemLinkedByObject && force -> dao.markItemVertexAsDeleted(bookItemVertex)
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> dao.remove(bookItemVertex)
+                else -> dao.removeRefBookItemVertex(bookItemVertex)
             }
 
             //TODO: add history
