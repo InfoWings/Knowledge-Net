@@ -107,7 +107,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             }
 
             if (notDeletedBookItems.isNotEmpty()) {
-                notDeletedBookItems.map { bookItem ->
+                notDeletedBookItems.forEach { bookItem ->
                     referenceBookItemNode {
                         attrs {
                             key = bookItem.id

@@ -7,7 +7,9 @@
     align-items: center;
     font-size: 1.6rem;
     font-weight: 400;
-    margin-bottom: .4rem;
+    &:not(:last-child) {
+      margin-bottom: .4rem;
+    }
   }
 
   &--expander-icon {
@@ -23,5 +25,6 @@
 
   &--children {
     padding-left: 3rem;
+    margin-bottom: .4rem;
   }
 }
