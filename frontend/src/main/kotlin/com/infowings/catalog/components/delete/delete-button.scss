@@ -1,0 +1,22 @@
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/common/color-aliases";
+
+.delete-button {
+  &--icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    fill: $pt-intent-danger;
+  }
+}
+
+.delete-popover {
+  padding: 1.5rem;
+  &--buttons {
+    display: flex;
+    flex-direction: row-reverse;
+
+    & > *:not(:last-child) {
+      margin-left: .6rem;
+    }
+  }
+}

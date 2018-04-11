@@ -2,6 +2,7 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptySubjectData
+import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.wrappers.blueprint.EditableText
@@ -46,6 +47,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
 
             searchBar {
                 attrs {
+                    className = "subjects-list--search-bar"
                     filterText = state.filterText
                     onFilterTextChange = { text ->
                         window.clearTimeout(timer)
@@ -72,6 +74,10 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         onNewDescriptionConfirmed = { updateSubjectDescription(it, subjectData) },
                         onEditStarted = null
                     )
+                    deleteButtonComponent(
+                        onDeleteClick = {},
+                        entityName = "subject"
+                    )
                 }
             }
 
@@ -83,6 +89,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                     attrs {
                         className = "subjects-list--name"
                         defaultValue = ""
+                        placeholder = "Click to enter new subject"
                         onConfirm = { updateSubjectName(it, emptySubjectData) }
                     }
                 }
