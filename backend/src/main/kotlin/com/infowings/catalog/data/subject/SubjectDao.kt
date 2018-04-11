@@ -2,7 +2,6 @@ package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.SubjectIdIsNull
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
@@ -18,32 +17,32 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toSubject() }.toList()
     }
 
-    fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
+    private fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
         rs.map { it.toVertex().toSubject() }.firstOrNull()
     }
+
+    fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
 
 
-    private fun save(sd: SubjectData): SubjectVertex =
-        transaction(db) { session ->
-            val vertex: SubjectVertex = newSubjectVertex()
-            vertex.name = sd.name
-            vertex.description = sd.description
-            vertex.save<SubjectVertex>().toSubjectVertex()
-            return@transaction vertex.save<SubjectVertex>().toSubjectVertex()
-        }
+    private fun save(sd: SubjectData): SubjectVertex {
+        val vertex: SubjectVertex = newSubjectVertex()
+        vertex.name = sd.name
+        vertex.description = sd.description
+        vertex.save<SubjectVertex>().toSubjectVertex()
+        return vertex.save<SubjectVertex>().toSubjectVertex()
+    }
 
-    fun createSubject(sd: SubjectData): Subject =
+    fun createSubject(sd: SubjectData): SubjectVertex =
         transaction(db) {
             findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(it) } ?: save(sd)
-        }.toSubject()
+        }
 
-    fun updateSubject(sd: SubjectData): Subject =
+    fun updateSubjectVertex(vertex: SubjectVertex, sd: SubjectData): SubjectVertex =
         transaction(db) {
-            val vertex: SubjectVertex = db[sd.id ?: throw SubjectIdIsNull()].toSubjectVertex()
             vertex.name = sd.name
             vertex.description = sd.description
             vertex.save<SubjectVertex>().toSubjectVertex()
-        }.toSubject()
+        }
 }
