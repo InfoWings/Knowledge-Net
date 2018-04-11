@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
@@ -168,7 +169,11 @@ fun createTestSubject(
     description: String? = null
 ): Subject {
     val sd = SubjectData(name = name, description = description)
-    val subject = subjectService.findByName(name) ?: subjectService.createSubject(sd)
+    val subject = try {
+        subjectService.createSubject(sd)
+    } catch (e: SubjectWithNameAlreadyExist) {
+        e.subject
+    }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
     return subject
 }
