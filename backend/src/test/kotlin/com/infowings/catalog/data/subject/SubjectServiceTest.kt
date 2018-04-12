@@ -170,7 +170,7 @@ fun createTestSubject(
 ): Subject {
     val sd = SubjectData(name = name, version = 0, description = description)
     val subject = try {
-        subjectService.createSubject(sd)
+        subjectService.createSubject(sd, "")
     } catch (e: SubjectWithNameAlreadyExist) {
         e.subject
     }

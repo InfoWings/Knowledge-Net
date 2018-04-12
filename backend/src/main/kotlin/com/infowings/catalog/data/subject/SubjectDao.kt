@@ -5,9 +5,10 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
+import notDeletedSql
 
-private const val SelectSubjectsQuery = "SELECT FROM $SUBJECT_CLASS"
-private const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? "
+private const val SelectSubjectsQuery = "SELECT FROM $SUBJECT_CLASS where $notDeletedSql"
+private const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? and $notDeletedSql "
 
 fun OVertex.toSubject(): Subject =
     Subject(this.id, name = this.name, version = this.version, description = this.description)
@@ -45,4 +46,15 @@ class SubjectDao(private val db: OrientDatabase) {
             vertex.description = sd.description
             vertex.save<SubjectVertex>().toSubjectVertex()
         }
+
+    fun remove(vertex: OVertex) {
+        db.delete(vertex)
+    }
+
+    fun softRemove(vertex: SubjectVertex) {
+        session(db) {
+            vertex.deleted = true
+            vertex.save<OVertex>()
+        }
+    }
 }
