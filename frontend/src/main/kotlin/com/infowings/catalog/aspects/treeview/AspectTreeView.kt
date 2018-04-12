@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.AspectsModel
+import com.infowings.catalog.aspects.treeview.view.newAspectButton
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.blueprint.Alert
@@ -39,6 +40,9 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
                         aspectContext = props.aspectContext
                     }
                 }
+            }
+            if (props.selectedAspectId != null) {
+                newAspectButton(props.aspectsModel::discardSelect)
             }
         }
         Alert {
