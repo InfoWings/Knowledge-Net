@@ -3,13 +3,10 @@ package com.infowings.catalog.data.subject
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
-import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.SubjectWithNameAlreadyExist
+import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.CommonSuggestionParam
 import com.infowings.catalog.search.SubjectSuggestionParam
 import com.infowings.catalog.search.SuggestionService
@@ -134,6 +131,89 @@ class SubjectServiceTest {
             SubjectSuggestionParam(null)
         )
         Assert.assertEquals("subject should be founded by description", res.first(), subject.toSubjectData())
+    }
+
+    @Test
+    fun testDeleteStandaloneSubject() {
+        val subjects = (1 .. 3).map {
+            val name = "testDeleteStandaloneSubject${it}"
+            val s =  createTestSubject(name, aspectNames = emptyList())
+            Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
+            s
+        }
+
+        val before = subjectService.getSubjects().map {it.id}
+        val beforeSet = before.toSet()
+
+        Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
+
+        val toRemove = subjects.get(1)
+
+        subjectService.remove(toRemove.toSubjectData(), "user")
+
+        val after = subjectService.getSubjects().map {it.id}
+        val afterSet = after.toSet()
+
+        Assert.assertEquals("ids after removal are not unique", after.size, afterSet.size)
+
+        Assert.assertEquals("exactly one element should disappear", beforeSet.size, afterSet.size + 1)
+
+        Assert.assertEquals("incorrect element was removed", beforeSet - afterSet, setOf(toRemove.id))
+    }
+
+    @Test
+    fun testDeleteForcedReferencedSubject() {
+        val nameBase = "testDeleteReferencedSubject"
+        val subjects = (1 .. 3).map {
+            val name = "$nameBase$it"
+            val s =  createTestSubject(name, aspectNames = listOf("a_" + name))
+            Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
+            s
+        }
+
+        val before = subjectService.getSubjects().map {it.id}
+        val beforeSet = before.toSet()
+
+        Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
+
+        val toRemove = subjects.get(1)
+
+        subjectService.remove(toRemove.toSubjectData(), "user", force = true)
+
+        val after = subjectService.getSubjects().map {it.id}
+        val afterSet = after.toSet()
+
+        Assert.assertEquals("ids after removal are not unique", after.size, afterSet.size)
+
+        Assert.assertEquals("exactly one element should disappear", beforeSet.size, afterSet.size + 1)
+
+        Assert.assertEquals("incorrect element was removed", beforeSet - afterSet, setOf(toRemove.id))
+    }
+
+    @Test
+    fun testDeleteReferencedSubject() {
+        val nameBase = "testDeleteForceReferencedSubject"
+        val subjects = (1 .. 3).map {
+            val name = "$nameBase$it"
+            val s =  createTestSubject(name, aspectNames = listOf("a_" + name))
+            Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
+            s
+        }
+
+        val before = subjectService.getSubjects().map {it.id}
+        val beforeSet = before.toSet()
+
+        Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
+
+        val toRemove = subjects.get(1)
+
+        try {
+            subjectService.remove(toRemove.toSubjectData(), "user", force = false)
+            Assert.fail("Nothing is thrown")
+        } catch (e: SubjectIsLinkedByAspect) {
+        } catch (e: Throwable) {
+            Assert.fail("Unexpected error is thrown: $e")
+        }
     }
 
     private fun createTestSubject(
