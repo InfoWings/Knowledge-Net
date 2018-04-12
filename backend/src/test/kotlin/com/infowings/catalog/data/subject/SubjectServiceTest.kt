@@ -168,12 +168,13 @@ fun createTestSubject(
     subjectService: SubjectService,
     description: String? = null
 ): Subject {
-    val sd = SubjectData(name = name, description = description)
+    val sd = SubjectData(name = name, version = 0, description = description)
     val subject = try {
         subjectService.createSubject(sd)
     } catch (e: SubjectWithNameAlreadyExist) {
         e.subject
     }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
-    return subject
+
+    return subjectService.findById(subject.id)?.toSubject() ?: throw IllegalStateException()
 }

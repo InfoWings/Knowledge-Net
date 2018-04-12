@@ -21,8 +21,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) {
-            vertex[ATTR_NAME] = value
+        set(value) { vertex[ATTR_NAME] = value
         }
 
     var description: String?

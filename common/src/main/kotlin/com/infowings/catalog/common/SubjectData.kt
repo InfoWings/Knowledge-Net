@@ -8,11 +8,12 @@ data class SubjectsList(
 )
 
 @Serializable
-data class SubjectData(
+data class SubjectData (
     val id: String? = null,
     val name: String,
+    override val version: Int = 0,
     val description: String?
-)
+) : VersionAware
 
 val emptySubjectData
-    get() = SubjectData(name = "", description = null)
+    get() = SubjectData(name = "", description = null, version = 1)

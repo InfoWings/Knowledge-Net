@@ -10,7 +10,7 @@ private const val SelectSubjectsQuery = "SELECT FROM $SUBJECT_CLASS"
 private const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? "
 
 fun OVertex.toSubject(): Subject =
-    Subject(this.id, this.name, this.description)
+    Subject(this.id, name = this.name, version = this.version, description = this.description)
 
 class SubjectDao(private val db: OrientDatabase) {
     fun getSubjects(): List<Subject> = db.query(SelectSubjectsQuery) { rs ->
