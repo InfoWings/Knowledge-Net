@@ -71,7 +71,7 @@ class ReferenceBookServiceTest {
 
     @Test(expected = RefBookNotExist::class)
     fun findNotExistingReferenceBookTest() {
-        referenceBookService.getReferenceBook("random")
+        referenceBookService.getReferenceBook(aspect.id + "1")
     }
 
     @Test
@@ -90,7 +90,10 @@ class ReferenceBookServiceTest {
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
-        referenceBookService.updateReferenceBook(referenceBook.copy(aspectId = "random", name = "newName"), userName)
+        referenceBookService.updateReferenceBook(
+            referenceBook.copy(aspectId = aspect.id + "1", name = "newName"),
+            userName
+        )
     }
 
     @Test

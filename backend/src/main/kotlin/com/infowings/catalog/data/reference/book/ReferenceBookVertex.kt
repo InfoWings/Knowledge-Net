@@ -22,12 +22,6 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
         links = mapOf("aspect" to listOf(aspect.identity))
     )
 
-    var aspectId: String
-        get() = this["aspectId"]
-        set(value) {
-            this["aspectId"] = value
-        }
-
     var name: String
         get() = this["name"]
         set(value) {

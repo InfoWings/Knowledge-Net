@@ -55,7 +55,6 @@ class ReferenceBookService(
         dao.getReferenceBookVertex(aspectId)?.let { throw RefBookAlreadyExist(aspectId) }
 
         val referenceBookVertex = dao.createReferenceBookVertex()
-        referenceBookVertex.aspectId = aspectId
         referenceBookVertex.name = name
 
         val rootVertex = dao.createReferenceBookItemVertex()

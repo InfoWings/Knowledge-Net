@@ -44,8 +44,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(entities: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
-            logger.info("Init users: " + entities.map{it.username})
-            entities.forEach {initUser(it)}
+            logger.info("Init users: " + entities.map { it.username })
+            entities.forEach { initUser(it) }
         }
         return@session this
     }
@@ -139,12 +139,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
-        createVertexWithNameAndDesc(session, REFERENCE_BOOK_VERTEX)
 
-        if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
-            val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
-            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
-        }
+        val refBookVertexClass =
+            session.getClass(REFERENCE_BOOK_VERTEX) ?: session.createVertexClass(REFERENCE_BOOK_VERTEX)
+        refBookVertexClass.getProperty(ATTR_DESC) ?: refBookVertexClass.createProperty(ATTR_DESC, OType.STRING)
+
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
             vertexClass.createProperty("value", OType.STRING)
