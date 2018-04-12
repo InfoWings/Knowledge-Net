@@ -92,7 +92,7 @@ class AspectServiceDeletingTest {
 
 
         val aspectProperty = AspectPropertyData("", "prop1", aspect.id, AspectPropertyCardinality.INFINITY.name)
-        val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP" , listOf(aspectProperty))
+        val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP", listOf(aspectProperty))
         aspectService.save(aspectData2)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
@@ -143,5 +143,26 @@ class AspectServiceDeletingTest {
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
         assertThat("Aspect exists in db", found2, Is.`is`(Matchers.not(null)))
         assertThat("Aspect not deleted", found2!!.deleted, Is.`is`(true))
+    }
+
+    @Test
+    fun testDeleteAspectProperty() {
+        val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"))
+        val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"))
+        val property1 = AspectPropertyData("", "", simpleAspect1.id, AspectPropertyCardinality.ONE.name)
+        val property2 = AspectPropertyData("", "", simpleAspect2.id, AspectPropertyCardinality.ONE.name)
+        val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)))
+        val initialAspectData = initial.toAspectData()
+
+        val propertyRemoved = aspectService.save(
+            initialAspectData.copy(
+                properties = listOf(
+                    initialAspectData.properties[0],
+                    initialAspectData.properties[1].copy(deleted = true)
+                )
+            )
+        )
+
+        assertThat("Updated aspect does not have deleted property", propertyRemoved.properties.size == 1)
     }
 }
