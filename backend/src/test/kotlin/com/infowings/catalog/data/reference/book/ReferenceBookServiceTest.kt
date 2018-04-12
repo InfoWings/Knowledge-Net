@@ -61,6 +61,9 @@ class ReferenceBookServiceTest {
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
         val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, userName)
+        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null))
+        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, userName)
+        referenceBookService.removeReferenceBook(forDeletingBook, userName, force = true)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
