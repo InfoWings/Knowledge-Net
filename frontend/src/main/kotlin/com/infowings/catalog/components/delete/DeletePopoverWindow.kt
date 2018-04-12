@@ -1,6 +1,7 @@
 package com.infowings.catalog.components.delete
 
 import com.infowings.catalog.wrappers.blueprint.Button
+import kotlinext.js.require
 import react.*
 import react.dom.div
 import react.dom.h5
@@ -11,7 +12,7 @@ class DeletePopoverWindow : RComponent<DeletePopoverWindow.Props, RState>() {
 
     companion object {
         init {
-            kotlinext.js.require("styles/remove-confirm-window.scss")
+            require("styles/remove-confirm-window.scss")
         }
     }
 

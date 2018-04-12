@@ -6,6 +6,7 @@ import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.wrappers.blueprint.EditableText
+import kotlinext.js.require
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -16,7 +17,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
 
     companion object {
         init {
-            kotlinext.js.require("styles/subjects-list.scss")
+            require("styles/subjects-list.scss")
         }
     }
 
@@ -75,7 +76,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         onEditStarted = null
                     )
                     deleteButtonComponent(
-                        onDeleteClick = {},
+                        onDeleteClick = { TODO("Server-side delete is not yet implemented") },
                         entityName = "subject"
                     )
                 }

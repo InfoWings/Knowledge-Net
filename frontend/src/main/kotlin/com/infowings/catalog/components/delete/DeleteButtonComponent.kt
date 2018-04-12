@@ -3,13 +3,14 @@ package com.infowings.catalog.components.delete
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinext.js.require
 import react.*
 
 class DeleteButtonComponent : RComponent<DeleteButtonComponent.Props, RState>() {
 
     companion object {
         init {
-            kotlinext.js.require("styles/delete-button.scss")
+            require("styles/delete-button.scss")
         }
     }
 
