@@ -163,6 +163,6 @@ class AspectServiceDeletingTest {
             )
         )
 
-        assertThat("Aspect has one property", propertyRemoved.properties.size == 1)
+        assertThat("Updated aspect does not have deleted property", propertyRemoved.properties.size == 1)
     }
 }
