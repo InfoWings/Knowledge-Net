@@ -6,7 +6,7 @@ import com.infowings.catalog.storage.toVertexOrNull
 const val HISTORY_CLASS = "History"
 const val selectFromHistory = "SELECT FROM $HISTORY_EVENT_CLASS"
 
-class HistoryDaoService(private val db: OrientDatabase) {
+class HistoryDao(private val db: OrientDatabase) {
     fun newHistoryEventVertex() = db.createNewVertex(HISTORY_EVENT_CLASS).toHistoryEventVertex()
 
     fun newHistoryElementVertex() = db.createNewVertex(HISTORY_ELEMENT_CLASS).toHistoryElementVertex()

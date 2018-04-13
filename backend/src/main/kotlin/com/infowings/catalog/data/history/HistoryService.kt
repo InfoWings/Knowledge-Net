@@ -13,7 +13,7 @@ import java.time.Instant
 
 class HistoryService(
     private val db: OrientDatabase,
-    private val historyDaoService: HistoryDaoService,
+    private val historyDao: HistoryDao,
     private val userAcceptService: UserAcceptService
 ) {
 
@@ -21,7 +21,7 @@ class HistoryService(
         val historyEventVertex = fact.newHistoryEventVertex()
 
         val elementVertices = fact.payload.data.map {
-            return@map historyDaoService.newHistoryElementVertex().apply {
+            return@map historyDao.newHistoryElementVertex().apply {
                 addEdge(historyEventVertex)
                 key = it.key
                 stringValue = it.value
@@ -29,10 +29,10 @@ class HistoryService(
         }
 
         val addLinkVertices =
-            historyEventVertex.linksVertices(fact.payload.addedLinks, { historyDaoService.newAddLinkVertex() })
+            historyEventVertex.linksVertices(fact.payload.addedLinks, { historyDao.newAddLinkVertex() })
 
         val dropLinkVertices =
-            historyEventVertex.linksVertices(fact.payload.removedLinks, { historyDaoService.newDropLinkVertex() })
+            historyEventVertex.linksVertices(fact.payload.removedLinks, { historyDao.newDropLinkVertex() })
 
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
@@ -42,7 +42,7 @@ class HistoryService(
     }
 
     fun getAll(): Set<HistoryFactDto> = transaction(db) {
-        return@transaction historyDaoService.getAllHistoryEvents().map {
+        return@transaction historyDao.getAllHistoryEvents().map {
             val event = HistoryEvent(
                 JSON.nonstrict.parse<UserEntity>(it.user).username,
                 it.timestamp.toEpochMilli(),
@@ -73,7 +73,7 @@ class HistoryService(
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
-        historyDaoService.newHistoryEventVertex().apply {
+        historyDao.newHistoryEventVertex().apply {
             entityClass = event.entityClass
             entityRID = event.entityId
             entityVersion = event.version
