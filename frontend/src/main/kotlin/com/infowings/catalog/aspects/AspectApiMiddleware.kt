@@ -2,6 +2,7 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.react.suspendSetState
 import kotlinx.coroutines.experimental.launch
@@ -18,6 +19,7 @@ interface AspectApiReceiverProps : RProps {
     var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
+    var onFetchAspects: (List<AspectOrderBy>) -> Unit
 }
 
 /**
@@ -31,8 +33,12 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     override fun componentDidMount() {
+        fetchAspects()
+    }
+
+    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
         launch {
-            val response = getAllAspects()
+            val response = getAllAspects(orderBy)
             setState {
                 data = response.aspects
                 context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
@@ -115,6 +121,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 onAspectCreate = { handleCreateNewAspect(it) }
                 onAspectUpdate = { handleUpdateAspect(it) }
                 onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
+                onFetchAspects = ::fetchAspects
             }
         }
     }

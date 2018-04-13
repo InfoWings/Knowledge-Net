@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.*
@@ -22,8 +19,9 @@ class AspectService(
     private val aspectValidator = AspectValidator(aspectDaoService)
 
     private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
-        aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
-        aspectVertex.saveAspectProperties(aspectData.properties, user)
+        val (deletedProperties, updatedProperties) = aspectData.properties.partition { it.deleted }
+        deletedProperties.forEach { remove(it, user) }
+        aspectVertex.saveAspectProperties(updatedProperties, user)
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 
@@ -118,7 +116,15 @@ class AspectService(
      */
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
-    fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
+    fun getAspects(
+        orderBy: List<AspectOrderBy> = listOf(
+            AspectOrderBy(
+                AspectSortField.NAME,
+                Direction.ASC
+            )
+        )
+    ): List<Aspect> =
+        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
 
     /**
      * Search [Aspect] by it's id
@@ -128,6 +134,34 @@ class AspectService(
 
     fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
+
+
+    private class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
+        override fun compareTo(other: CompareString): Int =
+            direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
+    }
+
+    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
+        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+
+        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.DESC)
+
+        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+            AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
+            AspectSortField.SUBJECT to mapOf(
+                Direction.ASC to ::aspectSubjectNameAsc,
+                Direction.DESC to ::aspectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
 
 
     /** Method is private and it is supposed that version checking successfully accepted before. */

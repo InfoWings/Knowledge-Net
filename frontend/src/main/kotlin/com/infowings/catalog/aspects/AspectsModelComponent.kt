@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
+import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
@@ -205,6 +206,11 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         val selectedAspect = state.selectedAspect
         val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
+            aspectSort {
+                attrs {
+                    onFetchAspect = props.onFetchAspects
+                }
+            }
             aspectTreeView {
                 attrs {
                     aspects = props.data
