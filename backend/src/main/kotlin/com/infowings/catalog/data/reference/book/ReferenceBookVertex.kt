@@ -1,4 +1,4 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.data.history.HistoryAware
@@ -11,18 +11,13 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toReferenceBookVertex() = ReferenceBookVertex(this)
-fun OVertex.toReferenceBook() = ReferenceBookVertex(this).toReferenceBook()
 
 class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_VERTEX
 
     override fun currentSnapshot(): Snapshot = Snapshot(
-        data = mapOf(
-            "name" to asStringOrEmpty(name)
-        ),
-        links = mapOf(
-            "aspect" to listOf(aspectVertex().identity)
-        )
+        data = mapOf("name" to asStringOrEmpty(name)),
+        links = mapOf("aspect" to listOf(aspect.identity))
     )
 
     var aspectId: String
@@ -37,25 +32,30 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             this["name"] = value
         }
 
-    private val children: List<OVertex>
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).toList()
+    var deleted: Boolean
+        get() = this["deleted"] ?: false
+        set(value) {
+            this["deleted"] = value
+        }
 
-    private val child: OVertex?
-        get() = children.first()
+    val root: ReferenceBookItemVertex
+        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
+            .map { it.toReferenceBookItemVertex() }
+            .first()
 
-
-    //var deleted: Boolean
-    //    get() = this["deleted"] ?: false
-    //    set(value) {
-    //        this["deleted"] = value
-    //    }
-
-    private fun aspectVertex() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).firstOrNull()
-            ?: throw RefBookAspectNotExist(aspectId)
+    private val aspect: OVertex
+        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).first()
 
     fun toReferenceBook(): ReferenceBook {
-        val aspectId = aspectVertex().id
-        val root = toReferenceBookVertex().child?.toReferenceBookItem() ?: throw RefBookChildDoesNotExist(this)
-        return ReferenceBook(name, aspectId, root)
+        val root = root.toReferenceBookItem()
+        return ReferenceBook(aspect.id, name, root, deleted, version)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return vertex == other
+    }
+
+    override fun hashCode(): Int {
+        return vertex.hashCode()
     }
 }

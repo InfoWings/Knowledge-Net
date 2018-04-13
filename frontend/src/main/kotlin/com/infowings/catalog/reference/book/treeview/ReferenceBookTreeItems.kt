@@ -2,7 +2,7 @@ package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
@@ -30,47 +30,52 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         }
     }
 
-    private suspend fun handleCreateBookItem(bookItemData: ReferenceBookItemData) {
-        props.createBookItem(bookItemData)
+    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
+        props.createBookItem(bookItem)
         setState {
             creatingBookItem = false
         }
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-tree-view--items-block") {
-            props.bookItems.map {
-                referenceBookTreeItem {
-                    attrs {
-                        aspectId = props.aspectId
-                        book = props.book
-                        key = it.id
-                        bookItem = it
-                        createBookItem = props.createBookItem
-                        updateBookItem = props.updateBookItem
-                    }
+        props.bookItems.map {
+            referenceBookTreeItem {
+                attrs {
+                    aspectId = props.aspectId
+                    book = props.book
+                    key = it.id
+                    bookItem = it
+                    createBookItem = props.createBookItem
+                    updateBookItem = props.updateBookItem
+                    deleteBookItem = props.deleteBookItem
                 }
             }
-            if (state.creatingBookItem) {
-                bookItemEditConsole {
-                    val parentId = props.bookItem?.id ?: props.book.id
-                    attrs {
-                        bookItemData = ReferenceBookItemData(null, "", parentId, props.aspectId)
-                        onCancel = ::cancelCreatingBookItem
-                        onSubmit = { handleCreateBookItem(it) }
-                    }
-                }
-            } else {
-                div(classes = "book-tree-view--item") {
-                    div(classes = "book-tree-view--label book-tree-view--label__selected") {
-                        attrs {
-                            onClickFunction = ::startCreatingBookItem
+        }
+        treeNode {
+            attrs {
+                treeNodeContent = buildElement {
+                    if (state.creatingBookItem) {
+                        bookItemEditConsole {
+                            val parentId = props.bookItem?.id ?: props.book.id
+                            attrs {
+                                bookItem = ReferenceBookItem(props.aspectId, parentId, "", "", emptyList(), false, 0)
+                                onCancel = ::cancelCreatingBookItem
+                                onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
+                            }
                         }
-                        span(classes = "book-tree-view--empty") {
-                            +"(Add Item ...)"
+                    } else {
+                        div(classes = "book-tree-view--item") {
+                            div(classes = "book-tree-view--label book-tree-view--label__selected") {
+                                attrs {
+                                    onClickFunction = ::startCreatingBookItem
+                                }
+                                span(classes = "book-tree-view--empty") {
+                                    +"(Add Item ...)"
+                                }
+                            }
                         }
                     }
-                }
+                }!!
             }
         }
     }
@@ -80,8 +85,9 @@ class ReferenceBookTreeItems : RComponent<ReferenceBookTreeItems.Props, Referenc
         var book: ReferenceBook
         var bookItem: ReferenceBookItem?
         var bookItems: List<ReferenceBookItem>
-        var createBookItem: suspend (ReferenceBookItemData) -> Unit
-        var updateBookItem: suspend (ReferenceBookItemData) -> Unit
+        var createBookItem: suspend (ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

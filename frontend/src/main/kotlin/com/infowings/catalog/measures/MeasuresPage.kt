@@ -1,6 +1,7 @@
 package com.infowings.catalog.measures
 
 import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
+import com.infowings.catalog.common.MeasureGroupDesc
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.layout.header
@@ -20,7 +21,8 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
         .map {
             MeasureGroupData(
                 it.name,
-                it.measureList.map { UnitData(it.name, it.symbol, containsFilterText = true) })
+                it.description,
+                it.measureList.map { UnitData(it.name, it.symbol, it.description, containsFilterText = true) })
         }
 
     override fun State.init() {
@@ -73,6 +75,7 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             .map { name ->
                 MeasureGroupData(
                     name,
+                    MeasureGroupDesc[name],
                     allGroups.first { it.units.map { it.name }.contains(name) }.units
                         .map { it.copy(containsFilterText = (name == it.name)) }
                 )
@@ -86,6 +89,7 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
             .map { name ->
                 MeasureGroupData(
                     name,
+                    MeasureGroupDesc[name],
                     allGroups.first { it.units.map { it.name }.contains(name) || it.name == name }.units
                         .map { it.copy(containsFilterText = (name == it.name)) }
                 )
@@ -122,11 +126,13 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
 
 data class MeasureGroupData(
     val name: String,
+    val description: String?,
     val units: List<UnitData>
 )
 
 data class UnitData(
     val name: String,
     val symbol: String,
+    val description: String?,
     val containsFilterText: Boolean
 )

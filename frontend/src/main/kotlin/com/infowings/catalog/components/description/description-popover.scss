@@ -1,0 +1,21 @@
+.description-input {
+  &--container {
+    padding: 1rem;
+  }
+
+  &--editable-text {
+  }
+
+  &--confirm {
+    border-radius: 50%;
+  }
+}
+
+.description-popover {
+  width: 60rem;
+}
+
+.description-tooltip {
+  min-width: 20rem;
+  max-width: 60rem;
+}

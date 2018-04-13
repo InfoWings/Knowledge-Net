@@ -3,7 +3,6 @@ package com.infowings.catalog.aspects.editconsole.view
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.checkIcon
 import com.infowings.catalog.utils.crossIcon
-import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
@@ -43,13 +42,10 @@ fun RBuilder.consoleButtonsGroup(
             }
             crossIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
         }
-        div(classes = "aspect-edit-console--button-control") {
-            attrs.onClickFunction = { e ->
-                e.stopPropagation()
-                e.preventDefault()
-                onDeleteClick()
+        deleteButton {
+            attrs {
+                this.onDeleteClick = onDeleteClick
             }
-            ripIcon("aspect-edit-console--button-icon aspect-edit-console--button-icon__red") {}
         }
     }
 }

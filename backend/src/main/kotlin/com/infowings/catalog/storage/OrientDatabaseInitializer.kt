@@ -1,10 +1,13 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.auth.UserEntity
-import com.infowings.catalog.auth.Users
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -39,12 +42,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         session.getClass(name) ?: session.createEdgeClass(name)
 
     /** Executes only if there is no Class $USER_CLASS in db */
-    fun initUsers(): OrientDatabaseInitializer = session(database) { session ->
+    fun initUsers(entities: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
-            logger.info("Init users")
-            initUser(Users.user)
-            initUser(Users.admin)
-            initUser(Users.poweredUser)
+            logger.info("Init users: " + entities.map{it.username})
+            entities.forEach {initUser(it)}
         }
         return@session this
     }
@@ -93,7 +94,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
         logger.info("create vertex: $className")
         val vertex = session.createVertexClass(className)
-        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.UNIQUE)
+        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
         createIgnoreCaseIndex(session, className)
         return vertex
     }

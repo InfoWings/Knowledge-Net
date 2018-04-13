@@ -1,6 +1,7 @@
 package com.infowings.catalog.reference.book.editconsole
 
-import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.js.onBlurFunction
@@ -15,14 +16,14 @@ class ReferenceBookItemEditConsole(props: Props) :
     RComponent<ReferenceBookItemEditConsole.Props, ReferenceBookItemEditConsole.State>(props) {
 
     override fun State.init(props: Props) {
-        value = props.bookItemData.value
+        value = props.bookItem.value
         errorMessage = null
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.bookItemData.id != nextProps.bookItemData.id) {
+        if (props.bookItem.id != nextProps.bookItem.id) {
             setState {
-                value = nextProps.bookItemData.value
+                value = nextProps.bookItem.value
             }
         }
     }
@@ -52,7 +53,7 @@ class ReferenceBookItemEditConsole(props: Props) :
     private fun submit() {
         launch {
             try {
-                props.onSubmit(props.bookItemData.copy(value = state.value))
+                props.onSubmit(props.bookItem.copy(value = state.value), false)
             } catch (e: BadRequestException) {
                 setState {
                     errorMessage = e.message
@@ -77,34 +78,38 @@ class ReferenceBookItemEditConsole(props: Props) :
     }
 
     override fun RBuilder.render() {
-        div {
-            div(classes = "book-edit-console") {
-                attrs {
-                    onKeyDownFunction = ::handleKeyDown
-                    onBlurFunction = ::handleBlur
-                }
-                div(classes = "book-edit-console--input-group") {
-                    referenceBookItemValueInput {
+        treeNode {
+            attrs {
+                treeNodeContent = buildElement {
+                    div(classes = "book-edit-console") {
                         attrs {
-                            value = state.value
-                            onChange = ::handleBookItemValueChanged
+                            onKeyDownFunction = ::handleKeyDown
+                            onBlurFunction = ::handleBlur
+                        }
+                        div(classes = "book-edit-console--input-group") {
+                            referenceBookItemValueInput {
+                                attrs {
+                                    value = state.value
+                                    onChange = ::handleBookItemValueChanged
+                                }
+                            }
+                            val errorMessage = state.errorMessage
+                            if (errorMessage != null) {
+                                span(classes = "book-edit-console--error-message") {
+                                    +errorMessage
+                                }
+                            }
                         }
                     }
-                    val errorMessage = state.errorMessage
-                    if (errorMessage != null) {
-                        span(classes = "book-edit-console--error-message") {
-                            +errorMessage
-                        }
-                    }
-                }
+                }!!
             }
         }
     }
 
     interface Props : RProps {
-        var bookItemData: ReferenceBookItemData
+        var bookItem: ReferenceBookItem
         var onCancel: () -> Unit
-        var onSubmit: suspend (ReferenceBookItemData) -> Unit
+        var onSubmit: suspend (ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

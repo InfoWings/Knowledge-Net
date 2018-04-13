@@ -1,14 +1,15 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.UserProperties
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.ReferenceBookDaoService
-import com.infowings.catalog.data.ReferenceBookService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryDaoService
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.reference.book.ReferenceBookDao
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.DEFAULT_HEART_BEAT__TIMEOUT
@@ -38,10 +39,11 @@ import org.springframework.core.env.get
  */
 class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(ctx: GenericApplicationContext) = beans {
+        bean { UserProperties() }
         bean { UserAcceptService(database = ref()) }
         bean { MeasureService(database = ref()) }
-        bean { ReferenceBookDaoService(db = ref()) }
-        bean { ReferenceBookService(database = ref(), daoService = ref(), historyService = ref()) }
+        bean { ReferenceBookDao(db = ref()) }
+        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
         bean { AspectService(db = ref(), aspectDaoService = ref(), historyService = ref()) }
         bean { SubjectService(db = ref()) }
@@ -51,11 +53,13 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { AspectHistoryProvider(aspectHistoryService = ref()) }
 
         bean {
+            env.systemProperties
             OrientDatabase(
                 url = env["orient.url"],
                 database = env["orient.database"],
                 user = env["orient.user"],
-                password = env["orient.password"]
+                password = env["orient.password"],
+                userProperties = ref()
             )
         }
 
