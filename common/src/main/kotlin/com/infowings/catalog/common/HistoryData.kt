@@ -2,7 +2,7 @@ package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 
-enum class EventKind {
+enum class EventType {
     CREATE, UPDATE, SOFT_DELETE, DELETE
 }
 
@@ -16,7 +16,7 @@ data class Delta(
 @Serializable
 data class HistoryData<T>(
     var user: String,
-    var event: EventKind,
+    var eventType: EventType,
     var entityName: String,
     var info: String?,
     var deleted: Boolean,

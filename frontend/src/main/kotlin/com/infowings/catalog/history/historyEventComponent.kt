@@ -1,7 +1,7 @@
 package com.infowings.catalog.history
 
 import com.infowings.catalog.common.AspectDataView
-import com.infowings.catalog.common.EventKind
+import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.HistoryData
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.userIcon
@@ -25,8 +25,8 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
             span("history-item--field") {
                 +props.historyData.user
             }
-            span(classes = "history-item--field history-item--field__${props.historyData.event.color}") {
-                +props.historyData.event.name
+            span(classes = "history-item--field history-item--field__${props.historyData.eventType.color}") {
+                +props.historyData.eventType.name
             }
 
             span(classes = "history-item--field") {
@@ -89,10 +89,10 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
 fun RBuilder.historyEventComponent(handler: RHandler<HistoryEventComponent.Props>) =
     child(HistoryEventComponent::class, handler)
 
-val EventKind.color: String
+val EventType.color: String
     get() = when (this) {
-        EventKind.CREATE -> "green"
-        EventKind.UPDATE -> "yellow"
-        EventKind.DELETE -> "red"
-        EventKind.SOFT_DELETE -> "red"
+        EventType.CREATE -> "green"
+        EventType.UPDATE -> "yellow"
+        EventType.DELETE -> "red"
+        EventType.SOFT_DELETE -> "red"
     }

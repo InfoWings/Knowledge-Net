@@ -30,7 +30,7 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
                     else -> null
                 }
             }
-            createHistElement(fact.event.user, fact.event.event!!, diff, data, emptyList())
+            createHistElement(fact.event.user, fact.event.type, diff, data, emptyList())
         }
 
     }
@@ -39,8 +39,8 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
     private fun restore(beforeEvents: List<HistoryFactDto>): AspectData {
         var result = emptyAspectData
         beforeEvents.reversed().forEach { fact ->
-            result = when (fact.event.event) {
-                EventKind.CREATE, EventKind.UPDATE -> result.copy(
+            result = when (fact.event.type) {
+                EventType.CREATE, EventType.UPDATE -> result.copy(
                     measure = fact.payload.data.getOrDefault("measure", result.measure),
                     baseType = fact.payload.data.getOrDefault("baseType", result.baseType),
                     name = fact.payload.data.getOrDefault("name", result.name)
@@ -54,14 +54,14 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
 
 private fun createHistElement(
     username: String,
-    eventKind: com.infowings.catalog.common.EventKind,
+    eventType: EventType,
     changes: List<Delta>,
     data: AspectData,
     related: List<AspectData>
 ) =
     AspectHistory(
         username,
-        eventKind,
+        eventType,
         ASPECT_CLASS,
         data.name,
         data.deleted,

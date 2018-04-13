@@ -51,9 +51,9 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["entityVersion"] = value
         }
 
-    var eventKind: String
-        get() = vertex["eventKind"]
+    var eventType: String
+        get() = vertex["eventType"]
         set(value) {
-            vertex["eventKind"] = value
+            vertex["eventType"] = value
         }
 }

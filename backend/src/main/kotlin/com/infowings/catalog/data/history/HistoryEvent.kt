@@ -1,6 +1,6 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.common.EventKind
+import com.infowings.catalog.common.EventType
 import com.orientechnologies.orient.core.id.ORID
 
 data class DiffPayload(
@@ -15,7 +15,7 @@ data class HistoryEvent(
     val user: String,
     val timestamp: Long,
     val version: Int,
-    val event: EventKind?,
+    val type: EventType,
     val entityId: ORID,
     val entityClass: String
 )

@@ -3,7 +3,7 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.auth.UserAcceptService
 import com.infowings.catalog.auth.UserEntity
 import com.infowings.catalog.auth.UserNotFoundException
-import com.infowings.catalog.common.EventKind
+import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
@@ -47,7 +47,7 @@ class HistoryService(
                 JSON.nonstrict.parse<UserEntity>(it.user).username,
                 it.timestamp.toEpochMilli(),
                 it.entityVersion,
-                EventKind.valueOf(it.eventKind),
+                EventType.valueOf(it.eventType),
                 it.entityRID,
                 it.entityClass
             )
@@ -78,7 +78,7 @@ class HistoryService(
             entityRID = event.entityId
             entityVersion = event.version
             timestamp = Instant.ofEpochMilli(event.timestamp)
-            eventKind = event.event!!.name
+            eventType = event.type.name
             val userInfo = userAcceptService.findByUsernameAsJson(event.user)
 
             /**

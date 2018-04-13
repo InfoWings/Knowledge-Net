@@ -69,39 +69,39 @@ private fun List<AspectHistory>.toList() =
 //    return listOf(
 //        createHistElement(
 //            "Vova",
-//            EventKind.DELETE,
+//            EventType.DELETE,
 //            changeList4,
 //            ad4,
 //            listOf(mentalAspect, heightAspect, widthAspect, volumeAspect, lengthAspect)
 //        ),
 //        createHistElement(
 //            "Sasha",
-//            EventKind.UPDATE,
+//            EventType.UPDATE,
 //            changeList3,
 //            ad3,
 //            listOf(mentalAspect, heightAspect, widthAspect, volumeAspect, lengthAspect)
 //        ),
 //        createHistElement(
 //            "Pertya",
-//            EventKind.UPDATE,
+//            EventType.UPDATE,
 //            changeList2,
 //            ad2,
 //            listOf(mentalAspect, heightAspect, widthAspect)
 //        ),
-//        createHistElement("Vova", EventKind.CREATE, changeList1, ad, listOf(mentalAspect))
+//        createHistElement("Vova", EventType.CREATE, changeList1, ad, listOf(mentalAspect))
 //    ).toList()
 //}
 //
 //private fun createHistElement(
 //    username: String,
-//    eventKind: EventKind,
+//    eventType: EventType,
 //    changes: List<Delta>,
 //    data: AspectData,
 //    related: List<AspectData>
 //) =
 //    AspectHistory(
 //        username,
-//        eventKind,
+//        eventType,
 //        ASPECT_CLASS,
 //        data.name,
 //        data.deleted,
