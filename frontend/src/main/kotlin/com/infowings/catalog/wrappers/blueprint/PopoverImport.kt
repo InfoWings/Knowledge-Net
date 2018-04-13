@@ -2,7 +2,6 @@
 
 package com.infowings.catalog.wrappers.blueprint
 
-import org.w3c.dom.Element
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import react.RClass
@@ -19,7 +18,7 @@ external interface PopoverProps : BlueprintComponentProps {
      * The content displayed inside the popover. This can instead be provided as the second children element
      * (first is target).
      */
-    var content: ReactElement
+    var content: ReactElement?
 
     /**
      * Initial opened state when uncontrolled.
@@ -172,7 +171,7 @@ external interface PopoverProps : BlueprintComponentProps {
      * The target element to which the popover content is attached. This can instead be provided as the first
      * children element.
      */
-    var target: Element
+    var target: ReactElement
 
     /**
      * Space-delimited string of class names applied to the target.

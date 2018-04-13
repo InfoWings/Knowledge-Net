@@ -18,7 +18,6 @@ const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeleted
 const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
 const val selectAspectByName = "SELECT FROM Aspect where name = ? AND $notDeletedSql"
 
-
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
     fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
@@ -55,6 +54,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
         aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
+        aspectVertex.description = aspectData.description?.trim()
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -99,12 +99,12 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         aspectPropertyVertex.cardinality = cardinality.name
 
         // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
-        if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).contains(aspectVertex)) {
-            aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
+        if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).contains(aspectVertex)) {
+            aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECT_PROPERTY_EDGE).save<OEdge>()
         }
 
         if (!ownerAspectVertex.properties.contains(aspectPropertyVertex)) {
-            ownerAspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECTPROPERTY_EDGE).save<OEdge>()
+            ownerAspectVertex.addEdge(aspectPropertyVertex, ASPECT_ASPECT_PROPERTY_EDGE).save<OEdge>()
         }
 
         return@transaction aspectPropertyVertex.save<OVertex>().toAspectPropertyVertex().also {
@@ -128,7 +128,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
      * @return list of the current aspect and all its parents
      */
     fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
-        val q = "traverse in(\"$ASPECT_ASPECTPROPERTY_EDGE\").in() FROM :aspectRecord"
+        val q = "traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :aspectRecord"
         return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
             it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
         }

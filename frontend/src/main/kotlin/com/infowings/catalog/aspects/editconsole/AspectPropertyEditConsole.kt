@@ -10,6 +10,7 @@ import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -17,7 +18,8 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+class AspectPropertyEditConsole(props: Props) :
+    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -45,7 +47,8 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
 
     override fun componentWillReceiveProps(nextProps: Props) {
         if (props.parentAspect.id != nextProps.parentAspect.id
-                || props.aspectPropertyIndex != nextProps.aspectPropertyIndex) {
+            || props.aspectPropertyIndex != nextProps.aspectPropertyIndex
+        ) {
             setStateWithCallback({ inputRef?.focus(); inputRef?.select() }) {
                 aspectPropertyName = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].name
                 aspectPropertyCardinality = nextProps.parentAspect.properties[nextProps.aspectPropertyIndex].cardinality
@@ -113,6 +116,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
             childAspectDomain = aspect.domain
             childAspectBaseType = aspect.baseType
             childAspectSubject = aspect.subject
+            childAspectDescription = aspect.description
         }
     }
 
@@ -143,7 +147,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
 
     private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
         setState {
-            childAspectSubject = SubjectData(id = subjectId, name = subjectName)
+            childAspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
         }
     }
 
@@ -228,6 +232,10 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
                                 onChange = ::handleAspectSubjectChanged
                             }
                         }
+                        descriptionComponent(
+                            className = "aspect-edit-console--description-icon",
+                            description = props.childAspect?.description
+                        )
                     }
                 }
             }
@@ -258,6 +266,7 @@ class AspectPropertyEditConsole(props: Props) : RComponent<AspectPropertyEditCon
         var childAspectMeasure: String?
         var childAspectDomain: String?
         var childAspectBaseType: String?
+        var childAspectDescription: String?
         var childAspectSubject: SubjectData?
         var badRequestErrorMessage: String?
     }

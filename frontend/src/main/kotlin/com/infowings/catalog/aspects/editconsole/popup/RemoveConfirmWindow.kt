@@ -1,15 +1,13 @@
 package com.infowings.catalog.aspects.editconsole.popup
 
-import kotlinext.js.invoke
+import com.infowings.catalog.wrappers.blueprint.Button
 import kotlinext.js.require
-import kotlinx.html.js.onClickFunction
 import react.*
-import react.dom.button
 import react.dom.div
-import react.dom.h3
+import react.dom.h5
 import react.dom.p
 
-class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
+class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RState>() {
 
     companion object {
         init {
@@ -18,26 +16,37 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div("popup-container") {
-            h3 { +"This aspect is not free" }
-            p { +"Are you sure you want to delete it?" }
-
-            div("button-area") {
-                button {
+        div("remove-confirm-window") {
+            h5 {
+                +"Confirm deletion"
+            }
+            p {
+                +"Are you sure you want to delete it?"
+            }
+            div("remove-confirm-window--buttons") {
+                Button {
                     attrs {
-                        onClickFunction = { props.onConfirm() }
+                        onClick = {
+                            it.stopPropagation()
+                            it.preventDefault()
+                            props.onCancel()
+                        }
+                        className = "pt-small"
                     }
-                    +"Yes"
+                    +"Cancel"
                 }
-
-                button {
+                Button {
                     attrs {
-                        onClickFunction = { props.onCancel() }
+                        onClick = {
+                            it.stopPropagation()
+                            it.preventDefault()
+                            props.onConfirm()
+                        }
+                        className = "pt-small pt-intent-danger"
                     }
-                    +"No"
+                    +"Delete"
                 }
             }
-
         }
     }
 
@@ -47,5 +56,5 @@ class RemoveConfirmWindow : RComponent<RemoveConfirmWindow.Props, RState>() {
     }
 }
 
-fun RBuilder.removeConfirmWindow(block: RHandler<RemoveConfirmWindow.Props>) = child(RemoveConfirmWindow::class, block)
-
+fun RBuilder.removeConfirmationWindow(block: RHandler<RemoveConfirmationWindow.Props>) =
+    child(RemoveConfirmationWindow::class, block)

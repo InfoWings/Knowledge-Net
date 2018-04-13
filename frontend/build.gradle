@@ -21,9 +21,9 @@ buildscript {
 
 ext {
     kotlinx_html_version = 'latest-1.2.30-dev-132-242'
-    wrapper_react_version='16.2.0-pre.19-kotlin-1.2.20'
-    wrapper_extentions_version = '1.0.0-pre.19-kotlin-1.2.20'
-    wrapper_mocha_version = '3.0.0-pre.19-kotlin-1.2.20'
+    wrapper_react_version='16.2.1-pre.24-kotlin-1.2.30'
+    wrapper_extentions_version = '1.0.1-pre.24-kotlin-1.2.30'
+    wrapper_mocha_version = '3.0.1-pre.24-kotlin-1.2.30'
 }
 
 node {

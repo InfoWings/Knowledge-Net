@@ -26,9 +26,9 @@ class Header : RComponent<Header.Props, RState>() {
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/units"
-                        onClick = { props.history.push("/units") }
-                        text = buildElement { +"Units" }
+                        active = props.location == "/measures"
+                        onClick = { props.history.push("/measures") }
+                        text = buildElement { +"Measures" }
                     }
                 }
                 Button {
@@ -69,4 +69,8 @@ class Header : RComponent<Header.Props, RState>() {
         var location: String
         var history: History
     }
+}
+
+fun RBuilder.header(block: RHandler<Header.Props>) {
+    child(Header::class, block)
 }

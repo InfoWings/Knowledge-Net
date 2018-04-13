@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AspectsList(
-        val aspects: List<AspectData> = emptyList()
+    val aspects: List<AspectData> = emptyList()
 )
 
 @Serializable
@@ -17,7 +17,8 @@ data class AspectData(
     val properties: List<AspectPropertyData> = emptyList(),
     val version: Int = 0,
     val subject: SubjectData? = null,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val description: String? = null
 )
 
 @Serializable

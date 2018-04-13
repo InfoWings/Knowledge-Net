@@ -1,0 +1,38 @@
+@import "abstract";
+
+.measures-list {
+
+  max-width: 120rem;
+  margin: 3rem auto;
+  padding-bottom: 20rem;
+
+  &--measure {
+    display: inline-block;
+    padding: .2rem;
+
+    & > span {
+
+      &:first-child {
+        padding-right: .5rem;
+      }
+
+      &:last-child {
+        padding-left: .5rem;
+      }
+    }
+  }
+
+  &--measure-group {
+    display: flex;
+    align-items: center;
+    padding: .2rem;
+  }
+
+  &--description-icon {
+    height: 1.4rem;
+    width: 1.4rem;
+    fill: $color-icon-default;
+    margin-left: .5rem;
+  }
+
+}

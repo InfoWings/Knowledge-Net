@@ -1,7 +1,11 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryAware
+import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
 import com.infowings.catalog.data.toSubject
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
@@ -12,31 +16,45 @@ import hasIncomingEdges
 
 fun OVertex.toAspectVertex() = AspectVertex(this)
 fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
+fun OVertex.isJustCreated() = this.identity.isNew
 
 /**
  * Kotlin does not provide package-level declarations.
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
  * by vertex means simple delegating OVertex calls to property [vertex]
  * */
-class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
+class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+    override val entityClass = ASPECT_CLASS
+
+    override fun currentSnapshot(): Snapshot = Snapshot(
+        data = mapOf(
+            "name" to asStringOrEmpty(name),
+            "measure" to asStringOrEmpty(measure),
+            "baseType" to asStringOrEmpty(baseType)
+        ),
+        links = mapOf(
+            "properties" to properties.map { it.identity }
+        )
+    )
 
     fun toAspectData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         return AspectData(
-                id,
-                name,
-                measureName,
-                baseTypeObj?.let { OpenDomain(it).toString() },
-                baseType,
-                properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            id,
+            name,
+            measureName,
+            baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType,
+            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
             version,
             subject?.toSubjectData(),
-            deleted
+            deleted,
+            description
         )
     }
 
     val properties: List<OVertex>
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECTPROPERTY_EDGE).toList()
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]
@@ -45,9 +63,9 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
         }
 
     var name: String
-        get() = vertex["name"]
+        get() = vertex[ATTR_NAME]
         set(value) {
-            vertex["name"] = value
+            vertex[ATTR_NAME] = value
         }
 
     val measure: Measure<*>?
@@ -74,6 +92,12 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
             return subjects.firstOrNull()?.toSubject()
         }
 
+    var description: String?
+        get() = vertex[ATTR_DESC]
+        set(value) {
+            vertex[ATTR_DESC] = value
+        }
+
     fun isLinkedBy() = hasIncomingEdges()
 
     override fun equals(other: Any?): Boolean {
@@ -87,7 +111,17 @@ class AspectVertex(private val vertex: OVertex) : OVertex by vertex {
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Throwable("Too many subject for aspect '$name'")
 
-class AspectPropertyVertex(private val vertex: OVertex) : OVertex by vertex {
+class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+    override val entityClass = ASPECT_PROPERTY_CLASS
+
+    override fun currentSnapshot(): Snapshot = Snapshot(
+        data = mapOf(
+            "name" to asStringOrEmpty(name),
+            "aspect" to asStringOrEmpty(aspect),
+            "cardinality" to asStringOrEmpty(cardinality)
+        ),
+        links = emptyMap()
+    )
 
     fun toAspectPropertyData(): AspectPropertyData =
         AspectPropertyData(id, name, aspect, cardinality, version)

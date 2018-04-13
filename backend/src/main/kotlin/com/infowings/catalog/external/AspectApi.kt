@@ -7,6 +7,8 @@ import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
+
 
 //todo: перехватывание exception и генерация внятных сообщений об ошибках наружу
 @RestController
@@ -15,15 +17,17 @@ class AspectApi(val aspectService: AspectService) {
 
     //todo: json in request body
     @PostMapping("create")
-    fun createAspect(@RequestBody aspectData: AspectData): AspectData {
-        logger.info("New aspect create request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+    fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
+        val user = principal.name
+        logger.debug("New aspect create request: $aspectData by $user")
+        return aspectService.save(aspectData, user).toAspectData()
     }
 
     @PostMapping("update")
-    fun updateAspect(@RequestBody aspectData: AspectData): AspectData {
-        logger.info("Update aspect request: $aspectData")
-        return aspectService.save(aspectData).toAspectData()
+    fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
+        val user = principal.name
+        logger.debug("Update aspect request: $aspectData by $user")
+        return aspectService.save(aspectData, user).toAspectData()
     }
 
     @GetMapping("get/{name}")
@@ -44,15 +48,17 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @PostMapping("remove")
-    fun removeAspect(@RequestBody aspect: AspectData) {
-        logger.debug("Remove aspect request: ${aspect.id}")
-        aspectService.remove(aspect)
+    fun removeAspect(@RequestBody aspect: AspectData, principal: Principal) {
+        val user = principal.name
+        logger.debug("Remove aspect request: ${aspect.id} by $user")
+        aspectService.remove(aspect, user)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody aspect: AspectData) {
-        logger.debug("Forced remove aspect request: ${aspect.id}")
-        aspectService.remove(aspect, true)
+    fun forceRemoveAspect(@RequestBody aspect: AspectData, principal: Principal) {
+        val user = principal.name
+        logger.debug("Forced remove aspect request: ${aspect.id} by $user")
+        aspectService.remove(aspect, user, true)
     }
 
     @ExceptionHandler(AspectException::class)
@@ -60,64 +66,81 @@ class AspectApi(val aspectService: AspectService) {
         logger.error(exception.toString(), exception)
         return when (exception) {
             is AspectAlreadyExist -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Aspect with such name already exists (${exception.name})."
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Aspect with such name already exists (${exception.name})."
+                        )
+                    )
+                )
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Attempt to modify old version of aspect, please refresh."
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Attempt to modify old version of aspect, please refresh."
+                        )
+                    )
+                )
             is AspectModificationException -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Updates to aspect ${exception.id} violates update constraints: ${exception.message}"
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Updates to aspect ${exception.id} violates update constraints: ${exception.message}"
+                        )
+                    )
+                )
             is AspectPropertyModificationException -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Updates to aspect property ${exception.id} violates update constraints: ${exception.message}"
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Updates to aspect property ${exception.id} violates update constraints: ${exception.message}"
+                        )
+                    )
+                )
             is AspectCyclicDependencyException -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Failed to create/modify aspect due to emerging cycle among aspects"
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Failed to create/modify aspect due to emerging cycle among aspects"
+                        )
+                    )
+                )
             is AspectInconsistentStateException -> ResponseEntity.badRequest()
-                    .body(JSON.Companion.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    exception.message
-                            )
-                    ))
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            exception.message
+                        )
+                    )
+                )
             is AspectPropertyConcurrentModificationException -> ResponseEntity.badRequest()
-                    .body(JSON.stringify(
-                            AspectBadRequest(
-                                    AspectBadRequestCode.INCORRECT_INPUT,
-                                    "Attempt to modify old version of aspect property (${exception.id}), please refresh."
-                            )
-                    ))
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Attempt to modify old version of aspect property (${exception.id}), please refresh."
+                        )
+                    )
+                )
             is AspectHasLinkedEntitiesException -> ResponseEntity.badRequest()
-                    .body(JSON.stringify(
-                            AspectBadRequest(
-                                AspectBadRequestCode.NEED_CONFIRMATION,
-                                    "Attempt to remove aspect that has linked entities pointed to it"
-                            )
-                    ))
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.NEED_CONFIRMATION,
+                            "Attempt to remove aspect that has linked entities pointed to it"
+                        )
+                    )
+                )
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("${exception.message}")
+                .body("${exception.message}")
         }
     }
 }
+
 private val logger = loggerFor<AspectApi>()

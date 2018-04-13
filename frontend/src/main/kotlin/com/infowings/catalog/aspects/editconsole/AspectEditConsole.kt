@@ -2,15 +2,17 @@ package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.*
-import com.infowings.catalog.aspects.editconsole.popup.popup
-import com.infowings.catalog.aspects.editconsole.popup.removeConfirmWindow
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
-import com.infowings.catalog.common.AspectBadRequestCode
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequestCode.INCORRECT_INPUT
+import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptyAspectData
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.common.*
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -27,6 +29,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
             domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
             baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
+            description = if (state.aspectDescription.isNullOrEmpty()) null else state.aspectDescription,
             subject = state.aspectSubject
         )
 
@@ -36,6 +39,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         aspectDomain = props.aspect.domain
         aspectBaseType = props.aspect.baseType
         aspectSubject = props.aspect.subject
+        aspectDescription = props.aspect.description
         confirmation = false
     }
 
@@ -52,6 +56,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 aspectDomain = nextProps.aspect.domain
                 aspectBaseType = nextProps.aspect.baseType
                 aspectSubject = nextProps.aspect.subject
+                aspectDescription = nextProps.aspect.description
                 badRequestErrorMessage = null
             }
         }
@@ -82,10 +87,10 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             } catch (ex: AspectBadRequestException) {
                 when (ex.exceptionInfo.code) {
-                    AspectBadRequestCode.NEED_CONFIRMATION -> setState {
+                    NEED_CONFIRMATION -> setState {
                         confirmation = true
                     }
-                    AspectBadRequestCode.INCORRECT_INPUT -> setState {
+                    INCORRECT_INPUT -> setState {
                         badRequestErrorMessage = ex.exceptionInfo.message
                     }
                 }
@@ -110,9 +115,9 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
-    private fun handleAspectSubjectChanged(subjectName: String, subjetId: String) {
+    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
         setState {
-            aspectSubject = SubjectData(id = subjetId, name = subjectName)
+            aspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
         }
     }
 
@@ -174,6 +179,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     onCancelClick = props.editConsoleModel::discardChanges,
                     onDeleteClick = { tryDelete(false) }
                 )
+                descriptionComponent(
+                    className = "aspect-edit-console--description-icon",
+                    description = state.aspectDescription,
+                    onEditStarted = null,
+                    onNewDescriptionConfirmed = { setState { aspectDescription = it } }
+                )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage
             if (badRequestErrorMessage != null) {
@@ -184,16 +195,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             }
         }
-        if (state.confirmation) {
-            popup {
-                attrs.closePopup = { setState { confirmation = false } }
-
-                removeConfirmWindow {
-                    attrs {
-                        onCancel = { setState { confirmation = false } }
-                        onConfirm = { tryDelete(true) }
-                    }
-                }
+        forceRemoveConfirmWindow {
+            attrs {
+                onConfirm = { tryDelete(true) }
+                onCancel = { setState { confirmation = false } }
+                isOpen = state.confirmation
+                message = "Aspect has linked entities."
             }
         }
     }
@@ -208,6 +215,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         var aspectMeasure: String?
         var aspectDomain: String?
         var aspectBaseType: String?
+        var aspectDescription: String?
         var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
         var confirmation: Boolean

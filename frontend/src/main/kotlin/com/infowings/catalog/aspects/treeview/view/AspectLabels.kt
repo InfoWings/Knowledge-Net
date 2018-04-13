@@ -21,31 +21,31 @@ fun RBuilder.aspectLabel(
             onClick()
         }
     }
-    span(classes = "aspect-tree-view--label-name") {
+    span(classes = "text-bold") {
         +aspectName
     }
     +":"
-    span(classes = "aspect-tree-view--label-measure") {
+    span(classes = "text-grey") {
         +aspectMeasure
     }
     +":"
-    span(classes = "aspect-tree-view--label-domain") {
+    span(classes = "text-grey") {
         +aspectDomain
     }
     +":"
-    span(classes = "aspect-tree-view--label-base-type") {
+    span(classes = "text-grey") {
         +aspectBaseType
     }
     +"( Subject: "
-    span(classes = "aspect-tree-view--label-subject") {
+    span(classes = "text-grey") {
         +aspectSubjectName
     }
     +" )"
 }
 
 fun RBuilder.placeholderAspectLabel(className: String?) =
-        div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
-            span(classes = "aspect-tree-view--empty") {
-                +"(Enter New Aspect)"
-            }
+    div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
+        span(classes = "aspect-tree-view--empty") {
+            +"(Enter New Aspect)"
         }
+    }

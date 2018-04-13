@@ -3,9 +3,9 @@
 .book-tree-view {
 
   max-width: 120rem;
-  margin: auto;
+  margin: 3rem auto;
 
-  &--root {
+  &--node {
     display: flex;
     align-items: center;
     font-size: 1.6rem;
@@ -43,6 +43,17 @@
 
     &:hover {
       fill: $color-icon-hover;
+    }
+  }
+
+  &--delete-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: 1rem;
+
+    &:hover {
+      fill: red;
     }
   }
 
