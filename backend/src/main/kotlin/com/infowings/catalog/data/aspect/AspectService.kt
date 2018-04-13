@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.*
