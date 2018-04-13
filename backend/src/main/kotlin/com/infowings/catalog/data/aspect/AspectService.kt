@@ -119,7 +119,15 @@ class AspectService(
      */
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
-    fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
+    fun getAspects(
+        orderBy: List<AspectOrderBy> = listOf(
+            AspectOrderBy(
+                AspectSortField.NAME,
+                Direction.ASC
+            )
+        )
+    ): List<Aspect> =
+        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
 
     /**
      * Search [Aspect] by it's id
@@ -129,6 +137,34 @@ class AspectService(
 
     fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
+
+
+    private class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
+        override fun compareTo(other: CompareString): Int =
+            direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
+    }
+
+    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
+        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+
+        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.DESC)
+
+        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+            AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
+            AspectSortField.SUBJECT to mapOf(
+                Direction.ASC to ::aspectSubjectNameAsc,
+                Direction.DESC to ::aspectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
 
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
