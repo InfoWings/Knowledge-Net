@@ -17,59 +17,63 @@ class HistoryService(
     private val userAcceptService: UserAcceptService
 ) {
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex {
+    fun getAll(): Set<HistoryFactDto> = transaction(db) {
+        return@transaction historyDao.getAllHistoryEvents()
+            .map {
+                val event = HistoryEvent(
+                    JSON.nonstrict.parse<UserEntity>(it.user).username,
+                    it.timestamp.toEpochMilli(),
+                    it.entityVersion,
+                    EventType.valueOf(it.eventType),
+                    it.entityRID,
+                    it.entityClass
+                )
+                val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_CLASS)
+                    .map { it.toHistoryElementVertex() }
+                    .map { it.key to it.stringValue }
+                    .toMap()
+
+                val addedLinks = it.getVertices(ODirection.OUT, HISTORY_ADD_LINK_CLASS)
+                    .map { it.toHistoryLinksVertex() }
+                    .groupBy { it.key }
+                    .map { it.key to it.value.map { it.peerId } }
+                    .toMap()
+
+                val removedLinks = it.getVertices(ODirection.OUT, HISTORY_DROP_LINK_CLASS)
+                    .map { it.toHistoryLinksVertex() }
+                    .groupBy { it.key }
+                    .map { it.key to it.value.map { it.peerId } }
+                    .toMap()
+
+                val payload = DiffPayload(data, addedLinks, removedLinks)
+
+                return@map HistoryFactDto(event, payload)
+            }
+            .toSet()
+    }
+
+    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db){
         val historyEventVertex = fact.newHistoryEventVertex()
 
         val elementVertices = fact.payload.data.map {
             return@map historyDao.newHistoryElementVertex().apply {
-                addEdge(historyEventVertex)
                 key = it.key
                 stringValue = it.value
             }
         }
+        elementVertices.forEach { historyEventVertex.addEdge(it) }
 
-        val addLinkVertices =
-            historyEventVertex.linksVertices(fact.payload.addedLinks, { historyDao.newAddLinkVertex() })
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
+        addLinkVertices.forEach { historyEventVertex.addEdge(it) }
 
-        val dropLinkVertices =
-            historyEventVertex.linksVertices(fact.payload.removedLinks, { historyDao.newDropLinkVertex() })
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
+        dropLinkVertices.forEach { historyEventVertex.addEdge(it) }
 
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
         db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
 
-        return historyEventVertex
-    }
-
-    fun getAll(): Set<HistoryFactDto> = transaction(db) {
-        return@transaction historyDao.getAllHistoryEvents().map {
-            val event = HistoryEvent(
-                JSON.nonstrict.parse<UserEntity>(it.user).username,
-                it.timestamp.toEpochMilli(),
-                it.entityVersion,
-                EventType.valueOf(it.eventType),
-                it.entityRID,
-                it.entityClass
-            )
-            val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_CLASS).map { it.toHistoryElementVertex() }.map {
-                it.key to it.stringValue
-            }.toMap()
-
-            val addedLinks = it.getVertices(ODirection.OUT, HISTORY_ADD_LINK_CLASS).map { it.toHistoryLinksVertex() }
-                .groupBy { it.key }
-                .map { it.key to it.value.map { it.peerId } }
-                .toMap()
-
-            val removedLinks = it.getVertices(ODirection.OUT, HISTORY_DROP_LINK_CLASS).map { it.toHistoryLinksVertex() }
-                .groupBy { it.key }
-                .map { it.key to it.value.map { it.peerId } }
-                .toMap()
-
-            val payload = DiffPayload(data, addedLinks, removedLinks)
-
-            return@map HistoryFactDto(event, payload)
-        }.toSet()
-
+        return@transaction historyEventVertex
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
@@ -103,19 +107,15 @@ class HistoryService(
             }
         }
 
-    private inline fun HistoryEventVertex.linksVertices(
+    private fun linksVertices(
         linksPayload: Map<String, List<ORID>>,
-        vertexProducer: () -> HistoryLinksVertex
+        linksVertex: HistoryLinksVertex
     ): List<HistoryLinksVertex> =
-        linksPayload.flatMap {
-            val linkKey = it.key
-            val eventVertex = this
-            it.value.map {
-                val peer = it
-                vertexProducer().apply {
-                    addEdge(eventVertex)
+        linksPayload.flatMap { (linkKey, peerIds) ->
+            peerIds.map { id ->
+                linksVertex.apply {
                     key = linkKey
-                    peerId = peer
+                    peerId = id
                 }
             }
         }
