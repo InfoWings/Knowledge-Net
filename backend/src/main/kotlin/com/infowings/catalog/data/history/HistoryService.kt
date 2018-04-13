@@ -52,7 +52,7 @@ class HistoryService(
             .toSet()
     }
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db){
+    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()
 
         val elementVertices = fact.payload.data.map {
