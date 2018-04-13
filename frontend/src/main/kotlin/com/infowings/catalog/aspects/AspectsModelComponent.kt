@@ -31,10 +31,9 @@ interface AspectsModel {
      * which means that there may be two properties with exact same content inside one aspect (may be use case for
      * copying). Validation regarding possible restrictions is performed on server side.
      *
-     * @param aspectId - [AspectData.id] of parent [AspectData] of [AspectPropertyData] to select.
      * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
      */
-    fun selectAspectProperty(aspectId: String?, index: Int)
+    fun selectProperty(index: Int)
 
     /**
      * Method for canceling selected state.
@@ -54,7 +53,7 @@ interface AspectsModel {
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    suspend fun updateAspect(aspect: AspectData)
+    fun updateAspect(aspect: AspectData)
 
     /**
      * Method for updating currently selected [AspectPropertyData]
@@ -62,7 +61,7 @@ interface AspectsModel {
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    suspend fun updateProperty(property: AspectPropertyData)
+    fun updateProperty(property: AspectPropertyData)
 
     /**
      * Method for submitting changes of currently selected [AspectData] to the server
@@ -75,10 +74,9 @@ interface AspectsModel {
     suspend fun deleteAspect(force: Boolean)
 }
 
-class AspectsModelComponent(props: AspectApiReceiverProps) :
-    RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(props), AspectsModel {
+class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(), AspectsModel {
 
-    override fun State.init(props: AspectApiReceiverProps) {
+    override fun State.init() {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
@@ -86,7 +84,7 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
 
     override fun selectAspect(aspectId: String?) {
         setState {
-            if (unsavedDataSelection(aspectId)) {
+            if (unsavedDataSelection(aspectId, null)) {
                 unsafeSelection = true
             } else {
                 selectedAspect = newAspectSelection(aspectId)
@@ -98,12 +96,14 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    override fun selectAspectProperty(aspectId: String?, index: Int) {
+    override fun selectProperty(index: Int) {
         setState {
-            if (unsavedDataSelection(aspectId)) {
+            if (unsavedDataSelection(selectedAspect.id, index)) {
                 unsafeSelection = true
             } else {
-                selectedAspect = newAspectSelection(aspectId)
+                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
+                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
+                }
                 selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
                     selectedAspect.properties.lastIndex else index
             }
@@ -130,8 +130,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    override suspend fun updateAspect(aspect: AspectData) =
-        suspendSetState {
+    override fun updateAspect(aspect: AspectData) =
+        setState {
             selectedAspect = selectedAspect.copy(
                 name = aspect.name,
                 measure = aspect.measure,
@@ -142,8 +142,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
             )
         }
 
-    override suspend fun updateProperty(property: AspectPropertyData) =
-        suspendSetState {
+    override fun updateProperty(property: AspectPropertyData) =
+        setState {
             val currentlySelectedAspect = selectedAspect
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
                     ?: error("Currently selected aspect property index should not be null")
@@ -157,14 +157,16 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
     override suspend fun submitAspect() {
         val selectedAspect = state.selectedAspect
 
-        when (selectedAspect.id) {
+        val aspect = when (selectedAspect.id) {
             null -> props.onAspectCreate(selectedAspect.normalize())
             else -> props.onAspectUpdate(selectedAspect.normalize())
         }
 
-        setState {
-            this.selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+        suspendSetState {
+            this.selectedAspect = when (selectedAspect.properties.lastOrNull()) {
+                emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
+                else -> aspect
+            }
         }
     }
 
@@ -181,10 +183,10 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    private fun State.unsavedDataSelection(aspectId: String?): Boolean {
+    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
         return when {
-            aspectId == null -> false
-            selectedAspect.id == aspectId -> false
+            selectedAspect.id == aspectId && selectedAspectPropertyIndex == index -> false
+            selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData -> false
             selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData -> true
             else -> false
         }
@@ -205,8 +207,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         if (!props.loading) {
             aspectTreeView {
                 attrs {
-                    aspects = props.data.withSelected(state.selectedAspect)
-                    aspectContext = { if (it == selectedAspect.id) selectedAspect else props.aspectContext[it] }
+                    aspects = props.data
+                    aspectContext = props.aspectContext
                     selectedAspectId = state.selectedAspect.id
                     selectedPropertyIndex = state.selectedAspectPropertyIndex
                     aspectsModel = this@AspectsModelComponent
@@ -216,7 +218,7 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 attrs {
                     aspect = selectedAspect
                     propertyIndex = selectedAspectPropertyIndex
-                    aspectContext = props.aspectContext::get
+                    aspectContext = props.aspectContext
                     aspectsModel = this@AspectsModelComponent
                 }
             }
