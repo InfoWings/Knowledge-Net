@@ -7,7 +7,6 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
@@ -115,14 +114,6 @@ class AspectPropertyEditConsole(props: Props) :
                         onChange = ::handlePropertyCardinalityChanged
                     }
                 }
-                consoleButtonsGroup(
-                    onSubmitClick = ::trySubmitParentAspect,
-                    onCancelClick = props.propertyEditConsoleModel::discardChanges,
-                    onAddToListClick = ::switchToNextProperty,
-                    onDeleteClick = props.propertyEditConsoleModel::deleteProperty
-                )
-            }
-            div(classes = "aspect-edit-console--input-group-aspect-property-aspect") {
                 aspectPropertyAspect {
                     val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
                     attrs {
@@ -132,14 +123,12 @@ class AspectPropertyEditConsole(props: Props) :
                         onAspectSelected = ::handlePropertyAspectIdChanged
                     }
                 }
-                div(classes = "aspect-edit-console--input-group-aspect-container") {
-                    div(classes = "aspect-edit-console--input-group-aspect") {
-                        descriptionComponent(
-                            className = "aspect-edit-console--description-icon",
-                            description = props.childAspect?.description
-                        )
-                    }
-                }
+                consoleButtonsGroup(
+                    onSubmitClick = ::trySubmitParentAspect,
+                    onCancelClick = props.propertyEditConsoleModel::discardChanges,
+                    onAddToListClick = ::switchToNextProperty,
+                    onDeleteClick = props.propertyEditConsoleModel::deleteProperty
+                )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage
             if (badRequestErrorMessage != null) {

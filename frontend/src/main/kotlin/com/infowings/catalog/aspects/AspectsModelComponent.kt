@@ -1,8 +1,8 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
-import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
+import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
@@ -73,6 +73,8 @@ interface AspectsModel {
      * Method for requesting delete of currently selected [AspectData] to the server
      */
     suspend fun deleteAspect(force: Boolean)
+
+    suspend fun deleteAspectProperty()
 }
 
 class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(), AspectsModel {
@@ -182,6 +184,25 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
             selectedAspect = emptyAspectData
             selectedAspectPropertyIndex = null
         }
+    }
+
+    override suspend fun deleteAspectProperty() {
+        val selectedPropertyIndex =
+            state.selectedAspectPropertyIndex ?: error("Aspect Property should be selected in order to be deleted")
+        val deletedAspectProperty = state.selectedAspect.properties[selectedPropertyIndex].copy(deleted = true)
+
+        val updatedAspect = props.onAspectUpdate(
+            state.selectedAspect.updatePropertyAtIndex(
+                selectedPropertyIndex,
+                deletedAspectProperty
+            )
+        )
+
+        setState {
+            selectedAspect = updatedAspect
+            selectedAspectPropertyIndex = null
+        }
+
     }
 
     private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {

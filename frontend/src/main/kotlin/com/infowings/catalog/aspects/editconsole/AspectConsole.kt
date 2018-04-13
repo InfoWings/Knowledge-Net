@@ -119,13 +119,8 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
     }
 
     override fun deleteProperty() {
-        val selectedAspect = props.aspect
-        val selectedPropertyIndex = props.propertyIndex
-                ?: error("Aspect property should be selected in order to delete property")
-
         launch {
-            props.aspectsModel.updateProperty(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
-            props.aspectsModel.submitAspect()
+            props.aspectsModel.deleteAspectProperty()
         }
     }
 
