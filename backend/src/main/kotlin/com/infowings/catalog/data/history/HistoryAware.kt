@@ -28,12 +28,6 @@ interface HistoryAware : OVertex {
         return Snapshot(data, links)
     }
 
-    private fun historyEvent(user: String, type: EventType): HistoryEvent =
-        HistoryEvent(
-            user = user, timestamp = System.currentTimeMillis(), version = version,
-            type = type, entityId = identity, entityClass = entityClass
-        )
-
     /*
       Берет текущий снепшот и сравнивает его с базовым, фиксируя замеченные отличия.
 
@@ -51,8 +45,14 @@ interface HistoryAware : OVertex {
        Поэтому различиются 2 случая - есть поле и нет поля (куда попадают все три варианта выше).
        Это кажется соответствующим опыту юзера и избавляет нас от лишних разборов.
      */
-    private fun toFact(user: String, event: EventType, base: Snapshot) =
-        toHistoryFact(historyEvent(user, event), this, base, currentSnapshot())
+    private fun toFact(user: String, eventType: EventType, base: Snapshot) =
+        toHistoryFact(historyEvent(user, eventType), this, base, currentSnapshot())
+
+    private fun historyEvent(user: String, type: EventType): HistoryEvent =
+        HistoryEvent(
+            user = user, timestamp = System.currentTimeMillis(), version = version,
+            type = type, entityId = identity, entityClass = entityClass
+        )
 
     /**
      *  Факт создания сущности.
