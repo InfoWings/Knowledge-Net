@@ -22,8 +22,9 @@ class AspectService(
     private val aspectValidator = AspectValidator(aspectDaoService)
 
     private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
-        aspectData.properties.filter { it.deleted }.forEach { remove(it, user) }
-        aspectVertex.saveAspectProperties(aspectData.properties, user)
+        val (deletedProperties, updatedProperties) = aspectData.properties.partition { it.deleted }
+        deletedProperties.forEach { remove(it, user) }
+        aspectVertex.saveAspectProperties(updatedProperties, user)
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 

@@ -168,4 +168,25 @@ class AspectServiceDeletingTest {
         val foundBookVertex = referenceBookDao.getReferenceBookVertex(aspect.id)
         assertNull("RefBook not exists in db", foundBookVertex)
     }
+
+    @Test
+    fun testDeleteAspectProperty() {
+        val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"))
+        val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"))
+        val property1 = AspectPropertyData("", "", simpleAspect1.id, AspectPropertyCardinality.ONE.name)
+        val property2 = AspectPropertyData("", "", simpleAspect2.id, AspectPropertyCardinality.ONE.name)
+        val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)))
+        val initialAspectData = initial.toAspectData()
+
+        val propertyRemoved = aspectService.save(
+            initialAspectData.copy(
+                properties = listOf(
+                    initialAspectData.properties[0],
+                    initialAspectData.properties[1].copy(deleted = true)
+                )
+            )
+        )
+
+        assertThat("Updated aspect does not have deleted property", propertyRemoved.properties.size == 1)
+    }
 }
