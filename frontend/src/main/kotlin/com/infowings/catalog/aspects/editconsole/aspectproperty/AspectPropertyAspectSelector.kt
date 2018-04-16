@@ -74,7 +74,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
         }
         props.aspect?.let {
             span(classes = "aspect-edit-console--property-aspect-label") {
-                +" : ${it.measure} : ${it.domain} : ${it.baseType}"
+                +" : ${it.measure ?: ""} : ${it.domain ?: ""} : ${it.baseType ?: ""}"
             }
             descriptionComponent(
                 className = "aspect-edit-console--property-aspect-description",
