@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.ASPECT_CLASS
@@ -8,25 +9,42 @@ import com.infowings.catalog.storage.ASPECT_CLASS
 class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
 
     fun getAllHistory(): List<AspectHistory> {
-        val aspectEventList = aspectHistoryService.getAll()
+        val aspectEventGroups = aspectHistoryService.getAll()
             .filter { it.event.entityClass == ASPECT_CLASS }
             .sortedByDescending { it.event.timestamp }
+            .groupBy { it.event.entityId }
 
-        return aspectEventList
-            .mapIndexed { index, historyFactDto ->
-                Pair(historyFactDto, restoreAspectData(aspectEventList.subList(index + 1, aspectEventList.size)))
-            }
-            .map { (fact, restoredData) ->
-                val diff = fact.payload.data.mapNotNull { (fieldName, updatedValue) ->
-                    when (fieldName) {
-                        "measure" -> createAspectFieldDelta(AspectField.MEASURE, restoredData.measure, updatedValue)
-                        "baseType" -> createAspectFieldDelta(AspectField.BASE_TYPE, restoredData.baseType, updatedValue)
-                        "name" -> createAspectFieldDelta(AspectField.NAME, restoredData.name, updatedValue)
-                        else -> null
+        return aspectEventGroups
+            .values
+            .flatMap { groupEvents ->
+                groupEvents
+                    .mapIndexed { index, historyFactDto ->
+                        Pair(
+                            historyFactDto,
+                            restoreAspectData(groupEvents.subList(index + 1, groupEvents.size))
+                        )
                     }
-                }
-                createHistoryElement(fact.event.user, fact.event.type, diff, restoredData, emptyList())
+                    .map { (fact, restoredData) ->
+                        val diff = fact.payload.data.mapNotNull { (fieldName, updatedValue) ->
+                            when (fieldName) {
+                                "measure" -> createAspectFieldDelta(
+                                    AspectField.MEASURE,
+                                    restoredData.measure,
+                                    updatedValue
+                                )
+                                "baseType" -> createAspectFieldDelta(
+                                    AspectField.BASE_TYPE,
+                                    restoredData.baseType,
+                                    updatedValue
+                                )
+                                "name" -> createAspectFieldDelta(AspectField.NAME, restoredData.name, updatedValue)
+                                else -> null
+                            }
+                        }
+                        createHistoryElement(fact.event, diff, restoredData, emptyList())
+                    }
             }
+            .sortedByDescending { it.eventType }
     }
 
     // Know, not effective. Temporary solution
@@ -48,20 +66,19 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
 }
 
 private fun createHistoryElement(
-    username: String,
-    eventType: EventType,
+    event: HistoryEvent,
     changes: List<Delta>,
     data: AspectData,
     related: List<AspectData>
 ) =
     AspectHistory(
-        username,
-        eventType,
+        event.user,
+        event.type,
         ASPECT_CLASS,
         data.name,
         data.deleted,
-        System.currentTimeMillis(),
-        data.version,
+        event.timestamp,
+        event.version,
         AspectDataView(data, related),
         changes
     )

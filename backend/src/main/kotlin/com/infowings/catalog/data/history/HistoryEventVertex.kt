@@ -22,7 +22,7 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 
     var entityRID: ORID
-        get() = (vertex.getProperty("entityRID") as OVertexDocument).identity.identity
+        get() = (vertex.getProperty("entityRID") as OVertexDocument).identity
         set(value) {
             vertex["entityRID"] = value
         }

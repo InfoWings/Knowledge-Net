@@ -4,6 +4,7 @@ import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.OVertexDocument
 
 fun OVertex.toHistoryElementVertex() = HistoryElementVertex(this)
 const val HISTORY_ELEMENT_CLASS = "HistoryElement"
@@ -19,7 +20,7 @@ class HistoryElementVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 
     var eventId: ORID
-        get() = vertex["eventId"]
+        get() = (vertex.getProperty("eventId") as OVertexDocument).identity
         set(value) {
             vertex["eventId"] = value
         }

@@ -4,6 +4,7 @@ import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.OVertexDocument
 
 fun OVertex.toHistoryLinksVertex() = HistoryLinksVertex(this)
 const val HISTORY_ADD_LINK_CLASS = "HistoryAddLink"
@@ -22,7 +23,7 @@ class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 
     var eventId: ORID
-        get() = vertex["eventId"]
+        get() = (vertex.getProperty("eventId") as OVertexDocument).identity
         set(value) {
             vertex["eventId"] = value
         }
@@ -34,7 +35,7 @@ class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
         }
 
     var peerId: ORID
-        get() = vertex["peerId"]
+        get() = (vertex.getProperty("peerId") as OVertexDocument).identity
         set(value) {
             vertex["peerId"] = value
         }
