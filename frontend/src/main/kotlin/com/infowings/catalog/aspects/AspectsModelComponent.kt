@@ -285,8 +285,5 @@ private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: Aspec
         }
     )
 
-private fun List<AspectData>.withSelected(aspect: AspectData) =
-    aspect.id?.let { id -> this.map { if (it.id == id) aspect else it } } ?: this+aspect
-
 private fun AspectData.normalize() =
     copy(properties = properties.filter { it != emptyAspectPropertyData && !(it.id.isEmpty() && it.deleted) })

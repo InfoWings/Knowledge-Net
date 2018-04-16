@@ -1,10 +1,9 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.AspectsModel
-import com.infowings.catalog.aspects.treeview.view.aspectRootLabel
 import com.infowings.catalog.aspects.treeview.view.newAspectButton
+import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.blueprint.Alert
 import kotlinext.js.require
@@ -45,13 +44,7 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
             }
             when (props.selectedAspectId) {
                 null -> div(classes = "aspect-tree-view--new-aspect") {
-                    aspectRootLabel {
-                        attrs {
-                            aspect = emptyAspectData
-                            selected = true
-                            onClick = {}
-                        }
-                    }
+                    placeholderAspectLabel("aspect-tree-view--label__selected")
                 }
                 else -> newAspectButton(props.aspectsModel::discardSelect)
             }
@@ -89,14 +82,10 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
 }
 
 /**
- * Thrown in case we cannot select new aspect
- */
-class UnsafeSelectionException : Throwable()
-
-/**
  * Wrapper component that incapsulates and manages state of expanded aspect tree.
  */
-class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper.Props, AspectNodeExpandedStateWrapper.State>() {
+class AspectNodeExpandedStateWrapper :
+    RComponent<AspectNodeExpandedStateWrapper.Props, AspectNodeExpandedStateWrapper.State>() {
 
     override fun State.init() {
         expandedSubtree = false

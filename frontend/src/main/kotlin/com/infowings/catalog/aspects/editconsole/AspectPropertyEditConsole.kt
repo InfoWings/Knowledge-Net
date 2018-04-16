@@ -114,13 +114,15 @@ class AspectPropertyEditConsole(props: Props) :
                         onChange = ::handlePropertyCardinalityChanged
                     }
                 }
-                aspectPropertyAspect {
-                    val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
-                    attrs {
-                        parentAspectId = props.parentAspect.id
-                        this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
-                        aspect = props.childAspect
-                        onAspectSelected = ::handlePropertyAspectIdChanged
+                div(classes = "aspect-edit-console--property-aspect-wrapper") {
+                    aspectPropertyAspect {
+                        val aspectPropertyId = props.parentAspect.properties[props.aspectPropertyIndex].id
+                        attrs {
+                            parentAspectId = props.parentAspect.id
+                            this.aspectPropertyId = if (aspectPropertyId.isEmpty()) null else aspectPropertyId
+                            aspect = props.childAspect
+                            onAspectSelected = ::handlePropertyAspectIdChanged
+                        }
                     }
                 }
                 consoleButtonsGroup(

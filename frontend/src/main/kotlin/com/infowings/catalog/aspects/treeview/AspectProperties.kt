@@ -1,7 +1,7 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.AspectsModel
-import com.infowings.catalog.aspects.treeview.view.aspectPropertyLabel
+import com.infowings.catalog.aspects.treeview.view.placeholderPropertyLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.emptyAspectPropertyData
 import com.infowings.catalog.components.treeview.treeNode
@@ -42,15 +42,7 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
         val selectedPropertyIndex = props.selectedPropertyIndex
         if (props.aspect.id == props.selectedAspectId && selectedPropertyIndex != null && props.aspect.properties.lastIndex < selectedPropertyIndex) {
             div(classes = "aspect-tree-view--empty-property-wrapper") {
-                aspectPropertyLabel {
-                    attrs {
-                        aspectProperty = emptyAspectPropertyData
-                        aspect = null
-                        onClick = {}
-                        propertySelected = true
-                        aspectSelected = false
-                    }
-                }
+                placeholderPropertyLabel("aspect-tree-view--label__property-selected")
             }
         }
     }
@@ -70,7 +62,8 @@ class AspectProperties : RComponent<AspectProperties.Props, RState>() {
 /**
  * Wrapper component that incapsulates and manages state of expanded subtree.
  */
-class AspectPropertyNodeExpandedWrapper(props: Props) : RComponent<AspectPropertyNodeExpandedWrapper.Props, AspectPropertyNodeExpandedWrapper.State>(props) {
+class AspectPropertyNodeExpandedWrapper(props: Props) :
+    RComponent<AspectPropertyNodeExpandedWrapper.Props, AspectPropertyNodeExpandedWrapper.State>(props) {
 
     override fun State.init(props: Props) {
         subtreeExpanded = props.subtreeExpanded
