@@ -1,41 +1,45 @@
 package com.infowings.catalog.aspects.sort
 
-import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.AspectSortField
 import com.infowings.catalog.common.Direction
-import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.blueprint.Button
-import com.infowings.catalog.wrappers.blueprint.Label
+import com.infowings.catalog.wrappers.blueprint.ButtonGroup
+import kotlinext.js.require
 import react.*
+import react.dom.div
 
 
-/**
- * View Component. Draws List of [treeNode] for each [AspectData] in [AspectTreeView.Props.aspects] list
- */
 class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
+
+    companion object {
+        init {
+            require("styles/aspect-sort.scss")
+        }
+    }
 
     override fun AspectSort.State.init() {
         orderBy = mutableListOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC))
     }
 
     override fun RBuilder.render() {
-        Button {
-            attrs {
-                className = "pt-button ${curAspectNameSortModeIcon(AspectSortField.NAME)}"
-                onClick = { onClickSort(AspectSortField.NAME) }
+        div(classes = "sort-button-group-container") {
+            ButtonGroup {
+                Button {
+                    attrs {
+                        icon = curAspectNameSortModeIcon(AspectSortField.NAME)
+                        onClick = { onClickSort(AspectSortField.NAME) }
+                    }
+                    +"Name${getOrderByFieldOrder(AspectSortField.NAME)}"
+                }
+                Button {
+                    attrs {
+                        icon = curAspectNameSortModeIcon(AspectSortField.SUBJECT)
+                        onClick = { onClickSort(AspectSortField.SUBJECT) }
+                    }
+                    +"Subject${getOrderByFieldOrder(AspectSortField.SUBJECT)}"
+                }
             }
-            +"name"
-        }
-        Button {
-            attrs {
-                onClick = { onClickSort(AspectSortField.SUBJECT) }
-                className = "pt-button ${curAspectNameSortModeIcon(AspectSortField.SUBJECT)}"
-            }
-            +"subject"
-        }
-        Label {
-            +"Current sort mode: ${printSortMode()}"
         }
     }
 
@@ -54,14 +58,14 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
         }
     }
 
-    private fun curAspectNameSortModeIcon(field: AspectSortField): String {
-        val directToIcon = mapOf(Direction.ASC to "pt-icon-sort-asc", Direction.DESC to "pt-icon-sort-desc")
-        state.orderBy.find { it.name == field }?.let { return directToIcon[it.direction] ?: "" }
-        return ""
-    }
+    private fun getOrderByFieldOrder(field: AspectSortField) =
+        state.orderBy.indexOfFirst { it.name == field }.let { if (it == -1) "" else " (${it + 1})" }
 
-    private fun printSortMode() =
-        state.orderBy.joinToString(separator = ", ") { it.name.toString() + " " + it.direction }
+    private fun curAspectNameSortModeIcon(field: AspectSortField): String {
+        val directToIcon = mapOf(Direction.ASC to "sort-asc", Direction.DESC to "sort-desc")
+        return state.orderBy.find { it.name == field }?.let { directToIcon[it.direction] ?: "double-caret-vertical" }
+                ?: "double-caret-vertical"
+    }
 
     interface Props : RProps {
         var onFetchAspect: (List<AspectOrderBy>) -> Unit
