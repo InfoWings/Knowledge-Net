@@ -7,7 +7,9 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toHistoryLinksVertex() = HistoryLinksVertex(this)
 const val HISTORY_ADD_LINK_CLASS = "HistoryAddLink"
+const val HISTORY_ADD_LINK_EDGE = "HistoryAddLinkEdge"
 const val HISTORY_DROP_LINK_CLASS = "HistoryDropLink"
+const val HISTORY_DROP_LINK_EDGE = "HistoryDropLinkEdge"
 
 
 class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {

@@ -7,6 +7,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toHistoryElementVertex() = HistoryElementVertex(this)
 const val HISTORY_ELEMENT_CLASS = "HistoryElement"
+const val HISTORY_ELEMENT_EDGE = "HistoryElementEdge"
 
 class HistoryElementVertex(private val vertex: OVertex) : OVertex by vertex {
     override fun equals(other: Any?): Boolean {

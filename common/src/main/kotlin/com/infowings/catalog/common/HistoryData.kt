@@ -8,8 +8,8 @@ enum class EventType {
 
 @Serializable
 data class Delta(
-    var field: String, // null means created
-    var before: String?,
+    var field: String,
+    var before: String?, // null means created
     var after: String? // null means deleted
 )
 

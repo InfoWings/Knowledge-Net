@@ -28,18 +28,18 @@ class HistoryService(
                     it.entityRID,
                     it.entityClass
                 )
-                val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_CLASS)
+                val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE)
                     .map { it.toHistoryElementVertex() }
                     .map { it.key to it.stringValue }
                     .toMap()
 
-                val addedLinks = it.getVertices(ODirection.OUT, HISTORY_ADD_LINK_CLASS)
+                val addedLinks = it.getVertices(ODirection.OUT, HISTORY_ADD_LINK_EDGE)
                     .map { it.toHistoryLinksVertex() }
                     .groupBy { it.key }
                     .map { it.key to it.value.map { it.peerId } }
                     .toMap()
 
-                val removedLinks = it.getVertices(ODirection.OUT, HISTORY_DROP_LINK_CLASS)
+                val removedLinks = it.getVertices(ODirection.OUT, HISTORY_DROP_LINK_EDGE)
                     .map { it.toHistoryLinksVertex() }
                     .groupBy { it.key }
                     .map { it.key to it.value.map { it.peerId } }
@@ -61,13 +61,13 @@ class HistoryService(
                 stringValue = it.value
             }
         }
-        elementVertices.forEach { historyEventVertex.addEdge(it) }
+        elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
 
         val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
-        addLinkVertices.forEach { historyEventVertex.addEdge(it) }
+        addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
 
         val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
-        dropLinkVertices.forEach { historyEventVertex.addEdge(it) }
+        dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
 
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
