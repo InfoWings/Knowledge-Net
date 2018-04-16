@@ -12,38 +12,33 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
             .filter { it.event.entityClass == ASPECT_CLASS }
             .sortedByDescending { it.event.timestamp }
 
-        return aspectEventList.mapIndexed { index, historyFactDto ->
-            Pair(
-                historyFactDto, restore(
-                    aspectEventList.subList(
-                        index,
-                        aspectEventList.size
-                    )
-                )
-            )
-        }.map { (fact, data) ->
-            val diff = fact.payload.data.mapNotNull { (fieldName, value) ->
-                when (fieldName) {
-                    "measure" -> createAspectFieldDelta(AspectField.MEASURE, value, data.measure)
-                    "baseType" -> createAspectFieldDelta(AspectField.BASE_TYPE, value, data.baseType)
-                    "name" -> createAspectFieldDelta(AspectField.NAME, value, data.name)
-                    else -> null
-                }
+        return aspectEventList
+            .mapIndexed { index, historyFactDto ->
+                Pair(historyFactDto, restoreAspectData(aspectEventList.subList(index + 1, aspectEventList.size)))
             }
-            createHistElement(fact.event.user, fact.event.type, diff, data, emptyList())
-        }
-
+            .map { (fact, restoredData) ->
+                val diff = fact.payload.data.mapNotNull { (fieldName, updatedValue) ->
+                    when (fieldName) {
+                        "measure" -> createAspectFieldDelta(AspectField.MEASURE, restoredData.measure, updatedValue)
+                        "baseType" -> createAspectFieldDelta(AspectField.BASE_TYPE, restoredData.baseType, updatedValue)
+                        "name" -> createAspectFieldDelta(AspectField.NAME, restoredData.name, updatedValue)
+                        else -> null
+                    }
+                }
+                createHistoryElement(fact.event.user, fact.event.type, diff, restoredData, emptyList())
+            }
     }
 
     // Know, not effective. Temporary solution
-    private fun restore(beforeEvents: List<HistoryFactDto>): AspectData {
+    private fun restoreAspectData(beforeEvents: List<HistoryFactDto>): AspectData {
         var result = emptyAspectData
         beforeEvents.reversed().forEach { fact ->
             result = when (fact.event.type) {
                 EventType.CREATE, EventType.UPDATE -> result.copy(
                     measure = fact.payload.data.getOrDefault("measure", result.measure),
                     baseType = fact.payload.data.getOrDefault("baseType", result.baseType),
-                    name = fact.payload.data.getOrDefault("name", result.name)
+                    name = fact.payload.data.getOrDefault("name", result.name),
+                    version = fact.event.version
                 )
                 else -> result.copy(deleted = true, version = fact.event.version)
             }
@@ -52,7 +47,7 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
     }
 }
 
-private fun createHistElement(
+private fun createHistoryElement(
     username: String,
     eventType: EventType,
     changes: List<Delta>,
