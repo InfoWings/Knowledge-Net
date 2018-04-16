@@ -1,6 +1,8 @@
 package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.aspects.getAllAspects
+import com.infowings.catalog.aspects.sort.aspectSort
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
@@ -33,14 +35,17 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     }
 
     override fun componentDidMount() {
+        fetchData(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
+    }
+
+    private fun fetchData(orderBy: List<AspectOrderBy> = emptyList()) {
         launch {
             val aspectIdToBookMap = getAllReferenceBooks().books
                 .filter { !it.deleted }
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
-            val rowDataList = getAllAspects().aspects
-                .filter { !it.deleted }
+            val rowDataList = getAllAspects(orderBy).aspects.filter { !it.deleted }
                 .map { RowData(it.id ?: "", it.name ?: "", aspectIdToBookMap[it.id!!]) }
 
             setState {
@@ -141,6 +146,11 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
 
     override fun RBuilder.render() {
+        aspectSort {
+            attrs {
+                onFetchAspect = ::fetchData
+            }
+        }
         child(props.apiReceiverComponent) {
             attrs {
                 rowDataList = state.rowDataList
