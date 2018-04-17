@@ -9,9 +9,9 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-import notDeletedSql
 
 /** Should be used externally for query building. */
+const val notDeletedSql = "(deleted is NULL or deleted = false)"
 const val selectWithNameDifferentId =
     "SELECT from $ASPECT_CLASS WHERE name=:name and (@rid <> :aspectId) and $notDeletedSql"
 const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeletedSql"

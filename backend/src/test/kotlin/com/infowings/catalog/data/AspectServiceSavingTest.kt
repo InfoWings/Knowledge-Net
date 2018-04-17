@@ -285,8 +285,6 @@ class AspectServiceSavingTest {
         aspectService.save(editedAspectData1)
     }
 
-
-
     private fun prepareAspect(): Aspect {
         /*
          *  aspect

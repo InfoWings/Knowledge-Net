@@ -1,86 +1,45 @@
 package com.infowings.catalog.data
 
-import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.subject.SubjectDao
-import com.infowings.catalog.data.subject.SubjectVertex
-import com.infowings.catalog.data.subject.toSubject
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.record.OVertex
 
-class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao, private val history: HistoryService) {
-    fun getSubjects(): List<Subject> = dao.getSubjects()
+fun OVertex.toSubject(): Subject =
+    Subject(this.id, this.name, this.description)
 
-    fun findById(id: String): SubjectVertex? = dao.findById(id)
+class SubjectService(private val db: OrientDatabase) {
 
-    fun createSubject(sd: SubjectData, user: String): Subject {
-        val vertex = transaction(db) {
-            val vertex = dao.createSubject(sd)
-            history.storeFact(vertex.toCreateFact(user))
-            return@transaction vertex
-        }
-
-        return vertex.toSubject()
+    fun getSubjects(): List<Subject> = db.query(selectSubjects) { rs ->
+        rs.mapNotNull { it.toVertexOrNull()?.toSubject() }.toList()
     }
 
-    fun updateSubject(subjectData: SubjectData, user: String): Subject {
-        val id = subjectData.id ?: throw SubjectIdIsNull
-
-        val resultVertex = transaction(db) {
-            val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
-
-            // временно отключим до гарантированной поддержки на фронте
-            //if (subjectData.isModified(vertex.version)) {
-            //    throw SubjectConcurrentModificationException(expected =  sd.version, real = vertex.version)
-            //}
-
-            val before = vertex.currentSnapshot()
-            val res = dao.updateSubjectVertex(vertex, subjectData)
-            history.storeFact(vertex.toUpdateFact(user, before))
-
-            return@transaction res
-        }
-
-        return resultVertex.toSubject()
+    fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
+        rs.map { it.toVertex().toSubject() }.firstOrNull()
     }
 
-    fun remove(subjectData: SubjectData, user: String, force: Boolean = false) {
-        val id = subjectData.id ?: throw SubjectIdIsNull
-
+    fun createSubject(sd: SubjectData): Subject =
         transaction(db) {
-            val vertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(sd.name) } ?: save(sd)
+        }.toSubject()
 
-            // временно отключим до гарантированной поддержки на фронте
-            //if (subjectData.isModified(vertex.version)) {
-            //    throw SubjectConcurrentModificationException(expected =  sd.version, real = vertex.version)
-            //}
+    fun updateSubject(sd: SubjectData): Subject =
+        transaction(db) {
+            val vertex: OVertex = db[sd.id ?: throw SubjectIdIsNull()]
+            vertex.name = sd.name
+            vertex.description = sd.description
+            vertex.save<OVertex>()
+        }.toSubject()
 
-            val linkedByAspects = vertex.linkedByAspects()
-
-            when {
-                linkedByAspects.isNotEmpty() && force -> {
-                    history.storeFact(vertex.toSoftDeleteFact(user))
-                    dao.softRemove(vertex)
-                }
-                linkedByAspects.isNotEmpty() -> {
-                    throw SubjectIsLinkedByAspect(subjectData, linkedByAspects.first().toAspectData())
-                }
-
-                else -> {
-                    history.storeFact(vertex.toDeleteFact(user))
-                    dao.remove(vertex)
-                }
-            }
+    private fun save(sd: SubjectData): OVertex =
+        transaction(db) { session ->
+            val vertex: OVertex = session.newVertex(SUBJECT_CLASS)
+            vertex.name = sd.name
+            vertex.description = sd.description
+            return@transaction vertex.save<OVertex>()
         }
-    }
-
 }
 
-object SubjectIdIsNull : Exception()
-class SubjectWithNameAlreadyExist(val subject: Subject) : Exception("Subject already exist: ${subject.name}")
-class SubjectNotFoundException(val id: String) : Exception("Subject with id $id not found")
-class SubjectConcurrentModificationException(expected: Int, real: Int) :
-    Throwable("Found version $real instead of $expected")
-class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
-    Throwable("Subject ${subject.id} is linked by ${aspect.id}")
+const val selectSubjects = "SELECT FROM $SUBJECT_CLASS"
+
+class SubjectIdIsNull : Throwable()
+class SubjectWithNameAlreadyExist(name: String) : Throwable("Subject already exist: $name")

@@ -10,7 +10,6 @@ import com.infowings.catalog.data.history.HistoryDaoService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.DEFAULT_HEART_BEAT__TIMEOUT
 import com.infowings.catalog.storage.OrientDatabase
@@ -45,8 +44,6 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { ReferenceBookDao(db = ref()) }
         bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
-        bean { SubjectDao(db = ref())}
-        bean { SubjectService(db = ref(), dao = ref(), history = ref()) }
         bean {
             AspectService(
                 db = ref(),
@@ -55,6 +52,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 historyService = ref()
             )
         }
+        bean { SubjectService(db = ref()) }
         bean { SuggestionService(database = ref()) }
         bean { HistoryDaoService(db = ref()) }
         bean { HistoryService(db = ref(), historyDaoService = ref(), userAcceptService = ref()) }

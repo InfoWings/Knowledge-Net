@@ -48,9 +48,6 @@ fun createTestAspect(
     aspectService: AspectService,
     subject: Subject? = null
 ): Aspect {
-    // Если есть аспект с заданным aspectName и subject.id - возвращаем его.
-    // Если нет - создаем
-
     val ad = AspectData(
         "",
         aspectName,
@@ -60,5 +57,5 @@ fun createTestAspect(
         emptyList(),
         subject = subject?.toSubjectData()
     )
-    return aspectService.findByName(aspectName).find { it.subject?.id == subject?.id }  ?: aspectService.save(ad)
+    return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
 }
