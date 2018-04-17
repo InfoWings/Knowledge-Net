@@ -1,10 +1,24 @@
 @import "abstract";
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/common/color-aliases";
 
 .aspect-tree-view {
 
   max-width: 120rem;
   margin: 3rem auto;
   padding-bottom: 20rem;
+
+  &--new-aspect {
+    margin-left: 1.8rem;
+  }
+
+  &--empty-property-wrapper {
+    margin-left: 1.8rem;
+  }
+
+  &--button-new {
+    margin-left: 1.8rem;
+  }
 
   &--add-to-list-icon {
     height: 1.5rem;
@@ -45,24 +59,23 @@
   &--label {
     display: inline-block;
     cursor: pointer;
-    padding: .2em;
-
-    &__aspect-selected {
-      background-color: $color-aspect-selected;
-      border-radius: 2px;
-    }
+    padding: .7rem .2rem;
 
     &__property-selected {
-      background-color: $color-aspect-property-selected;
+      background-color: rgba($pt-intent-primary, 0.15);
       border-radius: 2px;
     }
 
     &__selected {
-      background-color: $color-aspect-selected;
+      background-color: rgba($pt-intent-primary, 0.15);
       border-radius: 2px;
     }
 
-    & > span {
+    & > span:first-child {
+      padding-right: .5rem;
+    }
+
+    & > span:not(:first-child) {
       padding: 0 .5rem;
     }
 

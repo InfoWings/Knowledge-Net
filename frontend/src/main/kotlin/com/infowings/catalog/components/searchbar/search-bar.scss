@@ -1,0 +1,25 @@
+@import "abstract";
+
+.search-bar {
+  margin: 1.5rem 0;
+  max-width: 20rem;
+  border-radius: 3px;
+  background-color: $color-border;
+  line-height: 3rem;
+  height: 3rem;
+
+  &:focus-within {
+    background-color: $color-background-blue;
+  }
+
+  &--input {
+    padding: 0 1rem;
+    border: none;
+    background-color: transparent;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

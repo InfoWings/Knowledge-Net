@@ -1,6 +1,8 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.AspectsModel
+import com.infowings.catalog.aspects.treeview.view.newAspectButton
+import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.blueprint.Alert
@@ -40,6 +42,14 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
                     }
                 }
             }
+            when (props.selectedAspectId) {
+                null -> div(classes = "aspect-tree-view--new-aspect") {
+                    placeholderAspectLabel("aspect-tree-view--label__selected")
+                }
+                else -> newAspectButton {
+                    props.aspectsModel.selectAspect(null)
+                }
+            }
         }
         Alert {
             attrs {
@@ -68,20 +78,16 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
         var aspects: List<AspectData>
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var aspectContext: (aspectId: String) -> AspectData?
+        var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel
     }
 }
 
 /**
- * Thrown in case we cannot select new aspect
- */
-class UnsafeSelectionException : Throwable()
-
-/**
  * Wrapper component that incapsulates and manages state of expanded aspect tree.
  */
-class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper.Props, AspectNodeExpandedStateWrapper.State>() {
+class AspectNodeExpandedStateWrapper :
+    RComponent<AspectNodeExpandedStateWrapper.Props, AspectNodeExpandedStateWrapper.State>() {
 
     override fun State.init() {
         expandedSubtree = false
@@ -116,7 +122,8 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
                     aspectNode {
                         attrs {
                             this.aspect = props.aspect
-                            isAspectSelected = props.aspect.id == props.selectedAspectId
+                            isAspectSelected = props.aspect.id ==
+                                    props.selectedAspectId && props.selectedPropertyIndex == null
                             onClick = props.aspectsModel::selectAspect
                             onAddToListIconClick = props.aspectsModel::createProperty
                             onExpandAllStructure = ::handleExpandAllStructure
@@ -125,7 +132,7 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
                 }!!
             }
 
-            if (props.aspect.properties.isNotEmpty() && props.aspect.properties.any { !it.deleted }) {
+            if (props.aspect.properties.isNotEmpty() || (props.aspect.id == props.selectedAspectId && props.selectedPropertyIndex != null)) {
                 aspectProperties {
                     attrs {
                         this.aspect = props.aspect
@@ -149,7 +156,7 @@ class AspectNodeExpandedStateWrapper : RComponent<AspectNodeExpandedStateWrapper
         var aspect: AspectData
         var selectedAspectId: String?
         var selectedPropertyIndex: Int?
-        var aspectContext: (aspectId: String) -> AspectData?
+        var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel
     }
 }

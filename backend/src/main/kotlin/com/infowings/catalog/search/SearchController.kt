@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.SuggestedMeasureData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,7 +23,7 @@ class SearchController(val suggestionService: SuggestionService) {
         commonParam: CommonSuggestionParam?,
         measureGroupName: String?,
         findInGroups: Boolean = false
-    ): List<String> {
+    ): SuggestedMeasureData {
         logger.debug("measureSuggestion request: commonParam=$commonParam measureGroupName=$measureGroupName findInGroups=$findInGroups")
         return suggestionService.findMeasure(commonParam, measureGroupName, findInGroups)
     }

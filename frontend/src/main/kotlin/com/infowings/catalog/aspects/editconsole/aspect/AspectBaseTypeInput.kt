@@ -36,15 +36,15 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
                         valueKey = "aspectBaseType"
                         onChange = ::handleSelectBaseTypeOption
                         clearable = false
-                        disabled = !props.measureUnit.isNullOrEmpty()
+                        disabled = props.disabled
                         options = arrayOf(
-                                baseTypeOption(BaseType.Binary.name),
-                                baseTypeOption(BaseType.Boolean.name),
-                                baseTypeOption(BaseType.Decimal.name),
-                                baseTypeOption(BaseType.Integer.name),
-                                baseTypeOption(BaseType.Long.name),
-                                baseTypeOption(BaseType.Nothing.name),
-                                baseTypeOption(BaseType.Text.name)
+                            baseTypeOption(BaseType.Binary.name),
+                            baseTypeOption(BaseType.Boolean.name),
+                            baseTypeOption(BaseType.Decimal.name),
+                            baseTypeOption(BaseType.Integer.name),
+                            baseTypeOption(BaseType.Long.name),
+                            baseTypeOption(BaseType.Nothing.name),
+                            baseTypeOption(BaseType.Text.name)
                         )
                     }
                 }
@@ -53,8 +53,8 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
     }
 
     interface Props : RProps {
-        var measureUnit: String?
         var value: String?
+        var disabled: Boolean
         var onChange: (String) -> Unit
     }
 
