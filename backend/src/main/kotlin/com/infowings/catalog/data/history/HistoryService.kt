@@ -122,5 +122,5 @@ class HistoryService(
 }
 
 // We can't use HistoryFact because vertex HistoryAware possible not exist
-// todo: Make history independent from aware entity
+// TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
 class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
