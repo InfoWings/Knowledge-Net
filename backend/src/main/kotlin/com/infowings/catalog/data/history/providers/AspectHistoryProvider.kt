@@ -44,7 +44,7 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
                         createHistoryElement(fact.event, diff, restoredData, emptyList())
                     }
             }
-            .sortedByDescending { it.eventType }
+            .sortedByDescending { it.timestamp }
     }
 
     // Know, not effective. Temporary solution
