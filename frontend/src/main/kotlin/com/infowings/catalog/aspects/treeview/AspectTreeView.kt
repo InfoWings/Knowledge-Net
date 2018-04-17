@@ -46,7 +46,9 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
                 null -> div(classes = "aspect-tree-view--new-aspect") {
                     placeholderAspectLabel("aspect-tree-view--label__selected")
                 }
-                else -> newAspectButton(props.aspectsModel::discardSelect)
+                else -> newAspectButton {
+                    props.aspectsModel.selectAspect(null)
+                }
             }
         }
         Alert {

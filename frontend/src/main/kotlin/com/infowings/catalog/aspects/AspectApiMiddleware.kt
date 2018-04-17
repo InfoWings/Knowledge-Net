@@ -1,10 +1,9 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.AspectOrderBy
+import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
-import com.infowings.catalog.wrappers.react.suspendSetState
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -57,7 +56,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
         val newAspectId: String = newAspect.id ?: error("Server returned Aspect with aspectId == null")
 
-        suspendSetState {
+        setState {
             data += newAspect
             context[newAspectId] = newAspect
         }
@@ -76,7 +75,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
         val updatedAspectId: String = updatedAspect.id ?: error("Server returned Aspect with aspectId == null")
 
-        suspendSetState {
+        setState {
             data = data.map {
                 if (updatedAspect.id == it.id) updatedAspect else it
             }
@@ -100,7 +99,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
 
-        suspendSetState {
+        setState {
             data = data.map {
                 if (aspectData.id == it.id) deletedAspect else it
             }

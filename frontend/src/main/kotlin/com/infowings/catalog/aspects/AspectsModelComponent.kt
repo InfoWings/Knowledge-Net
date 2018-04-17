@@ -8,11 +8,11 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.emptyAspectData
 import com.infowings.catalog.common.emptyAspectPropertyData
-import com.infowings.catalog.wrappers.react.suspendSetState
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
+import kotlin.math.min
 
 interface AspectsModel {
     /**
@@ -107,16 +107,22 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                 if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
                     selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
                 }
-                selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
-                    selectedAspect.properties.lastIndex else index
+                selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
             }
         }
     }
 
     override fun discardSelect() {
         setState {
-            selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+            val selectedAspectId = selectedAspect.id
+            val prevSelectedAspect = selectedAspect
+            val selectedIndex = selectedAspectPropertyIndex
+            selectedAspect =
+                    if (selectedAspectId == null) emptyAspectData else props.aspectContext[selectedAspectId]!!
+            selectedAspectPropertyIndex = when (selectedIndex) {
+                null -> null
+                else -> if (prevSelectedAspect.properties[selectedIndex] == emptyAspectPropertyData) null else selectedIndex
+            }
         }
     }
 
@@ -165,7 +171,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
             else -> props.onAspectUpdate(selectedAspect.normalize())
         }
 
-        suspendSetState {
+        setState {
             this.selectedAspect = when (selectedAspect.properties.lastOrNull()) {
                 emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
                 else -> aspect
@@ -207,12 +213,21 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
 
     private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
         return when {
-            selectedAspect.id == aspectId && selectedAspectPropertyIndex == index -> false
-            selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData -> false
-            selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData -> true
+            entityIsAlreadySelected(aspectId, index) -> false
+            isEmptyPropertySelected() -> false
+            isSelectedAspectHasChanges() -> true
             else -> false
         }
     }
+
+    private fun State.isSelectedAspectHasChanges() =
+        selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
+
+    private fun State.isEmptyPropertySelected() =
+        selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData
+
+    private fun State.entityIsAlreadySelected(aspectId: String?, index: Int?) =
+        selectedAspect.id == aspectId && selectedAspectPropertyIndex == index
 
     private fun State.newAspectSelection(aspectId: String?): AspectData {
         val selectedAspect = selectedAspect

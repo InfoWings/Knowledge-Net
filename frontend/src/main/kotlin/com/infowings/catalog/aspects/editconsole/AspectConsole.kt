@@ -10,12 +10,12 @@ import react.*
 
 interface AspectEditConsoleModel {
     /**
-     *
+     * Submit all made changes to server.
      */
     suspend fun submitAspect()
 
     /**
-     *
+     * Select the first available property of selected aspect, if such exists, or create new one
      */
     suspend fun switchToProperties()
 
@@ -24,6 +24,9 @@ interface AspectEditConsoleModel {
      */
     fun discardChanges()
 
+    /**
+     * Temporarily save changes in memory.
+     */
     fun updateAspect(aspectData: AspectData)
 
     /**
@@ -50,6 +53,9 @@ interface AspectPropertyEditConsoleModel {
      */
     fun discardChanges()
 
+    /**
+     * Temporarily save changed aspect property in memory
+     */
     fun updateAspectProperty(property: AspectPropertyData)
 
     /**
