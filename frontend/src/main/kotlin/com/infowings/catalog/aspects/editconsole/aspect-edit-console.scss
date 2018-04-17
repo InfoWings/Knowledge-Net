@@ -30,17 +30,16 @@
     justify-content: left;
     align-items: center;
     padding: 2rem 0;
-    border-bottom: 1px solid $color-border;
   }
 
   &--input-group-aspect-property-aspect {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: end;
   }
 
   &--input-group-aspect-container {
-    flex: 1 1 auto;
+    flex: 1 1;
     border: 2px solid $color-border;
     border-radius: 7px;
     margin: .5rem 0;
@@ -51,8 +50,28 @@
     padding: 0 1rem;
   }
 
+  &--property-aspect-label {
+    margin-left: .5rem;
+  }
+
+  &--property-aspect-description {
+    height: 2rem;
+    width: 2rem;
+    margin-left: .5rem;
+  }
+
+  &--property-aspect-wrapper {
+    flex: 1 1 auto;
+    padding: 1rem;
+    border: 2px solid $color-border;
+    border-radius: 7px;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+  }
+
   &--aspect-property-input-container {
-    flex: 0 1 20rem;
+    flex: 0 1 25rem;
     padding: 0 1rem;
   }
 

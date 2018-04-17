@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
@@ -14,9 +15,10 @@ interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: List<AspectData>
     var aspectContext: Map<String, AspectData>
-    var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
-    var onAspectCreate: suspend (newAspect: AspectData) -> Unit
-    var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> Unit
+    var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
+    var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
+    var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
+    var onFetchAspects: (List<AspectOrderBy>) -> Unit
 }
 
 /**
@@ -30,8 +32,12 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     override fun componentDidMount() {
+        fetchAspects()
+    }
+
+    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
         launch {
-            val response = getAllAspects()
+            val response = getAllAspects(orderBy)
             setState {
                 data = response.aspects
                 context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
@@ -40,7 +46,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
-    private suspend fun handleCreateNewAspect(aspectData: AspectData) {
+    private suspend fun handleCreateNewAspect(aspectData: AspectData): AspectData {
         val newAspect: AspectData
         try {
             newAspect = createAspect(aspectData)
@@ -48,15 +54,17 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             throw AspectBadRequestException(JSON.parse(e.message))
         }
 
-        val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+        val newAspectId: String = newAspect.id ?: error("Server returned Aspect with aspectId == null")
 
         setState {
             data += newAspect
             context[newAspectId] = newAspect
         }
+
+        return newAspect
     }
 
-    private suspend fun handleUpdateAspect(aspectData: AspectData) {
+    private suspend fun handleUpdateAspect(aspectData: AspectData): AspectData {
         val updatedAspect: AspectData
 
         try {
@@ -65,7 +73,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             throw AspectBadRequestException(JSON.parse(e.message))
         }
 
-        val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+        val updatedAspectId: String = updatedAspect.id ?: error("Server returned Aspect with aspectId == null")
 
         setState {
             data = data.map {
@@ -73,9 +81,11 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             }
             context[updatedAspectId] = updatedAspect
         }
+
+        return updatedAspect
     }
 
-    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean) {
+    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean): String {
 
         try {
             if (force) {
@@ -97,6 +107,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 context[aspectData.id!!] = deletedAspect
             }
         }
+
+        return deletedAspect.id ?: error("Aspect delete request returned AspectData with id == null")
     }
 
     override fun RBuilder.render() {
@@ -108,6 +120,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 onAspectCreate = { handleCreateNewAspect(it) }
                 onAspectUpdate = { handleUpdateAspect(it) }
                 onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
+                onFetchAspects = ::fetchAspects
             }
         }
     }
