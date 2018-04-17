@@ -2,6 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.loggerFor
@@ -17,7 +18,7 @@ import com.orientechnologies.orient.core.record.OVertex
 const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
-const val REFERENCE_BOOK_ASPECT_EDGE = "ReferenceBookAspectEdge"
+const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 
 
 class ReferenceBookService(
@@ -46,6 +47,15 @@ class ReferenceBookService(
     }
 
     /**
+     * Return ReferenceBook instance by [aspectId] or null if not found
+     */
+    fun getReferenceBookOrNull(aspectId: String): ReferenceBook? = transaction(db) {
+        logger.debug("Getting ReferenceBook by aspectId: $aspectId")
+        val referenceBookVertex = dao.getReferenceBookVertex(aspectId)
+        return@transaction referenceBookVertex?.toReferenceBook()
+    }
+
+    /**
      * Create ReferenceBook with name = [name]
      * @throws RefBookAlreadyExist
      */
@@ -55,7 +65,6 @@ class ReferenceBookService(
         dao.getReferenceBookVertex(aspectId)?.let { throw RefBookAlreadyExist(aspectId) }
 
         val referenceBookVertex = dao.createReferenceBookVertex()
-        referenceBookVertex.aspectId = aspectId
         referenceBookVertex.name = name
 
         val rootVertex = dao.createReferenceBookItemVertex()
@@ -63,9 +72,10 @@ class ReferenceBookService(
         rootVertex.aspectId = aspectId
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
-        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw RefBookAspectNotExist(aspectId)
+        val aspectVertex = dao.getAspectVertex(aspectId) ?: throw AspectDoesNotExist(aspectId)
         aspectVertex.validateForRemoved()
-        referenceBookVertex.addEdge(aspectVertex, REFERENCE_BOOK_ASPECT_EDGE).save<OEdge>()
+        aspectVertex.addEdge(referenceBookVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
+        aspectVertex.save<OVertex>()
 
         val savedReferenceBookVertex = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
         historyService.storeFact(savedReferenceBookVertex.toCreateFact(userName))
@@ -131,7 +141,7 @@ class ReferenceBookService(
         when {
             hasChildItemLinkedByObject && force -> dao.markBookVertexAsDeleted(referenceBookVertex)
             hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-            else -> dao.remove(referenceBookVertex)
+            else -> dao.removeRefBookVertex(referenceBookVertex)
         }
 
         //TODO: add history
@@ -243,7 +253,7 @@ class ReferenceBookService(
             when {
                 hasChildItemLinkedByObject && force -> dao.markItemVertexAsDeleted(bookItemVertex)
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> dao.remove(bookItemVertex)
+                else -> dao.removeRefBookItemVertex(bookItemVertex)
             }
 
             //TODO: add history
@@ -284,7 +294,7 @@ class ReferenceBookService(
     }
 
     private fun AspectVertex.validateForRemoved() =
-        this.also { if (it.deleted) throw RefBookAspectNotExist(it.id) }
+        this.also { if (it.deleted) throw AspectDoesNotExist(it.id) }
 
     private fun ReferenceBookItemVertex.validateIsNotRoot(): ReferenceBookItemVertex =
         this.also { validator.checkIsNotRoot(this) }
@@ -319,7 +329,6 @@ class RefBookAlreadyExist(val aspectId: String) : ReferenceBookException("aspect
 class RefBookNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemNotExist(val id: String) : ReferenceBookException("id: $id")
 class RefBookChildAlreadyExist(val id: String, val value: String) : ReferenceBookException("id: $id, value: $value")
-class RefBookAspectNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
     ReferenceBookException("sourceId: $sourceId, targetId: $targetId")
 

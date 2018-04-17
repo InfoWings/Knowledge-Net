@@ -10,9 +10,9 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookEmptyTreeNode : RComponent<ReferenceBookEmptyTreeNode.Props, ReferenceBookEmptyTreeNode.State>() {
+class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, ReferenceBookEmptyNode.State>() {
 
-    override fun State.init(props: ReferenceBookEmptyTreeNode.Props) {
+    override fun State.init(props: ReferenceBookEmptyNode.Props) {
         creatingBook = false
     }
 
@@ -89,5 +89,5 @@ class ReferenceBookEmptyTreeNode : RComponent<ReferenceBookEmptyTreeNode.Props, 
     }
 }
 
-fun RBuilder.referenceBookEmptyTreeNode(block: RHandler<ReferenceBookEmptyTreeNode.Props>) =
-    child(ReferenceBookEmptyTreeNode::class, block)
+fun RBuilder.referenceBookEmptyNode(block: RHandler<ReferenceBookEmptyNode.Props>) =
+    child(ReferenceBookEmptyNode::class, block)

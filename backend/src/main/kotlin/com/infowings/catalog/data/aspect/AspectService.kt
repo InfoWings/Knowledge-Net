@@ -1,11 +1,10 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -17,6 +16,7 @@ import com.infowings.catalog.storage.transaction
 class AspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
+    private val referenceBookService: ReferenceBookService,
     private val historyService: HistoryService
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService)
@@ -62,6 +62,8 @@ class AspectService(
         return res
     }
 
+    private val logger = loggerFor<AspectService>()
+
     /**
      * Creates new Aspect if [id] = null or empty and saves it into DB else updating existing
      * @param aspectData data that represents Aspect, which will be saved or updated
@@ -83,7 +85,18 @@ class AspectService(
             return@transaction finishMethod(aspectVertex, aspectData, user)
         }
 
-        return findById(save.id)
+        logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
+
+        return if (save.identity.clusterPosition < 0) {
+            // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
+            // Но воспроизвести не удалось.
+            // Оставим эту веточку. Последим за логами
+            val res = findById(save.id)
+
+            logger.warn("Cluster position is negative: ${save.identity}. Aspect: ${save.toAspect()}. Recovered: $res")
+
+            res
+        } else save.toAspect()
     }
 
 
@@ -96,16 +109,24 @@ class AspectService(
 
             aspectVertex.checkAspectVersion(aspectData)
 
+            val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
+
+            //TODO: checking if children items linked by Objects and set correct linkedRefBookItems!
+            val linkedRefBookItems: List<ReferenceBookItem> = emptyList()
+            val hasLinkedRefBookItem = linkedRefBookItems.isNotEmpty()
+
+            val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
-                aspectVertex.isLinkedBy() && force -> {
+                linked && force -> {
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user, force)
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
-                aspectVertex.isLinkedBy() -> {
+                linked -> {
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
-
                 else -> {
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user)
                     historyService.storeFact(aspectVertex.toDeleteFact(user))
                     aspectDaoService.remove(aspectVertex)
                 }
@@ -119,7 +140,15 @@ class AspectService(
      */
     fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
-    fun getAspects(): List<Aspect> = aspectDaoService.getAspects().map { it.toAspect() }.toList()
+    fun getAspects(
+        orderBy: List<AspectOrderBy> = listOf(
+            AspectOrderBy(
+                AspectSortField.NAME,
+                Direction.ASC
+            )
+        )
+    ): List<Aspect> =
+        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
 
     /**
      * Search [Aspect] by it's id
@@ -127,8 +156,36 @@ class AspectService(
      */
     fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
 
-    fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
+
+
+    private class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
+        override fun compareTo(other: CompareString): Int =
+            direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
+    }
+
+    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
+        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.ASC)
+
+        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+            CompareString(aspect.subject?.name ?: "", Direction.DESC)
+
+        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+            AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
+            AspectSortField.SUBJECT to mapOf(
+                Direction.ASC to ::aspectSubjectNameAsc,
+                Direction.DESC to ::aspectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
 
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
