@@ -7,7 +7,6 @@
     align-items: center;
     font-size: 1.6rem;
     font-weight: 400;
-
     &:not(:last-child) {
       margin-bottom: .4rem;
     }
@@ -25,8 +24,7 @@
   }
 
   &--children {
-    padding-left: 1.85rem;
-    padding-top: .15rem;
+    padding-left: 3rem;
+    margin-bottom: .4rem;
   }
-
 }

@@ -6,12 +6,16 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.Kilometre
 import com.infowings.catalog.common.Metre
 import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.reference.book.ReferenceBookDao
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
+import org.apache.coyote.http11.Constants.a
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.core.Is
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +36,12 @@ class AspectServiceDeletingTest {
 
     @Autowired
     lateinit var database: OrientDatabase
+
+    @Autowired
+    lateinit var referenceBookService: ReferenceBookService
+
+    @Autowired
+    lateinit var referenceBookDao: ReferenceBookDao
 
     private lateinit var initialAspect: Aspect
 
@@ -97,7 +107,6 @@ class AspectServiceDeletingTest {
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
         aspectService.remove(aspectService.findById(aspect.id).toAspectData(), "")
-
     }
 
     @Test
@@ -127,7 +136,7 @@ class AspectServiceDeletingTest {
         var a1 = aspectService.save(initialAspectData("a1"))
         val p1 = AspectPropertyData("", "", a1.id, AspectPropertyCardinality.ONE.name)
         val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
-        val saved = aspectService.save(ad)
+        aspectService.save(ad)
 
         a1 = aspectService.findById(a1.id)
 
@@ -135,14 +144,29 @@ class AspectServiceDeletingTest {
         aspectService.remove(a1.toAspectData(), "")
 
         val found = database.getVertexById(a1.id)
-        assertThat("Aspect exists in db", found, Is.`is`(Matchers.nullValue()))
-        assertThat("Aspect not deleted", found!!.getProperty<String>("deleted"), Is.`is`(Matchers.nullValue()))
+        assertNotNull("Aspect exists in db", found)
+        assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
         a1 = aspectService.findById(a1.id)
         aspectService.remove(a1.toAspectData(), "", true)
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
-        assertThat("Aspect exists in db", found2, Is.`is`(Matchers.not(null)))
-        assertThat("Aspect not deleted", found2!!.deleted, Is.`is`(true))
+        assertNotNull("Aspect exists in db", found2)
+        assertTrue("Aspect deleted", found2!!.deleted)
+    }
+
+    @Test
+    fun testDeleteAspectWithRefBook() {
+        var aspect = aspectService.save(initialAspectData("aspect"))
+        referenceBookService.createReferenceBook("book", aspect.id, "")
+
+        aspect = aspectService.findById(aspect.id)
+        aspectService.remove(aspect.toAspectData(), "")
+
+        val foundAspectVertex = database.getVertexById(aspect.id)?.toAspectVertex()
+        assertNull("Aspect not exists in db", foundAspectVertex)
+
+        val foundBookVertex = referenceBookDao.getReferenceBookVertex(aspect.id)
+        assertNull("RefBook not exists in db", foundBookVertex)
     }
 
     @Test

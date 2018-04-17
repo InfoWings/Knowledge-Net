@@ -61,6 +61,9 @@ class ReferenceBookServiceTest {
     fun getAllReferenceBooksTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
         val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, userName)
+        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null))
+        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, userName)
+        referenceBookService.removeReferenceBook(forDeletingBook, userName, force = true)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
@@ -69,9 +72,17 @@ class ReferenceBookServiceTest {
         assertEquals(referenceBookService.getReferenceBook(aspect.id), referenceBook)
     }
 
+    @Test
+    fun getReferenceBookOrNullTest() {
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        assertEquals(referenceBookService.getReferenceBookOrNull(aspect.id), referenceBook)
+        assertNull(referenceBookService.getReferenceBookOrNull(aspect.id + "1"))
+        assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.id))
+    }
+
     @Test(expected = RefBookNotExist::class)
     fun findNotExistingReferenceBookTest() {
-        referenceBookService.getReferenceBook("random")
+        referenceBookService.getReferenceBook(aspect.id + "1")
     }
 
     @Test
@@ -90,7 +101,10 @@ class ReferenceBookServiceTest {
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
-        referenceBookService.updateReferenceBook(referenceBook.copy(aspectId = "random", name = "newName"), userName)
+        referenceBookService.updateReferenceBook(
+            referenceBook.copy(aspectId = aspect.id + "1", name = "newName"),
+            userName
+        )
     }
 
     @Test

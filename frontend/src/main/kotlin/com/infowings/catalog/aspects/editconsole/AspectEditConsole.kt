@@ -4,16 +4,9 @@ import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspect.*
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BadRequestCode.INCORRECT_INPUT
-import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.common.emptyAspectData
-import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.common.*
 import com.infowings.catalog.components.description.descriptionComponent
-import com.infowings.catalog.wrappers.react.setStateWithCallback
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
@@ -23,23 +16,8 @@ import react.dom.span
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
-    private val currentState
-        get() = props.aspect.copy(
-            name = state.aspectName ?: error("Aspect Name is null"),
-            measure = if (state.aspectMeasure.isNullOrEmpty()) null else state.aspectMeasure,
-            domain = if (state.aspectDomain.isNullOrEmpty()) null else state.aspectDomain,
-            baseType = if (state.aspectBaseType.isNullOrEmpty()) null else state.aspectBaseType,
-            description = if (state.aspectDescription.isNullOrEmpty()) null else state.aspectDescription,
-            subject = state.aspectSubject
-        )
 
     override fun State.init(props: Props) {
-        aspectName = props.aspect.name
-        aspectMeasure = props.aspect.measure
-        aspectDomain = props.aspect.domain
-        aspectBaseType = props.aspect.baseType
-        aspectSubject = props.aspect.subject
-        aspectDescription = props.aspect.description
         confirmation = false
     }
 
@@ -49,16 +27,12 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.aspect != nextProps.aspect || nextProps.aspect == emptyAspectData) {
-            setStateWithCallback({ inputRef?.focus(); inputRef?.select() }) {
-                aspectName = nextProps.aspect.name
-                aspectMeasure = nextProps.aspect.measure
-                aspectDomain = nextProps.aspect.domain
-                aspectBaseType = nextProps.aspect.baseType
-                aspectSubject = nextProps.aspect.subject
-                aspectDescription = nextProps.aspect.description
+        if (props.aspect.id != nextProps.aspect.id || nextProps.aspect == emptyAspectData) {
+            setState {
                 badRequestErrorMessage = null
             }
+            inputRef?.focus()
+            inputRef?.select()
         }
     }
 
@@ -69,7 +43,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     private fun tryMakeSubmitAspectRequest() {
         launch {
             try {
-                props.editConsoleModel.submitAspect(currentState)
+                props.editConsoleModel.submitAspect()
             } catch (exception: AspectBadRequestException) {
                 setState {
                     badRequestErrorMessage = exception.message
@@ -87,10 +61,10 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
             } catch (ex: AspectBadRequestException) {
                 when (ex.exceptionInfo.code) {
-                    NEED_CONFIRMATION -> setState {
+                    BadRequestCode.NEED_CONFIRMATION -> setState {
                         confirmation = true
                     }
-                    INCORRECT_INPUT -> setState {
+                    BadRequestCode.INCORRECT_INPUT -> setState {
                         badRequestErrorMessage = ex.exceptionInfo.message
                     }
                 }
@@ -98,39 +72,61 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         }
     }
 
-    private fun handleSwitchToProperties() {
-        props.editConsoleModel.switchToProperties(currentState)
+    private fun trySwitchToProperties() {
+        launch {
+            try {
+                props.editConsoleModel.switchToProperties()
+                setState {
+                    confirmation = false
+                }
+            } catch (ex: AspectBadRequestException) {
+                when (ex.exceptionInfo.code) {
+                    BadRequestCode.INCORRECT_INPUT -> setState {
+                        badRequestErrorMessage = ex.exceptionInfo.message
+                    }
+                    BadRequestCode.NEED_CONFIRMATION -> setState {
+                        confirmation = true
+                    }
+                }
+            }
+        }
     }
 
     private fun handleAspectNameChanged(name: String) {
-        setState {
-            aspectName = name
-        }
+        props.editConsoleModel.updateAspect(props.aspect.copy(name = name))
     }
 
     private fun handleAspectMeasureChanged(measure: String) {
-        setState {
-            aspectMeasure = measure
-            aspectBaseType = GlobalMeasureMap[measure]?.baseType?.name
-        }
+        props.editConsoleModel.updateAspect(
+            props.aspect.copy(
+                measure = measure,
+                baseType = GlobalMeasureMap[measure]?.baseType?.name
+            )
+        )
     }
 
     private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
-        setState {
-            aspectSubject = SubjectData(id = subjectId, name = subjectName, description = "")
-        }
+        props.editConsoleModel.updateAspect(
+            props.aspect.copy(subject = SubjectData(id = subjectId, name = subjectName, description = ""))
+        )
     }
 
     private fun handleAspectDomainChanged(domain: String) {
-        setState {
-            aspectDomain = domain
-        }
+        props.editConsoleModel.updateAspect(
+            props.aspect.copy(domain = domain)
+        )
     }
 
     private fun handleAspectBaseTypeChanged(baseType: String) {
-        setState {
-            aspectBaseType = baseType
-        }
+        props.editConsoleModel.updateAspect(
+            props.aspect.copy(baseType = baseType)
+        )
+    }
+
+    private fun handleAspectDescriptionChanged(description: String) {
+        props.editConsoleModel.updateAspect(
+            props.aspect.copy(description = description)
+        )
     }
 
     override fun RBuilder.render() {
@@ -138,52 +134,52 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
             attrs {
                 onEscape = props.editConsoleModel::discardChanges
                 onEnter = ::tryMakeSubmitAspectRequest
-                onCtrlEnter = ::handleSwitchToProperties
+                onCtrlEnter = ::trySwitchToProperties
             }
             div(classes = "aspect-edit-console--input-group-aspect") {
                 aspectNameInput {
                     attrs {
-                        value = state.aspectName
+                        value = props.aspect.name
                         onChange = ::handleAspectNameChanged
                         inputRef = ::assignInputRef
                     }
                 }
                 aspectMeasureInput {
                     attrs {
-                        value = state.aspectMeasure
+                        value = props.aspect.measure
                         onChange = ::handleAspectMeasureChanged
                     }
                 }
                 aspectDomainInput {
                     attrs {
-                        value = state.aspectDomain
+                        value = props.aspect.domain
                         onChange = ::handleAspectDomainChanged
                     }
                 }
                 aspectBaseTypeInput {
                     attrs {
-                        measureUnit = state.aspectMeasure
-                        value = state.aspectBaseType
+                        value = props.aspect.baseType
+                        disabled = !props.aspect.measure.isNullOrEmpty()
                         onChange = ::handleAspectBaseTypeChanged
                     }
                 }
                 aspectSubjectInput {
                     attrs {
-                        value = state.aspectSubject?.name ?: ""
+                        value = props.aspect.subject?.name ?: ""
                         onChange = ::handleAspectSubjectChanged
                     }
                 }
                 consoleButtonsGroup(
                     onSubmitClick = ::tryMakeSubmitAspectRequest,
-                    onAddToListClick = ::handleSwitchToProperties,
+                    onAddToListClick = ::trySwitchToProperties,
                     onCancelClick = props.editConsoleModel::discardChanges,
                     onDeleteClick = { tryDelete(false) }
                 )
                 descriptionComponent(
                     className = "aspect-edit-console--description-icon",
-                    description = state.aspectDescription,
+                    description = props.aspect.description,
                     onEditStarted = null,
-                    onNewDescriptionConfirmed = { setState { aspectDescription = it } }
+                    onNewDescriptionConfirmed = this@AspectEditConsole::handleAspectDescriptionChanged
                 )
             }
             val badRequestErrorMessage = state.badRequestErrorMessage
@@ -211,12 +207,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     interface State : RState {
-        var aspectName: String?
-        var aspectMeasure: String?
-        var aspectDomain: String?
-        var aspectBaseType: String?
-        var aspectDescription: String?
-        var aspectSubject: SubjectData?
         var badRequestErrorMessage: String?
         var confirmation: Boolean
     }

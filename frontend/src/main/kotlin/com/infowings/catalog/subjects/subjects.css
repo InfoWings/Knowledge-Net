@@ -1,3 +1,8 @@
+.subjects-page {
+  max-width: 120rem;
+  margin: 2rem auto;
+}
+
 .new-aspect-select {
     width: 300px;
 }
