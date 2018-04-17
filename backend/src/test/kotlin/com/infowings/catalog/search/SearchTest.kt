@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import org.xmlunit.diff.DifferenceEvaluators.first
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -109,20 +110,14 @@ class SearchTest {
     @Test
     fun measureSuggestionWithGroup() {
         val queryText = "Are"
-        val res = suggestionService.findMeasure(
+        val result = suggestionService.findMeasure(
             CommonSuggestionParam(text = queryText),
             measureGroupName = null,
             findInGroups = true
         )
 
-        logger.debug("find result size: ${res.size}")
-        assertFalse(res.isEmpty())
-
-        logger.debug("find result: $res")
-        assertEquals("Square meter", res.first())
-        assertEquals("Area", res.last())
-
-        res.forEach { logger.debug("name : $it") }
+        assertEquals("Square meter", result.measureNames.first())
+        assertEquals("Area", result.measureGroupNames.first())
     }
 
     @Test
@@ -235,7 +230,8 @@ class SearchTest {
             emptyList()
         )
         val level1_1: Aspect = aspectService.save(level1_1_data)
-        val level1_1_property = AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
+        val level1_1_property =
+            AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
 
         val level1_data = AspectData(
             "",
@@ -269,7 +265,7 @@ class SearchTest {
             get("/api/search/measure/suggestion").with(authorities)
                 .param("text", "metr")
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("$[0]").value("Metre"))
+            .andExpect(jsonPath("$['measureNames'][0]").value("Metre"))
     }
 
     @Test
@@ -279,7 +275,7 @@ class SearchTest {
             get("/api/search/aspect/suggestion").with(authorities)
                 .param("text", aspect.name)
         ).andExpect(status().isOk)
-                .andExpect(jsonPath("$['aspects'][0].name").value(aspect.name))
+            .andExpect(jsonPath("$['aspects'][0].name").value(aspect.name))
     }
 
 }
