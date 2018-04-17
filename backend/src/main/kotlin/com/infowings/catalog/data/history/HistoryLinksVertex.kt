@@ -23,7 +23,7 @@ class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
     }
 
     var eventId: ORID
-        get() = (vertex.getProperty("eventId") as OVertexDocument).identity
+        get() = vertex.getProperty("eventId")
         set(value) {
             vertex["eventId"] = value
         }
@@ -35,7 +35,13 @@ class HistoryLinksVertex(private val vertex: OVertex) : OVertex by vertex {
         }
 
     var peerId: ORID
-        get() = (vertex.getProperty("peerId") as OVertexDocument).identity
+        get() {
+            val property = vertex.getProperty<Any>("peerId")
+            return if (property is OVertexDocument)
+                property.identity
+            else
+                property as ORID
+        }
         set(value) {
             vertex["peerId"] = value
         }
