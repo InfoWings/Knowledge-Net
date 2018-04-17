@@ -1,28 +1,8 @@
 @import "abstract";
 
 .book-tree-view {
-
   max-width: 120rem;
   margin: 3rem auto;
-
-  &--root {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-
-    &:not(:last-child) {
-      margin-bottom: .5rem;
-    }
-  }
-
-  &--item {
-    display: flex;
-    align-items: center;
-    font-size: 1.6rem;
-    font-weight: 400;
-    margin-bottom: .2rem;
-  }
 
   &--line-icon {
     height: 1.6rem;
@@ -46,10 +26,21 @@
     }
   }
 
+  &--delete-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    fill: $color-icon-default;
+    margin-left: 1rem;
+
+    &:hover {
+      fill: red;
+    }
+  }
+
   &--label {
     display: inline-block;
     cursor: pointer;
-    padding: .2em;
+    padding: .2em 0;
 
     &__selected {
       background-color: #c2e2ed;
@@ -76,11 +67,5 @@
       font-weight: 600;
       padding-right: .5rem;
     }
-
-  }
-
-  &--items-block {
-    padding-left: $tree-level-translation;
-    padding-top: .2rem;
   }
 }

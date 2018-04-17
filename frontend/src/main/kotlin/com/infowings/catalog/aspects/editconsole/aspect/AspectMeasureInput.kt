@@ -1,7 +1,7 @@
 package com.infowings.catalog.aspects.editconsole.aspect
 
 import com.infowings.catalog.aspects.MeasurementUnitSuggestingOption
-import com.infowings.catalog.aspects.getSuggestedMeasurementUnits
+import com.infowings.catalog.aspects.getSuggestedMeasureData
 import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.OptionComponentProps
 import com.infowings.catalog.wrappers.select.SelectOption
@@ -50,10 +50,11 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                             if (input.isNotEmpty()) {
                                 launch {
                                     val measurementUnitsArray = withTimeoutOrNull(500) {
-                                        getSuggestedMeasurementUnits(input)
+                                        getSuggestedMeasureData(input).measureNames
                                     }
                                     callback(null, jsObject {
-                                        options = measurementUnitsArray?.map { measurementUnitOption(it) }?.toTypedArray() ?: emptyArray()
+                                        options = measurementUnitsArray?.map { measurementUnitOption(it) }?.toTypedArray() ?:
+                                                emptyArray()
                                     })
                                 }
                             } else {
@@ -64,7 +65,8 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                             }
                             false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript
                         }
-                        optionComponent = MeasurementUnitSuggestingOption::class.js.unsafeCast<RClass<OptionComponentProps<MeasurementUnitOption>>>()
+                        optionComponent =
+                                MeasurementUnitSuggestingOption::class.js.unsafeCast<RClass<OptionComponentProps<MeasurementUnitOption>>>()
                     }
                 }
             }

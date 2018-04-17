@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.editconsole.popup
+package com.infowings.catalog.components.popup
 
 import com.infowings.catalog.wrappers.blueprint.Alert
 import com.infowings.catalog.wrappers.blueprint.Intent
@@ -7,7 +7,7 @@ import react.dom.div
 import react.dom.h3
 import react.dom.p
 
-class ForceRemoveConfirmWindow : RComponent<ForceRemoveConfirmWindow.Props, RState>() {
+class ForceUpdateConfirmWindow : RComponent<ForceUpdateConfirmWindow.Props, RState>() {
 
     override fun RBuilder.render() {
         Alert {
@@ -24,12 +24,12 @@ class ForceRemoveConfirmWindow : RComponent<ForceRemoveConfirmWindow.Props, RSta
                     props.onConfirm()
                 }
                 cancelButtonText = "Cancel"
-                confirmButtonText = "Delete"
+                confirmButtonText = "Update"
                 isOpen = props.isOpen
             }
             div {
-                h3 { +"Aspect has linked entities." }
-                p { +"Are you sure you want to delete it?" }
+                h3 { +props.message }
+                p { +"Are you sure you want to update it?" }
             }
         }
     }
@@ -38,9 +38,9 @@ class ForceRemoveConfirmWindow : RComponent<ForceRemoveConfirmWindow.Props, RSta
         var onConfirm: () -> Unit
         var onCancel: () -> Unit
         var isOpen: Boolean
+        var message: String
     }
 }
 
-fun RBuilder.forceRemoveConfirmWindow(block: RHandler<ForceRemoveConfirmWindow.Props>) =
-    child(ForceRemoveConfirmWindow::class, block)
-
+fun RBuilder.forceUpdateConfirmWindow(block: RHandler<ForceUpdateConfirmWindow.Props>) =
+    child(ForceUpdateConfirmWindow::class, block)

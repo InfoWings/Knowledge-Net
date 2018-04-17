@@ -1,10 +1,7 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Kilometre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
@@ -73,6 +70,23 @@ class AspectServicePropertyTest {
         val all = aspectService.getAspects()
         assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
     }
+
+    @Test
+    fun testAspectSortByNameAsc() {
+        val all = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
+        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
+        assertThat("there should be 2 aspects in db", all[0].name, Is.`is`(baseAspect.name))
+        assertThat("there should be 2 aspects in db", all[1].name, Is.`is`(complexAspect.name))
+    }
+
+    @Test
+    fun testAspectSortByNameDesc() {
+        val all = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.DESC)))
+        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
+        assertThat("there should be 2 aspects in db", all[0].name, Is.`is`(complexAspect.name))
+        assertThat("there should be 2 aspects in db", all[1].name, Is.`is`(baseAspect.name))
+    }
+
 
     @Test
     fun testAddAspectPropertiesToAspect() {

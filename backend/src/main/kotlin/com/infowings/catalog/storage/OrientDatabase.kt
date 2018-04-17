@@ -1,6 +1,7 @@
 package com.infowings.catalog.storage
 
-
+import com.infowings.catalog.auth.UserProperties
+import com.infowings.catalog.auth.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -49,7 +50,7 @@ data class Versioned<T>(val entity: T, val version: Int)
 /**
  * Main class for work with database
  * */
-class OrientDatabase(url: String, val database: String, user: String, password: String) {
+class OrientDatabase(url: String, val database: String, user: String, password: String, userProperties: UserProperties) {
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
 
     private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
@@ -112,6 +113,8 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
             } else current
         })
 
+    private val logger = loggerFor<OrientDatabase>()
+
     init {
 
         // злой хак для тестов
@@ -119,11 +122,26 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
             orientDB.create(database, ODatabaseType.MEMORY)
         }
 
+        val userEntities = try {
+            val entities = userProperties.toUserEntities()
+            if (entities.isEmpty()) {
+                logger.info("no custom user settings found. Use default ones")
+                Users.toUserEntities()
+            } else {
+                entities
+            }
+        } catch (e: IllegalArgumentException) {
+            logger.warn("Ill-formed users configuration: " + e)
+            logger.warn("Going to use default settings instead")
+
+            Users.toUserEntities()
+        }
+
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
             .initHistory()
-            .initUsers()
+            .initUsers(userEntities)
             .initMeasures()
             .initReferenceBooks()
             .initSubject()

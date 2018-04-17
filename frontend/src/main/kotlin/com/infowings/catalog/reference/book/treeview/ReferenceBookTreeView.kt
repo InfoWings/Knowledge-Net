@@ -1,7 +1,6 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.reference.book.ReferenceBookApiReceiverProps
-import kotlinext.js.invoke
 import kotlinext.js.require
 import react.RBuilder
 import react.RComponent
@@ -38,26 +37,28 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
     override fun RBuilder.render() {
         div(classes = "book-tree-view") {
             props.rowDataList
-                .map { rowData ->
-                    if (rowData.book != null) {
-                        referenceBookTreeRoot {
+                .map { (aspectId, aspectName, book) ->
+                    if (book != null) {
+                        referenceBookNode {
                             attrs {
-                                aspectId = rowData.aspectId
-                                aspectName = rowData.aspectName
-                                book = rowData.book
-                                selected = rowData.aspectName == state.selectedAspectName
+                                this.aspectId = aspectId
+                                this.aspectName = aspectName
+                                this.book = book
+                                selected = aspectName == state.selectedAspectName
                                 startUpdatingBook = ::startUpdatingBook
                                 updateBook = props.updateBook
+                                deleteBook = props.deleteBook
                                 createBookItem = props.createBookItem
                                 updateBookItem = props.updateBookItem
+                                deleteBookItem = props.deleteBookItem
                             }
                         }
                     } else {
-                        referenceBookEmptyTreeRoot {
+                        referenceBookEmptyNode {
                             attrs {
-                                selected = rowData.aspectName == state.selectedAspectName
-                                aspectId = rowData.aspectId
-                                aspectName = rowData.aspectName
+                                selected = aspectName == state.selectedAspectName
+                                this.aspectId = aspectId
+                                this.aspectName = aspectName
                                 startCreatingBook = ::startCreatingBook
                                 createBook = props.createBook
                             }

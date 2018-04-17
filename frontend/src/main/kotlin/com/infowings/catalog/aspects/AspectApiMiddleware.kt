@@ -1,14 +1,15 @@
 package com.infowings.catalog.aspects
 
-import com.infowings.catalog.common.AspectBadRequest
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
 import kotlin.reflect.KClass
 
-class AspectBadRequestException(val exceptionInfo: AspectBadRequest) : RuntimeException(exceptionInfo.message)
+class AspectBadRequestException(val exceptionInfo: BadRequest) : RuntimeException(exceptionInfo.message)
 
 interface AspectApiReceiverProps : RProps {
     var loading: Boolean
@@ -17,6 +18,7 @@ interface AspectApiReceiverProps : RProps {
     var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
     var onAspectCreate: suspend (newAspect: AspectData) -> Unit
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> Unit
+    var onFetchAspects: (List<AspectOrderBy>) -> Unit
 }
 
 /**
@@ -30,8 +32,12 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     override fun componentDidMount() {
+        fetchAspects()
+    }
+
+    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
         launch {
-            val response = getAllAspects()
+            val response = getAllAspects(orderBy)
             setState {
                 data = response.aspects
                 context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
@@ -108,6 +114,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 onAspectCreate = { handleCreateNewAspect(it) }
                 onAspectUpdate = { handleUpdateAspect(it) }
                 onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
+                onFetchAspects = ::fetchAspects
             }
         }
     }
