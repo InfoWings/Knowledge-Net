@@ -110,7 +110,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     }
 }
 
-class OnlyOneSubjectForAspectIsAllowed(name: String) : Throwable("Too many subject for aspect '$name'")
+class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
 
 class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = ASPECT_PROPERTY_CLASS
