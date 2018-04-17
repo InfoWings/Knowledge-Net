@@ -1,9 +1,6 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.GlobalMeasureMap
-import com.infowings.catalog.common.Measure
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
@@ -26,9 +23,10 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         measureGroupName: String?,
         findInGroups: Boolean
-    ): List<String> =
-        findMeasure(commonParam, measureGroupName).map { it.name } +
-                if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+    ) = SuggestedMeasureData(
+        findMeasure(commonParam, measureGroupName).map { it.name },
+        if (findInGroups) findMeasureGroups(commonParam?.text) else emptyList()
+    )
 
     private fun findMeasureGroups(text: String?): List<String> {
         if (text == null) {
@@ -53,6 +51,7 @@ class SuggestionService(
                 .toMutableList()
                 .addAnExactMatchToTheBeginning(commonParam)
                 .addMeasureDescSuggestion(text, MEASURE_VERTEX)
+                .distinct()
                 .take(maxResultSize)
         }
     }
@@ -80,7 +79,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
-                .mapNotNull { it.toAspectVertex().toAspectData() })
+                    .mapNotNull { it.toAspectVertex().toAspectData() })
         }
         return this
     }
@@ -99,7 +98,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
-                .mapNotNull { it.toSubject().toSubjectData() })
+                    .mapNotNull { it.toSubject().toSubjectData() })
         }
         return this
     }
