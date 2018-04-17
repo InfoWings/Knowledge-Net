@@ -7,27 +7,29 @@ import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertexOrNull
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 private const val notDeletedSql = "(deleted is NULL or deleted = false)"
-private const val searchReferenceBookByAspectId =
-    "SELECT * FROM $REFERENCE_BOOK_VERTEX WHERE aspectId = ? AND $notDeletedSql"
-private const val selectFromReferenceBook = "SELECT FROM $REFERENCE_BOOK_VERTEX WHERE $notDeletedSql"
+private const val selectAllNotDeletedRefBooks = "SELECT FROM $REFERENCE_BOOK_VERTEX WHERE $notDeletedSql"
 
 class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun getAspectVertex(aspectId: String): AspectVertex? = db.getVertexById(aspectId)?.toAspectVertex()
 
     fun getAllReferenceBookVertex(): List<ReferenceBookVertex> =
-        db.query(selectFromReferenceBook) { rs ->
+        db.query(selectAllNotDeletedRefBooks) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookVertex() }.toList()
         }
 
-    fun getReferenceBookVertex(aspectId: String): ReferenceBookVertex? =
-        db.query(searchReferenceBookByAspectId, aspectId) {
-            it.map { it.toVertexOrNull()?.toReferenceBookVertex() }.firstOrNull()
-        }
+    fun getReferenceBookVertex(aspectId: String): ReferenceBookVertex? = transaction(db) {
+        val aspectVertex = db.getVertexById(aspectId) ?: return@transaction null
+        return@transaction aspectVertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
+            .map { it.toReferenceBookVertex() }
+            .filterNot { it.deleted }
+            .firstOrNull()
+    }
 
     fun createReferenceBookVertex() = db.createNewVertex(REFERENCE_BOOK_VERTEX).toReferenceBookVertex()
 
@@ -47,8 +49,18 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 
-    fun remove(vertex: OVertex) {
-        db.delete(vertex)
+    fun removeRefBookVertex(bookVertex: ReferenceBookVertex) {
+        transaction(db) {
+            removeRefBookItemVertex(bookVertex.root)
+            db.delete(bookVertex)
+        }
+    }
+
+    fun removeRefBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
+        transaction(db) {
+            bookItemVertex.children.forEach { removeRefBookItemVertex(it) }
+            db.delete(bookItemVertex)
+        }
     }
 
     fun getRefBookItemVertexParents(id: String): List<ReferenceBookItemVertex> = session(db) {

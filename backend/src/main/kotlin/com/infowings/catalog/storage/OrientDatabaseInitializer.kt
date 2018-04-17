@@ -4,7 +4,7 @@ import com.infowings.catalog.auth.UserEntity
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
@@ -44,8 +44,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class $USER_CLASS in db */
     fun initUsers(entities: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
         if (session.getClass(USER_CLASS) == null) {
-            logger.info("Init users: " + entities.map{it.username})
-            entities.forEach {initUser(it)}
+            logger.info("Init users: " + entities.map { it.username })
+            entities.forEach { initUser(it) }
         }
         return@session this
     }
@@ -139,19 +139,18 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
-        createVertexWithNameAndDesc(session, REFERENCE_BOOK_VERTEX)
 
-        if (session.getClass(REFERENCE_BOOK_VERTEX) == null) {
-            val vertexClass = session.createVertexClass(REFERENCE_BOOK_VERTEX)
-            vertexClass.createProperty("aspectId", OType.STRING).createIndex(OClass.INDEX_TYPE.UNIQUE)
-        }
+        val refBookVertexClass =
+            session.getClass(REFERENCE_BOOK_VERTEX) ?: session.createVertexClass(REFERENCE_BOOK_VERTEX)
+        refBookVertexClass.getProperty(ATTR_DESC) ?: refBookVertexClass.createProperty(ATTR_DESC, OType.STRING)
+
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
             vertexClass.createProperty("value", OType.STRING)
         }
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
-        session.getClass(REFERENCE_BOOK_ASPECT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ASPECT_EDGE)
+        session.getClass(ASPECT_REFERENCE_BOOK_EDGE) ?: session.createEdgeClass(ASPECT_REFERENCE_BOOK_EDGE)
         return@session this
     }
 
