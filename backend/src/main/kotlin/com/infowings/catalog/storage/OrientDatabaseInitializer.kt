@@ -75,6 +75,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, HISTORY_DROP_LINK_CLASS)
 
         initEdge(session, HISTORY_EDGE)
+        initEdge(session, HISTORY_ELEMENT_EDGE)
+        initEdge(session, HISTORY_ADD_LINK_EDGE)
+        initEdge(session, HISTORY_DROP_LINK_EDGE)
 
         return@session this
     }
