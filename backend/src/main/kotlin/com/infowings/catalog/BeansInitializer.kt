@@ -48,7 +48,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             AspectService(
                 db = ref(),
                 aspectDaoService = ref(),
-                referenceBookDao = ref(),
+                referenceBookService = ref(),
                 historyService = ref()
             )
         }

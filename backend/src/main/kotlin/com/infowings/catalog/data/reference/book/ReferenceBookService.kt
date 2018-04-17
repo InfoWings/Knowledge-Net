@@ -47,6 +47,15 @@ class ReferenceBookService(
     }
 
     /**
+     * Return ReferenceBook instance by [aspectId] or null if not found
+     */
+    fun getReferenceBookOrNull(aspectId: String): ReferenceBook? = transaction(db) {
+        logger.debug("Getting ReferenceBook by aspectId: $aspectId")
+        val referenceBookVertex = dao.getReferenceBookVertex(aspectId)
+        return@transaction referenceBookVertex?.toReferenceBook()
+    }
+
+    /**
      * Create ReferenceBook with name = [name]
      * @throws RefBookAlreadyExist
      */

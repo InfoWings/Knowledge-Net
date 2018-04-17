@@ -3,8 +3,7 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.reference.book.ReferenceBookDao
-import com.infowings.catalog.data.reference.book.ReferenceBookVertex
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
@@ -16,7 +15,7 @@ import com.infowings.catalog.storage.transaction
 class AspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
-    private val referenceBookDao: ReferenceBookDao,
+    private val referenceBookService: ReferenceBookService,
     private val historyService: HistoryService
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService)
@@ -96,7 +95,8 @@ class AspectService(
 
             aspectVertex.checkAspectVersion(aspectData)
 
-            val refBookVertex = referenceBookDao.getReferenceBookVertex(aspectId)
+            val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
+
             //TODO: checking if children items linked by Objects and set correct linkedRefBookItems!
             val linkedRefBookItems: List<ReferenceBookItem> = emptyList()
             val hasLinkedRefBookItem = linkedRefBookItems.isNotEmpty()
@@ -104,7 +104,7 @@ class AspectService(
             val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
                 linked && force -> {
-                    markRefBookAsDeleted(refBookVertex, hasLinkedRefBookItem, user)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user, force)
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
@@ -112,25 +112,11 @@ class AspectService(
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
                 else -> {
-                    removeRefBook(refBookVertex, user)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user)
                     historyService.storeFact(aspectVertex.toDeleteFact(user))
                     aspectDaoService.remove(aspectVertex)
                 }
             }
-        }
-    }
-
-    private fun removeRefBook(refBookVertex: ReferenceBookVertex?, user: String) {
-        if (refBookVertex != null) {
-            historyService.storeFact(refBookVertex.toDeleteFact(user))
-            referenceBookDao.removeRefBookVertex(refBookVertex)
-        }
-    }
-
-    private fun markRefBookAsDeleted(refBookVertex: ReferenceBookVertex?, hasLinkedRefBookItem: Boolean, user: String) {
-        if (refBookVertex != null && hasLinkedRefBookItem) {
-            historyService.storeFact(refBookVertex.toSoftDeleteFact(user))
-            referenceBookDao.markBookVertexAsDeleted(refBookVertex)
         }
     }
 

@@ -72,6 +72,14 @@ class ReferenceBookServiceTest {
         assertEquals(referenceBookService.getReferenceBook(aspect.id), referenceBook)
     }
 
+    @Test
+    fun getReferenceBookOrNullTest() {
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        assertEquals(referenceBookService.getReferenceBookOrNull(aspect.id), referenceBook)
+        assertNull(referenceBookService.getReferenceBookOrNull(aspect.id + "1"))
+        assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.id))
+    }
+
     @Test(expected = RefBookNotExist::class)
     fun findNotExistingReferenceBookTest() {
         referenceBookService.getReferenceBook(aspect.id + "1")
