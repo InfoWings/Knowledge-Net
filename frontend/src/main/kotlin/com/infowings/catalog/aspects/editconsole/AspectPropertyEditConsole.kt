@@ -1,21 +1,18 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.div
-import react.dom.span
 
 class AspectPropertyEditConsole(props: Props) :
-    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+    RComponent<AspectPropertyEditConsole.Props, RState>(props) {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -23,9 +20,8 @@ class AspectPropertyEditConsole(props: Props) :
         if (props.parentAspect.id != nextProps.parentAspect.id
             || props.aspectPropertyIndex != nextProps.aspectPropertyIndex
         ) {
-            setStateWithCallback({ inputRef?.focus(); inputRef?.select() }) {
-                badRequestErrorMessage = null
-            }
+            inputRef?.focus()
+            inputRef?.select()
         }
     }
 
@@ -43,13 +39,7 @@ class AspectPropertyEditConsole(props: Props) :
      */
     private fun switchToNextProperty() {
         launch {
-            try {
-                props.propertyEditConsoleModel.switchToNextProperty()
-            } catch (ex: AspectBadRequestException) {
-                setState {
-                    badRequestErrorMessage = ex.message
-                }
-            }
+            props.propertyEditConsoleModel.switchToNextProperty()
         }
     }
 
@@ -58,13 +48,7 @@ class AspectPropertyEditConsole(props: Props) :
      */
     private fun trySubmitParentAspect() {
         launch {
-            try {
-                props.propertyEditConsoleModel.submitParentAspect()
-            } catch (exception: AspectBadRequestException) {
-                setState {
-                    badRequestErrorMessage = exception.message
-                }
-            }
+            props.propertyEditConsoleModel.submitParentAspect()
         }
     }
 
@@ -132,14 +116,6 @@ class AspectPropertyEditConsole(props: Props) :
                     onDeleteClick = props.propertyEditConsoleModel::deleteProperty
                 )
             }
-            val badRequestErrorMessage = state.badRequestErrorMessage
-            if (badRequestErrorMessage != null) {
-                div(classes = "aspect-edit-console--error-message-container") {
-                    span(classes = "aspect-edit-console--error-message") {
-                        +badRequestErrorMessage
-                    }
-                }
-            }
         }
     }
 
@@ -148,10 +124,6 @@ class AspectPropertyEditConsole(props: Props) :
         var aspectPropertyIndex: Int
         var childAspect: AspectData?
         var propertyEditConsoleModel: AspectPropertyEditConsoleModel
-    }
-
-    interface State : RState {
-        var badRequestErrorMessage: String?
     }
 }
 

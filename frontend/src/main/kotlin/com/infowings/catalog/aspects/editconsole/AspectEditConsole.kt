@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.div
-import react.dom.span
 
 class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
 
@@ -28,9 +27,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     override fun componentWillReceiveProps(nextProps: Props) {
         if (props.aspect.id != nextProps.aspect.id || nextProps.aspect == emptyAspectData) {
-            setState {
-                badRequestErrorMessage = null
-            }
             inputRef?.focus()
             inputRef?.select()
         }
@@ -42,13 +38,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     private fun tryMakeSubmitAspectRequest() {
         launch {
-            try {
-                props.editConsoleModel.submitAspect()
-            } catch (exception: AspectBadRequestException) {
-                setState {
-                    badRequestErrorMessage = exception.message
-                }
-            }
+            props.editConsoleModel.submitAspect()
         }
     }
 
@@ -60,13 +50,8 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     confirmation = false
                 }
             } catch (ex: AspectBadRequestException) {
-                when (ex.exceptionInfo.code) {
-                    BadRequestCode.NEED_CONFIRMATION -> setState {
-                        confirmation = true
-                    }
-                    BadRequestCode.INCORRECT_INPUT -> setState {
-                        badRequestErrorMessage = ex.exceptionInfo.message
-                    }
+                if (ex.exceptionInfo.code == BadRequestCode.NEED_CONFIRMATION) setState {
+                    confirmation = true
                 }
             }
         }
@@ -80,13 +65,8 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     confirmation = false
                 }
             } catch (ex: AspectBadRequestException) {
-                when (ex.exceptionInfo.code) {
-                    BadRequestCode.INCORRECT_INPUT -> setState {
-                        badRequestErrorMessage = ex.exceptionInfo.message
-                    }
-                    BadRequestCode.NEED_CONFIRMATION -> setState {
-                        confirmation = true
-                    }
+                if (ex.exceptionInfo.code == BadRequestCode.NEED_CONFIRMATION) setState {
+                    confirmation = true
                 }
             }
         }
@@ -182,14 +162,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                     onNewDescriptionConfirmed = this@AspectEditConsole::handleAspectDescriptionChanged
                 )
             }
-            val badRequestErrorMessage = state.badRequestErrorMessage
-            if (badRequestErrorMessage != null) {
-                div(classes = "aspect-edit-console--error-message-container") {
-                    span(classes = "aspect-edit-console--error-message") {
-                        +badRequestErrorMessage
-                    }
-                }
-            }
         }
         forceRemoveConfirmWindow {
             attrs {
@@ -207,7 +179,6 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     interface State : RState {
-        var badRequestErrorMessage: String?
         var confirmation: Boolean
     }
 }
