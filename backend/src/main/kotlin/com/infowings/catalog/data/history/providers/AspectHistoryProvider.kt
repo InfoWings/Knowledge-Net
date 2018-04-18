@@ -72,7 +72,7 @@ private fun createHistoryElement(
     related: List<AspectData>
 ) =
     AspectHistory(
-        event.user,
+        event.username,
         event.type,
         ASPECT_CLASS,
         data.name,

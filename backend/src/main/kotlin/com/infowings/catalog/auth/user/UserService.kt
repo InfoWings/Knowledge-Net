@@ -11,11 +11,6 @@ class UserService(private val dao: UserDao) {
         return userVertex.toUserEntity()
     }
 
-    fun findByUsernameAsJson(username: String): String {
-        val userVertex = findUserVertexByUsername(username)
-        return userVertex.toJSON()
-    }
-
-    private fun findUserVertexByUsername(username: String) =
+    fun findUserVertexByUsername(username: String) =
         dao.findByUsername(username) ?: throw UsernameNotFoundException(username)
 }

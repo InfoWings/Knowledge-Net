@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.EventType.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
@@ -45,12 +46,12 @@ interface HistoryAware : OVertex {
        Поэтому различиются 2 случая - есть поле и нет поля (куда попадают все три варианта выше).
        Это кажется соответствующим опыту юзера и избавляет нас от лишних разборов.
      */
-    private fun toFact(user: String, eventType: EventType, base: Snapshot) =
-        toHistoryFact(historyEvent(user, eventType), this, base, currentSnapshot())
+    private fun toFact(username: String, eventType: EventType, base: Snapshot) =
+        toHistoryFact(historyEvent(username, eventType), this, base, currentSnapshot())
 
-    private fun historyEvent(user: String, type: EventType): HistoryEvent =
+    private fun historyEvent(username: String, type: EventType): HistoryEvent =
         HistoryEvent(
-            user = user, timestamp = System.currentTimeMillis(), version = version,
+            username = username, timestamp = System.currentTimeMillis(), version = version,
             type = type, entityId = identity, entityClass = entityClass
         )
 
@@ -60,7 +61,7 @@ interface HistoryAware : OVertex {
      *
      *  Надо вызывать в тот момент, когда сущность создана, все поля и связи определены.
      */
-    fun toCreateFact(user: String) = toFact(user, EventType.CREATE, emptySnapshot())
+    fun toCreateFact(username: String) = toFact(username, CREATE, emptySnapshot())
 
     /**
      *  Факт удаления сущности.
@@ -76,12 +77,12 @@ interface HistoryAware : OVertex {
      *
      *  Надо вызывать до удаления сущности.
      */
-    fun toDeleteFact(user: String) = toFact(user, EventType.DELETE, emptySnapshot())
+    fun toDeleteFact(username: String) = toFact(username, DELETE, emptySnapshot())
 
     /**
      * Аналогично delete
      */
-    fun toSoftDeleteFact(user: String) = toFact(user, EventType.SOFT_DELETE, emptySnapshot())
+    fun toSoftDeleteFact(username: String) = toFact(username, SOFT_DELETE, emptySnapshot())
 
     /**
      * Факт обновления сущности.
@@ -91,5 +92,5 @@ interface HistoryAware : OVertex {
      * а по окончании изменения - вызвать toUpdateFact, передав сохраненное значение
      * в previous
      */
-    fun toUpdateFact(user: String, previous: Snapshot) = toFact(user, EventType.UPDATE, previous)
+    fun toUpdateFact(username: String, previous: Snapshot) = toFact(username, UPDATE, previous)
 }

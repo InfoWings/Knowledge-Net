@@ -1,13 +1,13 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.auth.user.UserEntity
+import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserService
+import com.infowings.catalog.auth.user.toUserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
-import kotlinx.serialization.json.JSON
 import java.time.Instant
 
 class HistoryService(
@@ -19,14 +19,20 @@ class HistoryService(
     fun getAll(): Set<HistoryFactDto> = transaction(db) {
         return@transaction historyDao.getAllHistoryEvents()
             .map {
+                val user = it.getVertices(ODirection.IN, HISTORY_USER_EDGE)
+                    .map { it.toUserVertex() }
+                    .map { it.toUserEntity() }
+                    .first()
+
                 val event = HistoryEvent(
-                    JSON.nonstrict.parse<UserEntity>(it.user).username,
+                    user.username,
                     it.timestamp.toEpochMilli(),
                     it.entityVersion,
                     EventType.valueOf(it.eventType),
                     it.entityRID,
                     it.entityClass
                 )
+
                 val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE)
                     .map { it.toHistoryElementVertex() }
                     .map { it.key to it.stringValue }
@@ -68,6 +74,9 @@ class HistoryService(
         val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
         dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
 
+        val userVertex = userService.findUserVertexByUsername(fact.event.username)
+        userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
+
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
         db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
@@ -82,23 +91,6 @@ class HistoryService(
             entityVersion = event.version
             timestamp = Instant.ofEpochMilli(event.timestamp)
             eventType = event.type.name
-            val userInfo = userService.findByUsernameAsJson(event.user)
-
-            /**
-             * Конвертируем представление пользователя как строкового имени
-             * в расширенное предстовление данных о пользователе.
-             *
-             * Хорошо бы в виде ребра, указывающего на вершину, но сейчас пользователь
-             * представлен в виде ORecord
-             *
-             * Конвертацию делаем именно здесь, потому что хочется это делать в одном месте.
-             * В этом смысле единственная альтернатива - HistoryAware, но туда надо как-то
-             * доставить userService. Сюда его проще и естественнее доставлять
-             *
-             * Пустую строку временно обрабатываем особо, чтобы не падали напсанные тесты и не переписывать
-             * их прямо сейчас. В новых тестах заведение пользователя должно быть частью инициализации
-             */
-            user = userInfo
         }
 
     private fun linksVertices(

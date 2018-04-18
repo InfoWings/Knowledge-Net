@@ -1,5 +1,6 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserDao
 import com.infowings.catalog.auth.user.UserEntity
 import com.infowings.catalog.auth.user.UserService
@@ -74,6 +75,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, HISTORY_DROP_LINK_CLASS)
 
         initEdge(session, HISTORY_EDGE)
+        initEdge(session, HISTORY_USER_EDGE)
         initEdge(session, HISTORY_ELEMENT_EDGE)
         initEdge(session, HISTORY_ADD_LINK_EDGE)
         initEdge(session, HISTORY_DROP_LINK_EDGE)

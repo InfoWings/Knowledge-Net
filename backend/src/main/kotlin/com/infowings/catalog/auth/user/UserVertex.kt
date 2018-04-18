@@ -5,6 +5,8 @@ import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.OVertex
 
+const val HISTORY_USER_EDGE = "UserHistoryEdge"
+
 fun OVertex.toUserVertex() = UserVertex(this)
 
 data class UserVertex(private val vertex: OVertex) : OVertex by vertex {

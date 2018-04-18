@@ -39,12 +39,6 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["entityClass"] = value
         }
 
-    var user: String
-        get() = vertex["user"]
-        set(value) {
-            vertex["user"] = value
-        }
-
     var timestamp: Instant
         get() = vertex["timestamp"]
         set(value) {
