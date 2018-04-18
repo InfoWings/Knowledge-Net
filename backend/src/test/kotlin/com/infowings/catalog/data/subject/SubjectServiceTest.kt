@@ -25,7 +25,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SubjectServiceTest {
-    private val userName = "admin"
+    private val username = "admin"
 
     @Autowired
     lateinit var subjectService: SubjectService
@@ -40,19 +40,19 @@ class SubjectServiceTest {
     fun testAddAspectsSameNameSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad1, userName)
+        aspectService.save(ad1, username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2, userName)
+        aspectService.save(ad2, username)
     }
 
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameGlobalSubject() {
         val ad1 = createTestAspect()
-        aspectService.save(ad1, userName)
+        aspectService.save(ad1, username)
 
         val ad2 = createTestAspect()
-        aspectService.save(ad2, userName)
+        aspectService.save(ad2, username)
     }
 
     @Test
@@ -61,9 +61,9 @@ class SubjectServiceTest {
         val subject2 = createTestSubject("TestSubjectUpdate2")
         val aspectName = "aspectDiffSubject"
         val ad1 = createTestAspect(aspectName, subject = subject1.toSubjectData())
-        val newAspect1 = aspectService.save(ad1, userName)
+        val newAspect1 = aspectService.save(ad1, username)
         val ad2 = createTestAspect(aspectName, subject = subject2.toSubjectData())
-        val newAspect2 = aspectService.save(ad2, userName)
+        val newAspect2 = aspectService.save(ad2, username)
         aspectService.findByName(aspectName).forEach {
             if (it.subject?.name == subject1.name) {
                 Assert.assertThat("aspect '$aspectName' should be saved", newAspect1, Is.`is`(it))
@@ -79,10 +79,10 @@ class SubjectServiceTest {
     fun testAddAspectsAfterRemoveSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.remove(aspectService.save(ad1, userName).toAspectData(), userName)
+        aspectService.remove(aspectService.save(ad1, username).toAspectData(), username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2, userName)
+        aspectService.save(ad2, username)
 
         val aspects = aspectService.findByName("aspect")
         Assert.assertThat(
@@ -100,7 +100,7 @@ class SubjectServiceTest {
          *       aspect
          */
         val subject = createTestSubject("TestSubjectUpdate")
-        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), userName)
+        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
         val level1_property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
         aspectService.save(
             createTestAspect(
@@ -108,13 +108,13 @@ class SubjectServiceTest {
                 subject = subject.toSubjectData(),
                 properties = listOf(level1_property)
             ),
-            userName
+            username
         )
 
-        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), userName, true)
+        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), username, true)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2, userName)
+        aspectService.save(ad2, username)
 
         val aspects = aspectService.findByName("aspect")
         Assert.assertThat(

@@ -35,7 +35,7 @@ private val logger = loggerFor<SearchTest>()
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SearchTest {
-    private val userName = "admin"
+    private val username = "admin"
 
     @Autowired
     lateinit var suggestionService: SuggestionService
@@ -194,7 +194,7 @@ class SearchTest {
 
     private fun createTestAspect(aspectName: String, desc: String? = null): Aspect {
         val ad = AspectData("", aspectName, Metre.name, null, null, emptyList(), description = desc)
-        return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad, userName)
+        return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad, username)
     }
 
 
@@ -218,7 +218,7 @@ class SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level2: Aspect = aspectService.save(level2_data, userName)
+        val level2: Aspect = aspectService.save(level2_data, username)
         val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyCardinality.INFINITY.name)
 
 
@@ -230,7 +230,7 @@ class SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level1_1: Aspect = aspectService.save(level1_1_data, userName)
+        val level1_1: Aspect = aspectService.save(level1_1_data, username)
         val level1_1_property =
             AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
 
@@ -242,7 +242,7 @@ class SearchTest {
             BaseType.Decimal.name,
             listOf(level2_property)
         )
-        val level1: Aspect = aspectService.save(level1_data, userName)
+        val level1: Aspect = aspectService.save(level1_data, username)
         val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
 
         val ad = AspectData(
@@ -253,7 +253,7 @@ class SearchTest {
             BaseType.Decimal.name,
             listOf(level1_1_property, level1_property)
         )
-        aspectService.save(ad, userName)
+        aspectService.save(ad, username)
 
 
         val loaded = aspectService.findById(level2.id)

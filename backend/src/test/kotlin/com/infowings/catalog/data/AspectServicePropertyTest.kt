@@ -22,7 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectServicePropertyTest {
-    private val userName = "admin"
+    private val username = "admin"
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -40,7 +40,7 @@ class AspectServicePropertyTest {
     @Before
     fun addAspectWithProperty() {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        baseAspect = aspectService.save(ad, userName)
+        baseAspect = aspectService.save(ad, username)
 
         val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
 
@@ -52,7 +52,7 @@ class AspectServicePropertyTest {
             BaseType.Decimal.name,
             listOf(property)
         )
-        complexAspect = aspectService.save(ad2, userName)
+        complexAspect = aspectService.save(ad2, username)
     }
 
     @Test
@@ -93,7 +93,7 @@ class AspectServicePropertyTest {
     fun testAddAspectPropertiesToAspect() {
         val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
-        val updatedAspect = aspectService.save(dataForUpdate, userName)
+        val updatedAspect = aspectService.save(dataForUpdate, username)
 
         assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
     }
@@ -111,7 +111,7 @@ class AspectServicePropertyTest {
             BaseType.Decimal.name,
             listOf(property, property2)
         )
-        val loaded = aspectService.save(ad2, userName)
+        val loaded = aspectService.save(ad2, username)
 
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
 
@@ -133,7 +133,7 @@ class AspectServicePropertyTest {
             BaseType.Decimal.name,
             listOf(property, property2)
         )
-        aspectService.save(ad2, userName)
+        aspectService.save(ad2, username)
     }
 
     @Test
@@ -149,7 +149,7 @@ class AspectServicePropertyTest {
             BaseType.Decimal.name,
             listOf(property, property2)
         )
-        val saved = aspectService.save(ad2, userName)
+        val saved = aspectService.save(ad2, username)
 
         assertThat("aspect should have two properties with same name", saved.properties.count { it.name == "p" }, Is.`is`(2))
     }
@@ -160,7 +160,7 @@ class AspectServicePropertyTest {
         propertyList[0] = propertyList[0].copy(name = "new Name")
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
-        val updated = aspectService.save(dataForUpdate, userName)
+        val updated = aspectService.save(dataForUpdate, username)
 
         assertTrue("aspect property should have new name", updated.properties.map { it.name }.any { it == "new Name" })
     }
@@ -172,13 +172,13 @@ class AspectServicePropertyTest {
         propertyList.add(propertyList[0].copy(id = "", name = "new Name"))
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
-        val saved = aspectService.save(dataForUpdate, userName)
+        val saved = aspectService.save(dataForUpdate, username)
 
         var propertyList2 = saved.toAspectData().properties.toMutableList()
         propertyList2 = propertyList2.map { if (it.name == "new Name") it.copy(name = "p") else it }.toMutableList()
         val dataForUpdate2 = saved.toAspectData().copy(properties = propertyList2)
 
-        aspectService.save(dataForUpdate2, userName)
+        aspectService.save(dataForUpdate2, username)
     }
 
     @Test
@@ -187,7 +187,7 @@ class AspectServicePropertyTest {
         propertyList[0] = propertyList[0].copy(cardinality = AspectPropertyCardinality.ONE.name)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
-        val saved = aspectService.save(dataForUpdate, userName)
+        val saved = aspectService.save(dataForUpdate, username)
 
         assertThat(
             "aspect property should have new cardinality",
@@ -199,13 +199,13 @@ class AspectServicePropertyTest {
     @Test
     fun testChangeAspectForAspectProperty() {
         val ad = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.save(ad, userName)
+        val createAspect: Aspect = aspectService.save(ad, username)
 
         val propertyList = complexAspect.toAspectData().properties.toMutableList()
         propertyList[0] = propertyList[0].copy(aspectId = createAspect.id)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
-        val saved = aspectService.save(dataForUpdate, userName)
+        val saved = aspectService.save(dataForUpdate, username)
 
         assertThat("aspect property should have new linked aspect",
                 saved.properties[0].aspect,
@@ -220,7 +220,7 @@ class AspectServicePropertyTest {
             vertex["name"] = "name"
             vertex.save<OVertex>()
         }
-        aspectService.save(complexAspect.toAspectData(), userName)
+        aspectService.save(complexAspect.toAspectData(), username)
     }
 }
 

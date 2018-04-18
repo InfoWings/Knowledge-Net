@@ -34,7 +34,7 @@ private val logger = loggerFor<AspectServiceRestTest>()
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectServiceRestTest {
-    private val userName = "admin"
+    private val username = "admin"
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -56,7 +56,7 @@ class AspectServiceRestTest {
     @Test
     fun createAspectTest() {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
-        val baseAspect = aspectService.save(baseAspectData, userName)
+        val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
@@ -88,7 +88,7 @@ class AspectServiceRestTest {
     fun updateAspectTest() {
 
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
-        val baseAspect = aspectService.save(baseAspectData, userName)
+        val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
@@ -103,7 +103,7 @@ class AspectServiceRestTest {
                 listOf(testProperty1, testProperty2)
             )
 
-        val saved = aspectService.save(testData, userName)
+        val saved = aspectService.save(testData, username)
 
         val newProperty = AspectPropertyData("", "p3", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
         val updatedProperty = testProperty2.copy(name = "p4", cardinality = AspectPropertyCardinality.ZERO.name)
