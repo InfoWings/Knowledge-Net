@@ -21,12 +21,21 @@ suspend fun updateSubject(body: SubjectData): SubjectData =
 suspend fun getSuggestedSubject(subjectText: String, aspectText: String): SubjectsList =
     JSON.parse(get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
 
+suspend fun deleteSubject(body: SubjectData, force: Boolean) {
+    if (force) {
+        post("/api/subject/forceRemove", JSON.stringify(body))
+    } else {
+        post("/api/subject/remove", JSON.stringify(body))
+    }
+}
+
 
 interface SubjectApiReceiverProps : RProps {
     var data: Array<SubjectData>
     var loading: Boolean
     var onSubjectUpdate: (sd: SubjectData) -> Unit
     var onSubjectsCreate: (sd: SubjectData) -> Unit
+    var onSubjectDelete: suspend (SubjectData, force: Boolean) -> Unit
     var onFetchData: (filterParam: Map<String, String>) -> Unit
 }
 
@@ -103,6 +112,13 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
 
     }
 
+    private suspend fun handleDeleteSubject(subjectData: SubjectData, force: Boolean) {
+        deleteSubject(subjectData, force)
+        setState {
+            data.remove(subjectData.id)
+        }
+    }
+
     override fun RBuilder.render() {
         child(SubjectsListComponent::class) {
             attrs {
@@ -110,6 +126,7 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
                 loading = state.loading
                 onSubjectUpdate = ::handleUpdateSubject
                 onSubjectsCreate = ::handleCreateSubject
+                onSubjectDelete = { subjectData, force -> handleDeleteSubject(subjectData, force) }
                 onFetchData = ::handleFetchData
             }
         }

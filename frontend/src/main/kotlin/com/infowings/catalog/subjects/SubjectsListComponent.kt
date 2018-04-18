@@ -4,13 +4,17 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptySubjectData
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.searchbar.searchBar
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import kotlinext.js.require
+import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.div
+import react.setState
 import kotlin.browser.window
 
 class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListComponent.State>() {
@@ -39,6 +43,29 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
         when (subjectData.id) {
             null -> props.onSubjectsCreate(subjectData)
             else -> props.onSubjectUpdate(subjectData)
+        }
+    }
+
+    private fun forceDeleteSubject() {
+        val deletedSubject =
+            state.linkedEntitiesSubject ?: error("Subject with linked entities must exist in order to force delete")
+        launch {
+            props.onSubjectDelete(deletedSubject, true)
+        }
+        setState {
+            linkedEntitiesSubject = null
+        }
+    }
+
+    private fun tryDeleteSubject(subjectData: SubjectData) {
+        launch {
+            try {
+                props.onSubjectDelete(subjectData, false)
+            } catch (exception: BadRequestException) {
+                setState {
+                    linkedEntitiesSubject = subjectData
+                }
+            }
         }
     }
 
@@ -76,7 +103,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         onEditStarted = null
                     )
                     deleteButtonComponent(
-                        onDeleteClick = { TODO("Server-side delete is not yet implemented") },
+                        onDeleteClick = { tryDeleteSubject(subjectData) },
                         entityName = "subject"
                     )
                 }
@@ -96,9 +123,18 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             }
         }
+        forceRemoveConfirmWindow {
+            attrs {
+                isOpen = state.linkedEntitiesSubject != null
+                message = "Subject has linked entities"
+                onCancel = { setState { linkedEntitiesSubject = null } }
+                onConfirm = this@SubjectsListComponent::forceDeleteSubject
+            }
+        }
     }
 
     interface State : RState {
         var filterText: String
+        var linkedEntitiesSubject: SubjectData?
     }
 }
