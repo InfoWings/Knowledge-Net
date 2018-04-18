@@ -4,9 +4,11 @@ import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
-import java.sql.Timestamp
+import com.orientechnologies.orient.core.record.impl.OVertexDocument
+import java.time.Instant
 
 const val HISTORY_EVENT_CLASS = "HistoryEvent"
+
 
 fun OVertex.toHistoryEventVertex() = HistoryEventVertex(this)
 
@@ -19,10 +21,16 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         return vertex.hashCode()
     }
 
-    var entityId: ORID
-        get() = vertex["entityId"]
+    var entityRID: ORID
+        get() {
+            val property = vertex.getProperty<Any>("entityRID")
+            return if (property is OVertexDocument)
+                property.identity
+            else
+                property as ORID
+        }
         set(value) {
-            vertex["entityId"] = value
+            vertex["entityRID"] = value
         }
 
     var entityClass: String
@@ -37,7 +45,7 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["user"] = value
         }
 
-    var timestamp: Timestamp
+    var timestamp: Instant
         get() = vertex["timestamp"]
         set(value) {
             vertex["timestamp"] = value
@@ -49,9 +57,9 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["entityVersion"] = value
         }
 
-    var eventKind: String
-        get() = vertex["eventKind"]
+    var eventType: String
+        get() = vertex["eventType"]
         set(value) {
-            vertex["eventKind"] = value
+            vertex["eventType"] = value
         }
 }

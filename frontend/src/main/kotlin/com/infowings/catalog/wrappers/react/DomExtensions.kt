@@ -80,3 +80,8 @@ suspend fun <S : RState> Component<*, S>.suspendSetState(buildState: S.() -> Uni
  * String extension for fast transformation to react element
  */
 fun String.asReactElement() = buildElement { +this@asReactElement }!!
+
+/**
+ * React element extension that checks if the element is DomElement
+ */
+fun ReactElement.isDomElement() = (isValidElement(this) && this.asDynamic().type is String)

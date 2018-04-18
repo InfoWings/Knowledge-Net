@@ -47,6 +47,14 @@ class Header : RComponent<Header.Props, RState>() {
                         text = buildElement { +"Reference Books" }
                     }
                 }
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/history"
+                        onClick = { props.history.push("/history") }
+                        text = buildElement { +"History" }
+                    }
+                }
             }
             NavbarGroup {
                 attrs.align = Alignment.RIGHT

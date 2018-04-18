@@ -27,13 +27,14 @@
         <constructor-arg ref="measureService"/>
     </bean>
 
-    <bean id="historyDaoService" class="com.infowings.catalog.data.history.HistoryDaoService">
+    <bean id="historyDao" class="com.infowings.catalog.data.history.HistoryDao">
         <constructor-arg ref="orientDatabase"/>
     </bean>
 
     <bean id="aspectService" class="com.infowings.catalog.data.aspect.AspectService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="aspectDaoService"/>
+        <constructor-arg ref="referenceBookService"/>
         <constructor-arg ref="historyService"/>
     </bean>
 
@@ -67,7 +68,7 @@
 
     <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
         <constructor-arg ref="orientDatabase"/>
-        <constructor-arg ref="historyDaoService"/>
+        <constructor-arg ref="historyDao"/>
         <constructor-arg ref="userAcceptService"/>
     </bean>
 
