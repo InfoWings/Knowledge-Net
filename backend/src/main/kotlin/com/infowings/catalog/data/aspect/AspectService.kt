@@ -72,7 +72,7 @@ class AspectService(
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
-    fun save(aspectData: AspectData, user: String = ""): Aspect {
+    fun save(aspectData: AspectData, user: String): Aspect {
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData

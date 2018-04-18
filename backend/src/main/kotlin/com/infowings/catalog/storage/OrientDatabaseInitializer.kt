@@ -1,7 +1,8 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.UserDao
-import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.user.UserDao
+import com.infowings.catalog.auth.user.UserEntity
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
@@ -43,8 +44,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initUsers(users: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init users: " + users.map { it.username })
         session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
-        val userDao = UserDao(database)
-        users.forEach { userDao.saveUser(it) }
+        val userService = UserService(UserDao(database))
+        users.forEach { userService.saveUser(it) }
         return@session this
     }
 

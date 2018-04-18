@@ -22,7 +22,6 @@ import org.springframework.web.context.WebApplicationContext
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 abstract class AbstractMvcTest {
-
     @Autowired
     private lateinit var aspectService: AspectService
 
@@ -57,5 +56,5 @@ fun createTestAspect(
         emptyList(),
         subject = subject?.toSubjectData()
     )
-    return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad)
+    return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad, "admin")
 }

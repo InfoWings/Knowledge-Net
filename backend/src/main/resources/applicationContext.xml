@@ -6,10 +6,6 @@
 
     <tx:annotation-driven/>
 
-    <bean id="userAcceptService" class="com.infowings.catalog.auth.UserAcceptService">
-        <constructor-arg ref="orientDatabase"/>
-    </bean>
-
     <bean id="orientDatabase" class="com.infowings.catalog.storage.OrientDatabase">
         <constructor-arg name="url" value="${orient.url}"/>
         <constructor-arg name="database" value="${orient.database}"/>
@@ -20,6 +16,14 @@
     <bean id="orientHeartBeat" class="com.infowings.catalog.storage.OrientHeartBeat">
         <constructor-arg name="database" ref="orientDatabase"/>
         <constructor-arg name="seconds" value="${orient.heartbeat.timeout:600}"/>
+    </bean>
+
+    <bean id="userDao" class="com.infowings.catalog.auth.user.UserDao">
+        <constructor-arg ref="orientDatabase"/>
+    </bean>
+
+    <bean id="userService" class="com.infowings.catalog.auth.user.UserService">
+        <constructor-arg ref="userDao"/>
     </bean>
 
     <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
@@ -69,7 +73,7 @@
     <bean id="historyService" class="com.infowings.catalog.data.history.HistoryService">
         <constructor-arg ref="orientDatabase"/>
         <constructor-arg ref="historyDao"/>
-        <constructor-arg ref="userAcceptService"/>
+        <constructor-arg ref="userService"/>
     </bean>
 
     <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">

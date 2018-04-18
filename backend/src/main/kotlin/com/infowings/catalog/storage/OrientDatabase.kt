@@ -1,7 +1,7 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.UserProperties
-import com.infowings.catalog.auth.Users
+import com.infowings.catalog.auth.user.UserProperties
+import com.infowings.catalog.auth.user.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -50,7 +50,13 @@ data class Versioned<T>(val entity: T, val version: Int)
 /**
  * Main class for work with database
  * */
-class OrientDatabase(url: String, val database: String, user: String, password: String, userProperties: UserProperties) {
+class OrientDatabase(
+    url: String,
+    val database: String,
+    user: String,
+    password: String,
+    userProperties: UserProperties
+) {
     private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
 
     private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
@@ -105,8 +111,8 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
        Ничего не закрываем и не создаем. Возращаем текущий.
      */
 
-    fun reOpenPool(from: Versioned<ODatabasePool>) : Versioned<ODatabasePool> =
-        dbPool.accumulateAndGet(from, {current, given ->
+    fun reOpenPool(from: Versioned<ODatabasePool>): Versioned<ODatabasePool> =
+        dbPool.accumulateAndGet(from, { current, given ->
             if (current.version == given.version) {
                 current.entity.close()
                 Versioned(createDbPool(), current.version + 1)
@@ -270,7 +276,7 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
 
     var lastThrown: Throwable? = null
 
-    repeat (times = POOL_RETRIES) {
+    repeat(times = POOL_RETRIES) {
         val pool = database.getPool()
 
         try {
@@ -292,7 +298,7 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
         }
     }
 
-    lastThrown ?.let {
+    lastThrown?.let {
         throw DatabaseConnectionFailedException(it)
     } ?: throw Exception("failed to complete session without any exception noticed")
 }

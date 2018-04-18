@@ -29,18 +29,18 @@ class ReferenceBookDaoTest {
 
     private lateinit var aspect: Aspect
 
-    private val userName = ""
+    private val userName = "admin"
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null), userName)
     }
 
     //todo: after Object entity will added this test could be moved to ReferenceBookDaoTest
     @Test
     fun fakeRemoveTest() {
         val book1 = referenceBookService.createReferenceBook("book1", aspect.id, userName)
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), userName)
         val anotherAspectId = anotherAspect.id
         val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId, userName)
         val item1 = createReferenceBookItem(anotherAspectId, book2.id, "v1")

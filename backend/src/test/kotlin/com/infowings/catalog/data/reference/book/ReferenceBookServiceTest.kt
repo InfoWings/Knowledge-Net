@@ -30,11 +30,11 @@ class ReferenceBookServiceTest {
     private lateinit var aspect: Aspect
     private lateinit var referenceBook: ReferenceBook
 
-    private val userName = ""
+    private val userName = "admin"
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null), userName)
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, userName)
     }
 
@@ -59,9 +59,9 @@ class ReferenceBookServiceTest {
 
     @Test
     fun getAllReferenceBooksTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), userName)
         val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, userName)
-        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null))
+        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null), userName)
         val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, userName)
         referenceBookService.removeReferenceBook(forDeletingBook, userName, force = true)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
@@ -74,7 +74,7 @@ class ReferenceBookServiceTest {
 
     @Test
     fun getReferenceBookOrNullTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), userName)
         assertEquals(referenceBookService.getReferenceBookOrNull(aspect.id), referenceBook)
         assertNull(referenceBookService.getReferenceBookOrNull(aspect.id + "1"))
         assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.id))
@@ -246,7 +246,7 @@ class ReferenceBookServiceTest {
 
     @Test
     fun removeBookTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), userName)
         val anotherAspectId = anotherAspect.id
         var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId, userName)
         referenceBookService.addReferenceBookItem(
