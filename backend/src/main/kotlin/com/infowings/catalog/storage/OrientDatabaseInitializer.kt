@@ -42,7 +42,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initUsers(users: List<User>): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init users: " + users.map { it.username })
         session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
-        val userService = UserService(UserDao(database))
+        val userService = UserService(database, UserDao(database))
         users.forEach { userService.createUser(it) }
         return@session this
     }

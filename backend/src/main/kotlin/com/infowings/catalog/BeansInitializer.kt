@@ -43,7 +43,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
     override fun initialize(ctx: GenericApplicationContext) = beans {
         bean { UserProperties() }
         bean { UserDao(db = ref()) }
-        bean { UserService(dao = ref()) }
+        bean { UserService(db = ref(), dao = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }

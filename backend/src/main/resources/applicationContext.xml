@@ -23,7 +23,8 @@
     </bean>
 
     <bean id="userService" class="com.infowings.catalog.auth.user.UserService">
-        <constructor-arg ref="userDao"/>
+        <constructor-arg name="db" ref="orientDatabase"/>
+        <constructor-arg name="dao" ref="userDao"/>
     </bean>
 
     <bean id="aspectDaoService" class="com.infowings.catalog.data.aspect.AspectDaoService">
@@ -76,7 +77,13 @@
         <constructor-arg ref="userService"/>
     </bean>
 
+    <bean id="subjectDao" class="com.infowings.catalog.data.subject.SubjectDao">
+        <constructor-arg name="db" ref="orientDatabase"/>
+    </bean>
+
     <bean id="subjectService" class="com.infowings.catalog.data.SubjectService">
-        <constructor-arg ref="orientDatabase"/>
+        <constructor-arg name="db" ref="orientDatabase"/>
+        <constructor-arg name="dao" ref="subjectDao"/>
+        <constructor-arg name="history" ref="historyService"/>
     </bean>
 </beans>
