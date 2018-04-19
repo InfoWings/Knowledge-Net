@@ -29,6 +29,10 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
         }
     }
 
+    override fun State.init() {
+        errorMessages = emptyList()
+    }
+
     private var timer: Int = 0
 
     private fun updateSubjectName(newName: String, subjectData: SubjectData) {
@@ -52,11 +56,12 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             } catch (exception: BadRequestException) {
                 setState {
-                    badRequestErrorMessage = JSON.parse<BadRequest>(exception.message).message
+                    val errorMessage = JSON.parse<BadRequest>(exception.message).message
+                    errorMessage?.let { errorMessages += it }
                 }
             } catch (exception: ServerException) {
                 setState {
-                    badRequestErrorMessage = "Oops, something went wrong, changes weren't saved"
+                    errorMessages += "Oops, something went wrong, changes weren't saved"
                 }
             }
         }
@@ -144,15 +149,15 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
             attrs {
                 position = Position.TOP_RIGHT
             }
-            state.badRequestErrorMessage?.let {
+            state.errorMessages.reversed().forEach { errorMessage ->
                 Toast {
                     attrs {
                         icon = "warning-sign"
                         intent = Intent.DANGER
-                        message = it.asReactElement()
+                        message = errorMessage.asReactElement()
                         onDismiss = {
                             setState {
-                                badRequestErrorMessage = null
+                                errorMessages = errorMessages.filterNot { errorMessage == it }
                             }
                         }
                         timeout = 7000
@@ -174,6 +179,6 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     interface State : RState {
         var filterText: String
         var linkedEntitiesSubject: SubjectData?
-        var badRequestErrorMessage: String?
+        var errorMessages: List<String>
     }
 }

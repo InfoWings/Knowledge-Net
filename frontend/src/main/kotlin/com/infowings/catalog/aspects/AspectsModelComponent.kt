@@ -86,7 +86,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
-        errorMessageToDisplay = null
+        errorMessages = emptyList()
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -185,14 +185,16 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         } catch (badRequestException: AspectBadRequestException) {
             if (badRequestException.exceptionInfo.code == BadRequestCode.INCORRECT_INPUT) {
                 setState {
-                    errorMessageToDisplay = badRequestException.exceptionInfo.message
+                    badRequestException.exceptionInfo.message?.let {
+                        errorMessages += it
+                    }
                 }
             } else {
                 throw badRequestException
             }
         } catch (serverException: ServerException) {
             setState {
-                errorMessageToDisplay = "Oops, something went wrong, changes were not saved"
+                errorMessages += "Oops, something went wrong, changes were not saved"
             }
         }
     }
@@ -289,15 +291,15 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                 attrs {
                     position = Position.TOP_RIGHT
                 }
-                state.errorMessageToDisplay?.let {
+                state.errorMessages.reversed().forEach { errorMessage ->
                     Toast {
                         attrs {
                             icon = "warning-sign"
                             intent = Intent.DANGER
-                            message = it.asReactElement()
+                            message = errorMessage.asReactElement()
                             onDismiss = {
                                 setState {
-                                    errorMessageToDisplay = null
+                                    errorMessages = errorMessages.filterNot { it == errorMessage }
                                 }
                             }
                             timeout = 9000
@@ -313,7 +315,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
-        var errorMessageToDisplay: String?
+        var errorMessages: List<String>
     }
 }
 
