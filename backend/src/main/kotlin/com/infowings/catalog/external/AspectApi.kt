@@ -18,16 +18,16 @@ class AspectApi(val aspectService: AspectService) {
     //todo: json in request body
     @PostMapping("create")
     fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
-        val user = principal.name
-        logger.debug("New aspect create request: $aspectData by $user")
-        return aspectService.save(aspectData, user).toAspectData()
+        val username = principal.name
+        logger.debug("New aspect create request: $aspectData by $username")
+        return aspectService.save(aspectData, username).toAspectData()
     }
 
     @PostMapping("update")
     fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
-        val user = principal.name
-        logger.debug("Update aspect request: $aspectData by $user")
-        return aspectService.save(aspectData, user).toAspectData()
+        val username = principal.name
+        logger.debug("Update aspect request: $aspectData by $username")
+        return aspectService.save(aspectData, username).toAspectData()
     }
 
     @GetMapping("get/{name}")
@@ -49,16 +49,16 @@ class AspectApi(val aspectService: AspectService) {
 
     @PostMapping("remove")
     fun removeAspect(@RequestBody aspect: AspectData, principal: Principal) {
-        val user = principal.name
-        logger.debug("Remove aspect request: ${aspect.id} by $user")
-        aspectService.remove(aspect, user)
+        val username = principal.name
+        logger.debug("Remove aspect request: ${aspect.id} by $username")
+        aspectService.remove(aspect, username)
     }
 
     @PostMapping("forceRemove")
     fun forceRemoveAspect(@RequestBody aspect: AspectData, principal: Principal) {
-        val user = principal.name
-        logger.debug("Forced remove aspect request: ${aspect.id} by $user")
-        aspectService.remove(aspect, user, true)
+        val username = principal.name
+        logger.debug("Forced remove aspect request: ${aspect.id} by $username")
+        aspectService.remove(aspect, username, true)
     }
 
     @ExceptionHandler(AspectException::class)

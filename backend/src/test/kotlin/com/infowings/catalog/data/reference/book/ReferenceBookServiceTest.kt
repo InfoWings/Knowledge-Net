@@ -30,12 +30,12 @@ class ReferenceBookServiceTest {
     private lateinit var aspect: Aspect
     private lateinit var referenceBook: ReferenceBook
 
-    private val userName = ""
+    private val username = "admin"
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
-        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, userName)
+        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null), username)
+        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, username)
     }
 
     @Test
@@ -49,7 +49,7 @@ class ReferenceBookServiceTest {
 
     @Test(expected = RefBookAlreadyExist::class)
     fun saveAlreadyExistBookTest() {
-        referenceBookService.createReferenceBook("some", aspect.id, userName)
+        referenceBookService.createReferenceBook("some", aspect.id, username)
     }
 
     @Test
@@ -59,11 +59,11 @@ class ReferenceBookServiceTest {
 
     @Test
     fun getAllReferenceBooksTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
-        val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, userName)
-        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null))
-        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, userName)
-        referenceBookService.removeReferenceBook(forDeletingBook, userName, force = true)
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), username)
+        val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, username)
+        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null), username)
+        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, username)
+        referenceBookService.removeReferenceBook(forDeletingBook, username, force = true)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
     }
 
@@ -74,7 +74,7 @@ class ReferenceBookServiceTest {
 
     @Test
     fun getReferenceBookOrNullTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), username)
         assertEquals(referenceBookService.getReferenceBookOrNull(aspect.id), referenceBook)
         assertNull(referenceBookService.getReferenceBookOrNull(aspect.id + "1"))
         assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.id))
@@ -88,22 +88,22 @@ class ReferenceBookServiceTest {
     @Test
     fun updateReferenceBookTest() {
         val newName = "newName"
-        referenceBookService.updateReferenceBook(referenceBook.copy(name = newName), userName)
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = newName), username)
         val updatedReferenceBook = referenceBookService.getReferenceBook(aspect.id)
         assertEquals(referenceBook.copy(name = newName, version = updatedReferenceBook.version), updatedReferenceBook)
     }
 
     @Test(expected = RefBookConcurrentModificationException::class)
     fun updateReferenceBookConcurrentModificationTest() {
-        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name1"), userName)
-        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name2"), userName)
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name1"), username)
+        referenceBookService.updateReferenceBook(referenceBook.copy(name = "name2"), username)
     }
 
     @Test(expected = RefBookNotExist::class)
     fun updateNotExistReferenceBookTest() {
         referenceBookService.updateReferenceBook(
             referenceBook.copy(aspectId = aspect.id + "1", name = "newName"),
-            userName
+            username
         )
     }
 
@@ -149,7 +149,7 @@ class ReferenceBookServiceTest {
         referenceBookService.moveReferenceBookItem(
             referenceBookService.getReferenceBookItem(child11),
             referenceBookService.getReferenceBookItem(child2),
-            userName
+            username
         )
 
         val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
@@ -165,7 +165,7 @@ class ReferenceBookServiceTest {
         referenceBookService.moveReferenceBookItem(
             referenceBookService.getReferenceBookItem(child1),
             referenceBookService.getReferenceBookItem(child11),
-            userName
+            username
         )
     }
 
@@ -201,7 +201,7 @@ class ReferenceBookServiceTest {
         val child1 = addReferenceBookItem(aspectId, parentId, "value1")
         addReferenceBookItem(aspectId, child1, "value11")
 
-        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child1), userName)
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child1), username)
 
         val updatedBook = referenceBookService.getReferenceBook(aspectId)
         assertNull(updatedBook["value1"])
@@ -216,8 +216,8 @@ class ReferenceBookServiceTest {
 
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
-        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child111), userName)
-        referenceBookService.removeReferenceBookItem(forRemoving, userName)
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child111), username)
+        referenceBookService.removeReferenceBookItem(forRemoving, username)
     }
 
     @Test(expected = RefBookItemConcurrentModificationException::class)
@@ -229,7 +229,7 @@ class ReferenceBookServiceTest {
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
         changeValue(child11, "newValue")
-        referenceBookService.removeReferenceBookItem(forRemoving, userName)
+        referenceBookService.removeReferenceBookItem(forRemoving, username)
     }
 
     @Test(expected = RefBookItemConcurrentModificationException::class)
@@ -241,42 +241,42 @@ class ReferenceBookServiceTest {
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
         changeValue(child1, "newValue")
-        referenceBookService.removeReferenceBookItem(forRemoving, userName)
+        referenceBookService.removeReferenceBookItem(forRemoving, username)
     }
 
     @Test
     fun removeBookTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), username)
         val anotherAspectId = anotherAspect.id
-        var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId, userName)
+        var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId, username)
         referenceBookService.addReferenceBookItem(
-            createReferenceBookItem(anotherAspectId, bookForRemoving.id, "itemValue"), userName
+            createReferenceBookItem(anotherAspectId, bookForRemoving.id, "itemValue"), username
         )
         bookForRemoving = referenceBookService.getReferenceBook(anotherAspectId)
-        referenceBookService.removeReferenceBook(bookForRemoving, userName)
+        referenceBookService.removeReferenceBook(bookForRemoving, username)
         assertEquals(listOf(referenceBook), referenceBookService.getAllReferenceBooks())
     }
 
     @Test(expected = RefBookConcurrentModificationException::class)
     fun removeBookConcurrentNameUpdating() {
         val aspectId = referenceBook.aspectId
-        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"), userName)
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"), username)
         val book = referenceBookService.getReferenceBook(aspectId)
-        referenceBookService.updateReferenceBook(book.copy(name = "newName"), userName)
-        referenceBookService.removeReferenceBook(book, userName)
+        referenceBookService.updateReferenceBook(book.copy(name = "newName"), username)
+        referenceBookService.removeReferenceBook(book, username)
     }
 
     @Test(expected = RefBookItemConcurrentModificationException::class)
     fun removeBookConcurrentAddingItem() {
         val aspectId = referenceBook.aspectId
-        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"), userName)
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, referenceBook.id, "some"), username)
         val book = referenceBookService.getReferenceBook(aspectId)
         addReferenceBookItem(aspectId, book.id, "another")
-        referenceBookService.removeReferenceBook(book, userName)
+        referenceBookService.removeReferenceBook(book, username)
     }
 
     private fun addReferenceBookItem(aspectId: String, parentId: String, value: String): String =
-        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, parentId, value), userName)
+        referenceBookService.addReferenceBookItem(createReferenceBookItem(aspectId, parentId, value), username)
 
     private fun createReferenceBookItem(
         aspectId: String,
@@ -304,6 +304,6 @@ class ReferenceBookServiceTest {
             false,
             version
         ),
-        userName
+        username
     )
 }
