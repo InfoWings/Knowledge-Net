@@ -137,6 +137,15 @@ class AspectApi(val aspectService: AspectService) {
                         )
                     )
                 )
+            is AspectNameCannotBeNull -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Aspect name cannot be empty string"
+                        )
+                    )
+                )
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("${exception.message}")
         }
