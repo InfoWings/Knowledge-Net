@@ -10,7 +10,7 @@ const val selectUserByName = "SELECT * from User where username = ?"
 
 class UserDao(private val db: OrientDatabase) {
 
-    fun saveUser(user: UserEntity) = session(db) {
+    fun saveUser(user: User) = session(db) {
         val userVertex = createUserVertex()
         userVertex.username = user.username
         userVertex.password = user.password

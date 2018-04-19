@@ -128,26 +128,26 @@ class OrientDatabase(
             orientDB.create(database, ODatabaseType.MEMORY)
         }
 
-        val userEntities = try {
-            val entities = userProperties.toUserEntities()
-            if (entities.isEmpty()) {
+        val users = try {
+            val users = userProperties.toUsers()
+            if (users.isEmpty()) {
                 logger.info("no custom user settings found. Use default ones")
-                Users.toUserEntities()
+                Users.toList()
             } else {
-                entities
+                users
             }
         } catch (e: IllegalArgumentException) {
-            logger.warn("Ill-formed users configuration: " + e)
+            logger.warn("Ill-formed users configuration: $e")
             logger.warn("Going to use default settings instead")
 
-            Users.toUserEntities()
+            Users.toList()
         }
 
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
             .initHistory()
-            .initUsers(userEntities)
+            .initUsers(users)
             .initMeasures()
             .initReferenceBooks()
             .initSubject()

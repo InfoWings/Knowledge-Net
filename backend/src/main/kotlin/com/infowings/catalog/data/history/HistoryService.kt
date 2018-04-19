@@ -21,7 +21,7 @@ class HistoryService(
             .map {
                 val user = it.getVertices(ODirection.IN, HISTORY_USER_EDGE)
                     .map { it.toUserVertex() }
-                    .map { it.toUserEntity() }
+                    .map { it.toUser() }
                     .first()
 
                 val event = HistoryEvent(
