@@ -12,6 +12,7 @@ data class Snapshot(val data: Map<String, String>, val links: Map<String, List<O
 
 data class HistoryEvent(
     val user: String,
+    val userInfo: String?,
     val timestamp: Long,
     val version: Int,
     val event: EventKind?,

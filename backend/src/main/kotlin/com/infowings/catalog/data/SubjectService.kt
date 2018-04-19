@@ -41,5 +41,5 @@ class SubjectService(private val db: OrientDatabase) {
 
 const val selectSubjects = "SELECT FROM $SUBJECT_CLASS"
 
-class SubjectIdIsNull : Throwable()
-class SubjectWithNameAlreadyExist(name: String) : Throwable("Subject already exist: $name")
+class SubjectIdIsNull : Exception()
+class SubjectWithNameAlreadyExist(name: String) : Exception("Subject already exist: $name")

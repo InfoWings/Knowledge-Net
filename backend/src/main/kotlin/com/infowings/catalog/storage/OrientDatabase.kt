@@ -70,7 +70,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
                 entities
             }
         } catch (e: IllegalArgumentException) {
-            logger.warn("Ill-formed users configuration: " + e)
+            logger.warn("Ill-formed users configuration: $e")
             logger.warn("Going to use default settings instead")
 
             Users.toUserEntities()
@@ -85,6 +85,7 @@ class OrientDatabase(url: String, database: String, user: String, password: Stri
             .initReferenceBooks()
             .initSubject()
             .initSearch() // this call should be latest
+
     }
 
     @PreDestroy

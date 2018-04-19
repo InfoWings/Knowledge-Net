@@ -41,7 +41,8 @@ class HistoryService(
             entityId = event.entityId
             entityVersion = event.version
             timestamp = Timestamp(event.timestamp)
-            val userInfo = userAcceptService.findByUsernameAsJson(event.user)
+            val userInfo = event.userInfo // userAcceptService.findByUsernameAsJson(event.user)
+            // temporary workarond for OrientDb bug: https://github.com/orientechnologies/orientdb/issues/8216
 
             /**
              * Конвертируем представление пользователя как строкового имени
