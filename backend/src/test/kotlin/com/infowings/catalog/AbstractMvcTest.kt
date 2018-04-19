@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 abstract class AbstractMvcTest {
+
     @Autowired
     private lateinit var aspectService: AspectService
 
@@ -47,6 +48,9 @@ fun createTestAspect(
     aspectService: AspectService,
     subject: Subject? = null
 ): Aspect {
+    // Если есть аспект с заданным aspectName и subject.id - возвращаем его.
+    // Если нет - создаем
+
     val ad = AspectData(
         "",
         aspectName,
@@ -56,5 +60,5 @@ fun createTestAspect(
         emptyList(),
         subject = subject?.toSubjectData()
     )
-    return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad, "admin")
+    return aspectService.findByName(aspectName).find { it.subject?.id == subject?.id }  ?: aspectService.save(ad, "admin")
 }

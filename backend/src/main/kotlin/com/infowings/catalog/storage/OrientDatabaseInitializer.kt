@@ -28,9 +28,6 @@ const val ASPECT_MEASURE_CLASS = "AspectToMeasure"
 const val SUBJECT_CLASS = "Subject"
 const val ASPECT_SUBJECT_EDGE = "AspectSubjectEdge"
 
-const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? "
-
-
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
 /** Initialization default db values, every method executes only in case describing part of db is empty. */
