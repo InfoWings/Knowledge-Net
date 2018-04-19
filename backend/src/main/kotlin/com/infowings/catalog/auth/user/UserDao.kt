@@ -6,8 +6,8 @@ import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertex
 import com.orientechnologies.orient.core.record.OVertex
 
-const val findByUsername = "SELECT * FROM User WHERE username = ?"
-const val selectAll = "SELECT * FROM User"
+const val findByUsername = "SELECT * FROM $USER_CLASS WHERE username = ?"
+const val selectAll = "SELECT * FROM $USER_CLASS"
 
 class UserDao(private val db: OrientDatabase) {
 
@@ -23,9 +23,9 @@ class UserDao(private val db: OrientDatabase) {
         }
     }
 
-    fun getAllUserVertices(): List<UserVertex> = session(db) {
+    fun getAllUserVertices() = session(db) {
         return@session db.query(selectAll) { rs ->
             rs.map { it.toVertex().toUserVertex() }
-        }.toList()
+        }.toSet()
     }
 }

@@ -22,6 +22,6 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
     fun findUserVertexByUsername(username: String) =
         dao.findByUsername(username) ?: throw UsernameNotFoundException(username)
 
-    fun getAllUsers() = dao.getAllUserVertices().map { it.toUser() }
+    fun getAllUsers() = dao.getAllUserVertices().map { it.toUser() }.toSet()
 
 }
