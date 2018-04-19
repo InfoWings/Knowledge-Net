@@ -22,8 +22,8 @@ fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnitOption> 
 
 class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
 
-    private fun handleMeasurementUnitOptionSelected(option: MeasurementUnitOption) {
-        props.onChange(option.measurementUnit)
+    private fun handleMeasurementUnitOptionSelected(option: MeasurementUnitOption?) {
+        option?.let { props.onChange(it.measurementUnit) } ?: props.onChange(null)
     }
 
     override fun RBuilder.render() {
@@ -42,7 +42,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                         cache = false
                         onSelectResetsInput = false
                         clearable = true
-                        resetValue = ""
+                        resetValue = null
                         options = if (props.value.isNullOrEmpty()) emptyArray()
                         else arrayOf(measurementUnitOption(props.value!!))
                         autoBlur = true
@@ -75,7 +75,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
 
     interface Props : RProps {
         var value: String?
-        var onChange: (String) -> Unit
+        var onChange: (String?) -> Unit
     }
 
 }
