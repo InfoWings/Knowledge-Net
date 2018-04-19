@@ -1,8 +1,8 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
+import com.infowings.catalog.auth.user.User
 import com.infowings.catalog.auth.user.UserDao
-import com.infowings.catalog.auth.user.UserEntity
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
@@ -39,7 +39,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun initEdge(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createEdgeClass(name)
 
-    fun initUsers(users: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
+    fun initUsers(users: List<User>): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init users: " + users.map { it.username })
         session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
         val userService = UserService(UserDao(database))

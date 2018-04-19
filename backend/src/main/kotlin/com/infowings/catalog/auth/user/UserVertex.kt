@@ -28,5 +28,5 @@ data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
             this["role"] = value
         }
 
-    fun toUserEntity(): UserEntity = UserEntity(username, password, UserRole.valueOf(role))
+    fun toUser(): User = User(username, password, UserRole.valueOf(role))
 }
