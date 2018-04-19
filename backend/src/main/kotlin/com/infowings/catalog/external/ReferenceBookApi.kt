@@ -5,6 +5,7 @@ import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBooksList
+import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.reference.book.*
 import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
@@ -80,7 +81,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is RefBookNotExist -> ResponseEntity.badRequest().body("Aspect doesn't have reference book")
             is RefBookItemNotExist -> ResponseEntity.badRequest().body("Reference Book Item doesn't exist")
             is RefBookChildAlreadyExist -> ResponseEntity.badRequest().body("Reference Book Item '${e.value}' already exists")
-            is RefBookAspectNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
+            is AspectDoesNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
             is RefBookItemIllegalArgumentException -> ResponseEntity.badRequest().body(e.message)
             is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body(

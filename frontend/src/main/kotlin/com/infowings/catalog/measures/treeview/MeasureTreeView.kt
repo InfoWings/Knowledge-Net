@@ -2,17 +2,10 @@ package com.infowings.catalog.measures.treeview
 
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.measures.MeasureGroupData
-import kotlinext.js.invoke
-import kotlinext.js.require
 import react.*
 import react.dom.div
 
 class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView.Props, RState>(props) {
-    companion object {
-        init {
-            require("styles/measures-list.scss")
-        }
-    }
 
     override fun RBuilder.render() {
         div(classes = "measures-list") {
@@ -20,7 +13,7 @@ class MeasureTreeView(props: MeasureTreeView.Props) : RComponent<MeasureTreeView
                 treeNode {
                     attrs {
                         key = name + index.toString()
-                        className = "aspect-tree-view--aspect-node"
+                        className = "measure-list--measure"
                         treeNodeContent = buildElement {
                             measureRootLabel {
                                 attrs {

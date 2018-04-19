@@ -2,16 +2,20 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
+import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.emptyAspectData
-import com.infowings.catalog.common.emptyAspectPropertyData
-import com.infowings.catalog.wrappers.react.suspendSetState
+import com.infowings.catalog.common.*
+import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.wrappers.blueprint.Intent
+import com.infowings.catalog.wrappers.blueprint.Position
+import com.infowings.catalog.wrappers.blueprint.Toast
+import com.infowings.catalog.wrappers.blueprint.Toaster
+import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
+import kotlin.math.min
 
 interface AspectsModel {
     /**
@@ -31,10 +35,9 @@ interface AspectsModel {
      * which means that there may be two properties with exact same content inside one aspect (may be use case for
      * copying). Validation regarding possible restrictions is performed on server side.
      *
-     * @param aspectId - [AspectData.id] of parent [AspectData] of [AspectPropertyData] to select.
      * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
      */
-    fun selectAspectProperty(aspectId: String?, index: Int)
+    fun selectProperty(index: Int)
 
     /**
      * Method for canceling selected state.
@@ -54,7 +57,7 @@ interface AspectsModel {
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    suspend fun updateAspect(aspect: AspectData)
+    fun updateAspect(aspect: AspectData)
 
     /**
      * Method for updating currently selected [AspectPropertyData]
@@ -62,7 +65,7 @@ interface AspectsModel {
      * Made suspended in case if submission to server happens immediately after a call to this method (setState should
      * complete before submission to the server).
      */
-    suspend fun updateProperty(property: AspectPropertyData)
+    fun updateProperty(property: AspectPropertyData)
 
     /**
      * Method for submitting changes of currently selected [AspectData] to the server
@@ -73,20 +76,22 @@ interface AspectsModel {
      * Method for requesting delete of currently selected [AspectData] to the server
      */
     suspend fun deleteAspect(force: Boolean)
+
+    suspend fun deleteAspectProperty()
 }
 
-class AspectsModelComponent(props: AspectApiReceiverProps) :
-    RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(props), AspectsModel {
+class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(), AspectsModel {
 
-    override fun State.init(props: AspectApiReceiverProps) {
+    override fun State.init() {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
+        errorMessageToDisplay = null
     }
 
     override fun selectAspect(aspectId: String?) {
         setState {
-            if (unsavedDataSelection(aspectId)) {
+            if (unsavedDataSelection(aspectId, null)) {
                 unsafeSelection = true
             } else {
                 selectedAspect = newAspectSelection(aspectId)
@@ -98,22 +103,30 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    override fun selectAspectProperty(aspectId: String?, index: Int) {
+    override fun selectProperty(index: Int) {
         setState {
-            if (unsavedDataSelection(aspectId)) {
+            if (unsavedDataSelection(selectedAspect.id, index)) {
                 unsafeSelection = true
             } else {
-                selectedAspect = newAspectSelection(aspectId)
-                selectedAspectPropertyIndex = if (index > selectedAspect.properties.lastIndex)
-                    selectedAspect.properties.lastIndex else index
+                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
+                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
+                }
+                selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
             }
         }
     }
 
     override fun discardSelect() {
         setState {
-            selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+            val selectedAspectId = selectedAspect.id
+            val prevSelectedAspect = selectedAspect
+            val selectedIndex = selectedAspectPropertyIndex
+            selectedAspect =
+                    if (selectedAspectId == null) emptyAspectData else props.aspectContext[selectedAspectId]!!
+            selectedAspectPropertyIndex = when (selectedIndex) {
+                null -> null
+                else -> if (prevSelectedAspect.properties[selectedIndex] == emptyAspectPropertyData) null else selectedIndex
+            }
         }
     }
 
@@ -130,8 +143,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    override suspend fun updateAspect(aspect: AspectData) =
-        suspendSetState {
+    override fun updateAspect(aspect: AspectData) =
+        setState {
             selectedAspect = selectedAspect.copy(
                 name = aspect.name,
                 measure = aspect.measure,
@@ -142,8 +155,8 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
             )
         }
 
-    override suspend fun updateProperty(property: AspectPropertyData) =
-        suspendSetState {
+    override fun updateProperty(property: AspectPropertyData) =
+        setState {
             val currentlySelectedAspect = selectedAspect
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
                     ?: error("Currently selected aspect property index should not be null")
@@ -155,16 +168,32 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
 
     override suspend fun submitAspect() {
-        val selectedAspect = state.selectedAspect
+        try {
+            val selectedAspect = state.selectedAspect
 
-        when (selectedAspect.id) {
-            null -> props.onAspectCreate(selectedAspect.normalize())
-            else -> props.onAspectUpdate(selectedAspect.normalize())
-        }
+            val aspect = when (selectedAspect.id) {
+                null -> props.onAspectCreate(selectedAspect.normalize())
+                else -> props.onAspectUpdate(selectedAspect.normalize())
+            }
 
-        setState {
-            this.selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+            setState {
+                this.selectedAspect = when (selectedAspect.properties.lastOrNull()) {
+                    emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
+                    else -> aspect
+                }
+            }
+        } catch (badRequestException: AspectBadRequestException) {
+            if (badRequestException.exceptionInfo.code == BadRequestCode.INCORRECT_INPUT) {
+                setState {
+                    errorMessageToDisplay = badRequestException.exceptionInfo.message
+                }
+            } else {
+                throw badRequestException
+            }
+        } catch (serverException: ServerException) {
+            setState {
+                errorMessageToDisplay = "Oops, something went wrong, changes were not saved"
+            }
         }
     }
 
@@ -181,14 +210,42 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         }
     }
 
-    private fun State.unsavedDataSelection(aspectId: String?): Boolean {
+    override suspend fun deleteAspectProperty() {
+        val selectedPropertyIndex =
+            state.selectedAspectPropertyIndex ?: error("Aspect Property should be selected in order to be deleted")
+        val deletedAspectProperty = state.selectedAspect.properties[selectedPropertyIndex].copy(deleted = true)
+
+        val updatedAspect = props.onAspectUpdate(
+            state.selectedAspect.updatePropertyAtIndex(
+                selectedPropertyIndex,
+                deletedAspectProperty
+            )
+        )
+
+        setState {
+            selectedAspect = updatedAspect
+            selectedAspectPropertyIndex = null
+        }
+
+    }
+
+    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
         return when {
-            aspectId == null -> false
-            selectedAspect.id == aspectId -> false
-            selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData -> true
+            entityIsAlreadySelected(aspectId, index) -> false
+            isEmptyPropertySelected() -> false
+            isSelectedAspectHasChanges() -> true
             else -> false
         }
     }
+
+    private fun State.isSelectedAspectHasChanges() =
+        selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
+
+    private fun State.isEmptyPropertySelected() =
+        selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData
+
+    private fun State.entityIsAlreadySelected(aspectId: String?, index: Int?) =
+        selectedAspect.id == aspectId && selectedAspectPropertyIndex == index
 
     private fun State.newAspectSelection(aspectId: String?): AspectData {
         val selectedAspect = selectedAspect
@@ -203,10 +260,15 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         val selectedAspect = state.selectedAspect
         val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
+            aspectSort {
+                attrs {
+                    onFetchAspect = props.onFetchAspects
+                }
+            }
             aspectTreeView {
                 attrs {
-                    aspects = props.data.withSelected(state.selectedAspect)
-                    aspectContext = { if (it == selectedAspect.id) selectedAspect else props.aspectContext[it] }
+                    aspects = props.data
+                    aspectContext = props.aspectContext
                     selectedAspectId = state.selectedAspect.id
                     selectedPropertyIndex = state.selectedAspectPropertyIndex
                     aspectsModel = this@AspectsModelComponent
@@ -216,13 +278,34 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
                 attrs {
                     aspect = selectedAspect
                     propertyIndex = selectedAspectPropertyIndex
-                    aspectContext = props.aspectContext::get
+                    aspectContext = props.aspectContext
                     aspectsModel = this@AspectsModelComponent
                 }
             }
             unsafeChangesWindow(state.unsafeSelection) {
                 setState { unsafeSelection = false }
             }
+            Toaster {
+                attrs {
+                    position = Position.TOP_RIGHT
+                }
+                state.errorMessageToDisplay?.let {
+                    Toast {
+                        attrs {
+                            icon = "warning-sign"
+                            intent = Intent.DANGER
+                            message = it.asReactElement()
+                            onDismiss = {
+                                setState {
+                                    errorMessageToDisplay = null
+                                }
+                            }
+                            timeout = 9000
+                        }
+                    }
+                }
+            }
+
         }
     }
 
@@ -230,6 +313,7 @@ class AspectsModelComponent(props: AspectApiReceiverProps) :
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
+        var errorMessageToDisplay: String?
     }
 }
 
@@ -255,9 +339,6 @@ private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: Aspec
             }
         }
     )
-
-private fun List<AspectData>.withSelected(aspect: AspectData) =
-    aspect.id?.let { id -> this.map { if (it.id == id) aspect else it } } ?: this+aspect
 
 private fun AspectData.normalize() =
     copy(properties = properties.filter { it != emptyAspectPropertyData && !(it.id.isEmpty() && it.deleted) })

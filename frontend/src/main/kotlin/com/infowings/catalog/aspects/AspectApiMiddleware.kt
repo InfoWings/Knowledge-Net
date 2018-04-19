@@ -1,8 +1,13 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.NonIdealState
+import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -14,9 +19,10 @@ interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: List<AspectData>
     var aspectContext: Map<String, AspectData>
-    var onAspectUpdate: suspend (changedAspect: AspectData) -> Unit
-    var onAspectCreate: suspend (newAspect: AspectData) -> Unit
-    var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> Unit
+    var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
+    var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
+    var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
+    var onFetchAspects: (List<AspectOrderBy>) -> Unit
 }
 
 /**
@@ -27,20 +33,34 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     override fun State.init() {
         data = emptyList()
         loading = true
+        serverError = false
     }
 
     override fun componentDidMount() {
+        fetchAspects()
+    }
+
+    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
         launch {
-            val response = getAllAspects()
-            setState {
-                data = response.aspects
-                context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
-                loading = false
+            try {
+                val response = getAllAspects(orderBy)
+                setState {
+                    data = response.aspects
+                    context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
+                    loading = false
+                }
+            } catch (exception: ServerException) {
+                setState {
+                    data = emptyList()
+                    context = mutableMapOf()
+                    loading = false
+                    serverError = true
+                }
             }
         }
     }
 
-    private suspend fun handleCreateNewAspect(aspectData: AspectData) {
+    private suspend fun handleCreateNewAspect(aspectData: AspectData): AspectData {
         val newAspect: AspectData
         try {
             newAspect = createAspect(aspectData)
@@ -48,15 +68,17 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             throw AspectBadRequestException(JSON.parse(e.message))
         }
 
-        val newAspectId: String = newAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+        val newAspectId: String = newAspect.id ?: error("Server returned Aspect with aspectId == null")
 
         setState {
             data += newAspect
             context[newAspectId] = newAspect
         }
+
+        return newAspect
     }
 
-    private suspend fun handleUpdateAspect(aspectData: AspectData) {
+    private suspend fun handleUpdateAspect(aspectData: AspectData): AspectData {
         val updatedAspect: AspectData
 
         try {
@@ -65,7 +87,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             throw AspectBadRequestException(JSON.parse(e.message))
         }
 
-        val updatedAspectId: String = updatedAspect.id ?: throw Error("Server returned Aspect with aspectId == null")
+        val updatedAspectId: String = updatedAspect.id ?: error("Server returned Aspect with aspectId == null")
 
         setState {
             data = data.map {
@@ -73,9 +95,11 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             }
             context[updatedAspectId] = updatedAspect
         }
+
+        return updatedAspect
     }
 
-    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean) {
+    private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean): String {
 
         try {
             if (force) {
@@ -97,17 +121,45 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 context[aspectData.id!!] = deletedAspect
             }
         }
+
+        return deletedAspect.id ?: error("Aspect delete request returned AspectData with id == null")
     }
 
     override fun RBuilder.render() {
-        child(props.apiReceiverComponent) {
-            attrs {
-                data = state.data
-                aspectContext = state.context
-                loading = state.loading
-                onAspectCreate = { handleCreateNewAspect(it) }
-                onAspectUpdate = { handleUpdateAspect(it) }
-                onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
+        if (!state.serverError) {
+            child(props.apiReceiverComponent) {
+                attrs {
+                    data = state.data
+                    aspectContext = state.context
+                    loading = state.loading
+                    onAspectCreate = { handleCreateNewAspect(it) }
+                    onAspectUpdate = { handleUpdateAspect(it) }
+                    onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
+                    onFetchAspects = ::fetchAspects
+                }
+            }
+        } else {
+            NonIdealState {
+                attrs {
+                    visual = "error"
+                    title = "Oops, something went wrong".asReactElement()
+                    action = buildElement {
+                        Button {
+                            attrs {
+                                icon = "refresh"
+                                onClick = {
+                                    setState {
+                                        serverError = false
+                                        loading = true
+                                    }
+                                    fetchAspects()
+                                }
+                            }
+                            +"Try again"
+                        }
+                    }!!
+                }
+
             }
         }
     }
@@ -130,6 +182,10 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
          * (AspectPropertyData contains aspectId)
          */
         var context: MutableMap<String, AspectData>
+        /**
+         * Server error happened
+         */
+        var serverError: Boolean
     }
 }
 

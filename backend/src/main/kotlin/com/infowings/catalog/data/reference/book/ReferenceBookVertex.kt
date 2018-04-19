@@ -1,6 +1,8 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -20,12 +22,6 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
         links = mapOf("aspect" to listOf(aspect.identity))
     )
 
-    var aspectId: String
-        get() = this["aspectId"]
-        set(value) {
-            this["aspectId"] = value
-        }
-
     var name: String
         get() = this["name"]
         set(value) {
@@ -43,8 +39,8 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             .map { it.toReferenceBookItemVertex() }
             .first()
 
-    private val aspect: OVertex
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ASPECT_EDGE).first()
+    private val aspect: AspectVertex
+        get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE).first().toAspectVertex()
 
     fun toReferenceBook(): ReferenceBook {
         val root = root.toReferenceBookItem()

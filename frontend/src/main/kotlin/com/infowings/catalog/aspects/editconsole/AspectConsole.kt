@@ -4,27 +4,30 @@ import com.infowings.catalog.aspects.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.emptyAspectPropertyData
-import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
 import react.*
 
 interface AspectEditConsoleModel {
     /**
-     * Save [AspectData] that is currently being edited and then submitting changes to the server
+     * Submit all made changes to server.
      */
-    suspend fun submitAspect(aspect: AspectData)
+    suspend fun submitAspect()
 
     /**
-     * Save [AspectData] that is currently being edited and then switch to editing first visible (not
-     * deleted) [AspectPropertyData]
+     * Select the first available property of selected aspect, if such exists, or create new one
      */
-    fun switchToProperties(aspect: AspectData)
+    suspend fun switchToProperties()
 
     /**
      * Discard all saved but not yet updated changes
      */
     fun discardChanges()
+
+    /**
+     * Temporarily save changes in memory.
+     */
+    fun updateAspect(aspectData: AspectData)
 
     /**
      * Request delete of [AspectData] that is currently being edited
@@ -37,18 +40,23 @@ interface AspectPropertyEditConsoleModel {
      * Save [AspectPropertyData] that is currently being edited and then submit all changes made to parent [AspectData]
      * to the server
      */
-    suspend fun submitParentAspect(property: AspectPropertyData)
+    suspend fun submitParentAspect()
 
     /**
      * Save [AspectPropertyData] that is currently being edited and then switch to editing next available
      * [AspectPropertyData] if such exist or to parent [AspectData] otherwise
      */
-    fun switchToNextProperty(property: AspectPropertyData)
+    suspend fun switchToNextProperty()
 
     /**
      * Discard all saved but not yet updated changes
      */
     fun discardChanges()
+
+    /**
+     * Temporarily save changed aspect property in memory
+     */
+    fun updateAspectProperty(property: AspectPropertyData)
 
     /**
      * Save currently edited [AspectPropertyData] as deleted and switch to editing next available [AspectPropertyData]
@@ -70,54 +78,44 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
         }
     }
 
-    override suspend fun submitAspect(aspect: AspectData) {
-        props.aspectsModel.updateAspect(aspect)
+    override suspend fun submitAspect() {
         props.aspectsModel.submitAspect()
     }
 
-    override suspend fun submitParentAspect(property: AspectPropertyData) {
-        props.aspectsModel.updateProperty(property)
+    override suspend fun submitParentAspect() {
         props.aspectsModel.submitAspect()
     }
 
-    override fun switchToProperties(aspect: AspectData) {
+    override suspend fun switchToProperties() {
         val selectedAspect = props.aspect
-        launch {
-            props.aspectsModel.updateAspect(aspect)
-            if (selectedAspect.properties.isNotEmpty()) {
-                if (selectedAspect.hasNextAliveProperty(0))
-                    props.aspectsModel.selectAspectProperty(
-                        selectedAspect.id,
-                        selectedAspect.getNextAlivePropertyIndex(0)
-                    )
-                else
-                    props.aspectsModel.createProperty(selectedAspect.properties.size)
-            } else {
-                props.aspectsModel.createProperty(0)
-            }
+        props.aspectsModel.submitAspect()
+        if (selectedAspect.properties.isNotEmpty()) {
+            props.aspectsModel.selectProperty(0)
+        } else {
+            props.aspectsModel.createProperty(0)
         }
     }
 
-    override fun switchToNextProperty(property: AspectPropertyData) {
+    override fun updateAspect(aspectData: AspectData) {
+        props.aspectsModel.updateAspect(aspectData)
+    }
+
+    override fun updateAspectProperty(property: AspectPropertyData) {
+        props.aspectsModel.updateProperty(property)
+    }
+
+    override suspend fun switchToNextProperty() {
         val selectedAspect = props.aspect
         val selectedPropertyIndex = props.propertyIndex
                 ?: error("Aspect property should be selected in order to switch to next property")
-        launch {
-            if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != emptyAspectPropertyData) {
-                props.aspectsModel.updateProperty(property)
-                val nextPropertyIndex = selectedPropertyIndex.inc()
-                if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {
-                    props.aspectsModel.createProperty(nextPropertyIndex)
-                } else {
-                    if (selectedAspect.hasNextAliveProperty(nextPropertyIndex)) {
-                        props.aspectsModel.selectAspectProperty(
-                            selectedAspect.id,
-                            selectedAspect.getNextAlivePropertyIndex(nextPropertyIndex)
-                        )
-                    } else {
-                        props.aspectsModel.createProperty(selectedAspect.properties.size)
-                    }
-                }
+        val property = selectedAspect.properties[selectedPropertyIndex]
+        if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != emptyAspectPropertyData) {
+            props.aspectsModel.submitAspect()
+            val nextPropertyIndex = selectedPropertyIndex.inc()
+            if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {
+                props.aspectsModel.createProperty(nextPropertyIndex)
+            } else {
+                props.aspectsModel.selectProperty(nextPropertyIndex)
             }
         }
     }
@@ -127,21 +125,8 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
     }
 
     override fun deleteProperty() {
-        val selectedAspect = props.aspect
-        val selectedPropertyIndex = props.propertyIndex
-                ?: error("Aspect property should be selected in order to delete property")
-
         launch {
-            props.aspectsModel.updateProperty(selectedAspect.properties[selectedPropertyIndex].copy(deleted = true))
-
-            if (selectedAspect.hasNextAliveProperty(selectedPropertyIndex.inc())) {
-                props.aspectsModel.selectAspectProperty(
-                    selectedAspect.id,
-                    selectedAspect.getNextAlivePropertyIndex(selectedPropertyIndex.inc())
-                )
-            } else {
-                props.aspectsModel.selectAspect(selectedAspect.id)
-            }
+            props.aspectsModel.deleteAspectProperty()
         }
     }
 
@@ -165,7 +150,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
                     parentAspect = selectedAspect
                     aspectPropertyIndex = selectedAspectPropertyIndex
                     childAspect = if (selectedAspect.properties[selectedAspectPropertyIndex].aspectId == "") null
-                    else props.aspectContext(selectedAspect.properties[selectedAspectPropertyIndex].aspectId)
+                    else props.aspectContext[selectedAspect.properties[selectedAspectPropertyIndex].aspectId]
                     propertyEditConsoleModel = this@AspectConsole
                 }
             }
@@ -175,15 +160,9 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
     interface Props : RProps {
         var aspect: AspectData
         var propertyIndex: Int?
-        var aspectContext: (String) -> AspectData?
+        var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel
     }
 }
-
-private fun AspectData.hasNextAliveProperty(index: Int) = if (index >= properties.size) false else
-    properties.size > index && properties.subList(index, properties.size).indexOfFirst { !it.deleted } != -1
-
-private fun AspectData.getNextAlivePropertyIndex(index: Int) =
-    properties.subList(index, properties.size).indexOfFirst { !it.deleted } + index
 
 fun RBuilder.aspectConsole(block: RHandler<AspectConsole.Props>) = child(AspectConsole::class, block)

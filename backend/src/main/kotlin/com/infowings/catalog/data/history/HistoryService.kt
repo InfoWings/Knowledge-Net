@@ -1,48 +1,91 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.UserEntity
 import com.infowings.catalog.auth.UserNotFoundException
+import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
-import java.sql.Timestamp
+import com.orientechnologies.orient.core.record.ODirection
+import kotlinx.serialization.json.JSON
+import java.time.Instant
 
 class HistoryService(
     private val db: OrientDatabase,
-    private val historyDaoService: HistoryDaoService,
+    private val historyDao: HistoryDao,
     private val userAcceptService: UserAcceptService
 ) {
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex {
+    fun getAll(): Set<HistoryFactDto> = transaction(db) {
+        return@transaction historyDao.getAllHistoryEvents()
+            .map {
+                val event = HistoryEvent(
+                    JSON.nonstrict.parse<UserEntity>(it.user).username,
+                    it.user,
+                    it.timestamp.toEpochMilli(),
+                    it.entityVersion,
+                    EventType.valueOf(it.eventType),
+                    it.entityRID,
+                    it.entityClass
+                )
+                val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE)
+                    .map { it.toHistoryElementVertex() }
+                    .map { it.key to it.stringValue }
+                    .toMap()
+
+                val addedLinks = it.getVertices(ODirection.OUT, HISTORY_ADD_LINK_EDGE)
+                    .map { it.toHistoryLinksVertex() }
+                    .groupBy { it.key }
+                    .map { it.key to it.value.map { it.peerId } }
+                    .toMap()
+
+                val removedLinks = it.getVertices(ODirection.OUT, HISTORY_DROP_LINK_EDGE)
+                    .map { it.toHistoryLinksVertex() }
+                    .groupBy { it.key }
+                    .map { it.key to it.value.map { it.peerId } }
+                    .toMap()
+
+                val payload = DiffPayload(data, addedLinks, removedLinks)
+
+                return@map HistoryFactDto(event, payload)
+            }
+            .toSet()
+    }
+
+    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()
 
         val elementVertices = fact.payload.data.map {
-            return@map historyDaoService.newHistoryElementVertex().apply {
-                addEdge(historyEventVertex)
+            return@map historyDao.newHistoryElementVertex().apply {
                 key = it.key
                 stringValue = it.value
             }
         }
+        elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
 
-        val addLinkVertices = historyEventVertex.linksVertices(fact.payload.addedLinks,
-            { historyDaoService.newAddLinkVertex() })
-        val dropLinkVertices = historyEventVertex.linksVertices(fact.payload.removedLinks,
-            { historyDaoService.newDropLinkVertex() })
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
+        addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
+
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
+        dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
 
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
         db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
 
-        return historyEventVertex
+        return@transaction historyEventVertex
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
-        historyDaoService.newHistoryEventVertex().apply {
+        historyDao.newHistoryEventVertex().apply {
             entityClass = event.entityClass
-            entityId = event.entityId
+            entityRID = event.entityId
             entityVersion = event.version
-            timestamp = Timestamp(event.timestamp)
             val userInfo = event.userInfo // userAcceptService.findByUsernameAsJson(event.user)
             // temporary workarond for OrientDb bug: https://github.com/orientechnologies/orientdb/issues/8216
+            timestamp = Instant.ofEpochMilli(event.timestamp)
+            eventType = event.type.name
 
             /**
              * Конвертируем представление пользователя как строкового имени
@@ -66,20 +109,20 @@ class HistoryService(
             }
         }
 
-    private inline fun HistoryEventVertex.linksVertices(
+    private fun linksVertices(
         linksPayload: Map<String, List<ORID>>,
-        vertexProducer: () -> HistoryLinksVertex
+        linksVertex: HistoryLinksVertex
     ): List<HistoryLinksVertex> =
-        linksPayload.flatMap {
-            val linkKey = it.key
-            val eventVertex = this
-            it.value.map {
-                val peer = it
-                vertexProducer().apply {
-                    addEdge(eventVertex)
+        linksPayload.flatMap { (linkKey, peerIds) ->
+            peerIds.map { id ->
+                linksVertex.apply {
                     key = linkKey
-                    peerId = peer
+                    peerId = id
                 }
             }
         }
 }
+
+// We can't use HistoryFact because vertex HistoryAware possible not exist
+// TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
+class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)

@@ -26,23 +26,16 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
             div("remove-confirm-window--buttons") {
                 Button {
                     attrs {
-                        onClick = {
-                            it.stopPropagation()
-                            it.preventDefault()
-                            props.onCancel()
-                        }
-                        className = "pt-small"
+                        className = "pt-small pt-popover-dismiss"
                     }
                     +"Cancel"
                 }
                 Button {
                     attrs {
                         onClick = {
-                            it.stopPropagation()
-                            it.preventDefault()
                             props.onConfirm()
                         }
-                        className = "pt-small pt-intent-danger"
+                        className = "pt-small pt-intent-danger pt-popover-dismiss"
                     }
                     +"Delete"
                 }
@@ -52,7 +45,6 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
 
     interface Props : RProps {
         var onConfirm: () -> Unit
-        var onCancel: () -> Unit
     }
 }
 

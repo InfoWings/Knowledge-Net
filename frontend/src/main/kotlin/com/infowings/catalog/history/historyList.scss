@@ -1,0 +1,89 @@
+$color-green: green;
+$color-red: darkred;
+$color-yellow: #ffa500;
+
+.history-group {
+  width: 95%;
+  margin: auto;
+  max-width: 90rem;
+  min-width: 60rem;
+}
+
+.history-item {
+  width: 95%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 3rem auto 3rem;
+
+  &--field {
+
+    margin: 0.1rem 1rem 0.1rem 0;
+    cursor: default;
+
+    &__cursive {
+      font-style: italic;
+    }
+
+    &__pointer {
+      cursor: pointer;
+    }
+
+    &__red {
+      color: $color-red;
+      font-weight: bold;
+    }
+
+    &__yellow {
+      color: $color-yellow;
+      font-weight: bold;
+    }
+
+    &__green {
+      color: $color-green;
+      font-weight: bold;
+    }
+
+  }
+
+  &--icon {
+    height: 3rem;
+  }
+}
+
+.history_properties {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.history-aspect-view {
+
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &--wrapper {
+    margin-top: -2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.history-diff {
+  margin-left: 20%;
+  margin-right: 20%;
+
+  &--item {
+    display: flex;
+    justify-content: space-between;
+
+    &__red {
+      color: $color-red;
+    }
+
+    &__green {
+      color: $color-green;
+    }
+  }
+}

@@ -2,6 +2,7 @@ package com.infowings.catalog.components.treeview
 
 import com.infowings.catalog.utils.squareMinusIcon
 import com.infowings.catalog.utils.squarePlusIcon
+import com.infowings.catalog.wrappers.react.isDomElement
 import com.infowings.catalog.wrappers.react.setStateWithCallback
 import kotlinext.js.require
 import kotlinx.html.js.onClickFunction
@@ -94,10 +95,14 @@ class TreeNode(props: Props) : RComponent<TreeNode.Props, TreeNode.State>(props)
             } else {
                 svg(classes = "tree-view--expander-icon")
             }
-            child(cloneElement<TreeNodeContentProps>(props.treeNodeContent) {
-                isExpanded = state.expanded
-                setExpanded = ::setExpanded
-            })
+            if (props.treeNodeContent.isDomElement()) {
+                child(props.treeNodeContent)
+            } else {
+                child(cloneElement<TreeNodeContentProps>(props.treeNodeContent) {
+                    isExpanded = state.expanded
+                    setExpanded = ::setExpanded
+                })
+            }
         }
         if (Children.count(props.children) > 0 && state.expanded) {
             div(classes = "tree-view--children$additionalClasses") {

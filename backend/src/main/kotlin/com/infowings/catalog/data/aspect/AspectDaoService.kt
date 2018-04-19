@@ -9,9 +9,9 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import notDeletedSql
 
 /** Should be used externally for query building. */
-const val notDeletedSql = "(deleted is NULL or deleted = false)"
 const val selectWithNameDifferentId =
     "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
 const val selectWithName =
@@ -79,9 +79,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
-        return@session aspectVertex.save<OVertex>().toAspectVertex().also {
-            logger.debug("Aspect ${aspectData.name} saved with id: ${it.id}")
-        }
+        return@session aspectVertex.save<OVertex>().toAspectVertex()
     }
 
     fun saveAspectProperty(

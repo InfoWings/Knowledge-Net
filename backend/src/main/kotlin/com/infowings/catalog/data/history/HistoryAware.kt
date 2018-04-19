@@ -1,12 +1,10 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.data.aspect.HistoryContext
+import com.infowings.catalog.common.EventType
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
-enum class EventKind {
-    CREATE, UPDATE, SOFT_DELETE, DELETE
-}
 
 const val HISTORY_EDGE = "HistoryEdge"
 
@@ -31,10 +29,10 @@ interface HistoryAware : OVertex {
         return Snapshot(data, links)
     }
 
-    private fun historyEvent(context: HistoryContext, event: EventKind): HistoryEvent =
+    private fun historyEvent(context: HistoryContext, event: EventType): HistoryEvent =
         HistoryEvent(
             user = context.user, userInfo = context.userInfo, timestamp = System.currentTimeMillis(), version = version,
-            event = event, entityId = identity, entityClass = entityClass
+            type = event, entityId = identity, entityClass = entityClass
         )
 
     /*
@@ -54,8 +52,8 @@ interface HistoryAware : OVertex {
        Поэтому различиются 2 случая - есть поле и нет поля (куда попадают все три варианта выше).
        Это кажется соответствующим опыту юзера и избавляет нас от лишних разборов.
      */
-    private fun toFact(context: HistoryContext, event: EventKind, base: Snapshot) =
-        toHistoryFact(historyEvent(context, event), this, base, currentSnapshot())
+    private fun toFact(context: HistoryContext, eventType: EventType, base: Snapshot) =
+        toHistoryFact(historyEvent(context, eventType), this, base, currentSnapshot())
 
     /**
      *  Факт создания сущности.
@@ -63,7 +61,7 @@ interface HistoryAware : OVertex {
      *
      *  Надо вызывать в тот момент, когда сущность создана, все поля и связи определены.
      */
-    fun toCreateFact(context: HistoryContext) = toFact(context, EventKind.CREATE, emptySnapshot())
+    fun toCreateFact(context: HistoryContext) = toFact(context, EventType.CREATE, emptySnapshot())
 
     /**
      *  Факт удаления сущности.
@@ -79,12 +77,13 @@ interface HistoryAware : OVertex {
      *
      *  Надо вызывать до удаления сущности.
      */
-    fun toDeleteFact(context: HistoryContext) = toFact(context, EventKind.DELETE, emptySnapshot())
+    fun toDeleteFact(context: HistoryContext) = toFact(context, EventType.DELETE, emptySnapshot())
+
 
     /**
      * Аналогично delete
      */
-    fun toSoftDeleteFact(context: HistoryContext) = toFact(context, EventKind.SOFT_DELETE, emptySnapshot())
+    fun toSoftDeleteFact(context: HistoryContext) = toFact(context, EventType.SOFT_DELETE, emptySnapshot())
 
     /**
      * Факт обновления сущности.
@@ -94,5 +93,5 @@ interface HistoryAware : OVertex {
      * а по окончании изменения - вызвать toUpdateFact, передав сохраненное значение
      * в previous
      */
-    fun toUpdateFact(context: HistoryContext, previous: Snapshot) = toFact(context, EventKind.UPDATE, previous)
+    fun toUpdateFact(context: HistoryContext, previous: Snapshot) = toFact(context, EventType.UPDATE, previous)
 }

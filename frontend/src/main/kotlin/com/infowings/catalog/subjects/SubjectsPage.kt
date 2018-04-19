@@ -5,7 +5,7 @@ import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.dom.h1
+import react.dom.div
 
 class SubjectsPage : RComponent<RouteSuppliedProps, RState>() {
 
@@ -17,8 +17,8 @@ class SubjectsPage : RComponent<RouteSuppliedProps, RState>() {
             }
         }
 
-        child(SubjectApiMiddleware::class) {
-
+        div("subjects-page") {
+            child(SubjectApiMiddleware::class) {}
         }
     }
 }

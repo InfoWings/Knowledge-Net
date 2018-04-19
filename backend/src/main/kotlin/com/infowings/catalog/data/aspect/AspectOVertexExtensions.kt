@@ -1,12 +1,12 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
-import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ASPECT_EDGE
-import com.infowings.catalog.data.toSubject
+import com.infowings.catalog.data.subject.toSubject
+import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -86,6 +86,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
+                .filterNot {it.toSubjectVertex().deleted}
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
@@ -109,7 +110,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     }
 }
 
-class OnlyOneSubjectForAspectIsAllowed(name: String) : Throwable("Too many subject for aspect '$name'")
+class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
 
 class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = ASPECT_PROPERTY_CLASS

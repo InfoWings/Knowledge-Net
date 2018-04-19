@@ -405,6 +405,7 @@ class AspectServiceSavingTest {
         Assert.assertEquals("third subject is incorrect", aspect3.subject, null)
     }
 
+
     private fun prepareAspect(): Aspect {
         /*
          *  aspect
