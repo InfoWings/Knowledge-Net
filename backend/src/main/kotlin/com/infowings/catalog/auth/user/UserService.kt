@@ -3,8 +3,8 @@ package com.infowings.catalog.auth.user
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 class UserService(private val dao: UserDao) {
-    fun saveUser(user: User) =
-        dao.saveUser(user)
+    fun createUser(user: User) =
+        dao.createUser(user)
 
     fun findByUsername(username: String): User {
         val userVertex = findUserVertexByUsername(username)

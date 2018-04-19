@@ -43,7 +43,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init users: " + users.map { it.username })
         session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
         val userService = UserService(UserDao(database))
-        users.forEach { userService.saveUser(it) }
+        users.forEach { userService.createUser(it) }
         return@session this
     }
 
