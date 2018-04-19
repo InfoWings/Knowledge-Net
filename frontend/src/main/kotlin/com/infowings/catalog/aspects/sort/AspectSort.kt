@@ -62,7 +62,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
         state.orderBy.indexOfFirst { it.name == field }.let { if (it == -1) "" else " (${it + 1})" }
 
     private fun curAspectNameSortModeIcon(field: AspectSortField): String {
-        val directToIcon = mapOf(Direction.ASC to "sort-asc", Direction.DESC to "sort-desc")
+        val directToIcon = mapOf(Direction.ASC to "sort-alphabetical", Direction.DESC to "sort-alphabetical-desc")
         return state.orderBy.find { it.name == field }?.let { directToIcon[it.direction] ?: "double-caret-vertical" }
                 ?: "double-caret-vertical"
     }

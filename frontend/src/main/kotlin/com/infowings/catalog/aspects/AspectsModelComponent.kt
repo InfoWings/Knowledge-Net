@@ -4,10 +4,13 @@ import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.emptyAspectData
-import com.infowings.catalog.common.emptyAspectPropertyData
+import com.infowings.catalog.common.*
+import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.wrappers.blueprint.Intent
+import com.infowings.catalog.wrappers.blueprint.Position
+import com.infowings.catalog.wrappers.blueprint.Toast
+import com.infowings.catalog.wrappers.blueprint.Toaster
+import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -83,6 +86,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
+        errorMessageToDisplay = null
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -164,17 +168,31 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
 
     override suspend fun submitAspect() {
-        val selectedAspect = state.selectedAspect
+        try {
+            val selectedAspect = state.selectedAspect
 
-        val aspect = when (selectedAspect.id) {
-            null -> props.onAspectCreate(selectedAspect.normalize())
-            else -> props.onAspectUpdate(selectedAspect.normalize())
-        }
+            val aspect = when (selectedAspect.id) {
+                null -> props.onAspectCreate(selectedAspect.normalize())
+                else -> props.onAspectUpdate(selectedAspect.normalize())
+            }
 
-        setState {
-            this.selectedAspect = when (selectedAspect.properties.lastOrNull()) {
-                emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
-                else -> aspect
+            setState {
+                this.selectedAspect = when (selectedAspect.properties.lastOrNull()) {
+                    emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
+                    else -> aspect
+                }
+            }
+        } catch (badRequestException: AspectBadRequestException) {
+            if (badRequestException.exceptionInfo.code == BadRequestCode.INCORRECT_INPUT) {
+                setState {
+                    errorMessageToDisplay = badRequestException.exceptionInfo.message
+                }
+            } else {
+                throw badRequestException
+            }
+        } catch (serverException: ServerException) {
+            setState {
+                errorMessageToDisplay = "Oops, something went wrong, changes were not saved"
             }
         }
     }
@@ -267,6 +285,27 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
             unsafeChangesWindow(state.unsafeSelection) {
                 setState { unsafeSelection = false }
             }
+            Toaster {
+                attrs {
+                    position = Position.TOP_RIGHT
+                }
+                state.errorMessageToDisplay?.let {
+                    Toast {
+                        attrs {
+                            icon = "warning-sign"
+                            intent = Intent.DANGER
+                            message = it.asReactElement()
+                            onDismiss = {
+                                setState {
+                                    errorMessageToDisplay = null
+                                }
+                            }
+                            timeout = 9000
+                        }
+                    }
+                }
+            }
+
         }
     }
 
@@ -274,6 +313,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
+        var errorMessageToDisplay: String?
     }
 }
 
