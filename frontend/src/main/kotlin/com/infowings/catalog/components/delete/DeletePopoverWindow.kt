@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.editconsole.popup
+package com.infowings.catalog.components.delete
 
 import com.infowings.catalog.wrappers.blueprint.Button
 import kotlinext.js.require
@@ -7,7 +7,8 @@ import react.dom.div
 import react.dom.h5
 import react.dom.p
 
-class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RState>() {
+
+class DeletePopoverWindow : RComponent<DeletePopoverWindow.Props, RState>() {
 
     companion object {
         init {
@@ -16,20 +17,14 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
     }
 
     override fun RBuilder.render() {
-        div("remove-confirm-window") {
+        div("delete-popover") {
             h5 {
                 +"Confirm deletion"
             }
             p {
                 +"Are you sure you want to delete it?"
             }
-            div("remove-confirm-window--buttons") {
-                Button {
-                    attrs {
-                        className = "pt-small pt-popover-dismiss"
-                    }
-                    +"Cancel"
-                }
+            div("delete-popover--buttons") {
                 Button {
                     attrs {
                         onClick = {
@@ -38,6 +33,12 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
                         className = "pt-small pt-intent-danger pt-popover-dismiss"
                     }
                     +"Delete"
+                }
+                Button {
+                    attrs {
+                        className = "pt-small pt-popover-dismiss"
+                    }
+                    +"Cancel"
                 }
             }
         }
@@ -48,5 +49,5 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
     }
 }
 
-fun RBuilder.removeConfirmationWindow(block: RHandler<RemoveConfirmationWindow.Props>) =
-    child(RemoveConfirmationWindow::class, block)
+fun RBuilder.deletePopoverWindow(block: RHandler<DeletePopoverWindow.Props>) =
+    child(DeletePopoverWindow::class, block)

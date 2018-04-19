@@ -1,0 +1,25 @@
+.subjects-list {
+
+  max-width: 134rem;
+  margin: 0 auto;
+
+  &--subject-item {
+    display: flex;
+    align-items: center;
+
+    &:not(:last-child) {
+      margin-bottom: .5rem;
+    }
+  }
+
+  &--name {
+
+  }
+
+  &--description {
+    height: 1.6rem;
+    width: 1.6rem;
+    margin: 0 .5rem 0 1rem;
+  }
+
+}

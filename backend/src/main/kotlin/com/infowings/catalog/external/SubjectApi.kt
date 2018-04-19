@@ -1,10 +1,13 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
-import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
+import kotlinx.serialization.json.JSON
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -45,6 +48,59 @@ class SubjectApi(val subjectService: SubjectService) {
         logger.debug("Forced remove subject request: ${subjectData.id} by $user")
         subjectService.remove(subjectData, user, true)
     }
+
+    @ExceptionHandler(SubjectException::class)
+    fun handleSubjectException(exception: SubjectException): ResponseEntity<String> {
+        logger.error(exception.toString(), exception)
+        return when (exception) {
+            SubjectIdIsNull -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Subject Id is null"
+                        )
+                    )
+                )
+            is SubjectWithNameAlreadyExist -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Subject with name ${exception.subject.name} is already exist"
+                        )
+                    )
+                )
+            is SubjectNotFoundException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Supplied subject with id ${exception.id} has not been found"
+                        )
+                    )
+                )
+            is SubjectConcurrentModificationException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            exception.message
+                        )
+                    )
+                )
+            is SubjectIsLinkedByAspect -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.NEED_CONFIRMATION,
+                            "Subject ${exception.subject.name} is linked by aspect"
+                        )
+                    )
+                )
+        }
+    }
+
 }
 
 private val logger = loggerFor<SubjectApi>()
