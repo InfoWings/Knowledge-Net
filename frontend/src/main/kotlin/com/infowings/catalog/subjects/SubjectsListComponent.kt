@@ -1,5 +1,6 @@
 package com.infowings.catalog.subjects
 
+import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.emptySubjectData
 import com.infowings.catalog.components.delete.deleteButtonComponent
@@ -7,9 +8,12 @@ import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.utils.BadRequestException
-import com.infowings.catalog.wrappers.blueprint.EditableText
+import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.wrappers.blueprint.*
+import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
+import kotlinx.serialization.json.JSON
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -40,9 +44,21 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     }
 
     private fun submitSubject(subjectData: SubjectData) {
-        when (subjectData.id) {
-            null -> props.onSubjectsCreate(subjectData)
-            else -> props.onSubjectUpdate(subjectData)
+        launch {
+            try {
+                when (subjectData.id) {
+                    null -> props.onSubjectsCreate(subjectData)
+                    else -> props.onSubjectUpdate(subjectData)
+                }
+            } catch (exception: BadRequestException) {
+                setState {
+                    badRequestErrorMessage = JSON.parse<BadRequest>(exception.message).message
+                }
+            } catch (exception: ServerException) {
+                setState {
+                    badRequestErrorMessage = "Oops, something went wrong, changes weren't saved"
+                }
+            }
         }
     }
 
@@ -123,6 +139,28 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             }
         }
+
+        Toaster {
+            attrs {
+                position = Position.TOP_RIGHT
+            }
+            state.badRequestErrorMessage?.let {
+                Toast {
+                    attrs {
+                        icon = "warning-sign"
+                        intent = Intent.DANGER
+                        message = it.asReactElement()
+                        onDismiss = {
+                            setState {
+                                badRequestErrorMessage = null
+                            }
+                        }
+                        timeout = 7000
+                    }
+                }
+            }
+        }
+
         forceRemoveConfirmWindow {
             attrs {
                 isOpen = state.linkedEntitiesSubject != null
@@ -136,5 +174,6 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     interface State : RState {
         var filterText: String
         var linkedEntitiesSubject: SubjectData?
+        var badRequestErrorMessage: String?
     }
 }

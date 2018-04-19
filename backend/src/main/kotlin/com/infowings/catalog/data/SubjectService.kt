@@ -77,10 +77,12 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
 
 }
 
-object SubjectIdIsNull : Exception()
-class SubjectWithNameAlreadyExist(val subject: Subject) : Exception("Subject already exist: ${subject.name}")
-class SubjectNotFoundException(val id: String) : Exception("Subject with id $id not found")
+sealed class SubjectException(override val message: String? = null) : Exception(message)
+
+object SubjectIdIsNull : SubjectException()
+class SubjectWithNameAlreadyExist(val subject: Subject) : SubjectException("Subject already exist: ${subject.name}")
+class SubjectNotFoundException(val id: String) : SubjectException("Subject with id $id not found")
 class SubjectConcurrentModificationException(expected: Int, real: Int) :
-    Throwable("Found version $real instead of $expected")
+    SubjectException("Found version $real instead of $expected")
 class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
-    Throwable("Subject ${subject.id} is linked by ${aspect.id}")
+    SubjectException("Subject ${subject.id} is linked by ${aspect.id}")

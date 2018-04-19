@@ -33,8 +33,8 @@ suspend fun deleteSubject(body: SubjectData, force: Boolean) {
 interface SubjectApiReceiverProps : RProps {
     var data: Array<SubjectData>
     var loading: Boolean
-    var onSubjectUpdate: (sd: SubjectData) -> Unit
-    var onSubjectsCreate: (sd: SubjectData) -> Unit
+    var onSubjectUpdate: suspend (SubjectData) -> Unit
+    var onSubjectsCreate: suspend (SubjectData) -> Unit
     var onSubjectDelete: suspend (SubjectData, force: Boolean) -> Unit
     var onFetchData: (filterParam: Map<String, String>) -> Unit
 }
@@ -66,30 +66,25 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         }
     }
 
-    private fun handleCreateSubject(subjectData: SubjectData) {
+    private suspend fun handleCreateSubject(subjectData: SubjectData) {
         setState {
             loading = true
         }
-        launch {
-            val res = createSubject(subjectData)
-            setState {
-                data[res.id] = res
-                loading = false
-            }
-
+        val res = createSubject(subjectData)
+        setState {
+            data[res.id] = res
+            loading = false
         }
     }
 
-    private fun handleUpdateSubject(subjectData: SubjectData) {
+    private suspend fun handleUpdateSubject(subjectData: SubjectData) {
         setState {
             loading = true
         }
-        launch {
-            val res = updateSubject(subjectData)
-            setState {
-                data[res.id] = res
-                loading = false
-            }
+        val res = updateSubject(subjectData)
+        setState {
+            data[res.id] = res
+            loading = false
         }
     }
 
@@ -124,8 +119,8 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
             attrs {
                 data = state.data.values.toTypedArray()
                 loading = state.loading
-                onSubjectUpdate = ::handleUpdateSubject
-                onSubjectsCreate = ::handleCreateSubject
+                onSubjectUpdate = { handleUpdateSubject(it) }
+                onSubjectsCreate = { handleCreateSubject(it) }
                 onSubjectDelete = { subjectData, force -> handleDeleteSubject(subjectData, force) }
                 onFetchData = ::handleFetchData
             }
