@@ -14,9 +14,9 @@ class SubjectApi(val subjectService: SubjectService) {
 
     @PostMapping("create")
     fun createSubject(@RequestBody subjectData: SubjectData, principal: Principal): SubjectData {
-        val user = principal.name
-        logger.debug("New subject create request: $subjectData by $user")
-        return subjectService.createSubject(subjectData, user).toSubjectData()
+        val username = principal.name
+        logger.debug("New subject create request: $subjectData by $username")
+        return subjectService.createSubject(subjectData, username).toSubjectData()
     }
 
     @GetMapping("all")
@@ -27,23 +27,23 @@ class SubjectApi(val subjectService: SubjectService) {
 
     @PostMapping("update")
     fun updateSubject(@RequestBody subjectData: SubjectData, principal: Principal): SubjectData {
-        val user = principal.name
-        logger.debug("Update subject create request: $subjectData by $user")
-        return subjectService.updateSubject(subjectData, user).toSubjectData()
+        val username = principal.name
+        logger.debug("Update subject create request: $subjectData by $username")
+        return subjectService.updateSubject(subjectData, username).toSubjectData()
     }
 
     @PostMapping("remove")
     fun removeAspect(@RequestBody subjectData: SubjectData, principal: Principal) {
-        val user = principal.name
-        logger.debug("Remove subject request: ${subjectData.id} by $user")
-        subjectService.remove(subjectData, user)
+        val username = principal.name
+        logger.debug("Remove subject request: ${subjectData.id} by $username")
+        subjectService.remove(subjectData, username)
     }
 
     @PostMapping("forceRemove")
     fun forceRemoveAspect(@RequestBody subjectData: SubjectData, principal: Principal) {
-        val user = principal.name
-        logger.debug("Forced remove subject request: ${subjectData.id} by $user")
-        subjectService.remove(subjectData, user, true)
+        val username = principal.name
+        logger.debug("Forced remove subject request: ${subjectData.id} by $username")
+        subjectService.remove(subjectData, username, true)
     }
 }
 

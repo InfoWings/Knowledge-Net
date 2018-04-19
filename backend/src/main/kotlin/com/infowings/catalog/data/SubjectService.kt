@@ -14,17 +14,17 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
 
     fun findById(id: String): SubjectVertex? = dao.findById(id)
 
-    fun createSubject(sd: SubjectData, user: String): Subject {
+    fun createSubject(sd: SubjectData, username: String): Subject {
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
-            history.storeFact(vertex.toCreateFact(user))
+            history.storeFact(vertex.toCreateFact(username))
             return@transaction vertex
         }
 
         return vertex.toSubject()
     }
 
-    fun updateSubject(subjectData: SubjectData, user: String): Subject {
+    fun updateSubject(subjectData: SubjectData, username: String): Subject {
         val id = subjectData.id ?: throw SubjectIdIsNull
 
         val resultVertex = transaction(db) {
@@ -37,7 +37,7 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
 
             val before = vertex.currentSnapshot()
             val res = dao.updateSubjectVertex(vertex, subjectData)
-            history.storeFact(vertex.toUpdateFact(user, before))
+            history.storeFact(vertex.toUpdateFact(username, before))
 
             return@transaction res
         }
@@ -45,7 +45,7 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
         return resultVertex.toSubject()
     }
 
-    fun remove(subjectData: SubjectData, user: String, force: Boolean = false) {
+    fun remove(subjectData: SubjectData, username: String, force: Boolean = false) {
         val id = subjectData.id ?: throw SubjectIdIsNull
 
         transaction(db) {
@@ -60,7 +60,7 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
 
             when {
                 linkedByAspects.isNotEmpty() && force -> {
-                    history.storeFact(vertex.toSoftDeleteFact(user))
+                    history.storeFact(vertex.toSoftDeleteFact(username))
                     dao.softRemove(vertex)
                 }
                 linkedByAspects.isNotEmpty() -> {
@@ -68,7 +68,7 @@ class SubjectService(private val db: OrientDatabase, private val dao: SubjectDao
                 }
 
                 else -> {
-                    history.storeFact(vertex.toDeleteFact(user))
+                    history.storeFact(vertex.toDeleteFact(username))
                     dao.remove(vertex)
                 }
             }
