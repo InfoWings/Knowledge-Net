@@ -15,7 +15,7 @@ data class Delta(
 
 @Serializable
 data class HistoryData<T>(
-    var user: String,
+    var username: String,
     var eventType: EventType,
     var entityName: String,
     var info: String?,

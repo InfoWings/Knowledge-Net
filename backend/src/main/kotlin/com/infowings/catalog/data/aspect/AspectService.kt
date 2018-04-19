@@ -21,10 +21,10 @@ class AspectService(
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService)
 
-    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
+    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, username: String): AspectVertex {
         val (deletedProperties, updatedProperties) = aspectData.properties.partition { it.deleted }
-        deletedProperties.forEach { remove(it, user) }
-        aspectVertex.saveAspectProperties(updatedProperties, user)
+        deletedProperties.forEach { remove(it, username) }
+        aspectVertex.saveAspectProperties(updatedProperties, username)
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 
@@ -36,13 +36,13 @@ class AspectService(
     private fun updateFinish(
         aspectVertex: AspectVertex,
         aspectData: AspectData,
-        user: String
+        username: String
     ): AspectVertex {
         val baseSnapshot = aspectVertex.currentSnapshot()
 
-        val res = savePlain(aspectVertex, aspectData, user)
+        val res = savePlain(aspectVertex, aspectData, username)
 
-        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot))
+        historyService.storeFact(aspectVertex.toUpdateFact(username, baseSnapshot))
 
         return res
     }
@@ -55,10 +55,10 @@ class AspectService(
     private fun createFinish(
         aspectVertex: AspectVertex,
         aspectData: AspectData,
-        user: String
+        username: String
     ): AspectVertex {
-        val res = savePlain(aspectVertex, aspectData, user)
-        historyService.storeFact(aspectVertex.toCreateFact(user))
+        val res = savePlain(aspectVertex, aspectData, username)
+        historyService.storeFact(aspectVertex.toCreateFact(username))
         return res
     }
 
@@ -72,7 +72,7 @@ class AspectService(
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
-    fun save(aspectData: AspectData, user: String): Aspect {
+    fun save(aspectData: AspectData, username: String): Aspect {
         val save: AspectVertex = transaction(db) {
 
             val aspectVertex = aspectData
@@ -82,7 +82,7 @@ class AspectService(
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(aspectVertex, aspectData, user)
+            return@transaction finishMethod(aspectVertex, aspectData, username)
         }
 
         logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
@@ -100,7 +100,7 @@ class AspectService(
     }
 
 
-    fun remove(aspectData: AspectData, user: String, force: Boolean = false) {
+    fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
         transaction(db) {
             val aspectId = aspectData.id ?: "null"
 
@@ -118,16 +118,16 @@ class AspectService(
             val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
                 linked && force -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user, force)
-                    historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, username, force)
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(username))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked -> {
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
                 else -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user)
-                    historyService.storeFact(aspectVertex.toDeleteFact(user))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, username)
+                    historyService.storeFact(aspectVertex.toDeleteFact(username))
                     aspectDaoService.remove(aspectVertex)
                 }
             }
@@ -189,8 +189,8 @@ class AspectService(
 
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
-    private fun remove(property: AspectPropertyData, user: String) = transaction(db) {
-        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(user))
+    private fun remove(property: AspectPropertyData, username: String) = transaction(db) {
+        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(username))
 
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
@@ -281,22 +281,22 @@ class AspectService(
     private fun AspectVertex.savePropertyWithHistory(
         vertex: AspectPropertyVertex,
         data: AspectPropertyData,
-        user: String
+        username: String
     ): HistoryFact {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            vertex.toCreateFact(user)
+            vertex.toCreateFact(username)
         } else {
             val previous = vertex.currentSnapshot()
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            vertex.toUpdateFact(user, previous)
+            vertex.toUpdateFact(username, previous)
         }
     }
 
-    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, user: String) {
+    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, username: String) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
-            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, user))
+            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, username))
         }
     }
 }
