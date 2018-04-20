@@ -193,7 +193,7 @@ class AspectValidator(
 
     private fun AspectPropertyData.isRelatedAspectRemoved(): Boolean {
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
-        return relatedAspect?.deleted != null && relatedAspect.deleted
+        return relatedAspect != null && relatedAspect.deleted
     }
 
     // todo: Complete this method in future
