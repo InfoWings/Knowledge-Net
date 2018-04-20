@@ -1,10 +1,7 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.Metre
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.core.Is
@@ -34,7 +31,7 @@ class ReferenceBookServiceTest {
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null))
+        aspect = aspectService.save(AspectData("", "aspect", null, null, BaseType.Text.name))
         referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, userName)
     }
 
@@ -59,9 +56,9 @@ class ReferenceBookServiceTest {
 
     @Test
     fun getAllReferenceBooksTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name))
         val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, userName)
-        val thirdAspect = aspectService.save(AspectData("", "third", Metre.name, null, null))
+        val thirdAspect = aspectService.save(AspectData("", "third", null, null, BaseType.Text.name))
         val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, userName)
         referenceBookService.removeReferenceBook(forDeletingBook, userName, force = true)
         assertEquals(referenceBookService.getAllReferenceBooks().toSet(), setOf(anotherBook, referenceBook))
@@ -246,7 +243,7 @@ class ReferenceBookServiceTest {
 
     @Test
     fun removeBookTest() {
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null))
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name))
         val anotherAspectId = anotherAspect.id
         var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId, userName)
         referenceBookService.addReferenceBookItem(

@@ -1,10 +1,7 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.Kilometre
-import com.infowings.catalog.common.Metre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -82,6 +79,12 @@ class AspectServiceDeletingTest {
             domain = null, baseType = null, properties = properties, version = 0
         )
 
+    private fun initialAspectDataForRefBook(name: String, properties: List<AspectPropertyData> = emptyList()) =
+        AspectData(
+            id = "", name = name, measure = null,
+            domain = null, baseType = BaseType.Text.name, properties = properties, version = 0
+        )
+
     @get:Rule
     val thrown = ExpectedException.none()
 
@@ -156,7 +159,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithRefBook() {
-        var aspect = aspectService.save(initialAspectData("aspect"))
+        var aspect = aspectService.save(initialAspectDataForRefBook("aspect"))
         referenceBookService.createReferenceBook("book", aspect.id, "")
 
         aspect = aspectService.findById(aspect.id)

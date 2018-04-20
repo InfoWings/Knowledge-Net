@@ -61,14 +61,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
     val referenceBook: OVertex?
-        get() {
-            loggerFor<AspectVertex>().info("1 edges out: " + vertex.getEdges(ODirection.OUT).toList())
-            loggerFor<AspectVertex>().info("1 edges in: " + vertex.getEdges(ODirection.IN).toList())
-            loggerFor<AspectVertex>().info("2 edges out: " + vertex.getEdges(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).toList())
-            loggerFor<AspectVertex>().info("2 edges in: " + vertex.getEdges(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE).toList())
-
-            return vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()
-        }
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()
 
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]

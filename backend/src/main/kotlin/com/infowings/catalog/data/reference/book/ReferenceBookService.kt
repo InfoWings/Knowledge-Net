@@ -1,8 +1,10 @@
 package com.infowings.catalog.data.reference.book
 
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.loggerFor
@@ -72,9 +74,12 @@ class ReferenceBookService(
         rootVertex.aspectId = aspectId
 
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+        // TODO: get aspect vertex via AspectService
         val aspectVertex = dao.getAspectVertex(aspectId) ?: throw AspectDoesNotExist(aspectId)
         aspectVertex.validateForRemoved()
-        logger.info("Going to add edge: ${aspectVertex.name} -> ${referenceBookVertex}")
+        if (aspectVertex.baseType != BaseType.Text.name) {
+            throw RefBookIncorrectAspectType(aspectVertex.id, aspectVertex.baseType, BaseType.Text.name)
+        }
         aspectVertex.addEdge(referenceBookVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
         aspectVertex.save<OVertex>()
 
@@ -343,3 +348,6 @@ class RefBookItemConcurrentModificationException(id: String, message: String) :
 
 class RefBookConcurrentModificationException(aspectId: String, message: String) :
     ReferenceBookException("aspectId: $aspectId, message: $message")
+
+class RefBookIncorrectAspectType(aspectId: String, type: String?, expected: String) :
+    ReferenceBookException("Bad type of aspect $aspectId: $type. Expected: $expected")
