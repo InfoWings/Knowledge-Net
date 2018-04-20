@@ -125,7 +125,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     if (selectedAspectId == null) emptyAspectData else props.aspectContext[selectedAspectId]!!
             selectedAspectPropertyIndex = when (selectedIndex) {
                 null -> null
-                else -> if (prevSelectedAspect.properties[selectedIndex] == emptyAspectPropertyData) null else selectedIndex
+                else -> if (prevSelectedAspect.properties[selectedIndex].id == "") null else selectedIndex
             }
         }
     }
