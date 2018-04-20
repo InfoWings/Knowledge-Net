@@ -57,31 +57,35 @@ class HistoryService(
             .toSet()
     }
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db) {
-        val historyEventVertex = fact.newHistoryEventVertex()
-
-        val elementVertices = fact.payload.data.map {
-            return@map historyDao.newHistoryElementVertex().apply {
-                key = it.key
-                stringValue = it.value
-            }
-        }
-        elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
-
-        val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
-        addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
-
-        val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
-        dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
-
+    fun storeFact(fact: HistoryFact): HistoryEventVertex {
+        // Should be found before the transaction start as it can lead to bug in OrientDB
         val userVertex = userService.findUserVertexByUsername(fact.event.username)
-        userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
 
-        fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
+        return transaction(db) {
+            val historyEventVertex = fact.newHistoryEventVertex()
 
-        db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
+            val elementVertices = fact.payload.data.map {
+                return@map historyDao.newHistoryElementVertex().apply {
+                    key = it.key
+                    stringValue = it.value
+                }
+            }
+            elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
 
-        return@transaction historyEventVertex
+            val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
+            addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
+
+            val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
+            dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
+
+            userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
+
+            fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
+
+            db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
+
+            return@transaction historyEventVertex
+        }
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
