@@ -26,8 +26,8 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
     @PostMapping("signIn")
     fun signIn(@RequestBody user: UserDto): ResponseEntity<*> {
         try {
-            val user = userService.findByUsername(user.username)
-            if (user.password == user.password) {
+            val foundUser = userService.findByUsername(user.username)
+            if (user.password == foundUser.password) {
                 return ResponseEntity(jwtService.createJwtToken(user.username), HttpStatus.OK)
             }
         } catch (ignored: UsernameNotFoundException) {
