@@ -74,6 +74,15 @@ class AspectApi(val aspectService: AspectService) {
                         )
                     )
                 )
+            is AspectDoesNotExist -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Supplied aspect does not exist or it is deleted"
+                        )
+                    )
+                )
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                 .body(
                     JSON.Companion.stringify(

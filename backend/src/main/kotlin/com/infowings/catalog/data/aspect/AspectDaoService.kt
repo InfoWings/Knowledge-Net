@@ -90,7 +90,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
-        val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
+        val cardinality = try {
+            AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
+        } catch (exception: IllegalArgumentException) {
+            throw AspectInconsistentStateException("Property has illegal cardinality value")
+        }
 
         aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
