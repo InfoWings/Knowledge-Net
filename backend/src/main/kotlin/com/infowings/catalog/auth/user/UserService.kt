@@ -11,17 +11,20 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
         userVertex.username = user.username
         userVertex.password = user.password
         userVertex.role = user.role.name
+        userVertex.blocked = false
         return@transaction dao.saveUserVertex(userVertex)
     }.toUser()
 
-    fun findByUsername(username: String): User {
-        val userVertex = findUserVertexByUsername(username)
-        return userVertex.toUser()
-    }
+    fun findByUsername(username: String) = findUserVertexByUsername(username).toUser()
 
     fun findUserVertexByUsername(username: String) =
         dao.findByUsername(username) ?: throw UsernameNotFoundException(username)
 
     fun getAllUsers() = dao.getAllUserVertices().map { it.toUser() }.toSet()
 
+    fun blockUser(username: String): User = transaction(db) {
+        val userVertex = findUserVertexByUsername(username)
+        userVertex.blocked = true
+        return@transaction dao.saveUserVertex(userVertex)
+    }.toUser()
 }

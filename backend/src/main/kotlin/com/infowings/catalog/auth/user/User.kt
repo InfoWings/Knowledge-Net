@@ -18,9 +18,10 @@ object Users {
 
 @Serializable
 data class User(
-    var username: String,
-    var password: String,
-    var role: UserRole
+    val username: String,
+    val password: String,
+    val role: UserRole,
+    val blocked: Boolean = false
 )
 
 @ConfigurationProperties("")

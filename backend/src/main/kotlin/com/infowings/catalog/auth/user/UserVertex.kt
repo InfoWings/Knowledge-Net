@@ -28,5 +28,11 @@ data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
             this["role"] = value
         }
 
-    fun toUser(): User = User(username, password, UserRole.valueOf(role))
+    var blocked: Boolean
+        get() = this["blocked"]
+        set(value) {
+            this["blocked"] = value
+        }
+
+    fun toUser(): User = User(username, password, UserRole.valueOf(role), blocked)
 }
