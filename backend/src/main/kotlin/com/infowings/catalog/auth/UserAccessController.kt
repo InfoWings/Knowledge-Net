@@ -24,11 +24,11 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
     lateinit var REFRESH_HEADER: String
 
     @PostMapping("signIn")
-    fun signIn(@RequestBody user: UserDto): ResponseEntity<*> {
+    fun signIn(@RequestBody userDto: UserDto): ResponseEntity<*> {
         try {
-            val foundUser = userService.findByUsername(user.username)
-            if (user.password == foundUser.password) {
-                return ResponseEntity(jwtService.createJwtToken(user.username), HttpStatus.OK)
+            val user = userService.findByUsername(userDto.username)
+            if (userDto.password == user.password) {
+                return ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
             }
         } catch (ignored: UsernameNotFoundException) {
         }
