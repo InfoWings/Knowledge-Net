@@ -185,8 +185,10 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
         }
     }
 
-    fun getVertexById(id: String): OVertex? =
-        query(selectById, ORecordId(id)) { it.map { it.toVertexOrNull() }.firstOrNull() }
+    fun getVertexById(id: String): OVertex? = session(database = this) {
+        return@session it.getRecord<OVertex>(ORecordId(id))
+    }
+
 
     operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
