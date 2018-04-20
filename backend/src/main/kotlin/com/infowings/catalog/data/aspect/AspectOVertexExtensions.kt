@@ -5,9 +5,12 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
+import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -49,12 +52,23 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             version,
             subject?.toSubjectData(),
             deleted,
-            description
+            description,
+            referenceBook?.let {it.toReferenceBookVertex().name }
         )
     }
 
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
+
+    val referenceBook: OVertex?
+        get() {
+            loggerFor<AspectVertex>().info("1 edges out: " + vertex.getEdges(ODirection.OUT).toList())
+            loggerFor<AspectVertex>().info("1 edges in: " + vertex.getEdges(ODirection.IN).toList())
+            loggerFor<AspectVertex>().info("2 edges out: " + vertex.getEdges(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).toList())
+            loggerFor<AspectVertex>().info("2 edges in: " + vertex.getEdges(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE).toList())
+
+            return vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()
+        }
 
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]

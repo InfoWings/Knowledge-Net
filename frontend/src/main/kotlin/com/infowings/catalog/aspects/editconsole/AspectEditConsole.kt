@@ -132,7 +132,11 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectDomainInput {
                     attrs {
-                        value = props.aspect.domain
+                        value = props.aspect.refBookName ?: props.aspect.domain
+                        // показываем имя справочника, если есть
+                        // возможно, надо как-то handleAspectDomainChanged менять под такой случай, но у нас это поле
+                        // вроде бы всегда disabled. А если оно может быть не disabled, то надо иметь
+                        // понятную интерпретацию нововведенного значения
                         onChange = ::handleAspectDomainChanged
                     }
                 }

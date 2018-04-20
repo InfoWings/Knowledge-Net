@@ -44,7 +44,9 @@ class AspectApi(val aspectService: AspectService) {
         orderFields.map { AspectSortField.valueOf(it) }.forEach {
             orderBy += AspectOrderBy(it, directIterator.next())
         }
-        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
+        val res = aspectService.getAspects(orderBy).toAspectData()
+        logger.info("res: " + res)
+        return AspectsList(res)
     }
 
     @PostMapping("remove")

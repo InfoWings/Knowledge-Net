@@ -4,6 +4,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
@@ -260,7 +261,8 @@ class AspectService(
             version,
             subject,
             deleted,
-            description
+            description,
+            referenceBook?.let {it.toReferenceBookVertex().name}
         )
     }
 

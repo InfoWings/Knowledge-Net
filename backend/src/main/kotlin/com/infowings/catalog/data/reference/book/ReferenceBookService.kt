@@ -74,6 +74,7 @@ class ReferenceBookService(
         referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
         val aspectVertex = dao.getAspectVertex(aspectId) ?: throw AspectDoesNotExist(aspectId)
         aspectVertex.validateForRemoved()
+        logger.info("Going to add edge: ${aspectVertex.name} -> ${referenceBookVertex}")
         aspectVertex.addEdge(referenceBookVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
         aspectVertex.save<OVertex>()
 
