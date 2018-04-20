@@ -52,7 +52,7 @@ class AspectValidator(
     fun checkAspectDataConsistent(aspectData: AspectData) {
 
         // check properties not link to deleted aspects
-        aspectData.properties.filterNot { it.deleted }.forEach { it.checkForRemoved() }
+        aspectData.properties.filterNot { it.deleted }.forEach { it.checkRelatedAspectChangedToRemoved() }
 
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
@@ -178,11 +178,22 @@ class AspectValidator(
             }
         }
 
-    private fun AspectPropertyData.checkForRemoved() = also {
-        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
-        if (relatedAspect?.deleted != null && relatedAspect.deleted) {
-            throw AspectDoesNotExist(aspectId)
+    private fun AspectPropertyData.checkRelatedAspectChangedToRemoved() = also {
+        if (id == "") {
+            if (isRelatedAspectRemoved()) {
+                throw AspectDoesNotExist(aspectId)
+            }
+        } else {
+            val existingProperty = aspectDaoService.getAspectPropertyVertex(id) ?: throw AspectPropertyDoesNotExist(id)
+            if (existingProperty.aspect != aspectId && isRelatedAspectRemoved()) {
+                throw AspectDoesNotExist(aspectId)
+            }
         }
+    }
+
+    private fun AspectPropertyData.isRelatedAspectRemoved(): Boolean {
+        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
+        return relatedAspect?.deleted != null && relatedAspect.deleted
     }
 
     // todo: Complete this method in future
