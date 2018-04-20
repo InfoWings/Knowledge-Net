@@ -128,6 +128,7 @@ class AspectService(
             when {
                 aspectVertex.isLinkedBy() && force -> {
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked && force -> {
                     if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.user, force)

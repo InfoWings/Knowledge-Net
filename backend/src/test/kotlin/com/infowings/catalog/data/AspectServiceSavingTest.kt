@@ -323,8 +323,9 @@ class AspectServiceSavingTest {
         val aspect1 = aspectService.save(aspectData1)
         val aspect2 = aspectService.save(aspectData2)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject, null)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject?.toSubjectData(), aspectData2.subject)
+        Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
+        Assert.assertEquals("second subject is incorrect", aspectData2.subject?.copy(version = 2),
+            aspect2.subject?.toSubjectData())
     }
 
     @Test
@@ -336,8 +337,9 @@ class AspectServiceSavingTest {
         val aspect1 = aspectService.save(aspectData1)
         val aspect2 = aspectService.save(aspectData2)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject?.toSubjectData(), aspectData1.subject)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject, null)
+        Assert.assertEquals("first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData())
+        Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
     }
 
     @Test
@@ -350,8 +352,10 @@ class AspectServiceSavingTest {
         val aspect1 = aspectService.save(aspectData1)
         val aspect2 = aspectService.save(aspectData2)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject?.toSubjectData(), aspectData1.subject)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject?.toSubjectData(), aspectData2.subject)
+        Assert.assertEquals("first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData())
+        Assert.assertEquals("second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData())
     }
 
     @Test
@@ -366,9 +370,11 @@ class AspectServiceSavingTest {
         val aspect2 = aspectService.save(aspectData2)
         val aspect3 = aspectService.save(aspectData3)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject, null)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject?.toSubjectData(), aspectData2.subject)
-        Assert.assertEquals("third subject is incorrect", aspect3.subject?.toSubjectData(), aspectData3.subject)
+        Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
+        Assert.assertEquals("second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData())
+        Assert.assertEquals("third subject is incorrect",
+            aspectData3.subject?.copy(version = 2), aspect3.subject?.toSubjectData())
     }
 
     @Test
@@ -383,9 +389,11 @@ class AspectServiceSavingTest {
         val aspect2 = aspectService.save(aspectData2)
         val aspect3 = aspectService.save(aspectData3)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject?.toSubjectData(), aspectData1.subject)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject, null)
-        Assert.assertEquals("third subject is incorrect", aspect3.subject?.toSubjectData(), aspectData3.subject)
+        Assert.assertEquals("first subject is incorrect", aspectData1.subject?.copy(version = 2),
+            aspect1.subject?.toSubjectData())
+        Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
+        Assert.assertEquals("third subject is incorrect", aspectData3.subject?.copy(version = 2),
+            aspect3.subject?.toSubjectData())
     }
 
     @Test
@@ -400,9 +408,11 @@ class AspectServiceSavingTest {
         val aspect2 = aspectService.save(aspectData2)
         val aspect3 = aspectService.save(aspectData3)
 
-        Assert.assertEquals("first subject is incorrect", aspect1.subject?.toSubjectData(), aspectData1.subject)
-        Assert.assertEquals("second subject is incorrect", aspect2.subject?.toSubjectData(), aspectData2.subject)
-        Assert.assertEquals("third subject is incorrect", aspect3.subject, null)
+        Assert.assertEquals("first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData())
+        Assert.assertEquals("second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData())
+        Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
     }
 
 
