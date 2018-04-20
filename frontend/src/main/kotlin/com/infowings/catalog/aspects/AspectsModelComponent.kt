@@ -168,7 +168,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
 
     override suspend fun submitAspect() {
-        try {
+        tryMakeApiCall {
             val selectedAspect = state.selectedAspect
 
             val aspect = when (selectedAspect.id) {
@@ -182,53 +182,61 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     else -> aspect
                 }
             }
-        } catch (badRequestException: AspectBadRequestException) {
-            if (badRequestException.exceptionInfo.code == BadRequestCode.INCORRECT_INPUT) {
-                setState {
-                    badRequestException.exceptionInfo.message?.let {
-                        errorMessages += it
-                    }
-                }
-            } else {
-                throw badRequestException
-            }
-        } catch (serverException: ServerException) {
-            setState {
-                errorMessages += "Oops, something went wrong, changes were not saved"
-            }
         }
     }
 
     override suspend fun deleteAspect(force: Boolean) {
+        tryMakeApiCall {
+            val aspectId = state.selectedAspect.id
 
-        val aspectId = state.selectedAspect.id
-
-        if (!aspectId.isNullOrEmpty()) {
-            props.onAspectDelete(props.aspectContext[aspectId] ?: error("Incorrect aspect state"), force)
-        }
-        setState {
-            selectedAspect = emptyAspectData
-            selectedAspectPropertyIndex = null
+            if (!aspectId.isNullOrEmpty()) {
+                props.onAspectDelete(props.aspectContext[aspectId] ?: error("Incorrect aspect state"), force)
+            }
+            setState {
+                selectedAspect = emptyAspectData
+                selectedAspectPropertyIndex = null
+            }
         }
     }
 
     override suspend fun deleteAspectProperty() {
-        val selectedPropertyIndex =
-            state.selectedAspectPropertyIndex ?: error("Aspect Property should be selected in order to be deleted")
-        val deletedAspectProperty = state.selectedAspect.properties[selectedPropertyIndex].copy(deleted = true)
+        tryMakeApiCall {
+            val selectedPropertyIndex =
+                state.selectedAspectPropertyIndex ?: error("Aspect Property should be selected in order to be deleted")
+            val deletedAspectProperty = state.selectedAspect.properties[selectedPropertyIndex].copy(deleted = true)
 
-        val updatedAspect = props.onAspectUpdate(
-            state.selectedAspect.updatePropertyAtIndex(
-                selectedPropertyIndex,
-                deletedAspectProperty
+            val updatedAspect = props.onAspectUpdate(
+                state.selectedAspect.updatePropertyAtIndex(
+                    selectedPropertyIndex,
+                    deletedAspectProperty
+                )
             )
-        )
 
-        setState {
-            selectedAspect = updatedAspect
-            selectedAspectPropertyIndex = null
+            setState {
+                selectedAspect = updatedAspect
+                selectedAspectPropertyIndex = null
+            }
         }
+    }
 
+    private inline fun tryMakeApiCall(block: () -> Unit) {
+        try {
+            block()
+        } catch (exception: AspectBadRequestException) {
+            if (exception.exceptionInfo.code == BadRequestCode.INCORRECT_INPUT) {
+                setState {
+                    exception.exceptionInfo.message?.let {
+                        errorMessages += it
+                    }
+                }
+            } else {
+                throw exception
+            }
+        } catch (exception: ServerException) {
+            setState {
+                errorMessages += "Oops, something went wrong, changes were not saved"
+            }
+        }
     }
 
     private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
