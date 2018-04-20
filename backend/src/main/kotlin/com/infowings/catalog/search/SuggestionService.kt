@@ -10,6 +10,7 @@ import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
+import notDeletedSql
 
 /**
  * Сервис поиска в OrientDB
@@ -108,7 +109,10 @@ class SuggestionService(
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam?
     ): Sequence<OVertex> {
-        val q = "SELECT FROM $SUBJECT_CLASS WHERE SEARCH_INDEX(${luceneIdx(SUBJECT_CLASS, ATTR_NAME)}, :$lq) = true"
+        val q = "SELECT FROM $SUBJECT_CLASS WHERE SEARCH_INDEX(${luceneIdx(
+            SUBJECT_CLASS,
+            ATTR_NAME
+        )}, :$lq) = true AND $notDeletedSql"
         val aspectFilter = if (subjectParam?.aspectText.isNullOrBlank()) {
             ""
         } else {

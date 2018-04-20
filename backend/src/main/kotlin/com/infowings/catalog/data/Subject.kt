@@ -7,12 +7,14 @@ data class Subject(
     val id: String,
     val name: String,
     val version: Int,
-    val description: String?
+    val description: String?,
+    val deleted: Boolean
 )
 
 fun Subject.toSubjectData() = SubjectData(
     id = this.id,
     name = this.name,
     version = this.version,
-    description = this.description
+    description = this.description,
+    deleted = this.deleted
 )
