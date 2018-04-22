@@ -6,6 +6,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -87,7 +88,7 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            val finishMethod  = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
+            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
             return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(user, userInfo))
         }
@@ -131,7 +132,7 @@ class AspectService(
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked && force -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.user, force)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName, force)
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
@@ -140,7 +141,7 @@ class AspectService(
                 }
                 else -> {
                     historyService.storeFact(aspectVertex.toDeleteFact(context))
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.user)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName)
                     aspectDaoService.remove(aspectVertex)
                 }
             }
@@ -313,8 +314,6 @@ class AspectService(
         }
     }
 }
-
-data class HistoryContext(val user: String, val userInfo: String?)
 
 sealed class AspectException(message: String? = null) : Exception(message)
 

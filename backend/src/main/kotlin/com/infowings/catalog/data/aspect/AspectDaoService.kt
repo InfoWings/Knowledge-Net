@@ -16,9 +16,8 @@ const val selectWithNameDifferentId =
     "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
 const val selectWithName =
     "SELECT from $ASPECT_CLASS WHERE name = :name and $notDeletedSql"
-const val selectFromAspectWithoutDeleted = "SELECT FROM Aspect WHERE $notDeletedSql"
-const val selectFromAspectWithDeleted = "SELECT FROM Aspect"
-const val selectAspectByName = "SELECT FROM Aspect where name = ? AND $notDeletedSql"
+const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
+const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
@@ -33,7 +32,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getAspectPropertyVertex(aspectPropertyId: String) = getVertex(aspectPropertyId)?.toAspectPropertyVertex()
 
-    fun findByName(name: String): Set<AspectVertex> = db.query(selectAspectByName, name) { rs ->
+    fun findByName(name: String): Set<AspectVertex> = db.query(selectWithName, mapOf("name" to name)) { rs ->
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
@@ -114,7 +113,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
 
-    fun getAspectsByNameAndSubjectWithDifferentId(name: String, subjectId: String?, id: String?): Set<AspectData> {
+    fun getAspectsByNameAndSubjectWithDifferentId(name: String, subjectId: String?, id: String?): Set<AspectVertex> {
         val baseQuery = if (id != null) selectWithNameDifferentId else selectWithName
 
         val q = if (subjectId == null) {
@@ -126,7 +125,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val args: Map<String, Any?> =
             mapOf("name" to name, "aspectId" to ORecordId(id), "subjectId" to ORecordId(subjectId))
 
-        return db.query(q, args) { it.map { it.toVertex().toAspectVertex().toAspectData() }.toSet() }
+        return db.query(q, args) { it.map { it.toVertex().toAspectVertex() }.toSet() }
     }
 
     /**

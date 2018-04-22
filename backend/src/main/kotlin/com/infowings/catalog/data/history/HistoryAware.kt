@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.data.aspect.HistoryContext
 import com.infowings.catalog.common.EventType
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
@@ -31,7 +30,7 @@ interface HistoryAware : OVertex {
 
     private fun historyEvent(context: HistoryContext, event: EventType): HistoryEvent =
         HistoryEvent(
-            user = context.user, userInfo = context.userInfo, timestamp = System.currentTimeMillis(), version = version,
+            user = context.userName, userInfo = context.userInfo, timestamp = System.currentTimeMillis(), version = version,
             type = event, entityId = identity, entityClass = entityClass
         )
 

@@ -3,7 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.auth.UserAcceptService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.data.aspect.HistoryContext
+import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.subject.SubjectVertex
