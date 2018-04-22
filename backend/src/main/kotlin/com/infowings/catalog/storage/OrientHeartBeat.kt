@@ -22,7 +22,7 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
         launch {
             while (isActive) {
                 delay(period)
-                database.query(QUERY) { logger.info("heart beat result: $it") }
+                database.query(QUERY) {}
             }
         }
     }
