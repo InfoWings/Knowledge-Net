@@ -317,15 +317,33 @@ inline fun <U> transaction(
     if (session != null && session.transaction is OTransactionNoTx)
         return transactionInner(session, retryOnFailure, txtype, block)
 
+    var lastThrown: Throwable? = null
 
-    val newSession = database.acquire()
-    try {
-        sessionStore.set(newSession)
-        return transactionInner(newSession, retryOnFailure, txtype, block)
-    } finally {
-        sessionStore.remove()
-        newSession.close()
+    repeat (times = POOL_RETRIES) {
+        val pool = database.getPool()
+
+        try {
+            val newSession = database.acquire()
+            try {
+                sessionStore.set(newSession)
+                return transactionInner(newSession, retryOnFailure, txtype, block)
+            } finally {
+                sessionStore.remove()
+                newSession.close()
+            }
+        } catch (e: OIOException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: OStorageException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: Throwable) {
+            orientLogger.info("Thrown $e")
+            throw e
+        }
     }
+
+    lastThrown ?.let {
+        throw DatabaseConnectionFailedException(it)
+    } ?: throw Exception("failed to complete session without any exception noticed")
 }
 
 class OrientException(reason: String) : Exception(reason)

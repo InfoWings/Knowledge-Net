@@ -74,6 +74,15 @@ class AspectApi(val aspectService: AspectService) {
                         )
                     )
                 )
+            is AspectDoesNotExist -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Supplied aspect does not exist or it is deleted"
+                        )
+                    )
+                )
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                 .body(
                     JSON.Companion.stringify(
@@ -134,6 +143,15 @@ class AspectApi(val aspectService: AspectService) {
                         BadRequest(
                             BadRequestCode.NEED_CONFIRMATION,
                             "Attempt to remove aspect that has linked entities pointed to it"
+                        )
+                    )
+                )
+            is AspectNameCannotBeNull -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Aspect name cannot be empty string"
                         )
                     )
                 )

@@ -73,8 +73,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }
         }
 
+        aspectVertex.getEdges(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList().forEach { it.delete<OEdge>() }
         aspectData.subject?.id?.let {
-            aspectVertex.getEdges(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList().forEach { it.delete<OEdge>() }
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
@@ -92,7 +92,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
-        val cardinality = AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
+        val cardinality = try {
+            AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
+        } catch (exception: IllegalArgumentException) {
+            throw AspectInconsistentStateException("Property has illegal cardinality value")
+        }
 
         aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
