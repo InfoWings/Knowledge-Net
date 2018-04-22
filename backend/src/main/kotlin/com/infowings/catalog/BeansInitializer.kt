@@ -44,16 +44,17 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { UserAcceptService(database = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
-        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
+        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userAcceptService = ref()) }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
         bean { SubjectDao(db = ref())}
-        bean { SubjectService(db = ref(), dao = ref(), history = ref()) }
+        bean { SubjectService(db = ref(), dao = ref(), history = ref(), userAcceptService = ref()) }
         bean {
             AspectService(
                 db = ref(),
                 aspectDaoService = ref(),
                 referenceBookService = ref(),
-                historyService = ref()
+                historyService = ref(),
+                userAcceptService = ref()
             )
         }
         bean { SuggestionService(database = ref()) }

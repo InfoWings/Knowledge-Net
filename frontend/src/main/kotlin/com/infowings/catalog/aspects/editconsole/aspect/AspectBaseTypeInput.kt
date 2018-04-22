@@ -8,18 +8,18 @@ import kotlinext.js.jsObject
 import react.*
 import react.dom.div
 
-private interface Option : SelectOption {
+private interface BaseTypeOption : SelectOption {
     var aspectBaseType: String
 }
 
-private fun baseTypeOption(baseType: String) = jsObject<Option> {
+private fun baseTypeOption(baseType: String) = jsObject<BaseTypeOption> {
     aspectBaseType = baseType
 }
 
 class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
 
-    private fun handleSelectBaseTypeOption(option: Option) {
-        props.onChange(option.aspectBaseType)
+    private fun handleSelectBaseTypeOption(option: BaseTypeOption?) {
+        option?.let { props.onChange(it.aspectBaseType) } ?: props.onChange(null)
     }
 
     override fun RBuilder.render() {
@@ -28,7 +28,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
                 +"Base Type"
             }
             div(classes = "aspect-edit-console--input-wrapper") {
-                commonSelect<Option> {
+                commonSelect<BaseTypeOption> {
                     attrs {
                         className = "aspect-table-select"
                         value = props.value ?: ""
@@ -36,6 +36,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
                         valueKey = "aspectBaseType"
                         onChange = ::handleSelectBaseTypeOption
                         clearable = false
+                        resetValue = null
                         disabled = props.disabled
                         options = arrayOf(
                             baseTypeOption(BaseType.Binary.name),
@@ -55,7 +56,7 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
     interface Props : RProps {
         var value: String?
         var disabled: Boolean
-        var onChange: (String) -> Unit
+        var onChange: (String?) -> Unit
     }
 
 }

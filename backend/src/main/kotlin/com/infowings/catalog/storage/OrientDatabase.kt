@@ -131,7 +131,7 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
                 entities
             }
         } catch (e: IllegalArgumentException) {
-            logger.warn("Ill-formed users configuration: " + e)
+            logger.warn("Ill-formed users configuration: $e")
             logger.warn("Going to use default settings instead")
 
             Users.toUserEntities()
@@ -146,6 +146,7 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
             .initReferenceBooks()
             .initSubject()
             .initSearch() // this call should be latest
+
     }
 
     @PreDestroy
@@ -184,8 +185,10 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
         }
     }
 
-    fun getVertexById(id: String): OVertex? =
-        query(selectById, ORecordId(id)) { it.map { it.toVertexOrNull() }.firstOrNull() }
+    fun getVertexById(id: String): OVertex? = session(database = this) {
+        return@session it.getRecord<OVertex>(ORecordId(id))
+    }
+
 
     operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
@@ -314,15 +317,33 @@ inline fun <U> transaction(
     if (session != null && session.transaction is OTransactionNoTx)
         return transactionInner(session, retryOnFailure, txtype, block)
 
+    var lastThrown: Throwable? = null
 
-    val newSession = database.acquire()
-    try {
-        sessionStore.set(newSession)
-        return transactionInner(newSession, retryOnFailure, txtype, block)
-    } finally {
-        sessionStore.remove()
-        newSession.close()
+    repeat (times = POOL_RETRIES) {
+        val pool = database.getPool()
+
+        try {
+            val newSession = database.acquire()
+            try {
+                sessionStore.set(newSession)
+                return transactionInner(newSession, retryOnFailure, txtype, block)
+            } finally {
+                sessionStore.remove()
+                newSession.close()
+            }
+        } catch (e: OIOException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: OStorageException) {
+            lastThrown = handleRetriable(e, database, pool)
+        } catch (e: Throwable) {
+            orientLogger.info("Thrown $e")
+            throw e
+        }
     }
+
+    lastThrown ?.let {
+        throw DatabaseConnectionFailedException(it)
+    } ?: throw Exception("failed to complete session without any exception noticed")
 }
 
 class OrientException(reason: String) : Exception(reason)

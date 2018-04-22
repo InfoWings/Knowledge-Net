@@ -22,6 +22,7 @@ class HistoryService(
             .map {
                 val event = HistoryEvent(
                     JSON.nonstrict.parse<UserEntity>(it.user).username,
+                    it.user,
                     it.timestamp.toEpochMilli(),
                     it.entityVersion,
                     EventType.valueOf(it.eventType),
@@ -81,9 +82,10 @@ class HistoryService(
             entityClass = event.entityClass
             entityRID = event.entityId
             entityVersion = event.version
+            val userInfo = event.userInfo // userAcceptService.findByUsernameAsJson(event.user)
+            // temporary workarond for OrientDb bug: https://github.com/orientechnologies/orientdb/issues/8216
             timestamp = Instant.ofEpochMilli(event.timestamp)
             eventType = event.type.name
-            val userInfo = userAcceptService.findByUsernameAsJson(event.user)
 
             /**
              * Конвертируем представление пользователя как строкового имени
@@ -124,3 +126,5 @@ class HistoryService(
 // We can't use HistoryFact because vertex HistoryAware possible not exist
 // TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
 class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
+
+data class HistoryContext(val userName: String, val userInfo: String?)

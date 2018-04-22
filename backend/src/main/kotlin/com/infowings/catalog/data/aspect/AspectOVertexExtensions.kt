@@ -6,6 +6,7 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
+import com.infowings.catalog.data.reference.book.ReferenceBookVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
@@ -53,15 +54,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             subject?.toSubjectData(),
             deleted,
             description,
-            referenceBook?.let {it.toReferenceBookVertex().name }
+            referenceBook?.let {it.name }
         )
     }
 
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
-    val referenceBook: OVertex?
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()
+    val referenceBook: ReferenceBookVertex?
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()?.toReferenceBookVertex()
 
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]

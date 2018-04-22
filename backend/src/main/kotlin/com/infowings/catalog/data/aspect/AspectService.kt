@@ -1,6 +1,12 @@
 package com.infowings.catalog.data.aspect
 
+import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -17,15 +23,16 @@ import com.infowings.catalog.storage.transaction
 class AspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
-    private val referenceBookService: ReferenceBookService,
-    private val historyService: HistoryService
+    private val historyService: HistoryService,
+    private val userAcceptService: UserAcceptService,
+    private val referenceBookService: ReferenceBookService
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService)
 
-    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, user: String): AspectVertex {
+    private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
         val (deletedProperties, updatedProperties) = aspectData.properties.partition { it.deleted }
-        deletedProperties.forEach { remove(it, user) }
-        aspectVertex.saveAspectProperties(updatedProperties, user)
+        deletedProperties.forEach { remove(it, context) }
+        aspectVertex.saveAspectProperties(updatedProperties, context)
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 
@@ -37,13 +44,13 @@ class AspectService(
     private fun updateFinish(
         aspectVertex: AspectVertex,
         aspectData: AspectData,
-        user: String
+        context: HistoryContext
     ): AspectVertex {
         val baseSnapshot = aspectVertex.currentSnapshot()
 
-        val res = savePlain(aspectVertex, aspectData, user)
+        val res = savePlain(aspectVertex, aspectData, context)
 
-        historyService.storeFact(aspectVertex.toUpdateFact(user, baseSnapshot))
+        historyService.storeFact(aspectVertex.toUpdateFact(context, baseSnapshot))
 
         return res
     }
@@ -56,10 +63,10 @@ class AspectService(
     private fun createFinish(
         aspectVertex: AspectVertex,
         aspectData: AspectData,
-        user: String
+        context: HistoryContext
     ): AspectVertex {
-        val res = savePlain(aspectVertex, aspectData, user)
-        historyService.storeFact(aspectVertex.toCreateFact(user))
+        val res = savePlain(aspectVertex, aspectData, context)
+        historyService.storeFact(aspectVertex.toCreateFact(context))
         return res
     }
 
@@ -74,8 +81,9 @@ class AspectService(
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
     fun save(aspectData: AspectData, user: String = ""): Aspect {
-        val save: AspectVertex = transaction(db) {
+        val userInfo: String? = userAcceptService.findByUsernameAsJson(user)
 
+        val save: AspectVertex = transaction(db) {
             val aspectVertex = aspectData
                 .checkAspectDataConsistent()
                 .checkBusinessKey()
@@ -83,7 +91,7 @@ class AspectService(
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(aspectVertex, aspectData, user)
+            return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(user, userInfo))
         }
 
         logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
@@ -100,8 +108,10 @@ class AspectService(
         } else save.toAspect()
     }
 
+    fun remove(aspectData: AspectData, userName: String, force: Boolean = false) {
+        val userInfo: String? = userAcceptService.findByUsernameAsJson(userName)
+        val context = HistoryContext(userName, userInfo)
 
-    fun remove(aspectData: AspectData, user: String, force: Boolean = false) {
         transaction(db) {
             val aspectId = aspectData.id ?: "null"
 
@@ -118,17 +128,21 @@ class AspectService(
 
             val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
+                aspectVertex.isLinkedBy() && force -> {
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    aspectDaoService.fakeRemove(aspectVertex)
+                }
                 linked && force -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user, force)
-                    historyService.storeFact(aspectVertex.toSoftDeleteFact(user))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName, force)
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked -> {
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
                 else -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, user)
-                    historyService.storeFact(aspectVertex.toDeleteFact(user))
+                    historyService.storeFact(aspectVertex.toDeleteFact(context))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName)
                     aspectDaoService.remove(aspectVertex)
                 }
             }
@@ -190,8 +204,8 @@ class AspectService(
 
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
-    private fun remove(property: AspectPropertyData, user: String) = transaction(db) {
-        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(user))
+    private fun remove(property: AspectPropertyData, context: HistoryContext) = transaction(db) {
+        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(context))
 
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
@@ -262,7 +276,7 @@ class AspectService(
             subject,
             deleted,
             description,
-            referenceBook?.let {it.toReferenceBookVertex().name}
+            referenceBook?.let {it.name}
         )
     }
 
@@ -283,22 +297,22 @@ class AspectService(
     private fun AspectVertex.savePropertyWithHistory(
         vertex: AspectPropertyVertex,
         data: AspectPropertyData,
-        user: String
+        context: HistoryContext
     ): HistoryFact {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            vertex.toCreateFact(user)
+            vertex.toCreateFact(context)
         } else {
             val previous = vertex.currentSnapshot()
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            vertex.toUpdateFact(user, previous)
+            vertex.toUpdateFact(context, previous)
         }
     }
 
-    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, user: String) {
+    private fun AspectVertex.saveAspectProperties(propertyData: List<AspectPropertyData>, context: HistoryContext) {
         propertyData.forEach {
             val aspectPropertyVertex = it.getOrCreatePropertyVertex()
-            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, user))
+            historyService.storeFact(savePropertyWithHistory(aspectPropertyVertex, it, context))
         }
     }
 }

@@ -44,9 +44,7 @@ class AspectApi(val aspectService: AspectService) {
         orderFields.map { AspectSortField.valueOf(it) }.forEach {
             orderBy += AspectOrderBy(it, directIterator.next())
         }
-        val res = aspectService.getAspects(orderBy).toAspectData()
-        logger.info("res: " + res)
-        return AspectsList(res)
+        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
     }
 
     @PostMapping("remove")
@@ -73,6 +71,15 @@ class AspectApi(val aspectService: AspectService) {
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Aspect with such name already exists (${exception.name})."
+                        )
+                    )
+                )
+            is AspectDoesNotExist -> ResponseEntity.badRequest()
+                .body(
+                    JSON.Companion.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Supplied aspect does not exist or it is deleted"
                         )
                     )
                 )
@@ -136,6 +143,15 @@ class AspectApi(val aspectService: AspectService) {
                         BadRequest(
                             BadRequestCode.NEED_CONFIRMATION,
                             "Attempt to remove aspect that has linked entities pointed to it"
+                        )
+                    )
+                )
+            is AspectNameCannotBeNull -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Aspect name cannot be empty string"
                         )
                     )
                 )
