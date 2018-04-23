@@ -1,17 +1,13 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.Kilometre
-import com.infowings.catalog.common.Metre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
-import org.apache.coyote.http11.Constants.a
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.core.Is
@@ -81,6 +77,12 @@ class AspectServiceDeletingTest {
         AspectData(
             id = "", name = name, measure = Kilometre.name,
             domain = null, baseType = null, properties = properties, version = 0
+        )
+
+    private fun initialAspectDataForRefBook(name: String, properties: List<AspectPropertyData> = emptyList()) =
+        AspectData(
+            id = "", name = name, measure = null,
+            domain = null, baseType = BaseType.Text.name, properties = properties, version = 0
         )
 
     @get:Rule
@@ -157,7 +159,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithRefBook() {
-        var aspect = aspectService.save(initialAspectData("aspect"), username)
+        var aspect = aspectService.save(initialAspectDataForRefBook("aspect"), username)
         referenceBookService.createReferenceBook("book", aspect.id, username)
 
         aspect = aspectService.findById(aspect.id)

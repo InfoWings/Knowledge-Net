@@ -136,6 +136,44 @@ class AspectServiceRestTest {
         assertThat("returned aspect has correct property id for all props", result.properties.all { it.id != "" }, Is.`is`(true))
     }
 
+    @Test
+    fun createAspectDoubleTest() {
+        val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
+        val baseAspect = aspectService.save(baseAspectData, username)
+
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
+
+        val testData =
+            AspectData(
+                "",
+                "t1",
+                Metre.name,
+                null,
+                BaseType.Decimal.name,
+                listOf(testProperty1, testProperty2)
+            )
+
+        val result1 = mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(fromObject(testData)))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn().response.contentAsString.let { toObject<AspectData>(it) }
+
+        assertThat("response aspect has id", result1.id, Is.`is`(IsNot.not(IsEmptyString())))
+        assertThat("response aspect has two properties", result1.properties.size, Is.`is`(2))
+        assertThat("response aspect properties have not empty id", result1.properties.all { it.id != "" }, Is.`is`(true))
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(fromObject(testData)))
+            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
+    }
+
 }
 
 private inline fun <reified T : Any> fromObject(obj: T): String = JSON.stringify(obj)

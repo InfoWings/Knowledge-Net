@@ -40,7 +40,10 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             .first()
 
     private val aspect: AspectVertex
-        get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE).first().toAspectVertex()
+        get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE)
+            .map {it.toAspectVertex()}
+            .filterNot {it.deleted}
+            .first()
 
     fun toReferenceBook(): ReferenceBook {
         val root = root.toReferenceBookItem()

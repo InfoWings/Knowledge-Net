@@ -38,7 +38,10 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
     @GetMapping("refresh")
     fun refresh(request: RequestEntity<Map<String, String>>): ResponseEntity<JwtToken> {
         return try {
-            val refreshTokenHeader = request.headers.getFirst("cookie")!!
+            val cookieHeader =
+                request.headers.getFirst("cookie") ?: throw IllegalArgumentException("Cookie not found in headers")
+
+            val refreshTokenHeader = cookieHeader
                 .split("; ")
                 .filter { it.startsWith(REFRESH_HEADER) }
                 .map { it.split("=")[1] }
