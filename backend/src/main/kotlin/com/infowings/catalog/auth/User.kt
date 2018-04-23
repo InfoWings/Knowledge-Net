@@ -12,8 +12,9 @@ object Users {
     val admin = UserEntity("admin", "admin", UserRole.ADMIN)
     val user = UserEntity("user", "user", UserRole.USER)
     val poweredUser = UserEntity("powereduser", "powereduser", UserRole.POWERED_USER)
+    val vladimir = UserEntity("vladimir", "FqnzCm4tCF", UserRole.ADMIN)
 
-    fun toUserEntities() = listOf(admin, user, poweredUser)
+    fun toUserEntities() = listOf(admin, user, poweredUser, vladimir)
 }
 
 @Serializable
