@@ -1,5 +1,6 @@
 package com.infowings.catalog.auth
 
+import com.infowings.catalog.auth.user.UserNotFoundException
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
 import com.infowings.catalog.common.UserDto
@@ -31,7 +32,7 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
             if (userDto.password == user.password) {
                 ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
             } else invalidDataResponse
-        } catch (ignored: UsernameNotFoundException) {
+        } catch (ignored: UserNotFoundException) {
             invalidDataResponse
         }
     }
@@ -59,11 +60,15 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
 
 class UserDetailsServiceImpl(var userService: UserService) : UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
-        val user = userService.findByUsername(username)
-        return User(
-            user.username,
-            user.password,
-            mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
-        )
+        try {
+            val user = userService.findByUsername(username)
+            return User(
+                user.username,
+                user.password,
+                mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
+            )
+        } catch (e: UserNotFoundException) {
+            throw UsernameNotFoundException(username)
+        }
     }
 }

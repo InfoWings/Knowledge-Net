@@ -1,8 +1,11 @@
 package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.data.history.HistoryElementVertex
+import com.infowings.catalog.data.history.toHistoryElementVertex
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 const val HISTORY_USER_EDGE = "UserHistoryEdge"
@@ -27,6 +30,10 @@ data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             this["role"] = value
         }
+
+    var historyElementVertices: List<HistoryElementVertex> =
+            this.getVertices(ODirection.OUT, HISTORY_USER_EDGE)
+                .map { it.toHistoryElementVertex() }
 
     fun toUser(): User = User(username, password, UserRole.valueOf(role))
 }
