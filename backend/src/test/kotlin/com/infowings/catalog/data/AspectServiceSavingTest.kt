@@ -481,7 +481,7 @@ class AspectServiceSavingTest {
 
     private fun aspectDataWithSubject(aspectName: String, subjectName: String? = null): AspectData {
         val subjectData: SubjectData? = subjectName?.let {
-            subjectService.createSubject(SubjectData(name = it, description = "some description"), "").toSubjectData()
+            subjectService.createSubject(SubjectData(name = it, description = "some description"), username).toSubjectData()
         }
         return AspectData(
             null, aspectName, Kilogram.name, null, Decimal.name, emptyList(),
