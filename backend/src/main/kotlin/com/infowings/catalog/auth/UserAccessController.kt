@@ -25,14 +25,15 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
 
     @PostMapping("signIn")
     fun signIn(@RequestBody userDto: UserDto): ResponseEntity<*> {
-        try {
+        val invalidDataResponse = ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
+        return try {
             val user = userService.findByUsername(userDto.username)
             if (userDto.password == user.password) {
-                return ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
-            }
+                ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
+            } else invalidDataResponse
         } catch (ignored: UsernameNotFoundException) {
+            invalidDataResponse
         }
-        return ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
     }
 
     @GetMapping("refresh")
