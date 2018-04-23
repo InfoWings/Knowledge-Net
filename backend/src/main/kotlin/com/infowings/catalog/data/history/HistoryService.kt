@@ -1,38 +1,34 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
-import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.auth.user.toUserVertex
+import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.UserNotFoundException
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
+import kotlinx.serialization.json.JSON
 import java.time.Instant
 
 class HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao,
-    private val userService: UserService
+    private val userAcceptService: UserAcceptService
 ) {
 
     fun getAll(): Set<HistoryFactDto> = transaction(db) {
         return@transaction historyDao.getAllHistoryEvents()
             .map {
-                val user = it.getVertices(ODirection.IN, HISTORY_USER_EDGE)
-                    .map { it.toUserVertex() }
-                    .map { it.toUser() }
-                    .first()
-
                 val event = HistoryEvent(
-                    user.username,
+                    JSON.nonstrict.parse<UserEntity>(it.user).username,
+                    it.user,
                     it.timestamp.toEpochMilli(),
                     it.entityVersion,
                     EventType.valueOf(it.eventType),
                     it.entityRID,
                     it.entityClass
                 )
-
                 val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE)
                     .map { it.toHistoryElementVertex() }
                     .map { it.key to it.stringValue }
@@ -57,35 +53,28 @@ class HistoryService(
             .toSet()
     }
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex {
-        // Should be found before the transaction start as it can lead to bug in OrientDB
-        val userVertex = userService.findUserVertexByUsername(fact.event.username)
+    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db) {
+        val historyEventVertex = fact.newHistoryEventVertex()
 
-        return transaction(db) {
-            val historyEventVertex = fact.newHistoryEventVertex()
-
-            val elementVertices = fact.payload.data.map {
-                return@map historyDao.newHistoryElementVertex().apply {
-                    key = it.key
-                    stringValue = it.value
-                }
+        val elementVertices = fact.payload.data.map {
+            return@map historyDao.newHistoryElementVertex().apply {
+                key = it.key
+                stringValue = it.value
             }
-            elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
-
-            val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
-            addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
-
-            val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
-            dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
-
-            userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
-
-            fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
-
-            db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
-
-            return@transaction historyEventVertex
         }
+        elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
+
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
+        addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
+
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
+        dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
+
+        fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
+
+        db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
+
+        return@transaction historyEventVertex
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
@@ -93,8 +82,31 @@ class HistoryService(
             entityClass = event.entityClass
             entityRID = event.entityId
             entityVersion = event.version
+            val userInfo = event.userInfo // userAcceptService.findByUsernameAsJson(event.user)
+            // temporary workarond for OrientDb bug: https://github.com/orientechnologies/orientdb/issues/8216
             timestamp = Instant.ofEpochMilli(event.timestamp)
             eventType = event.type.name
+
+            /**
+             * Конвертируем представление пользователя как строкового имени
+             * в расширенное предстовление данных о пользователе.
+             *
+             * Хорошо бы в виде ребра, указывающего на вершину, но сейчас пользователь
+             * представлен в виде ORecord
+             *
+             * Конвертацию делаем именно здесь, потому что хочется это делать в одном месте.
+             * В этом смысле единственная альтернатива - HistoryAware, но туда надо как-то
+             * доставить userAcceptService. Сюда его проще и естественнее доставлять
+             *
+             * Пустую строку временно обрабатываем особо, чтобы не падали напсанные тесты и не переписывать
+             * их прямо сейчас. В новых тестах заведение пользователя должно быть частью инициализации
+             */
+            if (userInfo != null) {
+                user = userInfo
+            } else {
+                if (event.user != "") // временно для тестов - чтобы все разом не исправлять
+                    throw UserNotFoundException(event.user)
+            }
         }
 
     private fun linksVertices(
@@ -114,3 +126,5 @@ class HistoryService(
 // We can't use HistoryFact because vertex HistoryAware possible not exist
 // TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
 class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
+
+data class HistoryContext(val userName: String, val userInfo: String?)

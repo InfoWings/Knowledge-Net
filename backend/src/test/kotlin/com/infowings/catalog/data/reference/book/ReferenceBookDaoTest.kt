@@ -2,6 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Metre
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.Aspect
@@ -29,24 +30,24 @@ class ReferenceBookDaoTest {
 
     private lateinit var aspect: Aspect
 
-    private val username = "admin"
+    private val userName = ""
 
     @Before
     fun initTestData() {
-        aspect = aspectService.save(AspectData("", "aspect", Metre.name, null, null), username)
+        aspect = aspectService.save(AspectData("", "aspect", null, null, BaseType.Text.name))
     }
 
     //todo: after Object entity will added this test could be moved to ReferenceBookDaoTest
     @Test
     fun fakeRemoveTest() {
-        val book1 = referenceBookService.createReferenceBook("book1", aspect.id, username)
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), username)
+        val book1 = referenceBookService.createReferenceBook("book1", aspect.id, userName)
+        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name))
         val anotherAspectId = anotherAspect.id
-        val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId, username)
+        val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId, userName)
         val item1 = createReferenceBookItem(anotherAspectId, book2.id, "v1")
-        val idItem1 = referenceBookService.addReferenceBookItem(item1, username)
+        val idItem1 = referenceBookService.addReferenceBookItem(item1, userName)
         val item11 = createReferenceBookItem(anotherAspectId, idItem1, "v2")
-        val idItem11 = referenceBookService.addReferenceBookItem(item11, username)
+        val idItem11 = referenceBookService.addReferenceBookItem(item11, userName)
         dao.markBookVertexAsDeleted(
             dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
         )

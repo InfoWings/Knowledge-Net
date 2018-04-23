@@ -76,28 +76,28 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         props.editConsoleModel.updateAspect(props.aspect.copy(name = name))
     }
 
-    private fun handleAspectMeasureChanged(measure: String) {
+    private fun handleAspectMeasureChanged(measure: String?) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(
                 measure = measure,
-                baseType = GlobalMeasureMap[measure]?.baseType?.name
+                baseType = measure?.let { GlobalMeasureMap[it]?.baseType?.name }
             )
         )
     }
 
-    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
+    private fun handleAspectSubjectChanged(subjectData: SubjectData?) {
         props.editConsoleModel.updateAspect(
-            props.aspect.copy(subject = SubjectData(id = subjectId, name = subjectName, description = ""))
+            props.aspect.copy(subject = subjectData)
         )
     }
 
-    private fun handleAspectDomainChanged(domain: String) {
+    private fun handleAspectDomainChanged(domain: String?) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(domain = domain)
         )
     }
 
-    private fun handleAspectBaseTypeChanged(baseType: String) {
+    private fun handleAspectBaseTypeChanged(baseType: String?) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(baseType = baseType)
         )
@@ -132,7 +132,11 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectDomainInput {
                     attrs {
-                        value = props.aspect.domain
+                        value = props.aspect.refBookName ?: props.aspect.domain
+                        // показываем имя справочника, если есть
+                        // возможно, надо как-то handleAspectDomainChanged менять под такой случай, но у нас это поле
+                        // вроде бы всегда disabled. А если оно может быть не disabled, то надо иметь
+                        // понятную интерпретацию нововведенного значения
                         onChange = ::handleAspectDomainChanged
                     }
                 }
@@ -145,7 +149,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectSubjectInput {
                     attrs {
-                        value = props.aspect.subject?.name ?: ""
+                        value = props.aspect.subject
                         onChange = ::handleAspectSubjectChanged
                     }
                 }

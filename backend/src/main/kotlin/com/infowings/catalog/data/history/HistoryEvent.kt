@@ -15,7 +15,8 @@ data class Snapshot(
 )
 
 data class HistoryEvent(
-    val username: String,
+    val user: String,
+    val userInfo: String?,
     val timestamp: Long,
     val version: Int,
     val type: EventType,

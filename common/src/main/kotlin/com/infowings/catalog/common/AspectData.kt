@@ -18,7 +18,8 @@ data class AspectData(
     val version: Int = 0,
     val subject: SubjectData? = null,
     val deleted: Boolean = false,
-    val description: String? = null
+    val description: String? = null,
+    val refBookName: String? = null
 )
 
 @Serializable
