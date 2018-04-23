@@ -61,8 +61,8 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["eventType"] = value
         }
 
-    var userVertex: UserVertex =
-        this.getVertices(ODirection.IN, HISTORY_USER_EDGE)
+    val userVertex: UserVertex
+        get() = getVertices(ODirection.IN, HISTORY_USER_EDGE)
             .map { it.toUserVertex() }
             .first()
 }

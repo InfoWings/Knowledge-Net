@@ -31,9 +31,5 @@ data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
             this["role"] = value
         }
 
-    var historyElementVertices: List<HistoryElementVertex> =
-            this.getVertices(ODirection.OUT, HISTORY_USER_EDGE)
-                .map { it.toHistoryElementVertex() }
-
     fun toUser(): User = User(username, password, UserRole.valueOf(role))
 }
