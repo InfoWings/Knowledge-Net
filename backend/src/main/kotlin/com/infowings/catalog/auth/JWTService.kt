@@ -3,6 +3,7 @@ package com.infowings.catalog.auth
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.loggerFor
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import kotlinx.serialization.Serializable
@@ -60,7 +61,8 @@ class JWTService {
             if (obj.subject != null && Date().before(obj.expiration))
                 JSON.parse(obj.subject) else null
 
-        } catch (ignored: Exception) {
+        } catch (e: Exception) {
+            logger.error(e.message)
             null
         }
     }
@@ -72,3 +74,5 @@ class JWTService {
             .signWith(SignatureAlgorithm.HS512, SECRET)
             .compact()
 }
+
+private val logger = loggerFor<JWTService>()
