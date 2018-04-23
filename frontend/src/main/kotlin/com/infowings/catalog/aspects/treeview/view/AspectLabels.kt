@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.treeview.view
 
+import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
@@ -12,6 +13,7 @@ fun RBuilder.aspectLabel(
     aspectDomain: String,
     aspectBaseType: String,
     aspectSubjectName: String,
+    isSubjectDeleted: Boolean,
     onClick: () -> Unit
 ) = div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
@@ -39,6 +41,9 @@ fun RBuilder.aspectLabel(
     +"( Subject: "
     span(classes = "text-grey") {
         +aspectSubjectName
+    }
+    if (isSubjectDeleted) {
+        ripIcon("aspect-tree-view--rip-icon") {}
     }
     +" )"
 }

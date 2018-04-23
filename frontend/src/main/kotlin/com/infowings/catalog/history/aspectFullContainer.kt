@@ -4,7 +4,6 @@ import com.infowings.catalog.aspects.treeview.view.aspectLabel
 import com.infowings.catalog.aspects.treeview.view.propertyLabel
 import com.infowings.catalog.common.AspectDataView
 import com.infowings.catalog.components.treeview.treeNode
-import kotlinext.js.invoke
 import react.*
 import react.dom.div
 
@@ -29,6 +28,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                             aspectDomain = props.view.aspectData.domain ?: "",
                             aspectBaseType = props.view.aspectData.baseType ?: "",
                             aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
+                            isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
                             onClick = { }
                         )
                     }!!
@@ -45,6 +45,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                             aspectDomain = propMap[it.aspectId]?.domain ?: "",
                             aspectBaseType = propMap[it.aspectId]?.baseType ?: "",
                             aspectSubjectName = propMap[it.aspectId]?.subject?.name ?: "Global",
+                            isSubjectDeleted = propMap[it.aspectId]?.subject?.deleted ?: false,
                             onClick = {}
                         )
                     }

@@ -99,11 +99,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
-                .filterNot {it.toSubjectVertex().deleted}
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-            return subjects.firstOrNull()?.toSubject()
+            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
         }
 
     var description: String?
