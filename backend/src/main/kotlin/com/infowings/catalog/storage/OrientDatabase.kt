@@ -53,11 +53,11 @@ data class Versioned<T>(val entity: T, val version: Int)
 class OrientDatabase(
     url: String,
     val database: String,
-    user: String,
+    username: String,
     password: String,
     userProperties: UserProperties
 ) {
-    private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
+    private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
 
     private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
 

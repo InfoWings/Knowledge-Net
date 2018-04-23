@@ -30,7 +30,7 @@ interface HistoryAware : OVertex {
 
     private fun historyEvent(context: HistoryContext, event: EventType): HistoryEvent =
         HistoryEvent(
-            user = context.userName, userInfo = context.userInfo, timestamp = System.currentTimeMillis(), version = version,
+            username = context.username, timestamp = System.currentTimeMillis(), version = version,
             type = event, entityId = identity, entityClass = entityClass
         )
 

@@ -139,7 +139,7 @@ class AspectServiceRestTest {
     @Test
     fun createAspectDoubleTest() {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
-        val baseAspect = aspectService.save(baseAspectData)
+        val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
         val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
