@@ -4,13 +4,10 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -40,7 +37,7 @@ class AspectService(
             // вдобавок к подтверждению на удаление аспекта и подтверждению удаление справчника как следствию
             // выбора меры/типа (которое не зависит от связанности справочника)
             // Надо понять, какой UE мы хотим, что человек не запутался в подтверждениях.
-            referenceBookService.removeReferenceBook(refBook, context.userName, true)
+            referenceBookService.removeReferenceBook(refBook, context.username, force = true)
             aspectVertex.dropRefBookEdge()
         }
 
