@@ -14,6 +14,7 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
 
@@ -64,6 +65,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val referenceBook: ReferenceBookVertex?
         get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()?.toReferenceBookVertex()
 
+    fun dropRefBookEdge() {
+        vertex.getEdges(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).forEach { it.delete<OEdge>() }
+    }
+
     var baseType: String?
         get() = measure?.baseType?.name ?: this["baseType"]
         set(value) {
@@ -94,11 +99,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
-                .filterNot {it.toSubjectVertex().deleted}
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-            return subjects.firstOrNull()?.toSubject()
+            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
         }
 
     var description: String?
