@@ -9,11 +9,14 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -33,6 +36,21 @@ class AspectService(
         val (deletedProperties, updatedProperties) = aspectData.properties.partition { it.deleted }
         deletedProperties.forEach { remove(it, context) }
         aspectVertex.saveAspectProperties(updatedProperties, context)
+
+        if (aspectVertex.referenceBook != null && aspectData.refBookName == null) {
+            // по ходу редактирования на фронте решили дропнуть справочник
+            val refBook: ReferenceBook = referenceBookService.getReferenceBook(aspectVertex.id)
+            // пока для простоты сделаем сразу принудительное удаление
+            // чтобы сделать сделать общую схему (SoftDelete сначала, если не получилось, то Delete принудительно по
+            // подтверждению от пользователя) - надо усложнить интерефейс и, что важнее, усложнить user experience
+            // У нас появится подтверждение на удаление связанного справочника (в контексте редактирования аспекта),
+            // вдобавок к подтверждению на удаление аспекта и подтверждению удаление справчника как следствию
+            // выбора меры/типа (которое не зависит от связанности справочника)
+            // Надо понять, какой UE мы хотим, что человек не запутался в подтверждениях.
+            referenceBookService.removeReferenceBook(refBook, context.userName, true)
+            aspectVertex.dropRefBookEdge()
+        }
+
         return aspectDaoService.saveAspect(aspectVertex, aspectData)
     }
 
