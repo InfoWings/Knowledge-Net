@@ -151,7 +151,8 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                 domain = aspect.domain,
                 baseType = aspect.baseType,
                 description = aspect.description,
-                subject = aspect.subject
+                subject = aspect.subject,
+                refBookName = aspect.refBookName
             )
         }
 

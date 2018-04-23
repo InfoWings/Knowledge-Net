@@ -7,6 +7,7 @@ import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.*
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.components.popup.confirmRefBookRemovalWindow
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
@@ -77,12 +78,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     private fun handleAspectMeasureChanged(measure: String?) {
-        props.editConsoleModel.updateAspect(
-            props.aspect.copy(
-                measure = measure,
-                baseType = measure?.let { GlobalMeasureMap[it]?.baseType?.name }
-            )
+        val newAspect = props.aspect.copy(
+            measure = measure,
+            baseType = measure?.let { GlobalMeasureMap[it]?.baseType?.name }
         )
+        props.editConsoleModel.updateAspect(newAspect)
+
+        updateRefBookRemoveConfirmation(newAspect)
     }
 
     private fun handleAspectSubjectChanged(subjectData: SubjectData?) {
@@ -98,15 +100,31 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     private fun handleAspectBaseTypeChanged(baseType: String?) {
-        props.editConsoleModel.updateAspect(
-            props.aspect.copy(baseType = baseType)
-        )
+        val newAspect = props.aspect.copy(baseType = baseType)
+        props.editConsoleModel.updateAspect(newAspect)
+        updateRefBookRemoveConfirmation(newAspect)
     }
 
     private fun handleAspectDescriptionChanged(description: String) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(description = description)
         )
+    }
+
+    private fun handleRefBookRemovalConfirm() {
+        val newAspect = props.aspect.copy(refBookName = null)
+        props.editConsoleModel.updateAspect(newAspect)
+        setState {
+            confirmationRefBookRemoval = false
+        }
+    }
+
+    private fun handleRefBookRemovalCancel() {
+        val newAspect = props.aspect.copy(measure = null, baseType = BaseType.Text.name)
+        props.editConsoleModel.updateAspect(newAspect)
+        setState {
+            confirmationRefBookRemoval = false
+        }
     }
 
     override fun RBuilder.render() {
@@ -126,7 +144,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectMeasureInput {
                     attrs {
-                        value = props.aspect.measure
+                        value = if (props.aspect.refBookName != null) null else props.aspect.measure
                         onChange = ::handleAspectMeasureChanged
                     }
                 }
@@ -142,7 +160,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectBaseTypeInput {
                     attrs {
-                        value = props.aspect.baseType
+                        value = if (props.aspect.refBookName != null) null else props.aspect.baseType
                         disabled = !props.aspect.measure.isNullOrEmpty()
                         onChange = ::handleAspectBaseTypeChanged
                     }
@@ -175,6 +193,23 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 message = "Aspect has linked entities."
             }
         }
+
+        confirmRefBookRemovalWindow {
+            attrs {
+                onConfirm = ::handleRefBookRemovalConfirm
+                onCancel = ::handleRefBookRemovalCancel
+                isOpen = state.confirmationRefBookRemoval
+                message = "It will delete reference book"
+            }
+        }
+    }
+
+    fun updateRefBookRemoveConfirmation(newAspect: AspectData) {
+        val hasRefBook = newAspect.refBookName != null
+        val hasMeasure = newAspect.measure != null
+        val baseTypeNonString = newAspect.baseType != BaseType.Text.name
+        val criteria = hasRefBook && (hasMeasure || baseTypeNonString)
+        setState { confirmationRefBookRemoval = criteria }
     }
 
     interface Props : RProps {
@@ -184,6 +219,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     interface State : RState {
         var confirmation: Boolean
+        var confirmationRefBookRemoval: Boolean
     }
 }
 
