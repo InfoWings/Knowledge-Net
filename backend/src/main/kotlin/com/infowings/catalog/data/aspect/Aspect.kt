@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.toSubjectData
 
@@ -29,7 +26,9 @@ data class Aspect(
     val version: Int = 0,
     val subject: Subject? = null,
     val deleted: Boolean = false,
-    val description: String? = null
+    val description: String? = null,
+    val refBookName: String?    // только имя, потому что ссылка на RefBook чревата разверткой дерева - а всегда
+    // таскать за собой все дерево не хочется
 ) {
 
     operator fun get(property: String) = properties.filter { it.name == property }
@@ -47,7 +46,8 @@ data class Aspect(
             version,
             subject?.toSubjectData(),
             deleted,
-            description
+            description,
+            refBookName
         )
 }
 

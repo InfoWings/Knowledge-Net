@@ -50,17 +50,18 @@ class AspectValidator(
      * @throws AspectInconsistentStateException
      */
     fun checkAspectDataConsistent(aspectData: AspectData) {
-
         // check properties not link to deleted aspects
-        aspectData.properties.filterNot { it.deleted }.forEach { it.checkForRemoved() }
+        aspectData.properties.filterNot { it.deleted }.forEach { it.checkRelatedAspectChangedToRemoved() }
 
         val measureName: String? = aspectData.measure
         val baseType: String? = aspectData.baseType
 
         when {
             measureName == null && baseType == null ->
-                throw AspectInconsistentStateException("Measure and Base Type can't be null at the same time. Please, enter either Measure or Base Type")
-            measureName == null && baseType != null -> BaseType.restoreBaseType(baseType) // will throw on incorrect baseType
+                throw AspectInconsistentStateException("Measure and Base Type can't be null at the same time. " +
+                        "Please, enter either Measure or Base Type")
+            measureName == null && baseType != null -> BaseType.restoreBaseType(baseType)
+        // will throw on incorrect baseType
 
             measureName != null && baseType != null -> {
                 val measure: Measure<*> = GlobalMeasureMap[measureName]
@@ -98,6 +99,7 @@ class AspectValidator(
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
         val name = this.name ?: throw AspectNameCannotBeNull()
+        if (name.isBlank()) throw AspectNameCannotBeNull()
         id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this)
     }
 
@@ -113,8 +115,34 @@ class AspectValidator(
         val name = aspectData.name ?: throw AspectNameCannotBeNull()
         aspectDaoService.getAspectsByNameAndSubjectWithDifferentId(name, aspectData.subject?.id, null)
             .let {
-                if (it.isNotEmpty()) {
-                    throw AspectAlreadyExist(name, aspectData.subject?.name)
+                /*
+                  getAspectsByNameAndSubjectWithDifferentId returns all aspects with the same name is subject is null
+
+                  In theory it would be better to enhance getAspectsByNameAndSubjectWithDifferentId or introduce
+                  another method.
+                  But at the moment internals of AspectDaoService seem to be overcomplicated - many different kinds
+                  of queries are composed as plain concatenation of sql pieces using tricky set of conditions.
+                  So it seems not very good idea to add even more complexity there.
+
+                  At some moment it makes sense to refactor AspectDaoService based on some kind of QueryBuilder
+                   pattern - compose queries using row of higher level method calls keeping plain SQL pieces behind
+                   scene.
+
+                  But right now it seems more convenient to make additional filtering here to avoid overcompication of
+                  AspectDaoService
+                 */
+
+                if (aspectData.subject == null) {
+                    val foundEmpty = it.find {
+                        it.subject == null
+                    }
+                    if (foundEmpty != null) {
+                        throw AspectAlreadyExist(name, null)
+                    }
+                } else {
+                    if (it.isNotEmpty()) {
+                        throw AspectAlreadyExist(name, aspectData.subject?.name)
+                    }
                 }
             }
     }
@@ -177,11 +205,22 @@ class AspectValidator(
             }
         }
 
-    private fun AspectPropertyData.checkForRemoved() = also {
-        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
-        if (relatedAspect?.deleted != null && relatedAspect.deleted) {
-            throw AspectDoesNotExist(aspectId)
+    private fun AspectPropertyData.checkRelatedAspectChangedToRemoved() = also {
+        if (id == "") {
+            if (isRelatedAspectRemoved()) {
+                throw AspectDoesNotExist(aspectId)
+            }
+        } else {
+            val existingProperty = aspectDaoService.getAspectPropertyVertex(id) ?: throw AspectPropertyDoesNotExist(id)
+            if (existingProperty.aspect != aspectId && isRelatedAspectRemoved()) {
+                throw AspectDoesNotExist(aspectId)
+            }
         }
+    }
+
+    private fun AspectPropertyData.isRelatedAspectRemoved(): Boolean {
+        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
+        return relatedAspect != null && relatedAspect.deleted
     }
 
     // todo: Complete this method in future

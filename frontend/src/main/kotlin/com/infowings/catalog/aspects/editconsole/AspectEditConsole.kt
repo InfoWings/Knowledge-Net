@@ -7,6 +7,7 @@ import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.*
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.components.popup.confirmRefBookRemovalWindow
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
@@ -76,37 +77,54 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         props.editConsoleModel.updateAspect(props.aspect.copy(name = name))
     }
 
-    private fun handleAspectMeasureChanged(measure: String) {
+    private fun handleAspectMeasureChanged(measure: String?) {
+        val newAspect = props.aspect.copy(
+            measure = measure,
+            baseType = measure?.let { GlobalMeasureMap[it]?.baseType?.name }
+        )
+        props.editConsoleModel.updateAspect(newAspect)
+
+        updateRefBookRemoveConfirmation(newAspect)
+    }
+
+    private fun handleAspectSubjectChanged(subjectData: SubjectData?) {
         props.editConsoleModel.updateAspect(
-            props.aspect.copy(
-                measure = measure,
-                baseType = GlobalMeasureMap[measure]?.baseType?.name
-            )
+            props.aspect.copy(subject = subjectData)
         )
     }
 
-    private fun handleAspectSubjectChanged(subjectName: String, subjectId: String) {
-        props.editConsoleModel.updateAspect(
-            props.aspect.copy(subject = SubjectData(id = subjectId, name = subjectName, description = ""))
-        )
-    }
-
-    private fun handleAspectDomainChanged(domain: String) {
+    private fun handleAspectDomainChanged(domain: String?) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(domain = domain)
         )
     }
 
-    private fun handleAspectBaseTypeChanged(baseType: String) {
-        props.editConsoleModel.updateAspect(
-            props.aspect.copy(baseType = baseType)
-        )
+    private fun handleAspectBaseTypeChanged(baseType: String?) {
+        val newAspect = props.aspect.copy(baseType = baseType)
+        props.editConsoleModel.updateAspect(newAspect)
+        updateRefBookRemoveConfirmation(newAspect)
     }
 
     private fun handleAspectDescriptionChanged(description: String) {
         props.editConsoleModel.updateAspect(
             props.aspect.copy(description = description)
         )
+    }
+
+    private fun handleRefBookRemovalConfirm() {
+        val newAspect = props.aspect.copy(refBookName = null)
+        props.editConsoleModel.updateAspect(newAspect)
+        setState {
+            confirmationRefBookRemoval = false
+        }
+    }
+
+    private fun handleRefBookRemovalCancel() {
+        val newAspect = props.aspect.copy(measure = null, baseType = BaseType.Text.name)
+        props.editConsoleModel.updateAspect(newAspect)
+        setState {
+            confirmationRefBookRemoval = false
+        }
     }
 
     override fun RBuilder.render() {
@@ -126,26 +144,30 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 }
                 aspectMeasureInput {
                     attrs {
-                        value = props.aspect.measure
+                        value = if (props.aspect.refBookName != null) null else props.aspect.measure
                         onChange = ::handleAspectMeasureChanged
                     }
                 }
                 aspectDomainInput {
                     attrs {
-                        value = props.aspect.domain
+                        value = props.aspect.refBookName ?: props.aspect.domain
+                        // показываем имя справочника, если есть
+                        // возможно, надо как-то handleAspectDomainChanged менять под такой случай, но у нас это поле
+                        // вроде бы всегда disabled. А если оно может быть не disabled, то надо иметь
+                        // понятную интерпретацию нововведенного значения
                         onChange = ::handleAspectDomainChanged
                     }
                 }
                 aspectBaseTypeInput {
                     attrs {
-                        value = props.aspect.baseType
+                        value = if (props.aspect.refBookName != null) null else props.aspect.baseType
                         disabled = !props.aspect.measure.isNullOrEmpty()
                         onChange = ::handleAspectBaseTypeChanged
                     }
                 }
                 aspectSubjectInput {
                     attrs {
-                        value = props.aspect.subject?.name ?: ""
+                        value = props.aspect.subject
                         onChange = ::handleAspectSubjectChanged
                     }
                 }
@@ -171,6 +193,23 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 message = "Aspect has linked entities."
             }
         }
+
+        confirmRefBookRemovalWindow {
+            attrs {
+                onConfirm = ::handleRefBookRemovalConfirm
+                onCancel = ::handleRefBookRemovalCancel
+                isOpen = state.confirmationRefBookRemoval
+                message = "It will delete reference book"
+            }
+        }
+    }
+
+    fun updateRefBookRemoveConfirmation(newAspect: AspectData) {
+        val hasRefBook = newAspect.refBookName != null
+        val hasMeasure = newAspect.measure != null
+        val baseTypeNonString = newAspect.baseType != BaseType.Text.name
+        val criteria = hasRefBook && (hasMeasure || baseTypeNonString)
+        setState { confirmationRefBookRemoval = criteria }
     }
 
     interface Props : RProps {
@@ -180,6 +219,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     interface State : RState {
         var confirmation: Boolean
+        var confirmationRefBookRemoval: Boolean
     }
 }
 

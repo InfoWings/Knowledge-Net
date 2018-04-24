@@ -10,16 +10,22 @@ import notDeletedSql
 private const val SelectSubjectsQuery = "SELECT FROM $SUBJECT_CLASS where $notDeletedSql"
 private const val SELECT_BY_NAME = "SELECT FROM ? where $ATTR_NAME = ? and $notDeletedSql "
 
-fun OVertex.toSubject(): Subject =
-    Subject(this.id, name = this.name, version = this.version, description = this.description)
+fun SubjectVertex.toSubject(): Subject =
+    Subject(
+        this.id,
+        name = this.name,
+        version = this.version,
+        description = this.description,
+        deleted = this.deleted
+    )
 
 class SubjectDao(private val db: OrientDatabase) {
     fun getSubjects(): List<Subject> = db.query(SelectSubjectsQuery) { rs ->
-        rs.mapNotNull { it.toVertexOrNull()?.toSubject() }.toList()
+        rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
     }
 
     private fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
-        rs.map { it.toVertex().toSubject() }.firstOrNull()
+        rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
     }
 
     fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()

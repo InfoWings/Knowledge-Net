@@ -1,17 +1,13 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.Kilometre
-import com.infowings.catalog.common.Metre
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
-import org.apache.coyote.http11.Constants.a
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.core.Is
@@ -83,6 +79,12 @@ class AspectServiceDeletingTest {
             domain = null, baseType = null, properties = properties, version = 0
         )
 
+    private fun initialAspectDataForRefBook(name: String, properties: List<AspectPropertyData> = emptyList()) =
+        AspectData(
+            id = "", name = name, measure = null,
+            domain = null, baseType = BaseType.Text.name, properties = properties, version = 0
+        )
+
     @get:Rule
     val thrown = ExpectedException.none()
 
@@ -107,7 +109,7 @@ class AspectServiceDeletingTest {
         aspectService.save(aspectData2, username)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), "")
+        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), username)
     }
 
     @Test
@@ -116,7 +118,7 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5).toAspectData(), "")
+        aspectService.remove(aspect.copy(version = 5).toAspectData(), username)
     }
 
     @Test
@@ -142,14 +144,14 @@ class AspectServiceDeletingTest {
         a1 = aspectService.findById(a1.id)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(a1.toAspectData(), "")
+        aspectService.remove(a1.toAspectData(), username)
 
         val found = database.getVertexById(a1.id)
         assertNotNull("Aspect exists in db", found)
         assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
         a1 = aspectService.findById(a1.id)
-        aspectService.remove(a1.toAspectData(), "", true)
+        aspectService.remove(a1.toAspectData(), username, true)
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
@@ -157,7 +159,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithRefBook() {
-        var aspect = aspectService.save(initialAspectData("aspect"), username)
+        var aspect = aspectService.save(initialAspectDataForRefBook("aspect"), username)
         referenceBookService.createReferenceBook("book", aspect.id, username)
 
         aspect = aspectService.findById(aspect.id)

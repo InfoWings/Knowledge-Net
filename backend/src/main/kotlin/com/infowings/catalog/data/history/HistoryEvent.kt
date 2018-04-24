@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.orientechnologies.orient.core.id.ORID
 
@@ -24,13 +25,14 @@ data class HistoryEvent(
 )
 
 data class HistoryFact(
+    val userVertex: UserVertex,
     val event: HistoryEvent,
     val payload: DiffPayload,
     val subject: HistoryAware
 )
 
-fun toHistoryFact(event: HistoryEvent, subject: HistoryAware, base: Snapshot, other: Snapshot) =
-    HistoryFact(event, diffSnapshots(base, other), subject)
+fun toHistoryFact(userVertex: UserVertex, event: HistoryEvent, subject: HistoryAware, base: Snapshot, other: Snapshot) =
+    HistoryFact(userVertex, event, diffSnapshots(base, other), subject)
 
 fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
     // Предполагаем, что поля не выкидываются, но могут добавляться

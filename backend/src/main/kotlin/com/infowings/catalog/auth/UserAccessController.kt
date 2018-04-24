@@ -1,5 +1,6 @@
 package com.infowings.catalog.auth
 
+import com.infowings.catalog.auth.user.UserNotFoundException
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
 import com.infowings.catalog.common.UserCredentials
@@ -25,20 +26,24 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
 
     @PostMapping("signIn")
     fun signIn(@RequestBody userCredentials: UserCredentials): ResponseEntity<*> {
-        try {
+        val invalidDataResponse = ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
+        return try {
             val user = userService.findByUsername(userCredentials.username)
             if (userCredentials.password == user.password) {
-                return ResponseEntity(jwtService.createJwtToken(userCredentials.username), HttpStatus.OK)
-            }
-        } catch (ignored: UsernameNotFoundException) {
+                ResponseEntity(jwtService.createJwtToken(userCredentials.username), HttpStatus.OK)
+            } else invalidDataResponse
+        } catch (ignored: UserNotFoundException) {
+            invalidDataResponse
         }
-        return ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
     }
 
     @GetMapping("refresh")
     fun refresh(request: RequestEntity<Map<String, String>>): ResponseEntity<JwtToken> {
         return try {
-            val refreshTokenHeader = request.headers.getFirst("cookie")!!
+            val cookieHeader =
+                request.headers.getFirst("cookie") ?: throw IllegalArgumentException("Cookie not found in headers")
+
+            val refreshTokenHeader = cookieHeader
                 .split("; ")
                 .filter { it.startsWith(REFRESH_HEADER) }
                 .map { it.split("=")[1] }
@@ -55,11 +60,15 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
 
 class UserDetailsServiceImpl(var userService: UserService) : UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
-        val user = userService.findByUsername(username)
-        return User(
-            user.username,
-            user.password,
-            mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
-        )
+        try {
+            val user = userService.findByUsername(username)
+            return User(
+                user.username,
+                user.password,
+                mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
+            )
+        } catch (e: UserNotFoundException) {
+            throw UsernameNotFoundException(username)
+        }
     }
 }

@@ -2,7 +2,7 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.auth.user.toUserVertex
+import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
@@ -19,13 +19,8 @@ class HistoryService(
     fun getAll(): Set<HistoryFactDto> = transaction(db) {
         return@transaction historyDao.getAllHistoryEvents()
             .map {
-                val user = it.getVertices(ODirection.IN, HISTORY_USER_EDGE)
-                    .map { it.toUserVertex() }
-                    .map { it.toUser() }
-                    .first()
-
                 val event = HistoryEvent(
-                    user.username,
+                    it.userVertex.username,
                     it.timestamp.toEpochMilli(),
                     it.entityVersion,
                     EventType.valueOf(it.eventType),
@@ -74,8 +69,7 @@ class HistoryService(
         val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
         dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
 
-        val userVertex = userService.findUserVertexByUsername(fact.event.username)
-        userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
+        fact.userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
 
         fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
 
@@ -110,3 +104,5 @@ class HistoryService(
 // We can't use HistoryFact because vertex HistoryAware possible not exist
 // TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
 class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
+
+data class HistoryContext(val userVertex: UserVertex)

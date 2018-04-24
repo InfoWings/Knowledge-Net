@@ -7,6 +7,7 @@ import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
 import org.hamcrest.core.Is
+import org.junit.Assert
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -25,6 +26,9 @@ class AspectServiceSavingTest {
 
     @Autowired
     lateinit var aspectService: AspectService
+
+    @Autowired
+    lateinit var subjectService: SubjectService
 
     @Test
     fun testNotVirtualId() {
@@ -285,6 +289,173 @@ class AspectServiceSavingTest {
         aspectService.save(editedAspectData1, username)
     }
 
+    @Test
+    fun testDoubleSaveNoSubject() {
+        val aspectData = aspectDataWithSubject("AspectDoubleSaveNoSubject")
+        aspectService.save(aspectData, username)
+        try {
+            aspectService.save(aspectData, username)
+            Assert.fail("Nothing thrown")
+        } catch (e: AspectAlreadyExist) {
+
+        } catch (e: Throwable) {
+            Assert.fail("Thrown unexpected " + e)
+        }
+    }
+
+    @Test
+    fun testDoubleSaveSameSubject() {
+        val aspectData = aspectDataWithSubject("AspectDoubleSaveSameSubject", "SubjectDoubleSaveSameSubject")
+        aspectService.save(aspectData, username)
+        try {
+            aspectService.save(aspectData, username)
+            Assert.fail("Nothing thrown")
+        } catch (e: AspectAlreadyExist) {
+        } catch (e: Throwable) {
+            Assert.fail("Thrown unexpected " + e)
+        }
+    }
+
+    @Test
+    fun testDoubleSaveWithAndWithoutSubject() {
+        val aspectData1 = aspectDataWithSubject("AspectDoubleSaveWithAndWithoutSubject")
+        val aspectData2 = aspectDataWithSubject(
+            "AspectDoubleSaveWithAndWithoutSubject",
+            "SubjectDoubleSaveWithAndWithoutSubject"
+        )
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+
+        Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
+        Assert.assertEquals(
+            "second subject is incorrect", aspectData2.subject?.copy(version = 2),
+            aspect2.subject?.toSubjectData()
+        )
+    }
+
+    @Test
+    fun testDoubleSaveWithoutAndWithSubject() {
+        val aspectData1 = aspectDataWithSubject(
+            "AspectDoubleSaveWithoutAndWithSubject",
+            "SubjectDoubleSaveWithoutAndWithSubject"
+        )
+        val aspectData2 = aspectDataWithSubject("AspectDoubleSaveWithoutAndWithSubject")
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+
+        Assert.assertEquals(
+            "first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+        )
+        Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
+    }
+
+    @Test
+    fun testDoubleSaveDifferentSubjects() {
+        val aspectData1 = aspectDataWithSubject(
+            "AspectDoubleSaveDifferentSubjects",
+            "SubjectDoubleSaveDifferentSubjects"
+        )
+        val aspectData2 = aspectDataWithSubject(
+            "AspectDoubleSaveDifferentSubjects",
+            "OtherSubjectDoubleSaveDifferentSubjects"
+        )
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+
+        Assert.assertEquals(
+            "first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+        )
+        Assert.assertEquals(
+            "second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+        )
+    }
+
+    @Test
+    fun testTripleSaveNoSomeOther() {
+        val aspectData1 = aspectDataWithSubject("AspectTripleSaveNoSomeOther")
+        val aspectData2 = aspectDataWithSubject(
+            "AspectTripleSaveNoSomeOther",
+            "SomeSubjectTripleSaveNoSomeOther"
+        )
+        val aspectData3 = aspectDataWithSubject(
+            "AspectTripleSaveNoSomeOther",
+            "OtherSubjectTripleSaveNoSomeOther"
+        )
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+        val aspect3 = aspectService.save(aspectData3, username)
+
+        Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
+        Assert.assertEquals(
+            "second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+        )
+        Assert.assertEquals(
+            "third subject is incorrect",
+            aspectData3.subject?.copy(version = 2), aspect3.subject?.toSubjectData()
+        )
+    }
+
+    @Test
+    fun testTripleSaveSomeNoOther() {
+        val aspectData1 = aspectDataWithSubject(
+            "AspectTripleSaveSomeNoOther",
+            "SomeSubjectTripleSaveSomeNoOther"
+        )
+        val aspectData2 = aspectDataWithSubject("AspectTripleSaveSomeNoOther")
+        val aspectData3 = aspectDataWithSubject(
+            "AspectTripleSaveSomeNoOther",
+            "OtherSubjectTripleSaveSomeNoOther"
+        )
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+        val aspect3 = aspectService.save(aspectData3, username)
+
+        Assert.assertEquals(
+            "first subject is incorrect", aspectData1.subject?.copy(version = 2),
+            aspect1.subject?.toSubjectData()
+        )
+        Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
+        Assert.assertEquals(
+            "third subject is incorrect", aspectData3.subject?.copy(version = 2),
+            aspect3.subject?.toSubjectData()
+        )
+    }
+
+    @Test
+    fun testTripleSaveSomeOtherNo() {
+        val aspectData1 = aspectDataWithSubject(
+            "AspectTripleSaveSomeOtherNo",
+            "SomeSubjectTripleSaveSomeOtherNo"
+        )
+        val aspectData2 = aspectDataWithSubject(
+            "AspectTripleSaveSomeOtherNo",
+            "OtherSubjectTripleSaveSomeOtherNo"
+        )
+        val aspectData3 = aspectDataWithSubject("AspectTripleSaveSomeOtherNo")
+
+        val aspect1 = aspectService.save(aspectData1, username)
+        val aspect2 = aspectService.save(aspectData2, username)
+        val aspect3 = aspectService.save(aspectData3, username)
+
+        Assert.assertEquals(
+            "first subject is incorrect",
+            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+        )
+        Assert.assertEquals(
+            "second subject is incorrect",
+            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+        )
+        Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
+    }
 
 
     private fun prepareAspect(): Aspect {
@@ -306,5 +477,15 @@ class AspectServiceSavingTest {
         val aspectPropertyData = AspectPropertyData("", "prop", aspect1.id, INFINITY.name)
         val aspectData = AspectData(null, "aspect", Metre.name, null, Decimal.name, listOf(aspectPropertyData))
         return aspectService.save(aspectData, username)
+    }
+
+    private fun aspectDataWithSubject(aspectName: String, subjectName: String? = null): AspectData {
+        val subjectData: SubjectData? = subjectName?.let {
+            subjectService.createSubject(SubjectData(name = it, description = "some description"), username).toSubjectData()
+        }
+        return AspectData(
+            null, aspectName, Kilogram.name, null, Decimal.name, emptyList(),
+            subject = subjectData
+        )
     }
 }

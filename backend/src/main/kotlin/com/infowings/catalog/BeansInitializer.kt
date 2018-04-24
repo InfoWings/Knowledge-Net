@@ -46,16 +46,17 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { UserService(db = ref(), dao = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
-        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref()) }
+        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref()) }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
-        bean { SubjectDao(db = ref())}
-        bean { SubjectService(db = ref(), dao = ref(), history = ref()) }
+        bean { SubjectDao(db = ref()) }
+        bean { SubjectService(db = ref(), dao = ref(), history = ref(), userService = ref()) }
         bean {
             AspectService(
                 db = ref(),
                 aspectDaoService = ref(),
                 referenceBookService = ref(),
-                historyService = ref()
+                historyService = ref(),
+                userService = ref()
             )
         }
         bean { SuggestionService(database = ref()) }
@@ -68,7 +69,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             OrientDatabase(
                 url = env["orient.url"],
                 database = env["orient.database"],
-                user = env["orient.user"],
+                username = env["orient.user"],
                 password = env["orient.password"],
                 userProperties = ref()
             )

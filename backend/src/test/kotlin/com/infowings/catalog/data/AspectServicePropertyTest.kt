@@ -58,8 +58,9 @@ class AspectServicePropertyTest {
     @Test
     fun testNotVirtualPropertyId() {
         assertThat("Property Ids are not virtual",
-                aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") },
-                Is.`is`(true))
+            aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") },
+            Is.`is`(true)
+        )
     }
 
     @Test
@@ -92,7 +93,8 @@ class AspectServicePropertyTest {
     @Test
     fun testAddAspectPropertiesToAspect() {
         val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
-        val dataForUpdate = complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
+        val dataForUpdate =
+            complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
         val updatedAspect = aspectService.save(dataForUpdate, username)
 
         assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
@@ -116,8 +118,9 @@ class AspectServicePropertyTest {
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
 
         assertThat("aspect should have correct properties",
-                loaded.properties.map { it.name },
-                Is.`is`(listOf(property, property2).map { it.name }))
+            loaded.properties.map { it.name },
+            Is.`is`(listOf(property, property2).map { it.name })
+        )
     }
 
     @Test(expected = AspectInconsistentStateException::class)
@@ -151,7 +154,11 @@ class AspectServicePropertyTest {
         )
         val saved = aspectService.save(ad2, username)
 
-        assertThat("aspect should have two properties with same name", saved.properties.count { it.name == "p" }, Is.`is`(2))
+        assertThat(
+            "aspect should have two properties with same name",
+            saved.properties.count { it.name == "p" },
+            Is.`is`(2)
+        )
     }
 
     @Test
@@ -207,9 +214,11 @@ class AspectServicePropertyTest {
 
         val saved = aspectService.save(dataForUpdate, username)
 
-        assertThat("aspect property should have new linked aspect",
-                saved.properties[0].aspect,
-                Is.`is`(createAspect.copy(version = createAspect.version + 1)))
+        assertThat(
+            "aspect property should have new linked aspect",
+            saved.properties[0].aspect,
+            Is.`is`(createAspect.copy(version = createAspect.version + 1))
+        )
     }
 
     @Test(expected = AspectConcurrentModificationException::class)

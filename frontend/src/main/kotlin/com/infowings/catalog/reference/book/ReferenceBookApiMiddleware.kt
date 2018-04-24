@@ -47,6 +47,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
             val rowDataList = getAllAspects(orderBy).aspects
                 .filterNot { it.deleted }
+                .filter {it.baseType == BaseType.Text.name}
                 .map {
                     val aspectId = it.id ?: ""
                     val book = if (it.id != null) aspectIdToBookMap[aspectId] else null
