@@ -8,13 +8,11 @@ object Users {
     private val admin = User("admin", "admin", UserRole.ADMIN)
     private val user = User("user", "user", UserRole.USER)
     private val poweredUser = User("powereduser", "powereduser", UserRole.POWERED_USER)
-    private val vladimir = User("vladimir", "FqnzCm4tCF", UserRole.ADMIN)
 
     fun toList() = listOf(
         admin,
         user,
-        poweredUser,
-        vladimir
+        poweredUser
     )
 }
 
