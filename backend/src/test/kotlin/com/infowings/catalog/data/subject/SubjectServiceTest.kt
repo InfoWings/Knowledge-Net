@@ -218,6 +218,13 @@ class SubjectServiceTest {
         }
     }
 
+    @Test
+    fun testUpdateSameData() {
+        val created = createTestSubject("testSubject")
+        val updated = subjectService.updateSubject(created.toSubjectData(), username)
+        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
+    }
+
     private fun createTestSubject(
         name: String,
         aspectNames: List<String> = listOf("TestSubjectAspect"),

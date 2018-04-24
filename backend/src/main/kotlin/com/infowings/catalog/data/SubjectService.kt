@@ -40,6 +40,9 @@ class SubjectService(
 
         val resultVertex = transaction(db) {
             val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            if (subjectData == vertex.toSubject().toSubjectData()) {
+                return@transaction vertex
+            }
 
             // временно отключим до гарантированной поддержки на фронте
             //if (subjectData.isModified(vertex.version)) {

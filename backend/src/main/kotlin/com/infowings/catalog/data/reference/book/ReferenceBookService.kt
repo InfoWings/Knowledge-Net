@@ -124,10 +124,14 @@ class ReferenceBookService(
             val aspectId = book.aspectId
             val newName: String = book.name
 
-            logger.debug("Updating ReferenceBook name: $newName aspectId: $aspectId by $username")
-
             val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
+            if (referenceBookVertex.toReferenceBook() == book) {
+                return@transaction referenceBookVertex
+            }
+
             val before = referenceBookVertex.currentSnapshot()
+
+            logger.debug("Updating ReferenceBook name: $newName aspectId: $aspectId by $username")
 
             referenceBookVertex
                 .validateForRemoved()
@@ -244,6 +248,11 @@ class ReferenceBookService(
             logger.debug("Updating ReferenceBookItem id: $id, value: $value by $username")
 
             val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
+
+            if (itemVertex.toReferenceBookItem() == bookItem) {
+                return@transaction itemVertex
+            }
+
             val before = itemVertex.currentSnapshot()
             val parentVertex =
                 itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must not be null")

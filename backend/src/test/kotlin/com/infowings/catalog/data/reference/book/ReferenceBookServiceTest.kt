@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.core.Is
+import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -270,6 +271,22 @@ class ReferenceBookServiceTest {
         val book = referenceBookService.getReferenceBook(aspectId)
         addReferenceBookItem(aspectId, book.id, "another")
         referenceBookService.removeReferenceBook(book, username)
+    }
+
+    @Test
+    fun testUpdateSameData() {
+        referenceBookService.updateReferenceBook(referenceBook, username)
+        val updated = referenceBookService.getReferenceBook(referenceBook.aspectId)
+        Assert.assertEquals("Same data shouldn't be rewritten", referenceBook.version, updated.version)
+
+        val aspectId = referenceBook.aspectId
+        val parentId = referenceBook.id
+        val childId = addReferenceBookItem(aspectId, parentId, "value1")
+        val child = referenceBookService.getReferenceBookItem(childId)
+        referenceBookService.changeValue(child, username)
+        val savedChild = referenceBookService.getReferenceBookItem(childId)
+
+        Assert.assertEquals("Same data shouldn't be rewritten", child.version, savedChild.version)
     }
 
     private fun addReferenceBookItem(aspectId: String, parentId: String, value: String): String =
