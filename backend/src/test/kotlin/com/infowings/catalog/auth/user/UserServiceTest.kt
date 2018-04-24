@@ -33,7 +33,6 @@ class UserServiceTest {
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
         db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
-        userService.createUser(user)
     }
 
     @Test
@@ -41,24 +40,34 @@ class UserServiceTest {
         assertEquals(user, userService.createUser(user))
     }
 
+    @Test(expected = UserWithSuchUsernameAlreadyExist::class)
+    fun createAlreadyExistUserTest() {
+        userService.createUser(user)
+        userService.createUser(user)
+    }
+
     @Test
     fun findByUsernameTest() {
+        userService.createUser(user)
         assertEquals(user, userService.findByUsername(user.username))
     }
 
-    @Test(expected = UsernameNotFoundException::class)
+    @Test(expected = UserNotFoundException::class)
     fun userNotFoundTest() {
+        userService.createUser(user)
         userService.findByUsername("notExist")
     }
 
     @Test
     fun getAllUsersTest() {
+        userService.createUser(user)
         userService.createUser(anotherUser)
         assertEquals(setOf(user, anotherUser), userService.getAllUsers())
     }
 
     @Test
     fun blockUserTest() {
-        assertEquals(user.copy(blocked = true), userService.blockUser(user.username))
+        userService.createUser(user)
+        assertEquals(user.copy(blocked = true), userService.updateUser(user.copy(blocked = true)))
     }
 }
