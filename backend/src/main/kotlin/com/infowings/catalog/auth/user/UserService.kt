@@ -3,7 +3,7 @@ package com.infowings.catalog.auth.user
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 
-class UserService(private val dao: UserDao) {
+class UserService(private val db: OrientDatabase, private val dao: UserDao) {
 
     fun createUser(user: User) = transaction(db) {
         val userVertex = dao.createUserVertex()
