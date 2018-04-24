@@ -28,9 +28,9 @@ interface HistoryAware : OVertex {
         return Snapshot(data, links)
     }
 
-    private fun historyEvent(context: HistoryContext, event: EventType): HistoryEvent =
+    private fun historyEvent(username: String, event: EventType): HistoryEvent =
         HistoryEvent(
-            username = context.username, timestamp = System.currentTimeMillis(), version = version,
+            username = username, timestamp = System.currentTimeMillis(), version = version,
             type = event, entityId = identity, entityClass = entityClass
         )
 
@@ -51,8 +51,10 @@ interface HistoryAware : OVertex {
        Поэтому различиются 2 случая - есть поле и нет поля (куда попадают все три варианта выше).
        Это кажется соответствующим опыту юзера и избавляет нас от лишних разборов.
      */
-    private fun toFact(context: HistoryContext, eventType: EventType, base: Snapshot) =
-        toHistoryFact(historyEvent(context, eventType), this, base, currentSnapshot())
+    private fun toFact(context: HistoryContext, eventType: EventType, base: Snapshot): HistoryFact {
+        val userVertex = context.userVertex
+        return toHistoryFact(userVertex, historyEvent(userVertex.username, eventType), this, base, currentSnapshot())
+    }
 
     /**
      *  Факт создания сущности.

@@ -1,5 +1,6 @@
 package com.infowings.catalog.data
 
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.history.HistoryContext
@@ -13,17 +14,19 @@ import com.infowings.catalog.storage.transaction
 class SubjectService(
     private val db: OrientDatabase,
     private val dao: SubjectDao,
-    private val history: HistoryService
+    private val history: HistoryService,
+    private val userService: UserService
 ) {
     fun getSubjects(): List<Subject> = dao.getSubjects()
 
     fun findById(id: String): SubjectVertex? = dao.findById(id)
 
     fun createSubject(sd: SubjectData, username: String): Subject {
+        val userVertex = userService.findUserVertexByUsername(username)
 
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
-            history.storeFact(vertex.toCreateFact(HistoryContext(username)))
+            history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
 
@@ -32,6 +35,8 @@ class SubjectService(
 
     fun updateSubject(subjectData: SubjectData, username: String): Subject {
         val id = subjectData.id ?: throw SubjectIdIsNull
+
+        val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
             val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
@@ -43,7 +48,7 @@ class SubjectService(
 
             val before = vertex.currentSnapshot()
             val res = dao.updateSubjectVertex(vertex, subjectData)
-            history.storeFact(vertex.toUpdateFact(HistoryContext(username), before))
+            history.storeFact(vertex.toUpdateFact(HistoryContext(userVertex), before))
 
             return@transaction res
         }
@@ -53,6 +58,8 @@ class SubjectService(
 
     fun remove(subjectData: SubjectData, username: String, force: Boolean = false) {
         val id = subjectData.id ?: throw SubjectIdIsNull
+
+        val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
             val vertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
@@ -66,7 +73,7 @@ class SubjectService(
 
             when {
                 linkedByAspects.isNotEmpty() && force -> {
-                    history.storeFact(vertex.toSoftDeleteFact(HistoryContext(username)))
+                    history.storeFact(vertex.toSoftDeleteFact(HistoryContext(userVertex)))
                     dao.softRemove(vertex)
                 }
                 linkedByAspects.isNotEmpty() -> {
@@ -74,7 +81,7 @@ class SubjectService(
                 }
 
                 else -> {
-                    history.storeFact(vertex.toDeleteFact(HistoryContext(username)))
+                    history.storeFact(vertex.toDeleteFact(HistoryContext(userVertex)))
                     dao.remove(vertex)
                 }
             }

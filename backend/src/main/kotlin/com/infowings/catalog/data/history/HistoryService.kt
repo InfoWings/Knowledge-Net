@@ -2,6 +2,7 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserService
+import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
@@ -51,35 +52,30 @@ class HistoryService(
             .toSet()
     }
 
-    fun storeFact(fact: HistoryFact): HistoryEventVertex {
+    fun storeFact(fact: HistoryFact): HistoryEventVertex = transaction(db) {
+        val historyEventVertex = fact.newHistoryEventVertex()
 
-        val userVertex = userService.findUserVertexByUsername(fact.event.username)
-
-        return transaction(db) {
-            val historyEventVertex = fact.newHistoryEventVertex()
-
-            val elementVertices = fact.payload.data.map {
-                return@map historyDao.newHistoryElementVertex().apply {
-                    key = it.key
-                    stringValue = it.value
-                }
+        val elementVertices = fact.payload.data.map {
+            return@map historyDao.newHistoryElementVertex().apply {
+                key = it.key
+                stringValue = it.value
             }
-            elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
-
-            val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
-            addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
-
-            val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
-            dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
-
-            userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
-
-            fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
-
-            db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
-
-            return@transaction historyEventVertex
         }
+        elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
+
+        val addLinkVertices = linksVertices(fact.payload.addedLinks, historyDao.newAddLinkVertex())
+        addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
+
+        val dropLinkVertices = linksVertices(fact.payload.removedLinks, historyDao.newDropLinkVertex())
+        dropLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_DROP_LINK_EDGE) }
+
+        fact.userVertex.addEdge(historyEventVertex, HISTORY_USER_EDGE)
+
+        fact.subject.addEdge(historyEventVertex, HISTORY_EDGE)
+
+        db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
+
+        return@transaction historyEventVertex
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
@@ -109,4 +105,4 @@ class HistoryService(
 // TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
 class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
 
-data class HistoryContext(val username: String)
+data class HistoryContext(val userVertex: UserVertex)
