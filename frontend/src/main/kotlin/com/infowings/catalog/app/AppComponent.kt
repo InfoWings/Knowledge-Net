@@ -5,8 +5,9 @@ import com.infowings.catalog.auth.AuthComponent
 import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
 import com.infowings.catalog.measures.MeasuresPage
-import com.infowings.catalog.subjects.SubjectsPage
 import com.infowings.catalog.reference.book.ReferenceBookPage
+import com.infowings.catalog.subjects.SubjectsPage
+import com.infowings.catalog.users.UsersPage
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
@@ -29,6 +30,7 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
             privateRoute("/reference", renderFunction<ReferenceBookPage>())
             privateRoute("/subjects", renderFunction<SubjectsPage>())
             privateRoute("/history", renderFunction<HistoryPage>())
+            privateRoute("/users", renderFunction<UsersPage>())
             reactRouter.Route {
                 attrs {
                     path = "/"

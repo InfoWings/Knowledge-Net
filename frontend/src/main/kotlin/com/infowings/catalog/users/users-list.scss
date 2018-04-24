@@ -1,0 +1,24 @@
+.users-list {
+
+  max-width: 134rem;
+  margin: 0 auto;
+
+  &--user {
+    display: flex;
+    align-items: center;
+
+    &:not(:last-child) {
+      margin-bottom: .5rem;
+    }
+  }
+
+  &--username {
+    width: 15rem;
+  }
+  &--role {
+    width: 15rem;
+  }
+  &--blocked {
+    width: 10rem;
+  }
+}
