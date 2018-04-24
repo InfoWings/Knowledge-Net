@@ -55,14 +55,6 @@ class Header : RComponent<Header.Props, RState>() {
                         text = buildElement { +"History" }
                     }
                 }
-                Button {
-                    attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/users"
-                        onClick = { props.history.push("/users") }
-                        text = buildElement { +"Users" }
-                    }
-                }
             }
             NavbarGroup {
                 attrs.align = Alignment.RIGHT
