@@ -27,6 +27,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                             aspectMeasure = props.view.aspectData.measure ?: "",
                             aspectDomain = props.view.aspectData.domain ?: "",
                             aspectBaseType = props.view.aspectData.baseType ?: "",
+                            aspectRefBookName = props.view.aspectData.refBookName ?: "",
                             aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
                             isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
                             onClick = { }
