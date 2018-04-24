@@ -99,12 +99,16 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
+            if (aspectVertex.toAspectData() == aspectData) {
+                return@transaction aspectVertex
+            }
+
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
             return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
         }
 
-        logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
+        logger.debug("Aspect ${aspectData.name} saved/updated with id: ${save.id}")
 
         return if (save.identity.clusterPosition < 0) {
             // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
