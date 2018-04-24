@@ -109,7 +109,7 @@ class AspectServiceDeletingTest {
         aspectService.save(aspectData2, username)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), "")
+        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), username)
     }
 
     @Test
@@ -118,7 +118,7 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5).toAspectData(), "")
+        aspectService.remove(aspect.copy(version = 5).toAspectData(), username)
     }
 
     @Test
@@ -144,14 +144,14 @@ class AspectServiceDeletingTest {
         a1 = aspectService.findById(a1.id)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(a1.toAspectData(), "")
+        aspectService.remove(a1.toAspectData(), username)
 
         val found = database.getVertexById(a1.id)
         assertNotNull("Aspect exists in db", found)
         assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
         a1 = aspectService.findById(a1.id)
-        aspectService.remove(a1.toAspectData(), "", true)
+        aspectService.remove(a1.toAspectData(), username, true)
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
