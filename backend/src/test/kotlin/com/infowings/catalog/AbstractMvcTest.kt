@@ -60,5 +60,6 @@ fun createTestAspect(
         emptyList(),
         subject = subject?.toSubjectData()
     )
-    return aspectService.findByName(aspectName).find { it.subject?.id == subject?.id }  ?: aspectService.save(ad)
+    return aspectService.findByName(aspectName)
+        .find { it.subject?.id == subject?.id } ?: aspectService.save(ad, "admin")
 }

@@ -11,7 +11,6 @@ import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -55,15 +54,18 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             subject?.toSubjectData(),
             deleted,
             description,
-            referenceBook?.let {it.name }
+            referenceBookVertex?.name
         )
     }
 
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
-    val referenceBook: ReferenceBookVertex?
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).firstOrNull()?.toReferenceBookVertex()
+    val referenceBookVertex: ReferenceBookVertex?
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
+            .map { it.toReferenceBookVertex() }
+            .filterNot { it.deleted }
+            .firstOrNull()
 
     fun dropRefBookEdge() {
         vertex.getEdges(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).forEach { it.delete<OEdge>() }

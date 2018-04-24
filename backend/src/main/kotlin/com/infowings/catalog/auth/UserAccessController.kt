@@ -1,5 +1,7 @@
 package com.infowings.catalog.auth
 
+import com.infowings.catalog.auth.user.UserNotFoundException
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
 import com.infowings.catalog.common.UserDto
 import org.springframework.beans.factory.annotation.Value
@@ -11,29 +13,37 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.*
 import java.net.URLDecoder
 
 @RestController
 @RequestMapping("/api/access")
-class UserAccessController(var userAcceptService: UserAcceptService, var jwtService: JWTService) {
+class UserAccessController(var userService: UserService, var jwtService: JWTService) {
 
     @Value("\${spring.security.header.refresh}")
     lateinit var REFRESH_HEADER: String
 
     @PostMapping("signIn")
-    fun signIn(@RequestBody user: UserDto): ResponseEntity<*> {
-        val userEntity = userAcceptService.findByUsername(user.username)
-        if (userEntity == null || userEntity.password != user.password) {
-            return ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
+    fun signIn(@RequestBody userDto: UserDto): ResponseEntity<*> {
+        val invalidDataResponse = ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
+        return try {
+            val user = userService.findByUsername(userDto.username)
+            if (userDto.password == user.password) {
+                ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
+            } else invalidDataResponse
+        } catch (ignored: UserNotFoundException) {
+            invalidDataResponse
         }
-        return ResponseEntity(jwtService.createJwtToken(userEntity.username), HttpStatus.OK)
     }
 
     @GetMapping("refresh")
     fun refresh(request: RequestEntity<Map<String, String>>): ResponseEntity<JwtToken> {
         return try {
-            val refreshTokenHeader = request.headers.getFirst("cookie")
+            val cookieHeader =
+                request.headers.getFirst("cookie") ?: throw IllegalArgumentException("Cookie not found in headers")
+
+            val refreshTokenHeader = cookieHeader
                 .split("; ")
                 .filter { it.startsWith(REFRESH_HEADER) }
                 .map { it.split("=")[1] }
@@ -48,13 +58,17 @@ class UserAccessController(var userAcceptService: UserAcceptService, var jwtServ
     }
 }
 
-class UserDetailsServiceImpl(var userAcceptService: UserAcceptService) : UserDetailsService {
-    override fun loadUserByUsername(username: String?): UserDetails? {
-        val user = userAcceptService.findByUsername(username!!) ?: return null
-        return User(
-            user.username,
-            user.password,
-            mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
-        )
+class UserDetailsServiceImpl(var userService: UserService) : UserDetailsService {
+    override fun loadUserByUsername(username: String): UserDetails {
+        try {
+            val user = userService.findByUsername(username)
+            return User(
+                user.username,
+                user.password,
+                mutableListOf<GrantedAuthority>(SimpleGrantedAuthority(user.role.name))
+            )
+        } catch (e: UserNotFoundException) {
+            throw UsernameNotFoundException(username)
+        }
     }
 }

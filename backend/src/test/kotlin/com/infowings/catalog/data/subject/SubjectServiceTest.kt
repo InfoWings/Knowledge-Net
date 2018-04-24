@@ -23,6 +23,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SubjectServiceTest {
+    private val username = "admin"
 
     @Autowired
     lateinit var subjectService: SubjectService
@@ -37,19 +38,19 @@ class SubjectServiceTest {
     fun testAddAspectsSameNameSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad1)
+        aspectService.save(ad1, username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2)
+        aspectService.save(ad2, username)
     }
 
     @Test(expected = AspectAlreadyExist::class)
     fun testAddAspectsSameNameGlobalSubject() {
         val ad1 = createTestAspect()
-        aspectService.save(ad1)
+        aspectService.save(ad1, username)
 
         val ad2 = createTestAspect()
-        aspectService.save(ad2)
+        aspectService.save(ad2, username)
     }
 
     @Test
@@ -58,9 +59,9 @@ class SubjectServiceTest {
         val subject2 = createTestSubject("TestSubjectUpdate2")
         val aspectName = "aspectDiffSubject"
         val ad1 = createTestAspect(aspectName, subject = subject1.toSubjectData())
-        val newAspect1 = aspectService.save(ad1)
+        val newAspect1 = aspectService.save(ad1, username)
         val ad2 = createTestAspect(aspectName, subject = subject2.toSubjectData())
-        val newAspect2 = aspectService.save(ad2)
+        val newAspect2 = aspectService.save(ad2, username)
         aspectService.findByName(aspectName).forEach {
             if (it.subject?.name == subject1.name) {
                 Assert.assertThat("aspect '$aspectName' should be saved", newAspect1, Is.`is`(it))
@@ -76,10 +77,10 @@ class SubjectServiceTest {
     fun testAddAspectsAfterRemoveSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.remove(aspectService.save(ad1).toAspectData(), "")
+        aspectService.remove(aspectService.save(ad1, username).toAspectData(), username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2)
+        aspectService.save(ad2, username)
 
         val aspects = aspectService.findByName("aspect")
         Assert.assertThat(
@@ -93,24 +94,25 @@ class SubjectServiceTest {
     fun testAddAspectsAfterRemoveForce() {
         /*
          *  aspectBase
-         *    level1_property
+         *    level1Property
          *       aspect
          */
         val subject = createTestSubject("TestSubjectUpdate")
-        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()))
-        val level1_property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
+        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
+        val level1Property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
         aspectService.save(
             createTestAspect(
                 "aspectBase",
                 subject = subject.toSubjectData(),
-                properties = listOf(level1_property)
-            )
+                properties = listOf(level1Property)
+            ),
+            username
         )
 
-        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), "", true)
+        aspectService.remove(aspectService.findByName("aspect").first().toAspectData(), username, true)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2)
+        aspectService.save(ad2, username)
 
         val aspects = aspectService.findByName("aspect")
         Assert.assertThat(
@@ -135,23 +137,23 @@ class SubjectServiceTest {
 
     @Test
     fun testDeleteStandaloneSubject() {
-        val subjects = (1 .. 3).map {
-            val name = "testDeleteStandaloneSubject${it}"
-            val s =  createTestSubject(name, aspectNames = emptyList())
+        val subjects = (1..3).map {
+            val name = "testDeleteStandaloneSubject$it"
+            val s = createTestSubject(name, aspectNames = emptyList())
             Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
             s
         }
 
-        val before = subjectService.getSubjects().map {it.id}
+        val before = subjectService.getSubjects().map { it.id }
         val beforeSet = before.toSet()
 
         Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
 
-        val toRemove = subjects.get(1)
+        val toRemove = subjects[1]
 
-        subjectService.remove(toRemove.toSubjectData(), "user")
+        subjectService.remove(toRemove.toSubjectData(), username)
 
-        val after = subjectService.getSubjects().map {it.id}
+        val after = subjectService.getSubjects().map { it.id }
         val afterSet = after.toSet()
 
         Assert.assertEquals("ids after removal are not unique", after.size, afterSet.size)
@@ -164,23 +166,23 @@ class SubjectServiceTest {
     @Test
     fun testDeleteForcedReferencedSubject() {
         val nameBase = "testDeleteReferencedSubject"
-        val subjects = (1 .. 3).map {
+        val subjects = (1..3).map {
             val name = "$nameBase$it"
-            val s =  createTestSubject(name, aspectNames = listOf("a_" + name))
+            val s = createTestSubject(name, aspectNames = listOf("a_$name"))
             Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
             s
         }
 
-        val before = subjectService.getSubjects().map {it.id}
+        val before = subjectService.getSubjects().map { it.id }
         val beforeSet = before.toSet()
 
         Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
 
-        val toRemove = subjects.get(1)
+        val toRemove = subjects[1]
 
-        subjectService.remove(toRemove.toSubjectData(), "user", force = true)
+        subjectService.remove(toRemove.toSubjectData(), username, force = true)
 
-        val after = subjectService.getSubjects().map {it.id}
+        val after = subjectService.getSubjects().map { it.id }
         val afterSet = after.toSet()
 
         Assert.assertEquals("ids after removal are not unique", after.size, afterSet.size)
@@ -193,22 +195,22 @@ class SubjectServiceTest {
     @Test
     fun testDeleteReferencedSubject() {
         val nameBase = "testDeleteForceReferencedSubject"
-        val subjects = (1 .. 3).map {
+        val subjects = (1..3).map {
             val name = "$nameBase$it"
-            val s =  createTestSubject(name, aspectNames = listOf("a_" + name))
+            val s = createTestSubject(name, aspectNames = listOf("a_$name"))
             Assert.assertEquals("createTestSubject returned unexpected subject", name, s.name)
             s
         }
 
-        val before = subjectService.getSubjects().map {it.id}
+        val before = subjectService.getSubjects().map { it.id }
         val beforeSet = before.toSet()
 
         Assert.assertEquals("ids are not unique", before.size, beforeSet.size)
 
-        val toRemove = subjects.get(1)
+        val toRemove = subjects[1]
 
         try {
-            subjectService.remove(toRemove.toSubjectData(), "user", force = false)
+            subjectService.remove(toRemove.toSubjectData(), username, force = false)
             Assert.fail("Nothing is thrown")
         } catch (e: SubjectIsLinkedByAspect) {
         } catch (e: Throwable) {
@@ -250,7 +252,7 @@ fun createTestSubject(
 ): Subject {
     val sd = SubjectData(name = name, version = 0, description = description)
     val subject = try {
-        subjectService.createSubject(sd, "")
+        subjectService.createSubject(sd, "admin")
     } catch (e: SubjectWithNameAlreadyExist) {
         e.subject
     }

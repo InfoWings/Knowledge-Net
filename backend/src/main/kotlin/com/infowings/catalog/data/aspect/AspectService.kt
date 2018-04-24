@@ -1,22 +1,14 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.auth.UserAcceptService
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.data.reference.book.toReferenceBookVertex
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -27,8 +19,8 @@ class AspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
-    private val userAcceptService: UserAcceptService,
-    private val referenceBookService: ReferenceBookService
+    private val referenceBookService: ReferenceBookService,
+    private val userService: UserService
 ) {
     private val aspectValidator = AspectValidator(aspectDaoService)
 
@@ -37,7 +29,7 @@ class AspectService(
         deletedProperties.forEach { remove(it, context) }
         aspectVertex.saveAspectProperties(updatedProperties, context)
 
-        if (aspectVertex.referenceBook != null && aspectData.refBookName == null) {
+        if (aspectVertex.referenceBookVertex != null && aspectData.refBookName == null) {
             // по ходу редактирования на фронте решили дропнуть справочник
             val refBook: ReferenceBook = referenceBookService.getReferenceBook(aspectVertex.id)
             // пока для простоты сделаем сразу принудительное удаление
@@ -47,7 +39,7 @@ class AspectService(
             // вдобавок к подтверждению на удаление аспекта и подтверждению удаление справчника как следствию
             // выбора меры/типа (которое не зависит от связанности справочника)
             // Надо понять, какой UE мы хотим, что человек не запутался в подтверждениях.
-            referenceBookService.removeReferenceBook(refBook, context.userName, true)
+            referenceBookService.removeReferenceBook(refBook, context.userVertex, force = true)
             aspectVertex.dropRefBookEdge()
         }
 
@@ -98,8 +90,8 @@ class AspectService(
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      */
-    fun save(aspectData: AspectData, user: String = ""): Aspect {
-        val userInfo: String? = userAcceptService.findByUsernameAsJson(user)
+    fun save(aspectData: AspectData, username: String): Aspect {
+        val userVertex = userService.findUserVertexByUsername(username)
 
         val save: AspectVertex = transaction(db) {
             val aspectVertex = aspectData
@@ -109,7 +101,7 @@ class AspectService(
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(user, userInfo))
+            return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
         }
 
         logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
@@ -126,11 +118,12 @@ class AspectService(
         } else save.toAspect()
     }
 
-    fun remove(aspectData: AspectData, userName: String, force: Boolean = false) {
-        val userInfo: String? = userAcceptService.findByUsernameAsJson(userName)
-        val context = HistoryContext(userName, userInfo)
+    fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
+        val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
+            val context = HistoryContext(userVertex)
+
             val aspectId = aspectData.id ?: "null"
 
             val aspectVertex =
@@ -151,7 +144,7 @@ class AspectService(
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked && force -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName, force)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex, force)
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
@@ -160,7 +153,7 @@ class AspectService(
                 }
                 else -> {
                     historyService.storeFact(aspectVertex.toDeleteFact(context))
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userName)
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex)
                     aspectDaoService.remove(aspectVertex)
                 }
             }
@@ -294,7 +287,7 @@ class AspectService(
             subject,
             deleted,
             description,
-            referenceBook?.let {it.name}
+            referenceBookVertex?.name
         )
     }
 
