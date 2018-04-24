@@ -1,5 +1,6 @@
 package com.infowings.catalog.auth.user
 
+import com.infowings.catalog.common.User
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 

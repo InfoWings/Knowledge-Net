@@ -1,7 +1,6 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
-import com.infowings.catalog.auth.user.User
 import com.infowings.catalog.auth.user.UserDao
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*

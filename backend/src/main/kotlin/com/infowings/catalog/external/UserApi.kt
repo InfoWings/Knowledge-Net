@@ -1,9 +1,7 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.auth.user.User
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.UserData
-import com.infowings.catalog.common.UsersList
+import com.infowings.catalog.common.Users
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -14,10 +12,10 @@ import org.springframework.web.bind.annotation.*
 class UserApi(val userService: UserService) {
 
     @GetMapping("all")
-    fun getAllUsers() = UsersList(userService.getAllUsers().map { it.toUserData() })
+    fun getAllUsers() = Users(userService.getAllUsers())
 
     @PostMapping("block/{username}")
-    fun blockUser(@PathVariable username: String) = userService.blockUser(username).toUserData()
+    fun blockUser(@PathVariable username: String) = userService.blockUser(username)
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<String> {
@@ -26,6 +24,4 @@ class UserApi(val userService: UserService) {
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }
-
-    private fun User.toUserData() = UserData(this.username, this.role, this.blocked)
 }

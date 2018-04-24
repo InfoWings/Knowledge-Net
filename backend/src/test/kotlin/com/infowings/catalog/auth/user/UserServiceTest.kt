@@ -1,6 +1,7 @@
 package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS

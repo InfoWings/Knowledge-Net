@@ -6,7 +6,12 @@ import kotlinx.serialization.Serializable
 data class UserCredentials(val username: String, val password: String)
 
 @Serializable
-data class UserData(val username: String, val userRole: UserRole, val blocked: Boolean)
+data class User(
+    val username: String,
+    val password: String,
+    val role: UserRole,
+    val blocked: Boolean = false
+)
 
 @Serializable
-data class UsersList(val users: List<UserData>)
+data class Users(val users: Set<User>)
