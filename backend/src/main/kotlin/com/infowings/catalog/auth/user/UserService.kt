@@ -1,12 +1,14 @@
 package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.common.User
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 
 class UserService(private val db: OrientDatabase, private val dao: UserDao) {
 
     fun createUser(user: User): User {
+        logger.debug("Creating user: $user")
         if (dao.findByUsername(user.username) != null) throw UserWithSuchUsernameAlreadyExist(user.username)
 
         return transaction(db) {
@@ -20,6 +22,7 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
     }
 
     fun updateUser(user: User): User {
+        logger.debug("Updating user: $user")
         val userVertex = findUserVertexByUsername(user.username)
 
         return transaction(db) {
@@ -31,13 +34,23 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
         }.toUser()
     }
 
-    fun findByUsername(username: String) = findUserVertexByUsername(username).toUser()
+    fun findByUsername(username: String): User {
+        logger.debug("Finding user by username: $username")
+        return findUserVertexByUsername(username).toUser()
+    }
 
-    fun findUserVertexByUsername(username: String) =
-        dao.findByUsername(username) ?: throw UserNotFoundException(username)
+    fun findUserVertexByUsername(username: String): UserVertex {
+        logger.debug("Finding userVertex by username: $username")
+        return dao.findByUsername(username) ?: throw UserNotFoundException(username)
+    }
 
-    fun getAllUsers() = dao.getAllUserVertices().map { it.toUser() }.toSet()
+    fun getAllUsers(): Set<User> {
+        logger.debug("Getting all users")
+        return dao.getAllUserVertices().map { it.toUser() }.toSet()
+    }
 }
+
+private val logger = loggerFor<UserService>()
 
 sealed class UserException(message: String? = null) : Exception(message)
 
