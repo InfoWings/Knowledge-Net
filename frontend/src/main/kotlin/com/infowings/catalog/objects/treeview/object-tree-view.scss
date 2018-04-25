@@ -1,0 +1,20 @@
+.object-tree-view {
+
+  max-width: 120rem;
+  margin: 3rem auto;
+
+  &__root {
+    display: flex;
+    align-items: center;
+    margin-top: .3rem;
+  }
+
+}
+
+.object-input-name {
+  margin-right: .6rem;
+}
+
+.object-input-subject {
+  margin: 0 .6rem;
+}
