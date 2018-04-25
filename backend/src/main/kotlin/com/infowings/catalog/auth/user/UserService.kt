@@ -12,11 +12,12 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
         if (dao.findByUsername(user.username) != null) throw UserWithSuchUsernameAlreadyExist(user.username)
 
         return transaction(db) {
-            val userVertex = dao.createUserVertex()
-            userVertex.username = user.username
-            userVertex.password = user.password
-            userVertex.role = user.role.name
-            userVertex.blocked = false
+            val userVertex = dao.createUserVertex().apply {
+                username = user.username
+                password = user.password
+                role = user.role.name
+                blocked = false
+            }
             return@transaction dao.saveUserVertex(userVertex)
         }.toUser()
     }
@@ -26,10 +27,12 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
         val userVertex = findUserVertexByUsername(user.username)
 
         return transaction(db) {
-            userVertex.username = user.username
-            userVertex.password = user.password
-            userVertex.role = user.role.name
-            userVertex.blocked = user.blocked
+            userVertex.apply {
+                username = user.username
+                password = user.password
+                role = user.role.name
+                blocked = user.blocked
+            }
             return@transaction dao.saveUserVertex(userVertex)
         }.toUser()
     }
