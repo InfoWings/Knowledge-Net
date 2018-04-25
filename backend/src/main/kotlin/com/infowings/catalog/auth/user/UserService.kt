@@ -9,9 +9,10 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
 
     fun createUser(user: User): User {
         logger.debug("Creating user: $user")
-        if (dao.findByUsername(user.username) != null) throw UserWithSuchUsernameAlreadyExist(user.username)
 
         return transaction(db) {
+            if (dao.findByUsername(user.username) != null) throw UserWithSuchUsernameAlreadyExist(user.username)
+
             val userVertex = dao.createUserVertex().apply {
                 username = user.username
                 password = user.password
@@ -24,9 +25,10 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
 
     fun updateUser(user: User): User {
         logger.debug("Updating user: $user")
-        val userVertex = findUserVertexByUsername(user.username)
 
         return transaction(db) {
+            val userVertex = findUserVertexByUsername(user.username)
+
             userVertex.apply {
                 username = user.username
                 password = user.password
