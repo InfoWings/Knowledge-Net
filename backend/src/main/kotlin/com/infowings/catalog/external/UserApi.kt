@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 class UserApi(val userService: UserService) {
 
     @GetMapping("all")
-    fun getAllUsers() = Users(userService.getAllUsers())
+    fun getAllUsers() = Users(userService.getAllUsers().toList())
 
     @PostMapping("update")
     fun updateUser(@RequestBody user: User) = userService.updateUser(user)

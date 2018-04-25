@@ -14,4 +14,4 @@ data class User(
 )
 
 @Serializable
-data class Users(val users: Set<User>)
+data class Users(val users: List<User>)
