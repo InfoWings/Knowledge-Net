@@ -78,6 +78,11 @@ $color-yellow: #ffa500;
     display: flex;
     justify-content: space-between;
 
+    span {
+      margin-left: 0.1rem;
+      margin-right: 0.1rem;
+    }
+
     &__red {
       color: $color-red;
     }
