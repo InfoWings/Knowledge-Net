@@ -1,11 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.auth.user.UserNotFoundException
-import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.auth.user.UserWithSuchUsernameAlreadyExist
-import com.infowings.catalog.common.User
-import com.infowings.catalog.common.UserData
+import com.infowings.catalog.auth.user.*
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.Users
+import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -26,7 +24,57 @@ class UserApi(val userService: UserService) {
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<String> {
         return when (e) {
-            is UserNotFoundException, is UserWithSuchUsernameAlreadyExist -> ResponseEntity.badRequest().body(e.message)
+
+            is UserNotFoundException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "User with username: ${e.username} not found."
+                        )
+                    )
+                )
+
+            is UserWithSuchUsernameAlreadyExist -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "User with username: ${e.username} already exist."
+                        )
+                    )
+                )
+
+            is UsernameNullOrEmptyException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Username should not be empty"
+                        )
+                    )
+                )
+
+            is PasswordNullOrEmptyException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "Password should not be empty"
+                        )
+                    )
+                )
+
+            is UserRoleNullOrEmptyException -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.INCORRECT_INPUT,
+                            "User role should not be empty"
+                        )
+                    )
+                )
+
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }
