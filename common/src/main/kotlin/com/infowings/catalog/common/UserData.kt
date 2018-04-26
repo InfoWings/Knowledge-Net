@@ -15,3 +15,10 @@ data class User(
 
 @Serializable
 data class Users(val users: List<User>)
+
+@Serializable
+data class UserData(
+    val username: String?,
+    val password: String?,
+    val role: UserRole?
+)

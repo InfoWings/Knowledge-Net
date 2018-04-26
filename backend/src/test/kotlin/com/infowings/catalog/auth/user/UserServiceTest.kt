@@ -2,6 +2,7 @@ package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.User
+import com.infowings.catalog.common.UserData
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
@@ -29,6 +30,8 @@ class UserServiceTest {
     private val user = User("test", "qwerty123", UserRole.USER)
     private val anotherUser = User("another", "123456", UserRole.POWERED_USER)
 
+    private val userData = user.toUserData()
+
     @Before
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
@@ -38,6 +41,36 @@ class UserServiceTest {
     @Test
     fun createUserTest() {
         assertEquals(user, userService.createUser(user))
+    }
+
+    @Test
+    fun createUserFromUserDataTest() {
+        assertEquals(user, userService.createUser(userData))
+    }
+
+    @Test(expected = UsernameNullOrEmptyException::class)
+    fun createWithEmptyUsernameTest() {
+        userService.createUser(userData.copy(username = ""))
+    }
+
+    @Test(expected = UsernameNullOrEmptyException::class)
+    fun createWithNullUsernameTest() {
+        userService.createUser(userData.copy(username = null))
+    }
+
+    @Test(expected = PasswordNullOrEmptyException::class)
+    fun createWithEmptyPasswordTest() {
+        userService.createUser(userData.copy(password = ""))
+    }
+
+    @Test(expected = PasswordNullOrEmptyException::class)
+    fun createWithNullPasswordTest() {
+        userService.createUser(userData.copy(password = null))
+    }
+
+    @Test(expected = UserRoleNullOrEmptyException::class)
+    fun createWithNullUserRoleTest() {
+        userService.createUser(userData.copy(role = null))
     }
 
     @Test(expected = UserWithSuchUsernameAlreadyExist::class)
@@ -62,12 +95,20 @@ class UserServiceTest {
     fun getAllUsersTest() {
         userService.createUser(user)
         userService.createUser(anotherUser)
-        assertEquals(listOf(user, anotherUser).map { it.copy(password = "") }.toSet(), userService.getAllUsers())
+        assertEquals(setOf(user, anotherUser), userService.getAllUsers())
     }
 
     @Test
     fun blockUserTest() {
         userService.createUser(user)
-        assertEquals(user.copy(blocked = true), userService.updateUser(user.copy(blocked = true)))
+        val blockedUser = user.copy(blocked = true)
+        assertEquals(blockedUser, userService.updateUser(blockedUser))
+    }
+
+    @Test(expected = PasswordNullOrEmptyException::class)
+    fun updateToEmptyPasswordTest() {
+        userService.createUser(user)
+        val updatedUser = user.copy(password = "")
+        assertEquals(updatedUser, userService.updateUser(updatedUser))
     }
 }
