@@ -32,12 +32,12 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "measure" to asStringOrEmpty(measure),
-            "baseType" to asStringOrEmpty(baseType)
+            AspectField.NAME.name to asStringOrEmpty(name),
+            AspectField.MEASURE.name to asStringOrEmpty(measure),
+            AspectField.BASE_TYPE.name to asStringOrEmpty(baseType)
         ),
         links = mapOf(
-            "properties" to properties.map { it.identity }
+            AspectField.PROPERTY to properties.map { it.identity }
         )
     )
 

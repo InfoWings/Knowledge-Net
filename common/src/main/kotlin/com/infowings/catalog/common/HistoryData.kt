@@ -33,6 +33,10 @@ data class AspectDataView(val aspectData: AspectData, val related: List<AspectDa
 
 enum class AspectField {
     NAME, MEASURE, BASE_TYPE;
+
+    companion object {
+        const val PROPERTY = "Property"
+    }
 }
 
 @Serializable
