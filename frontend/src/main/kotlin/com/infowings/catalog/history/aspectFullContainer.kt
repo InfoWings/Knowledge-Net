@@ -34,20 +34,22 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                     }!!
                 }
                 val propMap = props.view.related.map { it.id to it }.toMap()
-                div("history_properties") {
-                    props.view.aspectData.properties.forEach {
-                        propertyLabel(
-                            className = null,
-                            aspectPropertyName = it.name,
-                            aspectPropertyCardinality = it.cardinality,
-                            aspectName = propMap[it.aspectId]?.name ?: "",
-                            aspectMeasure = propMap[it.aspectId]?.measure ?: "",
-                            aspectDomain = propMap[it.aspectId]?.domain ?: "",
-                            aspectBaseType = propMap[it.aspectId]?.baseType ?: "",
-                            aspectSubjectName = propMap[it.aspectId]?.subject?.name ?: "Global",
-                            isSubjectDeleted = propMap[it.aspectId]?.subject?.deleted ?: false,
-                            onClick = {}
-                        )
+                if (propMap.isNotEmpty()) {
+                    div("history_properties") {
+                        props.view.aspectData.properties.forEach {
+                            propertyLabel(
+                                className = null,
+                                aspectPropertyName = it.name,
+                                aspectPropertyCardinality = it.cardinality,
+                                aspectName = propMap[it.aspectId]?.name ?: "",
+                                aspectMeasure = propMap[it.aspectId]?.measure ?: "",
+                                aspectDomain = propMap[it.aspectId]?.domain ?: "",
+                                aspectBaseType = propMap[it.aspectId]?.baseType ?: "",
+                                aspectSubjectName = propMap[it.aspectId]?.subject?.name ?: "Global",
+                                isSubjectDeleted = propMap[it.aspectId]?.subject?.deleted ?: false,
+                                onClick = {}
+                            )
+                        }
                     }
                 }
             }
