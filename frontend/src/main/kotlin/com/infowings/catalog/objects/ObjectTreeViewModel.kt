@@ -1,16 +1,26 @@
 package com.infowings.catalog.objects
 
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.ObjData
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.objects.treeview.objectTreeView
 import kotlinx.coroutines.experimental.launch
 import react.*
 
-data class ObjTreeView(
-    var id: String?,
+data class ObjTreeViewProperty(
+    val id: String?,
     var name: String?,
-    var subject: String?
+    var aspect: AspectData?
+)
+
+data class ObjTreeView(
+    val id: String?,
+    var name: String?,
+    var subject: SubjectData?,
+    var properties: MutableList<ObjTreeViewProperty>,
+    var expanded: Boolean = false
 ) {
-    fun toObjData() = ObjData(id, name, subject)
+    fun toObjData() = ObjData(id, name, subject ?: error("Inconsistent State"))
 }
 
 interface ObjectTreeViewModel {
@@ -34,13 +44,18 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
         editedObjTree = null
     }
 
-    override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) {
-        // Think what to do about diff
-        console.log(nextProps.objList)
-        setState {
-            objForest = nextProps.objList.map { ObjTreeView(it.id, it.name, it.subject) }.toMutableList()
-        }
+    override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) = setState {
+        // TODO: Smart merging of the incoming data into view state
+        objForest = nextProps.objList.map {
+            ObjTreeView(
+                it.id,
+                it.name,
+                it.subject,
+                it.properties.map { ObjTreeViewProperty(it.id, it.name, it.aspect) }.toMutableList()
+            )
+        }.toMutableList()
     }
+
 
     override fun updateObjTree(updater: ObjTreeView.() -> Unit) = setState {
         editedObjTree?.updater() ?: error("Inconsistent state")
@@ -68,6 +83,7 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
     }
 
     override fun addNewObjTree() = setState {
+        // TODO: Probably different interfaces for creating an editing
         editedObjTree?.let { objTree ->
             objTree.id?.let {
                 val objData = props.objMap[it] ?: error("Inconsistent State")
@@ -75,7 +91,7 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                 objTree.subject = objData.subject
             } ?: error("Inconsistent State")
         }
-        objForest.add(ObjTreeView(null, null, null))
+        objForest.add(ObjTreeView(null, null, null, ArrayList()))
         editedObjTree = objForest.last()
     }
 

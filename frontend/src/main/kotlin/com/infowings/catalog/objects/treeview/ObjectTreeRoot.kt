@@ -3,7 +3,8 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.ObjTreeView
-import com.infowings.catalog.wrappers.blueprint.EditableText
+import com.infowings.catalog.objects.treeview.inputs.nameInput
+import com.infowings.catalog.objects.treeview.inputs.objectSubjectInput
 import react.*
 import react.dom.div
 
@@ -11,49 +12,36 @@ class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "object-tree-view__root") {
-            EditableText {
-                attrs {
-                    className = "object-input-name"
-                    placeholder = "Enter name"
-                    value = props.objectTreeView.name ?: ""
-                    onEdit = props.onStartEdit
-                    onCancel = {
-                        props.onUpdate {
-                            name = it
-                        }
+            nameInput(
+                value = props.objectTreeView.name ?: "",
+                onEdit = props.onStartEdit,
+                onCancel = {
+                    props.onUpdate {
+                        name = it
                     }
-                    onChange = {
-                        props.onUpdate {
-                            name = it
-                        }
+                },
+                onChange = {
+                    props.onUpdate {
+                        name = it
                     }
                 }
-            }
+            )
             +"(Subject: "
-            EditableText {
-                attrs {
-                    className = "object-input-subject"
-                    placeholder = "Enter subject"
-                    value = props.objectTreeView.subject ?: ""
-                    onEdit = props.onStartEdit
-                    onCancel = {
-                        props.onUpdate {
-                            subject = it
-                        }
-                    }
-                    onChange = {
-                        props.onUpdate {
-                            subject = it
-                        }
+            objectSubjectInput( // TODO: should not be available for editing, only for creating.
+                value = props.objectTreeView.subject,
+                onOpen = props.onStartEdit,
+                onSelect = {
+                    props.onUpdate {
+                        subject = it
                     }
                 }
-            }
+            )
             +" )"
             deleteButtonComponent(
                 onDeleteClick = { TODO("Delete is not available yet") },
                 entityName = "object"
             )
-            if (props.isSelected) {
+            if (props.isSelected) { // TODO: Don't show when data is not valid
                 props.onSubmit?.let {
                     submitButtonComponent(
                         onSubmit = it
