@@ -51,7 +51,7 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
 
     fun getAllUsers(): Set<User> {
         logger.debug("Getting all users")
-        return dao.getAllUserVertices().map { it.toUser() }.toSet()
+        return dao.getAllUserVertices().map { it.toUser().copy(password = "") }.toSet()
     }
 }
 

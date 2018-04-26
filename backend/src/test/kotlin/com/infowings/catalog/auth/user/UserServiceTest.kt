@@ -62,7 +62,7 @@ class UserServiceTest {
     fun getAllUsersTest() {
         userService.createUser(user)
         userService.createUser(anotherUser)
-        assertEquals(setOf(user, anotherUser), userService.getAllUsers())
+        assertEquals(listOf(user, anotherUser).map { it.copy(password = "") }.toSet(), userService.getAllUsers())
     }
 
     @Test
