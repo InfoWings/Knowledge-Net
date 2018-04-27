@@ -23,7 +23,7 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
         div("history-item") {
             userIcon("history-item--icon") { }
             span("history-item--field") {
-                +props.historyData.user
+                +props.historyData.username
             }
             span(classes = "history-item--field history-item--field__${props.historyData.eventType.color}") {
                 +props.historyData.eventType.name

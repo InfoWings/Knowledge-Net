@@ -1,6 +1,9 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.UserEntity
+import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
+import com.infowings.catalog.auth.user.User
+import com.infowings.catalog.auth.user.UserDao
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
@@ -12,8 +15,6 @@ import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
-import com.orientechnologies.orient.core.record.OElement
-import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
 
 const val ATTR_NAME = "name"
@@ -38,11 +39,12 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun initEdge(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createEdgeClass(name)
 
-    /** Executes only if there is no Class $USER_CLASS in db */
-    fun initUsers(entities: List<UserEntity>): OrientDatabaseInitializer = session(database) { session ->
+    fun initUsers(users: List<User>): OrientDatabaseInitializer = session(database) { session ->
+        logger.info("Init users: " + users.map { it.username })
         if (session.getClass(USER_CLASS) == null) {
-            logger.info("Init users: " + entities.map { it.username })
-            entities.forEach { initUser(it) }
+            session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
+            val userService = UserService(UserDao(database))
+            users.forEach { userService.createUser(it) }
         }
         return@session this
     }
@@ -72,6 +74,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, HISTORY_DROP_LINK_CLASS)
 
         initEdge(session, HISTORY_EDGE)
+        initEdge(session, HISTORY_USER_EDGE)
         initEdge(session, HISTORY_ELEMENT_EDGE)
         initEdge(session, HISTORY_ADD_LINK_EDGE)
         initEdge(session, HISTORY_DROP_LINK_EDGE)
@@ -184,19 +187,6 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
                 )
             }
         }
-
-    /** Create user in database */
-    private fun initUser(username: String, password: String, role: String) = session(database) { session ->
-        val user: OElement = session.newInstance(USER_CLASS)
-        user.setProperty("username", username)
-        user.setProperty("password", password)
-        user.setProperty("role", role)
-        user.save<ORecord>()
-    }
-
-    private fun initUser(user: UserEntity) = user.apply {
-        initUser(username, password, role.name)
-    }
 
     private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {
         session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")

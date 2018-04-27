@@ -1,7 +1,9 @@
 package com.infowings.catalog.auth
 
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.loggerFor
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import kotlinx.serialization.Serializable
@@ -9,12 +11,11 @@ import kotlinx.serialization.json.JSON
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RequestMapping
 import java.security.Principal
 import java.util.*
 
 @Serializable
-data class JwtInfo(var username: String, var role: UserRole): Principal {
+data class JwtInfo(var username: String, var role: UserRole) : Principal {
     // реализовать Principal важно для того, чтобы в метода класслов с тегами
     // @RestController и @RequestMapping(...) можно было использовать параметр типа
     // Principal и в него попадал экземпляр JwtInfo
@@ -39,30 +40,30 @@ class JWTService {
     lateinit var PREFIX: String
 
     @Autowired
-    lateinit var userAcceptService: UserAcceptService
+    lateinit var userService: UserService
 
 
     fun createJwtToken(username: String): JwtToken {
-        val user = userAcceptService.findByUsername(username)
-        val jwtInfo = JwtInfo(user!!.username, user.role)
+        val user = userService.findByUsername(username)
+        val jwtInfo = JwtInfo(user.username, user.role)
         val accessToken = createTokenString(jwtInfo, ACCESS_TIME.toLong())
         val refreshToken = createTokenString(jwtInfo, REFRESH_TIME.toLong())
         return JwtToken(accessToken, refreshToken, jwtInfo.role, ACCESS_TIME.toLong(), REFRESH_TIME.toLong())
     }
 
     fun parseTokenString(token: String): JwtInfo? {
-
-        try {
+        return try {
             val obj = Jwts.parser()
                 .setSigningKey(SECRET)
                 .parseClaimsJws(token.replace("$PREFIX ", ""))
                 .body
 
-            return if (obj.subject != null && Date().before(obj.expiration))
+            if (obj.subject != null && Date().before(obj.expiration))
                 JSON.parse(obj.subject) else null
 
-        } catch (ignored: Exception) {
-            return null
+        } catch (e: Exception) {
+            logger.error(e.message)
+            null
         }
     }
 
@@ -73,3 +74,5 @@ class JWTService {
             .signWith(SignatureAlgorithm.HS512, SECRET)
             .compact()
 }
+
+private val logger = loggerFor<JWTService>()

@@ -1,8 +1,12 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
+import com.infowings.catalog.auth.user.UserVertex
+import com.infowings.catalog.auth.user.toUserVertex
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import java.time.Instant
@@ -39,12 +43,6 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["entityClass"] = value
         }
 
-    var user: String
-        get() = vertex["user"]
-        set(value) {
-            vertex["user"] = value
-        }
-
     var timestamp: Instant
         get() = vertex["timestamp"]
         set(value) {
@@ -62,4 +60,9 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             vertex["eventType"] = value
         }
+
+    val userVertex: UserVertex
+        get() = getVertices(ODirection.IN, HISTORY_USER_EDGE)
+            .map { it.toUserVertex() }
+            .first()
 }

@@ -23,6 +23,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SearchWithRemovedTest {
+    private val username = "admin"
 
     @Autowired
     lateinit var suggestionService: SuggestionService
@@ -43,11 +44,11 @@ class SearchWithRemovedTest {
     @Before
     fun saveAspectAndRemoveIt() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
-        initialAspect = aspectService.save(ad)
+        initialAspect = aspectService.save(ad, username)
 
         val p1 = AspectPropertyData("", "", initialAspect.id, AspectPropertyCardinality.ONE.name)
         val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
-        parentAspect = aspectService.save(ad2)
+        parentAspect = aspectService.save(ad2, username)
 
         session(database) {
             val aspectVertex = database.getVertexById(initialAspect.id)!!.toAspectVertex()

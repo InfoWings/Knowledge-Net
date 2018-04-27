@@ -1,6 +1,6 @@
 package com.infowings.catalog.data
 
-import com.infowings.catalog.auth.UserAcceptService
+import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.history.HistoryContext
@@ -11,29 +11,32 @@ import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 
-class SubjectService(private val db: OrientDatabase,
-                     private val dao: SubjectDao,
-                     private val history: HistoryService,
-                     private val userAcceptService: UserAcceptService) {
+class SubjectService(
+    private val db: OrientDatabase,
+    private val dao: SubjectDao,
+    private val history: HistoryService,
+    private val userService: UserService
+) {
     fun getSubjects(): List<Subject> = dao.getSubjects()
 
     fun findById(id: String): SubjectVertex? = dao.findById(id)
 
-    fun createSubject(sd: SubjectData, user: String): Subject {
-        val userInfo: String? = userAcceptService.findByUsernameAsJson(user)
+    fun createSubject(sd: SubjectData, username: String): Subject {
+        val userVertex = userService.findUserVertexByUsername(username)
 
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
-            history.storeFact(vertex.toCreateFact(HistoryContext(user, userInfo)))
+            history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
 
         return vertex.toSubject()
     }
 
-    fun updateSubject(subjectData: SubjectData, user: String): Subject {
+    fun updateSubject(subjectData: SubjectData, username: String): Subject {
         val id = subjectData.id ?: throw SubjectIdIsNull
-        val userInfo: String? = userAcceptService.findByUsernameAsJson(user)
+
+        val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
             val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
@@ -45,7 +48,7 @@ class SubjectService(private val db: OrientDatabase,
 
             val before = vertex.currentSnapshot()
             val res = dao.updateSubjectVertex(vertex, subjectData)
-            history.storeFact(vertex.toUpdateFact(HistoryContext(user, userInfo), before))
+            history.storeFact(vertex.toUpdateFact(HistoryContext(userVertex), before))
 
             return@transaction res
         }
@@ -53,9 +56,10 @@ class SubjectService(private val db: OrientDatabase,
         return resultVertex.toSubject()
     }
 
-    fun remove(subjectData: SubjectData, user: String, force: Boolean = false) {
+    fun remove(subjectData: SubjectData, username: String, force: Boolean = false) {
         val id = subjectData.id ?: throw SubjectIdIsNull
-        val userInfo: String? = userAcceptService.findByUsernameAsJson(user)
+
+        val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
             val vertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
@@ -69,7 +73,7 @@ class SubjectService(private val db: OrientDatabase,
 
             when {
                 linkedByAspects.isNotEmpty() && force -> {
-                    history.storeFact(vertex.toSoftDeleteFact(HistoryContext(user, userInfo)))
+                    history.storeFact(vertex.toSoftDeleteFact(HistoryContext(userVertex)))
                     dao.softRemove(vertex)
                 }
                 linkedByAspects.isNotEmpty() -> {
@@ -77,7 +81,7 @@ class SubjectService(private val db: OrientDatabase,
                 }
 
                 else -> {
-                    history.storeFact(vertex.toDeleteFact(HistoryContext(user, userInfo)))
+                    history.storeFact(vertex.toDeleteFact(HistoryContext(userVertex)))
                     dao.remove(vertex)
                 }
             }
@@ -93,5 +97,6 @@ class SubjectWithNameAlreadyExist(val subject: Subject) : SubjectException("Subj
 class SubjectNotFoundException(val id: String) : SubjectException("Subject with id $id not found")
 class SubjectConcurrentModificationException(expected: Int, real: Int) :
     SubjectException("Found version $real instead of $expected")
+
 class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
     SubjectException("Subject ${subject.id} is linked by ${aspect.id}")

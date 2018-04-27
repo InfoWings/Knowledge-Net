@@ -1,7 +1,7 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.UserProperties
-import com.infowings.catalog.auth.Users
+import com.infowings.catalog.auth.user.UserProperties
+import com.infowings.catalog.auth.user.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -50,8 +50,14 @@ data class Versioned<T>(val entity: T, val version: Int)
 /**
  * Main class for work with database
  * */
-class OrientDatabase(url: String, val database: String, user: String, password: String, userProperties: UserProperties) {
-    private var orientDB = OrientDB(url, user, password, OrientDBConfig.defaultConfig())
+class OrientDatabase(
+    url: String,
+    val database: String,
+    username: String,
+    password: String,
+    userProperties: UserProperties
+) {
+    private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
 
     private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
 
@@ -105,8 +111,8 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
        Ничего не закрываем и не создаем. Возращаем текущий.
      */
 
-    fun reOpenPool(from: Versioned<ODatabasePool>) : Versioned<ODatabasePool> =
-        dbPool.accumulateAndGet(from, {current, given ->
+    fun reOpenPool(from: Versioned<ODatabasePool>): Versioned<ODatabasePool> =
+        dbPool.accumulateAndGet(from, { current, given ->
             if (current.version == given.version) {
                 current.entity.close()
                 Versioned(createDbPool(), current.version + 1)
@@ -122,26 +128,26 @@ class OrientDatabase(url: String, val database: String, user: String, password: 
             orientDB.create(database, ODatabaseType.MEMORY)
         }
 
-        val userEntities = try {
-            val entities = userProperties.toUserEntities()
-            if (entities.isEmpty()) {
+        val users = try {
+            val users = userProperties.toUsers()
+            if (users.isEmpty()) {
                 logger.info("no custom user settings found. Use default ones")
-                Users.toUserEntities()
+                Users.toList()
             } else {
-                entities
+                users
             }
         } catch (e: IllegalArgumentException) {
             logger.warn("Ill-formed users configuration: $e")
             logger.warn("Going to use default settings instead")
 
-            Users.toUserEntities()
+            Users.toList()
         }
 
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
             .initHistory()
-            .initUsers(userEntities)
+            .initUsers(users)
             .initMeasures()
             .initReferenceBooks()
             .initSubject()
@@ -273,7 +279,7 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
 
     var lastThrown: Throwable? = null
 
-    repeat (times = POOL_RETRIES) {
+    repeat(times = POOL_RETRIES) {
         val pool = database.getPool()
 
         try {
@@ -295,7 +301,7 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
         }
     }
 
-    lastThrown ?.let {
+    lastThrown?.let {
         throw DatabaseConnectionFailedException(it)
     } ?: throw Exception("failed to complete session without any exception noticed")
 }
