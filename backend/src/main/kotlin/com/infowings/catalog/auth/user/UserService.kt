@@ -31,26 +31,47 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
                 role = user.role.name
                 blocked = false
             }
+
             return@transaction dao.saveUserVertex(userVertex)
+
         }.toUser()
     }
 
-    fun updateUser(user: User): User {
-        logger.debug("Updating user: $user")
+    fun changeRole(user: User): User {
+        logger.debug("Change role for ${user.username} to ${user.role}")
 
         return transaction(db) {
-            user.toUserData()
-                .checkUserDataConsistency()
+            val userVertex = findUserVertexByUsername(user.username)
+                .apply { role = user.role.name }
+
+            return@transaction dao.saveUserVertex(userVertex)
+
+        }.toUser()
+    }
+
+    fun changeBlocked(user: User): User {
+        logger.debug("Change blocked for ${user.username} to ${user.blocked}")
+
+        return transaction(db) {
+            val userVertex = findUserVertexByUsername(user.username)
+                .apply { blocked = user.blocked }
+
+            return@transaction dao.saveUserVertex(userVertex)
+
+        }.toUser()
+    }
+
+    fun changePassword(user: User): User {
+        logger.debug("Change password for ${user.username}")
+
+        return transaction(db) {
+            user.checkPassword()
 
             val userVertex = findUserVertexByUsername(user.username)
+                .apply { password = user.password }
 
-            userVertex.apply {
-                username = user.username
-                password = user.password
-                role = user.role.name
-                blocked = user.blocked
-            }
             return@transaction dao.saveUserVertex(userVertex)
+
         }.toUser()
     }
 
@@ -70,6 +91,8 @@ class UserService(private val db: OrientDatabase, private val dao: UserDao) {
     }
 
     private fun UserData.checkUserDataConsistency() = this.also { validator.checkUserDataConsistency(it) }
+
+    private fun User.checkPassword() = this.also { validator.checkPassword(it) }
 
 }
 

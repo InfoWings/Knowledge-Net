@@ -13,13 +13,21 @@ import org.springframework.web.bind.annotation.*
 class UserApi(val userService: UserService) {
 
     @GetMapping("all")
-    fun getAllUsers() = Users(userService.getAllUsers().map { it.copy(password = "") })
+    fun getAllUsers() = Users(userService.getAllUsers().map { it.removePassword() })
 
-    @PostMapping("update")
-    fun updateUser(@RequestBody user: User) = userService.updateUser(user).copy(password = "")
+    @PostMapping("changeRole")
+    fun changeRole(@RequestBody user: User) = userService.changeRole(user).removePassword()
+
+    @PostMapping("changeBlocked")
+    fun changeBlocked(@RequestBody user: User) = userService.changeBlocked(user).removePassword()
+
+    @PostMapping("changePassword")
+    fun changePassword(@RequestBody user: User) = userService.changePassword(user).removePassword()
 
     @PostMapping("create")
-    fun createUser(@RequestBody userData: UserData) = userService.createUser(userData).copy(password = "")
+    fun createUser(@RequestBody userData: UserData) = userService.createUser(userData).removePassword()
+
+    private fun User.removePassword() = this.copy(password = "")
 
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<String> {

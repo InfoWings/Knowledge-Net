@@ -2,7 +2,6 @@ package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.User
-import com.infowings.catalog.common.UserData
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
@@ -12,7 +11,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
@@ -99,16 +97,30 @@ class UserServiceTest {
     }
 
     @Test
+    fun changeRoleTest() {
+        userService.createUser(user)
+        val userWithNewRole = user.copy(role = UserRole.ADMIN)
+        assertEquals(userWithNewRole, userService.changeRole(userWithNewRole))
+    }
+
+    @Test
     fun blockUserTest() {
         userService.createUser(user)
         val blockedUser = user.copy(blocked = true)
-        assertEquals(blockedUser, userService.updateUser(blockedUser))
+        assertEquals(blockedUser, userService.changeBlocked(blockedUser))
     }
 
     @Test(expected = PasswordNullOrEmptyException::class)
-    fun updateToEmptyPasswordTest() {
+    fun changePasswordToEmptyTest() {
         userService.createUser(user)
-        val updatedUser = user.copy(password = "")
-        assertEquals(updatedUser, userService.updateUser(updatedUser))
+        val userWithEmptyPassword = user.copy(password = "")
+        userService.changePassword(userWithEmptyPassword)
+    }
+
+    @Test
+    fun changePasswordTest() {
+        userService.createUser(user)
+        val userWithNewPassword = user.copy(password = "newPassword")
+        assertEquals(userWithNewPassword, userService.changePassword(userWithNewPassword))
     }
 }
