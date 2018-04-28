@@ -16,6 +16,12 @@ import react.dom.svg
  */
 class ControlledTreeNode(props: Props) : RComponent<ControlledTreeNode.Props, RState>(props) {
 
+    companion object {
+        init {
+            kotlinext.js.require("styles/tree-view.scss")
+        }
+    }
+
     override fun RBuilder.render() {
         val className = props.className
         val additionalClasses = className?.let { " $it" } ?: ""

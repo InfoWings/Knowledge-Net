@@ -1,18 +1,19 @@
 package com.infowings.catalog.objects.treeview
 
+import com.infowings.catalog.components.additem.addPropertyButton
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.ObjTreeView
-import com.infowings.catalog.objects.treeview.inputs.nameInput
-import com.infowings.catalog.objects.treeview.inputs.objectSubjectInput
+import com.infowings.catalog.objects.treeview.inputs.name
+import com.infowings.catalog.objects.treeview.inputs.objectSubject
 import react.*
 import react.dom.div
 
 class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
 
     override fun RBuilder.render() {
-        div(classes = "object-tree-view__root") {
-            nameInput(
+        div(classes = "object-tree-view__object") {
+            name(
                 value = props.objectTreeView.name ?: "",
                 onEdit = props.onStartEdit,
                 onCancel = {
@@ -27,7 +28,7 @@ class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
                 }
             )
             +"(Subject: "
-            objectSubjectInput( // TODO: should not be available for editing, only for creating.
+            objectSubject( // TODO: should not be available for editing, only for creating.
                 value = props.objectTreeView.subject,
                 onOpen = props.onStartEdit,
                 onSelect = {
@@ -37,6 +38,7 @@ class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
                 }
             )
             +" )"
+            addPropertyButton(onClick = props.onAddProperty)
             deleteButtonComponent(
                 onDeleteClick = { TODO("Delete is not available yet") },
                 entityName = "object"
@@ -56,6 +58,7 @@ class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
         var onStartEdit: () -> Unit
         var onUpdate: (ObjTreeView.() -> Unit) -> Unit
         var onSubmit: (() -> Unit)?
+        var onAddProperty: () -> Unit
         var isSelected: Boolean
     }
 }

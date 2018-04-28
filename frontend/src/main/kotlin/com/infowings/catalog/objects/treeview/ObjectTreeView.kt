@@ -20,16 +20,13 @@ class ObjectTreeView : RComponent<ObjectTreeViewModelConsumerProps, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "object-tree-view") {
-            props.objectForest.forEach {
-                objectTreeRoot {
+            props.objectForest.forEachIndexed { index, objView ->
+                objectTreeRootNode {
                     attrs {
-                        objectTreeView = it
-                        onUpdate = props.objectTreeViewModel::updateObjTree
-                        onStartEdit = { props.objectTreeViewModel.selectObjTree(it) }
-                        isSelected = it === props.editedObject
-                        onSubmit = if (it === props.editedObject) {
-                            { props.objectTreeViewModel.saveObjTree() }
-                        } else null
+                        objectIndex = index
+                        objTreeView = objView
+                        editedObject = props.editedObject
+                        objectTreeViewModel = props.objectTreeViewModel
                     }
                 }
             }

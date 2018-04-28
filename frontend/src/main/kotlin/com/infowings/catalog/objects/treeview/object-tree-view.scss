@@ -3,16 +3,30 @@
   max-width: 120rem;
   margin: 3rem auto;
 
-  &__root {
+  &__object {
     display: flex;
     align-items: center;
     margin-top: .3rem;
   }
 
+  &__object-property {
+    display: flex;
+    align-items: center;
+  }
+
+}
+
+.object-property-input-name {
+  margin-right: 1rem;
 }
 
 .object-input-name {
   margin-right: .6rem;
+}
+
+.object-property-input-aspect {
+  min-width: 20rem;
+  margin-right: 1rem;
 }
 
 .object-input-subject {

@@ -20,7 +20,7 @@ private fun subjectOption(subjectData: SubjectData) = jsObject<SubjectOption> {
     this.subjectData = subjectData
 }
 
-fun RBuilder.objectSubjectInput(value: SubjectData?, onSelect: (SubjectData) -> Unit, onOpen: () -> Unit) =
+fun RBuilder.objectSubject(value: SubjectData?, onSelect: (SubjectData) -> Unit, onOpen: () -> Unit) =
     asyncSelect<SubjectOption> {
         attrs {
             className = "object-input-subject"

@@ -2,6 +2,7 @@ package com.infowings.catalog.objects
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.ObjData
+import com.infowings.catalog.common.ObjPropertyData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.objects.treeview.objectTreeView
 import kotlinx.coroutines.experimental.launch
@@ -11,7 +12,9 @@ data class ObjTreeViewProperty(
     val id: String?,
     var name: String?,
     var aspect: AspectData?
-)
+) {
+    fun toObjPropertyData() = ObjPropertyData(id, name, aspect ?: error("Inconsistent State"))
+}
 
 data class ObjTreeView(
     val id: String?,
@@ -20,12 +23,14 @@ data class ObjTreeView(
     var properties: MutableList<ObjTreeViewProperty>,
     var expanded: Boolean = false
 ) {
-    fun toObjData() = ObjData(id, name, subject ?: error("Inconsistent State"))
+    fun toObjData() =
+        ObjData(id, name, subject ?: error("Inconsistent State"), properties.map { it.toObjPropertyData() })
 }
 
 interface ObjectTreeViewModel {
     fun selectObjTree(objTreeView: ObjTreeView)
-    fun updateObjTree(updater: ObjTreeView.() -> Unit)
+    fun updateSelectedObjTree(updater: ObjTreeView.() -> Unit)
+    fun updateObjTree(index: Int, updater: ObjTreeView.() -> Unit)
     fun addNewObjTree()
     fun saveObjTree()
 }
@@ -57,8 +62,12 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
     }
 
 
-    override fun updateObjTree(updater: ObjTreeView.() -> Unit) = setState {
+    override fun updateSelectedObjTree(updater: ObjTreeView.() -> Unit) = setState {
         editedObjTree?.updater() ?: error("Inconsistent state")
+    }
+
+    override fun updateObjTree(index: Int, updater: ObjTreeView.() -> Unit) = setState {
+        objForest[index].updater()
     }
 
     override fun saveObjTree() = setState {
