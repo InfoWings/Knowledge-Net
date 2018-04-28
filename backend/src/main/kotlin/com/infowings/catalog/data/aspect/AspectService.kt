@@ -180,9 +180,11 @@ class AspectService(
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+    fun findVertexById(id: String): AspectVertex = aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
 
-    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+    fun findById(id: String): Aspect = findVertexById(id).toAspect()
+
+    fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
 
 

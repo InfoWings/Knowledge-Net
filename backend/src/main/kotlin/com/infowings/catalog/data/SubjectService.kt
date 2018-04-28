@@ -9,6 +9,7 @@ import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.VertexNotFound
 import com.infowings.catalog.storage.transaction
 
 class SubjectService(
@@ -19,7 +20,11 @@ class SubjectService(
 ) {
     fun getSubjects(): List<Subject> = dao.getSubjects()
 
-    fun findById(id: String): SubjectVertex? = dao.findById(id)
+    fun findById(id: String): SubjectVertex? = try {
+        dao.findById(id)
+    } catch (e: VertexNotFound) {
+        throw SubjectNotFoundException(id)
+    }
 
     fun createSubject(sd: SubjectData, username: String): Subject {
         val userVertex = userService.findUserVertexByUsername(username)

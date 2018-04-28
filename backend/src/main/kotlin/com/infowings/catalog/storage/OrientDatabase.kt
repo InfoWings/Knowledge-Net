@@ -45,7 +45,7 @@ var OVertex.description: String?
         this[ATTR_DESC] = value
     }
 
-data class Versioned<T>(val entity: T, val version: Int)
+data class Versioned<out T>(val entity: T, val version: Int)
 
 /**
  * Main class for work with database
@@ -151,6 +151,7 @@ class OrientDatabase(
             .initMeasures()
             .initReferenceBooks()
             .initSubject()
+            .initObject()
             .initSearch() // this call should be latest
 
     }
@@ -266,7 +267,7 @@ fun handleRetriable(e: Throwable, database: OrientDatabase, pool: Versioned<ODat
     return e
 }
 
-val POOL_RETRIES = 2
+const val POOL_RETRIES = 2
 
 @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
 class DatabaseConnectionFailedException(reason: Throwable) : Exception("last thrown: $reason")
