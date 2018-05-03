@@ -14,6 +14,7 @@ data class ObjData(
 data class ObjPropertyData(
     val id: String? = null,
     val name: String? = null,
+    val cardinality: String,
     val aspect: AspectData
 )
 

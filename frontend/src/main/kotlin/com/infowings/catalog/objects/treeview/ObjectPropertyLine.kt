@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.objects.ObjTreeViewProperty
 import com.infowings.catalog.objects.treeview.inputs.propertyAspect
+import com.infowings.catalog.objects.treeview.inputs.propertyCardinality
 import com.infowings.catalog.objects.treeview.inputs.propertyName
 import com.infowings.catalog.objects.treeview.utils.propertyAspectTypeInfo
 import react.*
@@ -33,6 +34,14 @@ class ObjectPropertyLine : RComponent<ObjectPropertyLine.Props, RState>() {
                     }
                 },
                 onOpen = props.onEdit
+            )
+            propertyCardinality(
+                value = props.property.cardinality,
+                onChange = {
+                    props.onUpdate {
+                        cardinality = it
+                    }
+                }
             )
             propertyAspectTypeInfo(props.property.aspect)
         }

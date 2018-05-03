@@ -8,12 +8,22 @@ import com.infowings.catalog.objects.treeview.objectTreeView
 import kotlinx.coroutines.experimental.launch
 import react.*
 
+enum class Cardinality {
+    ZERO, ONE, INFINITY
+}
+
 data class ObjTreeViewProperty(
     val id: String?,
     var name: String?,
+    var cardinality: Cardinality?,
     var aspect: AspectData?
 ) {
-    fun toObjPropertyData() = ObjPropertyData(id, name, aspect ?: error("Inconsistent State"))
+    fun toObjPropertyData() = ObjPropertyData(
+        id,
+        name,
+        cardinality?.name ?: error("Inconsistent State"),
+        aspect ?: error("Inconsistent State")
+    )
 }
 
 data class ObjTreeView(
@@ -56,7 +66,19 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                 it.id,
                 it.name,
                 it.subject,
-                it.properties.map { ObjTreeViewProperty(it.id, it.name, it.aspect) }.toMutableList()
+                it.properties.map {
+                    ObjTreeViewProperty(
+                        it.id,
+                        it.name,
+                        when (it.cardinality) {
+                            "ZERO" -> Cardinality.ZERO
+                            "ONE" -> Cardinality.ONE
+                            "INFINITY" -> Cardinality.INFINITY
+                            else -> error("Inconsistent State")
+                        },
+                        it.aspect
+                    )
+                }.toMutableList()
             )
         }.toMutableList()
     }
@@ -72,6 +94,7 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
 
     override fun saveObjTree() = setState {
         val savedObjData = editedObjTree?.toObjData() ?: error("Inconsistent state")
+        console.log(savedObjData)
         launch {
             props.objectApiModel.submitObj(savedObjData)
         }
