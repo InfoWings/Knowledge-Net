@@ -37,7 +37,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(bookItem)
+        props.createBookItem(props.aspectId, bookItem)
         setState {
             creatingBookItem = false
         }
@@ -131,7 +131,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.book.aspectId, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem(props.book.aspectId, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -148,9 +148,9 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
         var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: suspend (ReferenceBook) -> Unit
         var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
-        var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var createBookItem: suspend (aspectId: String, ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+        var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

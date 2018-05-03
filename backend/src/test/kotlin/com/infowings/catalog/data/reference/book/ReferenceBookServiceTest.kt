@@ -301,7 +301,6 @@ class ReferenceBookServiceTest {
         value: String
     ): ReferenceBookItem {
         return ReferenceBookItem(
-            aspectId,
             parentId,
             "",
             value,
@@ -313,7 +312,6 @@ class ReferenceBookServiceTest {
 
     private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
         ReferenceBookItem(
-            "",
             "",
             id,
             value,

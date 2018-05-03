@@ -3,9 +3,6 @@ package com.infowings.catalog.reference.book
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.BadRequest
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
@@ -19,9 +16,9 @@ interface ReferenceBookApiReceiverProps : RProps {
     var createBook: suspend (ReferenceBook) -> Unit
     var updateBook: suspend (ReferenceBook) -> Unit
     var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
-    var createBookItem: suspend (ReferenceBookItem) -> Unit
-    var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-    var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+    var createBookItem: suspend (aspectId: String, ReferenceBookItem) -> Unit
+    var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+    var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
 }
 
 
@@ -47,7 +44,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
             val rowDataList = getAllAspects(orderBy).aspects
                 .filterNot { it.deleted }
-                .filter {it.baseType == BaseType.Text.name}
+                .filter { it.baseType == BaseType.Text.name }
                 .map {
                     val aspectId = it.id ?: ""
                     val book = if (it.id != null) aspectIdToBookMap[aspectId] else null
@@ -96,17 +93,17 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
+    private suspend fun handleCreateBookItem(aspectId: String, bookItem: ReferenceBookItem) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only created ReferenceBookItem id.
         */
         createReferenceBookItem(bookItem)
-        val updatedBook = getReferenceBook(bookItem.aspectId)
+        val updatedBook = getReferenceBook(aspectId)
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
-    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem, force: Boolean) {
+    private suspend fun handleUpdateBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
@@ -117,14 +114,14 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             } else {
                 updateReferenceBookItem(bookItem)
             }
-            val updatedBook = getReferenceBook(bookItem.aspectId)
+            val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
         }
     }
 
-    private suspend fun handleDeleteBookItem(bookItem: ReferenceBookItem, force: Boolean) {
+    private suspend fun handleDeleteBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
@@ -135,7 +132,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             } else {
                 deleteReferenceBookItem(bookItem)
             }
-            val updatedBook = getReferenceBook(bookItem.aspectId)
+            val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
@@ -163,9 +160,9 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 createBook = { handleCreateBook(it) }
                 updateBook = { handleUpdateBook(it) }
                 deleteBook = { book, force -> handleDeleteBook(book, force) }
-                createBookItem = { handleCreateBookItem(it) }
-                updateBookItem = { bookItem, force -> handleUpdateBookItem(bookItem, force) }
-                deleteBookItem = { bookItem, force -> handleDeleteBookItem(bookItem, force) }
+                createBookItem = { aspectId, bookItem -> handleCreateBookItem(aspectId, bookItem) }
+                updateBookItem = { aspectId, bookItem, force -> handleUpdateBookItem(aspectId, bookItem, force) }
+                deleteBookItem = { aspectId, bookItem, force -> handleDeleteBookItem(aspectId, bookItem, force) }
             }
         }
     }

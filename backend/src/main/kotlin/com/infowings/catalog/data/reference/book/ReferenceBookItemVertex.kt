@@ -22,12 +22,6 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         links = mapOf("children" to children.map { it.identity })
     )
 
-    var aspectId: String
-        get() = this["aspectId"]
-        set(value) {
-            this["aspectId"] = value
-        }
-
     var value: String
         get() = this["value"]
         set(value) {
@@ -63,10 +57,10 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
         val parentId = when (parentVertex) {
             is ReferenceBookItemVertex -> parentVertex.id
-            is ReferenceBookVertex -> aspectId
+            is ReferenceBookVertex -> parentVertex.aspect.id
             else -> null
         }
-        return ReferenceBookItem(aspectId, parentId, id, value, children, deleted, version)
+        return ReferenceBookItem(parentId, id, value, children, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {

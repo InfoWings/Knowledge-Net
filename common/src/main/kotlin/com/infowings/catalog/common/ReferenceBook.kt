@@ -16,7 +16,6 @@ data class ReferenceBook(
 
 @Serializable
 data class ReferenceBookItem(
-    val aspectId: String,
     val parentId: String?,
     val id: String,
     val value: String,

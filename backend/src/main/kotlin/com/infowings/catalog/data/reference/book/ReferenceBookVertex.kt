@@ -42,7 +42,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_EDGE)
             .map { it.toReferenceBookItemVertex() }
 
-    private val aspect: AspectVertex
+    val aspect: AspectVertex
         get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE)
             .map { it.toAspectVertex() }
             .filterNot { it.deleted }

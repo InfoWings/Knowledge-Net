@@ -37,7 +37,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(bookItem)
+        props.createBookItem(props.aspectId, bookItem)
         setState {
             creatingBookItem = false
         }
@@ -52,7 +52,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
     private fun tryDelete(force: Boolean) {
         launch {
             try {
-                props.deleteBookItem(props.bookItem, force)
+                props.deleteBookItem(props.aspectId, props.bookItem, force)
                 setState { confirmation = false }
             } catch (e: RefBookBadRequestException) {
                 when (e.exceptionInfo.code) {
@@ -125,7 +125,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem(props.bookItem.id, "", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -138,9 +138,9 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
         var aspectId: String
         var book: ReferenceBook
         var bookItem: ReferenceBookItem
-        var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var createBookItem: suspend (aspectId: String, ReferenceBookItem) -> Unit
+        var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+        var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
 
     }
 

@@ -194,7 +194,7 @@ class ReferenceBookService(
             if (refBookVertex != null) {
                 refBookVertex.validateValue(value, null)
                 parentBefore = refBookVertex.currentSnapshot()
-                val itemVertex = createRefBookItemVertex(bookItem.aspectId, value)
+                val itemVertex = createRefBookItemVertex(value)
                 savedItemVertex = dao.saveBookItemVertex(refBookVertex, itemVertex)
                 updateFact = refBookVertex.toUpdateFact(context, parentBefore)
 
@@ -202,7 +202,7 @@ class ReferenceBookService(
                 val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
                 parentBefore = parentVertex.currentSnapshot()
                 parentVertex.validateValue(value, null)
-                val itemVertex = createRefBookItemVertex(bookItem.aspectId, value)
+                val itemVertex = createRefBookItemVertex(value)
                 savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
                 updateFact = parentVertex.toUpdateFact(context, parentBefore)
             }
@@ -213,9 +213,8 @@ class ReferenceBookService(
         }.id
     }
 
-    private fun createRefBookItemVertex(aspectId: String, value: String): ReferenceBookItemVertex {
+    private fun createRefBookItemVertex(value: String): ReferenceBookItemVertex {
         val itemVertex = dao.createReferenceBookItemVertex()
-        itemVertex.aspectId = aspectId
         itemVertex.value = value
         return itemVertex
     }
@@ -302,10 +301,10 @@ class ReferenceBookService(
      */
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
         transaction(db) {
-            logger.debug("Removing ReferenceBookItem id: ${bookItem.id} by $username")
+            val itemId = bookItem.id
+            logger.debug("Removing ReferenceBookItem id: $itemId by $username")
 
-            val bookItemVertex =
-                dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
+            val bookItemVertex = dao.getReferenceBookItemVertex(itemId) ?: throw RefBookItemNotExist(itemId)
 
             bookItemVertex
                 .validateItemAndChildrenVersions(bookItem)
