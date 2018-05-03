@@ -308,7 +308,6 @@ class ReferenceBookService(
                 dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
 
             bookItemVertex
-                .validateIsNotRoot()
                 .validateItemAndChildrenVersions(bookItem)
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
@@ -345,7 +344,6 @@ class ReferenceBookService(
 
             sourceVertex
                 .validateForRemoved()
-                .validateIsNotRoot()
                 .validateItemAndChildrenVersions(source)
                 .validateForMoving(targetVertex)
 
@@ -359,9 +357,6 @@ class ReferenceBookService(
 
     private fun AspectVertex.validateForRemoved() =
         this.also { if (it.deleted) throw AspectDoesNotExist(it.id) }
-
-    private fun ReferenceBookItemVertex.validateIsNotRoot(): ReferenceBookItemVertex =
-        this.also { validator.checkIsNotRoot(this) }
 
     private fun ReferenceBookItemVertex.validateForRemoved(): ReferenceBookItemVertex =
         this.also { validator.checkForBookItemRemoved(this) }

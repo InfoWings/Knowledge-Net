@@ -97,10 +97,6 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
             throw RefBookItemMoveImpossible(sourceId, targetId)
         }
     }
-
-    fun checkIsNotRoot(bookItemVertex: ReferenceBookItemVertex) {
-        if (bookItemVertex.parent == null) throw RefBookItemIllegalArgumentException("Root cannot be modified")
-    }
 }
 
 private fun idToVersionMapFromBookItemVertex(itemVertex: ReferenceBookItemVertex): HashMap<String, Int> {
