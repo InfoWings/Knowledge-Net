@@ -15,7 +15,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         checkRefBookVersion(bookVertex, book)
 
         val idToItemVertexMapFromBookItemVertices = bookVertex.itemVertices.map { it.id to it }.toMap()
-        val idToItemVertexMapFromBookItems = book.items.map { it.id to it }.toMap()
+        val idToItemVertexMapFromBookItems = book.children.map { it.id to it }.toMap()
 
         val changedIds = idToItemVertexMapFromBookItemVertices
             .filter { (id, itemVertex) -> itemVertex.version != idToItemVertexMapFromBookItems[id]?.version }

@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 data class ReferenceBook(
     val aspectId: String,
     val name: String,
-    val items: List<ReferenceBookItem>,
+    val children: List<ReferenceBookItem>,
     val deleted: Boolean,
     val version: Int
 )

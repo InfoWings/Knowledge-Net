@@ -110,8 +110,8 @@ class ReferenceBookServiceTest {
         addReferenceBookItem(aspectId, id11, "value111")
 
         val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
-        assertTrue("Reference book has 2 children", updatedReferenceBook.items.size == 2)
-        val child1 = updatedReferenceBook.items.first { it.value == "value1" }
+        assertTrue("Reference book has 2 children", updatedReferenceBook.children.size == 2)
+        val child1 = updatedReferenceBook.children.first { it.value == "value1" }
         assertTrue("RefBook.`value1` has 1 child", child1.children.size == 1)
         assertTrue(
             "`RefBook.value1.value11` has 1 child",
@@ -143,11 +143,11 @@ class ReferenceBookServiceTest {
         val updatedReferenceBook = referenceBookService.getReferenceBook(aspectId)
         assertTrue(
             "`RefBook.value1` has no child",
-            updatedReferenceBook.items.first { it.value == "value1" }.children.isEmpty()
+            updatedReferenceBook.children.first { it.value == "value1" }.children.isEmpty()
         )
         assertTrue(
             "`RefBook.value2` has 1 child",
-            updatedReferenceBook.items.first { it.value == "value2" }.children.size == 1
+            updatedReferenceBook.children.first { it.value == "value2" }.children.size == 1
         )
     }
 
@@ -211,7 +211,7 @@ class ReferenceBookServiceTest {
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child1), username)
 
         val updatedBook = referenceBookService.getReferenceBook(aspectId)
-        assertNull(updatedBook.items.firstOrNull { it.value == "value1" })
+        assertNull(updatedBook.children.firstOrNull { it.value == "value1" })
     }
 
     @Test(expected = RefBookItemConcurrentModificationException::class)
