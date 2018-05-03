@@ -14,6 +14,10 @@ fun decode(repr: String): ScalarValue =
 
 data class Range(val left: Int, val right: Int)
 
+enum class CharacteristicType {
+    ASPECT, ASPECT_PROPERTY, MEASURE
+}
+
 data class ObjectPropertyValueData(
     val id: String?,
     val value: ScalarValue?,
@@ -23,4 +27,4 @@ data class ObjectPropertyValueData(
     val characteristics: List<CharacteristicData>
 )
 
-data class CharacteristicData (val aspectId: String, val aspectPropertyId: String, val measureId: String)
+data class CharacteristicData (val id: String, val type: CharacteristicType)

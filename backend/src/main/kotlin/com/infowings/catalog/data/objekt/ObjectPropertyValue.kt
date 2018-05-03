@@ -18,15 +18,11 @@ data class ObjectPropertyValue(
     val range: Range?,
     val precision: Int?,
     val objectProperty: ObjectPropertyVertex,
-    private val characteristics: List<CharacteristicVertex>
+    val characteristics: List<CharacteristicVertex>
 ) {
     fun toObjectPropertyValueData(): ObjectPropertyValueData {
         return ObjectPropertyValueData(id?.toString(), value, range, precision, objectProperty.id,
-            characteristics.map {it.toCharacteristic().let{CharacteristicData(it.aspect.id, it.aspectProperty.id, it.measure.id)}})
+            characteristics.map {CharacteristicData(it.id, it.type())})
     }
 }
 
-data class Characteristic (val aspect: AspectVertex, val aspectProperty: AspectPropertyVertex, val measure: OVertex) {
-    fun toIds(): CharacteristicIds = CharacteristicIds(aspect.identity, aspectProperty.identity, measure.identity)
-}
-data class CharacteristicIds (val aspect: ORID, val aspectProperty: ORID, val measure: ORID)

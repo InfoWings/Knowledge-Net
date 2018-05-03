@@ -5,7 +5,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.search.CommonSuggestionParam
 import com.infowings.catalog.search.SubjectSuggestionParam
@@ -99,7 +98,7 @@ class SubjectServiceTest {
          */
         val subject = createTestSubject("TestSubjectUpdate")
         val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
-        val level1Property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
+        val level1Property = AspectPropertyData("", "p_level1", aspect.id, PropertyCardinality.INFINITY.name)
         aspectService.save(
             createTestAspect(
                 "aspectBase",

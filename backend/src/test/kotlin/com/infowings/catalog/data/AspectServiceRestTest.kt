@@ -2,7 +2,6 @@ package com.infowings.catalog.data
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -59,8 +58,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name)
 
         val testData =
             AspectData(
@@ -92,8 +91,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name)
 
         val testData =
             AspectData(
@@ -107,8 +106,8 @@ class AspectServiceRestTest {
 
         val saved = aspectService.save(testData, username)
 
-        val newProperty = AspectPropertyData("", "p3", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
-        val updatedProperty = testProperty2.copy(name = "p4", cardinality = AspectPropertyCardinality.ZERO.name)
+        val newProperty = AspectPropertyData("", "p3", baseAspect.id, PropertyCardinality.INFINITY.name)
+        val updatedProperty = testProperty2.copy(name = "p4", cardinality = PropertyCardinality.ZERO.name)
 
         val updateData = AspectData(
             saved.id,
@@ -152,8 +151,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, AspectPropertyCardinality.ONE.name)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name)
 
         val testData =
             AspectData(

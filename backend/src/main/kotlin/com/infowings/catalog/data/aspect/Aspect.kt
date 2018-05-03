@@ -5,10 +5,6 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.toSubjectData
 
 
-enum class AspectPropertyCardinality {
-    ZERO, ONE, INFINITY
-}
-
 /**
  * Аспект - https://iwings.atlassian.net/wiki/spaces/CHR/pages/219217938
  */
@@ -58,7 +54,7 @@ data class AspectProperty(
     val id: String,
     val name: String,
     val aspect: Aspect,
-    val cardinality: AspectPropertyCardinality,
+    val cardinality: PropertyCardinality,
     val version: Int = 0
 ) {
     fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)

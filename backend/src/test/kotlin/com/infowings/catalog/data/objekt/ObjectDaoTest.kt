@@ -85,7 +85,7 @@ class ObjectDaoTest {
         val propertyData = ObjectPropertyData(
             null,
             "savePropertyTestObjectPropertyName",
-            ObjectPropertyCardinality.ONE,
+            PropertyCardinality.ONE,
             obj.id, aspect.id, emptyList())
 
 

@@ -294,7 +294,7 @@ class AspectService(
     }
 
     private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
-        AspectProperty(id, name, findById(aspect), AspectPropertyCardinality.valueOf(cardinality), version)
+        AspectProperty(id, name, findById(aspect), PropertyCardinality.valueOf(cardinality), version)
 
     private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex =
         this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }

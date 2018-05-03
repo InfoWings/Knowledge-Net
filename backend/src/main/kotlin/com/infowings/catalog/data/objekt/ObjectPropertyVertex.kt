@@ -1,6 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectPropertyCardinality
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
@@ -28,8 +28,8 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         set(value) { vertex[ATTR_NAME] = value
         }
 
-    var cardinality: ObjectPropertyCardinality
-        get() = ObjectPropertyCardinality.valueOf(vertex["cardinality"])
+    var cardinality: PropertyCardinality
+        get() = PropertyCardinality.valueOf(vertex["cardinality"])
         set(value) {
             vertex["cardinality"] = value.toString()
         }

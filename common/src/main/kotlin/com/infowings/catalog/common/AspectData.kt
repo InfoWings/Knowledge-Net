@@ -7,6 +7,10 @@ data class AspectsList(
     val aspects: List<AspectData> = emptyList()
 )
 
+enum class PropertyCardinality {
+    ZERO, ONE, INFINITY
+}
+
 @Serializable
 data class AspectData(
     val id: String? = null,

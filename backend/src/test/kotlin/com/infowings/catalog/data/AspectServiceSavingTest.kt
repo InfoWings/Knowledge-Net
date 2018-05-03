@@ -5,7 +5,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.data.aspect.*
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
@@ -54,7 +53,7 @@ class AspectServiceSavingTest {
     fun testAddAspectTrim() {
         val aspectBase =
             aspectService.save(AspectData("", "AspectBase", Kilometre.name, null, Decimal.name, emptyList()), username)
-        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.id, AspectPropertyCardinality.INFINITY.name)
+        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.id, PropertyCardinality.INFINITY.name)
         val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
         val createAspect: Aspect = aspectService.save(ad, username)
 
@@ -223,7 +222,7 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad, username)
 
-        val property = AspectProperty("", "name", aspect, AspectPropertyCardinality.ONE, 0).toAspectPropertyData()
+        val property = AspectProperty("", "name", aspect, PropertyCardinality.ONE, 0).toAspectPropertyData()
         aspectService.save(aspect.toAspectData().copy(name = "new", id = null, properties = listOf(property)), username)
 
         val ad2 = aspect.copy(measure = Litre, version = 2)
@@ -274,7 +273,7 @@ class AspectServiceSavingTest {
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect()
-        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, AspectPropertyCardinality.INFINITY.name)
+        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, PropertyCardinality.INFINITY.name)
         val aspect1 = aspect.properties.first().aspect
         val editedAspectData1 = AspectData(
             aspect1.id,
@@ -470,11 +469,11 @@ class AspectServiceSavingTest {
         val aspectData2 = AspectData(null, "aspect2", Kilogram.name, null, Decimal.name, emptyList())
         val aspect2: Aspect = aspectService.save(aspectData2, username)
 
-        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.id, INFINITY.name)
+        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.id, PropertyCardinality.INFINITY.name)
         val aspectData1 = AspectData(null, "aspect1", Metre.name, null, Decimal.name, listOf(aspectPropertyData1))
         val aspect1: Aspect = aspectService.save(aspectData1, username)
 
-        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.id, INFINITY.name)
+        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.id, PropertyCardinality.INFINITY.name)
         val aspectData = AspectData(null, "aspect", Metre.name, null, Decimal.name, listOf(aspectPropertyData))
         return aspectService.save(aspectData, username)
     }

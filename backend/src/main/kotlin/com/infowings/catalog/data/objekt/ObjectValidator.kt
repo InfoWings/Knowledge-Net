@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.CharacteristicType
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.ObjectPropertyValueData
@@ -13,7 +14,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
  * по итогам валидации создаем Objekt, готовый к записи в базу
  *
- * Без этого получается дупликация вызовов. Например, приделся сначала вызвать
+ * Без этого получается дупликация вызовов. Например, придется сначала вызвать
  * subjectService.findById внутри валидации, чтобы проверить корректность subjectId
  * а потом - снова его же вызывать в момент сохранения, чтобы узнать, к какому субъекту
  * привязываться.
@@ -59,17 +60,7 @@ class ObjectValidator(
         val objectVertex = objectService.findById(data.objectId)
         val aspectVertex = aspectService.findVertexById(data.aspectId)
 
-        if (data.id != null) {
-            throw IllegalStateException("id must be null for creation: $data")
-        }
-
-        if (objectVertex == null) {
-            throw ObjectNotFoundException(data.objectId)
-        }
-
-        if (aspectVertex == null) {
-            throw AspectDoesNotExist(data.aspectId)
-        }
+        data.id ?.let {throw IllegalStateException("id must be null for creation: $data")}
 
         if (data.valueIds.isNotEmpty()) {
             throw IllegalStateException("there should be no values for object creation: $data")
@@ -90,7 +81,7 @@ class ObjectValidator(
         )
     }
 
-    fun checkedForCreation(data: ObjectPropertyValueData): CheckedObjectValue {
+    fun checkedForCreation(data: ObjectPropertyValueData): ObjectPropertyValue {
         val objectPropertyVertex = objectService.findPropertyById(data.objectPropertyId)
 
         if (data.id != null) {
@@ -98,11 +89,11 @@ class ObjectValidator(
         }
 
         val characteristics = data.characteristics.map {
-            val aspectVertex = aspectService.findVertexById(it.aspectId)
-            val aspectPropertyVertex = aspectService.findPropertyVertexById(it.aspectPropertyId)
-            val measurePropertyVertex = measureService.findById(it.measureId)
-
-            Characteristic(aspectVertex, aspectPropertyVertex, measurePropertyVertex)
+            when (it.type) {
+                CharacteristicType.ASPECT -> CharacteristicAspectVertex(aspectService.findVertexById(it.id))
+                CharacteristicType.ASPECT_PROPERTY -> CharacteristicAspectPropertyVertex(aspectService.findPropertyVertexById(it.id))
+                CharacteristicType.MEASURE -> CharacteristicMeasureVertex(measureService.findById(it.id))
+            }
         }
 
         /*
@@ -114,19 +105,16 @@ class ObjectValidator(
          *
          */
 
-        return Pair(ObjectPropertyValue(
+        return ObjectPropertyValue(
             data.id ?.let { ORecordId(it) },
             data.value,
             data.range,
             data.precision,
             objectPropertyVertex,
-            emptyList()
-        ), characteristics)
+            characteristics)
     }
 
     fun checkBusinessKey(property: ObjectProperty) {
 
     }
 }
-
-typealias CheckedObjectValue =  Pair<ObjectPropertyValue, List<Characteristic>>

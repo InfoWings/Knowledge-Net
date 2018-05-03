@@ -63,9 +63,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@session vertex.save<OVertex>().toObjectPropertyVertex()
     }
 
-    fun saveObjectValue(vertex: ObjectPropertyValueVertex, checkedObjectValue: CheckedObjectValue): ObjectPropertyValueVertex = session(db) {
-        val objectValue = checkedObjectValue.first
-        val characteristics = checkedObjectValue.second
+    fun saveObjectValue(vertex: ObjectPropertyValueVertex, objectValue: ObjectPropertyValue): ObjectPropertyValueVertex = session(db) {
+        val characteristics: List<CharacteristicVertex> = objectValue.characteristics
 
         vertex.value = objectValue.value
         vertex.range = objectValue.range
@@ -75,24 +74,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
             vertex.addEdge(objectValue.objectProperty, OBJECT_VALUE_OBJECT_PROPERTY_EDGE)
         }
 
-        var characteristicsSet: Set<Characteristic> = characteristics.toSet()
+        var characteristicsSet: Set<CharacteristicVertex> = characteristics.toSet()
         var toDelete = emptySet<CharacteristicVertex>()
         vertex.characteristics.forEach {
-            val currentCharacteristic = it.toCharacteristic()
+            val currentCharacteristic = it
             if (characteristicsSet.contains(currentCharacteristic)) {
                 characteristicsSet -= currentCharacteristic
             } else {
-                toDelete += it
+                toDelete += currentCharacteristic
             }
         }
 
         toDelete.forEach { it.delete<ObjectPropertyValueVertex>()}
         characteristicsSet.forEach {
-            val characteristicVertex = db.createNewVertex(CHARACTERISTIC_VALUE_CLASS)
-            characteristicVertex.addEdge(it.aspect, CHARACTERISTIC_ASPECT_EDGE)
-            characteristicVertex.addEdge(it.aspectProperty, CHARACTERISTIC_ASPECT_PROPERTY_EDGE)
-            characteristicVertex.addEdge(it.measure, CHARACTERISTIC_MEASURE_EDGE)
-            vertex.addEdge(characteristicVertex, OBJECT_VALUE_CHARACTERISTIC_EDGE)
+            vertex.addEdge(it, OBJECT_VALUE_CHARACTERISTIC_EDGE)
         }
 
         return@session vertex.save<OVertex>().toObjectPropertyValueVertex()
