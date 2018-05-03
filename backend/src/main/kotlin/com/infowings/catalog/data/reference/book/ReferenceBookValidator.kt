@@ -13,12 +13,27 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
     fun checkRefBookAndItemsVersions(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         checkRefBookVersion(bookVertex, book)
-        checkRefBookItemAndChildrenVersions(bookVertex.root, book.root)
+
+        val idToItemVertexMapFromBookItemVertices = bookVertex.itemVertices.map { it.id to it }.toMap()
+        val idToItemVertexMapFromBookItems = book.items.map { it.id to it }.toMap()
+
+        val changedIds = idToItemVertexMapFromBookItemVertices
+            .filter { (id, itemVertex) -> itemVertex.version != idToItemVertexMapFromBookItems[id]?.version }
+            .map { (id, _) -> id }
+
+        if (changedIds.isNotEmpty()) {
+            throw RefBookItemConcurrentModificationException(changedIds.joinToString(), "ReferenceBookItems changed.")
+        }
+
+        idToItemVertexMapFromBookItemVertices
+            .forEach { (id, itemVertex) ->
+                checkRefBookItemAndChildrenVersions(itemVertex, idToItemVertexMapFromBookItems[id]!!)
+            }
     }
 
     fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         if (bookVertex.version != book.version) {
-            throw RefBookConcurrentModificationException(book.id, "ReferenceBook changed.")
+            throw RefBookConcurrentModificationException(book.aspectId, "ReferenceBook changed.")
         }
     }
 
@@ -52,6 +67,14 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
             parentVertex.children.any { it.value == value && it.id != id && it.deleted.not() }
         if (vertexWithSameValueAlreadyExist) {
             throw RefBookChildAlreadyExist(parentVertex.id, value)
+        }
+    }
+
+    fun checkRefBookItemValue(refBookVertex: ReferenceBookVertex, value: String, id: String?) {
+        val vertexWithSameValueAlreadyExist =
+            refBookVertex.itemVertices.any { it.value == value && it.id != id && it.deleted.not() }
+        if (vertexWithSameValueAlreadyExist) {
+            throw RefBookChildAlreadyExist(refBookVertex.id, value)
         }
     }
 

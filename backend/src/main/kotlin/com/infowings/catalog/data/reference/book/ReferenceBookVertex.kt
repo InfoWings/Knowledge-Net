@@ -14,6 +14,10 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toReferenceBookVertex() = ReferenceBookVertex(this)
 
+const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
+const val REFERENCE_BOOK_ITEM_EDGE = "ReferenceBookChildEdge"
+const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
+
 class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_VERTEX
 
@@ -34,20 +38,19 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             this["deleted"] = value
         }
 
-    val root: ReferenceBookItemVertex
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE)
+    val itemVertices: List<ReferenceBookItemVertex>
+        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_EDGE)
             .map { it.toReferenceBookItemVertex() }
-            .first()
 
     private val aspect: AspectVertex
         get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE)
-            .map {it.toAspectVertex()}
-            .filterNot {it.deleted}
+            .map { it.toAspectVertex() }
+            .filterNot { it.deleted }
             .first()
 
     fun toReferenceBook(): ReferenceBook {
-        val root = root.toReferenceBookItem()
-        return ReferenceBook(aspect.id, name, root, deleted, version)
+        val items = itemVertices.map { it.toReferenceBookItem() }
+        return ReferenceBook(aspect.id, name, items, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -12,6 +12,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 
+const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 
 class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
@@ -39,20 +40,21 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
             this["deleted"] = value
         }
 
-    val children: List<ReferenceBookItemVertex>
-        get() = getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
+    val children: List<ReferenceBookItemVertex> =
+        getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_EDGE).map { it.toReferenceBookItemVertex() }
 
     /**
-     * Return parent ReferenceBookItemVertex if it's not root
-     * else [parent] is null
+     * Return parent vertex (ReferenceBookItemVertex or ReferenceBookVertex) or null
      */
-    val parent: ReferenceBookItemVertex?
+    val parent: OVertex?
         get() {
-            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).first() //this maybe bookVertex
-            return if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).any())
-                oVertex.toReferenceBookItemVertex()
-            else
-                null
+            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_ITEM_EDGE).firstOrNull()
+            return oVertex?.let {
+                if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_ITEM_EDGE).any())
+                    oVertex.toReferenceBookItemVertex()
+                else
+                    oVertex.toReferenceBookVertex()
+            }
         }
 
     fun toReferenceBookItem(): ReferenceBookItem {

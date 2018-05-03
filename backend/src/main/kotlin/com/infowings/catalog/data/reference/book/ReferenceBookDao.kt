@@ -44,14 +44,25 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     ): ReferenceBookItemVertex =
         transaction(db) {
             if (!parentVertex.children.contains(bookItemVertex)) {
-                parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+                parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_ITEM_EDGE).save<OEdge>()
+            }
+            return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
+        }
+
+    fun saveBookItemVertex(
+        refBookVertex: ReferenceBookVertex,
+        bookItemVertex: ReferenceBookItemVertex
+    ): ReferenceBookItemVertex =
+        transaction(db) {
+            if (!refBookVertex.itemVertices.contains(bookItemVertex)) {
+                refBookVertex.addEdge(bookItemVertex, REFERENCE_BOOK_ITEM_EDGE).save<OEdge>()
             }
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 
     fun removeRefBookVertex(bookVertex: ReferenceBookVertex) {
         transaction(db) {
-            removeRefBookItemVertex(bookVertex.root)
+            bookVertex.itemVertices.forEach { removeRefBookItemVertex(it) }
             db.delete(bookVertex)
         }
     }
@@ -64,7 +75,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     }
 
     fun getRefBookItemVertexParents(id: String): List<ReferenceBookItemVertex> = session(db) {
-        val query = "TRAVERSE IN(\"$REFERENCE_BOOK_CHILD_EDGE\") FROM :itemRecord"
+        val query = "TRAVERSE IN(\"$REFERENCE_BOOK_ITEM_EDGE\") FROM :itemRecord"
         return@session db.query(query, mapOf("itemRecord" to ORecordId(id))) {
             it.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
         }
@@ -73,7 +84,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     fun markBookVertexAsDeleted(bookVertex: ReferenceBookVertex) {
         transaction(db) {
             bookVertex.deleted = true
-            markItemVertexAsDeleted(bookVertex.root)
+            bookVertex.itemVertices.forEach { markItemVertexAsDeleted(it) }
             bookVertex.save<OVertex>()
         }
     }
