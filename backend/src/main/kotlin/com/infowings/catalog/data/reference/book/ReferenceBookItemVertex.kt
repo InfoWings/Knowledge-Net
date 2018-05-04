@@ -13,9 +13,11 @@ import com.orientechnologies.orient.core.record.OVertex
 fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
+const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
 
 class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
+    val edgeName = REFERENCE_BOOK_CHILD_EDGE
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf("value" to asStringOrEmpty(value)),
@@ -35,16 +37,16 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         }
 
     val children: List<ReferenceBookItemVertex> =
-        getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
+        getVertices(ODirection.OUT, edgeName).map { it.toReferenceBookItemVertex() }
 
     /**
      * Return parent vertex (ReferenceBookItemVertex or ReferenceBookVertex) or null
      */
     val parent: OVertex?
         get() {
-            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull()
+            val oVertex = getVertices(ODirection.IN, edgeName).firstOrNull()
             return oVertex?.let {
-                if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).any())
+                if (oVertex.getVertices(ODirection.IN, edgeName).any())
                     oVertex.toReferenceBookItemVertex()
                 else
                     oVertex.toReferenceBookVertex()

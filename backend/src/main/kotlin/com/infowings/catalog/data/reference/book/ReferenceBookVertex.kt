@@ -15,7 +15,6 @@ import com.orientechnologies.orient.core.record.OVertex
 fun OVertex.toReferenceBookVertex() = ReferenceBookVertex(this)
 
 const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
-const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
 const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 
 class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {

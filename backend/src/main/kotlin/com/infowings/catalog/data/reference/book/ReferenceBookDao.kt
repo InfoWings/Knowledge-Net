@@ -44,7 +44,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     ): ReferenceBookItemVertex =
         transaction(db) {
             if (!parentVertex.children.contains(bookItemVertex)) {
-                parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+                parentVertex.addEdge(bookItemVertex, bookItemVertex.edgeName).save<OEdge>()
             }
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
@@ -55,7 +55,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     ): ReferenceBookItemVertex =
         transaction(db) {
             if (!refBookVertex.children.contains(bookItemVertex)) {
-                refBookVertex.addEdge(bookItemVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
+                refBookVertex.addEdge(bookItemVertex, bookItemVertex.edgeName).save<OEdge>()
             }
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
