@@ -38,7 +38,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             this["deleted"] = value
         }
 
-    val itemVertices: List<ReferenceBookItemVertex>
+    val children: List<ReferenceBookItemVertex>
         get() = getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_EDGE)
             .map { it.toReferenceBookItemVertex() }
 
@@ -49,7 +49,7 @@ class ReferenceBookVertex(private val vertex: OVertex) : HistoryAware, OVertex b
             .first()
 
     fun toReferenceBook(): ReferenceBook {
-        val items = itemVertices.map { it.toReferenceBookItem() }
+        val items = children.map { it.toReferenceBookItem() }
         return ReferenceBook(aspect.id, name, items, deleted, version)
     }
 

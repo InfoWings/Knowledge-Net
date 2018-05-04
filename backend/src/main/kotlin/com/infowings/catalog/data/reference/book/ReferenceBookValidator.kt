@@ -14,7 +14,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
     fun checkRefBookAndItemsVersions(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
         checkRefBookVersion(bookVertex, book)
 
-        val idToItemVertexMapFromBookItemVertices = bookVertex.itemVertices.map { it.id to it }.toMap()
+        val idToItemVertexMapFromBookItemVertices = bookVertex.children.map { it.id to it }.toMap()
         val idToItemVertexMapFromBookItems = book.children.map { it.id to it }.toMap()
 
         val changedIds = idToItemVertexMapFromBookItemVertices
@@ -72,7 +72,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
     fun checkRefBookItemValue(refBookVertex: ReferenceBookVertex, value: String, id: String?) {
         val vertexWithSameValueAlreadyExist =
-            refBookVertex.itemVertices.any { it.value == value && it.id != id && it.deleted.not() }
+            refBookVertex.children.any { it.value == value && it.id != id && it.deleted.not() }
         if (vertexWithSameValueAlreadyExist) {
             throw RefBookChildAlreadyExist(refBookVertex.id, value)
         }
