@@ -53,14 +53,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }
-        val parentVertex = parent
-
-        val parentId = when (parentVertex) {
-            is ReferenceBookItemVertex -> parentVertex.id
-            is ReferenceBookVertex -> parentVertex.aspect.id
-            else -> null
-        }
-        return ReferenceBookItem(parentId, id, value, children, deleted, version)
+        return ReferenceBookItem(id, value, children, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {

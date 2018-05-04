@@ -16,12 +16,17 @@ data class ReferenceBook(
 
 @Serializable
 data class ReferenceBookItem(
-    val parentId: String?,
     val id: String,
     val value: String,
     val children: List<ReferenceBookItem>,
     val deleted: Boolean,
     val version: Int
+)
+
+@Serializable
+data class ReferenceBookItemData(
+    val parentId: String,
+    val bookItem: ReferenceBookItem
 )
 
 @Serializable

@@ -43,10 +43,10 @@ class ReferenceBookDaoTest {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name), username)
         val anotherAspectId = anotherAspect.id
         referenceBookService.createReferenceBook("book2", anotherAspectId, username)
-        val item1 = createReferenceBookItem(anotherAspectId, "v1")
-        val idItem1 = referenceBookService.addReferenceBookItem(item1, username)
-        val item11 = createReferenceBookItem(idItem1, "v2")
-        val idItem11 = referenceBookService.addReferenceBookItem(item11, username)
+        val item1 = createReferenceBookItem("v1")
+        val idItem1 = referenceBookService.addReferenceBookItem(anotherAspectId, item1, username)
+        val item11 = createReferenceBookItem("v2")
+        val idItem11 = referenceBookService.addReferenceBookItem(idItem1, item11, username)
         dao.markBookVertexAsDeleted(
             dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
         )
@@ -55,12 +55,8 @@ class ReferenceBookDaoTest {
         assertTrue(referenceBookService.getReferenceBookItem(idItem11).deleted)
     }
 
-    private fun createReferenceBookItem(
-        parentId: String,
-        value: String
-    ): ReferenceBookItem {
+    private fun createReferenceBookItem(value: String): ReferenceBookItem {
         return ReferenceBookItem(
-            parentId,
             "",
             value,
             emptyList(),

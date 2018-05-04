@@ -176,11 +176,10 @@ class ReferenceBookService(
      * @throws RefBookItemIllegalArgumentException if parentId is null
      * @return id of added ReferenceBookItem
      */
-    fun addReferenceBookItem(bookItem: ReferenceBookItem, username: String): String {
+    fun addReferenceBookItem(parentId: String, bookItem: ReferenceBookItem, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
 
         return transaction(db) {
-            val parentId = bookItem.parentId ?: throw RefBookItemIllegalArgumentException("parent id must not be null")
             val value = bookItem.value
 
             logger.debug("Adding ReferenceBookItem parentId: $parentId, value: $value by $username")

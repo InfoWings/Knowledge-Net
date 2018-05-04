@@ -1,10 +1,7 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.reference.book.*
 import kotlinx.serialization.json.JSON
@@ -50,8 +47,8 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.addReferenceBookItem(bookItem, principal.name)
+    fun createItem(@RequestBody data: ReferenceBookItemData, principal: Principal) {
+        referenceBookService.addReferenceBookItem(data.parentId, data.bookItem, principal.name)
     }
 
     @PostMapping("item/update")

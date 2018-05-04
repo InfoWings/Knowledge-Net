@@ -3,6 +3,7 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
@@ -37,7 +38,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(props.aspectId, bookItem)
+        props.createBookItem(props.aspectId, ReferenceBookItemData(props.aspectId, bookItem))
         setState {
             creatingBookItem = false
         }
@@ -131,7 +132,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.book.aspectId, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem("", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -148,7 +149,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
         var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: suspend (ReferenceBook) -> Unit
         var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
-        var createBookItem: suspend (aspectId: String, ReferenceBookItem) -> Unit
+        var createBookItem: suspend (aspectId: String, ReferenceBookItemData) -> Unit
         var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
         var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
     }
