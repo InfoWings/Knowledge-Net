@@ -27,7 +27,7 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
                             onAddProperty = {
                                 // TODO: Handle situation when there is already empty property
                                 props.objectTreeViewModel.updateSelectedObjTree {
-                                    properties.add(ObjTreeViewProperty(null, null, null, null))
+                                    properties.add(ObjTreeViewProperty(null, null, null, null, null))
                                     expanded = true
                                 }
                             }

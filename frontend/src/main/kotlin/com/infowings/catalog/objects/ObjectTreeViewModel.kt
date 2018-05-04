@@ -1,9 +1,6 @@
 package com.infowings.catalog.objects
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.ObjData
-import com.infowings.catalog.common.ObjPropertyData
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.objects.treeview.objectTreeView
 import kotlinx.coroutines.experimental.launch
 import react.*
@@ -12,17 +9,31 @@ enum class Cardinality {
     ZERO, ONE, INFINITY
 }
 
+data class ObjectPropertyValueView(
+    val id: String?,
+    var value: String?
+)
+
 data class ObjTreeViewProperty(
     val id: String?,
     var name: String?,
     var cardinality: Cardinality?,
-    var aspect: AspectData?
+    var aspect: AspectData?,
+    var value: ObjectPropertyValueView?
 ) {
     fun toObjPropertyData() = ObjPropertyData(
         id,
         name,
         cardinality?.name ?: error("Inconsistent State"),
-        aspect ?: error("Inconsistent State")
+        aspect ?: error("Inconsistent State"),
+        listOf(
+            // TODO: Proper data construction
+            ObjectPropertyValueData(
+                value?.id,
+                listOf(Characteristics(aspect?.id ?: error("Inconsistent state"))),
+                value?.value ?: error("Inconsistent State")
+            )
+        )
     )
 }
 
@@ -76,7 +87,11 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                             "INFINITY" -> Cardinality.INFINITY
                             else -> error("Inconsistent State")
                         },
-                        it.aspect
+                        it.aspect,
+                        ObjectPropertyValueView(
+                            it.values.first().id,
+                            it.values.first().scalarValue
+                        )
                     )
                 }.toMutableList()
             )
@@ -94,7 +109,6 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
 
     override fun saveObjTree() = setState {
         val savedObjData = editedObjTree?.toObjData() ?: error("Inconsistent state")
-        console.log(savedObjData)
         launch {
             props.objectApiModel.submitObj(savedObjData)
         }
