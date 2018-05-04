@@ -7,7 +7,6 @@ import com.infowings.catalog.common.ObjectPropertyValueData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
 import com.orientechnologies.orient.core.id.ORecordId
 
@@ -96,18 +95,9 @@ class ObjectValidator(
             }
         }
 
-        /*
-         * Здесь мы собрали данные про характеристики. Но создавать вершины для характеристик мы не будем
-         * Потому что здесь не место
-         *
-         * А поле characteristics в ObjectPropertyValue - для вершин. Поэтому мы возвращаем здесь
-         * пару <Value, список характеристик>
-         *
-         */
-
         return ObjectPropertyValue(
             data.id ?.let { ORecordId(it) },
-            data.value,
+            data.simpleType,
             data.range,
             data.precision,
             objectPropertyVertex,

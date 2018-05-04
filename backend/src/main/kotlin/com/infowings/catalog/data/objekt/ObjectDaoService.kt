@@ -2,8 +2,11 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
+import com.infowings.catalog.common.ScalarValue
+import com.infowings.catalog.common.SimpleTypeGroup
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
+import kotlinx.serialization.json.JSON
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -66,7 +69,30 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun saveObjectValue(vertex: ObjectPropertyValueVertex, objectValue: ObjectPropertyValue): ObjectPropertyValueVertex = session(db) {
         val characteristics: List<CharacteristicVertex> = objectValue.characteristics
 
-        vertex.value = objectValue.value
+        vertex.intValue = null
+        vertex.intType = null
+        vertex.strValue = null
+        vertex.strType = null
+        vertex.compoundValue = null
+        vertex.compoundType = null
+
+        objectValue.simpleType ?.let {
+            when (it) {
+                is ScalarValue.IntegerValue -> {
+                    vertex.intValue = it.value
+                    vertex.intType = it.typeName
+                }
+                is ScalarValue.StringValue -> {
+                    vertex.strValue = it.value
+                    vertex.strType = it.typeName
+                }
+                is ScalarValue.CompoundValue -> {
+                    vertex.compoundValue = JSON.stringify(it.value)
+                    vertex.compoundType = it.typeName
+                }
+            }
+        }
+
         vertex.range = objectValue.range
         vertex.precision = objectValue.precision
 

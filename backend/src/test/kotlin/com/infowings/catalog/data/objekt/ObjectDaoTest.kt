@@ -92,7 +92,21 @@ class ObjectDaoTest {
         val objectProperty = validator.checkedForCreation(propertyData)
         val saved = createObjectProperty(objectProperty)
         assertEquals(objectProperty.name, saved.name, "names mist be equal")
-        println("DDDDD")
+    }
+
+    @Test
+    fun savePropertySimpleValueTest() {
+        val objectData = ObjectData(null, "savePropertySimpleValueTest", "some descr", subject.id, emptyList())
+        val obj = createObject(objectData)
+        val propertyData = ObjectPropertyData(
+            null,
+            "savePropertySimpleValueTest",
+            PropertyCardinality.ONE,
+            obj.id, aspect.id, emptyList())
+
+
+        val objectProperty = validator.checkedForCreation(propertyData)
+        val saved = createObjectProperty(objectProperty)
     }
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
@@ -108,5 +122,10 @@ class ObjectDaoTest {
     private fun createObjectProperty(propertyData: ObjectProperty): ObjectPropertyVertex = transaction(db) {
         val newVertex = dao.newObjectPropertyVertex()
         return@transaction dao.saveObjectProperty(newVertex, propertyData)
+    }
+
+    private fun createObjectPropertyValue(valueData: ObjectPropertyValue): ObjectPropertyValueVertex = transaction(db) {
+        val newVertex = dao.newObjectValueVertex()
+        return@transaction dao.saveObjectValue(newVertex, valueData)
     }
 }

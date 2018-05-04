@@ -1,8 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.Range
-import com.infowings.catalog.common.ScalarValue
-import com.infowings.catalog.common.decode
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -17,25 +15,74 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "value" to asStringOrEmpty(value),
             "range" to asStringOrEmpty(range),
             "precision" to asStringOrEmpty(precision)
         ),
         links = emptyMap()
     )
 
-    var value: ScalarValue?
-        get() {
-            val s: String = vertex["value"]
-            return s.let {decode(it)}
-        }
+    /* Здесь храним тег простого типа, представимого как Int. Например. Int или какие-то варинты подмножеств Int
+     * Значением этого поля определяется:
+     *  - поле, в котором хранится значение
+     *  - методы кодирования/декодирования
+     */
+    var intType: String?
+        get() = vertex["intType"]
         set(value) {
-            if (value != null) {
-                vertex["value"] = value.encode()
-            } else {
-                vertex.removeProperty("value")
-            }
+            vertex["intType"] = value
         }
+    val intTypeStrict: String
+       get() = intType ?: throw IntTypeNotDefinedException(id)
+
+
+    /* Каждому типу соответствует свое поле. Храним в строковом формате.
+     */
+    var intValue: Int?
+        get() = intType?.let {vertex[it]}
+        set(value) {
+            vertex[intTypeStrict] = value
+        }
+    val intValueStrict: Int
+        get() = intValue ?: throw IntValueNotDefinedException(id, intTypeStrict)
+
+
+    var strType: String?
+        get() = vertex["strType"]
+        set(value) {
+            vertex["strType"] = value
+        }
+    val strTypeStrict: String
+        get() = strType ?: throw StringTypeNotDefinedException(id)
+
+    /* Каждому типу соответствует свое поле. Храним в целочисленном формате.
+     */
+    var strValue: String?
+        get() = strType?.let {vertex[it]}
+        set(value) {
+            vertex[strTypeStrict] = value
+        }
+
+    val strValueStrict: String
+        get() = strValue ?: throw StringValueNotDefinedException(id, strTypeStrict)
+
+
+
+    var compoundType: String?
+        get() = vertex["compoundType"]
+        set(value) {
+            vertex["compoundType"] = value
+        }
+    val compoundTypeStrict: String
+        get() = compoundType ?: throw CompoundTypeNotDefinedException(id)
+
+    var compoundValue: String?
+        get() = compoundType?.let {vertex[it]}
+        set(value) {
+            vertex[compoundTypeStrict] = value
+        }
+    val compoundValueStrict: String
+        get() = compoundValue ?: throw CompoundValueNotDefinedException(id, compoundTypeStrict)
+
 
     var range: Range?
         get() {
@@ -72,10 +119,34 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
 
-        return ObjectPropertyValue(identity, value, range, precision, currentProperty, characteristics)
+        val intTypeCurrent = intType
+        val strTypeCurrent = strType
+        val compoundTypeCurrent = compoundType
+
+        val simpleData: ScalarValue? = when {
+            intTypeCurrent != null -> ScalarValue.IntegerValue(intValueStrict, intTypeCurrent)
+            strTypeCurrent != null -> ScalarValue.StringValue(strValueStrict, strTypeCurrent)
+            compoundTypeCurrent != null -> ScalarValue.CompoundValue(compoundValueStrict, compoundTypeCurrent)
+            else -> null
+        }
+
+        return ObjectPropertyValue(identity, simpleData,
+            range, precision, currentProperty, characteristics)
     }
 }
 
 abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
+
+class IntTypeNotDefinedException(id: String) : ObjectValueException("int type is not defined for value $id")
+class IntValueNotDefinedException(id: String, typeName: String) :
+    ObjectValueException("int value is not defined for value $id, type $typeName")
+
+class StringTypeNotDefinedException(id: String) : ObjectValueException("string type is not defined for value $id")
+class StringValueNotDefinedException(id: String, typeName: String) :
+    ObjectValueException("string value is not defined for value $id, type $typeName")
+
+class CompoundTypeNotDefinedException(id: String) : ObjectValueException("compound type is not defined for value $id")
+class CompoundValueNotDefinedException(id: String, typeName: String) :
+    ObjectValueException("compound value is not defined for value $id, type $typeName")
