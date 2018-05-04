@@ -8,7 +8,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_EDGE
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
 import com.infowings.catalog.loggerFor
@@ -152,7 +152,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
             vertexClass.createProperty("value", OType.STRING)
         }
 
-        session.getClass(REFERENCE_BOOK_ITEM_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ITEM_EDGE)
+        session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
         session.getClass(ASPECT_REFERENCE_BOOK_EDGE) ?: session.createEdgeClass(ASPECT_REFERENCE_BOOK_EDGE)
         return@session this
     }

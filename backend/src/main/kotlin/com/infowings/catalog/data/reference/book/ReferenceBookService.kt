@@ -345,11 +345,11 @@ class ReferenceBookService(
                 .validateItemAndChildrenVersions(source)
                 .validateForMoving(targetVertex)
 
-            sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
+            sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
 
             //TODO: add history
 
-            return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_ITEM_EDGE).save<ORecord>()
+            return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
         }
     }
 

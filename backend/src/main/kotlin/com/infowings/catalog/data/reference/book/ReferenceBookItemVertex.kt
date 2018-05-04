@@ -35,16 +35,16 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         }
 
     val children: List<ReferenceBookItemVertex> =
-        getVertices(ODirection.OUT, REFERENCE_BOOK_ITEM_EDGE).map { it.toReferenceBookItemVertex() }
+        getVertices(ODirection.OUT, REFERENCE_BOOK_CHILD_EDGE).map { it.toReferenceBookItemVertex() }
 
     /**
      * Return parent vertex (ReferenceBookItemVertex or ReferenceBookVertex) or null
      */
     val parent: OVertex?
         get() {
-            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_ITEM_EDGE).firstOrNull()
+            val oVertex = getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).firstOrNull()
             return oVertex?.let {
-                if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_ITEM_EDGE).any())
+                if (oVertex.getVertices(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).any())
                     oVertex.toReferenceBookItemVertex()
                 else
                     oVertex.toReferenceBookVertex()
