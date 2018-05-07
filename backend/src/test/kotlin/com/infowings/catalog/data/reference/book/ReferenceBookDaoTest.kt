@@ -40,16 +40,14 @@ class ReferenceBookDaoTest {
     @Test
     fun markReferenceBookAsRemovedTest() {
         val book1 = referenceBookService.createReferenceBook("book1", aspect.id, username)
-        val anotherAspect = aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name), username)
+        val anotherAspect = aspectService.save(AspectData("", "asp2", null, null, BaseType.Text.name), username)
         val anotherAspectId = anotherAspect.id
-        referenceBookService.createReferenceBook("book2", anotherAspectId, username)
+        val anotherBook = referenceBookService.createReferenceBook("book2", anotherAspectId, username)
         val item1 = createReferenceBookItem("v1")
-        val idItem1 = referenceBookService.addReferenceBookItem(anotherAspectId, item1, username)
+        val idItem1 = referenceBookService.addReferenceBookItem(anotherBook.id, item1, username)
         val item11 = createReferenceBookItem("v2")
         val idItem11 = referenceBookService.addReferenceBookItem(idItem1, item11, username)
-        dao.markBookVertexAsDeleted(
-            dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
-        )
+        dao.getRootVertex(anotherAspectId)?.also { dao.markItemVertexAsDeleted(it) }
         assertEquals(listOf(book1), referenceBookService.getAllReferenceBooks())
         assertTrue(referenceBookService.getReferenceBookItem(idItem1).deleted)
         assertTrue(referenceBookService.getReferenceBookItem(idItem11).deleted)

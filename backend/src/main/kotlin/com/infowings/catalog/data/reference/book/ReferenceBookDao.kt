@@ -12,26 +12,28 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 private const val notDeletedSql = "(deleted is NULL or deleted = false)"
-private const val selectAllNotDeletedRefBooks = "SELECT FROM $REFERENCE_BOOK_VERTEX WHERE $notDeletedSql"
+private const val selectAllNotDeletedRefBookRoots =
+    "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE IN(\"$ASPECT_REFERENCE_BOOK_EDGE\").size() = 1 AND $notDeletedSql"
+
 
 class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun getAspectVertex(aspectId: String): AspectVertex? = db.getVertexById(aspectId)?.toAspectVertex()
 
-    fun getAllReferenceBookVertex(): List<ReferenceBookVertex> =
-        db.query(selectAllNotDeletedRefBooks) { rs ->
-            rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookVertex() }.toList()
+    fun getAllRootVertices(): List<ReferenceBookItemVertex> {
+        return db.query(selectAllNotDeletedRefBookRoots) { rs ->
+            rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
+                .toList()
         }
+    }
 
-    fun getReferenceBookVertex(aspectId: String): ReferenceBookVertex? = transaction(db) {
+    fun getRootVertex(aspectId: String): ReferenceBookItemVertex? = transaction(db) {
         val aspectVertex = db.getVertexById(aspectId) ?: return@transaction null
         return@transaction aspectVertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
-            .map { it.toReferenceBookVertex() }
+            .map { it.toReferenceBookItemVertex() }
             .filterNot { it.deleted }
             .firstOrNull()
     }
-
-    fun createReferenceBookVertex() = db.createNewVertex(REFERENCE_BOOK_VERTEX).toReferenceBookVertex()
 
     fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
 
@@ -49,24 +51,6 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }
 
-    fun saveBookItemVertex(
-        refBookVertex: ReferenceBookVertex,
-        bookItemVertex: ReferenceBookItemVertex
-    ): ReferenceBookItemVertex =
-        transaction(db) {
-            if (!refBookVertex.children.contains(bookItemVertex)) {
-                refBookVertex.addEdge(bookItemVertex, bookItemVertex.edgeName).save<OEdge>()
-            }
-            return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
-        }
-
-    fun removeRefBookVertex(bookVertex: ReferenceBookVertex) {
-        transaction(db) {
-            bookVertex.children.forEach { removeRefBookItemVertex(it) }
-            db.delete(bookVertex)
-        }
-    }
-
     fun removeRefBookItemVertex(bookItemVertex: ReferenceBookItemVertex) {
         transaction(db) {
             bookItemVertex.children.forEach { removeRefBookItemVertex(it) }
@@ -78,14 +62,6 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         val query = "TRAVERSE IN(\"$REFERENCE_BOOK_CHILD_EDGE\") FROM :itemRecord"
         return@session db.query(query, mapOf("itemRecord" to ORecordId(id))) {
             it.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
-        }
-    }
-
-    fun markBookVertexAsDeleted(bookVertex: ReferenceBookVertex) {
-        transaction(db) {
-            bookVertex.deleted = true
-            bookVertex.children.forEach { markItemVertexAsDeleted(it) }
-            bookVertex.save<OVertex>()
         }
     }
 

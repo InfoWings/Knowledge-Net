@@ -1,6 +1,8 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -12,6 +14,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 
+const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
 
@@ -23,6 +26,12 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         data = mapOf("value" to asStringOrEmpty(value)),
         links = mapOf("children" to children.map { it.identity })
     )
+
+    val aspect: AspectVertex?
+        get() = getVertices(ODirection.IN, ASPECT_REFERENCE_BOOK_EDGE)
+            .map { it.toAspectVertex() }
+            .filterNot { it.deleted }
+            .firstOrNull()
 
     var value: String
         get() = this["value"]
@@ -40,18 +49,10 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         getVertices(ODirection.OUT, edgeName).map { it.toReferenceBookItemVertex() }
 
     /**
-     * Return parent vertex (ReferenceBookItemVertex or ReferenceBookVertex) or null
+     * Return parent ReferenceBookItemVertex or null
      */
-    val parent: OVertex?
-        get() {
-            val oVertex = getVertices(ODirection.IN, edgeName).firstOrNull()
-            return oVertex?.let {
-                if (oVertex.getVertices(ODirection.IN, edgeName).any())
-                    oVertex.toReferenceBookItemVertex()
-                else
-                    oVertex.toReferenceBookVertex()
-            }
-        }
+    val parent: ReferenceBookItemVertex?
+        get() = getVertices(ODirection.IN, edgeName).firstOrNull()?.toReferenceBookItemVertex()
 
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }

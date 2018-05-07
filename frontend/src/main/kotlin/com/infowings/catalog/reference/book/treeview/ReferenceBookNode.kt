@@ -38,7 +38,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(props.aspectId, ReferenceBookItemData(props.aspectId, bookItem))
+        props.createBookItem(props.aspectId, ReferenceBookItemData(props.book.id, bookItem))
         setState {
             creatingBookItem = false
         }

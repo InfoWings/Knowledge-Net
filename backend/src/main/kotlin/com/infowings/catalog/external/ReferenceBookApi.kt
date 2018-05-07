@@ -28,7 +28,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("create")
     fun create(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
-        return referenceBookService.createReferenceBook(book.name, book.aspectId, principal.name)
+        return referenceBookService.createReferenceBook(
+            name = book.name,
+            aspectId = book.aspectId,
+            username = principal.name
+        )
     }
 
     @PostMapping("update")
@@ -48,7 +52,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("item/create")
     fun createItem(@RequestBody data: ReferenceBookItemData, principal: Principal) {
-        referenceBookService.addReferenceBookItem(data.parentId, data.bookItem, principal.name)
+        referenceBookService.addReferenceBookItem(
+            parentId = data.parentId,
+            bookItem = data.bookItem,
+            username = principal.name
+        )
     }
 
     @PostMapping("item/update")
@@ -89,8 +97,6 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
                     )
                 )
             )
-            is RefBookItemConcurrentModificationException ->
-                ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
