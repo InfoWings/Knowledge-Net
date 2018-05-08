@@ -19,7 +19,7 @@ data class ObjectPropertyViewModel(
     var cardinality: Cardinality? = null,
     var aspect: AspectData? = null,
     var values: MutableList<ObjectPropertyValueViewModel>? = null,
-    var expanded: Boolean = false
+    var expanded: Boolean = true
 ) {
     fun toObjectPropertyData() = ObjectPropertyData(
         id,

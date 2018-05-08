@@ -60,12 +60,15 @@ fun RBuilder.objectPropertyLine(
                     if (values == null) {
                         onUpdate {
                             this.values = ArrayList<ObjectPropertyValueViewModel>().apply {
-                                add(ObjectPropertyValueViewModel())
+                                add(ObjectPropertyValueViewModel(expanded = true))
                             }
+                            addGroupsToFirstValue(aspectsMap)
                         }
                     } else if (values.isEmpty()) {
                         onUpdate {
-                            this.values?.add(ObjectPropertyValueViewModel()) ?: error("Inconsistent State")
+                            this.values?.add(ObjectPropertyValueViewModel(expanded = true))
+                                    ?: error("Inconsistent State")
+                            addGroupsToFirstValue(aspectsMap)
                         }
                     }
                 },
@@ -87,6 +90,7 @@ fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, Aspec
     if (aspect != null && cardinality == Cardinality.ZERO && values == null) {
         values = ArrayList<ObjectPropertyValueViewModel>().apply {
             add(ObjectPropertyValueViewModel().apply {
+                expanded = true
                 val aspectProperties = aspect?.properties ?: error("Inconsistent Memory model behaviour")
                 aspectProperties.forEach { property ->
                     val associatedAspect = aspectsMap[property.aspectId] ?: error("Inconsistent State")
@@ -106,6 +110,29 @@ fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, Aspec
                 }
             })
         }
+    } else if (aspect != null && cardinality == Cardinality.INFINITY && values == null) {
+        values = ArrayList()
+    }
+}
+
+fun ObjectPropertyViewModel.addGroupsToFirstValue(aspectsMap: Map<String, AspectData>) {
+    val valueGroups = values?.get(0)?.valueGroups ?: error("Precondition: values should be instantiated")
+    val aspectProperties = aspect?.properties ?: error("Aspect should be selected already")
+    aspectProperties.forEach { property ->
+        val associatedAspect = aspectsMap[property.aspectId] ?: error("Inconsistent State")
+        valueGroups.add(
+            AspectPropertyValueGroupViewModel(
+                property = AspectPropertyViewModel(
+                    propertyId = property.id,
+                    aspectId = property.aspectId,
+                    cardinality = Cardinality.valueOf(property.cardinality),
+                    roleName = property.name,
+                    aspectName = associatedAspect.name ?: error("Inconsistent State"),
+                    baseType = associatedAspect.baseType ?: error("Inconsistent State"),
+                    domain = associatedAspect.domain ?: error("Inconsistent State")
+                )
+            )
+        )
     }
 }
 

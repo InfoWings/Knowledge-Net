@@ -3,6 +3,7 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.Cardinality
+import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.objects.ObjectPropertyViewModel
 import react.RBuilder
 import react.buildElement
@@ -50,9 +51,42 @@ fun RBuilder.objectPropertyNode(
                     }
                 }
             )
-            property.cardinality == Cardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> null /* Draw properties of parent aspect */
-            property.cardinality == Cardinality.INFINITY -> null /* Draw values and for each value property tree */
-            else -> null /* Draw notihng */
+            property.cardinality == Cardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> aspectPropertyValues(
+                groups = property.values?.get(0)?.valueGroups ?: error("Memory Model inconsistency"),
+                onEdit = onEdit,
+                onUpdate = { block ->
+                    onUpdate {
+                        values?.get(0)?.block() ?: error("Memory Model inconsistency")
+                    }
+                },
+                onNonSelectedUpdate = { block ->
+                    onUpdateWithoutSelect {
+                        values?.get(0)?.block() ?: error("Memory Model inconsistency")
+                    }
+                }
+            )
+            property.cardinality == Cardinality.INFINITY && property.aspect != null -> objectPropertyValues(
+                values = property.values ?: error("Memory Model inconsistency"),
+                aspectsMap = aspectsMap,
+                aspect = property.aspect ?: error("Memory Model inconsistency"),
+                onEdit = onEdit,
+                onUpdate = { index, block ->
+                    onUpdate {
+                        values?.get(index)?.block() ?: error("Inconsistent State")
+                    }
+                },
+                onNonSelectedUpdate = { index, block ->
+                    onUpdateWithoutSelect {
+                        values?.get(index)?.block() ?: error("Inconsistent State")
+                    }
+                },
+                onAddValue = {
+                    onEdit()
+                    onUpdate {
+                        values?.add(ObjectPropertyValueViewModel())
+                    }
+                }
+            )
         }
     }
 

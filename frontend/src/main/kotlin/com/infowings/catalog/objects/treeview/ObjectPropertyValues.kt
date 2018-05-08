@@ -1,86 +1,112 @@
 package com.infowings.catalog.objects.treeview
 
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueGroupViewModel
-import com.infowings.catalog.objects.AspectPropertyValueViewModel
 import com.infowings.catalog.objects.AspectPropertyViewModel
+import com.infowings.catalog.objects.Cardinality
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.buildElement
 
-
-fun RBuilder.aspectPropertyValues(
-    groups: MutableList<AspectPropertyValueGroupViewModel>,
+fun RBuilder.objectPropertyValues(
+    values: MutableList<ObjectPropertyValueViewModel>,
+    aspect: AspectData,
+    aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
-    onUpdate: (ObjectPropertyValueViewModel.() -> Unit) -> Unit,
-    onNonSelectedUpdate: (ObjectPropertyValueViewModel.() -> Unit) -> Unit
+    onUpdate: (Int, ObjectPropertyValueViewModel.() -> Unit) -> Unit,
+    onNonSelectedUpdate: (Int, ObjectPropertyValueViewModel.() -> Unit) -> Unit,
+    onAddValue: () -> Unit
 ) {
-    groups.forEachIndexed { groupIndex, (property, values) ->
-        values.forEachIndexed { valueIndex, value ->
-            aspectPropertyValue(
-                aspectProperty = property,
-                value = value,
+    values.forEachIndexed { index, value ->
+        controlledTreeNode {
+            attrs {
+                className = "oblect-tree-view__object-property-value"
+                expanded = value.expanded
+                onExpanded = {
+                    onNonSelectedUpdate(index) {
+                        expanded = it
+                    }
+                }
+                treeNodeContent = buildElement {
+                    objectPropertyValueLine(
+                        value = value.value ?: "",
+                        onUpdate = {
+                            onUpdate(index) {
+                                this.value = it
+                            }
+                        },
+                        onEdit = {
+                            onUpdate(index) {
+                                if (valueGroups.isEmpty()) {
+                                    createGroupsForValue(aspect, aspectsMap)
+                                }
+                            }
+                        }
+                    )
+                }!!
+            }
+            aspectPropertyValues(
+                groups = value.valueGroups,
                 onEdit = onEdit,
                 onUpdate = { block ->
-                    onUpdate {
-                        valueGroups[groupIndex].values[valueIndex].block()
+                    onUpdate(index) {
+                        value.block()
                     }
                 },
                 onNonSelectedUpdate = { block ->
-                    onNonSelectedUpdate {
-                        valueGroups[groupIndex].values[valueIndex].block()
+                    onNonSelectedUpdate(index) {
+                        value.block()
                     }
                 }
             )
         }
-        Button {
-            // TODO: conditionaly show this button (when [0..N] or [0..1] but without value)
-            attrs {
-                className = "pt-minimal"
-                intent = Intent.PRIMARY
-                icon = "plus"
-                text = ("Add property " + (property.roleName ?: "") + " " + property.aspectName).asReactElement()
-                onClick = {
-                    onEdit()
-                    onUpdate {
-                        valueGroups[groupIndex].values.add(AspectPropertyValueViewModel())
-                    }
-                }
-            }
+    }
+    Button {
+        // TODO: Handle situation when (selected/not selected), when to draw button or not
+        attrs {
+            className = "pt-minimal"
+            intent = Intent.PRIMARY
+            icon = "plus"
+            onClick = { onAddValue() }
+            text = ("Add value to property " + (aspect.name ?: "")).asReactElement()
         }
     }
 }
 
-fun RBuilder.aspectPropertyValue(
-    aspectProperty: AspectPropertyViewModel,
-    value: AspectPropertyValueViewModel,
-    onEdit: () -> Unit,
-    onUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit,
-    onNonSelectedUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit
+fun RBuilder.objectPropertyValueLine(
+    value: String,
+    onUpdate: (String) -> Unit,
+    onEdit: () -> Unit
 ) =
-    controlledTreeNode {
+    EditableText {
         attrs {
-            className = "object-tree-view__value"
-            expanded = value.expanded
-            onExpanded = {
-                onNonSelectedUpdate {
-                    expanded = it
-                }
-            }
-            treeNodeContent = buildElement {
-                aspectPropertyValueLine(
-                    aspectProperty = aspectProperty,
-                    value = value.value,
-                    onEdit = onEdit,
-                    onUpdate = {
-                        onUpdate {
-                            this.value = it
-                        }
-                    }
-                )
-            }!!
+            this.value = value
+            onChange = onUpdate
+            this.onEdit = onEdit
+            onCancel = onUpdate
         }
     }
+
+fun ObjectPropertyValueViewModel.createGroupsForValue(aspect: AspectData, aspectsMap: Map<String, AspectData>) {
+    aspect.properties.forEach { propertyData ->
+        val aspectData = aspectsMap[propertyData.aspectId] ?: error("Inconsistent State")
+        valueGroups.add(
+            AspectPropertyValueGroupViewModel(
+                property = AspectPropertyViewModel(
+                    propertyId = propertyData.id,
+                    aspectId = propertyData.aspectId,
+                    cardinality = Cardinality.valueOf(propertyData.cardinality),
+                    roleName = propertyData.name,
+                    aspectName = aspectData.name ?: error("Inconsistent State"),
+                    baseType = aspectData.baseType ?: error("Inconsistent State"),
+                    domain = aspectData.domain ?: error("Inconsistent State")
+                )
+            )
+        )
+    }
+}
