@@ -53,14 +53,14 @@ fun RBuilder.objectPropertyValues(
             aspectPropertyValues(
                 groups = value.valueGroups,
                 onEdit = onEdit,
-                onUpdate = { block ->
+                onUpdate = { index, block ->
                     onUpdate(index) {
-                        value.block()
+                        value.valueGroups[index].block()
                     }
                 },
-                onNonSelectedUpdate = { block ->
+                onNonSelectedUpdate = { index, block ->
                     onNonSelectedUpdate(index) {
-                        value.block()
+                        value.valueGroups[index].block()
                     }
                 }
             )

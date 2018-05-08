@@ -38,15 +38,15 @@ fun RBuilder.objectPropertyNode(
                 groups = property.values?.get(0)?.valueGroups
                         ?: error("ObjectProperty with Cardinality.ZERO and assigned aspect should have one fake value"),
                 onEdit = onEdit,
-                onUpdate = { block ->
+                onUpdate = { index, block ->
                     onUpdate {
-                        values?.get(0)?.block()
+                        values?.get(0)?.valueGroups?.get(index)?.block()
                                 ?: error("ObjectProperty with Cardinality.ZERO and assigned aspect should have one fake value")
                     }
                 },
-                onNonSelectedUpdate = { block ->
+                onNonSelectedUpdate = { index, block ->
                     onUpdateWithoutSelect {
-                        values?.get(0)?.block()
+                        values?.get(0)?.valueGroups?.get(index)?.block()
                                 ?: error("ObjectProperty with Cardinality.ZERO and assigned aspect should have one fake value")
                     }
                 }
@@ -54,14 +54,14 @@ fun RBuilder.objectPropertyNode(
             property.cardinality == Cardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> aspectPropertyValues(
                 groups = property.values?.get(0)?.valueGroups ?: error("Memory Model inconsistency"),
                 onEdit = onEdit,
-                onUpdate = { block ->
+                onUpdate = { index, block ->
                     onUpdate {
-                        values?.get(0)?.block() ?: error("Memory Model inconsistency")
+                        values?.get(0)?.valueGroups?.get(index)?.block() ?: error("Memory Model inconsistency")
                     }
                 },
-                onNonSelectedUpdate = { block ->
+                onNonSelectedUpdate = { index, block ->
                     onUpdateWithoutSelect {
-                        values?.get(0)?.block() ?: error("Memory Model inconsistency")
+                        values?.get(0)?.valueGroups?.get(index)?.block() ?: error("Memory Model inconsistency")
                     }
                 }
             )
