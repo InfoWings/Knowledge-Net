@@ -3,7 +3,7 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.components.additem.addPropertyButton
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
-import com.infowings.catalog.objects.ObjTreeView
+import com.infowings.catalog.objects.ObjectViewModel
 import com.infowings.catalog.objects.treeview.inputs.name
 import com.infowings.catalog.objects.treeview.inputs.objectSubject
 import react.*
@@ -54,9 +54,9 @@ class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
     }
 
     interface Props : RProps {
-        var objectTreeView: ObjTreeView
+        var objectTreeView: ObjectViewModel
         var onStartEdit: () -> Unit
-        var onUpdate: (ObjTreeView.() -> Unit) -> Unit
+        var onUpdate: (ObjectViewModel.() -> Unit) -> Unit
         var onSubmit: (() -> Unit)?
         var onAddProperty: () -> Unit
         var isSelected: Boolean

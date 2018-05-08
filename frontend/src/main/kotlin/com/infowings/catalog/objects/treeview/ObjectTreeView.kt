@@ -26,6 +26,7 @@ class ObjectTreeView : RComponent<ObjectTreeViewModelConsumerProps, RState>() {
                         objectIndex = index
                         objTreeView = objView
                         editedObject = props.editedObject
+                        aspectsMap = props.aspectsMap
                         objectTreeViewModel = props.objectTreeViewModel
                     }
                 }

@@ -1,93 +1,111 @@
 package com.infowings.catalog.objects.treeview
 
-import com.infowings.catalog.objects.Cardinality
-import com.infowings.catalog.objects.ObjTreeViewProperty
-import com.infowings.catalog.objects.ObjectPropertyValueView
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.treeview.inputs.propertyAspect
 import com.infowings.catalog.objects.treeview.inputs.propertyCardinality
 import com.infowings.catalog.objects.treeview.inputs.propertyName
 import com.infowings.catalog.objects.treeview.inputs.propertyValue
 import com.infowings.catalog.objects.treeview.utils.propertyAspectTypeInfo
-import react.*
+import react.RBuilder
 import react.dom.div
 
-class ObjectPropertyLine : RComponent<ObjectPropertyLine.Props, RState>() {
-
-    override fun RBuilder.render() {
-        div(classes = "object-tree-view__object-property") {
-            propertyName(
-                value = props.property.name ?: "",
-                onEdit = props.onEdit,
-                onCancel = {
-                    props.onUpdate {
-                        name = it
-                    }
-                },
-                onChange = {
-                    props.onUpdate {
-                        name = it
-                    }
+fun RBuilder.objectPropertyLine(
+    property: ObjectPropertyViewModel,
+    aspectsMap: Map<String, AspectData>,
+    onEdit: () -> Unit,
+    onUpdate: (ObjectPropertyViewModel.() -> Unit) -> Unit
+) =
+    div(classes = "object-tree-view__object-property") {
+        propertyName(
+            value = property.name ?: "",
+            onEdit = onEdit,
+            onCancel = {
+                onUpdate {
+                    name = it
                 }
-            )
-            propertyAspect(
-                value = props.property.aspect,
-                onSelect = {
-                    props.onUpdate {
-                        aspect = it
-                    }
-                },
-                onOpen = props.onEdit
-            )
-            propertyCardinality(
-                value = props.property.cardinality,
-                onChange = {
-                    props.onUpdate {
-                        cardinality = it
-                    }
-                }
-            )
-            propertyAspectTypeInfo(props.property.aspect)
-            if (props.property.aspect != null && (props.property.cardinality == Cardinality.ONE || props.property.cardinality == Cardinality.INFINITY)) {
-                val aspect = props.property.aspect
-                if (aspect != null && aspect.properties.isEmpty()) {
-                    propertyValue(
-                        value = props.property.value?.value ?: "",
-                        onEdit = {
-                            props.onEdit()
-                            if (props.property.value == null) {
-                                props.onUpdate {
-                                    value = ObjectPropertyValueView(null, null)
-                                }
-                            }
-                        },
-                        onChange = {
-                            props.onUpdate {
-                                val value = this.value
-                                if (value != null) {
-                                    value.value = it
-                                }
-                            }
-                        },
-                        onCancel = {
-                            props.onUpdate {
-                                val value = this.value
-                                if (value != null) {
-                                    value.value = it
-                                }
-                            }
-                        }
-                    )
+            },
+            onChange = {
+                onUpdate {
+                    name = it
                 }
             }
+        )
+        propertyAspect(
+            value = property.aspect,
+            onSelect = {
+                onUpdate {
+                    aspect = it
+                    updateValuesIfPossible(aspectsMap)
+                }
+            },
+            onOpen = onEdit
+        )
+        propertyCardinality(
+            value = property.cardinality,
+            onChange = {
+                onUpdate {
+                    cardinality = it
+                    updateValuesIfPossible(aspectsMap)
+                }
+            }
+        )
+        propertyAspectTypeInfo(property.aspect)
+        if (property.aspect != null && property.cardinality == Cardinality.ONE) {
+            propertyValue(
+                value = property.values?.firstOrNull()?.value ?: "",
+                onEdit = {
+                    onEdit()
+                    val values = property.values
+                    if (values == null) {
+                        onUpdate {
+                            this.values = ArrayList<ObjectPropertyValueViewModel>().apply {
+                                add(ObjectPropertyValueViewModel())
+                            }
+                        }
+                    } else if (values.isEmpty()) {
+                        onUpdate {
+                            this.values?.add(ObjectPropertyValueViewModel()) ?: error("Inconsistent State")
+                        }
+                    }
+                },
+                onChange = {
+                    onUpdate {
+                        (values ?: error("Inconsistent State"))[0].value = it
+                    }
+                },
+                onCancel = {
+                    onUpdate {
+                        (values ?: error("Inconsistent State"))[0].value = it
+                    }
+                }
+            )
         }
     }
 
-    interface Props : RProps {
-        var property: ObjTreeViewProperty
-        var onEdit: () -> Unit
-        var onUpdate: (ObjTreeViewProperty.() -> Unit) -> Unit
+fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, AspectData>) {
+    if (aspect != null && cardinality == Cardinality.ZERO && values == null) {
+        values = ArrayList<ObjectPropertyValueViewModel>().apply {
+            add(ObjectPropertyValueViewModel().apply {
+                val aspectProperties = aspect?.properties ?: error("Inconsistent Memory model behaviour")
+                aspectProperties.forEach { property ->
+                    val associatedAspect = aspectsMap[property.aspectId] ?: error("Inconsistent State")
+                    valueGroups.add(
+                        AspectPropertyValueGroupViewModel(
+                            property = AspectPropertyViewModel(
+                                propertyId = property.id,
+                                aspectId = property.aspectId,
+                                cardinality = Cardinality.valueOf(property.cardinality),
+                                roleName = property.name,
+                                aspectName = associatedAspect.name ?: error("Inconsistent State"),
+                                baseType = associatedAspect.baseType ?: error("Inconsistent State"),
+                                domain = associatedAspect.domain ?: error("Inconsistent State")
+                            )
+                        )
+                    )
+                }
+            })
+        }
     }
 }
-
-fun RBuilder.objectPropertyLine(block: RHandler<ObjectPropertyLine.Props>) = child(ObjectPropertyLine::class, block)
 

@@ -1,9 +1,10 @@
 package com.infowings.catalog.objects.treeview
 
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.ObjTreeView
-import com.infowings.catalog.objects.ObjTreeViewProperty
+import com.infowings.catalog.objects.ObjectPropertyViewModel
 import com.infowings.catalog.objects.ObjectTreeViewModel
+import com.infowings.catalog.objects.ObjectViewModel
 import react.*
 
 class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
@@ -27,7 +28,7 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
                             onAddProperty = {
                                 // TODO: Handle situation when there is already empty property
                                 props.objectTreeViewModel.updateSelectedObjTree {
-                                    properties.add(ObjTreeViewProperty(null, null, null, null, null))
+                                    properties.add(ObjectPropertyViewModel())
                                     expanded = true
                                 }
                             }
@@ -40,26 +41,31 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
                 }!!
             }
             props.objTreeView.properties.forEachIndexed { index, property ->
-                objectPropertyLine {
-                    attrs {
-                        this.property = property
-                        onEdit = { props.objectTreeViewModel.selectObjTree(props.objTreeView) }
-                        onUpdate = { block ->
-                            props.objectTreeViewModel.updateSelectedObjTree {
-                                properties[index].block()
-                            }
+                objectPropertyNode(
+                    property = property,
+                    aspectsMap = props.aspectsMap,
+                    onEdit = { props.objectTreeViewModel.selectObjTree(props.objTreeView) },
+                    onUpdate = { block ->
+                        props.objectTreeViewModel.updateSelectedObjTree {
+                            properties[index].block()
+                        }
+                    },
+                    onUpdateWithoutSelect = { block ->
+                        props.objectTreeViewModel.updateObjTree(props.objectIndex) {
+                            properties[index].block()
                         }
                     }
-                }
+                )
             }
         }
     }
 
     interface Props : RProps {
         var objectIndex: Int
-        var objTreeView: ObjTreeView
-        var editedObject: ObjTreeView?
+        var objTreeView: ObjectViewModel
+        var editedObject: ObjectViewModel?
         var objectTreeViewModel: ObjectTreeViewModel
+        var aspectsMap: Map<String, AspectData>
     }
 }
 

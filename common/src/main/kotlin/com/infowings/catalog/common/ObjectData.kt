@@ -3,15 +3,15 @@ package com.infowings.catalog.common
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ObjData(
+data class ObjectData(
     val id: String? = null,
     val name: String? = null,
     val subject: SubjectData,
-    val properties: List<ObjPropertyData> = emptyList()
+    val properties: List<ObjectPropertyData> = emptyList()
 )
 
 @Serializable
-data class ObjPropertyData(
+data class ObjectPropertyData(
     val id: String? = null,
     val name: String? = null,
     val cardinality: String,
@@ -22,12 +22,14 @@ data class ObjPropertyData(
 @Serializable
 data class ObjectPropertyValueData(
     val id: String? = null,
-    val characteristics: List<Characteristics>,
-    val scalarValue: String
+    val scalarValue: String,
+    val children: List<AspectPropertyValueData>
 )
 
 @Serializable
-data class Characteristics(
-    val aspectId: String
+data class AspectPropertyValueData(
+    val id: String? = null,
+    val scalarValue: String?,
+    val aspectProperty: AspectPropertyData,
+    val children: List<AspectPropertyValueData>
 )
-

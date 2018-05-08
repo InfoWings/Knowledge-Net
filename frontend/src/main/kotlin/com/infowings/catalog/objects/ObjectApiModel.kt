@@ -1,22 +1,26 @@
 package com.infowings.catalog.objects
 
-import com.infowings.catalog.common.ObjData
+import com.infowings.catalog.aspects.getAllAspects
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
+import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
 
-suspend fun getAllObjects(): List<ObjData> = JSON.parse(get("/api/objects/all"))
+suspend fun getAllObjects(): List<ObjectData> = JSON.parse(get("/api/objects/all"))
 
-suspend fun saveObject(objData: ObjData): ObjData = JSON.parse(post("/api/objects/save", JSON.stringify(objData)))
+suspend fun saveObject(objData: ObjectData): ObjectData = JSON.parse(post("/api/objects/save", JSON.stringify(objData)))
 
 interface ObjectApiModel {
-    suspend fun submitObj(objData: ObjData)
+    suspend fun submitObj(objData: ObjectData)
 }
 
 interface ObjectApiConsumerProps : RProps {
-    var objList: List<ObjData>
-    var objMap: Map<String, ObjData>
+    var objList: List<ObjectData>
+    var objMap: Map<String, ObjectData>
+    var aspectMap: Map<String, AspectData>
     var objectApiModel: ObjectApiModel
 }
 
@@ -24,9 +28,13 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
 
     override fun componentDidMount() {
 //        fetchObjects()
-        setState {
-            objList = emptyList()
-            objMap = HashMap()
+        launch {
+            val aspects = getAllAspects(emptyList())
+            setState {
+                objList = emptyList()
+                objMap = HashMap()
+                aspectMap = aspects.aspects.associateBy { it.id ?: error("Client received aspects with id == null") }
+            }
         }
     }
 
@@ -39,7 +47,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
 //        }
 //    }
 
-    override suspend fun submitObj(objData: ObjData) {
+    override suspend fun submitObj(objData: ObjectData) {
 //        val response = saveObject(objData)
 //        setState {
 //            objList += response
@@ -59,14 +67,16 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
             attrs {
                 objList = state.objList
                 objMap = state.objMap
+                aspectMap = state.aspectMap
                 objectApiModel = this@ObjectApiModelComponent
             }
         }
     }
 
     interface State : RState {
-        var objList: List<ObjData>
-        var objMap: MutableMap<String, ObjData>
+        var objList: List<ObjectData>
+        var objMap: MutableMap<String, ObjectData>
+        var aspectMap: Map<String, AspectData>
     }
 }
 
