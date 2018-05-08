@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -44,6 +45,8 @@ class ObjectDaoTest {
 
     private lateinit var aspect: Aspect
 
+    private lateinit var complexAspect: Aspect
+
     private val username = "admin"
 
     @Before
@@ -51,6 +54,16 @@ class ObjectDaoTest {
         validator = ObjectValidator(objectService, subjectService, measureService, aspectService)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
+        val complexAspectData = AspectData(
+            "",
+            "complex",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
+        complexAspect = aspectService.save(complexAspectData, username)
     }
 
     @Test
@@ -58,8 +71,9 @@ class ObjectDaoTest {
         val data = ObjectData(null, "saveTestName", "object descr", subject.id, emptyList())
         val objekt = validator.checkedForCreation(data)
         val saved = createObject(objekt)
-        assertEquals(data.name, saved.name, "names mist be equal")
-        assertEquals(data.description, saved.description, "descriptions mist be equal")
+
+        assertEquals(data.name, saved.name, "names must be equal")
+        assertEquals(data.description, saved.description, "descriptions must be equal")
         assertTrue("cluster id must be non-negative: ${saved.identity}", saved.identity.clusterId >= 0)
         assertTrue("cluster position must be non-negative: ${saved.identity}", saved.identity.clusterPosition >= 0)
     }
@@ -91,23 +105,72 @@ class ObjectDaoTest {
 
         val objectProperty = validator.checkedForCreation(propertyData)
         val saved = createObjectProperty(objectProperty)
-        assertEquals(objectProperty.name, saved.name, "names mist be equal")
+
+        val updatedObject = objectProperty.objekt
+        val foundObject = objectService.findById(obj.id)
+
+        assertEquals(objectProperty.name, saved.name, "names must be equal")
+        assertEquals(objectProperty.objekt.id, obj.id, "objekt must point to parent object")
+        transaction(db) {
+            assertEquals(1, updatedObject.properties.size, "updated object must contain one property")
+            assertEquals(1, foundObject.properties.size, "found object must contain one property")
+
+            assertEquals(updatedObject.properties.first().id, saved.id, "updated object's property must link to new one")
+            assertEquals(foundObject.properties.first().id, saved.id, "found object's property must link to new one")
+        }
     }
 
     @Test
-    fun savePropertySimpleValueTest() {
-        val objectData = ObjectData(null, "savePropertySimpleValueTest", "some descr", subject.id, emptyList())
-        val obj = createObject(objectData)
+    fun savePropertySimpleIntValueTest() {
+        val objectData = ObjectData(null, "savePropertySimpleIntValueTest", "some descr", subject.id, emptyList())
+        val savedObject = createObject(objectData)
         val propertyData = ObjectPropertyData(
             null,
-            "savePropertySimpleValueTest",
+            "savePropertySimpleIntValueTest",
             PropertyCardinality.ONE,
-            obj.id, aspect.id, emptyList())
+            savedObject.id, aspect.id, emptyList())
 
 
-        val objectProperty = validator.checkedForCreation(propertyData)
-        val saved = createObjectProperty(objectProperty)
+        val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
+        val savedProperty = createObjectProperty(objectProperty)
+
+        val propertyValueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
+            savedProperty.id, complexAspect.id, null)
+        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
+        val savedValue = createObjectPropertyValue(objectPropertyValue)
+
+        assertNotNull(savedValue.intType, "int type must be non-null")
+        assertTrue("string type must be non-null", savedValue.strType == null)
+        assertTrue("compound type must be non-null", savedValue.compoundType == null)
+        assertEquals(propertyValueData.scalarValue?.typeName, savedValue.intType, "int type must be correct")
+        assertNotNull(savedValue.intValue, "int type must be non-null")
     }
+
+    @Test
+    fun savePropertySimpleStrValueTest() {
+        val objectData = ObjectData(null, "savePropertySimpleStrValueTest", "some descr", subject.id, emptyList())
+        val savedObject = createObject(objectData)
+        val propertyData = ObjectPropertyData(
+            null,
+            "savePropertySimpleStrValueTest",
+            PropertyCardinality.ONE,
+            savedObject.id, aspect.id, emptyList())
+
+
+        val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
+        val savedProperty = createObjectProperty(objectProperty)
+
+        val propertyValueData = ObjectPropertyValueData(null, ScalarValue.StringValue("some value", "type-tag"), null, null,
+            savedProperty.id, complexAspect.id, null)
+        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
+        val savedValue = createObjectPropertyValue(objectPropertyValue)
+
+        assertNotNull(savedValue.strType, "str type must be non-null")
+        assertTrue("int type must be non-null", savedValue.intType == null)
+        assertTrue("compound type must be non-null", savedValue.compoundType == null)
+        assertEquals(propertyValueData.scalarValue?.typeName, savedValue.strType, "str type must be correct")
+    }
+
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()

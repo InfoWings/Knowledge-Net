@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 
@@ -11,15 +12,15 @@ import com.orientechnologies.orient.core.id.ORID
  */
 data class ObjectPropertyValue(
     val id: ORID?,
-    val simpleType: ScalarValue?,
+    val scalarValue: ScalarValue?,
     val range: Range?,
     val precision: Int?,
     val objectProperty: ObjectPropertyVertex,
-    val characteristics: List<CharacteristicVertex>
+    val rootCharacteristic: AspectPropertyVertex,
+    val parentValue: ObjectPropertyValueVertex?
 ) {
     fun toObjectPropertyValueData(): ObjectPropertyValueData {
-        return ObjectPropertyValueData(id?.toString(), simpleType,
-            range, precision, objectProperty.id, characteristics.map {CharacteristicData(it.id, it.type())})
+        return ObjectPropertyValueData(id?.toString(), scalarValue,
+            range, precision, objectProperty.id, rootCharacteristic.id, parentValue?.id)
     }
 }
-

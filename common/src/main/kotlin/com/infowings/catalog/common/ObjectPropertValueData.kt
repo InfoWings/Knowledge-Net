@@ -2,10 +2,6 @@ package com.infowings.catalog.common
 
 data class Range(val left: Int, val right: Int)
 
-enum class CharacteristicType {
-    ASPECT, ASPECT_PROPERTY, MEASURE
-}
-
 enum class SimpleTypeGroup {
     INTEGER, STRING, COMPOUND
 }
@@ -28,11 +24,10 @@ data class ObjectPropertyValueData(
      ObjectPropertyValueData должен стать дженериком с двумя параметрами и не факт, чтро стандартная котлиновская
      json-сериализация с этим справится.
      */
-    val simpleType: ScalarValue?,
+    val scalarValue: ScalarValue?,
     val range: Range?,
     val precision: Int?,
     val objectPropertyId: String,
-    val characteristics: List<CharacteristicData>
+    val rootCharacteristicId: String,
+    val parentValueId: String?
 )
-
-data class CharacteristicData (val id: String, val type: CharacteristicType)

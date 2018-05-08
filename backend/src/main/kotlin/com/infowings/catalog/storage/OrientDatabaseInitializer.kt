@@ -34,7 +34,8 @@ const val OBJECT_OBJECT_PROPERTY_EDGE = "ObjectObjectPropertyEdge"
 const val ASPECT_OBJECT_PROPERTY_EDGE = "AspectObjectPropertyEdge"
 const val OBJECT_PROPERTY_VALUE_CLASS = "ObjectPropertyValue"
 const val OBJECT_VALUE_OBJECT_PROPERTY_EDGE = "ObjectValueObjectPropertyEdge"
-const val OBJECT_VALUE_CHARACTERISTIC_EDGE = "ObjectValueCharacteristicEdge"
+const val OBJECT_VALUE_ASPECT_PROPERTY_EDGE = "ObjectValueAspectPropertyEdge"
+const val OBJECT_VALUE_OBJECT_VALUE_EDGE = "ObjectValueObjectValueEdge"
 
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
@@ -90,7 +91,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OBJECT_PROPERTY_VALUE_CLASS)
         initEdge(session, OBJECT_VALUE_OBJECT_PROPERTY_EDGE)
 
-        initEdge(session, OBJECT_VALUE_CHARACTERISTIC_EDGE)
+        initEdge(session, OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
+        initEdge(session, OBJECT_VALUE_OBJECT_VALUE_EDGE)
 
         return@session this
     }

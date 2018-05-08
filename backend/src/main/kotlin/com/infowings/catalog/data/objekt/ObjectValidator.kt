@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.CharacteristicType
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.ObjectPropertyValueData
@@ -29,13 +28,11 @@ class ObjectValidator(
     fun checkedForCreation(data: ObjectData): Objekt {
         val subjectVertex = subjectService.findById(data.subjectId)
 
-        if (data.id != null) {
+        data.id ?.let {
             throw IllegalStateException("id must be null for creation: $data")
         }
 
-        if (subjectVertex == null) {
-            throw SubjectNotFoundException(data.subjectId)
-        }
+        subjectVertex ?: throw SubjectNotFoundException(data.subjectId)
 
         if (data.propertyIds.isNotEmpty()) {
             throw IllegalStateException("there should be no properties for object creation: $data")
@@ -83,28 +80,21 @@ class ObjectValidator(
     fun checkedForCreation(data: ObjectPropertyValueData): ObjectPropertyValue {
         val objectPropertyVertex = objectService.findPropertyById(data.objectPropertyId)
 
-        if (data.id != null) {
-            throw IllegalStateException("id must be null for creation: $data")
-        }
+        data.id ?.let {throw IllegalStateException("id must be null for creation: $data") }
 
-        val characteristics = data.characteristics.map {
-            when (it.type) {
-                CharacteristicType.ASPECT -> CharacteristicAspectVertex(aspectService.findVertexById(it.id))
-                CharacteristicType.ASPECT_PROPERTY -> CharacteristicAspectPropertyVertex(aspectService.findPropertyVertexById(it.id))
-                CharacteristicType.MEASURE -> CharacteristicMeasureVertex(measureService.findById(it.id))
-            }
-        }
+        val aspectPropertyVertex = aspectService.findPropertyVertexById(data.rootCharacteristicId)
+        val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
         return ObjectPropertyValue(
             data.id ?.let { ORecordId(it) },
-            data.simpleType,
+            data.scalarValue,
             data.range,
             data.precision,
             objectPropertyVertex,
-            characteristics)
+            aspectPropertyVertex,
+            parentValueVertex)
     }
 
     fun checkBusinessKey(property: ObjectProperty) {
-
     }
 }

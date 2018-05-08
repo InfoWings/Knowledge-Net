@@ -1,6 +1,9 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectProperty
+import com.infowings.catalog.data.aspect.AspectPropertyVertex
+import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -28,20 +31,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
      */
     var intType: String?
         get() = vertex["intType"]
-        set(value) {
-            vertex["intType"] = value
-        }
+        set(value) { vertex["intType"] = value }
     val intTypeStrict: String
        get() = intType ?: throw IntTypeNotDefinedException(id)
 
-
-    /* Каждому типу соответствует свое поле. Храним в строковом формате.
+    /* Каждому типу соответствует свое поле. Храним в целочисленном формате.
      */
     var intValue: Int?
         get() = intType?.let {vertex[it]}
-        set(value) {
-            vertex[intTypeStrict] = value
-        }
+        set(value) { vertex[intTypeStrict] = value }
     val intValueStrict: Int
         get() = intValue ?: throw IntValueNotDefinedException(id, intTypeStrict)
 
@@ -54,7 +52,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     val strTypeStrict: String
         get() = strType ?: throw StringTypeNotDefinedException(id)
 
-    /* Каждому типу соответствует свое поле. Храним в целочисленном формате.
+    /* Каждому типу соответствует свое поле. Храним в строковом формате.
      */
     var strValue: String?
         get() = strType?.let {vertex[it]}
@@ -76,48 +74,54 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = compoundType ?: throw CompoundTypeNotDefinedException(id)
 
     var compoundValue: String?
-        get() = compoundType?.let {vertex[it]}
+        get() = compoundType?.let {vertex["compound:$it"]}
         set(value) {
-            vertex[compoundTypeStrict] = value
+            vertex["compound:$compoundTypeStrict"] = value
         }
     val compoundValueStrict: String
         get() = compoundValue ?: throw CompoundValueNotDefinedException(id, compoundTypeStrict)
 
 
-    var range: Range?
-        get() {
-            val s: String = vertex["range"]
-            val parts = s.split(":").map {it.toInt()}
-            return Range(parts[0], parts[1])
-        }
-        set(value) {
-            if (value != null) {
-                vertex["range"] = "${value.left}:${value.right}"
-            } else {
-                vertex.removeProperty("range")
+    private fun <T> setOrRemove(key: String, value: T?) {
+        if (value != null) {
+            vertex[key] = value
+        } else {
+            val current: T = vertex[key]
+            if (current != null) {
+                vertex.removeProperty<T>(key)
             }
         }
+    }
+
+    var range: Range?
+        get() {
+            val s: String? = vertex["range"]
+            return s?.let {
+                val parts = it.split(":").map { it.toInt() }
+                return Range(parts[0], parts[1])
+            }
+        }
+        set(value) { setOrRemove("range", value?.let {"${value.left}:${value.right}"}) }
 
     var precision: Int?
         get() = vertex["precision"]
-        set(v) {
-            if (v != null) {
-                vertex["precision"] = v
-            } else {
-                vertex.removeProperty("precision")
-            }
-        }
+        set(v) = setOrRemove("precision", v)
 
     val objectProperty: ObjectPropertyVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()?.toObjectPropertyVertex()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
+            ?.toObjectPropertyVertex()
 
-    val characteristics: List<CharacteristicVertex>
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_CHARACTERISTIC_EDGE).map {
-            it.toCharacteristicVertex()
-        }
+    val rootCharacteristic: AspectPropertyVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_PROPERTY_EDGE).firstOrNull()
+            ?.toAspectPropertyVertex()
+
+    val parentValue: ObjectPropertyValueVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()
+            ?.toObjectPropertyValueVertex()
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
+        val currentRootChar = rootCharacteristic ?: throw ObjectValueWithoutCharacteristicException(this)
 
         val intTypeCurrent = intType
         val strTypeCurrent = strType
@@ -131,13 +135,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         }
 
         return ObjectPropertyValue(identity, simpleData,
-            range, precision, currentProperty, characteristics)
+            range, precision, currentProperty, currentRootChar, parentValue)
     }
 }
 
 abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
+class ObjectValueWithoutCharacteristicException(vertex: ObjectPropertyValueVertex) :
+    ObjectValueException("Characteristic vertex not linked for ${vertex.id} ")
 
 class IntTypeNotDefinedException(id: String) : ObjectValueException("int type is not defined for value $id")
 class IntValueNotDefinedException(id: String, typeName: String) :

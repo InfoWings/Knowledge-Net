@@ -22,7 +22,7 @@ class ObjectService(
 
     fun create(objectData: ObjectData, username: String): Objekt {
         val userVertex = userService.findUserVertexByUsername(username)
-        val resultVertex = transaction(db) {
+        return transaction(db) {
             val objeckt = validator.checkedForCreation(objectData)
 
             /* В свете такого описания бизнес ключа не совсем понятно, как простым и эффективным образом обеспечивать
@@ -35,42 +35,39 @@ class ObjectService(
 
             val newVertex = dao.newObjectVertex()
 
-            dao.saveObject(newVertex, objeckt)
+            dao.saveObject(newVertex, objeckt).toObjekt()
         }
-
-        return resultVertex.toObjekt()
     }
 
     fun create(objectPropertyData: ObjectPropertyData, username: String): ObjectProperty {
         val userVertex = userService.findUserVertexByUsername(username)
-        val resultVertex = transaction(db) {
+        return transaction(db) {
             val objectProperty = validator.checkedForCreation(objectPropertyData)
 
             //validator.checkBusinessKey(objectProperty)
 
             val newVertex = dao.newObjectPropertyVertex()
 
-            dao.saveObjectProperty(newVertex, objectProperty)
+            dao.saveObjectProperty(newVertex, objectProperty).toObjectProperty()
         }
-
-        return resultVertex.toObjectProperty()
     }
 
     fun create(objectValueData: ObjectPropertyValueData, username: String): ObjectPropertyValue {
         val userVertex = userService.findUserVertexByUsername(username)
-        val resultVertex = transaction(db) {
+        return transaction(db) {
             val objectValue = validator.checkedForCreation(objectValueData)
 
             //validator.checkBusinessKey(objectProperty)
 
             val newVertex = dao.newObjectValueVertex()
 
-            dao.saveObjectValue(newVertex, objectValue)
+            dao.saveObjectValue(newVertex, objectValue).toObjectPropertyValue()
         }
-
-        return resultVertex.toObjectPropertyValue()
     }
 
     fun findById(id: String): ObjectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
-    fun findPropertyById(id: String): ObjectPropertyVertex = dao.getObjectPropertyVertex(id) ?: throw ObjectPropertyNotFoundException(id)
+    fun findPropertyById(id: String): ObjectPropertyVertex =
+        dao.getObjectPropertyVertex(id) ?: throw ObjectPropertyNotFoundException(id)
+    fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
+        dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
