@@ -75,7 +75,10 @@ fun RBuilder.aspectPropertyValue(
                 aspectPropertyValueLine(
                     aspectProperty = aspectProperty,
                     value = value.value,
-                    onEdit = onEdit, // TODO: Create subtree if it is necessary according to cardinality
+                    onEdit = {
+                        onEdit()
+                        // TODO: Create subtree if it is necessary according to cardinality (skip values if GROUP)
+                    },
                     onUpdate = {
                         onUpdate {
                             this.value = it

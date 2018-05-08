@@ -86,6 +86,8 @@ fun RBuilder.objectPropertyLine(
         }
     }
 
+// TODO: Create whole subtree (skip value if GROUP)
+
 fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, AspectData>) {
     if (aspect != null && cardinality == Cardinality.ZERO && values == null) {
         values = ArrayList<ObjectPropertyValueViewModel>().apply {

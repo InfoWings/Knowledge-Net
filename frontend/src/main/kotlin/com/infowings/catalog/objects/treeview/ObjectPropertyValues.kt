@@ -93,6 +93,7 @@ fun RBuilder.objectPropertyValueLine(
     }
 
 fun ObjectPropertyValueViewModel.createGroupsForValue(aspect: AspectData, aspectsMap: Map<String, AspectData>) {
+    //TODO: Create the whole subtree (skip value if GROUP)
     aspect.properties.forEach { propertyData ->
         val aspectData = aspectsMap[propertyData.aspectId] ?: error("Inconsistent State")
         valueGroups.add(
