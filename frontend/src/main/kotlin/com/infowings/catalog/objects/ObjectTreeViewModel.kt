@@ -40,12 +40,7 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                     ObjectPropertyViewModel(
                         id,
                         name,
-                        when (cardinality) {
-                            "ZERO" -> Cardinality.ZERO
-                            "ONE" -> Cardinality.ONE
-                            "INFINITY" -> Cardinality.INFINITY
-                            else -> error("Inconsistent State")
-                        },
+                        Cardinality.valueOf(cardinality),
                         aspect,
                         values.map { (id, scalarValue, _) ->
                             ObjectPropertyValueViewModel(

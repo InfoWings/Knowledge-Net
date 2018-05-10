@@ -22,7 +22,7 @@ data class ObjectPropertyData(
 @Serializable
 data class ObjectPropertyValueData(
     val id: String? = null,
-    val scalarValue: String,
+    val scalarValue: String?,
     val children: List<AspectPropertyValueData>
 )
 

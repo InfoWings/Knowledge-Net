@@ -37,6 +37,7 @@ fun RBuilder.objectPropertyNode(
             property.cardinality == Cardinality.ZERO && property.aspect != null -> aspectPropertyValues(
                 groups = property.values?.get(0)?.valueGroups
                         ?: error("ObjectProperty with Cardinality.ZERO and assigned aspect should have one fake value"),
+                aspectsMap = aspectsMap,
                 onEdit = onEdit,
                 onUpdate = { index, block ->
                     onUpdate {
@@ -53,6 +54,7 @@ fun RBuilder.objectPropertyNode(
             )
             property.cardinality == Cardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> aspectPropertyValues(
                 groups = property.values?.get(0)?.valueGroups ?: error("Memory Model inconsistency"),
+                aspectsMap = aspectsMap,
                 onEdit = onEdit,
                 onUpdate = { index, block ->
                     onUpdate {

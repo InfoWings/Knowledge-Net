@@ -2,10 +2,8 @@ package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.AspectPropertyValueGroupViewModel
-import com.infowings.catalog.objects.AspectPropertyViewModel
-import com.infowings.catalog.objects.Cardinality
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
+import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Intent
@@ -22,13 +20,13 @@ fun RBuilder.objectPropertyValues(
     onNonSelectedUpdate: (Int, ObjectPropertyValueViewModel.() -> Unit) -> Unit,
     onAddValue: () -> Unit
 ) {
-    values.forEachIndexed { index, value ->
+    values.forEachIndexed { valueIndex, value ->
         controlledTreeNode {
             attrs {
-                className = "oblect-tree-view__object-property-value"
+                className = "object-tree-view__object-property-value"
                 expanded = value.expanded
                 onExpanded = {
-                    onNonSelectedUpdate(index) {
+                    onNonSelectedUpdate(valueIndex) {
                         expanded = it
                     }
                 }
@@ -36,14 +34,14 @@ fun RBuilder.objectPropertyValues(
                     objectPropertyValueLine(
                         value = value.value ?: "",
                         onUpdate = {
-                            onUpdate(index) {
+                            onUpdate(valueIndex) {
                                 this.value = it
                             }
                         },
                         onEdit = {
-                            onUpdate(index) {
+                            onUpdate(valueIndex) {
                                 if (valueGroups.isEmpty()) {
-                                    createGroupsForValue(aspect, aspectsMap)
+                                    constructAspectTree(aspect, aspectsMap)
                                 }
                             }
                         }
@@ -52,14 +50,15 @@ fun RBuilder.objectPropertyValues(
             }
             aspectPropertyValues(
                 groups = value.valueGroups,
+                aspectsMap = aspectsMap,
                 onEdit = onEdit,
                 onUpdate = { index, block ->
-                    onUpdate(index) {
+                    onUpdate(valueIndex) {
                         value.valueGroups[index].block()
                     }
                 },
                 onNonSelectedUpdate = { index, block ->
-                    onNonSelectedUpdate(index) {
+                    onNonSelectedUpdate(valueIndex) {
                         value.valueGroups[index].block()
                     }
                 }
@@ -92,22 +91,3 @@ fun RBuilder.objectPropertyValueLine(
         }
     }
 
-fun ObjectPropertyValueViewModel.createGroupsForValue(aspect: AspectData, aspectsMap: Map<String, AspectData>) {
-    //TODO: Create the whole subtree (skip value if GROUP)
-    aspect.properties.forEach { propertyData ->
-        val aspectData = aspectsMap[propertyData.aspectId] ?: error("Inconsistent State")
-        valueGroups.add(
-            AspectPropertyValueGroupViewModel(
-                property = AspectPropertyViewModel(
-                    propertyId = propertyData.id,
-                    aspectId = propertyData.aspectId,
-                    cardinality = Cardinality.valueOf(propertyData.cardinality),
-                    roleName = propertyData.name,
-                    aspectName = aspectData.name ?: error("Inconsistent State"),
-                    baseType = aspectData.baseType ?: error("Inconsistent State"),
-                    domain = aspectData.domain ?: error("Inconsistent State")
-                )
-            )
-        )
-    }
-}

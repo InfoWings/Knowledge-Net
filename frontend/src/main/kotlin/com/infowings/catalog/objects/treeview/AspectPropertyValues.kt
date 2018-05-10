@@ -1,19 +1,23 @@
 package com.infowings.catalog.objects.treeview
 
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueGroupViewModel
 import com.infowings.catalog.objects.AspectPropertyValueViewModel
 import com.infowings.catalog.objects.AspectPropertyViewModel
 import com.infowings.catalog.objects.Cardinality
+import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.buildElement
+import react.dom.div
 
 
 fun RBuilder.aspectPropertyValues(
     groups: MutableList<AspectPropertyValueGroupViewModel>,
+    aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
     onUpdate: (index: Int, AspectPropertyValueGroupViewModel.() -> Unit) -> Unit,
     onNonSelectedUpdate: (index: Int, AspectPropertyValueGroupViewModel.() -> Unit) -> Unit
@@ -22,6 +26,7 @@ fun RBuilder.aspectPropertyValues(
         values.forEachIndexed { valueIndex, value ->
             aspectPropertyValue(
                 aspectProperty = property,
+                aspectsMap = aspectsMap,
                 value = value,
                 onEdit = onEdit,
                 onUpdate = { block ->
@@ -37,16 +42,19 @@ fun RBuilder.aspectPropertyValues(
             )
         }
         if (property.cardinality == Cardinality.INFINITY || (property.cardinality == Cardinality.ONE && values.size == 0)) {
-            Button {
-                attrs {
-                    className = "pt-minimal"
-                    intent = Intent.PRIMARY
-                    icon = "plus"
-                    text = ("Add property " + (property.roleName ?: "") + " " + property.aspectName).asReactElement()
-                    onClick = {
-                        onEdit()
-                        onUpdate(groupIndex) {
-                            this.values.add(AspectPropertyValueViewModel())
+            div {
+                Button {
+                    attrs {
+                        className = "pt-minimal"
+                        intent = Intent.PRIMARY
+                        icon = "plus"
+                        text = ("Add property " + (property.roleName
+                                ?: "") + " " + property.aspectName).asReactElement()
+                        onClick = {
+                            onEdit()
+                            onUpdate(groupIndex) {
+                                this.values.add(AspectPropertyValueViewModel())
+                            }
                         }
                     }
                 }
@@ -57,6 +65,7 @@ fun RBuilder.aspectPropertyValues(
 
 fun RBuilder.aspectPropertyValue(
     aspectProperty: AspectPropertyViewModel,
+    aspectsMap: Map<String, AspectData>,
     value: AspectPropertyValueViewModel,
     onEdit: () -> Unit,
     onUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit,
@@ -77,7 +86,7 @@ fun RBuilder.aspectPropertyValue(
                     value = value.value,
                     onEdit = {
                         onEdit()
-                        // TODO: Create subtree if it is necessary according to cardinality (skip values if GROUP)
+                        onUpdate { constructAspectTree(aspectProperty, aspectsMap) }
                     },
                     onUpdate = {
                         onUpdate {
@@ -87,9 +96,9 @@ fun RBuilder.aspectPropertyValue(
                 )
             }!!
         }
-        // TODO: Conditional drawing of subtrees depending on cardinality
         aspectPropertyValues(
             groups = value.children,
+            aspectsMap = aspectsMap,
             onEdit = onEdit,
             onUpdate = { index, block ->
                 onUpdate {

@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.objects.AspectPropertyViewModel
+import com.infowings.catalog.objects.Cardinality
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import react.RBuilder
 import react.dom.div
@@ -15,22 +16,21 @@ fun RBuilder.aspectPropertyValueLine(
     div(classes = "object-tree-view__aspect-value") {
         span(classes = "aspect-value__label") {
             +buildString {
-                append(aspectProperty.roleName)
-                append(" ")
-                append(aspectProperty.aspectName)
-                append(" ( ")
-                append(aspectProperty.domain)
-                append(" ) :")
-
+                append("${aspectProperty.roleName} ${aspectProperty.aspectName}")
+                if (aspectProperty.cardinality != Cardinality.ZERO) {
+                    append(" ( ${aspectProperty.domain} ) : ")
+                }
             }
         }
-        EditableText {
-            attrs {
-                this.value = value ?: ""
-                placeholder = "Enter property value"
-                onCancel = { onUpdate(it) }
-                onChange = { onUpdate(it) }
-                this.onEdit = onEdit
+        if (aspectProperty.cardinality != Cardinality.ZERO) {
+            EditableText {
+                attrs {
+                    this.value = value ?: ""
+                    placeholder = "Enter property value"
+                    onCancel = { onUpdate(it) }
+                    onChange = { onUpdate(it) }
+                    this.onEdit = onEdit
+                }
             }
         }
     }
