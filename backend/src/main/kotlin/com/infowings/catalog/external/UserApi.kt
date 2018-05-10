@@ -29,59 +29,24 @@ class UserApi(val userService: UserService) {
 
     private fun User.removePassword() = this.copy(password = "")
 
+    private fun errorResponse(
+        message: String,
+        code: BadRequestCode = BadRequestCode.INCORRECT_INPUT
+    ): ResponseEntity<String> = ResponseEntity.badRequest().body(JSON.stringify(BadRequest(code, message)))
+
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<String> {
         return when (e) {
 
-            is UserNotFoundException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "User with username: ${e.username} not found."
-                        )
-                    )
-                )
+            is UserNotFoundException -> errorResponse("User with username: ${e.username} not found.")
 
-            is UserWithSuchUsernameAlreadyExist -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "User with username: ${e.username} already exist."
-                        )
-                    )
-                )
+            is UserWithSuchUsernameAlreadyExist -> errorResponse("User with username: ${e.username} already exist.")
 
-            is UsernameNullOrEmptyException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "Username should not be empty"
-                        )
-                    )
-                )
+            is UsernameNullOrEmptyException -> errorResponse("Username should not be empty")
 
-            is PasswordNullOrEmptyException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "Password should not be empty"
-                        )
-                    )
-                )
+            is PasswordNullOrEmptyException -> errorResponse("Password should not be empty")
 
-            is UserRoleNullOrEmptyException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "User role should not be empty"
-                        )
-                    )
-                )
+            is UserRoleNullOrEmptyException -> errorResponse("User role should not be empty")
 
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
