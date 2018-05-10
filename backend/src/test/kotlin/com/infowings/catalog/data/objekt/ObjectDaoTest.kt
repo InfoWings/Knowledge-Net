@@ -20,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.fail
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -140,10 +141,25 @@ class ObjectDaoTest {
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
         assertNotNull(savedValue.intType, "int type must be non-null")
-        assertTrue("string type must be non-null", savedValue.strType == null)
-        assertTrue("compound type must be non-null", savedValue.compoundType == null)
+        assertTrue("string type must be null", savedValue.strType == null)
+        assertTrue("compound type must be null", savedValue.compoundType == null)
         assertEquals(propertyValueData.scalarValue?.typeName, savedValue.intType, "int type must be correct")
         assertNotNull(savedValue.intValue, "int type must be non-null")
+
+        val updatedObjectProperty = transaction(db) {savedValue.objectProperty}
+        val foundObjectProperty = objectService.findPropertyById(savedProperty.id)
+
+        if (updatedObjectProperty != null) {
+            transaction(db) {
+                assertEquals(updatedObjectProperty.id, savedValue.objectProperty?.id, "object property id must point to parent")
+                assertEquals(foundObjectProperty.id, savedValue.objectProperty?.id, "object property id must point to found property")
+
+                assertEquals(1, updatedObjectProperty.values.size, "property must contain 1 value")
+                assertEquals(1, foundObjectProperty.values.size, "property must contain 1 value")
+            }
+        } else {
+            fail("object property is null")
+        }
     }
 
     @Test

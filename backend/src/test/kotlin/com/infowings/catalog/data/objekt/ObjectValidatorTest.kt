@@ -15,6 +15,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
+import kotlinx.serialization.Serializable
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -216,11 +217,11 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectValueValidatorTest() {
-        val data = ObjectData(null, "objectValueValidatorTestName", "object descr", subject.id, emptyList())
+    fun objectValueValidatorSimpleIntTest() {
+        val data = ObjectData(null, "objectValueValidatorTestSimpleIntName", "object descr", subject.id, emptyList())
         val savedObject = createObject(data)
 
-        val objectPropertyData = ObjectPropertyData(null, name = "prop_objectPropertyValidatorTestName",
+        val objectPropertyData = ObjectPropertyData(null, name = "prop_objectPropertyValidatorSimpleIntTestName",
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
@@ -237,6 +238,100 @@ class ObjectValidatorTest {
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
 
+
+    @Test
+    fun objectValueValidatorSimpleIntWithRangeTest() {
+        val data = ObjectData(null, "objectValueValidatorTestSimpleIntWithRangeName",
+            "object descr", subject.id, emptyList())
+        val savedObject = createObject(data)
+
+        val objectPropertyData = ObjectPropertyData(null,
+            name = "prop_objectPropertyValidatorSimpleIntWithRangeTestName",
+            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
+            valueIds = emptyList())
+        val savedProperty  = createObjectProperty(objectPropertyData)
+
+        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), Range(5, 10), null,
+            savedProperty.id, complexAspect.id, null)
+        val objectValue = validator.checkedForCreation(valueData)
+
+        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
+        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
+        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+    }
+
+
+    @Test
+    fun objectValueValidatorSimpleStrTest() {
+        val data = ObjectData(null, "objectValueValidatorTestSimpleStrName", "object descr", subject.id, emptyList())
+        val savedObject = createObject(data)
+
+        val objectPropertyData = ObjectPropertyData(null, name = "prop_objectPropertyValidatorSimpleStrTestName",
+            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
+            valueIds = emptyList())
+        val savedProperty  = createObjectProperty(objectPropertyData)
+
+        val valueData = ObjectPropertyValueData(null, ScalarValue.StringValue("string-value", "string-type"), null, null,
+            savedProperty.id, complexAspect.id, null)
+        val objectValue = validator.checkedForCreation(valueData)
+
+        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
+        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
+        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+    }
+
+    @Serializable
+    data class CompoundSample(val intData: Int, val strData: String)
+
+    @Test
+    fun objectValueValidatorSimpleCompoundTest() {
+        val data = ObjectData(null, "objectValueValidatorTestSimpleCompoundName", "object descr", subject.id, emptyList())
+        val savedObject = createObject(data)
+
+        val objectPropertyData = ObjectPropertyData(null, name = "prop_objectPropertyValidatorSimpleCompoundTestName",
+            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
+            valueIds = emptyList())
+        val savedProperty  = createObjectProperty(objectPropertyData)
+
+        val valueData = ObjectPropertyValueData(null, ScalarValue.CompoundValue(CompoundSample(5, "str"),
+            "compound-type"), null, null, savedProperty.id, complexAspect.id, null)
+        val objectValue = validator.checkedForCreation(valueData)
+
+
+        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
+        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
+        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+    }
+
+    @Test
+    fun objectSecondPropertyValidatorTest() {
+        val data = ObjectData(null, "objectSecondPropertyValidatorTestName", "object descr", subject.id, emptyList())
+        val objectVertex = createObject(data)
+
+        val objectPropertyData1 = ObjectPropertyData(null, name = "1:prop_objectSecondPropertyValidatorTestName",
+            cardinality = PropertyCardinality.INFINITY, objectId = objectVertex.id, aspectId = aspect.id,
+            valueIds = emptyList())
+        val savedProperty  = createObjectProperty(objectPropertyData1)
+
+        val objectPropertyData2 = ObjectPropertyData(null, name = "2:prop_objectSecondPropertyValidatorTestName",
+            cardinality = PropertyCardinality.ONE, objectId = objectVertex.id, aspectId = complexAspect.id,
+            valueIds = emptyList())
+
+        val objectProperty2 = validator.checkedForCreation(objectPropertyData2)
+
+        assertTrue(objectProperty2.id == null)
+        assertEquals(0, objectProperty2.values.size, "values must be empty")
+        assertEquals(objectPropertyData2.name, objectProperty2.name, "names must be equal")
+        assertEquals(objectPropertyData2.cardinality, objectProperty2.cardinality, "cardinalities must be equal")
+        assertEquals(objectPropertyData2.objectId, objectProperty2.objekt.id, "object id must keep the same")
+        assertEquals(objectPropertyData2.aspectId, objectProperty2.aspect.id, "aspect id must keep the same")
+    }
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()

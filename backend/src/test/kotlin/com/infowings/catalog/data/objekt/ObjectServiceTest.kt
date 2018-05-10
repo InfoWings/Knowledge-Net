@@ -130,12 +130,30 @@ class ObjectServiceTest {
             fail("saved object property has null id")
         }
 
-        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
+        val typeName = "size"
+        val scalarInt = 123
+
+        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(scalarInt, typeName), null, null,
             savedObjectPropertyId, complexAspect.id, null)
 
         val savedValue = objectService.create(valueData, username)
 
         assertNotNull(savedValue.scalarValue, "scalar value must be not null")
-        assertEquals(SimpleTypeGroup.INTEGER, savedValue.scalarValue?.typeGroup, "scalar value must be integer")
+
+        val intValueOrNull = when (savedValue.scalarValue) {
+            is ScalarValue.IntegerValue -> savedValue.scalarValue as ScalarValue.IntegerValue
+            else -> {
+                fail("scalar value must be integer")
+                null
+            }
+        }
+
+        assertEquals(typeName, intValueOrNull?.typeName, "scalar value must be with correct type name")
+        assertEquals(scalarInt, intValueOrNull?.value, "scalar value must be with correct type name")
+        assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
+            "object property must point to parent property")
+        assertEquals(valueData.rootCharacteristicId, savedValue.rootCharacteristic.id,
+            "object property must point to proper root characteristic")
+        assertTrue(valueData.parentValueId == null)
     }
 }
