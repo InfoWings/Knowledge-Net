@@ -72,7 +72,8 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             subjectService = ref(),
             userService = ref(),
             aspectService = ref(),
-            measureService = ref()
+            measureService = ref(),
+            historyService = ref()
         )}
 
         bean {
