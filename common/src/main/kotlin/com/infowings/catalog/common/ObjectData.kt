@@ -30,6 +30,6 @@ data class ObjectPropertyValueData(
 data class AspectPropertyValueData(
     val id: String? = null,
     val scalarValue: String?,
-    val aspectProperty: AspectPropertyData,
+    val aspectProperty: AspectPropertyDataExtended,
     val children: List<AspectPropertyValueData>
 )

@@ -50,6 +50,7 @@ fun AspectPropertyValueViewModel.constructAspectTree(
                     cardinality = Cardinality.valueOf(propertyData.cardinality),
                     roleName = propertyData.name,
                     aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
+                    measure = associatedAspect.measure,
                     baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
                     domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
                 )
@@ -104,6 +105,7 @@ fun ObjectPropertyValueViewModel.constructAspectTree(
                     cardinality = Cardinality.valueOf(property.cardinality),
                     roleName = property.name,
                     aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
+                    measure = associatedAspect.measure,
                     baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
                     domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
                 )

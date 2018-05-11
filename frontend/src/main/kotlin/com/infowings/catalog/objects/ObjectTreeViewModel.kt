@@ -31,27 +31,7 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
 
     override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) = setState {
         // TODO: Smart merging of the incoming data into view state
-        objForest = nextProps.objList.map { (id, name, subject, properties) ->
-            ObjectViewModel(
-                id,
-                name,
-                subject,
-                properties.map { (id, name, cardinality, aspect, values) ->
-                    ObjectPropertyViewModel(
-                        id,
-                        name,
-                        Cardinality.valueOf(cardinality),
-                        aspect,
-                        values.map { (id, scalarValue, _) ->
-                            ObjectPropertyValueViewModel(
-                                id,
-                                scalarValue
-                            )
-                        }.toMutableList()
-                    )
-                }.toMutableList()
-            )
-        }.toMutableList()
+        objForest = nextProps.objList.map(::ObjectViewModel).toMutableList()
     }
 
 

@@ -32,6 +32,18 @@ data class AspectPropertyData(
     val deleted: Boolean = false
 )
 
+@Serializable
+data class AspectPropertyDataExtended(
+    val propertyId: String,
+    val propertyName: String,
+    val cardinality: String,
+    val aspectId: String,
+    val aspectName: String,
+    val aspectMeasure: String?,
+    val aspectDomain: String,
+    val aspectBaseType: String
+)
+
 /** Helpful extensions */
 val emptyAspectData: AspectData
     get() = AspectData(null, "", null, null, null)
