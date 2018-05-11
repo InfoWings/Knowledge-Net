@@ -1,9 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectProperty
-import com.infowings.catalog.data.aspect.AspectPropertyVertex
-import com.infowings.catalog.data.aspect.toAspectPropertyVertex
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -32,7 +30,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     var intType: String?
         get() = vertex["intType"]
         set(value) { vertex["intType"] = value }
-    val intTypeStrict: String
+    private val intTypeStrict: String
        get() = intType ?: throw IntTypeNotDefinedException(id)
 
     /* Каждому типу соответствует свое поле. Храним в целочисленном формате.
@@ -40,7 +38,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     var intValue: Int?
         get() = intType?.let {vertex[it]}
         set(value) { vertex[intTypeStrict] = value }
-    val intValueStrict: Int
+    private val intValueStrict: Int
         get() = intValue ?: throw IntValueNotDefinedException(id, intTypeStrict)
 
 
@@ -49,7 +47,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         set(value) {
             vertex["strType"] = value
         }
-    val strTypeStrict: String
+    private val strTypeStrict: String
         get() = strType ?: throw StringTypeNotDefinedException(id)
 
     /* Каждому типу соответствует свое поле. Храним в строковом формате.
@@ -70,7 +68,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         set(value) {
             vertex["compoundType"] = value
         }
-    val compoundTypeStrict: String
+    private val compoundTypeStrict: String
         get() = compoundType ?: throw CompoundTypeNotDefinedException(id)
 
     var compoundValue: String?
@@ -78,7 +76,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         set(value) {
             vertex["compound:$compoundTypeStrict"] = value
         }
-    val compoundValueStrict: String
+    private val compoundValueStrict: String
         get() = compoundValue ?: throw CompoundValueNotDefinedException(id, compoundTypeStrict)
 
 
@@ -111,9 +109,9 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
             ?.toObjectPropertyVertex()
 
-    val rootCharacteristic: AspectPropertyVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_PROPERTY_EDGE).firstOrNull()
-            ?.toAspectPropertyVertex()
+    val rootCharacteristic: AspectVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).firstOrNull()
+            ?.toAspectVertex()
 
     val parentValue: ObjectPropertyValueVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()

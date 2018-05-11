@@ -187,7 +187,6 @@ class ObjectDaoTest {
         assertEquals(propertyValueData.scalarValue?.typeName, savedValue.strType, "str type must be correct")
     }
 
-
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
         return@transaction dao.saveObject(newVertex, objekt)

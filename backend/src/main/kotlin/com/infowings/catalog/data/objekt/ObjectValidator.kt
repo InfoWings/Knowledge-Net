@@ -82,7 +82,7 @@ class ObjectValidator(
 
         data.id ?.let {throw IllegalStateException("id must be null for creation: $data") }
 
-        val aspectPropertyVertex = aspectService.findPropertyVertexById(data.rootCharacteristicId)
+        val aspectVertex = aspectService.findVertexById(data.rootCharacteristicId)
         val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
         return ObjectPropertyValue(
@@ -91,7 +91,7 @@ class ObjectValidator(
             data.range,
             data.precision,
             objectPropertyVertex,
-            aspectPropertyVertex,
+            aspectVertex,
             parentValueVertex)
     }
 

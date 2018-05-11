@@ -1,7 +1,9 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectPropertyVertex
+import com.infowings.catalog.common.ObjectPropertyValueData
+import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.ScalarValue
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 
@@ -16,7 +18,7 @@ data class ObjectPropertyValue(
     val range: Range?,
     val precision: Int?,
     val objectProperty: ObjectPropertyVertex,
-    val rootCharacteristic: AspectPropertyVertex,
+    val rootCharacteristic: AspectVertex,
     val parentValue: ObjectPropertyValueVertex?
 ) {
     fun toObjectPropertyValueData(): ObjectPropertyValueData {
