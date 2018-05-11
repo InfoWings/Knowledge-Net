@@ -38,24 +38,26 @@ fun AspectPropertyValueViewModel.constructAspectTree(
     val aspectData = aspectsMap[property.aspectId]
             ?: TODO("Property ${property.propertyId} (${property.roleName}) references aspect that does not exist in context")
 
-    aspectData.properties.forEach { propertyData ->
-        val associatedAspect = aspectsMap[propertyData.aspectId]
-                ?: TODO("Property ${propertyData.id} (${propertyData.name}) references aspect that does not exist in context")
+    if (children.isEmpty()) {
+        aspectData.properties.forEach { propertyData ->
+            val associatedAspect = aspectsMap[propertyData.aspectId]
+                    ?: TODO("Property ${propertyData.id} (${propertyData.name}) references aspect that does not exist in context")
 
-        this.children.add(
-            AspectPropertyValueGroupViewModel(
-                property = AspectPropertyViewModel(
-                    propertyId = propertyData.id,
-                    aspectId = propertyData.aspectId,
-                    cardinality = Cardinality.valueOf(propertyData.cardinality),
-                    roleName = propertyData.name,
-                    aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
-                    measure = associatedAspect.measure,
-                    baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
-                    domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
-                )
-            ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
-        )
+            this.children.add(
+                AspectPropertyValueGroupViewModel(
+                    property = AspectPropertyViewModel(
+                        propertyId = propertyData.id,
+                        aspectId = propertyData.aspectId,
+                        cardinality = Cardinality.valueOf(propertyData.cardinality),
+                        roleName = propertyData.name,
+                        aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
+                        measure = associatedAspect.measure,
+                        baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
+                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
+                    )
+                ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
+            )
+        }
     }
 }
 
@@ -93,24 +95,26 @@ fun ObjectPropertyValueViewModel.constructAspectTree(
     aspectData: AspectData,
     aspectsMap: Map<String, AspectData>
 ) {
-    aspectData.properties.forEach { property ->
-        val associatedAspect = aspectsMap[property.aspectId]
-                ?: TODO("property ${property.id} (${property.name}) references aspect that does not exist in context")
+    if (valueGroups.isEmpty()) {
+        aspectData.properties.forEach { property ->
+            val associatedAspect = aspectsMap[property.aspectId]
+                    ?: TODO("property ${property.id} (${property.name}) references aspect that does not exist in context")
 
-        this.valueGroups.add(
-            AspectPropertyValueGroupViewModel(
-                property = AspectPropertyViewModel(
-                    propertyId = property.id,
-                    aspectId = property.aspectId,
-                    cardinality = Cardinality.valueOf(property.cardinality),
-                    roleName = property.name,
-                    aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
-                    measure = associatedAspect.measure,
-                    baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
-                    domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
-                )
-            ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
-        )
+            this.valueGroups.add(
+                AspectPropertyValueGroupViewModel(
+                    property = AspectPropertyViewModel(
+                        propertyId = property.id,
+                        aspectId = property.aspectId,
+                        cardinality = Cardinality.valueOf(property.cardinality),
+                        roleName = property.name,
+                        aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
+                        measure = associatedAspect.measure,
+                        baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
+                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
+                    )
+                ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
+            )
+        }
     }
 }
 

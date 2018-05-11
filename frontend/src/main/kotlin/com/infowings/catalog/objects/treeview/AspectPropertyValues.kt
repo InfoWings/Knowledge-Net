@@ -84,13 +84,11 @@ fun RBuilder.aspectPropertyValue(
                 aspectPropertyValueLine(
                     aspectProperty = aspectProperty,
                     value = value.value,
-                    onEdit = {
-                        onEdit()
-                        onUpdate { constructAspectTree(aspectProperty, aspectsMap) }
-                    },
+                    onEdit = onEdit,
                     onUpdate = {
                         onUpdate {
                             this.value = it
+                            constructAspectTree(aspectProperty, aspectsMap)
                         }
                     }
                 )

@@ -19,17 +19,17 @@ class Header : RComponent<Header.Props, RState>() {
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/aspects"
-                        onClick = { props.history.push("/aspects") }
-                        text = "Aspects".asReactElement()
+                        active = props.location == "/objects"
+                        onClick = { props.history.push("/objects") }
+                        text = "Objects".asReactElement()
                     }
                 }
                 Button {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/objects"
-                        onClick = { props.history.push("/objects") }
-                        text = "Objects".asReactElement()
+                        active = props.location == "/aspects"
+                        onClick = { props.history.push("/aspects") }
+                        text = "Aspects".asReactElement()
                     }
                 }
                 Button {
@@ -72,7 +72,7 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         onClick = {
                             removeAuthRole()
-                            props.history.push("/aspects")
+                            props.history.push("/objects")
                         }
                         text = "Logout".asReactElement()
                     }

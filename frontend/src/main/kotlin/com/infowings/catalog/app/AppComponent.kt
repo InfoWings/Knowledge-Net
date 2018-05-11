@@ -34,7 +34,7 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
             reactRouter.Route {
                 attrs {
                     path = "/"
-                    render = { reactRouter.Redirect { attrs.to = "/aspects" } }
+                    render = { reactRouter.Redirect { attrs.to = "/objects" } }
                 }
             }
         }

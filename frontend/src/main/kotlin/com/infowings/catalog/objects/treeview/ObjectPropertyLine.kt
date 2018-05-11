@@ -9,6 +9,7 @@ import com.infowings.catalog.objects.treeview.inputs.propertyName
 import com.infowings.catalog.objects.treeview.inputs.propertyValue
 import com.infowings.catalog.objects.treeview.utils.addValue
 import com.infowings.catalog.objects.treeview.utils.propertyAspectTypeInfo
+import com.infowings.catalog.objects.treeview.utils.propertyAspectTypePrompt
 import react.RBuilder
 import react.dom.div
 
@@ -52,32 +53,34 @@ fun RBuilder.objectPropertyLine(
                 }
             }
         )
-        propertyAspectTypeInfo(property.aspect)
-        if (property.aspect != null && property.cardinality == Cardinality.ONE) {
-            propertyValue(
-                value = property.values?.firstOrNull()?.value ?: "",
-                onEdit = {
-                    onEdit()
-                    onUpdate {
-                        val values =
-                            values ?: error("When editing object property value, its values List should be initialized")
-
-                        if (values.isEmpty()) {
-                            addValue(aspectsMap)
+        if (property.aspect != null) {
+            when {
+                property.cardinality == Cardinality.ONE -> {
+                    propertyAspectTypePrompt(property.aspect ?: error("Memory Model inconsistency"))
+                    propertyValue(
+                        value = property.values?.firstOrNull()?.value ?: "",
+                        onEdit = onEdit,
+                        onChange = {
+                            onUpdate {
+                                val values = values
+                                        ?: error("When editing object property value, its values List should be initialized")
+                                if (values.isEmpty()) {
+                                    addValue(aspectsMap, it)
+                                } else {
+                                    values[0].value = it
+                                }
+                            }
+                        },
+                        onCancel = {
+                            onUpdate {
+                                (values ?: error("Inconsistent State"))[0].value = it
+                            }
                         }
-                    }
-                },
-                onChange = {
-                    onUpdate {
-                        (values ?: error("Inconsistent State"))[0].value = it
-                    }
-                },
-                onCancel = {
-                    onUpdate {
-                        (values ?: error("Inconsistent State"))[0].value = it
-                    }
+                    )
                 }
-            )
+                property.cardinality == Cardinality.INFINITY ->
+                    propertyAspectTypeInfo(property.aspect ?: error("Memory Model inconsistency"))
+            }
         }
     }
 

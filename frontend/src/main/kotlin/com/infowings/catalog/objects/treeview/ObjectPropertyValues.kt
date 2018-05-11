@@ -36,15 +36,12 @@ fun RBuilder.objectPropertyValues(
                         onUpdate = {
                             onUpdate(valueIndex) {
                                 this.value = it
-                            }
-                        },
-                        onEdit = {
-                            onUpdate(valueIndex) {
                                 if (valueGroups.isEmpty()) {
                                     constructAspectTree(aspect, aspectsMap)
                                 }
                             }
-                        }
+                        },
+                        onEdit = onEdit
                     )
                 }!!
             }

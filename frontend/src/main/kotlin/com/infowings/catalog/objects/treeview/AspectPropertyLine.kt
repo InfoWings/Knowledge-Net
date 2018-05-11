@@ -18,7 +18,9 @@ fun RBuilder.aspectPropertyValueLine(
             +buildString {
                 append("${aspectProperty.roleName} ${aspectProperty.aspectName}")
                 if (aspectProperty.cardinality != Cardinality.ZERO) {
-                    append(" ( ${aspectProperty.domain} ) : ")
+                    append(" ( ${aspectProperty.domain} )")
+                    aspectProperty.measure?.let { append(" ($it)") }
+                    append(" :")
                 }
             }
         }
