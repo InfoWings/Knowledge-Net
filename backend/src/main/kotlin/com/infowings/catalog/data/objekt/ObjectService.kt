@@ -7,6 +7,8 @@ import com.infowings.catalog.common.ObjectPropertyValueData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.history.HistoryContext
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 
@@ -16,14 +18,16 @@ class ObjectService(
     subjectService: SubjectService,
     aspectService: AspectService,
     measureService: MeasureService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val historyService: HistoryService
 ) {
     private val validator = ObjectValidator(this, subjectService, measureService, aspectService)
 
     fun create(objectData: ObjectData, username: String): Objekt {
         val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
         return transaction(db) {
-            val objeckt = validator.checkedForCreation(objectData)
+            val objekt = validator.checkedForCreation(objectData)
 
             /* В свете такого описания бизнес ключа не совсем понятно, как простым и эффективным образом обеспечивать
              * его уникальность при каждлом изменении:
@@ -33,9 +37,20 @@ class ObjectService(
              * //формируется на основе Значение_свойств_объекта.Характеристика
              */
 
+            val subjectBefore = objekt.subject.currentSnapshot()
+
+
+
             val newVertex = dao.newObjectVertex()
 
-            dao.saveObject(newVertex, objeckt).toObjekt()
+            val objectVertex = dao.saveObject(newVertex, objekt)
+
+            val newObject = objectVertex.toObjekt()
+
+            historyService.storeFact(newObject.subject.toUpdateFact(context, subjectBefore))
+            historyService.storeFact(objectVertex.toCreateFact(context))
+
+            newObject
         }
     }
 

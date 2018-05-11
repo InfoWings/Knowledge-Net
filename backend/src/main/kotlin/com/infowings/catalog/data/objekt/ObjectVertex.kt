@@ -19,7 +19,10 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)
         ),
-        links = mapOf("subject" to listOfNotNull(subject?.identity))
+        links = mapOf(
+            "subject" to listOfNotNull(subject?.identity),
+            "properties" to properties.map {it.identity}
+        )
     )
 
 
