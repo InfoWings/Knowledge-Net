@@ -62,7 +62,7 @@ class BackupCleaner:
         self.time_to_folder_template = time_to_folder_template
     
     def clean(self, current_time):
-        folder = self.backup_folder + time.strftime(self.time_to_folder_template, current_time)
+        folder = self.backup_folder + current_time.strftime(self.time_to_folder_template)
         if os.path.exists(folder):
             shutils.rmtree(folder)
 
@@ -82,7 +82,7 @@ class WorkerFacade:
 
     def process(self, current_time):
         backup_file = self.backup_folder + "last.zip"
-        year, month, day, hour, minute = map(lambda x: int(x), time.strftime("%Y,%m,%d,%H,%M").split(','))
+        year, month, day, hour, minute = map(lambda x: int(x), time.strftime("%Y,%m,%d,%H,%M", current_time).split(','))
         dt = datetime(year, month, day, hour, minute) 
 
         self.hour_writer.write(current_time, backup_file)
