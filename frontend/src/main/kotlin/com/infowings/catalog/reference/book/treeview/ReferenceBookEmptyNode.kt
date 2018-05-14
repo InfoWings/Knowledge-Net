@@ -1,7 +1,6 @@
 package com.infowings.catalog.reference.book.treeview
 
 import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.editconsole.bookEditConsole
 import kotlinx.html.js.onClickFunction
@@ -57,7 +56,8 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
                                     book = ReferenceBook(
                                         props.aspectId,
                                         "",
-                                        ReferenceBookItem(props.aspectId, null, "", "", emptyList(), false, 0),
+                                        "",
+                                        emptyList(),
                                         false,
                                         0
                                     )

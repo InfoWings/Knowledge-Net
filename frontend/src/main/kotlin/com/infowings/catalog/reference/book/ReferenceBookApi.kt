@@ -2,6 +2,7 @@ package com.infowings.catalog.reference.book
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
@@ -30,8 +31,8 @@ internal suspend fun forceDeleteReferenceBook(book: ReferenceBook) {
     post("/api/book/forceRemove", JSON.stringify(book))
 }
 
-internal suspend fun createReferenceBookItem(bookItem: ReferenceBookItem) {
-    post("/api/book/item/create", JSON.stringify(bookItem))
+internal suspend fun createReferenceBookItem(data: ReferenceBookItemData) {
+    post("/api/book/item/create", JSON.stringify(data))
 }
 
 internal suspend fun updateReferenceBookItem(bookItem: ReferenceBookItem) {
