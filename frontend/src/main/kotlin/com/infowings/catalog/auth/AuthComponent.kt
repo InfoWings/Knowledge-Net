@@ -1,6 +1,6 @@
 package com.infowings.catalog.auth
 
-import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.common.UserCredentials
 import com.infowings.catalog.utils.getAuthorizationRole
 import com.infowings.catalog.utils.login
 import com.infowings.catalog.wrappers.RouteSuppliedProps
@@ -29,7 +29,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
     fun logIn(e: Event) {
         e.preventDefault()
         launch {
-            val success = login(UserDto(loginInput.value, passwordInput.value))
+            val success = login(UserCredentials(loginInput.value, passwordInput.value))
             setState {
                 if (success) {
                     authorized = getAuthorizationRole() != null
