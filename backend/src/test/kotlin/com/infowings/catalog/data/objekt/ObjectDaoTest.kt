@@ -7,6 +7,7 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
@@ -39,6 +40,8 @@ class ObjectDaoTest {
     private lateinit var measureService: MeasureService
     @Autowired
     private lateinit var objectService: ObjectService
+    @Autowired
+    private lateinit var refBookService: ReferenceBookService
 
     private lateinit var validator: ObjectValidator
 
@@ -52,7 +55,7 @@ class ObjectDaoTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, aspectService)
+        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectService)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
@@ -136,7 +139,7 @@ class ObjectDaoTest {
         val savedProperty = createObjectProperty(objectProperty)
 
         val propertyValueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
-            savedProperty.id, complexAspect.id, null)
+            savedProperty.id, complexAspect.id, null, null, null)
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
@@ -177,7 +180,7 @@ class ObjectDaoTest {
         val savedProperty = createObjectProperty(objectProperty)
 
         val propertyValueData = ObjectPropertyValueData(null, ScalarValue.StringValue("some value", "type-tag"), null, null,
-            savedProperty.id, complexAspect.id, null)
+            savedProperty.id, complexAspect.id, null, null, null)
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 

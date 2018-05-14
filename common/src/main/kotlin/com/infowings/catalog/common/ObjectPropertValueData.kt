@@ -12,6 +12,11 @@ sealed class ScalarValue(val typeGroup: SimpleTypeGroup, val typeName: String) {
     class CompoundValue(val value: Any, typeName: String) : ScalarValue(SimpleTypeGroup.COMPOUND, typeName)
 }
 
+enum class ReferenceTypeGroup {
+    SUBJECT, OBJECT, DOMAIN_ELEMENT
+}
+
+data class ReferenceValueData(val typeGroup: ReferenceTypeGroup, val id: String)
 
 data class ObjectPropertyValueData(
     val id: String?,
@@ -29,5 +34,7 @@ data class ObjectPropertyValueData(
     val precision: Int?,
     val objectPropertyId: String,
     val rootCharacteristicId: String,
-    val parentValueId: String?
+    val parentValueId: String?,
+    val referenceValue: ReferenceValueData?,
+    val measureId: String?
 )

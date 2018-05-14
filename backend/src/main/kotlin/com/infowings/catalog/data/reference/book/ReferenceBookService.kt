@@ -182,14 +182,18 @@ class ReferenceBookService(
             //TODO: add history
         }
 
+    fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex = transaction(db) {
+        logger.debug("Getting ReferenceBookItem id: $id")
+        val bookItemVertex = dao.getReferenceBookItemVertex(id)
+        return@transaction bookItemVertex ?: throw RefBookItemNotExist(id)
+    }
+
     /**
      * Get ReferenceBookItem by [id]
      * @throws RefBookItemNotExist
      */
     fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db) {
-        logger.debug("Getting ReferenceBookItem id: $id")
-        val bookItemVertex = dao.getReferenceBookItemVertex(id)
-        return@transaction bookItemVertex?.toReferenceBookItem() ?: throw RefBookItemNotExist(id)
+        getReferenceBookItemVertex(id)?.toReferenceBookItem()
     }
 
     /**

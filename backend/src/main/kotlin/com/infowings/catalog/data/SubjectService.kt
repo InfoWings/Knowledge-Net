@@ -20,7 +20,7 @@ class SubjectService(
 ) {
     fun getSubjects(): List<Subject> = dao.getSubjects()
 
-    fun findById(id: String): SubjectVertex? = try {
+    fun findById(id: String): SubjectVertex = try {
         dao.findById(id)
     } catch (e: VertexNotFound) {
         throw SubjectNotFoundException(id)

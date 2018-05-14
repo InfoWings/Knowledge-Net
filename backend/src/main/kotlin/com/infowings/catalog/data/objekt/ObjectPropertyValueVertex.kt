@@ -1,10 +1,17 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.ReferenceTypeGroup
+import com.infowings.catalog.common.ScalarValue
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
+import com.infowings.catalog.data.subject.SubjectVertex
+import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -117,6 +124,25 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()
             ?.toObjectPropertyValueVertex()
 
+    var refValueType: String?
+        get() = vertex["refValueType"]
+        set(value) { vertex["refValueType"] = value }
+
+    val refValueObject: ObjectVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).firstOrNull()
+            ?.toObjectVertex()
+
+    val refValueSubject: SubjectVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).firstOrNull()
+            ?.toSubjectVertex()
+
+    val refValueDomainElement: ReferenceBookItemVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).firstOrNull()
+            ?.toReferenceBookItemVertex()
+
+    val measure: OVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
+
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentRootChar = rootCharacteristic ?: throw ObjectValueWithoutCharacteristicException(this)
@@ -132,8 +158,21 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             else -> null
         }
 
+        val refValueVertex: ReferenceValueVertex? = refValueType ?. let {
+            when (it) {
+                ReferenceTypeGroup.SUBJECT.name ->
+                    ReferenceValueVertex.SubjectValue(refValueSubject ?: throw SubjectVertexNotDefinedException(id))
+                ReferenceTypeGroup.OBJECT.name ->
+                    ReferenceValueVertex.ObjectValue(refValueObject ?: throw ObjectVertexNotDefinedException(id))
+                ReferenceTypeGroup.DOMAIN_ELEMENT.name ->
+                    ReferenceValueVertex.DomainElementValue(refValueDomainElement
+                            ?: throw DomainElementVertexNotDefinedException(id))
+                else -> throw IllegalStateException("unknown reference value vertex type: $refValueType")
+            }
+        }
+
         return ObjectPropertyValue(identity, simpleData,
-            range, precision, currentProperty, currentRootChar, parentValue)
+            range, precision, currentProperty, currentRootChar, parentValue, refValueVertex, measure)
     }
 }
 
@@ -154,3 +193,10 @@ class StringValueNotDefinedException(id: String, typeName: String) :
 class CompoundTypeNotDefinedException(id: String) : ObjectValueException("compound type is not defined for value $id")
 class CompoundValueNotDefinedException(id: String, typeName: String) :
     ObjectValueException("compound value is not defined for value $id, type $typeName")
+
+class ObjectVertexNotDefinedException(id: String) :
+    ObjectValueException("object vertex is not defined for value $id")
+class SubjectVertexNotDefinedException(id: String) :
+    ObjectValueException("subject vertex is not defined for value $id")
+class DomainElementVertexNotDefinedException(id: String) :
+    ObjectValueException("domain element vertex is not defined for value $id")

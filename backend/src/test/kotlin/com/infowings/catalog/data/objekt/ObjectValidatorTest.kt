@@ -10,6 +10,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
@@ -43,6 +44,9 @@ class ObjectValidatorTest {
     private lateinit var measureService: MeasureService
     @Autowired
     private lateinit var objectService: ObjectService
+    @Autowired
+    private lateinit var refBookService: ReferenceBookService
+
 
     private lateinit var validator: ObjectValidator
 
@@ -56,7 +60,7 @@ class ObjectValidatorTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, aspectService)
+        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectService)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
@@ -227,7 +231,7 @@ class ObjectValidatorTest {
         val savedProperty  = createObjectProperty(objectPropertyData)
 
         val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
-            savedProperty.id, complexAspect.id, null)
+            savedProperty.id, complexAspect.id, null, null, null)
         val objectValue = validator.checkedForCreation(valueData)
 
 
@@ -252,7 +256,7 @@ class ObjectValidatorTest {
         val savedProperty  = createObjectProperty(objectPropertyData)
 
         val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), Range(5, 10), null,
-            savedProperty.id, complexAspect.id, null)
+            savedProperty.id, complexAspect.id, null, null, null)
         val objectValue = validator.checkedForCreation(valueData)
 
         assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
@@ -274,7 +278,7 @@ class ObjectValidatorTest {
         val savedProperty  = createObjectProperty(objectPropertyData)
 
         val valueData = ObjectPropertyValueData(null, ScalarValue.StringValue("string-value", "string-type"), null, null,
-            savedProperty.id, complexAspect.id, null)
+            savedProperty.id, complexAspect.id, null, null, null)
         val objectValue = validator.checkedForCreation(valueData)
 
         assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
@@ -298,7 +302,7 @@ class ObjectValidatorTest {
         val savedProperty  = createObjectProperty(objectPropertyData)
 
         val valueData = ObjectPropertyValueData(null, ScalarValue.CompoundValue(CompoundSample(5, "str"),
-            "compound-type"), null, null, savedProperty.id, complexAspect.id, null)
+            "compound-type"), null, null, savedProperty.id, complexAspect.id, null, null, null)
         val objectValue = validator.checkedForCreation(valueData)
 
 

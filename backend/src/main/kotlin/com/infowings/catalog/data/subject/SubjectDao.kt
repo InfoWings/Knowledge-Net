@@ -28,7 +28,7 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
     }
 
-    fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()
+    fun findById(id: String): SubjectVertex = db[id].toSubjectVertex()
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
 

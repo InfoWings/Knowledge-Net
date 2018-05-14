@@ -9,6 +9,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 
@@ -18,10 +19,11 @@ class ObjectService(
     subjectService: SubjectService,
     aspectService: AspectService,
     measureService: MeasureService,
+    refBookService: ReferenceBookService,
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
-    private val validator = ObjectValidator(this, subjectService, measureService, aspectService)
+    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectService)
 
     fun create(objectData: ObjectData, username: String): Objekt {
         val userVertex = userService.findUserVertexByUsername(username)

@@ -3,10 +3,12 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.ObjectPropertyValueData
+import com.infowings.catalog.common.ReferenceTypeGroup
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.orientechnologies.orient.core.id.ORecordId
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -24,6 +26,7 @@ class ObjectValidator(
     private val objectService: ObjectService,
     private val subjectService: SubjectService,
     private val measureService: MeasureService,
+    private val refBookService: ReferenceBookService,
     private val aspectService: AspectService) {
     fun checkedForCreation(data: ObjectData): Objekt {
         val subjectVertex = subjectService.findById(data.subjectId)
@@ -85,6 +88,19 @@ class ObjectValidator(
         val aspectVertex = aspectService.findVertexById(data.rootCharacteristicId)
         val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
+        val refValueVertex = data.referenceValue?.let {
+            when (it.typeGroup) {
+                ReferenceTypeGroup.SUBJECT ->
+                    ReferenceValueVertex.SubjectValue(subjectService.findById(it.id))
+                ReferenceTypeGroup.OBJECT ->
+                    ReferenceValueVertex.ObjectValue(objectService.findById(it.id))
+                ReferenceTypeGroup.DOMAIN_ELEMENT ->
+                    ReferenceValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
+            }
+        }
+
+        val measureVertex = data.measureId?.let { measureService.findById(it) }
+
         return ObjectPropertyValue(
             data.id ?.let { ORecordId(it) },
             data.scalarValue,
@@ -92,7 +108,10 @@ class ObjectValidator(
             data.precision,
             objectPropertyVertex,
             aspectVertex,
-            parentValueVertex)
+            parentValueVertex,
+            refValueVertex,
+            measureVertex
+        )
     }
 
     fun checkBusinessKey(property: ObjectProperty) {

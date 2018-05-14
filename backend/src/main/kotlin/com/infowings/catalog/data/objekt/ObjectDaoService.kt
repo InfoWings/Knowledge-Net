@@ -111,6 +111,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
         replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.rootCharacteristic, objectValue.rootCharacteristic)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, objectValue.parentValue)
 
+        replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, objectValue.measure)
+
         return@session vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
 

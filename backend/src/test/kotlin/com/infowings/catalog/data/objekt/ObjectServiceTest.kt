@@ -134,7 +134,7 @@ class ObjectServiceTest {
         val scalarInt = 123
 
         val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(scalarInt, typeName), null, null,
-            savedObjectPropertyId, complexAspect.id, null)
+            savedObjectPropertyId, complexAspect.id, null, null, null)
 
         val savedValue = objectService.create(valueData, username)
 
