@@ -221,8 +221,12 @@ class SubjectServiceTest {
     @Test
     fun testUpdateSameData() {
         val created = createTestSubject("testSubject")
-        val updated = subjectService.updateSubject(created.toSubjectData(), username)
-        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
+        try {
+            subjectService.updateSubject(created.toSubjectData(), username)
+        } catch (e: SubjectEmptyChangeException) {
+        }
+        val updated = subjectService.findById(created.id)
+        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated!!.version)
     }
 
     private fun createTestSubject(

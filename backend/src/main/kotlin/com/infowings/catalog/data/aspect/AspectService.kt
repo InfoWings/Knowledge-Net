@@ -89,6 +89,7 @@ class AspectService(
      * @throws IllegalArgumentException in case of incorrect input data,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
+     * @throws AspectEmptyChangeException if new data is the same that old data
      */
     fun save(aspectData: AspectData, username: String): Aspect {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -100,7 +101,7 @@ class AspectService(
                 .getOrCreateAspectVertex()
 
             if (aspectVertex.toAspectData() == aspectData) {
-                return@transaction aspectVertex
+                throw AspectEmptyChangeException()
             }
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
@@ -360,3 +361,5 @@ class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 
 class AspectInconsistentStateException(message: String) : AspectException(message)
+
+class AspectEmptyChangeException : AspectException()

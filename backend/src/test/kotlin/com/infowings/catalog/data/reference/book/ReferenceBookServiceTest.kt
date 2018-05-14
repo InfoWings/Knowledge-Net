@@ -275,7 +275,10 @@ class ReferenceBookServiceTest {
 
     @Test
     fun testUpdateSameData() {
-        referenceBookService.updateReferenceBook(referenceBook, username)
+        try {
+            referenceBookService.updateReferenceBook(referenceBook, username)
+        } catch (e: RefBookEmptyChangeException) {
+        }
         val updated = referenceBookService.getReferenceBook(referenceBook.aspectId)
         Assert.assertEquals("Same data shouldn't be rewritten", referenceBook.version, updated.version)
 
@@ -283,7 +286,10 @@ class ReferenceBookServiceTest {
         val parentId = referenceBook.id
         val childId = addReferenceBookItem(aspectId, parentId, "value1")
         val child = referenceBookService.getReferenceBookItem(childId)
-        referenceBookService.changeValue(child, username)
+        try {
+            referenceBookService.changeValue(child, username)
+        } catch (e: RefBookEmptyChangeException) {
+        }
         val savedChild = referenceBookService.getReferenceBookItem(childId)
 
         Assert.assertEquals("Same data shouldn't be rewritten", child.version, savedChild.version)

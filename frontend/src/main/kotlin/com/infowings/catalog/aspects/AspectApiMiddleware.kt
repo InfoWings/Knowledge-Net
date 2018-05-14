@@ -4,6 +4,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.NotModifiedException
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
@@ -81,10 +82,13 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private suspend fun handleUpdateAspect(aspectData: AspectData): AspectData {
         val updatedAspect: AspectData
 
-        try {
-            updatedAspect = updateAspect(aspectData)
+        updatedAspect = try {
+            updateAspect(aspectData)
         } catch (e: BadRequestException) {
             throw AspectBadRequestException(JSON.parse(e.message))
+        } catch (e: NotModifiedException) {
+            console.log("Aspect updating rejected because data is the same")
+            aspectData
         }
 
         val updatedAspectId: String = updatedAspect.id ?: error("Server returned Aspect with aspectId == null")
