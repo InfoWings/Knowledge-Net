@@ -17,6 +17,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
                 aspectMeasure = props.aspect.measure ?: "",
                 aspectDomain = props.aspect.domain ?: "",
                 aspectBaseType = props.aspect.baseType ?: "",
+                aspectRefBookName = props.aspect.refBookName ?: "",
                 aspectSubjectName = props.aspect.subject?.name ?: "Global",
                 isSubjectDeleted = props.aspect.subject?.deleted ?: false,
                 onClick = { props.onClick(props.aspect.id) }
