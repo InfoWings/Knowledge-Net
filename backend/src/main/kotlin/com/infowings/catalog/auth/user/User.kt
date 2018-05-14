@@ -1,7 +1,7 @@
 package com.infowings.catalog.auth.user
 
+import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
-import kotlinx.serialization.Serializable
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 object Users {
@@ -15,13 +15,6 @@ object Users {
         poweredUser
     )
 }
-
-@Serializable
-data class User(
-    var username: String,
-    var password: String,
-    var role: UserRole
-)
 
 @ConfigurationProperties("")
 data class UserProperties(var users: Map<String, Map<String, String>> = mutableMapOf()) {
