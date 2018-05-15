@@ -1,6 +1,9 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.toSubjectData
 
@@ -58,8 +61,9 @@ data class AspectProperty(
     val id: String,
     val name: String,
     val aspect: Aspect,
+    val description: String?,
     val cardinality: AspectPropertyCardinality,
     val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, description, version)
 }

@@ -99,7 +99,8 @@ class SubjectServiceTest {
          */
         val subject = createTestSubject("TestSubjectUpdate")
         val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
-        val level1Property = AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name)
+        val level1Property =
+            AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name, null)
         aspectService.save(
             createTestAspect(
                 "aspectBase",
