@@ -10,6 +10,7 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
+import com.infowings.catalog.storage.transaction
 import junit.framework.Assert.fail
 import org.junit.Before
 import org.junit.Test
@@ -188,7 +189,28 @@ class ObjectServiceExampleTest {
             val foundObject = objectService.findById(savedObjectId)
 
             assertEquals(foundObject.name, objectData.name, "name is incorrect")
-        }
+            transaction(db) {
+                assertEquals(1, foundObject.properties.size, "1 property is expected")
+            }
 
+            val foundObjectProperty = transaction(db) {
+                foundObject.properties.first()
+            }
+
+            transaction(db) {
+                assertEquals(9, foundObjectProperty.values.size, "9 properties are expected")
+
+                foundObjectProperty.values.forEach {
+                    val property = it.objectProperty
+                    if (property == null) {
+                        fail("object property is null for value with id ${it.id}")
+                    } else {
+                        assertEquals(foundObjectProperty.id, property.id, "")
+                    }
+                }
+            }
+
+            assertEquals(objectPropertyData.name, foundObjectProperty.name, "name is unexpecxted")
+        }
     }
 }

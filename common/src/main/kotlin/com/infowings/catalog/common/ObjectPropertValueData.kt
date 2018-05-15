@@ -6,6 +6,22 @@ enum class SimpleTypeGroup {
     INTEGER, STRING, COMPOUND
 }
 
+/*
+  У скалярного поля может быть одно значение.
+  Скалярное - в смысле не ссылка на объект/субъект/элемент
+  Термин взят из раздела "Нефукнциональные требования"
+
+  В этом смысле - кортеж, задающий параметры графика функции - скалярное значение
+   И это будет CompoundValue
+
+  typeName - имя типа. Оно нужно для того, чтобы при поиске отличать одинаковые значения, принадлежание
+  разным типам.
+
+  Например, чтобы при поиске объектов, в которых упонинается температура 16 градусов по Цельсию,
+  в выдачу не попадали ключи или болты на 16. И чтобы кривые Безье отличались от любых других кортежей
+
+
+ */
 sealed class ScalarValue(val typeGroup: SimpleTypeGroup, val typeName: String) {
     class IntegerValue(val value: Int, typeName: String) : ScalarValue(SimpleTypeGroup.INTEGER, typeName)
     class StringValue(val value: String, typeName: String) : ScalarValue(SimpleTypeGroup.STRING, typeName)
