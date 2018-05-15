@@ -34,7 +34,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         data = mapOf(
             "name" to asStringOrEmpty(name),
             "measure" to asStringOrEmpty(measure),
-            "baseType" to asStringOrEmpty(baseType)
+            "baseType" to asStringOrEmpty(baseType),
+            "description" to asStringOrEmpty(description)
         ),
         links = mapOf(
             "properties" to properties.map { it.identity }
@@ -133,7 +134,8 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         data = mapOf(
             "name" to asStringOrEmpty(name),
             "aspect" to asStringOrEmpty(aspect),
-            "cardinality" to asStringOrEmpty(cardinality)
+            "cardinality" to asStringOrEmpty(cardinality),
+            "description" to asStringOrEmpty(description)
         ),
         links = emptyMap()
     )
