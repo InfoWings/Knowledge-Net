@@ -4,6 +4,7 @@ import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
@@ -86,6 +87,19 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
                                 selected = props.selected
                             }
                         }
+
+                        descriptionComponent(
+                            className = "book-tree-view--description",
+                            description = props.book.description,
+                            onNewDescriptionConfirmed = {
+                                launch {
+                                    props.updateBook(
+                                        props.book.copy(description = it)
+                                    )
+                                }
+                            },
+                            onEditStarted = null
+                        )
 
                         addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                             attrs {
