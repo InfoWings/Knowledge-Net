@@ -122,62 +122,98 @@ class ObjectServiceExampleTest {
 
         val refValue11Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[0])
         val value11Data = ObjectPropertyValueData(
-            null, null, null, null,
-            savedObjectProperty.id.toString(), aspectChargeMode.id, null, refValue11Data, null
+            null,
+            ObjectValueData.Reference(refValue11Data),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            null,
+            null
         )
         val savedValue11 = objectService.create(value11Data, username)
 
         val refValue12Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[1])
         val value12Data = ObjectPropertyValueData(
-            null, null, null, null,
-            savedObjectProperty.id.toString(), aspectChargeMode.id, null, refValue12Data, null
+            null,
+            ObjectValueData.Reference(refValue12Data),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            null,
+            null
         )
         val savedValue12 = objectService.create(value12Data, username)
 
         val refValue13Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[2])
         val value13Data = ObjectPropertyValueData(
-            null, null, null, null,
-            savedObjectProperty.id.toString(), aspectChargeMode.id, null, refValue13Data, null
+            null,
+            ObjectValueData.Reference(refValue13Data),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            null,
+            null
         )
         val savedValue13 = objectService.create(value13Data, username)
 
         val value111Data = ObjectPropertyValueData(
-            null, ScalarValue.IntegerValue(3, "current"), null, null,
-            savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue11.id.toString(), null, null)
+            null,
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(3, "current"), null, null),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            savedValue11.id.toString(),
+            null
+        )
         val savedValue111 = objectService.create(value111Data, username)
 
         val value112Data = ObjectPropertyValueData(
-            null, ScalarValue.IntegerValue(75, "temperature"), null, null,
-            savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue11.id.toString(), null, null)
+            null,
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(75, "temperature"), null, null),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            savedValue11.id.toString(),
+            null
+        )
         val savedValue112 = objectService.create(value112Data, username)
 
 
         val ampereMeasure = measureService.findMeasure("Ampere")
 
         val value121Data = ObjectPropertyValueData(
-            null, ScalarValue.StringValue("0.8", "current") /* возможно, нужен еще тип с фиксированной точкой */,
-            null, null, savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue12.id.toString(),
-            null, ampereMeasure?.id)
+            null,
+            ObjectValueData.Scalar(ScalarValue.StringValue("0.8", "current"), null, null),
+            /* возможно, нужен еще тип с фиксированной точкой */
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            savedValue12.id.toString(),
+            ampereMeasure?.id
+        )
         val savedValue121 = objectService.create(value121Data, username)
 
         val value131Data = ObjectPropertyValueData(
-            null, ScalarValue.StringValue("1.2", "current") /* возможно, нужен еще тип с фиксированной точкой */,
-            null, null, savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
-            null, ampereMeasure?.id)
+            null,
+            ObjectValueData.Scalar(ScalarValue.StringValue("1.2", "current"), null, null),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            savedValue13.id.toString(),
+            ampereMeasure?.id
+        )
         val savedValue131 = objectService.create(value131Data, username)
 
         val value132Data = ObjectPropertyValueData(
-            null, ScalarValue.StringValue("0.3", "current") /* возможно, нужен еще тип с фиксированной точкой */,
-            null, null, savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
-            null, ampereMeasure?.id)
+            null,
+            ObjectValueData.Scalar(ScalarValue.StringValue("0.3", "current"), null, null),
+            savedObjectProperty.id.toString(),
+            aspectChargeMode.id,
+            savedValue13.id.toString(),
+            ampereMeasure?.id
+        )
         val savedValue132 = objectService.create(value132Data, username)
 
         val value133Data = ObjectPropertyValueData(
-            null, ScalarValue.IntegerValue(45, "current") /* возможно, нужен еще тип с фиксированной точкой */,
-            null, null, savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
-            null, ampereMeasure?.id)
+            null,
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(45, "current"), null, null),
+            savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
+            ampereMeasure?.id
+        )
         val savedValue133 = objectService.create(value133Data, username)
-
 
         if (savedObject.id == null) {
             fail("id of saved object is null")

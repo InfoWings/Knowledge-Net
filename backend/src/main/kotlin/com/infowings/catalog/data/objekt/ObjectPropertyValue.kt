@@ -25,6 +25,19 @@ sealed class ReferenceValueVertex(val typeGroup: ReferenceTypeGroup) {
     }
 }
 
+sealed class ObjectValue(val kind: ValueKind) {
+    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue(ValueKind.Scalar) {
+        override fun toObjectValueData() = ObjectValueData.Scalar(value, range, precision)
+    }
+    data class Reference(val value: ReferenceValueVertex) : ObjectValue(ValueKind.Reference) {
+        override fun toObjectValueData() = ObjectValueData.Reference(value.toReferenceValueData())
+    }
+
+    abstract fun toObjectValueData(): ObjectValueData
+}
+
+fun fromScalarData(data: ObjectValueData.Scalar): ObjectValue.Scalar = ObjectValue.Scalar(data.value, data.range, data.precision)
+
 
 /**
  * Object property value data representation for use in backend context.
@@ -33,24 +46,18 @@ sealed class ReferenceValueVertex(val typeGroup: ReferenceTypeGroup) {
  */
 data class ObjectPropertyValue(
     val id: ORID?,
-    val scalarValue: ScalarValue?,
-    val range: Range?,
-    val precision: Int?,
+    val value: ObjectValue,
     val objectProperty: ObjectPropertyVertex,
     val rootCharacteristic: AspectVertex,
     val parentValue: ObjectPropertyValueVertex?,
-    val referenceValue: ReferenceValueVertex?,
     val measure: OVertex?
 ) {
     fun toObjectPropertyValueData() = ObjectPropertyValueData(
         id?.toString(),
-        scalarValue,
-        range,
-        precision,
+        value.toObjectValueData(),
         objectProperty.id,
         rootCharacteristic.id,
         parentValue?.id,
-        referenceValue?.toReferenceValueData(),
         measure?.id
     )
 }

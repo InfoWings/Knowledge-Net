@@ -147,17 +147,6 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentRootChar = rootCharacteristic ?: throw ObjectValueWithoutCharacteristicException(this)
 
-        val intTypeCurrent = intType
-        val strTypeCurrent = strType
-        val compoundTypeCurrent = compoundType
-
-        val simpleData: ScalarValue? = when {
-            intTypeCurrent != null -> ScalarValue.IntegerValue(intValueStrict, intTypeCurrent)
-            strTypeCurrent != null -> ScalarValue.StringValue(strValueStrict, strTypeCurrent)
-            compoundTypeCurrent != null -> ScalarValue.CompoundValue(compoundValueStrict, compoundTypeCurrent)
-            else -> null
-        }
-
         val refValueVertex: ReferenceValueVertex? = refValueType ?. let {
             when (it) {
                 ReferenceTypeGroup.SUBJECT.name ->
@@ -171,8 +160,24 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             }
         }
 
-        return ObjectPropertyValue(identity, simpleData,
-            range, precision, currentProperty, currentRootChar, parentValue, refValueVertex, measure)
+        val value = when (refValueVertex) {
+            null -> {
+                val intTypeCurrent = intType
+                val strTypeCurrent = strType
+                val compoundTypeCurrent = compoundType
+
+                val simpleData: ScalarValue? = when {
+                    intTypeCurrent != null -> ScalarValue.IntegerValue(intValueStrict, intTypeCurrent)
+                    strTypeCurrent != null -> ScalarValue.StringValue(strValueStrict, strTypeCurrent)
+                    compoundTypeCurrent != null -> ScalarValue.CompoundValue(compoundValueStrict, compoundTypeCurrent)
+                    else -> null
+                }
+                ObjectValue.Scalar(simpleData, range, precision)
+            }
+            else -> ObjectValue.Reference(refValueVertex)
+        }
+
+        return ObjectPropertyValue(identity, value, currentProperty, currentRootChar, parentValue, measure)
     }
 }
 

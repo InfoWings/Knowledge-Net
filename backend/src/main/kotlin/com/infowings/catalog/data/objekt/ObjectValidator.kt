@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectData
-import com.infowings.catalog.common.ObjectPropertyData
-import com.infowings.catalog.common.ObjectPropertyValueData
-import com.infowings.catalog.common.ReferenceTypeGroup
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectService
@@ -88,14 +85,23 @@ class ObjectValidator(
         val aspectVertex = aspectService.findVertexById(data.rootCharacteristicId)
         val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
-        val refValueVertex = data.referenceValue?.let {
-            when (it.typeGroup) {
-                ReferenceTypeGroup.SUBJECT ->
-                    ReferenceValueVertex.SubjectValue(subjectService.findById(it.id))
-                ReferenceTypeGroup.OBJECT ->
-                    ReferenceValueVertex.ObjectValue(objectService.findById(it.id))
-                ReferenceTypeGroup.DOMAIN_ELEMENT ->
-                    ReferenceValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
+        val dataValue = data.value
+
+        val value = when (dataValue) {
+            is ObjectValueData.Scalar ->
+                fromScalarData(dataValue)
+            is ObjectValueData.Reference -> {
+                val refValueVertex = dataValue.value.let {
+                    when (it.typeGroup) {
+                        ReferenceTypeGroup.SUBJECT ->
+                            ReferenceValueVertex.SubjectValue(subjectService.findById(it.id))
+                        ReferenceTypeGroup.OBJECT ->
+                            ReferenceValueVertex.ObjectValue(objectService.findById(it.id))
+                        ReferenceTypeGroup.DOMAIN_ELEMENT ->
+                            ReferenceValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
+                    }
+                }
+                ObjectValue.Reference(refValueVertex)
             }
         }
 
@@ -103,13 +109,10 @@ class ObjectValidator(
 
         return ObjectPropertyValue(
             data.id ?.let { ORecordId(it) },
-            data.scalarValue,
-            data.range,
-            data.precision,
+            value,
             objectPropertyVertex,
             aspectVertex,
             parentValueVertex,
-            refValueVertex,
             measureVertex
         )
     }

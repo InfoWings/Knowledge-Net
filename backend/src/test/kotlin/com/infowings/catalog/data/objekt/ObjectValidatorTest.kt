@@ -229,15 +229,25 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-
-        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
-            savedProperty.id, complexAspect.id, null, null, null)
+        val scalarValue = ScalarValue.IntegerValue(123, "size")
+        val valueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(scalarValue, null, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectValue = validator.checkedForCreation(valueData)
 
-
-        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
-        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
-        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        val value = objectValue.value
+        when (value) {
+            is ObjectValue.Scalar -> {
+                assertEquals(scalarValue, value.value, "scalar values must be equal")
+                assertEquals(null, value.range, "ranges must be equal")
+                assertEquals(null, value.precision, "precisions must be equal")
+            }
+        }
         assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
@@ -254,14 +264,26 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-
-        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), Range(5, 10), null,
-            savedProperty.id, complexAspect.id, null, null, null)
+        val scalarValue = ScalarValue.IntegerValue(123, "size")
+        val range = Range(5, 10)
+        val valueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(scalarValue, range, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectValue = validator.checkedForCreation(valueData)
 
-        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
-        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
-        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        val value = objectValue.value
+        when (value) {
+            is ObjectValue.Scalar -> {
+                assertEquals(scalarValue, value.value, "scalar values must be equal")
+                assertEquals(range, value.range, "ranges must be equal")
+                assertEquals(null, value.precision, "precisions must be equal")
+            }
+        }
         assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
@@ -276,14 +298,25 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-
-        val valueData = ObjectPropertyValueData(null, ScalarValue.StringValue("string-value", "string-type"), null, null,
-            savedProperty.id, complexAspect.id, null, null, null)
+        val scalarValue = ScalarValue.StringValue("string-value", "string-type")
+        val valueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(scalarValue, null, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectValue = validator.checkedForCreation(valueData)
 
-        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
-        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
-        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        val value = objectValue.value
+        when (value) {
+            is ObjectValue.Scalar -> {
+                assertEquals(scalarValue, value.value, "scalar values must be equal")
+                assertEquals(null, value.range, "ranges must be equal")
+                assertEquals(null, value.precision, "precisions must be equal")
+            }
+        }
         assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
@@ -300,15 +333,26 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-
-        val valueData = ObjectPropertyValueData(null, ScalarValue.CompoundValue(CompoundSample(5, "str"),
-            "compound-type"), null, null, savedProperty.id, complexAspect.id, null, null, null)
+        val scalarValue = ScalarValue.StringValue("string-value", "string-type")
+        val valueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(scalarValue, null, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectValue = validator.checkedForCreation(valueData)
 
 
-        assertEquals(valueData.scalarValue, objectValue.scalarValue, "scalar values must be equal")
-        assertEquals(valueData.range, objectValue.range, "ranges must be equal")
-        assertEquals(valueData.precision, objectValue.precision, "precisions must be equal")
+        val value = objectValue.value
+        when (value) {
+            is ObjectValue.Scalar -> {
+                assertEquals(scalarValue, value.value, "scalar values must be equal")
+                assertEquals(null, value.range, "ranges must be equal")
+                assertEquals(null, value.precision, "precisions must be equal")
+            }
+        }
         assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }

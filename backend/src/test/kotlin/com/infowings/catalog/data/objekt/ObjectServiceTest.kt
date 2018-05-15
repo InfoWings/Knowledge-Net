@@ -19,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 
@@ -81,10 +80,7 @@ class ObjectServiceTest {
         val data = ObjectData(null, "createObjectWithPropertyTestName", "object descr", subject.id, emptyList())
         val savedObject = objectService.create(data, "user")
 
-        val savedObjectId = savedObject.id?.toString()
-        if (savedObjectId == null) {
-            fail("saved object has null id")
-        }
+        val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
 
         val objectPropertyData = ObjectPropertyData(null, name = "prop_createObjectWithPropertyTestName",
             cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
@@ -125,35 +121,42 @@ class ObjectServiceTest {
 
         val savedProperty = objectService.create(objectPropertyData, username)
 
-        val savedObjectPropertyId = savedProperty.id?.toString()
-        if (savedObjectPropertyId == null) {
-            fail("saved object property has null id")
-        }
+        val savedObjectPropertyId = savedProperty.id?.toString() ?: fail("saved object property has null id")
 
         val typeName = "size"
         val scalarInt = 123
 
-        val valueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(scalarInt, typeName), null, null,
-            savedObjectPropertyId, complexAspect.id, null, null, null)
+        val valueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(scalarInt, typeName), null, null),
+            savedObjectPropertyId, complexAspect.id,
+            null,
+            null
+        )
 
-        val savedValue = objectService.create(valueData, username)
+        val savedValue: ObjectPropertyValue = objectService.create(valueData, username)
+        val objectValue = savedValue.value
 
-        assertNotNull(savedValue.scalarValue, "scalar value must be not null")
+        when (objectValue) {
+            is ObjectValue.Scalar -> {
+                val scalarValue = objectValue.value
+                when (scalarValue) {
+                    is ScalarValue.IntegerValue -> {
+                        assertEquals(typeName, scalarValue.typeName, "scalar value must be with correct type name")
+                        assertEquals(scalarInt, scalarValue.value, "scalar value must be with correct type name")
+                        assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
+                            "object property must point to parent property")
+                        assertEquals(valueData.rootCharacteristicId, savedValue.rootCharacteristic.id,
+                            "object property must point to proper root characteristic")
+                        assertTrue(valueData.parentValueId == null)
 
-        val intValueOrNull = when (savedValue.scalarValue) {
-            is ScalarValue.IntegerValue -> savedValue.scalarValue as ScalarValue.IntegerValue
-            else -> {
-                fail("scalar value must be integer")
-                null
+                    }
+                    else ->
+                        fail("value must be integer")
+                }
             }
+            else ->
+                fail("value must be scalar")
         }
-
-        assertEquals(typeName, intValueOrNull?.typeName, "scalar value must be with correct type name")
-        assertEquals(scalarInt, intValueOrNull?.value, "scalar value must be with correct type name")
-        assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
-            "object property must point to parent property")
-        assertEquals(valueData.rootCharacteristicId, savedValue.rootCharacteristic.id,
-            "object property must point to proper root characteristic")
-        assertTrue(valueData.parentValueId == null)
     }
 }

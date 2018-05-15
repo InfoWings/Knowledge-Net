@@ -20,13 +20,22 @@ enum class SimpleTypeGroup {
   Например, чтобы при поиске объектов, в которых упонинается температура 16 градусов по Цельсию,
   в выдачу не попадали ключи или болты на 16. И чтобы кривые Безье отличались от любых других кортежей
 
-
  */
 sealed class ScalarValue(val typeGroup: SimpleTypeGroup, val typeName: String) {
     class IntegerValue(val value: Int, typeName: String) : ScalarValue(SimpleTypeGroup.INTEGER, typeName)
     class StringValue(val value: String, typeName: String) : ScalarValue(SimpleTypeGroup.STRING, typeName)
     class CompoundValue(val value: Any, typeName: String) : ScalarValue(SimpleTypeGroup.COMPOUND, typeName)
 }
+
+enum class ValueKind {
+    Scalar, Reference
+}
+
+sealed class ObjectValueData(val kind: ValueKind) {
+    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValueData(ValueKind.Scalar)
+    data class Reference(val value: ReferenceValueData) : ObjectValueData(ValueKind.Reference)
+}
+
 
 enum class ReferenceTypeGroup {
     SUBJECT, OBJECT, DOMAIN_ELEMENT
@@ -45,12 +54,9 @@ data class ObjectPropertyValueData(
      ObjectPropertyValueData должен стать дженериком с двумя параметрами и не факт, чтро стандартная котлиновская
      json-сериализация с этим справится.
      */
-    val scalarValue: ScalarValue?,
-    val range: Range?,
-    val precision: Int?,
+    val value: ObjectValueData,
     val objectPropertyId: String,
     val rootCharacteristicId: String,
     val parentValueId: String?,
-    val referenceValue: ReferenceValueData?,
     val measureId: String?
 )

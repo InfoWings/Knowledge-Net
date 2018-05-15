@@ -86,32 +86,36 @@ class ObjectDaoService(private val db: OrientDatabase) {
             vertex.compoundType = null
         }
 
-        objectValue.scalarValue ?.let {
-            when (it) {
-                is ScalarValue.IntegerValue -> {
-                    vertex.intType = it.typeName
-                    vertex.intValue = it.value
+        when (objectValue.value) {
+            is ObjectValue.Scalar -> {
+                val data = objectValue.value
+                when (data.value) {
+                    is ScalarValue.IntegerValue -> {
+                        vertex.intType = data.value.typeName
+                        vertex.intValue = data.value.value
+                    }
+                    is ScalarValue.StringValue -> {
+                        vertex.strType = data.value.typeName
+                        vertex.strValue = data.value.value
+                    }
+                    is ScalarValue.CompoundValue -> {
+                        vertex.compoundType = data.value.typeName
+                        vertex.compoundValue = JSON.stringify(data.value.value)
+                    }
                 }
-                is ScalarValue.StringValue -> {
-                    vertex.strType = it.typeName
-                    vertex.strValue = it.value
-                }
-                is ScalarValue.CompoundValue -> {
-                    vertex.compoundType = it.typeName
-                    vertex.compoundValue = JSON.stringify(it.value)
-                }
-            }
-        }
 
-        vertex.range = null
-        vertex.range = objectValue.range
-        vertex.precision = objectValue.precision
+                vertex.range = objectValue.value.range
+                vertex.precision = objectValue.value.precision
+
+            }
+
+            is ObjectValue.Reference ->
+                replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, objectValue.measure)
+        }
 
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, objectValue.objectProperty)
         replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.rootCharacteristic, objectValue.rootCharacteristic)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, objectValue.parentValue)
-
-        replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, objectValue.measure)
 
         return@session vertex.save<OVertex>().toObjectPropertyValueVertex()
     }

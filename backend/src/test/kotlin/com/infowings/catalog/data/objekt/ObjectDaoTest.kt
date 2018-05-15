@@ -138,15 +138,23 @@ class ObjectDaoTest {
         val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
         val savedProperty = createObjectProperty(objectProperty)
 
-        val propertyValueData = ObjectPropertyValueData(null, ScalarValue.IntegerValue(123, "size"), null, null,
-            savedProperty.id, complexAspect.id, null, null, null)
+        val intType = "size"
+
+        val propertyValueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(123, intType), null, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
         assertNotNull(savedValue.intType, "int type must be non-null")
         assertTrue("string type must be null", savedValue.strType == null)
         assertTrue("compound type must be null", savedValue.compoundType == null)
-        assertEquals(propertyValueData.scalarValue?.typeName, savedValue.intType, "int type must be correct")
+        assertEquals(intType, savedValue.intType, "int type must be correct")
         assertNotNull(savedValue.intValue, "int type must be non-null")
 
         val updatedObjectProperty = transaction(db) {savedValue.objectProperty}
@@ -179,15 +187,23 @@ class ObjectDaoTest {
         val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
         val savedProperty = createObjectProperty(objectProperty)
 
-        val propertyValueData = ObjectPropertyValueData(null, ScalarValue.StringValue("some value", "type-tag"), null, null,
-            savedProperty.id, complexAspect.id, null, null, null)
+        val typeName = "type-tag"
+
+        val propertyValueData = ObjectPropertyValueData(
+            null,
+            ObjectValueData.Scalar(ScalarValue.StringValue("some value", typeName), null, null),
+            savedProperty.id,
+            complexAspect.id,
+            null,
+            null
+        )
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
         assertNotNull(savedValue.strType, "str type must be non-null")
         assertTrue("int type must be non-null", savedValue.intType == null)
         assertTrue("compound type must be non-null", savedValue.compoundType == null)
-        assertEquals(propertyValueData.scalarValue?.typeName, savedValue.strType, "str type must be correct")
+        assertEquals(typeName, savedValue.strType, "str type must be correct")
     }
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
