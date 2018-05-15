@@ -61,12 +61,12 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("item/update")
     fun updateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/forceUpdate")
     fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name, true)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name, true)
     }
 
     @PostMapping("item/remove")

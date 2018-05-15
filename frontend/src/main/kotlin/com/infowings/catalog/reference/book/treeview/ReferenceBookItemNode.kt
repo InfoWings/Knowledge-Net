@@ -126,7 +126,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem("", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem("", "", null, emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }

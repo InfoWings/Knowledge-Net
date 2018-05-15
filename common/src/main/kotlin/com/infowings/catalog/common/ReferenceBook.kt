@@ -7,6 +7,7 @@ data class ReferenceBook(
     val aspectId: String,
     val id: String,
     val name: String,
+    val description: String?,
     val children: List<ReferenceBookItem>,
     val deleted: Boolean,
     val version: Int
@@ -16,6 +17,7 @@ data class ReferenceBook(
 data class ReferenceBookItem(
     val id: String,
     val value: String,
+    val description: String?,
     val children: List<ReferenceBookItem>,
     val deleted: Boolean,
     val version: Int

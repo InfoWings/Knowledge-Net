@@ -87,7 +87,7 @@ class ReferenceBookService(
     }
 
     /**
-     * Update ReferenceBook name
+     * Update ReferenceBook name or description
      * @throws RefBookNotExist
      */
     fun updateReferenceBook(book: ReferenceBook, username: String) {
@@ -96,6 +96,7 @@ class ReferenceBookService(
         transaction(db) {
             val aspectId = book.aspectId
             val newName: String = book.name
+            val newDescription: String? = book.description
 
             logger.debug("Updating ReferenceBook name: $newName aspectId: $aspectId by $username")
 
@@ -107,6 +108,7 @@ class ReferenceBookService(
                 .validateVersion(book.toRoot())
 
             rootVertex.value = newName
+            rootVertex.description = newDescription
             rootVertex.save<OVertex>()
 
             historyService.storeFact(rootVertex.toUpdateFact(HistoryContext(userVertex), before))
@@ -172,6 +174,7 @@ class ReferenceBookService(
 
         return transaction(db) {
             val value = bookItem.value
+            val description = bookItem.description
 
             logger.debug("Adding ReferenceBookItem parentId: $parentId, value: $value by $username")
 
@@ -186,6 +189,7 @@ class ReferenceBookService(
 
             val itemVertex = dao.createReferenceBookItemVertex()
             itemVertex.value = value
+            itemVertex.description = description
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
@@ -197,43 +201,35 @@ class ReferenceBookService(
     }
 
     /**
-     * Change value of ReferenceBookItem [bookItem] if it has not linked by Object child
-     * or if it has linked by Object child and [force] == true
-     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
-     * @throws RefBookItemIllegalArgumentException if cannot parent vertex is null
-     * @throws RefBookItemNotExist
-     * @throws RefBookChildAlreadyExist
+     * Update ReferenceBookItem [bookItem] if satisfies all validation constraints
+     * TODO: KS-141 - @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] is linked by any object value
+     * @throws RefBookItemIllegalArgumentException if parent vertex does not exist
+     * @throws RefBookItemNotExist if id in received DTO is illegal
+     * @throws RefBookChildAlreadyExist if reference item with the same value as supplied already exists within the parent context
      */
-    fun changeValue(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
+    fun updateReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
-            val id = bookItem.id
-            val value = bookItem.value
-
-            logger.debug("Updating ReferenceBookItem id: $id, value: $value by $username")
-
-            val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
+            val itemVertex = dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
             val before = itemVertex.currentSnapshot()
 
             val parentVertex =
-                itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must not be null")
+                itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must exist")
 
-            parentVertex
-                .toReferenceBookItemVertex()
-                .validateValue(value, id)
-
-            itemVertex
-                .validateForRemoved()
-                .validateItemAndChildrenVersions(bookItem)
-
-            val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
-            val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
-            if (hasChildItemLinkedByObject && !force) {
-                throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
+            with(itemVertex) {
+                validateForRemoved()
+                validateItemAndChildrenVersions(bookItem)
+                if (!force) {
+                    validateLinkedByObjects()
+                }
+            }
+            if (itemVertex.value != bookItem.value) {
+                parentVertex.validateValue(bookItem.value, bookItem.id)
             }
 
-            itemVertex.value = value
+            itemVertex.value = bookItem.value
+            itemVertex.description = bookItem.description
             dao.saveBookItemVertex(parentVertex, itemVertex)
 
             historyService.storeFact(itemVertex.toUpdateFact(HistoryContext(userVertex), before))
@@ -303,6 +299,7 @@ class ReferenceBookService(
     private fun ReferenceBook.toRoot() = ReferenceBookItem(
         id = id,
         value = name,
+        description = description,
         children = children,
         deleted = deleted,
         version = version
@@ -312,6 +309,7 @@ class ReferenceBookService(
         aspectId = aspectId,
         id = id,
         name = value,
+        description = description,
         children = toReferenceBookItem().children,
         deleted = deleted,
         version = version
@@ -334,6 +332,9 @@ class ReferenceBookService(
 
     private fun ReferenceBookItemVertex.validateVersion(bookItem: ReferenceBookItem): ReferenceBookItemVertex =
         this.also { validator.checkRefBookItemVersion(this, bookItem) }
+
+    private fun ReferenceBookItemVertex.validateLinkedByObjects(): ReferenceBookItemVertex =
+        this // TODO: KS-141 - Check if the vertex is referenced as value from any object
 
 }
 

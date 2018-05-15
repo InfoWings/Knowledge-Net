@@ -289,16 +289,18 @@ class ReferenceBookServiceTest {
         return ReferenceBookItem(
             "",
             value,
+            null,
             emptyList(),
             false,
             0
         )
     }
 
-    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
+    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.updateReferenceBookItem(
         ReferenceBookItem(
             id,
             value,
+            null,
             emptyList(),
             false,
             version
