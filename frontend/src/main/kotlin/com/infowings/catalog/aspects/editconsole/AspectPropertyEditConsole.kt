@@ -6,6 +6,7 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.components.description.descriptionComponent
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
@@ -61,6 +62,14 @@ class AspectPropertyEditConsole(props: Props) :
         )
     }
 
+    private fun handlePropertyDescriptionChanged(description: String) {
+        props.propertyEditConsoleModel.updateAspectProperty(
+            props.parentAspect.properties[props.aspectPropertyIndex].copy(
+                description = description
+            )
+        )
+    }
+
     private fun handlePropertyCardinalityChanged(cardinality: String) {
         props.propertyEditConsoleModel.updateAspectProperty(
             props.parentAspect.properties[props.aspectPropertyIndex].copy(
@@ -109,6 +118,12 @@ class AspectPropertyEditConsole(props: Props) :
                         }
                     }
                 }
+                descriptionComponent(
+                    className = "aspect-edit-console--property-aspect-description",
+                    description = props.parentAspect.properties[props.aspectPropertyIndex].description,
+                    onNewDescriptionConfirmed = ::handlePropertyDescriptionChanged,
+                    onEditStarted = null
+                )
                 consoleButtonsGroup(
                     onSubmitClick = ::trySubmitParentAspect,
                     onCancelClick = props.propertyEditConsoleModel::discardChanges,
