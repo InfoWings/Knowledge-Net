@@ -48,19 +48,19 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
             when (AspectField.valueOf(fieldName)) {
                 AspectField.MEASURE -> createAspectFieldDelta(
                     mainFact.event.type,
-                    AspectField.MEASURE.name,
+                    AspectField.MEASURE.view,
                     before.measure,
                     after.measure
                 )
                 AspectField.BASE_TYPE -> createAspectFieldDelta(
                     mainFact.event.type,
-                    AspectField.BASE_TYPE.name,
+                    AspectField.BASE_TYPE.view,
                     before.baseType,
                     after.baseType
                 )
                 AspectField.NAME -> createAspectFieldDelta(
                     mainFact.event.type,
-                    AspectField.NAME.name,
+                    AspectField.NAME.view,
                     before.name,
                     after.name
                 )
@@ -74,27 +74,30 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
         val afterPropertyIdSet = after.properties.map { it.id }.toSet()
 
         diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).map { id ->
+            val afterProperty = after.properties.find { it.id == id }
             createAspectFieldDelta(
                 EventType.UPDATE,
-                AspectField.PROPERTY,
+                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
                 before.properties.find { it.id == id }?.toView(),
-                after.properties.find { it.id == id }?.toView()
+                afterProperty?.toView()
             )
         })
 
         diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).map { id ->
+            val beforeProperty = before.properties.find { it.id == id }
             createAspectFieldDelta(
                 EventType.DELETE,
-                AspectField.PROPERTY,
+                "${AspectField.PROPERTY} ${beforeProperty?.name ?: ""}",
                 before.properties.find { it.id == id }?.toView(),
                 null
             )
         })
 
         diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).map { id ->
+            val afterProperty = after.properties.find { it.id == id }
             createAspectFieldDelta(
                 EventType.CREATE,
-                AspectField.PROPERTY,
+                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
                 null,
                 after.properties.find { it.id == id }?.toView()
             )
@@ -102,7 +105,7 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
 
         diffs = diffs.filter { it.after != it.before }.toMutableList()
 
-        return createHistoryElement(mainFact.event, diffs, after, after.properties.map { AspectData(id = it.aspectId, name = getAspectName(it.aspectId)) })
+        return createHistoryElement(mainFact.event, diffs, after, after.properties.map { getAspect(it.aspectId) })
     }
 
     private fun createHistoryElement(
@@ -130,12 +133,12 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
             AspectPropertyCardinality.INFINITY -> "∞"
             AspectPropertyCardinality.ONE -> "0:1"
         }
-        return "$name ${getAspectName(aspectId)} : [$cardinalityLabel]"
+        return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
     }
 
-    private fun getAspectName(aspectId: String): String = try {
-        aspectService.findById(aspectId).name
+    private fun getAspect(aspectId: String): AspectData = try {
+        aspectService.findById(aspectId).toAspectData()
     } catch (e: AspectDoesNotExist) {
-        "'Aspect removed'"
+        emptyAspectData.copy(id = aspectId, name = "'Aspect removed'")
     }
 }

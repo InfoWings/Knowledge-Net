@@ -34,7 +34,20 @@ data class AspectDataView(val aspectData: AspectData, val related: List<AspectDa
 
 
 enum class AspectField {
-    NAME, MEASURE, BASE_TYPE;
+    NAME {
+        override val view: String
+            get() = "Name"
+    },
+    MEASURE {
+        override val view: String
+            get() = "Measure"
+    },
+    BASE_TYPE {
+        override val view: String
+            get() = "Base type"
+    };
+
+    abstract val view: String
 
     companion object {
         const val PROPERTY = "Property"

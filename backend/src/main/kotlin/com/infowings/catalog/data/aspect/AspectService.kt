@@ -129,6 +129,8 @@ class AspectService(
             val aspectVertex =
                 aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
 
+            val currentSnapshot = aspectVertex.currentSnapshot()
+
             aspectVertex.checkAspectVersion(aspectData)
 
             val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
@@ -140,19 +142,19 @@ class AspectService(
             val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
                 aspectVertex.isLinkedBy() && force -> {
-                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context, currentSnapshot))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked && force -> {
                     if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex, force)
-                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context, currentSnapshot))
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked -> {
                     throw AspectHasLinkedEntitiesException(aspectId)
                 }
                 else -> {
-                    historyService.storeFact(aspectVertex.toDeleteFact(context))
+                    historyService.storeFact(aspectVertex.toDeleteFact(context, currentSnapshot))
                     if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex)
                     aspectDaoService.remove(aspectVertex)
                 }
@@ -216,7 +218,7 @@ class AspectService(
 
     /** Method is private and it is supposed that version checking successfully accepted before. */
     private fun remove(property: AspectPropertyData, context: HistoryContext) = transaction(db) {
-        historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(context))
+        historyService.storeFact(findPropertyVertexById(property.id).let { it.toDeleteFact(context, it.currentSnapshot()) })
 
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
