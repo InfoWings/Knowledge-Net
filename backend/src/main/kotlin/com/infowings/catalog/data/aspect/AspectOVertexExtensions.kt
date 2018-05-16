@@ -131,9 +131,9 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "aspect" to asStringOrEmpty(aspect),
-            "cardinality" to asStringOrEmpty(cardinality)
+            AspectPropertyField.NAME.name to asStringOrEmpty(name),
+            AspectPropertyField.ASPECT.name to asStringOrEmpty(aspect),
+            AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality)
         ),
         links = emptyMap()
     )

@@ -1,72 +1,108 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectDoesNotExist
+import com.infowings.catalog.data.aspect.AspectPropertyCardinality
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.ASPECT_CLASS
+import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 
-class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
+class AspectHistoryProvider(private val aspectHistoryService: HistoryService, private val aspectService: AspectService) {
 
     fun getAllHistory(): List<AspectHistory> {
 
-        val aspectEventGroups = aspectHistoryService.getAll()
-            .filter { it.event.entityClass == ASPECT_CLASS }
-            .groupBy { it.event.entityId }
+        val allHistory = aspectHistoryService.getAll()
+
+        val aspectEventGroups = allHistory.filterByClassAndGroupById(ASPECT_CLASS)
+        val aspectPropertyEventGroupsBySessionId = allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
+            .groupBy { it.sessionId }
+            .toMap()
 
         return aspectEventGroups.values.flatMap { entityEvents ->
-            val entityChanges = entityEvents.sortedBy { it.event.version }
 
             val versionList = mutableListOf<AspectData>()
             var tmpData = emptyAspectData
-            for (fact in entityChanges) {
+            versionList.add(tmpData)
+            for (fact in entityEvents) {
+                val allRelated = aspectPropertyEventGroupsBySessionId[fact.sessionId] ?: emptyList()
+                val newProps = fact.payload.addedLinks[AspectField.PROPERTY]?.map { emptyAspectPropertyData.copy(id = it.toString()) }
+                        ?: emptyList()
+
+                val updatedProps = tmpData.properties.plus(newProps).submit(allRelated)
+                tmpData = tmpData.submit(fact).copy(properties = updatedProps)
                 versionList.add(tmpData)
-                tmpData = tmpData.submitEvent(fact)
             }
 
-            return@flatMap entityChanges.zip(versionList).map { (fact, version) -> version.createDiff(fact) }
+            return@flatMap versionList.zipWithNext().zip(entityEvents).map { createDiff(it.first.first, it.first.second, it.second) }
 
         }.sortedByDescending { it.timestamp }
     }
 
-    private fun AspectData.createDiff(fact: HistoryFactDto): AspectHistory {
+    private fun createDiff(before: AspectData, after: AspectData, mainFact: HistoryFactDto): AspectHistory {
+        var diffs = mutableListOf<Delta>()
 
-        val diff = fact.payload.data.mapNotNull { (fieldName, updatedValue) ->
+        val aspectFieldDiff = mainFact.payload.data.mapNotNull { (fieldName, _) ->
             when (AspectField.valueOf(fieldName)) {
                 AspectField.MEASURE -> createAspectFieldDelta(
-                    fact.event.type,
-                    AspectField.MEASURE,
-                    measure,
-                    updatedValue
+                    mainFact.event.type,
+                    AspectField.MEASURE.name,
+                    before.measure,
+                    after.measure
                 )
                 AspectField.BASE_TYPE -> createAspectFieldDelta(
-                    fact.event.type,
-                    AspectField.BASE_TYPE,
-                    baseType,
-                    updatedValue
+                    mainFact.event.type,
+                    AspectField.BASE_TYPE.name,
+                    before.baseType,
+                    after.baseType
                 )
                 AspectField.NAME -> createAspectFieldDelta(
-                    fact.event.type,
-                    AspectField.NAME,
-                    name,
-                    updatedValue
+                    mainFact.event.type,
+                    AspectField.NAME.name,
+                    before.name,
+                    after.name
                 )
                 else -> null
             }
         }
-        return createHistoryElement(fact.event, diff, submitEvent(fact), emptyList())
-    }
 
-    private fun AspectData.submitEvent(fact: HistoryFactDto): AspectData {
-        return when (fact.event.type) {
-            EventType.CREATE, EventType.UPDATE -> copy(
-                measure = fact.payload.data.getOrDefault(AspectField.MEASURE.name, measure),
-                baseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType),
-                name = fact.payload.data.getOrDefault(AspectField.NAME.name, name),
-                version = fact.event.version
+        diffs.addAll(aspectFieldDiff)
+
+        val beforePropertyIdSet = before.properties.map { it.id }.toSet()
+        val afterPropertyIdSet = after.properties.map { it.id }.toSet()
+
+        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).map { id ->
+            createAspectFieldDelta(
+                EventType.UPDATE,
+                AspectField.PROPERTY,
+                before.properties.find { it.id == id }?.toView(),
+                after.properties.find { it.id == id }?.toView()
             )
-            else -> copy(deleted = true, version = fact.event.version)
-        }
+        })
+
+        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).map { id ->
+            createAspectFieldDelta(
+                EventType.DELETE,
+                AspectField.PROPERTY,
+                before.properties.find { it.id == id }?.toView(),
+                null
+            )
+        })
+
+        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).map { id ->
+            createAspectFieldDelta(
+                EventType.CREATE,
+                AspectField.PROPERTY,
+                null,
+                after.properties.find { it.id == id }?.toView()
+            )
+        })
+
+        diffs = diffs.filter { it.after != it.before }.toMutableList()
+
+        return createHistoryElement(mainFact.event, diffs, after, after.properties.map { AspectData(id = it.aspectId, name = getAspectName(it.aspectId)) })
     }
 
     private fun createHistoryElement(
@@ -87,9 +123,19 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
             changes
         )
 
-    private fun createAspectFieldDelta(event: EventType, field: AspectField, before: String?, after: String?): Delta =
-        when (event) {
-            EventType.CREATE, EventType.UPDATE -> Delta(field.name, before, after)
-            EventType.DELETE, EventType.SOFT_DELETE -> Delta(field.name, before, null)
+    private fun AspectPropertyData.toView(): String {
+
+        val cardinalityLabel = when (AspectPropertyCardinality.valueOf(cardinality)) {
+            AspectPropertyCardinality.ZERO -> "0"
+            AspectPropertyCardinality.INFINITY -> "∞"
+            AspectPropertyCardinality.ONE -> "0:1"
         }
+        return "$name ${getAspectName(aspectId)} : [$cardinalityLabel]"
+    }
+
+    private fun getAspectName(aspectId: String): String = try {
+        aspectService.findById(aspectId).name
+    } catch (e: AspectDoesNotExist) {
+        "'Aspect removed'"
+    }
 }
