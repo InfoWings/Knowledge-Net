@@ -2,15 +2,18 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
+import com.infowings.catalog.aspects.filter.aspectSubjectFilter
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.*
+import com.infowings.catalog.subjects.getAllSubjects
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.blueprint.Position
 import com.infowings.catalog.wrappers.blueprint.Toast
 import com.infowings.catalog.wrappers.blueprint.Toaster
 import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -87,6 +90,17 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         selectedAspectPropertyIndex = null
         unsafeSelection = false
         errorMessages = emptyList()
+        subjectsFilter = emptyMap()
+        subjectsToFilter = emptyList()
+    }
+
+    override fun componentDidMount() {
+        launch {
+            val subjectsList = getAllSubjects()
+            setState {
+                subjectsToFilter = subjectsList.subject.plus<SubjectData?>(null)
+            }
+        }
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -220,6 +234,10 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
     }
 
+    private fun setSubjectsFilter(subjects: Array<SubjectData?>) = setState {
+        subjectsFilter = subjects.associateBy { it?.id }
+    }
+
     private inline fun tryMakeApiCall(block: () -> Unit) {
         try {
             block()
@@ -276,9 +294,21 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     onFetchAspect = props.onFetchAspects
                 }
             }
+            aspectSubjectFilter {
+                attrs {
+                    subjectsFilter = state.subjectsFilter.values
+                    subjectsToFilter = state.subjectsToFilter
+                    onChange = ::setSubjectsFilter
+                }
+            }
             aspectTreeView {
                 attrs {
-                    aspects = props.data
+                    aspects =
+                            if (state.subjectsFilter.isNotEmpty()) props.data.filter {
+                                state.subjectsFilter.containsKey(
+                                    it.subject?.id
+                                )
+                            } else props.data
                     aspectContext = props.aspectContext
                     selectedAspectId = state.selectedAspect.id
                     selectedPropertyIndex = state.selectedAspectPropertyIndex
@@ -325,6 +355,8 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
         var errorMessages: List<String>
+        var subjectsFilter: Map<String?, SubjectData?>
+        var subjectsToFilter: List<SubjectData?>
     }
 }
 

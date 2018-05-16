@@ -518,7 +518,7 @@ external interface ShouldKeyDownEventCreateNewOptionArgs {
 external interface AsyncSelectProps<T : SelectOption> : CommonSelectProps<T>, AsyncSpecificProps<T>
 external interface CreatableSelectProps<T : SelectOption> : CommonSelectProps<T>, CreatableSpecificProps<T>
 external interface AsyncCreatableSelectProps<T : SelectOption> : CommonSelectProps<T>,
-        AsyncSpecificProps<T>, CreatableSpecificProps<T>
+    AsyncSpecificProps<T>, CreatableSpecificProps<T>
 
 external interface SelectOption
 
