@@ -53,7 +53,10 @@ interface HistoryAware : OVertex {
      */
     private fun toFact(context: HistoryContext, eventType: EventType, base: Snapshot): HistoryFact {
         val userVertex = context.userVertex
-        return toHistoryFact(userVertex, historyEvent(userVertex.username, eventType), this, base, currentSnapshot())
+        return when (eventType) {
+            EventType.CREATE, EventType.UPDATE -> toHistoryFact(userVertex, historyEvent(userVertex.username, eventType), this, base, currentSnapshot())
+            EventType.DELETE, EventType.SOFT_DELETE -> toHistoryFact(userVertex, historyEvent(userVertex.username, eventType), this, currentSnapshot(), base)
+        }
     }
 
     /**
