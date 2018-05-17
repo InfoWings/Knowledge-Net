@@ -1,8 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.ObjectData
-import com.infowings.catalog.common.ObjectPropertyData
-import com.infowings.catalog.common.ObjectPropertyValueData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,9 +29,9 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("createValue")
-    fun createObjectValue(@RequestBody objectValueData: ObjectPropertyValueData, principal: Principal): ObjectPropertyValueData {
+    fun createObjectValue(@RequestBody objectValueDTO: ObjectPropertyValueDTO, principal: Principal): ObjectPropertyValueDTO {
         val username = principal.name
-        logger.debug("New object property value create request: $objectValueData by $username")
-        return objectService.create(objectValueData, username).toObjectPropertyValueData()
+        logger.debug("New object property value create request: $objectValueDTO by $username")
+        return objectService.create(objectValueDTO.toData(), username).toObjectPropertyValueData().toDTO()
     }
 }

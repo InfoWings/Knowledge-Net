@@ -53,7 +53,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
     }
 
-    fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
+    fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
         aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
@@ -79,7 +79,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
-        return@session aspectVertex.save<OVertex>().toAspectVertex()
+        return@transaction aspectVertex.save<OVertex>().toAspectVertex()
     }
 
     fun saveAspectProperty(

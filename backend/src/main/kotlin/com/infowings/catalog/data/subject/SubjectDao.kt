@@ -33,12 +33,12 @@ class SubjectDao(private val db: OrientDatabase) {
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
 
 
-    private fun save(sd: SubjectData): SubjectVertex {
+    private fun save(sd: SubjectData): SubjectVertex = transaction(db) {
         val vertex: SubjectVertex = newSubjectVertex()
         vertex.name = sd.name
         vertex.description = sd.description
         vertex.save<SubjectVertex>().toSubjectVertex()
-        return vertex.save<SubjectVertex>().toSubjectVertex()
+        return@transaction vertex.save<SubjectVertex>().toSubjectVertex()
     }
 
     fun createSubject(sd: SubjectData): SubjectVertex =

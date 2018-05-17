@@ -104,7 +104,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             ?.toObjectPropertyVertex()
 
     val aspectProperty: AspectPropertyVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).firstOrNull()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_PROPERTY_EDGE).firstOrNull()
             ?.toAspectPropertyVertex()
 
     val parentValue: ObjectPropertyValueVertex?
