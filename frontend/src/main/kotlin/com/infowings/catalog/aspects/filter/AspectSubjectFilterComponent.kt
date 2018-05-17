@@ -6,7 +6,6 @@ import com.infowings.catalog.wrappers.select.commonSelect
 import kotlinext.js.jsObject
 import kotlinext.js.require
 import react.*
-import react.dom.div
 
 private interface SubjectOption : SelectOption {
     var subjectName: String
@@ -26,7 +25,7 @@ private fun subjectOption(subjectData: SubjectData?) = jsObject<SubjectOption> {
     }
 }
 
-class AspectSubjectFilter : RComponent<AspectSubjectFilter.Props, RState>() {
+class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Props, RState>() {
 
     companion object {
         init {
@@ -35,21 +34,19 @@ class AspectSubjectFilter : RComponent<AspectSubjectFilter.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        div(classes = "aspect-subject-filter") {
-            commonSelect<SubjectOption> {
-                attrs {
-                    className = "aspect-subject-filter__input"
-                    multi = true
-                    placeholder = "Filter by subject..."
-                    value = props.subjectsFilter.map { it?.name ?: "Global" }.toTypedArray()
-                    labelKey = "subjectName"
-                    valueKey = "subjectName"
-                    onChange = {
-                        props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData }.toTypedArray())
-                    }
-                    options = props.subjectsToFilter.map { subjectOption(it) }.toTypedArray()
-                    clearable = false
+        commonSelect<SubjectOption> {
+            attrs {
+                className = "aspect-subject-filter"
+                multi = true
+                placeholder = "Filter by subject..."
+                value = props.subjectsFilter.map { it?.name ?: "Global" }.toTypedArray()
+                labelKey = "subjectName"
+                valueKey = "subjectName"
+                onChange = {
+                    props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData })
                 }
+                options = props.subjectsToFilter.map { subjectOption(it) }.toTypedArray()
+                clearable = false
             }
         }
     }
@@ -57,8 +54,9 @@ class AspectSubjectFilter : RComponent<AspectSubjectFilter.Props, RState>() {
     interface Props : RProps {
         var subjectsFilter: Collection<SubjectData?>
         var subjectsToFilter: List<SubjectData?>
-        var onChange: (Array<SubjectData?>) -> Unit
+        var onChange: (List<SubjectData?>) -> Unit
     }
 }
 
-fun RBuilder.aspectSubjectFilter(block: RHandler<AspectSubjectFilter.Props>) = child(AspectSubjectFilter::class, block)
+fun RBuilder.aspectSubjectFilterComponent(block: RHandler<AspectSubjectFilterComponent.Props>) =
+    child(AspectSubjectFilterComponent::class, block)

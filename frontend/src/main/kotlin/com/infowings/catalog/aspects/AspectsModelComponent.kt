@@ -2,7 +2,9 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.aspects.editconsole.aspectConsole
 import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
-import com.infowings.catalog.aspects.filter.aspectSubjectFilter
+import com.infowings.catalog.aspects.filter.AspectsFilter
+import com.infowings.catalog.aspects.filter.aspectExcludeFilterComponent
+import com.infowings.catalog.aspects.filter.aspectSubjectFilterComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.*
@@ -17,6 +19,7 @@ import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
+import react.dom.div
 import react.setState
 import kotlin.math.min
 
@@ -90,7 +93,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         selectedAspectPropertyIndex = null
         unsafeSelection = false
         errorMessages = emptyList()
-        subjectsFilter = emptyMap()
+        aspectsFilter = AspectsFilter(emptyList(), emptyList())
         subjectsToFilter = emptyList()
     }
 
@@ -234,8 +237,12 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
     }
 
-    private fun setSubjectsFilter(subjects: Array<SubjectData?>) = setState {
-        subjectsFilter = subjects.associateBy { it?.id }
+    private fun setSubjectsFilter(subjects: List<SubjectData?>) = setState {
+        aspectsFilter = aspectsFilter.copy(subjects = subjects)
+    }
+
+    private fun setExcludedAspectsToFilter(aspects: List<AspectData>) = setState {
+        aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
     }
 
     private inline fun tryMakeApiCall(block: () -> Unit) {
@@ -289,26 +296,30 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         val selectedAspect = state.selectedAspect
         val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
-            aspectSort {
-                attrs {
-                    onFetchAspect = props.onFetchAspects
+            div(classes = "aspect-tree-view__header") {
+                aspectSort {
+                    attrs {
+                        onFetchAspect = props.onFetchAspects
+                    }
                 }
-            }
-            aspectSubjectFilter {
-                attrs {
-                    subjectsFilter = state.subjectsFilter.values
-                    subjectsToFilter = state.subjectsToFilter
-                    onChange = ::setSubjectsFilter
+                aspectSubjectFilterComponent {
+                    attrs {
+                        subjectsFilter = state.aspectsFilter.subjects
+                        subjectsToFilter = state.subjectsToFilter
+                        onChange = ::setSubjectsFilter
+                    }
+                }
+                aspectExcludeFilterComponent {
+                    attrs {
+                        selectedAspects = state.aspectsFilter.excludedAspects
+                        initialOptions = props.data
+                        onChange = ::setExcludedAspectsToFilter
+                    }
                 }
             }
             aspectTreeView {
                 attrs {
-                    aspects =
-                            if (state.subjectsFilter.isNotEmpty()) props.data.filter {
-                                state.subjectsFilter.containsKey(
-                                    it.subject?.id
-                                )
-                            } else props.data
+                    aspects = state.aspectsFilter.applyToAspects(props.data)
                     aspectContext = props.aspectContext
                     selectedAspectId = state.selectedAspect.id
                     selectedPropertyIndex = state.selectedAspectPropertyIndex
@@ -355,7 +366,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
         var errorMessages: List<String>
-        var subjectsFilter: Map<String?, SubjectData?>
+        var aspectsFilter: AspectsFilter
         var subjectsToFilter: List<SubjectData?>
     }
 }

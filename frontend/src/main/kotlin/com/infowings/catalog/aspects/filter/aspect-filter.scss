@@ -1,8 +1,8 @@
 .aspect-subject-filter {
-  max-width: 120rem;
-  margin: 1rem auto;
+  flex: 40rem 1 1;
+  margin-right: 1rem;
+}
 
-  &__input {
-    width: 40rem;
-  }
+.aspect-filter-exclude {
+  flex: 40rem 1 1;
 }
