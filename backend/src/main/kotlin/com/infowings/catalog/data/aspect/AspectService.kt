@@ -29,7 +29,7 @@ class AspectService(
         deletedProperties.forEach { remove(it, context) }
         aspectVertex.saveAspectProperties(updatedProperties, context)
 
-        if (aspectVertex.referenceBookVertex != null && aspectData.refBookName == null) {
+        if (aspectVertex.referenceBookRootVertex != null && aspectData.refBookName == null) {
             // по ходу редактирования на фронте решили дропнуть справочник
             val refBook: ReferenceBook = referenceBookService.getReferenceBook(aspectVertex.id)
             // пока для простоты сделаем сразу принудительное удаление
@@ -287,7 +287,7 @@ class AspectService(
             subject,
             deleted,
             description,
-            referenceBookVertex?.name
+            referenceBookRootVertex?.value
         )
     }
 

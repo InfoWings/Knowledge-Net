@@ -46,7 +46,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     private fun tryUpdate(force: Boolean) {
         launch {
             try {
-                props.updateBookItem(forUpdate, force)
+                props.updateBookItem(props.aspectId, forUpdate, force)
                 setState { confirmation = false }
             } catch (e: RefBookBadRequestException) {
                 when (e.exceptionInfo.code) {
@@ -92,7 +92,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     interface Props : RProps {
         var aspectId: String
         var bookItem: ReferenceBookItem
-        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

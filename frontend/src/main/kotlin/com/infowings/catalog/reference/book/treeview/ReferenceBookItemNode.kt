@@ -3,6 +3,7 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
@@ -37,7 +38,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(bookItem)
+        props.createBookItem(props.aspectId, ReferenceBookItemData(props.bookItem.id, bookItem))
         setState {
             creatingBookItem = false
         }
@@ -52,7 +53,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
     private fun tryDelete(force: Boolean) {
         launch {
             try {
-                props.deleteBookItem(props.bookItem, force)
+                props.deleteBookItem(props.aspectId, props.bookItem, force)
                 setState { confirmation = false }
             } catch (e: RefBookBadRequestException) {
                 when (e.exceptionInfo.code) {
@@ -125,7 +126,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.bookItem.id, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem("", "", emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -138,9 +139,9 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
         var aspectId: String
         var book: ReferenceBook
         var bookItem: ReferenceBookItem
-        var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var createBookItem: suspend (aspectId: String, ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+        var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
 
     }
 

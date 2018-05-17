@@ -1,7 +1,6 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
-import com.infowings.catalog.auth.user.User
 import com.infowings.catalog.auth.user.UserDao
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
@@ -10,7 +9,6 @@ import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_VERTEX
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
@@ -43,7 +41,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init users: " + users.map { it.username })
         if (session.getClass(USER_CLASS) == null) {
             session.getClass(USER_CLASS) ?: session.createVertexClass(USER_CLASS)
-            val userService = UserService(UserDao(database))
+            val userService = UserService(database, UserDao(database))
             users.forEach { userService.createUser(it) }
         }
         return@session this
@@ -143,13 +141,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
 
-        val refBookVertexClass =
-            session.getClass(REFERENCE_BOOK_VERTEX) ?: session.createVertexClass(REFERENCE_BOOK_VERTEX)
-        refBookVertexClass.getProperty(ATTR_DESC) ?: refBookVertexClass.createProperty(ATTR_DESC, OType.STRING)
-
         if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
             val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
             vertexClass.createProperty("value", OType.STRING)
+            vertexClass.createProperty("deleted", OType.BOOLEAN)
         }
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
