@@ -72,18 +72,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@session vertex.save<OVertex>().toObjectPropertyVertex()
     }
 
-    fun saveObjectValue(vertex: ObjectPropertyValueVertex, objectValue: ObjectPropertyValue): ObjectPropertyValueVertex = session(db) {
-        vertex.intType ?.let {
-            vertex.intValue = null
-            vertex.intType = null
-        }
-        vertex.strType ?.let {
-            vertex.strValue = null
-            vertex.strType = null
-        }
-        vertex.compoundType ?.let {
-            vertex.compoundValue = null
-            vertex.compoundType = null
+    fun saveObjectValue(vertex: ObjectPropertyValueVertex, objectValue: ObjectPropertyValue): ObjectPropertyValueVertex = transaction(db) {
+        when (vertex.typeTag) {
+            ScalarTypeTag.INTEGER -> vertex.intValue = null
+            ScalarTypeTag.STRING -> vertex.strValue = null
+            ScalarTypeTag.COMPOUND -> vertex.compoundValue = null
+            else -> {}
         }
 
         when (objectValue.value) {
@@ -91,16 +85,16 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 val data = objectValue.value
                 when (data.value) {
                     is ScalarValue.IntegerValue -> {
-                        vertex.intType = data.value.typeName
                         vertex.intValue = data.value.value
+                        vertex.typeTag = ScalarTypeTag.INTEGER
                     }
                     is ScalarValue.StringValue -> {
-                        vertex.strType = data.value.typeName
                         vertex.strValue = data.value.value
+                        vertex.typeTag = ScalarTypeTag.STRING
                     }
                     is ScalarValue.CompoundValue -> {
-                        vertex.compoundType = data.value.typeName
                         vertex.compoundValue = JSON.stringify(data.value.value)
+                        vertex.typeTag = ScalarTypeTag.COMPOUND
                     }
                 }
 
@@ -117,7 +111,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.rootCharacteristic, objectValue.rootCharacteristic)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, objectValue.parentValue)
 
-        return@session vertex.save<OVertex>().toObjectPropertyValueVertex()
+        return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
 
     fun getObjectVertex(id: String) = db.getVertexById(id)?.toObjectVertex()

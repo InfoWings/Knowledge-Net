@@ -18,6 +18,22 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
 
+private const val INT_TYPE_PROPERTY = "int_type"
+private const val STR_TYPE_PROPERTY = "str_type"
+private const val COMPOUND_TYPE_PROPERTY = "compound_type"
+private const val TYPE_TAG_PROPERTY = "type_tag"
+
+/* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
+   коды. Или править базу соответственно.
+ */
+enum class ScalarTypeTag(val code: Int) {
+    INTEGER(1),
+    STRING(2),
+    COMPOUND(3)
+}
+
+val tagByInt: Map<Int, ScalarTypeTag> = ScalarTypeTag.values().map { it.code to it }.toMap()
+
 class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_VALUE_CLASS
 
@@ -29,62 +45,34 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         links = emptyMap()
     )
 
-    /* Здесь храним тег простого типа, представимого как Int. Например. Int или какие-то варинты подмножеств Int
-     * Значением этого поля определяется:
-     *  - поле, в котором хранится значение
-     *  - методы кодирования/декодирования
-     */
-    var intType: String?
-        get() = vertex["intType"]
-        set(value) { vertex["intType"] = value }
-    private val intTypeStrict: String
-       get() = intType ?: throw IntTypeNotDefinedException(id)
+    var typeTag: ScalarTypeTag?
+        get() {
+            val intTag: Int? = vertex[TYPE_TAG_PROPERTY]
+            return intTag ?.let { tagByInt[intTag] ?: throw IncorrectTypeTagException(id, it) }
+        }
+        set(value) { vertex[TYPE_TAG_PROPERTY] = value?.code }
 
-    /* Каждому типу соответствует свое поле. Храним в целочисленном формате.
-     */
     var intValue: Int?
-        get() = intType?.let {vertex[it]}
-        set(value) { vertex[intTypeStrict] = value }
+        get() = vertex[INT_TYPE_PROPERTY]
+        set(value) { vertex[INT_TYPE_PROPERTY] = value }
     private val intValueStrict: Int
-        get() = intValue ?: throw IntValueNotDefinedException(id, intTypeStrict)
+        get() = intValue ?: throw IntValueNotDefinedException(id)
 
-
-    var strType: String?
-        get() = vertex["strType"]
-        set(value) {
-            vertex["strType"] = value
-        }
-    private val strTypeStrict: String
-        get() = strType ?: throw StringTypeNotDefinedException(id)
-
-    /* Каждому типу соответствует свое поле. Храним в строковом формате.
-     */
     var strValue: String?
-        get() = strType?.let {vertex[it]}
+        get() = vertex[STR_TYPE_PROPERTY]
         set(value) {
-            vertex[strTypeStrict] = value
+            vertex[STR_TYPE_PROPERTY] = value
         }
-
-    val strValueStrict: String
-        get() = strValue ?: throw StringValueNotDefinedException(id, strTypeStrict)
-
-
-
-    var compoundType: String?
-        get() = vertex["compoundType"]
-        set(value) {
-            vertex["compoundType"] = value
-        }
-    private val compoundTypeStrict: String
-        get() = compoundType ?: throw CompoundTypeNotDefinedException(id)
+    private val strValueStrict: String
+        get() = strValue ?: throw StringValueNotDefinedException(id)
 
     var compoundValue: String?
-        get() = compoundType?.let {vertex["compound:$it"]}
+        get() = vertex[COMPOUND_TYPE_PROPERTY]
         set(value) {
-            vertex["compound:$compoundTypeStrict"] = value
+            vertex[COMPOUND_TYPE_PROPERTY] = value
         }
     private val compoundValueStrict: String
-        get() = compoundValue ?: throw CompoundValueNotDefinedException(id, compoundTypeStrict)
+        get() = compoundValue ?: throw CompoundValueNotDefinedException(id)
 
 
     private fun <T> setOrRemove(key: String, value: T?) {
@@ -162,14 +150,10 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
         val value = when (refValueVertex) {
             null -> {
-                val intTypeCurrent = intType
-                val strTypeCurrent = strType
-                val compoundTypeCurrent = compoundType
-
-                val simpleData: ScalarValue? = when {
-                    intTypeCurrent != null -> ScalarValue.IntegerValue(intValueStrict, intTypeCurrent)
-                    strTypeCurrent != null -> ScalarValue.StringValue(strValueStrict, strTypeCurrent)
-                    compoundTypeCurrent != null -> ScalarValue.CompoundValue(compoundValueStrict, compoundTypeCurrent)
+                val simpleData: ScalarValue? = when (typeTag) {
+                    ScalarTypeTag.INTEGER -> ScalarValue.IntegerValue(intValueStrict)
+                    ScalarTypeTag.STRING -> ScalarValue.StringValue(strValueStrict)
+                    ScalarTypeTag.COMPOUND -> ScalarValue.CompoundValue(compoundValueStrict)
                     else -> null
                 }
                 ObjectValue.Scalar(simpleData, range, precision)
@@ -187,17 +171,14 @@ class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
 class ObjectValueWithoutCharacteristicException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Characteristic vertex not linked for ${vertex.id} ")
 
-class IntTypeNotDefinedException(id: String) : ObjectValueException("int type is not defined for value $id")
-class IntValueNotDefinedException(id: String, typeName: String) :
-    ObjectValueException("int value is not defined for value $id, type $typeName")
+class IntValueNotDefinedException(id: String) :
+    ObjectValueException("int value is not defined for value $id")
 
-class StringTypeNotDefinedException(id: String) : ObjectValueException("string type is not defined for value $id")
-class StringValueNotDefinedException(id: String, typeName: String) :
-    ObjectValueException("string value is not defined for value $id, type $typeName")
+class StringValueNotDefinedException(id: String) :
+    ObjectValueException("string value is not defined for value $id")
 
-class CompoundTypeNotDefinedException(id: String) : ObjectValueException("compound type is not defined for value $id")
-class CompoundValueNotDefinedException(id: String, typeName: String) :
-    ObjectValueException("compound value is not defined for value $id, type $typeName")
+class CompoundValueNotDefinedException(id: String) :
+    ObjectValueException("compound value is not defined for value $id")
 
 class ObjectVertexNotDefinedException(id: String) :
     ObjectValueException("object vertex is not defined for value $id")
@@ -205,3 +186,6 @@ class SubjectVertexNotDefinedException(id: String) :
     ObjectValueException("subject vertex is not defined for value $id")
 class DomainElementVertexNotDefinedException(id: String) :
     ObjectValueException("domain element vertex is not defined for value $id")
+
+class IncorrectTypeTagException(id: String, tag: Int) :
+    ObjectValueException("incorrect type tag for object value $id, tag: $tag")

@@ -142,7 +142,7 @@ class ObjectDaoTest {
 
         val propertyValueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(123, intType), null, null),
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(123), null, null),
             savedProperty.id,
             complexAspect.id,
             null,
@@ -151,11 +151,10 @@ class ObjectDaoTest {
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
-        assertNotNull(savedValue.intType, "int type must be non-null")
-        assertTrue("string type must be null", savedValue.strType == null)
-        assertTrue("compound type must be null", savedValue.compoundType == null)
-        assertEquals(intType, savedValue.intType, "int type must be correct")
-        assertNotNull(savedValue.intValue, "int type must be non-null")
+        assertEquals(ScalarTypeTag.INTEGER, savedValue.typeTag, "type tag must be integer")
+        assertNotNull(savedValue.intValue, "int value must be non-null")
+        assertTrue("str type must be non-null", savedValue.strValue == null)
+        assertTrue("compound type must be non-null", savedValue.compoundValue == null)
 
         val updatedObjectProperty = transaction(db) {savedValue.objectProperty}
         val foundObjectProperty = objectService.findPropertyById(savedProperty.id)
@@ -191,7 +190,7 @@ class ObjectDaoTest {
 
         val propertyValueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("some value", typeName), null, null),
+            ObjectValueData.Scalar(ScalarValue.StringValue("some value"), null, null),
             savedProperty.id,
             complexAspect.id,
             null,
@@ -200,10 +199,11 @@ class ObjectDaoTest {
         val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
-        assertNotNull(savedValue.strType, "str type must be non-null")
-        assertTrue("int type must be non-null", savedValue.intType == null)
-        assertTrue("compound type must be non-null", savedValue.compoundType == null)
-        assertEquals(typeName, savedValue.strType, "str type must be correct")
+        assertEquals(ScalarTypeTag.STRING, savedValue.typeTag, "type tag must be string")
+        assertNotNull(savedValue.strValue, "str value must be non-null")
+        assertEquals("some value", savedValue.strValue, "str value must be correct")
+        assertTrue("int type must be non-null", savedValue.intValue == null)
+        assertTrue("compound type must be non-null", savedValue.compoundValue == null)
     }
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {

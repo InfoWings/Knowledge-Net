@@ -110,10 +110,7 @@ class ObjectServiceTest {
         val data = ObjectData(null, "createObjectWithValueTestName", "object descr", subject.id, emptyList())
         val savedObject = objectService.create(data, "user")
 
-        val savedObjectId = savedObject.id?.toString()
-        if (savedObjectId == null) {
-            fail("saved object has null id")
-        }
+        val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
 
         val objectPropertyData = ObjectPropertyData(null, name = "prop_createObjectWithValueTestName",
             cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
@@ -128,7 +125,7 @@ class ObjectServiceTest {
 
         val valueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(scalarInt, typeName), null, null),
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(scalarInt), null, null),
             savedObjectPropertyId, complexAspect.id,
             null,
             null
@@ -142,7 +139,6 @@ class ObjectServiceTest {
                 val scalarValue = objectValue.value
                 when (scalarValue) {
                     is ScalarValue.IntegerValue -> {
-                        assertEquals(typeName, scalarValue.typeName, "scalar value must be with correct type name")
                         assertEquals(scalarInt, scalarValue.value, "scalar value must be with correct type name")
                         assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
                             "object property must point to parent property")

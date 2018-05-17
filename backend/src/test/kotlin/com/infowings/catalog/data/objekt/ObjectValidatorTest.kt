@@ -16,7 +16,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JSON
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -90,6 +90,9 @@ class ObjectValidatorTest {
 
     @Test
     fun objectValidatorNonNullIdTest() {
+        //val s = JSON.stringify(listOf(1, 2, 3))
+        //println("JSON: " + s)
+
         val data = ObjectData("id", "objectValidatorNullIdTestName", "object descr", subject.id, emptyList())
 
         try {
@@ -229,7 +232,7 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-        val scalarValue = ScalarValue.IntegerValue(123, "size")
+        val scalarValue = ScalarValue.IntegerValue(123)
         val valueData = ObjectPropertyValueData(
             null,
             ObjectValueData.Scalar(scalarValue, null, null),
@@ -264,7 +267,7 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-        val scalarValue = ScalarValue.IntegerValue(123, "size")
+        val scalarValue = ScalarValue.IntegerValue(123)
         val range = Range(5, 10)
         val valueData = ObjectPropertyValueData(
             null,
@@ -298,7 +301,7 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-        val scalarValue = ScalarValue.StringValue("string-value", "string-type")
+        val scalarValue = ScalarValue.StringValue("string-value")
         val valueData = ObjectPropertyValueData(
             null,
             ObjectValueData.Scalar(scalarValue, null, null),
@@ -321,9 +324,6 @@ class ObjectValidatorTest {
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
 
-    @Serializable
-    data class CompoundSample(val intData: Int, val strData: String)
-
     @Test
     fun objectValueValidatorSimpleCompoundTest() {
         val data = ObjectData(null, "objectValueValidatorTestSimpleCompoundName", "object descr", subject.id, emptyList())
@@ -333,7 +333,7 @@ class ObjectValidatorTest {
             cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
             valueIds = emptyList())
         val savedProperty  = createObjectProperty(objectPropertyData)
-        val scalarValue = ScalarValue.StringValue("string-value", "string-type")
+        val scalarValue = ScalarValue.StringValue("string-value")
         val valueData = ObjectPropertyValueData(
             null,
             ObjectValueData.Scalar(scalarValue, null, null),

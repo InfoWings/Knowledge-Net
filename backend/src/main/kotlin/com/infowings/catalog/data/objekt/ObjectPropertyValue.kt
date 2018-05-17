@@ -25,11 +25,11 @@ sealed class ReferenceValueVertex(val typeGroup: ReferenceTypeGroup) {
     }
 }
 
-sealed class ObjectValue(val kind: ValueKind) {
-    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue(ValueKind.Scalar) {
+sealed class ObjectValue {
+    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.Scalar(value, range, precision)
     }
-    data class Reference(val value: ReferenceValueVertex) : ObjectValue(ValueKind.Reference) {
+    data class Reference(val value: ReferenceValueVertex) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.Reference(value.toReferenceValueData())
     }
 

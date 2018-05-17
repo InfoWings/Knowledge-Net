@@ -155,7 +155,7 @@ class ObjectServiceExampleTest {
 
         val value111Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(3, "current"), null, null),
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(3), null, null),
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
             savedValue11.id.toString(),
@@ -165,7 +165,7 @@ class ObjectServiceExampleTest {
 
         val value112Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(75, "temperature"), null, null),
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(75), null, null),
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
             savedValue11.id.toString(),
@@ -178,7 +178,7 @@ class ObjectServiceExampleTest {
 
         val value121Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("0.8", "current"), null, null),
+            ObjectValueData.Scalar(ScalarValue.StringValue("0.8"), null, null),
             /* возможно, нужен еще тип с фиксированной точкой */
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
@@ -189,7 +189,7 @@ class ObjectServiceExampleTest {
 
         val value131Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("1.2", "current"), null, null),
+            ObjectValueData.Scalar(ScalarValue.StringValue("1.2"), null, null),
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
             savedValue13.id.toString(),
@@ -199,7 +199,7 @@ class ObjectServiceExampleTest {
 
         val value132Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("0.3", "current"), null, null),
+            ObjectValueData.Scalar(ScalarValue.StringValue("0.3"), null, null),
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
             savedValue13.id.toString(),
@@ -209,7 +209,7 @@ class ObjectServiceExampleTest {
 
         val value133Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(45, "current"), null, null),
+            ObjectValueData.Scalar(ScalarValue.IntegerValue(45), null, null),
             savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
             ampereMeasure?.id
         )

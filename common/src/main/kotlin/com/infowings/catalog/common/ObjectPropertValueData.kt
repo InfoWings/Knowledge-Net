@@ -2,10 +2,6 @@ package com.infowings.catalog.common
 
 data class Range(val left: Int, val right: Int)
 
-enum class SimpleTypeGroup {
-    INTEGER, STRING, COMPOUND
-}
-
 /*
   У скалярного поля может быть одно значение.
   Скалярное - в смысле не ссылка на объект/субъект/элемент
@@ -21,19 +17,15 @@ enum class SimpleTypeGroup {
   в выдачу не попадали ключи или болты на 16. И чтобы кривые Безье отличались от любых других кортежей
 
  */
-sealed class ScalarValue(val typeGroup: SimpleTypeGroup, val typeName: String) {
-    class IntegerValue(val value: Int, typeName: String) : ScalarValue(SimpleTypeGroup.INTEGER, typeName)
-    class StringValue(val value: String, typeName: String) : ScalarValue(SimpleTypeGroup.STRING, typeName)
-    class CompoundValue(val value: Any, typeName: String) : ScalarValue(SimpleTypeGroup.COMPOUND, typeName)
+sealed class ScalarValue {
+    class IntegerValue(val value: Int) : ScalarValue()
+    class StringValue(val value: String) : ScalarValue()
+    class CompoundValue(val value: Any) : ScalarValue()
 }
 
-enum class ValueKind {
-    Scalar, Reference
-}
-
-sealed class ObjectValueData(val kind: ValueKind) {
-    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValueData(ValueKind.Scalar)
-    data class Reference(val value: ReferenceValueData) : ObjectValueData(ValueKind.Reference)
+sealed class ObjectValueData {
+    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValueData()
+    data class Reference(val value: ReferenceValueData) : ObjectValueData()
 }
 
 
