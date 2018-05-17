@@ -27,7 +27,7 @@ data class HistoryData<T>(
 )
 
 typealias AspectHistory = HistoryData<AspectDataView>
-//typealias AspectPropertyHistory<>
+
 
 @Serializable
 data class AspectDataView(val aspectData: AspectData, val related: List<AspectData>)
@@ -51,6 +51,7 @@ enum class AspectField {
 
     companion object {
         const val PROPERTY = "Property"
+        const val SUBJECT = "Subject"
     }
 }
 

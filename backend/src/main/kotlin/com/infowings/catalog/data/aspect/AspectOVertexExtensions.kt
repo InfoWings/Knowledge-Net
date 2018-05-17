@@ -8,6 +8,7 @@ import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
+import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
@@ -37,7 +38,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             AspectField.BASE_TYPE.name to asStringOrEmpty(baseType)
         ),
         links = mapOf(
-            AspectField.PROPERTY to properties.map { it.identity }
+            AspectField.PROPERTY to properties.map { it.identity },
+            AspectField.SUBJECT to (subjectVertex?.let { listOf(it.identity) } ?: emptyList())
         )
     )
 
@@ -99,12 +101,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         }
 
     val subject: Subject?
+        get() = subjectVertex?.toSubject()
+
+    val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
+            return subjects.firstOrNull()?.toSubjectVertex()
         }
 
     var description: String?

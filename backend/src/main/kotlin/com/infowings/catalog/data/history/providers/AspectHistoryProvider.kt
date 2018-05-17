@@ -1,16 +1,23 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.subject.toSubject
+import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 
-class AspectHistoryProvider(private val aspectHistoryService: HistoryService, private val aspectService: AspectService) {
+class AspectHistoryProvider(
+    private val aspectHistoryService: HistoryService,
+    private val aspectService: AspectService,
+    private val subjectService: SubjectService
+) {
 
     fun getAllHistory(): List<AspectHistory> {
 
@@ -32,6 +39,15 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
                         ?: emptyList()
 
                 val updatedProps = tmpData.properties.plus(newProps).submit(allRelated)
+
+                fact.payload.addedLinks[AspectField.SUBJECT]?.forEach {
+                    tmpData = tmpData.copy(subject = subjectService.findById(it.toString())?.toSubject()?.toSubjectData())
+                }
+
+                fact.payload.removedLinks[AspectField.SUBJECT]?.forEach {
+                    tmpData = tmpData.copy(subject = null)
+                }
+
                 tmpData = tmpData.submit(fact).copy(properties = updatedProps)
                 versionList.add(tmpData)
             }
@@ -64,11 +80,14 @@ class AspectHistoryProvider(private val aspectHistoryService: HistoryService, pr
                     before.name,
                     after.name
                 )
-                else -> null
             }
         }
 
         diffs.addAll(aspectFieldDiff)
+
+        if (before.subject != after.subject) {
+            diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.SUBJECT, before.subject?.name, after.subject?.name))
+        }
 
         val beforePropertyIdSet = before.properties.map { it.id }.toSet()
         val afterPropertyIdSet = after.properties.map { it.id }.toSet()
