@@ -3,7 +3,9 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectDoesNotExist
+import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.orientechnologies.orient.core.id.ORecordId
 
@@ -23,7 +25,7 @@ class ObjectValidator(
     private val subjectService: SubjectService,
     private val measureService: MeasureService,
     private val refBookService: ReferenceBookService,
-    private val aspectService: AspectService) {
+    private val aspectDao: AspectDaoService) {
     fun checkedForCreation(data: ObjectData): Objekt {
         val subjectVertex = subjectService.findById(data.subjectId)
 
@@ -53,7 +55,7 @@ class ObjectValidator(
 
     fun checkedForCreation(data: ObjectPropertyData): ObjectProperty {
         val objectVertex = objectService.findById(data.objectId)
-        val aspectVertex = aspectService.findVertexById(data.aspectId)
+        val aspectVertex = aspectDao.getAspectVertex(data.aspectId) ?: throw AspectDoesNotExist(data.aspectId)
 
         data.id ?.let {throw IllegalStateException("id must be null for creation: $data")}
 
@@ -81,7 +83,8 @@ class ObjectValidator(
 
         data.id ?.let {throw IllegalStateException("id must be null for creation: $data") }
 
-        val aspectVertex = aspectService.findPropertyVertexById(data.aspectPropertyId)
+        val aspectVertex = aspectDao.getAspectPropertyVertex(data.aspectPropertyId)
+                ?: throw AspectPropertyDoesNotExist(data.aspectPropertyId)
         val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
         val dataValue = data.value
@@ -89,18 +92,18 @@ class ObjectValidator(
         val value = when (dataValue) {
             is ObjectValueData.Scalar ->
                 fromScalarData(dataValue)
-            is ObjectValueData.Reference -> {
+            is ObjectValueData.Link -> {
                 val refValueVertex = dataValue.value.let {
                     when (it.typeGroup) {
-                        ReferenceTypeGroup.SUBJECT ->
-                            ReferenceValueVertex.SubjectValue(subjectService.findById(it.id))
-                        ReferenceTypeGroup.OBJECT ->
-                            ReferenceValueVertex.ObjectValue(objectService.findById(it.id))
-                        ReferenceTypeGroup.DOMAIN_ELEMENT ->
-                            ReferenceValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
+                        LinkTypeGroup.SUBJECT ->
+                            LinkValueVertex.SubjectValue(subjectService.findById(it.id))
+                        LinkTypeGroup.OBJECT ->
+                            LinkValueVertex.ObjectValue(objectService.findById(it.id))
+                        LinkTypeGroup.DOMAIN_ELEMENT ->
+                            LinkValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
                     }
                 }
-                ObjectValue.Reference(refValueVertex)
+                ObjectValue.Link(refValueVertex)
             }
         }
 

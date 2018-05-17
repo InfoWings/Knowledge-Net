@@ -1,7 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.Range
-import com.infowings.catalog.common.ReferenceTypeGroup
+import com.infowings.catalog.common.LinkTypeGroup
 import com.infowings.catalog.common.ScalarValue
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.history.HistoryAware
@@ -134,16 +134,16 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentAspectProperty = aspectProperty ?: throw ObjectValueWithoutAspectPropertyException(this)
 
-        val refValueVertex: ReferenceValueVertex? = refValueType ?. let {
+        val refValueVertex: LinkValueVertex? = refValueType ?. let {
             when (it) {
-                ReferenceTypeGroup.SUBJECT.name ->
-                    ReferenceValueVertex.SubjectValue(refValueSubject ?: throw SubjectVertexNotDefinedException(id))
-                ReferenceTypeGroup.OBJECT.name ->
-                    ReferenceValueVertex.ObjectValue(refValueObject ?: throw ObjectVertexNotDefinedException(id))
-                ReferenceTypeGroup.DOMAIN_ELEMENT.name ->
-                    ReferenceValueVertex.DomainElementValue(refValueDomainElement
+                LinkTypeGroup.SUBJECT.name ->
+                    LinkValueVertex.SubjectValue(refValueSubject ?: throw SubjectVertexNotDefinedException(id))
+                LinkTypeGroup.OBJECT.name ->
+                    LinkValueVertex.ObjectValue(refValueObject ?: throw ObjectVertexNotDefinedException(id))
+                LinkTypeGroup.DOMAIN_ELEMENT.name ->
+                    LinkValueVertex.DomainElementValue(refValueDomainElement
                             ?: throw DomainElementVertexNotDefinedException(id))
-                else -> throw IllegalStateException("unknown reference value vertex type: $refValueType")
+                else -> throw IllegalStateException("unknown link value vertex type: $refValueType")
             }
         }
 
@@ -157,7 +157,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
                 }
                 ObjectValue.Scalar(simpleData, range, precision)
             }
-            else -> ObjectValue.Reference(refValueVertex)
+            else -> ObjectValue.Link(refValueVertex)
         }
 
         return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)

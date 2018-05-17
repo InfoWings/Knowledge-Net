@@ -44,7 +44,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
 
         toDelete.forEach { it.delete<ObjectPropertyVertex>()}
-        propertiesSet.forEach { it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE) }
+        propertiesSet.forEach {
+            it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
+        }
 
         return@transaction vertex.save<OVertex>().toObjectVertex()
     }
@@ -103,7 +105,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
             }
 
-            is ObjectValue.Reference ->
+            is ObjectValue.Link ->
                 replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, objectValue.measure)
         }
 

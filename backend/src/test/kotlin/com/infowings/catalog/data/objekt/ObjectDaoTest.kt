@@ -6,6 +6,7 @@ import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
@@ -35,6 +36,8 @@ class ObjectDaoTest {
     @Autowired
     private lateinit var subjectService: SubjectService
     @Autowired
+    private lateinit var aspectDao: AspectDaoService
+    @Autowired
     private lateinit var aspectService: AspectService
     @Autowired
     private lateinit var measureService: MeasureService
@@ -55,7 +58,7 @@ class ObjectDaoTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectService)
+        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)

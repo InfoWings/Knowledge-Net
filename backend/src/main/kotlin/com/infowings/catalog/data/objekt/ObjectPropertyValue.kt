@@ -8,20 +8,20 @@ import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
-sealed class ReferenceValueVertex(private val typeGroup: ReferenceTypeGroup) {
-    class SubjectValue(val vertex: SubjectVertex) : ReferenceValueVertex(ReferenceTypeGroup.SUBJECT)
-    class ObjectValue(val vertex: ObjectVertex) : ReferenceValueVertex(ReferenceTypeGroup.OBJECT)
+sealed class LinkValueVertex(private val typeGroup: LinkTypeGroup) {
+    class SubjectValue(val vertex: SubjectVertex) : LinkValueVertex(LinkTypeGroup.SUBJECT)
+    class ObjectValue(val vertex: ObjectVertex) : LinkValueVertex(LinkTypeGroup.OBJECT)
     class DomainElementValue(val vertex: ReferenceBookItemVertex) :
-        ReferenceValueVertex(ReferenceTypeGroup.DOMAIN_ELEMENT)
+        LinkValueVertex(LinkTypeGroup.DOMAIN_ELEMENT)
 
-    fun toReferenceValueData(): ReferenceValueData {
+    fun toLinkValueData(): LinkValueData {
         val id = when (this) {
             is SubjectValue -> vertex.id
             is ObjectValue -> vertex.id
             is DomainElementValue -> vertex.id
         }
 
-        return ReferenceValueData(typeGroup, id)
+        return LinkValueData(typeGroup, id)
     }
 }
 
@@ -29,10 +29,9 @@ sealed class ObjectValue {
     data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.Scalar(value, range, precision)
     }
-    data class Reference(val value: ReferenceValueVertex) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.Reference(value.toReferenceValueData())
+    data class Link(val value: LinkValueVertex) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.Link(value.toLinkValueData())
     }
-
     abstract fun toObjectValueData(): ObjectValueData
 }
 

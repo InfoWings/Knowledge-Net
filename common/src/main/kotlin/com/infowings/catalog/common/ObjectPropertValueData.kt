@@ -10,15 +10,15 @@ sealed class ScalarValue {
 
 sealed class ObjectValueData {
     data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValueData()
-    data class Reference(val value: ReferenceValueData) : ObjectValueData()
+    data class Link(val value: LinkValueData) : ObjectValueData()
 }
 
 
-enum class ReferenceTypeGroup {
+enum class LinkTypeGroup {
     SUBJECT, OBJECT, DOMAIN_ELEMENT
 }
 
-data class ReferenceValueData(val typeGroup: ReferenceTypeGroup, val id: String)
+data class LinkValueData(val typeGroup: LinkTypeGroup, val id: String)
 
 data class ObjectPropertyValueData(
     val id: String?,
@@ -75,10 +75,10 @@ fun integerValueDto(value: Int, range: Range?, precision: Int?) =
 fun compoundValueDto(value: Any) = ValueDTO(ValueDTOTags.COMPOUND.name, null, ScalarDTO(null, null, value, null, null))
 fun referenceValueDto(tag: ValueDTOTags, id: String) = ValueDTO(tag.name, id, null)
 
-fun ReferenceTypeGroup.toDTOTag() = when (this) {
-    ReferenceTypeGroup.SUBJECT -> ValueDTOTags.SUBJECT
-    ReferenceTypeGroup.OBJECT -> ValueDTOTags.OBJECT
-    ReferenceTypeGroup.DOMAIN_ELEMENT -> ValueDTOTags.DOMAIN_ELEMENT
+fun LinkTypeGroup.toDTOTag() = when (this) {
+    LinkTypeGroup.SUBJECT -> ValueDTOTags.SUBJECT
+    LinkTypeGroup.OBJECT -> ValueDTOTags.OBJECT
+    LinkTypeGroup.DOMAIN_ELEMENT -> ValueDTOTags.DOMAIN_ELEMENT
 }
 
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
@@ -95,7 +95,7 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
                 throw IllegalStateException("no scalar value")
         }
     }
-    is ObjectValueData.Reference ->
+    is ObjectValueData.Link ->
         referenceValueDto(this.value.typeGroup.toDTOTag(), this.value.id)
 }
 
@@ -121,11 +121,11 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
             ScalarValue.CompoundValue(scalar.compoundStrict()), null, null)
     }
     ValueDTOTags.OBJECT ->
-        ObjectValueData.Reference(ReferenceValueData(ReferenceTypeGroup.OBJECT, idStrict()))
+        ObjectValueData.Link(LinkValueData(LinkTypeGroup.OBJECT, idStrict()))
     ValueDTOTags.SUBJECT ->
-        ObjectValueData.Reference(ReferenceValueData(ReferenceTypeGroup.SUBJECT, idStrict()))
+        ObjectValueData.Link(LinkValueData(LinkTypeGroup.SUBJECT, idStrict()))
     ValueDTOTags.DOMAIN_ELEMENT ->
-        ObjectValueData.Reference(ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, idStrict()))
+        ObjectValueData.Link(LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, idStrict()))
 }
 
 data class ObjectPropertyValueDTO(

@@ -6,7 +6,7 @@ import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.ObjectPropertyValueData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -17,13 +17,13 @@ class ObjectService(
     private val db: OrientDatabase,
     private val dao: ObjectDaoService,
     subjectService: SubjectService,
-    aspectService: AspectService,
+    aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
-    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectService)
+    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectDao)
 
     fun create(objectData: ObjectData, username: String): Objekt {
         val userVertex = userService.findUserVertexByUsername(username)

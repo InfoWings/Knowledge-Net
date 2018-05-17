@@ -136,10 +136,10 @@ class ObjectServiceExampleTest {
 
         val savedObjectProperty = objectService.create(objectPropertyData, username)
 
-        val refValue11Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[0])
+        val refValue11Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[0])
         val value11Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Reference(refValue11Data),
+            ObjectValueData.Link(refValue11Data),
             savedObjectProperty.id.toString(),
             aspectChargeCharacteristic.properties[0].id,
             null,
@@ -147,10 +147,10 @@ class ObjectServiceExampleTest {
         )
         val savedValue11 = objectService.create(value11Data, username)
 
-        val refValue12Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[1])
+        val refValue12Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[1])
         val value12Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Reference(refValue12Data),
+            ObjectValueData.Link(refValue12Data),
             savedObjectProperty.id.toString(),
             aspectChargeCharacteristic.properties[0].id,
             null,
@@ -158,10 +158,10 @@ class ObjectServiceExampleTest {
         )
         val savedValue12 = objectService.create(value12Data, username)
 
-        val refValue13Data = ReferenceValueData(ReferenceTypeGroup.DOMAIN_ELEMENT, refBookItemIds[2])
+        val refValue13Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[2])
         val value13Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Reference(refValue13Data),
+            ObjectValueData.Link(refValue13Data),
             savedObjectProperty.id.toString(),
             aspectChargeCharacteristic.properties[0].id,
             null,
