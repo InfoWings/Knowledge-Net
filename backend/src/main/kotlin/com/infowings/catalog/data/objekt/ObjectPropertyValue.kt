@@ -1,14 +1,14 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
-sealed class ReferenceValueVertex(val typeGroup: ReferenceTypeGroup) {
+sealed class ReferenceValueVertex(private val typeGroup: ReferenceTypeGroup) {
     class SubjectValue(val vertex: SubjectVertex) : ReferenceValueVertex(ReferenceTypeGroup.SUBJECT)
     class ObjectValue(val vertex: ObjectVertex) : ReferenceValueVertex(ReferenceTypeGroup.OBJECT)
     class DomainElementValue(val vertex: ReferenceBookItemVertex) :
@@ -48,7 +48,7 @@ data class ObjectPropertyValue(
     val id: ORID?,
     val value: ObjectValue,
     val objectProperty: ObjectPropertyVertex,
-    val rootCharacteristic: AspectVertex,
+    val aspectProperty: AspectPropertyVertex,
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
 ) {
@@ -56,7 +56,7 @@ data class ObjectPropertyValue(
         id?.toString(),
         value.toObjectValueData(),
         objectProperty.id,
-        rootCharacteristic.id,
+        aspectProperty.id,
         parentValue?.id,
         measure?.id
     )

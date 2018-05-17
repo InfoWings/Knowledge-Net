@@ -16,7 +16,6 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
-import kotlinx.serialization.json.JSON
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -237,7 +236,7 @@ class ObjectValidatorTest {
             null,
             ObjectValueData.Scalar(scalarValue, null, null),
             savedProperty.id,
-            complexAspect.id,
+            complexAspect.properties[0].id,
             null,
             null
         )
@@ -251,7 +250,7 @@ class ObjectValidatorTest {
                 assertEquals(null, value.precision, "precisions must be equal")
             }
         }
-        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
+        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
 
@@ -273,7 +272,7 @@ class ObjectValidatorTest {
             null,
             ObjectValueData.Scalar(scalarValue, range, null),
             savedProperty.id,
-            complexAspect.id,
+            complexAspect.properties[0].id,
             null,
             null
         )
@@ -287,8 +286,8 @@ class ObjectValidatorTest {
                 assertEquals(null, value.precision, "precisions must be equal")
             }
         }
-        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
 
 
@@ -306,7 +305,7 @@ class ObjectValidatorTest {
             null,
             ObjectValueData.Scalar(scalarValue, null, null),
             savedProperty.id,
-            complexAspect.id,
+            complexAspect.properties[0].id,
             null,
             null
         )
@@ -320,8 +319,8 @@ class ObjectValidatorTest {
                 assertEquals(null, value.precision, "precisions must be equal")
             }
         }
-        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
 
     @Test
@@ -338,7 +337,7 @@ class ObjectValidatorTest {
             null,
             ObjectValueData.Scalar(scalarValue, null, null),
             savedProperty.id,
-            complexAspect.id,
+            complexAspect.properties[0].id,
             null,
             null
         )
@@ -353,8 +352,8 @@ class ObjectValidatorTest {
                 assertEquals(null, value.precision, "precisions must be equal")
             }
         }
-        assertEquals(valueData.rootCharacteristicId, objectValue.rootCharacteristic.id, "root characteristics must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
+        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
 
     @Test

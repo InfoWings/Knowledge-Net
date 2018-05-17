@@ -3,8 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.ReferenceTypeGroup
 import com.infowings.catalog.common.ScalarValue
-import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -104,9 +103,9 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
             ?.toObjectPropertyVertex()
 
-    val rootCharacteristic: AspectVertex?
+    val aspectProperty: AspectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).firstOrNull()
-            ?.toAspectVertex()
+            ?.toAspectPropertyVertex()
 
     val parentValue: ObjectPropertyValueVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()
@@ -133,7 +132,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
-        val currentRootChar = rootCharacteristic ?: throw ObjectValueWithoutCharacteristicException(this)
+        val currentAspectProperty = aspectProperty ?: throw ObjectValueWithoutAspectPropertyException(this)
 
         val refValueVertex: ReferenceValueVertex? = refValueType ?. let {
             when (it) {
@@ -161,15 +160,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             else -> ObjectValue.Reference(refValueVertex)
         }
 
-        return ObjectPropertyValue(identity, value, currentProperty, currentRootChar, parentValue, measure)
+        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)
     }
 }
 
 abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
-class ObjectValueWithoutCharacteristicException(vertex: ObjectPropertyValueVertex) :
-    ObjectValueException("Characteristic vertex not linked for ${vertex.id} ")
+class ObjectValueWithoutAspectPropertyException(vertex: ObjectPropertyValueVertex) :
+    ObjectValueException("Aspect property vertex not linked for ${vertex.id} ")
 
 class IntValueNotDefinedException(id: String) :
     ObjectValueException("int value is not defined for value $id")

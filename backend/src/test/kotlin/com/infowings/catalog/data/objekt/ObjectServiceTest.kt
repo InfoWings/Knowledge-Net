@@ -126,7 +126,7 @@ class ObjectServiceTest {
         val valueData = ObjectPropertyValueData(
             null,
             ObjectValueData.Scalar(ScalarValue.IntegerValue(scalarInt), null, null),
-            savedObjectPropertyId, complexAspect.id,
+            savedObjectPropertyId, complexAspect.properties[0].id,
             null,
             null
         )
@@ -142,7 +142,7 @@ class ObjectServiceTest {
                         assertEquals(scalarInt, scalarValue.value, "scalar value must be with correct type name")
                         assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
                             "object property must point to parent property")
-                        assertEquals(valueData.rootCharacteristicId, savedValue.rootCharacteristic.id,
+                        assertEquals(valueData.aspectPropertyId, savedValue.aspectProperty.id,
                             "object property must point to proper root characteristic")
                         assertTrue(valueData.parentValueId == null)
 

@@ -2,7 +2,6 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -32,7 +31,7 @@ class ObjectValidator(
             throw IllegalStateException("id must be null for creation: $data")
         }
 
-        subjectVertex ?: throw SubjectNotFoundException(data.subjectId)
+        subjectVertex
 
         if (data.propertyIds.isNotEmpty()) {
             throw IllegalStateException("there should be no properties for object creation: $data")
@@ -82,7 +81,7 @@ class ObjectValidator(
 
         data.id ?.let {throw IllegalStateException("id must be null for creation: $data") }
 
-        val aspectVertex = aspectService.findVertexById(data.rootCharacteristicId)
+        val aspectVertex = aspectService.findPropertyVertexById(data.aspectPropertyId)
         val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
 
         val dataValue = data.value

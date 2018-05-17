@@ -89,11 +89,27 @@ class ObjectServiceExampleTest {
 
         val aspectChargeMode = aspectService.save(
             AspectData(
-                name = "charge",
+                name = "сharge",
                 baseType = BaseType.Text.name,
                 properties = listOf(propertyStage1, propertyStage2, propertyMaxTempr)
             ), username
         )
+
+        val chargeModePropertyByAspectId = aspectChargeMode.properties.map {it.aspect.id to it}.toMap()
+
+        fun chargeModeProperty(aspectId: String): String =
+            chargeModePropertyByAspectId[aspectId]?.id ?: throw IllegalStateException("Not found property: $aspectStage1")
+
+
+        val propertyChargeMode = AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name)
+        val aspectChargeCharacteristic = aspectService.save(
+            AspectData(
+                name = "сharge-characteristic",
+                baseType = BaseType.Text.name,
+                properties = listOf(propertyChargeMode)
+            ), username
+        )
+
 
         val refBook = refBookService.createReferenceBook("rb-charge", aspectChargeMode.id, username)
         val refBookItemIds = listOf("Ускоренный", "Номинальный", "Глубокий").map {
@@ -115,7 +131,7 @@ class ObjectServiceExampleTest {
 
         val objectPropertyData = ObjectPropertyData(
             null, "name", PropertyCardinality.INFINITY,
-            savedObject.id.toString(), aspectChargeMode.id, emptyList()
+            savedObject.id.toString(), aspectChargeCharacteristic.id, emptyList()
         )
 
         val savedObjectProperty = objectService.create(objectPropertyData, username)
@@ -125,7 +141,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Reference(refValue11Data),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            aspectChargeCharacteristic.properties[0].id,
             null,
             null
         )
@@ -136,7 +152,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Reference(refValue12Data),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            aspectChargeCharacteristic.properties[0].id,
             null,
             null
         )
@@ -147,7 +163,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Reference(refValue13Data),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            aspectChargeCharacteristic.properties[0].id,
             null,
             null
         )
@@ -157,7 +173,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Scalar(ScalarValue.IntegerValue(3), null, null),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            chargeModeProperty(aspectStage1.id),
             savedValue11.id.toString(),
             null
         )
@@ -167,7 +183,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Scalar(ScalarValue.IntegerValue(75), null, null),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            chargeModeProperty(aspectMaxTempr.id),
             savedValue11.id.toString(),
             null
         )
@@ -181,7 +197,7 @@ class ObjectServiceExampleTest {
             ObjectValueData.Scalar(ScalarValue.StringValue("0.8"), null, null),
             /* возможно, нужен еще тип с фиксированной точкой */
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            chargeModeProperty(aspectStage1.id),
             savedValue12.id.toString(),
             ampereMeasure?.id
         )
@@ -201,7 +217,7 @@ class ObjectServiceExampleTest {
             null,
             ObjectValueData.Scalar(ScalarValue.StringValue("0.3"), null, null),
             savedObjectProperty.id.toString(),
-            aspectChargeMode.id,
+            chargeModeProperty(aspectStage2.id),
             savedValue13.id.toString(),
             ampereMeasure?.id
         )
@@ -210,8 +226,10 @@ class ObjectServiceExampleTest {
         val value133Data = ObjectPropertyValueData(
             null,
             ObjectValueData.Scalar(ScalarValue.IntegerValue(45), null, null),
-            savedObjectProperty.id.toString(), aspectChargeMode.id, savedValue13.id.toString(),
-            ampereMeasure?.id
+            savedObjectProperty.id.toString(),
+            chargeModeProperty(aspectMaxTempr.id),
+            savedValue13.id.toString(),
+            null
         )
         val savedValue133 = objectService.create(value133Data, username)
 

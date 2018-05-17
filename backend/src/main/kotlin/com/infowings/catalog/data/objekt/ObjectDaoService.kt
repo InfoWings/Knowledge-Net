@@ -108,7 +108,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
 
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, objectValue.objectProperty)
-        replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.rootCharacteristic, objectValue.rootCharacteristic)
+        replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.aspectProperty, objectValue.aspectProperty)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, objectValue.parentValue)
 
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()

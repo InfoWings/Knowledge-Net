@@ -48,7 +48,7 @@ data class ObjectPropertyValueData(
      */
     val value: ObjectValueData,
     val objectPropertyId: String,
-    val rootCharacteristicId: String,
+    val aspectPropertyId: String,
     val parentValueId: String?,
     val measureId: String?
 )
