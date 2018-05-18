@@ -70,30 +70,7 @@ class AspectHistoryProvider(
     private fun createDiff(before: AspectData, after: AspectData, mainFact: HistoryFactDto): AspectHistory {
         var diffs = mutableListOf<Delta>()
 
-        val aspectFieldDiff = mainFact.payload.data.mapNotNull { (fieldName, _) ->
-            when (AspectField.valueOf(fieldName)) {
-                AspectField.MEASURE -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.MEASURE.view,
-                    before.measure,
-                    after.measure
-                )
-                AspectField.BASE_TYPE -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.BASE_TYPE.view,
-                    before.baseType,
-                    after.baseType
-                )
-                AspectField.NAME -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.NAME.view,
-                    before.name,
-                    after.name
-                )
-            }
-        }
-
-        diffs.addAll(aspectFieldDiff)
+        diffs.addAll(fieldsDiff(mainFact, before, after))
 
         if (before.subject != after.subject) {
             diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.SUBJECT, before.subject?.name, after.subject?.name))
@@ -102,6 +79,41 @@ class AspectHistoryProvider(
         if (before.refBookName != after.refBookName) {
             diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.REFERENCE_BOOK, before.refBookName, after.refBookName))
         }
+
+        diffs.addAll(propertiesDiff(before, after))
+
+        diffs = diffs.filter { it.after != it.before }.toMutableList()
+
+        return createHistoryElement(mainFact.event, diffs, after, after.properties.map { getAspect(it.aspectId) })
+    }
+
+    private fun fieldsDiff(mainFact: HistoryFactDto, before: AspectData, after: AspectData): List<Delta> = mainFact.payload.data.mapNotNull { (fieldName, _) ->
+
+        when (AspectField.valueOf(fieldName)) {
+            AspectField.MEASURE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.MEASURE.view,
+                before.measure,
+                after.measure
+            )
+            AspectField.BASE_TYPE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.BASE_TYPE.view,
+                before.baseType,
+                after.baseType
+            )
+            AspectField.NAME -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.NAME.view,
+                before.name,
+                after.name
+            )
+        }
+    }
+
+    private fun propertiesDiff(before: AspectData, after: AspectData): List<Delta> {
+
+        val diffs = mutableListOf<Delta>()
 
         val beforePropertyIdSet = before.properties.map { it.id }.toSet()
         val afterPropertyIdSet = after.properties.map { it.id }.toSet()
@@ -136,10 +148,9 @@ class AspectHistoryProvider(
             )
         })
 
-        diffs = diffs.filter { it.after != it.before }.toMutableList()
-
-        return createHistoryElement(mainFact.event, diffs, after, after.properties.map { getAspect(it.aspectId) })
+        return diffs
     }
+    
 
     private fun createHistoryElement(
         event: HistoryEvent,
