@@ -89,6 +89,17 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         errorMessages = emptyList()
     }
 
+    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
+        if (state.selectedAspect.id != null) {
+            setState {
+                val newSelectedAspect =
+                    nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                selectedAspect =
+                        selectedAspect.copy(version = newSelectedAspect.version, deleted = newSelectedAspect.deleted)
+            }
+        }
+    }
+
     override fun selectAspect(aspectId: String?) {
         setState {
             if (unsavedDataSelection(aspectId, null)) {
@@ -99,6 +110,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
                 }
                 selectedAspectPropertyIndex = null
+                aspectId?.let { props.refreshAspect(it) }
             }
         }
     }

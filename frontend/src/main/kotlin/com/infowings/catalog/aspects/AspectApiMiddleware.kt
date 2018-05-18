@@ -19,6 +19,7 @@ interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: List<AspectData>
     var aspectContext: Map<String, AspectData>
+    var refreshAspect: (id: String) -> Unit
     var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
@@ -99,6 +100,25 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         return updatedAspect
     }
 
+    private fun refreshAspect(id: String) {
+        launch {
+            try {
+                val response = getAspectById(id)
+                setState {
+                    data = data.updateAspect(response)
+                    context[response.id ?: error("Server returned Aspect with aspectId == null")] = response
+                }
+            } catch (exception: ServerException) {
+                setState {
+                    data = emptyList()
+                    context = mutableMapOf()
+                    loading = false
+                    serverError = true
+                }
+            }
+        }
+    }
+
     private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean): String {
 
         try {
@@ -114,9 +134,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
 
         setState {
-            data = data.map {
-                if (aspectData.id == it.id) deletedAspect else it
-            }
+            data = data.updateAspect(deletedAspect)
             if (!aspectData.id.isNullOrEmpty()) {
                 context[aspectData.id!!] = deletedAspect
             }
@@ -134,6 +152,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     loading = state.loading
                     onAspectCreate = { handleCreateNewAspect(it) }
                     onAspectUpdate = { handleUpdateAspect(it) }
+                    refreshAspect = ::refreshAspect
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onFetchAspects = ::fetchAspects
                 }
@@ -188,6 +207,11 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         var serverError: Boolean
     }
 }
+
+private fun List<AspectData>.updateAspect(aspectData: AspectData) =
+    this.map {
+        if (it.id == aspectData.id) aspectData else it
+    }
 
 fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) =
     child(AspectApiMiddleware::class) {
