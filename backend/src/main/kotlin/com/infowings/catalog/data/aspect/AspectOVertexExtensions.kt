@@ -39,7 +39,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         ),
         links = mapOf(
             AspectField.PROPERTY to properties.map { it.identity },
-            AspectField.SUBJECT to (subjectVertex?.let { listOf(it.identity) } ?: emptyList())
+            AspectField.SUBJECT to (subjectVertex?.let { listOf(it.identity) } ?: emptyList()),
+            AspectField.REFERENCE_BOOK to (referenceBookRootVertex?.let { listOf(it.identity) } ?: emptyList())
         )
     )
 

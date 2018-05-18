@@ -52,6 +52,7 @@ enum class AspectField {
     companion object {
         const val PROPERTY = "Property"
         const val SUBJECT = "Subject"
+        const val REFERENCE_BOOK = "Reference book"
     }
 }
 

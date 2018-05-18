@@ -8,6 +8,7 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.ASPECT_CLASS
@@ -16,7 +17,8 @@ import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 class AspectHistoryProvider(
     private val aspectHistoryService: HistoryService,
     private val aspectService: AspectService,
-    private val subjectService: SubjectService
+    private val subjectService: SubjectService,
+    private val referenceBookService: ReferenceBookService
 ) {
 
     fun getAllHistory(): List<AspectHistory> {
@@ -46,6 +48,14 @@ class AspectHistoryProvider(
 
                 fact.payload.removedLinks[AspectField.SUBJECT]?.forEach {
                     tmpData = tmpData.copy(subject = null)
+                }
+
+                fact.payload.addedLinks[AspectField.REFERENCE_BOOK]?.forEach {
+                    tmpData = tmpData.copy(refBookName = referenceBookService.getReferenceBookNameById(it.toString()) ?: "Deleted")
+                }
+
+                fact.payload.removedLinks[AspectField.REFERENCE_BOOK]?.forEach {
+                    tmpData = tmpData.copy(refBookName = null)
                 }
 
                 tmpData = tmpData.submit(fact).copy(properties = updatedProps)
@@ -87,6 +97,10 @@ class AspectHistoryProvider(
 
         if (before.subject != after.subject) {
             diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.SUBJECT, before.subject?.name, after.subject?.name))
+        }
+
+        if (before.refBookName != after.refBookName) {
+            diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.REFERENCE_BOOK, before.refBookName, after.refBookName))
         }
 
         val beforePropertyIdSet = before.properties.map { it.id }.toSet()

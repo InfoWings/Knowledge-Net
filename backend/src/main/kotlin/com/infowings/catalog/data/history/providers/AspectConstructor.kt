@@ -1,16 +1,21 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.HistoryFactDto
 
 fun AspectData.submit(fact: HistoryFactDto): AspectData {
     return when (fact.event.type) {
-        EventType.CREATE, EventType.UPDATE -> copy(
-            measure = fact.payload.data.getOrDefault(AspectField.MEASURE.name, measure),
-            baseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType),
-            name = fact.payload.data.getOrDefault(AspectField.NAME.name, name),
-            version = fact.event.version
-        )
+        EventType.CREATE, EventType.UPDATE -> {
+            val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+            copy(
+                measure = fact.payload.data.getOrDefault(AspectField.MEASURE.name, measure),
+                baseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType),
+                name = fact.payload.data.getOrDefault(AspectField.NAME.name, name),
+                domain = baseTypeObj?.let { OpenDomain(it).toString() },
+                version = fact.event.version
+            )
+        }
         else -> copy(deleted = true, version = fact.event.version)
     }
 }
