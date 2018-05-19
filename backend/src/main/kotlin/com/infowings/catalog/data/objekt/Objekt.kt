@@ -17,5 +17,5 @@ data class Objekt(
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>
 ) {
-    fun toObjectData(): ObjectData = ObjectData(id?.toString(), name, description, subject.id, properties.map {it.id})
+    fun toObjectData(): ObjectData = ObjectData(id?.toString(), name, description, subject.id, properties.map { it.id })
 }

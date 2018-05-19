@@ -117,7 +117,8 @@ class AspectServicePropertyTest {
 
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
 
-        assertThat("aspect should have correct properties",
+        assertThat(
+            "aspect should have correct properties",
             loaded.properties.map { it.name },
             Is.`is`(listOf(property, property2).map { it.name })
         )

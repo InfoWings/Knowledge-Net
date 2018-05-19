@@ -31,7 +31,7 @@ import kotlin.test.assertEquals
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class ObjectValidatorTest {
+class  ObjectValidatorTest {
     @Autowired
     private lateinit var db: OrientDatabase
     @Autowired

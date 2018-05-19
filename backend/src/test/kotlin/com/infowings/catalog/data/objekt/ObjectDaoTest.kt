@@ -199,7 +199,7 @@ class ObjectDaoTest {
             null,
             null
         )
-        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
+        val  objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
         assertEquals(ScalarTypeTag.STRING, savedValue.typeTag, "type tag must be string")

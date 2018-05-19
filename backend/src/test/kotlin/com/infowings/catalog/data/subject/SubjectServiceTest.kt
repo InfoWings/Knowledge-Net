@@ -257,5 +257,5 @@ fun createTestSubject(
     }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
 
-    return subjectService.findById(subject.id)?.toSubject() ?: throw IllegalStateException()
+    return subjectService.findById(subject.id).toSubject()
 }

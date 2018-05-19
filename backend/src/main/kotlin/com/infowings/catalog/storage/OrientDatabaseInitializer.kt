@@ -17,7 +17,7 @@ import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 
-const val ATTR_NAME = "name"
+const val ATTR_NAME  = "name"
 const val ATTR_DESC = "description"
 
 const val USER_CLASS = "User"

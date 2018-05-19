@@ -20,6 +20,6 @@ data class ObjectProperty(
     val values: List<ObjectPropertyValueVertex>
 ) {
     fun toObjectPropertyData(): ObjectPropertyData {
-        return ObjectPropertyData(id?.toString(), name, cardinality, objekt.id, aspect.id, values.map {it.id})
+        return ObjectPropertyData(id?.toString(), name, cardinality, objekt.id, aspect.id, values.map { it.id })
     }
 }

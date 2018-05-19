@@ -111,4 +111,4 @@ class MeasureService(val database: OrientDatabase) {
 }
 
 abstract class MeasureException(message: String) : Exception(message)
-class MeasureNotFoundException(id: String): MeasureException("measure wit id $id not found")
+class MeasureNotFoundException(id: String) : MeasureException("measure wit id $id not found")

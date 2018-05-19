@@ -17,7 +17,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
     private fun <T : OVertex> replaceEdge(vertex: OVertex, edgeClass: String, oldTarget: T?, newTarget: T?) {
         if (oldTarget != newTarget) {
             vertex.getEdges(ODirection.OUT, edgeClass).forEach { it.delete<OEdge>() }
-            newTarget ?.let {
+            newTarget?.let {
                 val edge = vertex.addEdge(it, edgeClass)
                 edge.save<OEdge>()
             }
@@ -43,7 +43,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-        toDelete.forEach { it.delete<ObjectPropertyVertex>()}
+        toDelete.forEach { it.delete<ObjectPropertyVertex>() }
         propertiesSet.forEach {
             it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
         }
@@ -51,35 +51,38 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@transaction vertex.save<OVertex>().toObjectVertex()
     }
 
-    fun saveObjectProperty(vertex: ObjectPropertyVertex, objectProperty: ObjectProperty): ObjectPropertyVertex = transaction(db) {
-        vertex.name = objectProperty.name
-        vertex.cardinality = objectProperty.cardinality
+    fun saveObjectProperty(vertex: ObjectPropertyVertex, objectProperty: ObjectProperty): ObjectPropertyVertex =
+        transaction(db) {
+            vertex.name = objectProperty.name
+            vertex.cardinality = objectProperty.cardinality
 
-        replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, objectProperty.objekt)
-        replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, objectProperty.aspect)
+            replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, objectProperty.objekt)
+            replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, objectProperty.aspect)
 
-        var valuesSet = objectProperty.values.toSet()
-        var toDelete = emptySet<ObjectPropertyValueVertex>()
-        vertex.values.forEach {
-            if (valuesSet.contains(it)) {
-                valuesSet -= it
-            } else {
-                toDelete += it
+            var valuesSet = objectProperty.values.toSet()
+            var toDelete = emptySet<ObjectPropertyValueVertex>()
+            vertex.values.forEach {
+                if (valuesSet.contains(it)) {
+                    valuesSet -= it
+                } else {
+                    toDelete += it
+                }
             }
+
+            toDelete.forEach { it.delete<ObjectPropertyValueVertex>() }
+            valuesSet.forEach { it.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE) }
+
+            return@transaction vertex.save<OVertex>().toObjectPropertyVertex()
         }
 
-        toDelete.forEach { it.delete<ObjectPropertyValueVertex>()}
-        valuesSet.forEach { it.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE) }
-
-        return@transaction vertex.save<OVertex>().toObjectPropertyVertex()
-    }
-
-    fun saveObjectValue(vertex: ObjectPropertyValueVertex, objectValue: ObjectPropertyValue): ObjectPropertyValueVertex = transaction(db) {
+    fun saveObjectValue(
+        vertex: ObjectPropertyValueVertex,
+        objectValue: ObjectPropertyValue
+    ): ObjectPropertyValueVertex = transaction(db) {
         when (vertex.typeTag) {
             ScalarTypeTag.INTEGER -> vertex.intValue = null
             ScalarTypeTag.STRING -> vertex.strValue = null
             ScalarTypeTag.COMPOUND -> vertex.compoundValue = null
-            else -> {}
         }
 
         when (objectValue.value) {

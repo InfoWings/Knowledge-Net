@@ -50,7 +50,7 @@ data class Versioned<out T>(val entity: T, val version: Int)
 /**
  * Main class for work with database
  * */
-class OrientDatabase(
+class  OrientDatabase(
     url: String,
     val database: String,
     username: String,
@@ -356,4 +356,3 @@ inline fun <U> transaction(
 class OrientException(reason: String) : Exception(reason)
 class VertexNotFound(id: String) : Exception("No vertex for id: $id")
 
-private const val selectById = "SELECT FROM ?"

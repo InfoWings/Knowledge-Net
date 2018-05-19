@@ -9,19 +9,15 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
 sealed class LinkValueVertex(private val typeGroup: LinkTypeGroup) {
-    class SubjectValue(val vertex: SubjectVertex) : LinkValueVertex(LinkTypeGroup.SUBJECT)
-    class ObjectValue(val vertex: ObjectVertex) : LinkValueVertex(LinkTypeGroup.OBJECT)
-    class DomainElementValue(val vertex: ReferenceBookItemVertex) :
+    abstract val vertex: OVertex
+
+    class SubjectValue(override val vertex: SubjectVertex) : LinkValueVertex(LinkTypeGroup.SUBJECT)
+    class ObjectValue(override val vertex: ObjectVertex) : LinkValueVertex(LinkTypeGroup.OBJECT)
+    class DomainElementValue(override val vertex: ReferenceBookItemVertex) :
         LinkValueVertex(LinkTypeGroup.DOMAIN_ELEMENT)
 
     fun toLinkValueData(): LinkValueData {
-        val id = when (this) {
-            is SubjectValue -> vertex.id
-            is ObjectValue -> vertex.id
-            is DomainElementValue -> vertex.id
-        }
-
-        return LinkValueData(typeGroup, id)
+        return LinkValueData(typeGroup, vertex.id)
     }
 }
 
@@ -29,13 +25,16 @@ sealed class ObjectValue {
     data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.Scalar(value, range, precision)
     }
+
     data class Link(val value: LinkValueVertex) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.Link(value.toLinkValueData())
     }
+
     abstract fun toObjectValueData(): ObjectValueData
 }
 
-fun fromScalarData(data: ObjectValueData.Scalar): ObjectValue.Scalar = ObjectValue.Scalar(data.value, data.range, data.precision)
+fun fromScalarData(data: ObjectValueData.Scalar): ObjectValue.Scalar =
+    ObjectValue.Scalar(data.value, data.range, data.precision)
 
 
 /**

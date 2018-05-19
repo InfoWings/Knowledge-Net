@@ -298,7 +298,7 @@ class AspectServiceSavingTest {
         } catch (e: AspectAlreadyExist) {
 
         } catch (e: Throwable) {
-            Assert.fail("Thrown unexpected " + e)
+            Assert.fail("Thrown unexpected $e")
         }
     }
 
@@ -311,7 +311,7 @@ class AspectServiceSavingTest {
             Assert.fail("Nothing thrown")
         } catch (e: AspectAlreadyExist) {
         } catch (e: Throwable) {
-            Assert.fail("Thrown unexpected " + e)
+            Assert.fail("Thrown unexpected $e")
         }
     }
 
@@ -480,7 +480,8 @@ class AspectServiceSavingTest {
 
     private fun aspectDataWithSubject(aspectName: String, subjectName: String? = null): AspectData {
         val subjectData: SubjectData? = subjectName?.let {
-            subjectService.createSubject(SubjectData(name = it, description = "some description"), username).toSubjectData()
+            subjectService.createSubject(SubjectData(name = it, description = "some description"), username)
+                .toSubjectData()
         }
         return AspectData(
             null, aspectName, Kilogram.name, null, Decimal.name, emptyList(),

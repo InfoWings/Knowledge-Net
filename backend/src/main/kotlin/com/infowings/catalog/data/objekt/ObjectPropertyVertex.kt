@@ -25,7 +25,8 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) { vertex[ATTR_NAME] = value
+        set(value) {
+            vertex[ATTR_NAME] = value
         }
 
     var cardinality: PropertyCardinality
@@ -41,7 +42,10 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         get() = vertex.getVertices(ODirection.OUT, ASPECT_OBJECT_PROPERTY_EDGE).firstOrNull()?.toAspectVertex()
 
     val values: List<ObjectPropertyValueVertex>
-        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).map { it.toObjectPropertyValueVertex() }
+        get() = vertex.getVertices(
+            ODirection.IN,
+            OBJECT_VALUE_OBJECT_PROPERTY_EDGE
+        ).map { it.toObjectPropertyValueVertex() }
 
     fun toObjectProperty(): ObjectProperty {
         val currentObject = objekt
@@ -62,5 +66,6 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 abstract class ObjectPropertyException(message: String) : Exception(message)
 class ObjectPropertyWithoutObjectException(vertex: ObjectPropertyVertex) :
     ObjectPropertyException("Object vertex not linked for ${vertex.id} ")
+
 class ObjectPropertyWithoutAspectException(vertex: ObjectPropertyVertex) :
     ObjectPropertyException("Aspect vertex not linked for ${vertex.id} ")

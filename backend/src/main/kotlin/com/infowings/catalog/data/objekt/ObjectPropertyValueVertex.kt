@@ -139,7 +139,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
                 LinkTypeGroup.SUBJECT.name ->
                     LinkValueVertex.SubjectValue(refValueSubject ?: throw SubjectVertexNotDefinedException(id))
                 LinkTypeGroup.OBJECT.name ->
-                    LinkValueVertex.ObjectValue(refValueObject ?: throw ObjectVertexNotDefinedException(id))
+                    LinkValueVertex.ObjectValue(refValueObject ?:  throw ObjectVertexNotDefinedException(id))
                 LinkTypeGroup.DOMAIN_ELEMENT.name ->
                     LinkValueVertex.DomainElementValue(refValueDomainElement
                             ?: throw DomainElementVertexNotDefinedException(id))

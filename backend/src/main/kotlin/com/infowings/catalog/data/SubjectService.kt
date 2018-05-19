@@ -13,7 +13,7 @@ import com.infowings.catalog.storage.VertexNotFound
 import com.infowings.catalog.storage.transaction
 
 class SubjectService(
-    private val db: OrientDatabase,
+    private val db:  OrientDatabase,
     private val dao: SubjectDao,
     private val history: HistoryService,
     private val userService: UserService
@@ -44,7 +44,7 @@ class SubjectService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
-            val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            val vertex: SubjectVertex = dao.findById(id)
 
             // временно отключим до гарантированной поддержки на фронте
             //if (subjectData.isModified(vertex.version)) {
@@ -67,7 +67,7 @@ class SubjectService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
-            val vertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            val vertex = dao.findById(id)
 
             // временно отключим до гарантированной поддержки на фронте
             //if (subjectData.isModified(vertex.version)) {

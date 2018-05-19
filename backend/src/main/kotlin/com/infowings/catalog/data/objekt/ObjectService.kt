@@ -42,7 +42,6 @@ class ObjectService(
             val subjectBefore = objekt.subject.currentSnapshot()
 
 
-
             val newVertex = dao.newObjectVertex()
 
             val objectVertex = dao.saveObject(newVertex, objekt)
@@ -85,6 +84,7 @@ class ObjectService(
     fun findById(id: String): ObjectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
     fun findPropertyById(id: String): ObjectPropertyVertex =
         dao.getObjectPropertyVertex(id) ?: throw ObjectPropertyNotFoundException(id)
+
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }

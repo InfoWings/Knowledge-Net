@@ -193,7 +193,7 @@ class ReferenceBookService(
      * @throws RefBookItemNotExist
      */
     fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db) {
-        getReferenceBookItemVertex(id)?.toReferenceBookItem()
+        getReferenceBookItemVertex(id).toReferenceBookItem()
     }
 
     /**
@@ -203,7 +203,7 @@ class ReferenceBookService(
      * @throws RefBookItemIllegalArgumentException if parentId is null
      * @return id of added ReferenceBookItem
      */
-    fun addReferenceBookItem(bookItem: ReferenceBookItem, username: String): String {
+    fun  addReferenceBookItem(bookItem: ReferenceBookItem, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
 
         return transaction(db) {

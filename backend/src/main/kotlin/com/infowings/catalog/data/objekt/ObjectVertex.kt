@@ -14,7 +14,7 @@ fun OVertex.toObjectVertex() = ObjectVertex(this)
 class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = OBJECT_CLASS
 
-    override fun currentSnapshot(): Snapshot = Snapshot(
+    override  fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)

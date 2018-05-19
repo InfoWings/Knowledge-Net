@@ -22,13 +22,14 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
             "description" to asStringOrEmpty(description)
         ),
         links = mapOf(
-            "objects" to objects.map {it.identity}
+            "objects" to objects.map { it.identity }
         )
     )
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) { vertex[ATTR_NAME] = value
+        set(value) {
+            vertex[ATTR_NAME] = value
         }
 
     var description: String?
@@ -60,5 +61,5 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
         } else throw InternalError("Source of $ASPECT_SUBJECT_EDGE is not aspect vertex")
 
         aspectVertex
-    }.filterNot {it.deleted}
+    }.filterNot { it.deleted }
 }

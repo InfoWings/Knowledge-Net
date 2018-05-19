@@ -72,6 +72,7 @@ data class ValueDTO(val tag: String, val id: String?, val scalar: ScalarDTO?)
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, null, ScalarDTO(value, null, null, null, null))
 fun integerValueDto(value: Int, range: Range?, precision: Int?) =
     ValueDTO(ValueDTOTags.INTEGER.name, null, ScalarDTO(null, value, null, range, precision))
+
 fun compoundValueDto(value: Any) = ValueDTO(ValueDTOTags.COMPOUND.name, null, ScalarDTO(null, null, value, null, null))
 fun referenceValueDto(tag: ValueDTOTags, id: String) = ValueDTO(tag.name, id, null)
 
@@ -118,7 +119,8 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.COMPOUND -> {
         val scalar = scalarStrict()
         ObjectValueData.Scalar(
-            ScalarValue.CompoundValue(scalar.compoundStrict()), null, null)
+            ScalarValue.CompoundValue(scalar.compoundStrict()), null, null
+        )
     }
     ValueDTOTags.OBJECT ->
         ObjectValueData.Link(LinkValueData(LinkTypeGroup.OBJECT, idStrict()))

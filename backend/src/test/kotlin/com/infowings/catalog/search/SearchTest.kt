@@ -32,7 +32,7 @@ private val logger = loggerFor<SearchTest>()
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class SearchTest {
+class  SearchTest {
     private val username = "admin"
 
     @Autowired
@@ -254,8 +254,7 @@ class SearchTest {
         aspectService.save(ad, username)
 
 
-        val loaded = aspectService.findById(level2.id)
-        return loaded
+        return aspectService.findById(level2.id)
     }
 
     @Test

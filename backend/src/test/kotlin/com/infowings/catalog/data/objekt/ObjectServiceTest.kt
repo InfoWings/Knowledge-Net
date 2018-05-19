@@ -131,7 +131,7 @@ class ObjectServiceTest {
             null
         )
 
-        val savedValue: ObjectPropertyValue = objectService.create(valueData, username)
+        val  savedValue: ObjectPropertyValue = objectService.create(valueData, username)
         val objectValue = savedValue.value
 
         when (objectValue) {

@@ -25,15 +25,14 @@ class ObjectValidator(
     private val subjectService: SubjectService,
     private val measureService: MeasureService,
     private val refBookService: ReferenceBookService,
-    private val aspectDao: AspectDaoService) {
+    private val aspectDao: AspectDaoService
+) {
     fun checkedForCreation(data: ObjectData): Objekt {
         val subjectVertex = subjectService.findById(data.subjectId)
 
-        data.id ?.let {
+        data.id?.let {
             throw IllegalStateException("id must be null for creation: $data")
         }
-
-        subjectVertex
 
         if (data.propertyIds.isNotEmpty()) {
             throw IllegalStateException("there should be no properties for object creation: $data")
@@ -45,7 +44,7 @@ class ObjectValidator(
         }
 
         return Objekt(
-            data.id ?.let { ORecordId(it) },
+            data.id?.let { ORecordId(it) },
             trimmedName,
             data.description,
             subjectVertex,
@@ -57,7 +56,7 @@ class ObjectValidator(
         val objectVertex = objectService.findById(data.objectId)
         val aspectVertex = aspectDao.getAspectVertex(data.aspectId) ?: throw AspectDoesNotExist(data.aspectId)
 
-        data.id ?.let {throw IllegalStateException("id must be null for creation: $data")}
+        data.id?.let { throw IllegalStateException("id must be null for creation: $data") }
 
         if (data.valueIds.isNotEmpty()) {
             throw IllegalStateException("there should be no values for object creation: $data")
@@ -69,7 +68,7 @@ class ObjectValidator(
         }
 
         return ObjectProperty(
-            data.id ?.let { ORecordId(it) },
+            data.id?.let { ORecordId(it) },
             trimmedName,
             data.cardinality,
             objectVertex,
@@ -81,11 +80,11 @@ class ObjectValidator(
     fun checkedForCreation(data: ObjectPropertyValueData): ObjectPropertyValue {
         val objectPropertyVertex = objectService.findPropertyById(data.objectPropertyId)
 
-        data.id ?.let {throw IllegalStateException("id must be null for creation: $data") }
+        data.id?.let { throw IllegalStateException("id must be null for creation: $data") }
 
         val aspectVertex = aspectDao.getAspectPropertyVertex(data.aspectPropertyId)
                 ?: throw AspectPropertyDoesNotExist(data.aspectPropertyId)
-        val parentValueVertex = data.parentValueId ?.let { objectService.findPropertyValueById(it) }
+        val parentValueVertex = data.parentValueId?.let { objectService.findPropertyValueById(it) }
 
         val dataValue = data.value
 
@@ -110,7 +109,7 @@ class ObjectValidator(
         val measureVertex = data.measureId?.let { measureService.findById(it) }
 
         return ObjectPropertyValue(
-            data.id ?.let { ORecordId(it) },
+            data.id?.let { ORecordId(it) },
             value,
             objectPropertyVertex,
             aspectVertex,
