@@ -17,9 +17,9 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
 
-private const val INT_TYPE_PROPERTY = "int_type"
-private const val STR_TYPE_PROPERTY = "str_type"
-private const val COMPOUND_TYPE_PROPERTY = "compound_type"
+const val INT_TYPE_PROPERTY = "int_type"
+const val STR_TYPE_PROPERTY = "str_type"
+const val COMPOUND_TYPE_PROPERTY = "compound_type"
 private const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять

@@ -67,7 +67,7 @@ data class ScalarDTO(
     val precision: Int?
 )
 
-data class ValueDTO(val tag: String, val id: String?, val scalar: ScalarDTO?)
+data class ValueDTO(val tag: String, val vertexId: String?, val scalar: ScalarDTO?)
 
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, null, ScalarDTO(value, null, null, null, null))
 fun integerValueDto(value: Int, range: Range?, precision: Int?) =
@@ -101,7 +101,7 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
 }
 
 fun ValueDTO.scalarStrict(): ScalarDTO = scalar ?: throw IllegalStateException("scalar value data are absent")
-fun ValueDTO.idStrict(): String = id ?: throw IllegalStateException("id is absent")
+fun ValueDTO.idStrict(): String = vertexId ?: throw IllegalStateException("id is absent")
 
 fun ScalarDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int value is absent")
 fun ScalarDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
