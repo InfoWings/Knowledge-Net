@@ -22,8 +22,8 @@ sealed class LinkValueVertex(private val typeGroup: LinkTypeGroup) {
 }
 
 sealed class ObjectValue {
-    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.Scalar(value, range, precision)
+    data class Scalar(val value: ObjectValueData) : ObjectValue() {
+        override fun toObjectValueData() = value
     }
 
     data class Link(val value: LinkValueVertex) : ObjectValue() {
@@ -33,8 +33,10 @@ sealed class ObjectValue {
     abstract fun toObjectValueData(): ObjectValueData
 }
 
-fun fromScalarData(data: ObjectValueData.Scalar): ObjectValue.Scalar =
-    ObjectValue.Scalar(data.value, data.range, data.precision)
+fun fromData(data: ObjectValueData): ObjectValue.Scalar {
+    if (data is ObjectValueData.Link) throw IllegalStateException("attempt to create scalar from data")
+    return ObjectValue.Scalar(data)
+}
 
 
 /**

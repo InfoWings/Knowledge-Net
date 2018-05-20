@@ -51,7 +51,8 @@ class ObjectServiceTest {
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(
-            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
+        )
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
         val complexAspectData = AspectData(
             "",
@@ -82,9 +83,11 @@ class ObjectServiceTest {
 
         val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
 
-        val objectPropertyData = ObjectPropertyData(null, name = "prop_createObjectWithPropertyTestName",
+        val objectPropertyData = ObjectPropertyData(
+            null, name = "prop_createObjectWithPropertyTestName",
             cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
-            valueIds = emptyList())
+            valueIds = emptyList()
+        )
 
         val savedProperty = objectService.create(objectPropertyData, username)
         val foundObject = objectService.findById(savedObjectId)
@@ -98,10 +101,14 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(1, foundObject.properties.size, "found parent object must contain 1 property")
             assertEquals(1, updatedObject.properties.size, "updated parent object must contain 1 property")
-            assertEquals(savedProperty.id, foundObject.properties.first().identity,
-                "found parent object must contain correct property")
-            assertEquals(savedProperty.id, updatedObject.properties.first().identity,
-                "found parent object must contain correct property")
+            assertEquals(
+                savedProperty.id, foundObject.properties.first().identity,
+                "found parent object must contain correct property"
+            )
+            assertEquals(
+                savedProperty.id, updatedObject.properties.first().identity,
+                "found parent object must contain correct property"
+            )
         }
     }
 
@@ -112,9 +119,11 @@ class ObjectServiceTest {
 
         val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
 
-        val objectPropertyData = ObjectPropertyData(null, name = "prop_createObjectWithValueTestName",
+        val objectPropertyData = ObjectPropertyData(
+            null, name = "prop_createObjectWithValueTestName",
             cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
-            valueIds = emptyList())
+            valueIds = emptyList()
+        )
 
         val savedProperty = objectService.create(objectPropertyData, username)
 
@@ -125,25 +134,29 @@ class ObjectServiceTest {
 
         val valueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(scalarInt), null, null),
+            ObjectValueData.IntegerValue(scalarInt, null),
             savedObjectPropertyId, complexAspect.properties[0].id,
             null,
             null
         )
 
-        val  savedValue: ObjectPropertyValue = objectService.create(valueData, username)
+        val savedValue: ObjectPropertyValue = objectService.create(valueData, username)
         val objectValue = savedValue.value
 
         when (objectValue) {
             is ObjectValue.Scalar -> {
                 val scalarValue = objectValue.value
                 when (scalarValue) {
-                    is ScalarValue.IntegerValue -> {
+                    is ObjectValueData.IntegerValue -> {
                         assertEquals(scalarInt, scalarValue.value, "scalar value must be with correct type name")
-                        assertEquals(valueData.objectPropertyId, savedValue.objectProperty.id,
-                            "object property must point to parent property")
-                        assertEquals(valueData.aspectPropertyId, savedValue.aspectProperty.id,
-                            "object property must point to proper root characteristic")
+                        assertEquals(
+                            valueData.objectPropertyId, savedValue.objectProperty.id,
+                            "object property must point to parent property"
+                        )
+                        assertEquals(
+                            valueData.aspectPropertyId, savedValue.aspectProperty.id,
+                            "object property must point to proper root characteristic"
+                        )
                         assertTrue(valueData.parentValueId == null)
 
                     }

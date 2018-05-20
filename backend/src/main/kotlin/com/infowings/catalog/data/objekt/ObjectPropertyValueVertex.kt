@@ -1,9 +1,9 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
-import com.infowings.catalog.common.LinkTypeGroup
-import com.infowings.catalog.common.ScalarValue
-import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.aspect.AspectPropertyVertex
+import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -20,6 +20,8 @@ fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
 const val INT_TYPE_PROPERTY = "int_type"
 const val STR_TYPE_PROPERTY = "str_type"
 const val COMPOUND_TYPE_PROPERTY = "compound_type"
+const val RANGE_TYPE_PROPERTY = "range_type"
+const val PRECISION_PROPERTY = "precision"
 private const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
@@ -28,7 +30,26 @@ private const val TYPE_TAG_PROPERTY = "type_tag"
 enum class ScalarTypeTag(val code: Int) {
     INTEGER(1),
     STRING(2),
-    COMPOUND(3)
+    RANGE(3),
+    COMPOUND(4),
+    OBJECT(100),
+    SUBJECT(101),
+    DOMAIN_ELEMENT(102),
+}
+
+fun ObjectValue.tag() = when (this) {
+    is ObjectValue.Scalar -> when (this.value) {
+        is ObjectValueData.IntegerValue -> ScalarTypeTag.INTEGER
+        is ObjectValueData.StringValue -> ScalarTypeTag.STRING
+        is ObjectValueData.RangeValue -> ScalarTypeTag.RANGE
+        is ObjectValueData.CompoundValue -> ScalarTypeTag.COMPOUND
+        is ObjectValueData.Link -> throw IllegalStateException("illegal object value")
+    }
+    is ObjectValue.Link -> when (this.value) {
+        is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT
+        is LinkValueVertex.SubjectValue -> ScalarTypeTag.SUBJECT
+        is LinkValueVertex.DomainElementValue -> ScalarTypeTag.DOMAIN_ELEMENT
+    }
 }
 
 val tagByInt: Map<Int, ScalarTypeTag> = ScalarTypeTag.values().map { it.code to it }.toMap()
@@ -47,13 +68,17 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     var typeTag: ScalarTypeTag?
         get() {
             val intTag: Int? = vertex[TYPE_TAG_PROPERTY]
-            return intTag ?.let { tagByInt[intTag] ?: throw IncorrectTypeTagException(id, it) }
+            return intTag?.let { tagByInt[intTag] ?: throw IncorrectTypeTagException(id, it) }
         }
-        set(value) { vertex[TYPE_TAG_PROPERTY] = value?.code }
+        set(value) {
+            vertex[TYPE_TAG_PROPERTY] = value?.code
+        }
 
     var intValue: Int?
         get() = vertex[INT_TYPE_PROPERTY]
-        set(value) { vertex[INT_TYPE_PROPERTY] = value }
+        set(value) {
+            vertex[INT_TYPE_PROPERTY] = value
+        }
     private val intValueStrict: Int
         get() = intValue ?: throw IntValueNotDefinedException(id)
 
@@ -87,17 +112,21 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
     var range: Range?
         get() {
-            val s: String? = vertex["range"]
+            val s: String? = vertex[RANGE_TYPE_PROPERTY]
             return s?.let {
                 val parts = it.split(":").map { it.toInt() }
                 return Range(parts[0], parts[1])
             }
         }
-        set(value) { setOrRemove("range", value?.let {"${value.left}:${value.right}"}) }
+        set(value) {
+            setOrRemove(RANGE_TYPE_PROPERTY, value?.let { "${value.left}:${value.right}" })
+        }
+    private val rangeStrict: Range
+        get() = range ?: throw RangeNotDefinedException(id)
 
     var precision: Int?
-        get() = vertex["precision"]
-        set(v) = setOrRemove("precision", v)
+        get() = vertex[PRECISION_PROPERTY]
+        set(v) = setOrRemove(PRECISION_PROPERTY, v)
 
     val objectProperty: ObjectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
@@ -110,10 +139,6 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     val parentValue: ObjectPropertyValueVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()
             ?.toObjectPropertyValueVertex()
-
-    var refValueType: String?
-        get() = vertex["refValueType"]
-        set(value) { vertex["refValueType"] = value }
 
     val refValueObject: ObjectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).firstOrNull()
@@ -134,31 +159,37 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentAspectProperty = aspectProperty ?: throw ObjectValueWithoutAspectPropertyException(this)
 
-        val refValueVertex: LinkValueVertex? = refValueType ?. let {
-            when (it) {
-                LinkTypeGroup.SUBJECT.name ->
-                    LinkValueVertex.SubjectValue(refValueSubject ?: throw SubjectVertexNotDefinedException(id))
-                LinkTypeGroup.OBJECT.name ->
-                    LinkValueVertex.ObjectValue(refValueObject ?:  throw ObjectVertexNotDefinedException(id))
-                LinkTypeGroup.DOMAIN_ELEMENT.name ->
-                    LinkValueVertex.DomainElementValue(refValueDomainElement
-                            ?: throw DomainElementVertexNotDefinedException(id))
-                else -> throw IllegalStateException("unknown link value vertex type: $refValueType")
+        val value: ObjectValue = when (typeTag) {
+            ScalarTypeTag.OBJECT ->
+                ObjectValue.Link(
+                    LinkValueVertex.ObjectValue(
+                        refValueObject ?: throw ObjectVertexNotDefinedException(id)
+                    )
+                )
+            ScalarTypeTag.SUBJECT ->
+                ObjectValue.Link(
+                    LinkValueVertex.SubjectValue(
+                        refValueSubject ?: throw SubjectVertexNotDefinedException(
+                            id
+                        )
+                    )
+                )
+            ScalarTypeTag.DOMAIN_ELEMENT ->
+                ObjectValue.Link(
+                    LinkValueVertex.DomainElementValue(
+                        refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
+                    )
+                )
+            ScalarTypeTag.INTEGER -> ObjectValue.Scalar(ObjectValueData.IntegerValue(intValueStrict, precision))
+            ScalarTypeTag.STRING -> ObjectValue.Scalar(ObjectValueData.StringValue(strValueStrict))
+            ScalarTypeTag.RANGE -> {
+                ObjectValue.Scalar(ObjectValueData.RangeValue(rangeStrict))
             }
+            ScalarTypeTag.COMPOUND -> ObjectValue.Scalar(ObjectValueData.CompoundValue(compoundValueStrict))
+            else ->
+                throw IllegalStateException("type tag is not defined")
         }
 
-        val value = when (refValueVertex) {
-            null -> {
-                val simpleData: ScalarValue? = when (typeTag) {
-                    ScalarTypeTag.INTEGER -> ScalarValue.IntegerValue(intValueStrict)
-                    ScalarTypeTag.STRING -> ScalarValue.StringValue(strValueStrict)
-                    ScalarTypeTag.COMPOUND -> ScalarValue.CompoundValue(compoundValueStrict)
-                    else -> null
-                }
-                ObjectValue.Scalar(simpleData, range, precision)
-            }
-            else -> ObjectValue.Link(refValueVertex)
-        }
 
         return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)
     }
@@ -167,6 +198,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
+
 class ObjectValueWithoutAspectPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Aspect property vertex not linked for ${vertex.id} ")
 
@@ -179,10 +211,15 @@ class StringValueNotDefinedException(id: String) :
 class CompoundValueNotDefinedException(id: String) :
     ObjectValueException("compound value is not defined for value $id")
 
+class RangeNotDefinedException(id: String) :
+    ObjectValueException("range is not defined for value $id")
+
 class ObjectVertexNotDefinedException(id: String) :
     ObjectValueException("object vertex is not defined for value $id")
+
 class SubjectVertexNotDefinedException(id: String) :
     ObjectValueException("subject vertex is not defined for value $id")
+
 class DomainElementVertexNotDefinedException(id: String) :
     ObjectValueException("domain element vertex is not defined for value $id")
 

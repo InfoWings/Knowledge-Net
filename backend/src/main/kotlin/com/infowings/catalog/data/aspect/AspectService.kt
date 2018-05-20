@@ -176,7 +176,7 @@ class AspectService(
     ): List<Aspect> =
         aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
 
-    private fun findVertexById(id: String): AspectVertex =su
+    private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
 
     /**

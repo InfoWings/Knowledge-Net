@@ -89,8 +89,6 @@ class ObjectValidator(
         val dataValue = data.value
 
         val value = when (dataValue) {
-            is ObjectValueData.Scalar ->
-                fromScalarData(dataValue)
             is ObjectValueData.Link -> {
                 val refValueVertex = dataValue.value.let {
                     when (it.typeGroup) {
@@ -104,6 +102,8 @@ class ObjectValidator(
                 }
                 ObjectValue.Link(refValueVertex)
             }
+            else ->
+                fromData(dataValue)
         }
 
         val measureVertex = data.measureId?.let { measureService.findById(it) }

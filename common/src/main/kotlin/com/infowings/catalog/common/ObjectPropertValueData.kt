@@ -2,14 +2,11 @@ package com.infowings.catalog.common
 
 data class Range(val left: Int, val right: Int)
 
-sealed class ScalarValue {
-    class IntegerValue(val value: Int) : ScalarValue()
-    class StringValue(val value: String) : ScalarValue()
-    class CompoundValue(val value: Any) : ScalarValue()
-}
-
 sealed class ObjectValueData {
-    data class Scalar(val value: ScalarValue?, val range: Range?, val precision: Int?) : ObjectValueData()
+    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData()
+    data class StringValue(val value: String) : ObjectValueData()
+    data class CompoundValue(val value: Any) : ObjectValueData()
+    data class RangeValue(val range: Range) : ObjectValueData()
     data class Link(val value: LinkValueData) : ObjectValueData()
 }
 
@@ -54,6 +51,7 @@ enum class ValueDTOTags {
     INTEGER,
     STRING,
     COMPOUND,
+    RANGE,
     SUBJECT,
     OBJECT,
     DOMAIN_ELEMENT,
@@ -70,11 +68,13 @@ data class ScalarDTO(
 data class ValueDTO(val tag: String, val vertexId: String?, val scalar: ScalarDTO?)
 
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, null, ScalarDTO(value, null, null, null, null))
-fun integerValueDto(value: Int, range: Range?, precision: Int?) =
-    ValueDTO(ValueDTOTags.INTEGER.name, null, ScalarDTO(null, value, null, range, precision))
+fun integerValueDto(value: Int, precision: Int?) =
+    ValueDTO(ValueDTOTags.INTEGER.name, null, ScalarDTO(null, value, null, null, precision))
 
 fun compoundValueDto(value: Any) = ValueDTO(ValueDTOTags.COMPOUND.name, null, ScalarDTO(null, null, value, null, null))
 fun referenceValueDto(tag: ValueDTOTags, id: String) = ValueDTO(tag.name, id, null)
+fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, ScalarDTO(null, null, value, null, null))
+
 
 fun LinkTypeGroup.toDTOTag() = when (this) {
     LinkTypeGroup.SUBJECT -> ValueDTOTags.SUBJECT
@@ -83,21 +83,18 @@ fun LinkTypeGroup.toDTOTag() = when (this) {
 }
 
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
-    is ObjectValueData.Scalar -> {
-        val scalar = this.value
-        when (scalar) {
-            is ScalarValue.IntegerValue ->
-                integerValueDto(scalar.value, range, precision)
-            is ScalarValue.StringValue ->
-                stringValueDto(scalar.value)
-            is ScalarValue.CompoundValue ->
-                compoundValueDto(scalar.value)
-            else ->
-                throw IllegalStateException("no scalar value")
-        }
-    }
+    is ObjectValueData.IntegerValue ->
+        integerValueDto(value, precision)
+    is ObjectValueData.StringValue ->
+        stringValueDto(value)
+    is ObjectValueData.CompoundValue ->
+        compoundValueDto(value)
+    is ObjectValueData.RangeValue ->
+        rangeValueDto(range)
     is ObjectValueData.Link ->
-        referenceValueDto(this.value.typeGroup.toDTOTag(), this.value.id)
+        referenceValueDto(value.typeGroup.toDTOTag(), this.value.id)
+    else ->
+        throw IllegalStateException("no scalar value")
 }
 
 fun ValueDTO.scalarStrict(): ScalarDTO = scalar ?: throw IllegalStateException("scalar value data are absent")
@@ -106,21 +103,24 @@ fun ValueDTO.idStrict(): String = vertexId ?: throw IllegalStateException("id is
 fun ScalarDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int value is absent")
 fun ScalarDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
 fun ScalarDTO.compoundStrict(): Any = data ?: throw IllegalStateException("data value is absent")
+fun ScalarDTO.rangeStrict(): Range = range ?: throw IllegalStateException("range value is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.INTEGER -> {
         val scalar = scalarStrict()
-        ObjectValueData.Scalar(ScalarValue.IntegerValue(scalar.intStrict()), scalar.range, scalar.precision)
+        ObjectValueData.IntegerValue(scalar.intStrict(), scalar.precision)
     }
     ValueDTOTags.STRING -> {
         val scalar = scalarStrict()
-        ObjectValueData.Scalar(ScalarValue.StringValue(scalar.stringStrict()), null, null)
+        ObjectValueData.StringValue(scalar.stringStrict())
+    }
+    ValueDTOTags.RANGE -> {
+        val scalar = scalarStrict()
+        ObjectValueData.RangeValue(scalar.rangeStrict())
     }
     ValueDTOTags.COMPOUND -> {
         val scalar = scalarStrict()
-        ObjectValueData.Scalar(
-            ScalarValue.CompoundValue(scalar.compoundStrict()), null, null
-        )
+        ObjectValueData.CompoundValue(scalar.compoundStrict())
     }
     ValueDTOTags.OBJECT ->
         ObjectValueData.Link(LinkValueData(LinkTypeGroup.OBJECT, idStrict()))

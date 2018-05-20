@@ -25,7 +25,7 @@ import kotlin.test.assertEquals
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class  ObjectServiceExampleTest {
+class ObjectServiceExampleTest {
     @Autowired
     private lateinit var db: OrientDatabase
     @Autowired
@@ -53,7 +53,8 @@ class  ObjectServiceExampleTest {
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(
-            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
+        )
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
         val complexAspectData = AspectData(
             "",
@@ -95,13 +96,15 @@ class  ObjectServiceExampleTest {
             ), username
         )
 
-        val chargeModePropertyByAspectId = aspectChargeMode.properties.map {it.aspect.id to it}.toMap()
+        val chargeModePropertyByAspectId = aspectChargeMode.properties.map { it.aspect.id to it }.toMap()
 
         fun chargeModeProperty(aspectId: String): String =
-            chargeModePropertyByAspectId[aspectId]?.id ?: throw IllegalStateException("Not found property: $aspectStage1")
+            chargeModePropertyByAspectId[aspectId]?.id
+                    ?: throw IllegalStateException("Not found property: $aspectStage1")
 
 
-        val propertyChargeMode = AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name)
+        val propertyChargeMode =
+            AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name)
         val aspectChargeCharacteristic = aspectService.save(
             AspectData(
                 name = "сharge-characteristic",
@@ -171,7 +174,7 @@ class  ObjectServiceExampleTest {
 
         val value111Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(3), null, null),
+            ObjectValueData.IntegerValue(3, null),
             savedObjectProperty.id.toString(),
             chargeModeProperty(aspectStage1.id),
             savedValue11.id.toString(),
@@ -181,7 +184,7 @@ class  ObjectServiceExampleTest {
 
         val value112Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(75), null, null),
+            ObjectValueData.IntegerValue(75, null),
             savedObjectProperty.id.toString(),
             chargeModeProperty(aspectMaxTempr.id),
             savedValue11.id.toString(),
@@ -194,7 +197,7 @@ class  ObjectServiceExampleTest {
 
         val value121Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("0.8"), null, null),
+            ObjectValueData.StringValue("0.8"),
             /* возможно, нужен еще тип с фиксированной точкой */
             savedObjectProperty.id.toString(),
             chargeModeProperty(aspectStage1.id),
@@ -205,7 +208,7 @@ class  ObjectServiceExampleTest {
 
         val value131Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("1.2"), null, null),
+            ObjectValueData.StringValue("1.2"),
             savedObjectProperty.id.toString(),
             aspectChargeMode.id,
             savedValue13.id.toString(),
@@ -215,7 +218,7 @@ class  ObjectServiceExampleTest {
 
         val value132Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("0.3"), null, null),
+            ObjectValueData.StringValue("0.3"),
             savedObjectProperty.id.toString(),
             chargeModeProperty(aspectStage2.id),
             savedValue13.id.toString(),
@@ -225,7 +228,7 @@ class  ObjectServiceExampleTest {
 
         val value133Data = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(45), null, null),
+            ObjectValueData.IntegerValue(45, null),
             savedObjectProperty.id.toString(),
             chargeModeProperty(aspectMaxTempr.id),
             savedValue13.id.toString(),

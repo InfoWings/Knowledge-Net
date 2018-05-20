@@ -60,7 +60,13 @@ class ObjectDaoTest {
     fun initTestData() {
         validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+        aspect = aspectService.save(
+            AspectData(
+                name = "aspectName",
+                description = "aspectDescr",
+                baseType = BaseType.Text.name
+            ), username
+        )
         val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
         val complexAspectData = AspectData(
             "",
@@ -107,7 +113,8 @@ class ObjectDaoTest {
             null,
             "savePropertyTestObjectPropertyName",
             PropertyCardinality.ONE,
-            obj.id, aspect.id, emptyList())
+            obj.id, aspect.id, emptyList()
+        )
 
 
         val objectProperty = validator.checkedForCreation(propertyData)
@@ -122,7 +129,11 @@ class ObjectDaoTest {
             assertEquals(1, updatedObject.properties.size, "updated object must contain one property")
             assertEquals(1, foundObject.properties.size, "found object must contain one property")
 
-            assertEquals(updatedObject.properties.first().id, saved.id, "updated object's property must link to new one")
+            assertEquals(
+                updatedObject.properties.first().id,
+                saved.id,
+                "updated object's property must link to new one"
+            )
             assertEquals(foundObject.properties.first().id, saved.id, "found object's property must link to new one")
         }
     }
@@ -135,7 +146,8 @@ class ObjectDaoTest {
             null,
             "savePropertySimpleIntValueTest",
             PropertyCardinality.ONE,
-            savedObject.id, aspect.id, emptyList())
+            savedObject.id, aspect.id, emptyList()
+        )
 
 
         val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
@@ -145,7 +157,7 @@ class ObjectDaoTest {
 
         val propertyValueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.IntegerValue(123), null, null),
+            ObjectValueData.IntegerValue(123, null),
             savedProperty.id,
             complexAspect.id,
             null,
@@ -159,13 +171,21 @@ class ObjectDaoTest {
         assertTrue("str type must be non-null", savedValue.strValue == null)
         assertTrue("compound type must be non-null", savedValue.compoundValue == null)
 
-        val updatedObjectProperty = transaction(db) {savedValue.objectProperty}
+        val updatedObjectProperty = transaction(db) { savedValue.objectProperty }
         val foundObjectProperty = objectService.findPropertyById(savedProperty.id)
 
         if (updatedObjectProperty != null) {
             transaction(db) {
-                assertEquals(updatedObjectProperty.id, savedValue.objectProperty?.id, "object property id must point to parent")
-                assertEquals(foundObjectProperty.id, savedValue.objectProperty?.id, "object property id must point to found property")
+                assertEquals(
+                    updatedObjectProperty.id,
+                    savedValue.objectProperty?.id,
+                    "object property id must point to parent"
+                )
+                assertEquals(
+                    foundObjectProperty.id,
+                    savedValue.objectProperty?.id,
+                    "object property id must point to found property"
+                )
 
                 assertEquals(1, updatedObjectProperty.values.size, "property must contain 1 value")
                 assertEquals(1, foundObjectProperty.values.size, "property must contain 1 value")
@@ -183,7 +203,8 @@ class ObjectDaoTest {
             null,
             "savePropertySimpleStrValueTest",
             PropertyCardinality.ONE,
-            savedObject.id, aspect.id, emptyList())
+            savedObject.id, aspect.id, emptyList()
+        )
 
 
         val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
@@ -193,13 +214,13 @@ class ObjectDaoTest {
 
         val propertyValueData = ObjectPropertyValueData(
             null,
-            ObjectValueData.Scalar(ScalarValue.StringValue("some value"), null, null),
+            ObjectValueData.StringValue("some value"),
             savedProperty.id,
             complexAspect.id,
             null,
             null
         )
-        val  objectPropertyValue = validator.checkedForCreation(propertyValueData)
+        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
         val savedValue = createObjectPropertyValue(objectPropertyValue)
 
         assertEquals(ScalarTypeTag.STRING, savedValue.typeTag, "type tag must be string")

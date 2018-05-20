@@ -2,7 +2,8 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
-import com.infowings.catalog.common.ScalarValue
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.Range
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -74,39 +75,72 @@ class ObjectDaoService(private val db: OrientDatabase) {
         vertex: ObjectPropertyValueVertex,
         propertyValue: ObjectPropertyValue
     ): ObjectPropertyValueVertex = transaction(db) {
-        when (vertex.typeTag) {
-            ScalarTypeTag.INTEGER -> vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
-            ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
-            ScalarTypeTag.COMPOUND -> vertex.removeProperty<String>(COMPOUND_TYPE_PROPERTY)
+        val newTypeTag = propertyValue.value.tag()
+
+        if (vertex.typeTag != newTypeTag) {
+            when (vertex.typeTag) {
+                ScalarTypeTag.INTEGER -> {
+                    vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
+                    vertex.removeProperty<Int>(PRECISION_PROPERTY)
+                }
+                ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
+                ScalarTypeTag.COMPOUND -> vertex.removeProperty<String>(COMPOUND_TYPE_PROPERTY)
+                ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
+                ScalarTypeTag.SUBJECT -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.OBJECT -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.DOMAIN_ELEMENT -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
+                }
+            }
+
+            vertex.typeTag = newTypeTag
         }
 
         when (propertyValue.value) {
             is ObjectValue.Scalar -> {
                 val data = propertyValue.value
                 when (data.value) {
-                    is ScalarValue.IntegerValue -> {
+                    is ObjectValueData.IntegerValue -> {
                         vertex.intValue = data.value.value
-                        vertex.typeTag = ScalarTypeTag.INTEGER
+                        vertex.precision = data.value.precision
                     }
-                    is ScalarValue.StringValue -> {
+                    is ObjectValueData.StringValue -> {
                         vertex.strValue = data.value.value
-                        vertex.typeTag = ScalarTypeTag.STRING
                     }
-                    is ScalarValue.CompoundValue -> {
+                    is ObjectValueData.CompoundValue -> {
                         vertex.compoundValue = JSON.stringify(data.value.value)
-                        vertex.typeTag = ScalarTypeTag.COMPOUND
+                    }
+                    is ObjectValueData.RangeValue -> {
+                        vertex.range = data.value.range
                     }
                 }
-
-                vertex.range = propertyValue.value.range
-                vertex.precision = propertyValue.value.precision
-
             }
 
-            is ObjectValue.Link ->
-                replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, propertyValue.measure)
+            is ObjectValue.Link -> {
+                val linkValue = propertyValue.value
+                when (linkValue.value) {
+                    is LinkValueVertex.ObjectValue ->
+                        replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.value.vertex)
+                    is LinkValueVertex.SubjectValue ->
+                        replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.value.vertex)
+                    is LinkValueVertex.DomainElementValue ->
+                        replaceEdge(
+                            vertex,
+                            OBJECT_VALUE_REFBOOK_ITEM_EDGE,
+                            vertex.refValueDomainElement,
+                            linkValue.value.vertex
+                        )
+                }
+            }
+
+
         }
 
+        replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, propertyValue.measure)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, propertyValue.objectProperty)
         replaceEdge(vertex, OBJECT_VALUE_ASPECT_PROPERTY_EDGE, vertex.aspectProperty, propertyValue.aspectProperty)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, propertyValue.parentValue)
