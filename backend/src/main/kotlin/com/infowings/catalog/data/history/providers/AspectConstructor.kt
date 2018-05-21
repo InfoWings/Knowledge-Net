@@ -12,6 +12,7 @@ fun AspectData.submit(fact: HistoryFactDto): AspectData = when (fact.event.type)
             measure = fact.payload.data.getOrDefault(AspectField.MEASURE.name, measure),
             baseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType),
             name = fact.payload.data.getOrDefault(AspectField.NAME.name, name),
+            description = fact.payload.data.getOrDefault(AspectField.DESCRIPTION.name, description),
             domain = baseTypeObj?.let { OpenDomain(it).toString() },
             version = fact.event.version
         )

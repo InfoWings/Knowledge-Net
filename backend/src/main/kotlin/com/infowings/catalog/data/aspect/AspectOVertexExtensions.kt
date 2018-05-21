@@ -35,7 +35,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         data = mapOf(
             AspectField.NAME.name to asStringOrEmpty(name),
             AspectField.MEASURE.name to asStringOrEmpty(measure),
-            AspectField.BASE_TYPE.name to asStringOrEmpty(baseType)
+            AspectField.BASE_TYPE.name to asStringOrEmpty(baseType),
+            AspectField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = mapOf(
             AspectField.PROPERTY to properties.map { it.identity },

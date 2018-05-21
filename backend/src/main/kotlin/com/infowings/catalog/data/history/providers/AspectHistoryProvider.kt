@@ -108,6 +108,12 @@ class AspectHistoryProvider(
                 before.name,
                 after.name
             )
+            AspectField.DESCRIPTION -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.NAME.view,
+                before.name,
+                after.name
+            )
         }
     }
 

@@ -45,6 +45,10 @@ enum class AspectField {
     BASE_TYPE {
         override val view: String
             get() = "Base type"
+    },
+    DESCRIPTION {
+        override val view: String
+            get() = "Description"
     };
 
     abstract val view: String
