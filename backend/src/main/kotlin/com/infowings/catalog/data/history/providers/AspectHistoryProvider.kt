@@ -32,11 +32,10 @@ class AspectHistoryProvider(
 
         return aspectEventGroups.values.flatMap { entityEvents ->
 
-            val versionList = mutableListOf<AspectData>()
             var dataAccumulator = AspectData()
-            versionList.add(dataAccumulator)
 
-            for (fact in entityEvents) {
+            val versionList = entityEvents.map { fact ->
+
                 val allRelated = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
                 val newProps = fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
 
@@ -55,10 +54,11 @@ class AspectHistoryProvider(
                     }
                 dataAccumulator = fact.payload.removedFor(AspectField.REFERENCE_BOOK).foldRight(dataAccumulator) { _, acc -> acc.copy(refBookName = null) }
 
-                dataAccumulator = dataAccumulator.submit(fact).copy(properties = updatedProps)
+                return@map dataAccumulator.submit(fact).copy(properties = updatedProps)
 
-                versionList.add(dataAccumulator)
-            }
+            }.toMutableList()
+
+            versionList.add(0, AspectData())
 
             return@flatMap versionList.zipWithNext().zip(entityEvents).map { createDiff(it.first.first, it.first.second, it.second) }
 
