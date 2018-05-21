@@ -42,23 +42,21 @@ class AspectHistoryProvider(
 
                 val updatedProps = dataAccumulator.properties.plus(newProps).submit(allRelated)
 
-                fact.payload.addedFor(AspectField.SUBJECT).forEach {
-                    dataAccumulator = dataAccumulator.copy(subject = subjectService.findById(it.toString())?.toSubject()?.toSubjectData())
-                }
+                dataAccumulator = fact.payload.addedFor(AspectField.SUBJECT)
+                    .foldRight(dataAccumulator) { nextFact, acc ->
+                        acc.copy(subject = subjectService.findById(nextFact.identity.toString())?.toSubject()?.toSubjectData())
+                    }
 
-                fact.payload.removedFor(AspectField.SUBJECT).forEach {
-                    dataAccumulator = dataAccumulator.copy(subject = null)
-                }
+                dataAccumulator = fact.payload.removedFor(AspectField.SUBJECT).foldRight(dataAccumulator) { _, acc -> acc.copy(subject = null) }
 
-                fact.payload.addedFor(AspectField.REFERENCE_BOOK).forEach {
-                    dataAccumulator = dataAccumulator.copy(refBookName = referenceBookService.getReferenceBookNameById(it.toString()) ?: "Deleted")
-                }
-
-                fact.payload.removedFor(AspectField.REFERENCE_BOOK).forEach {
-                    dataAccumulator = dataAccumulator.copy(refBookName = null)
-                }
+                dataAccumulator = fact.payload.addedFor(AspectField.REFERENCE_BOOK)
+                    .foldRight(dataAccumulator) { nextFact, acc ->
+                        acc.copy(refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted")
+                    }
+                dataAccumulator = fact.payload.removedFor(AspectField.REFERENCE_BOOK).foldRight(dataAccumulator) { _, acc -> acc.copy(refBookName = null) }
 
                 dataAccumulator = dataAccumulator.submit(fact).copy(properties = updatedProps)
+
                 versionList.add(dataAccumulator)
             }
 
@@ -156,7 +154,7 @@ class AspectHistoryProvider(
 
         return diffs
     }
-    
+
 
     private fun createHistoryElement(
         event: HistoryEvent,
