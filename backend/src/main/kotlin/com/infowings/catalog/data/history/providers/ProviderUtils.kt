@@ -6,7 +6,7 @@ import com.infowings.catalog.data.history.HistoryFactDto
 import com.orientechnologies.orient.core.id.ORID
 
 
-fun Set<HistoryFactDto>.filterByClassAndGroupById(classname: String): Map<ORID, List<HistoryFactDto>> = this
+fun Set<HistoryFactDto>.idEventMap(classname: String): Map<ORID, List<HistoryFactDto>> = this
     .filter { it.event.entityClass == classname }
     .groupBy { it.event.entityId }
     .map { (id, events) -> id to events.sortedBy { it.event.timestamp } }

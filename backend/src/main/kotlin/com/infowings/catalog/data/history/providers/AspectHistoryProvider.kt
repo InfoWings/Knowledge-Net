@@ -25,41 +25,41 @@ class AspectHistoryProvider(
 
         val allHistory = aspectHistoryService.getAll()
 
-        val aspectEventGroups = allHistory.filterByClassAndGroupById(ASPECT_CLASS)
-        val aspectPropertyEventGroupsBySessionId = allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
+        val aspectEventGroups = allHistory.idEventMap(classname = ASPECT_CLASS)
+        val sessionAspectPropertyMap = allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
             .groupBy { it.sessionId }
             .toMap()
 
         return aspectEventGroups.values.flatMap { entityEvents ->
 
             val versionList = mutableListOf<AspectData>()
-            var tmpData = emptyAspectData
-            versionList.add(tmpData)
+            var dataAccumulator = AspectData()
+            versionList.add(dataAccumulator)
+
             for (fact in entityEvents) {
-                val allRelated = aspectPropertyEventGroupsBySessionId[fact.sessionId] ?: emptyList()
-                val newProps = fact.payload.addedLinks[AspectField.PROPERTY]?.map { emptyAspectPropertyData.copy(id = it.toString()) }
-                        ?: emptyList()
+                val allRelated = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
+                val newProps = fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
 
-                val updatedProps = tmpData.properties.plus(newProps).submit(allRelated)
+                val updatedProps = dataAccumulator.properties.plus(newProps).submit(allRelated)
 
-                fact.payload.addedLinks[AspectField.SUBJECT]?.forEach {
-                    tmpData = tmpData.copy(subject = subjectService.findById(it.toString())?.toSubject()?.toSubjectData())
+                fact.payload.addedFor(AspectField.SUBJECT).forEach {
+                    dataAccumulator = dataAccumulator.copy(subject = subjectService.findById(it.toString())?.toSubject()?.toSubjectData())
                 }
 
-                fact.payload.removedLinks[AspectField.SUBJECT]?.forEach {
-                    tmpData = tmpData.copy(subject = null)
+                fact.payload.removedFor(AspectField.SUBJECT).forEach {
+                    dataAccumulator = dataAccumulator.copy(subject = null)
                 }
 
-                fact.payload.addedLinks[AspectField.REFERENCE_BOOK]?.forEach {
-                    tmpData = tmpData.copy(refBookName = referenceBookService.getReferenceBookNameById(it.toString()) ?: "Deleted")
+                fact.payload.addedFor(AspectField.REFERENCE_BOOK).forEach {
+                    dataAccumulator = dataAccumulator.copy(refBookName = referenceBookService.getReferenceBookNameById(it.toString()) ?: "Deleted")
                 }
 
-                fact.payload.removedLinks[AspectField.REFERENCE_BOOK]?.forEach {
-                    tmpData = tmpData.copy(refBookName = null)
+                fact.payload.removedFor(AspectField.REFERENCE_BOOK).forEach {
+                    dataAccumulator = dataAccumulator.copy(refBookName = null)
                 }
 
-                tmpData = tmpData.submit(fact).copy(properties = updatedProps)
-                versionList.add(tmpData)
+                dataAccumulator = dataAccumulator.submit(fact).copy(properties = updatedProps)
+                versionList.add(dataAccumulator)
             }
 
             return@flatMap versionList.zipWithNext().zip(entityEvents).map { createDiff(it.first.first, it.first.second, it.second) }
@@ -183,6 +183,6 @@ class AspectHistoryProvider(
     private fun getAspect(aspectId: String): AspectData = try {
         aspectService.findById(aspectId).toAspectData()
     } catch (e: AspectDoesNotExist) {
-        emptyAspectData.copy(id = aspectId, name = "'Aspect removed'")
+        AspectData(id = aspectId, name = "'Aspect removed'")
     }
 }

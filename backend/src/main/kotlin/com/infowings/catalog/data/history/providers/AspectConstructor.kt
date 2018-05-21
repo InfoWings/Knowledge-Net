@@ -3,6 +3,7 @@ package com.infowings.catalog.data.history.providers
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.HistoryFactDto
+import com.orientechnologies.orient.core.id.ORecordId
 
 fun AspectData.submit(fact: HistoryFactDto): AspectData = when (fact.event.type) {
     EventType.CREATE, EventType.UPDATE -> {
@@ -19,12 +20,12 @@ fun AspectData.submit(fact: HistoryFactDto): AspectData = when (fact.event.type)
 }
 
 
-fun List<AspectPropertyData>.submit(events: List<HistoryFactDto>?): List<AspectPropertyData> {
+fun List<AspectPropertyData>.submit(events: List<HistoryFactDto>): List<AspectPropertyData> {
 
-    events ?: return map { it.copy() }
+    val propertyEventMap = events.groupBy { it.event.entityId }
 
     val updatedProps = map { aspectPropertyData ->
-        val relatedEvents = events.filter { it.event.entityId.toString() == aspectPropertyData.id }.sortedBy { it.event.timestamp }
+        val relatedEvents = propertyEventMap[ORecordId(aspectPropertyData.id)]?.sortedBy { it.event.timestamp } ?: emptyList()
         var initial = aspectPropertyData
         relatedEvents.forEach {
             initial = aspectPropertyData.submit(it)
