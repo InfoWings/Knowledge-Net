@@ -7,6 +7,7 @@ import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
@@ -98,6 +99,7 @@ class SubjectApi(val subjectService: SubjectService) {
                         )
                     )
                 )
+            is SubjectEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
         }
     }
 

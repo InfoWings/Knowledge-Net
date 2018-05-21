@@ -218,6 +218,17 @@ class SubjectServiceTest {
         }
     }
 
+    @Test
+    fun testUpdateSameData() {
+        val created = createTestSubject("testSubject")
+        try {
+            subjectService.updateSubject(created.toSubjectData(), username)
+        } catch (e: SubjectEmptyChangeException) {
+        }
+        val updated = subjectService.findById(created.id)
+        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated!!.version)
+    }
+
     private fun createTestSubject(
         name: String,
         aspectNames: List<String> = listOf("TestSubjectAspect"),

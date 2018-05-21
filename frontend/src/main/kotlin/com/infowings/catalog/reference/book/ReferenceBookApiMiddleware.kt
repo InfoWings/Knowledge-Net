@@ -4,6 +4,7 @@ import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.NotModifiedException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -71,7 +72,12 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
         */
-        updateReferenceBook(book)
+
+        try {
+            updateReferenceBook(book)
+        } catch (e: NotModifiedException) {
+            console.log("Reference book updating rejected because data is the same")
+        }
         val updatedBook = getReferenceBook(book.aspectId)
         updateRowDataList(book.aspectId, updatedBook)
     }
@@ -118,6 +124,8 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
+        } catch (e: NotModifiedException) {
+            console.log("Reference book updating rejected because data is the same")
         }
     }
 
