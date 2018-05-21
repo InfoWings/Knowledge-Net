@@ -6,24 +6,26 @@ import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.toVertex
 import com.orientechnologies.orient.core.record.OVertex
 
-const val selectUserByName = "SELECT * from User where username = ?"
+const val findByUsername = "SELECT * FROM $USER_CLASS WHERE username = ?"
+const val selectAll = "SELECT * FROM $USER_CLASS"
 
 class UserDao(private val db: OrientDatabase) {
 
-    fun createUser(user: User) = session(db) {
-        val userVertex = createUserVertex()
-        userVertex.username = user.username
-        userVertex.password = user.password
-        userVertex.role = user.role.name
-        userVertex.save<OVertex>()
-        return@session
+    fun createUserVertex() = db.createNewVertex(USER_CLASS).toUserVertex()
+
+    fun saveUserVertex(userVertex: UserVertex) = session(db) {
+        return@session userVertex.save<OVertex>().toUserVertex()
     }
 
-    private fun createUserVertex() = db.createNewVertex(USER_CLASS).toUserVertex()
-
     fun findByUsername(username: String): UserVertex? = session(db) {
-        return@session db.query(selectUserByName, username) { rs ->
+        return@session db.query(findByUsername, username) { rs ->
             rs.map { it.toVertex().toUserVertex() }.firstOrNull()
         }
+    }
+
+    fun getAllUserVertices() = session(db) {
+        return@session db.query(selectAll) { rs ->
+            rs.map { it.toVertex().toUserVertex() }
+        }.toSet()
     }
 }

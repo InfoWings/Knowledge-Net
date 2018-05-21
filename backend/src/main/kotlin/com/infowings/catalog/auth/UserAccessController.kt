@@ -3,7 +3,7 @@ package com.infowings.catalog.auth
 import com.infowings.catalog.auth.user.UserNotFoundException
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.JwtToken
-import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.common.UserCredentials
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.RequestEntity
@@ -25,13 +25,20 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
     lateinit var REFRESH_HEADER: String
 
     @PostMapping("signIn")
-    fun signIn(@RequestBody userDto: UserDto): ResponseEntity<*> {
+    fun signIn(@RequestBody userCredentials: UserCredentials): ResponseEntity<*> {
         val invalidDataResponse = ResponseEntity("Invalid user and password pair", HttpStatus.FORBIDDEN)
+
         return try {
-            val user = userService.findByUsername(userDto.username)
-            if (userDto.password == user.password) {
-                ResponseEntity(jwtService.createJwtToken(userDto.username), HttpStatus.OK)
-            } else invalidDataResponse
+            val user = userService.findByUsername(userCredentials.username)
+
+            when {
+                user.blocked -> ResponseEntity("Your account is blocked", HttpStatus.FORBIDDEN)
+
+                userCredentials.password == user.password ->
+                    ResponseEntity(jwtService.createJwtToken(userCredentials.username), HttpStatus.OK)
+
+                else -> invalidDataResponse
+            }
         } catch (ignored: UserNotFoundException) {
             invalidDataResponse
         }

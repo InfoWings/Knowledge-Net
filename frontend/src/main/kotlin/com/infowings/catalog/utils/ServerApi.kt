@@ -2,7 +2,7 @@ package com.infowings.catalog.utils
 
 
 import com.infowings.catalog.common.JwtToken
-import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.common.UserCredentials
 import kotlinx.coroutines.experimental.await
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
@@ -147,7 +147,7 @@ private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, bo
 /**
  * Method for login to server.
  */
-suspend fun login(body: UserDto): Boolean {
+suspend fun login(body: UserCredentials): Boolean {
     val response = request(POST, "/api/access/signIn", JSON.stringify(body))
     return if (response.ok) {
         try {

@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.reference.book
 
 
-import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.storage.id
 
@@ -11,25 +10,14 @@ import com.infowings.catalog.storage.id
  */
 class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
-    fun checkRefBookAndItemsVersions(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
-        checkRefBookVersion(bookVertex, book)
-        checkRefBookItemAndChildrenVersions(bookVertex.root, book.root)
-    }
-
-    fun checkRefBookVersion(bookVertex: ReferenceBookVertex, book: ReferenceBook) {
-        if (bookVertex.version != book.version) {
-            throw RefBookConcurrentModificationException(book.id, "ReferenceBook changed.")
-        }
-    }
-
     fun checkRefBookItemAndChildrenVersions(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         checkRefBookItemVersion(bookItemVertex, bookItem)
         checkChildrenVersions(bookItemVertex, bookItem)
     }
 
-    private fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+    fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         if (bookItemVertex.version != bookItem.version) {
-            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")
+            throw RefBookConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")
         }
     }
 
@@ -38,12 +26,12 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         val receivedVersionMap = idToVersionMapFromBookItem(bookItem)
 
         if (realVersionMap.keys.size != receivedVersionMap.keys.size) {
-            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
+            throw RefBookConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
         }
 
         val different = realVersionMap.any { (k, v) -> v != receivedVersionMap[k] }
         if (different) {
-            throw RefBookItemConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
+            throw RefBookConcurrentModificationException(bookItem.id, "ReferenceBookItem child changed.")
         }
     }
 
@@ -52,12 +40,6 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
             parentVertex.children.any { it.value == value && it.id != id && it.deleted.not() }
         if (vertexWithSameValueAlreadyExist) {
             throw RefBookChildAlreadyExist(parentVertex.id, value)
-        }
-    }
-
-    fun checkForBookRemoved(bookVertex: ReferenceBookVertex) {
-        if (bookVertex.deleted) {
-            throw RefBookNotExist(bookVertex.id)
         }
     }
 
@@ -73,10 +55,6 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         if (dao.getRefBookItemVertexParents(targetId).map { it.id }.contains(sourceId)) {
             throw RefBookItemMoveImpossible(sourceId, targetId)
         }
-    }
-
-    fun checkIsNotRoot(bookItemVertex: ReferenceBookItemVertex) {
-        if (bookItemVertex.parent == null) throw RefBookItemIllegalArgumentException("Root cannot be modified")
     }
 }
 

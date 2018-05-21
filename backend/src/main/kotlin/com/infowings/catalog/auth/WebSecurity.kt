@@ -36,7 +36,7 @@ class WebSecurity : WebSecurityConfigurerAdapter() {
 
         val jWTAuthorizationFilter = JWTAuthorizationFilter(authenticationManager(), env, jwtService)
 
-        http?.let {
+        http?.also {
             it.csrf().disable().authorizeRequests()
                 .antMatchers("/api/access/signIn", "/api/access/refresh").permitAll()
                 .antMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.name)

@@ -1,7 +1,6 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
-import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
@@ -12,8 +11,7 @@ import java.time.Instant
 
 class HistoryService(
     private val db: OrientDatabase,
-    private val historyDao: HistoryDao,
-    private val userService: UserService
+    private val historyDao: HistoryDao
 ) {
 
     fun getAll(): Set<HistoryFactDto> = transaction(db) {

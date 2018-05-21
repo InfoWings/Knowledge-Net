@@ -168,7 +168,7 @@ class AspectServiceDeletingTest {
         val foundAspectVertex = database.getVertexById(aspect.id)?.toAspectVertex()
         assertNull("Aspect not exists in db", foundAspectVertex)
 
-        val foundBookVertex = referenceBookDao.getReferenceBookVertex(aspect.id)
+        val foundBookVertex = referenceBookDao.getRootVertex(aspect.id)
         assertNull("RefBook not exists in db", foundBookVertex)
     }
 

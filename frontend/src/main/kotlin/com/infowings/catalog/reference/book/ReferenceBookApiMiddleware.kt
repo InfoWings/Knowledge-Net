@@ -17,9 +17,9 @@ interface ReferenceBookApiReceiverProps : RProps {
     var createBook: suspend (ReferenceBook) -> Unit
     var updateBook: suspend (ReferenceBook) -> Unit
     var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
-    var createBookItem: suspend (ReferenceBookItem) -> Unit
-    var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-    var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+    var createBookItem: suspend (aspectId: String, ReferenceBookItemData) -> Unit
+    var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+    var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
 }
 
 
@@ -99,17 +99,17 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
+    private suspend fun handleCreateBookItem(aspectId: String, data: ReferenceBookItemData) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only created ReferenceBookItem id.
         */
-        createReferenceBookItem(bookItem)
-        val updatedBook = getReferenceBook(bookItem.aspectId)
+        createReferenceBookItem(data)
+        val updatedBook = getReferenceBook(aspectId)
         updateRowDataList(updatedBook.aspectId, updatedBook)
     }
 
-    private suspend fun handleUpdateBookItem(bookItem: ReferenceBookItem, force: Boolean) {
+    private suspend fun handleUpdateBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
@@ -120,7 +120,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             } else {
                 updateReferenceBookItem(bookItem)
             }
-            val updatedBook = getReferenceBook(bookItem.aspectId)
+            val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
@@ -129,7 +129,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         }
     }
 
-    private suspend fun handleDeleteBookItem(bookItem: ReferenceBookItem, force: Boolean) {
+    private suspend fun handleDeleteBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
         Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
         Actually we need only to know is updating was successful.
@@ -140,7 +140,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             } else {
                 deleteReferenceBookItem(bookItem)
             }
-            val updatedBook = getReferenceBook(bookItem.aspectId)
+            val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
             throw RefBookBadRequestException(JSON.parse(e.message))
@@ -168,9 +168,9 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 createBook = { handleCreateBook(it) }
                 updateBook = { handleUpdateBook(it) }
                 deleteBook = { book, force -> handleDeleteBook(book, force) }
-                createBookItem = { handleCreateBookItem(it) }
-                updateBookItem = { bookItem, force -> handleUpdateBookItem(bookItem, force) }
-                deleteBookItem = { bookItem, force -> handleDeleteBookItem(bookItem, force) }
+                createBookItem = { aspectId, bookItemData -> handleCreateBookItem(aspectId, bookItemData) }
+                updateBookItem = { aspectId, bookItem, force -> handleUpdateBookItem(aspectId, bookItem, force) }
+                deleteBookItem = { aspectId, bookItem, force -> handleDeleteBookItem(aspectId, bookItem, force) }
             }
         }
     }

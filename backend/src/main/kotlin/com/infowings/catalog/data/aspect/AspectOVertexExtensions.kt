@@ -6,8 +6,8 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
-import com.infowings.catalog.data.reference.book.ReferenceBookVertex
-import com.infowings.catalog.data.reference.book.toReferenceBookVertex
+import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
@@ -54,16 +54,16 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             subject?.toSubjectData(),
             deleted,
             description,
-            referenceBookVertex?.name
+            referenceBookRootVertex?.value
         )
     }
 
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
-    val referenceBookVertex: ReferenceBookVertex?
+    val referenceBookRootVertex: ReferenceBookItemVertex?
         get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
-            .map { it.toReferenceBookVertex() }
+            .map { it.toReferenceBookItemVertex() }
             .filterNot { it.deleted }
             .firstOrNull()
 

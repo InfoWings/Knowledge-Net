@@ -12,6 +12,7 @@ fun RBuilder.aspectLabel(
     aspectMeasure: String,
     aspectDomain: String,
     aspectBaseType: String,
+    aspectRefBookName: String,
     aspectSubjectName: String,
     isSubjectDeleted: Boolean,
     onClick: () -> Unit
@@ -32,7 +33,7 @@ fun RBuilder.aspectLabel(
     }
     +":"
     span(classes = "text-grey") {
-        +aspectDomain
+        + if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
     }
     +":"
     span(classes = "text-grey") {
