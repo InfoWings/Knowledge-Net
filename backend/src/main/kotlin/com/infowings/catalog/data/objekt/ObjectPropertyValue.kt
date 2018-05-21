@@ -7,37 +7,59 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
+import java.math.BigDecimal
 
-sealed class LinkValueVertex(private val typeGroup: LinkTypeGroup) {
+/* Бекенд-структура для представления ссылочного значения.
+ * Здесь id недостаточно, лучше иметь дело с vertex
+ */
+sealed class LinkValueVertex {
     abstract val vertex: OVertex
+    abstract fun toData(): LinkValueData
 
-    class SubjectValue(override val vertex: SubjectVertex) : LinkValueVertex(LinkTypeGroup.SUBJECT)
-    class ObjectValue(override val vertex: ObjectVertex) : LinkValueVertex(LinkTypeGroup.OBJECT)
-    class DomainElementValue(override val vertex: ReferenceBookItemVertex) :
-        LinkValueVertex(LinkTypeGroup.DOMAIN_ELEMENT)
+    class SubjectValue(override val vertex: SubjectVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.Subject(vertex.id)
+    }
 
-    fun toLinkValueData(): LinkValueData {
-        return LinkValueData(typeGroup, vertex.id)
+    class ObjectValue(override val vertex: ObjectVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.Object(vertex.id)
+    }
+
+    class DomainElementValue(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.DomainElement(vertex.id)
     }
 }
 
+/* Это бекендный аналог структуры ObjectValueData
+
+   Часть подтипов совсем такие же, как в ObjectValue, но Decimal и Link отличаются
+ */
 sealed class ObjectValue {
-    data class Scalar(val value: ObjectValueData) : ObjectValue() {
-        override fun toObjectValueData() = value
+    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.IntegerValue(value, precision)
+    }
+
+    data class StringValue(val value: String) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.StringValue(value)
+    }
+
+    data class CompoundValue(val value: Any) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.CompoundValue(value)
+    }
+
+    data class RangeValue(val range: Range) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.RangeValue(range)
+    }
+
+    data class DecimalValue(val value: BigDecimal) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString())
     }
 
     data class Link(val value: LinkValueVertex) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.Link(value.toLinkValueData())
+        override fun toObjectValueData() = ObjectValueData.Link(value.toData())
     }
 
     abstract fun toObjectValueData(): ObjectValueData
 }
-
-fun fromData(data: ObjectValueData): ObjectValue.Scalar {
-    if (data is ObjectValueData.Link) throw IllegalStateException("attempt to create scalar from data")
-    return ObjectValue.Scalar(data)
-}
-
 
 /**
  * Object property value data representation for use in backend context.

@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
@@ -14,37 +13,41 @@ import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
+import java.math.BigDecimal
 
 fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
 
-const val INT_TYPE_PROPERTY = "int_type"
-const val STR_TYPE_PROPERTY = "str_type"
-const val COMPOUND_TYPE_PROPERTY = "compound_type"
-const val RANGE_TYPE_PROPERTY = "range_type"
+const val INT_TYPE_PROPERTY = "int"
+const val DECIMAL_TYPE_PROPERTY = "decimal"
+const val STR_TYPE_PROPERTY = "str"
+const val COMPOUND_TYPE_PROPERTY = "compound"
+const val RANGE_TYPE_PROPERTY = "range"
 const val PRECISION_PROPERTY = "precision"
 private const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
    коды. Или править базу соответственно.
- */
+  */
 enum class ScalarTypeTag(val code: Int) {
     INTEGER(1),
     STRING(2),
     RANGE(3),
     COMPOUND(4),
+    DECIMAL(5),
     OBJECT(100),
     SUBJECT(101),
     DOMAIN_ELEMENT(102),
 }
 
+/*
+   На уровне хранения в базе используем общий тег для того, чтобы отличать любые значения - и скалярные, и ссылки
+ */
 fun ObjectValue.tag() = when (this) {
-    is ObjectValue.Scalar -> when (this.value) {
-        is ObjectValueData.IntegerValue -> ScalarTypeTag.INTEGER
-        is ObjectValueData.StringValue -> ScalarTypeTag.STRING
-        is ObjectValueData.RangeValue -> ScalarTypeTag.RANGE
-        is ObjectValueData.CompoundValue -> ScalarTypeTag.COMPOUND
-        is ObjectValueData.Link -> throw IllegalStateException("illegal object value")
-    }
+    is ObjectValue.IntegerValue -> ScalarTypeTag.INTEGER
+    is ObjectValue.StringValue -> ScalarTypeTag.STRING
+    is ObjectValue.RangeValue -> ScalarTypeTag.RANGE
+    is ObjectValue.CompoundValue -> ScalarTypeTag.COMPOUND
+    is ObjectValue.DecimalValue -> ScalarTypeTag.DECIMAL
     is ObjectValue.Link -> when (this.value) {
         is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT
         is LinkValueVertex.SubjectValue -> ScalarTypeTag.SUBJECT
@@ -124,6 +127,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     private val rangeStrict: Range
         get() = range ?: throw RangeNotDefinedException(id)
 
+    var decimalValue: BigDecimal?
+        get() = vertex[DECIMAL_TYPE_PROPERTY]
+        set(value) {
+            vertex[DECIMAL_TYPE_PROPERTY] = value
+        }
+    private val decimalValueStrict: BigDecimal
+        get() = decimalValue ?: throw DecimalValueNotDefinedException(id)
+
+
     var precision: Int?
         get() = vertex[PRECISION_PROPERTY]
         set(v) = setOrRemove(PRECISION_PROPERTY, v)
@@ -180,12 +192,11 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
                         refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
                     )
                 )
-            ScalarTypeTag.INTEGER -> ObjectValue.Scalar(ObjectValueData.IntegerValue(intValueStrict, precision))
-            ScalarTypeTag.STRING -> ObjectValue.Scalar(ObjectValueData.StringValue(strValueStrict))
-            ScalarTypeTag.RANGE -> {
-                ObjectValue.Scalar(ObjectValueData.RangeValue(rangeStrict))
-            }
-            ScalarTypeTag.COMPOUND -> ObjectValue.Scalar(ObjectValueData.CompoundValue(compoundValueStrict))
+            ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, precision)
+            ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
+            ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
+            ScalarTypeTag.COMPOUND -> ObjectValue.CompoundValue(compoundValueStrict)
+            ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)
             else ->
                 throw IllegalStateException("type tag is not defined")
         }
@@ -204,6 +215,9 @@ class ObjectValueWithoutAspectPropertyException(vertex: ObjectPropertyValueVerte
 
 class IntValueNotDefinedException(id: String) :
     ObjectValueException("int value is not defined for value $id")
+
+class DecimalValueNotDefinedException(id: String) :
+    ObjectValueException("decimal value is not defined for value $id")
 
 class StringValueNotDefinedException(id: String) :
     ObjectValueException("string value is not defined for value $id")

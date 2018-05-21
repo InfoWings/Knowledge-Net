@@ -2,7 +2,6 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.common.ObjectPropertyData
-import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -100,44 +99,38 @@ class ObjectDaoService(private val db: OrientDatabase) {
             vertex.typeTag = newTypeTag
         }
 
-        when (propertyValue.value) {
-            is ObjectValue.Scalar -> {
-                val data = propertyValue.value
-                when (data.value) {
-                    is ObjectValueData.IntegerValue -> {
-                        vertex.intValue = data.value.value
-                        vertex.precision = data.value.precision
-                    }
-                    is ObjectValueData.StringValue -> {
-                        vertex.strValue = data.value.value
-                    }
-                    is ObjectValueData.CompoundValue -> {
-                        vertex.compoundValue = JSON.stringify(data.value.value)
-                    }
-                    is ObjectValueData.RangeValue -> {
-                        vertex.range = data.value.range
-                    }
-                }
+        val objectValue = propertyValue.value
+        when (objectValue) {
+            is ObjectValue.IntegerValue -> {
+                vertex.intValue = objectValue.value
+                vertex.precision = objectValue.precision
+            }
+            is ObjectValue.StringValue -> {
+                vertex.strValue = objectValue.value
+            }
+            is ObjectValue.CompoundValue -> {
+                vertex.compoundValue = JSON.stringify(objectValue.value)
+            }
+            is ObjectValue.RangeValue -> {
+                vertex.range = objectValue.range
             }
 
             is ObjectValue.Link -> {
-                val linkValue = propertyValue.value
-                when (linkValue.value) {
+                val linkValue = objectValue.value
+                when (linkValue) {
                     is LinkValueVertex.ObjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.value.vertex)
+                        replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.vertex)
                     is LinkValueVertex.SubjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.value.vertex)
+                        replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
                     is LinkValueVertex.DomainElementValue ->
                         replaceEdge(
                             vertex,
                             OBJECT_VALUE_REFBOOK_ITEM_EDGE,
                             vertex.refValueDomainElement,
-                            linkValue.value.vertex
+                            linkValue.vertex
                         )
                 }
             }
-
-
         }
 
         replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, propertyValue.measure)

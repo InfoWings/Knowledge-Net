@@ -144,28 +144,21 @@ class ObjectServiceTest {
         val objectValue = savedValue.value
 
         when (objectValue) {
-            is ObjectValue.Scalar -> {
-                val scalarValue = objectValue.value
-                when (scalarValue) {
-                    is ObjectValueData.IntegerValue -> {
-                        assertEquals(scalarInt, scalarValue.value, "scalar value must be with correct type name")
-                        assertEquals(
-                            valueData.objectPropertyId, savedValue.objectProperty.id,
-                            "object property must point to parent property"
-                        )
-                        assertEquals(
-                            valueData.aspectPropertyId, savedValue.aspectProperty.id,
-                            "object property must point to proper root characteristic"
-                        )
-                        assertTrue(valueData.parentValueId == null)
+            is ObjectValue.IntegerValue -> {
+                assertEquals(scalarInt, objectValue.value, "scalar value must be with correct type name")
+                assertEquals(
+                    valueData.objectPropertyId, savedValue.objectProperty.id,
+                    "object property must point to parent property"
+                )
+                assertEquals(
+                    valueData.aspectPropertyId, savedValue.aspectProperty.id,
+                    "object property must point to proper root characteristic"
+                )
+                assertTrue(valueData.parentValueId == null)
 
-                    }
-                    else ->
-                        fail("value must be integer")
-                }
             }
             else ->
-                fail("value must be scalar")
+                fail("value must be integer")
         }
     }
 }

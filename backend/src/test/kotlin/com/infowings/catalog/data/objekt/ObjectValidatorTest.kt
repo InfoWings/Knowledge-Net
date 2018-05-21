@@ -276,12 +276,7 @@ class ObjectValidatorTest {
         )
         val objectValue = validator.checkedForCreation(valueData)
 
-        val value = objectValue.value
-        when (value) {
-            is ObjectValue.Scalar -> {
-                assertEquals(scalarValue, value.value, "scalar values must be equal")
-            }
-        }
+        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
         assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "root characteristics must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
@@ -313,12 +308,7 @@ class ObjectValidatorTest {
         )
         val objectValue = validator.checkedForCreation(valueData)
 
-        val value = objectValue.value
-        when (value) {
-            is ObjectValue.Scalar -> {
-                assertEquals(scalarValue, value.value, "scalar values must be equal")
-            }
-        }
+        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
         assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
@@ -346,12 +336,7 @@ class ObjectValidatorTest {
         )
         val objectValue = validator.checkedForCreation(valueData)
 
-        val value = objectValue.value
-        when (value) {
-            is ObjectValue.Scalar -> {
-                assertEquals(scalarValue, value.value, "scalar values must be equal")
-            }
-        }
+        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
         assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
@@ -380,12 +365,7 @@ class ObjectValidatorTest {
         val objectValue = validator.checkedForCreation(valueData)
 
 
-        val value = objectValue.value
-        when (value) {
-            is ObjectValue.Scalar -> {
-                assertEquals(scalarValue, value.value, "scalar values must be equal")
-            }
-        }
+        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
         assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }

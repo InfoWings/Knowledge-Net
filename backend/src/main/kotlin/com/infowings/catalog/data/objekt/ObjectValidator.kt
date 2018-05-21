@@ -8,6 +8,7 @@ import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.orientechnologies.orient.core.id.ORecordId
+import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
  * по итогам валидации создаем Objekt, готовый к записи в базу
@@ -91,19 +92,27 @@ class ObjectValidator(
         val value = when (dataValue) {
             is ObjectValueData.Link -> {
                 val refValueVertex = dataValue.value.let {
-                    when (it.typeGroup) {
-                        LinkTypeGroup.SUBJECT ->
+                    when (it) {
+                        is LinkValueData.Subject ->
                             LinkValueVertex.SubjectValue(subjectService.findById(it.id))
-                        LinkTypeGroup.OBJECT ->
+                        is LinkValueData.Object ->
                             LinkValueVertex.ObjectValue(objectService.findById(it.id))
-                        LinkTypeGroup.DOMAIN_ELEMENT ->
+                        is LinkValueData.DomainElement ->
                             LinkValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
                     }
                 }
                 ObjectValue.Link(refValueVertex)
             }
-            else ->
-                fromData(dataValue)
+            is ObjectValueData.IntegerValue ->
+                ObjectValue.IntegerValue(dataValue.value, dataValue.precision)
+            is ObjectValueData.StringValue ->
+                ObjectValue.StringValue(dataValue.value)
+            is ObjectValueData.RangeValue ->
+                ObjectValue.RangeValue(dataValue.range)
+            is ObjectValueData.CompoundValue ->
+                ObjectValue.CompoundValue(dataValue.value)
+            is ObjectValueData.DecimalValue ->
+                ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr))
         }
 
         val measureVertex = data.measureId?.let { measureService.findById(it) }

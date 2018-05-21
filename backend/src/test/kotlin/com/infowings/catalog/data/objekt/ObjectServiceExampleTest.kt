@@ -139,7 +139,7 @@ class ObjectServiceExampleTest {
 
         val savedObjectProperty = objectService.create(objectPropertyData, username)
 
-        val refValue11Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[0])
+        val refValue11Data = LinkValueData.DomainElement(refBookItemIds[0])
         val value11Data = ObjectPropertyValueData(
             null,
             ObjectValueData.Link(refValue11Data),
@@ -150,7 +150,7 @@ class ObjectServiceExampleTest {
         )
         val savedValue11 = objectService.create(value11Data, username)
 
-        val refValue12Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[1])
+        val refValue12Data = LinkValueData.DomainElement(refBookItemIds[1])
         val value12Data = ObjectPropertyValueData(
             null,
             ObjectValueData.Link(refValue12Data),
@@ -161,7 +161,7 @@ class ObjectServiceExampleTest {
         )
         val savedValue12 = objectService.create(value12Data, username)
 
-        val refValue13Data = LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, refBookItemIds[2])
+        val refValue13Data = LinkValueData.DomainElement(refBookItemIds[2])
         val value13Data = ObjectPropertyValueData(
             null,
             ObjectValueData.Link(refValue13Data),

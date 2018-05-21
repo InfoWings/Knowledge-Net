@@ -1,12 +1,17 @@
 package com.infowings.catalog.common
 
+/* Базовое представление диапазона */
 data class Range(val left: Int, val right: Int)
 
+/* Представление разных вариантов значений, пригодное для использования на фронте,
+ * но не для сериализации в json
+ */
 sealed class ObjectValueData {
     data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData()
     data class StringValue(val value: String) : ObjectValueData()
     data class CompoundValue(val value: Any) : ObjectValueData()
     data class RangeValue(val range: Range) : ObjectValueData()
+    data class DecimalValue(val valueRepr: String) : ObjectValueData()
     data class Link(val value: LinkValueData) : ObjectValueData()
 }
 
@@ -15,7 +20,15 @@ enum class LinkTypeGroup {
     SUBJECT, OBJECT, DOMAIN_ELEMENT
 }
 
-data class LinkValueData(val typeGroup: LinkTypeGroup, val id: String)
+/* Представление ссылочного значения в виде, пригодном для использования на фронте
+ * id - строковое предсталвение vertex id объекта/субъекта/значения домена
+ * typeGroup - маркер с информацией о том, куда этот id показывает
+ */
+sealed class LinkValueData(open val id: String) {
+    class Subject(override val id: String) : LinkValueData(id)
+    class Object(override val id: String) : LinkValueData(id)
+    class DomainElement(override val id: String) : LinkValueData(id)
+}
 
 data class ObjectPropertyValueData(
     val id: String?,
@@ -44,8 +57,6 @@ data class ObjectPropertyValueData(
   Ею модно пренебречь ради того, чтобы не создавать в json-структуре дополнительный уровень вложенности для ссылочных
   типов
 
-  К каким типам будут в итоге относиться диапазон/точность - пока неясно, поэтому держим их сверху, на одном уровне
-  со значениями
  */
 enum class ValueDTOTags {
     INTEGER,
@@ -57,6 +68,7 @@ enum class ValueDTOTags {
     DOMAIN_ELEMENT,
 }
 
+/* json-представление скалярного значения. */
 data class ScalarDTO(
     val stringValue: String?,
     val intValue: Int?,
@@ -65,9 +77,12 @@ data class ScalarDTO(
     val precision: Int?
 )
 
+/*  json-представление произвольного значения */
 data class ValueDTO(val tag: String, val vertexId: String?, val scalar: ScalarDTO?)
 
+/* заполнители */
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, null, ScalarDTO(value, null, null, null, null))
+
 fun integerValueDto(value: Int, precision: Int?) =
     ValueDTO(ValueDTOTags.INTEGER.name, null, ScalarDTO(null, value, null, null, precision))
 
@@ -75,11 +90,11 @@ fun compoundValueDto(value: Any) = ValueDTO(ValueDTOTags.COMPOUND.name, null, Sc
 fun referenceValueDto(tag: ValueDTOTags, id: String) = ValueDTO(tag.name, id, null)
 fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, ScalarDTO(null, null, value, null, null))
 
-
-fun LinkTypeGroup.toDTOTag() = when (this) {
-    LinkTypeGroup.SUBJECT -> ValueDTOTags.SUBJECT
-    LinkTypeGroup.OBJECT -> ValueDTOTags.OBJECT
-    LinkTypeGroup.DOMAIN_ELEMENT -> ValueDTOTags.DOMAIN_ELEMENT
+/* Конвертеры */
+fun LinkValueData.toDTOTag() = when (this) {
+    is LinkValueData.Subject -> ValueDTOTags.SUBJECT
+    is LinkValueData.Object -> ValueDTOTags.OBJECT
+    is LinkValueData.DomainElement -> ValueDTOTags.DOMAIN_ELEMENT
 }
 
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
@@ -92,7 +107,7 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
     is ObjectValueData.RangeValue ->
         rangeValueDto(range)
     is ObjectValueData.Link ->
-        referenceValueDto(value.typeGroup.toDTOTag(), this.value.id)
+        referenceValueDto(value.toDTOTag(), this.value.id)
     else ->
         throw IllegalStateException("no scalar value")
 }
@@ -123,11 +138,11 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
         ObjectValueData.CompoundValue(scalar.compoundStrict())
     }
     ValueDTOTags.OBJECT ->
-        ObjectValueData.Link(LinkValueData(LinkTypeGroup.OBJECT, idStrict()))
+        ObjectValueData.Link(LinkValueData.Object(idStrict()))
     ValueDTOTags.SUBJECT ->
-        ObjectValueData.Link(LinkValueData(LinkTypeGroup.SUBJECT, idStrict()))
+        ObjectValueData.Link(LinkValueData.Subject(idStrict()))
     ValueDTOTags.DOMAIN_ELEMENT ->
-        ObjectValueData.Link(LinkValueData(LinkTypeGroup.DOMAIN_ELEMENT, idStrict()))
+        ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
 }
 
 data class ObjectPropertyValueDTO(
