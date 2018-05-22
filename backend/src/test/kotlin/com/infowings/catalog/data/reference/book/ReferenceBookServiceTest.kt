@@ -296,7 +296,7 @@ class ReferenceBookServiceTest {
         val childId = addReferenceBookItem(parentId, "value1")
         val child = referenceBookService.getReferenceBookItem(childId)
         try {
-            referenceBookService.changeValue(child, username)
+            referenceBookService.updateReferenceBookItem(child, username)
         } catch (e: RefBookEmptyChangeException) {
         }
         val savedChild = referenceBookService.getReferenceBookItem(childId)
@@ -311,16 +311,18 @@ class ReferenceBookServiceTest {
         return ReferenceBookItem(
             "",
             value,
+            null,
             emptyList(),
             false,
             0
         )
     }
 
-    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
+    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.updateReferenceBookItem(
         ReferenceBookItem(
             id,
             value,
+            null,
             emptyList(),
             false,
             version

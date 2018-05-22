@@ -56,6 +56,11 @@
     }
   }
 
+  &--item {
+    display: flex;
+    align-items: center;
+  }
+
   &--label-name {
     font-weight: 600;
   }
@@ -67,5 +72,11 @@
       font-weight: 600;
       padding-right: .5rem;
     }
+  }
+
+  &--description {
+    height: 1.75rem;
+    width: 1.75rem;
+    margin-left: 1rem;
   }
 }

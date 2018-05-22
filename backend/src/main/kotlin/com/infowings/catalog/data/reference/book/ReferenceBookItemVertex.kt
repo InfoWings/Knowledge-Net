@@ -23,7 +23,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val edgeName = REFERENCE_BOOK_CHILD_EDGE
 
     override fun currentSnapshot(): Snapshot = Snapshot(
-        data = mapOf("value" to asStringOrEmpty(value)),
+        data = mapOf("value" to asStringOrEmpty(value), "description" to asStringOrEmpty(description)),
         links = mapOf("children" to children.map { it.identity })
     )
 
@@ -37,6 +37,12 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         get() = this["value"]
         set(value) {
             this["value"] = value
+        }
+
+    var description: String?
+        get() = this["description"]
+        set(value) {
+            this["description"] = value
         }
 
     var deleted: Boolean
@@ -56,7 +62,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }
-        return ReferenceBookItem(id, value, children, deleted, version)
+        return ReferenceBookItem(id, value, description, children, deleted, version)
     }
 
     override fun equals(other: Any?): Boolean {

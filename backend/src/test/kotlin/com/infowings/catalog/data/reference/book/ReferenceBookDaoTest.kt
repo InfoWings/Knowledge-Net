@@ -57,6 +57,7 @@ class ReferenceBookDaoTest {
         return ReferenceBookItem(
             "",
             value,
+            null,
             emptyList(),
             false,
             0
