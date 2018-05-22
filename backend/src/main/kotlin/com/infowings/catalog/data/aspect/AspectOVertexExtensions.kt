@@ -8,6 +8,7 @@ import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
+import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
@@ -32,13 +33,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "measure" to asStringOrEmpty(measure),
-            "baseType" to asStringOrEmpty(baseType),
-            "description" to asStringOrEmpty(description)
+            AspectField.NAME.name to asStringOrEmpty(name),
+            AspectField.MEASURE.name to asStringOrEmpty(measure),
+            AspectField.BASE_TYPE.name to asStringOrEmpty(baseType),
+            AspectField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = mapOf(
-            "properties" to properties.map { it.identity }
+            AspectField.PROPERTY to properties.map { it.identity },
+            AspectField.SUBJECT to (subjectVertex?.let { listOf(it.identity) } ?: emptyList()),
+            AspectField.REFERENCE_BOOK to (referenceBookRootVertex?.let { listOf(it.identity) } ?: emptyList())
         )
     )
 
@@ -100,12 +103,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         }
 
     val subject: Subject?
+        get() = subjectVertex?.toSubject()
+
+    val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
+            return subjects.firstOrNull()?.toSubjectVertex()
         }
 
     var description: String?
@@ -132,10 +138,10 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "aspect" to asStringOrEmpty(aspect),
-            "cardinality" to asStringOrEmpty(cardinality),
-            "description" to asStringOrEmpty(description)
+            AspectPropertyField.NAME.name to asStringOrEmpty(name),
+            AspectPropertyField.ASPECT.name to asStringOrEmpty(aspect),
+            AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality),
+            AspectPropertyField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = emptyMap()
     )

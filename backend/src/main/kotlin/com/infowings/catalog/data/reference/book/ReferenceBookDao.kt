@@ -20,6 +20,10 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun getAspectVertex(aspectId: String): AspectVertex? = db.getVertexById(aspectId)?.toAspectVertex()
 
+    fun getReferenceBookVertexById(id: String) = transaction(db) {
+        return@transaction db.getVertexById(id)?.toReferenceBookItemVertex()
+    }
+
     fun getAllRootVertices(): List<ReferenceBookItemVertex> {
         return db.query(selectAllNotDeletedRefBookRoots) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }

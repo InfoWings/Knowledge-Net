@@ -89,6 +89,7 @@ class AspectService(
      * @throws IllegalArgumentException in case of incorrect input data,
      * @throws AspectDoesNotExist if some AspectProperty has incorrect aspect id
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
+     * @throws AspectEmptyChangeException if new data is the same that old data
      */
     fun save(aspectData: AspectData, username: String): Aspect {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -99,12 +100,16 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
+            if (aspectVertex.toAspectData() == aspectData) {
+                throw AspectEmptyChangeException()
+            }
+
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
             return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
         }
 
-        logger.debug("Aspect ${aspectData.name} saved with id: ${save.id}")
+        logger.debug("Aspect ${aspectData.name} saved/updated with id: ${save.id}")
 
         return if (save.identity.clusterPosition < 0) {
             // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
@@ -356,3 +361,5 @@ class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 
 class AspectInconsistentStateException(message: String) : AspectException(message)
+
+class AspectEmptyChangeException : AspectException()

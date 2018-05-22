@@ -88,7 +88,9 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
 
     override suspend fun switchToProperties() {
         val selectedAspect = props.aspect
-        props.aspectsModel.submitAspect()
+        if (selectedAspect != props.aspectContext[selectedAspect.id]) {
+            props.aspectsModel.submitAspect()
+        }
         if (selectedAspect.properties.isNotEmpty()) {
             props.aspectsModel.selectProperty(0)
         } else {
@@ -110,7 +112,9 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
                 ?: error("Aspect property should be selected in order to switch to next property")
         val property = selectedAspect.properties[selectedPropertyIndex]
         if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != emptyAspectPropertyData) {
-            props.aspectsModel.submitAspect()
+            if (selectedAspect != props.aspectContext[selectedAspect.id]) {
+                props.aspectsModel.submitAspect()
+            }
             val nextPropertyIndex = selectedPropertyIndex.inc()
             if (selectedPropertyIndex >= selectedAspect.properties.lastIndex) {
                 props.aspectsModel.createProperty(nextPropertyIndex)

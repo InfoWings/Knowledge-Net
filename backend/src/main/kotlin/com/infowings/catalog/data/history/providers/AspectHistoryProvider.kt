@@ -1,87 +1,41 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.common.*
-import com.infowings.catalog.data.history.HistoryEvent
-import com.infowings.catalog.data.history.HistoryFactDto
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectHistory
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.ASPECT_CLASS
+import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 
-class AspectHistoryProvider(private val aspectHistoryService: HistoryService) {
+class AspectHistoryProvider(
+    private val aspectHistoryService: HistoryService,
+    private val aspectDeltaConstructor: AspectDeltaConstructor,
+    private val aspectConstructor: AspectConstructor
+) {
 
     fun getAllHistory(): List<AspectHistory> {
-        val aspectEventGroups = aspectHistoryService.getAll()
-            .filter { it.event.entityClass == ASPECT_CLASS }
-            .sortedByDescending { it.event.timestamp }
-            .groupBy { it.event.entityId }
 
-        return aspectEventGroups
-            .values
-            .flatMap { groupEvents ->
-                groupEvents
-                    .mapIndexed { index, historyFactDto ->
-                        Pair(
-                            historyFactDto,
-                            restoreAspectData(groupEvents.subList(index + 1, groupEvents.size))
-                        )
-                    }
-                    .map { (fact, restoredData) ->
-                        val diff = fact.payload.data.mapNotNull { (fieldName, updatedValue) ->
-                            when (fieldName) {
-                                "measure" -> createAspectFieldDelta(
-                                    AspectField.MEASURE,
-                                    restoredData.measure,
-                                    updatedValue
-                                )
-                                "baseType" -> createAspectFieldDelta(
-                                    AspectField.BASE_TYPE,
-                                    restoredData.baseType,
-                                    updatedValue
-                                )
-                                "name" -> createAspectFieldDelta(AspectField.NAME, restoredData.name, updatedValue)
-                                else -> null
-                            }
-                        }
-                        createHistoryElement(fact.event, diff, restoredData, emptyList())
-                    }
-            }
-            .sortedByDescending { it.timestamp }
-    }
+        val allHistory = aspectHistoryService.getAll()
 
-    // Know, not effective. Temporary solution
-    private fun restoreAspectData(beforeEvents: List<HistoryFactDto>): AspectData {
-        var result = emptyAspectData
-        beforeEvents.reversed().forEach { fact ->
-            result = when (fact.event.type) {
-                EventType.CREATE, EventType.UPDATE -> result.copy(
-                    measure = fact.payload.data.getOrDefault("measure", result.measure),
-                    baseType = fact.payload.data.getOrDefault("baseType", result.baseType),
-                    name = fact.payload.data.getOrDefault("name", result.name),
-                    version = fact.event.version
-                )
-                else -> result.copy(deleted = true, version = fact.event.version)
-            }
-        }
-        return result
+        val aspectEventGroups = allHistory.idEventMap(classname = ASPECT_CLASS)
+        val sessionAspectPropertyMap = allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
+            .groupBy { it.sessionId }
+            .toMap()
+
+        return aspectEventGroups.values.flatMap { entityEvents ->
+
+            var aspectDataAccumulator = AspectData()
+
+            val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
+
+                val relatedFacts = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
+
+                aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
+
+                return@map aspectDataAccumulator
+            })
+
+            return@flatMap versionList.zipWithNext().zip(entityEvents).map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
+
+        }.sortedByDescending { it.timestamp }
     }
 }
-
-private fun createHistoryElement(
-    event: HistoryEvent,
-    changes: List<Delta>,
-    data: AspectData,
-    related: List<AspectData>
-) =
-    AspectHistory(
-        event.username,
-        event.type,
-        ASPECT_CLASS,
-        data.name,
-        data.deleted,
-        event.timestamp,
-        event.version,
-        AspectDataView(data, related),
-        changes
-    )
-
-private fun createAspectFieldDelta(field: AspectField, before: String?, after: String?) =
-    Delta(field.name, before, after)

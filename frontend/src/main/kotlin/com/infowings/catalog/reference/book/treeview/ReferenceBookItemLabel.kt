@@ -74,6 +74,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                 span(classes = "book-tree-view--label-item") {
                     +props.bookItem.value
                 }
+
             }
         }
 

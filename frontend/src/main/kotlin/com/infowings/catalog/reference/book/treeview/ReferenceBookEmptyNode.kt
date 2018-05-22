@@ -57,6 +57,7 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
                                         props.aspectId,
                                         "",
                                         "",
+                                        null,
                                         emptyList(),
                                         false,
                                         0

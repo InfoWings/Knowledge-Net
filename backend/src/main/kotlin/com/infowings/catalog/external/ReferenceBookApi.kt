@@ -61,12 +61,12 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("item/update")
     fun updateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/forceUpdate")
     fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name, true)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name, true)
     }
 
     @PostMapping("item/remove")
@@ -99,6 +99,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             )
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
+            is RefBookEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }

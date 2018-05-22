@@ -30,7 +30,7 @@ data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
         }
 
     var blocked: Boolean
-        get() = this["blocked"]
+        get() = this["blocked"] ?: false
         set(value) {
             this["blocked"] = value
         }

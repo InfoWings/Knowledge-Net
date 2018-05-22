@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
+import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -282,6 +283,27 @@ class ReferenceBookServiceTest {
         referenceBookService.removeReferenceBookItem(bookItem, username)
     }
 
+    @Test
+    fun testUpdateSameData() {
+        try {
+            referenceBookService.updateReferenceBook(referenceBook, username)
+        } catch (e: RefBookEmptyChangeException) {
+        }
+        val updated = referenceBookService.getReferenceBook(referenceBook.aspectId)
+        Assert.assertEquals("Same data shouldn't be rewritten", referenceBook.version, updated.version)
+
+        val parentId = referenceBook.id
+        val childId = addReferenceBookItem(parentId, "value1")
+        val child = referenceBookService.getReferenceBookItem(childId)
+        try {
+            referenceBookService.updateReferenceBookItem(child, username)
+        } catch (e: RefBookEmptyChangeException) {
+        }
+        val savedChild = referenceBookService.getReferenceBookItem(childId)
+
+        Assert.assertEquals("Same data shouldn't be rewritten", child.version, savedChild.version)
+    }
+
     private fun addReferenceBookItem(parentId: String, value: String): String =
         referenceBookService.addReferenceBookItem(parentId, createReferenceBookItem(value), username)
 
@@ -289,16 +311,18 @@ class ReferenceBookServiceTest {
         return ReferenceBookItem(
             "",
             value,
+            null,
             emptyList(),
             false,
             0
         )
     }
 
-    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.changeValue(
+    private fun changeValue(id: String, value: String, version: Int = 0) = referenceBookService.updateReferenceBookItem(
         ReferenceBookItem(
             id,
             value,
+            null,
             emptyList(),
             false,
             version
