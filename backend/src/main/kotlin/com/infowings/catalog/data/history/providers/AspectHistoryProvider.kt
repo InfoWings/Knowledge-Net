@@ -32,33 +32,50 @@ class AspectHistoryProvider(
 
         return aspectEventGroups.values.flatMap { entityEvents ->
 
-            var dataAccumulator = AspectData()
+            var aspectDataAccumulator = AspectData()
 
-            val versionList = entityEvents.map { fact ->
+            val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
 
-                val allRelated = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
-                val newProps = fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
+                val toNextVersion = { aspectDataPreviousVersion: AspectData ->
 
-                val updatedProps = dataAccumulator.properties.plus(newProps).submit(allRelated)
+                    val transformInsideVersion = mutableListOf<(AspectData) -> AspectData>()
 
-                dataAccumulator = fact.payload.addedFor(AspectField.SUBJECT)
-                    .foldRight(dataAccumulator) { nextFact, acc ->
-                        acc.copy(subject = subjectService.findById(nextFact.identity.toString())?.toSubject()?.toSubjectData())
-                    }
+                    transformInsideVersion.addAll(fact.payload.addedFor(AspectField.SUBJECT).map { nextFact ->
+                        { aspectDataBefore: AspectData ->
+                            aspectDataBefore.copy(subject = subjectService.findById(nextFact.identity.toString())?.toSubject()?.toSubjectData())
+                        }
+                    })
+                    transformInsideVersion.addAll(fact.payload.removedFor(AspectField.SUBJECT).map { _ ->
+                        { aspectDataBefore: AspectData ->
+                            aspectDataBefore.copy(subject = null)
+                        }
+                    })
 
-                dataAccumulator = fact.payload.removedFor(AspectField.SUBJECT).foldRight(dataAccumulator) { _, acc -> acc.copy(subject = null) }
+                    transformInsideVersion.addAll(fact.payload.removedFor(AspectField.REFERENCE_BOOK).map { nextFact ->
+                        { aspectDataBefore: AspectData ->
+                            aspectDataBefore.copy(refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted")
+                        }
+                    })
+                    transformInsideVersion.addAll(fact.payload.removedFor(AspectField.REFERENCE_BOOK).map { _ ->
+                        { aspectDataBefore: AspectData ->
+                            aspectDataBefore.copy(refBookName = null)
+                        }
+                    })
 
-                dataAccumulator = fact.payload.addedFor(AspectField.REFERENCE_BOOK)
-                    .foldRight(dataAccumulator) { nextFact, acc ->
-                        acc.copy(refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted")
-                    }
-                dataAccumulator = fact.payload.removedFor(AspectField.REFERENCE_BOOK).foldRight(dataAccumulator) { _, acc -> acc.copy(refBookName = null) }
+                    transformInsideVersion.add({ aspectDataBefore: AspectData ->
+                        val allRelated = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
+                        val newProps = fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
+                        val updatedProps = aspectDataBefore.properties.plus(newProps).submit(allRelated)
+                        aspectDataBefore.submit(fact).copy(properties = updatedProps)
+                    })
 
-                return@map dataAccumulator.submit(fact).copy(properties = updatedProps)
+                    transformInsideVersion.fold(aspectDataPreviousVersion) { acc, transform -> transform(acc) }
+                }
 
-            }.toMutableList()
+                aspectDataAccumulator = toNextVersion(aspectDataAccumulator)
 
-            versionList.add(0, AspectData())
+                return@map aspectDataAccumulator
+            })
 
             return@flatMap versionList.zipWithNext().zip(entityEvents).map { createDiff(it.first.first, it.first.second, it.second) }
 
