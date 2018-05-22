@@ -33,7 +33,7 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
     }
 
     private fun AspectData.submitReferenceBookEvents(payload: DiffPayload): AspectData {
-        val afterAdded = payload.removedFor(AspectField.REFERENCE_BOOK).fold(this) { acc, nextFact ->
+        val afterAdded = payload.addedFor(AspectField.REFERENCE_BOOK).fold(this) { acc, nextFact ->
             acc.copy(refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted")
         }
 
