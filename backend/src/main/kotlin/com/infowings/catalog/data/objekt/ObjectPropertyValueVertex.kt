@@ -20,7 +20,6 @@ fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
 const val INT_TYPE_PROPERTY = "int"
 const val DECIMAL_TYPE_PROPERTY = "decimal"
 const val STR_TYPE_PROPERTY = "str"
-const val COMPOUND_TYPE_PROPERTY = "compound"
 const val RANGE_TYPE_PROPERTY = "range"
 const val PRECISION_PROPERTY = "precision"
 private const val TYPE_TAG_PROPERTY = "type_tag"
@@ -32,8 +31,7 @@ enum class ScalarTypeTag(val code: Int) {
     INTEGER(1),
     STRING(2),
     RANGE(3),
-    COMPOUND(4),
-    DECIMAL(5),
+    DECIMAL(4),
     OBJECT(100),
     SUBJECT(101),
     DOMAIN_ELEMENT(102),
@@ -46,7 +44,6 @@ fun ObjectValue.tag() = when (this) {
     is ObjectValue.IntegerValue -> ScalarTypeTag.INTEGER
     is ObjectValue.StringValue -> ScalarTypeTag.STRING
     is ObjectValue.RangeValue -> ScalarTypeTag.RANGE
-    is ObjectValue.CompoundValue -> ScalarTypeTag.COMPOUND
     is ObjectValue.DecimalValue -> ScalarTypeTag.DECIMAL
     is ObjectValue.Link -> when (this.value) {
         is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT
@@ -92,14 +89,6 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         }
     private val strValueStrict: String
         get() = strValue ?: throw StringValueNotDefinedException(id)
-
-    var compoundValue: String?
-        get() = vertex[COMPOUND_TYPE_PROPERTY]
-        set(value) {
-            vertex[COMPOUND_TYPE_PROPERTY] = value
-        }
-    private val compoundValueStrict: String
-        get() = compoundValue ?: throw CompoundValueNotDefinedException(id)
 
 
     private fun <T> setOrRemove(key: String, value: T?) {
@@ -195,7 +184,6 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, precision)
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
-            ScalarTypeTag.COMPOUND -> ObjectValue.CompoundValue(compoundValueStrict)
             ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)
             else ->
                 throw IllegalStateException("type tag is not defined")
@@ -221,9 +209,6 @@ class DecimalValueNotDefinedException(id: String) :
 
 class StringValueNotDefinedException(id: String) :
     ObjectValueException("string value is not defined for value $id")
-
-class CompoundValueNotDefinedException(id: String) :
-    ObjectValueException("compound value is not defined for value $id")
 
 class RangeNotDefinedException(id: String) :
     ObjectValueException("range is not defined for value $id")

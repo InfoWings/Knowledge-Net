@@ -6,6 +6,8 @@ import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 
+/* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
+
 /**
  * Object property data representation for use in backend context.
  * It can use Orient data structures but it is detached from database - updated to it does not lead to

@@ -169,7 +169,6 @@ class ObjectDaoTest {
         assertEquals(ScalarTypeTag.INTEGER, savedValue.typeTag, "type tag must be integer")
         assertNotNull(savedValue.intValue, "int value must be non-null")
         assertTrue("str type must be non-null", savedValue.strValue == null)
-        assertTrue("compound type must be non-null", savedValue.compoundValue == null)
 
         val updatedObjectProperty = transaction(db) { savedValue.objectProperty }
         val foundObjectProperty = objectService.findPropertyById(savedProperty.id)
@@ -227,7 +226,6 @@ class ObjectDaoTest {
         assertNotNull(savedValue.strValue, "str value must be non-null")
         assertEquals("some value", savedValue.strValue, "str value must be correct")
         assertTrue("int type must be non-null", savedValue.intValue == null)
-        assertTrue("compound type must be non-null", savedValue.compoundValue == null)
     }
 
     private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {

@@ -83,7 +83,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     vertex.removeProperty<Int>(PRECISION_PROPERTY)
                 }
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
-                ScalarTypeTag.COMPOUND -> vertex.removeProperty<String>(COMPOUND_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
                 ScalarTypeTag.SUBJECT -> {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
@@ -107,9 +106,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value
-            }
-            is ObjectValue.CompoundValue -> {
-                vertex.compoundValue = JSON.stringify(objectValue.value)
             }
             is ObjectValue.RangeValue -> {
                 vertex.range = objectValue.range

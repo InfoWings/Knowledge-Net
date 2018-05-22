@@ -109,8 +109,6 @@ class ObjectValidator(
                 ObjectValue.StringValue(dataValue.value)
             is ObjectValueData.RangeValue ->
                 ObjectValue.RangeValue(dataValue.range)
-            is ObjectValueData.CompoundValue ->
-                ObjectValue.CompoundValue(dataValue.value)
             is ObjectValueData.DecimalValue ->
                 ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr))
         }

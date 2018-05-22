@@ -342,35 +342,6 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectValueValidatorSimpleCompoundTest() {
-        val data =
-            ObjectData(null, "objectValueValidatorTestSimpleCompoundName", "object descr", subject.id, emptyList())
-        val savedObject = createObject(data)
-
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_objectPropertyValidatorSimpleCompoundTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
-            valueIds = emptyList()
-        )
-        val savedProperty = createObjectProperty(objectPropertyData)
-        val scalarValue = ObjectValueData.StringValue("string-value")
-        val valueData = ObjectPropertyValueData(
-            null,
-            scalarValue,
-            savedProperty.id,
-            complexAspect.properties[0].id,
-            null,
-            null
-        )
-        val objectValue = validator.checkedForCreation(valueData)
-
-
-        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
-        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
-    }
-
-    @Test
     fun objectSecondPropertyValidatorTest() {
         val data = ObjectData(null, "objectSecondPropertyValidatorTestName", "object descr", subject.id, emptyList())
         val objectVertex = createObject(data)
