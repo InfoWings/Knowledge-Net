@@ -27,9 +27,9 @@ class AspectHistoryProvider(
 
             val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
 
-                val relatedEvents = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
+                val relatedFacts = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
 
-                aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedEvents)
+                aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
 
                 return@map aspectDataAccumulator
             })
