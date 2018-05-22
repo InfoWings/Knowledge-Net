@@ -1,10 +1,12 @@
 package com.infowings.catalog.aspects.filter
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.subjects.getSuggestedSubject
 import com.infowings.catalog.wrappers.select.SelectOption
-import com.infowings.catalog.wrappers.select.commonSelect
+import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinext.js.require
+import kotlinx.coroutines.experimental.launch
 import react.*
 
 private interface SubjectOption : SelectOption {
@@ -26,18 +28,32 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
     }
 
     override fun RBuilder.render() {
-        commonSelect<SubjectOption> {
+        asyncSelect<SubjectOption> {
             attrs {
                 className = "aspect-subject-filter"
                 multi = true
                 placeholder = "Filter by subject..."
-                value = props.subjectsFilter.map { it?.name ?: "Global" }.toTypedArray()
+                value = props.subjectsFilter.map { subjectOption(it) }.toTypedArray()
                 labelKey = "subjectName"
                 valueKey = "subjectName"
                 onChange = {
                     props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData })
                 }
-                options = props.subjectsToFilter.map { subjectOption(it) }.toTypedArray()
+                loadOptions = { input, callback ->
+                    if (input.isNotEmpty()) {
+                        launch {
+                            val filteredSubjects = getSuggestedSubject(input, "")
+                            callback(null, jsObject {
+                                options = filteredSubjects.subject.map { subjectOption(it) }.toTypedArray()
+                            })
+                        }
+                    } else {
+                        callback(null, jsObject {
+                            options = emptyArray()
+                        })
+                    }
+                    false
+                }
                 clearable = false
             }
         }
@@ -45,7 +61,6 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
 
     interface Props : RProps {
         var subjectsFilter: Collection<SubjectData?>
-        var subjectsToFilter: List<SubjectData?>
         var onChange: (List<SubjectData?>) -> Unit
     }
 }

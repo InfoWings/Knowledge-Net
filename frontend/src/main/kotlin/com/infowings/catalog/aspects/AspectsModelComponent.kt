@@ -8,14 +8,12 @@ import com.infowings.catalog.aspects.filter.aspectSubjectFilterComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.*
-import com.infowings.catalog.subjects.getAllSubjects
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.blueprint.Position
 import com.infowings.catalog.wrappers.blueprint.Toast
 import com.infowings.catalog.wrappers.blueprint.Toaster
 import com.infowings.catalog.wrappers.react.asReactElement
-import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -94,16 +92,6 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         unsafeSelection = false
         errorMessages = emptyList()
         aspectsFilter = AspectsFilter(emptyList(), emptyList())
-        subjectsToFilter = emptyList()
-    }
-
-    override fun componentDidMount() {
-        launch {
-            val subjectsList = getAllSubjects()
-            setState {
-                subjectsToFilter = subjectsList.subject.plus<SubjectData?>(null)
-            }
-        }
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -305,14 +293,12 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                 aspectSubjectFilterComponent {
                     attrs {
                         subjectsFilter = state.aspectsFilter.subjects
-                        subjectsToFilter = state.subjectsToFilter
                         onChange = ::setSubjectsFilter
                     }
                 }
                 aspectExcludeFilterComponent {
                     attrs {
                         selectedAspects = state.aspectsFilter.excludedAspects
-                        initialOptions = props.data
                         onChange = ::setExcludedAspectsToFilter
                     }
                 }
@@ -367,7 +353,6 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var unsafeSelection: Boolean
         var errorMessages: List<String>
         var aspectsFilter: AspectsFilter
-        var subjectsToFilter: List<SubjectData?>
     }
 }
 

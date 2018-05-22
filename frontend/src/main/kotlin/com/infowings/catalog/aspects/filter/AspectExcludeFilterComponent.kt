@@ -28,28 +28,29 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 className = "aspect-filter-exclude"
                 multi = true
                 placeholder = "Exclude aspects from filtering..."
-                value = props.selectedAspects.map {
-                    "${it.name ?: error("aspectData should have name")} (${it.subject?.name ?: "Global"})"
-                }.toTypedArray()
+                value = props.selectedAspects.map { aspectOption(it) }.toTypedArray()
                 labelKey = "aspectLabel"
                 valueKey = "aspectLabel"
                 onChange = {
                     props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData })
                 }
-                options = props.initialOptions.map { aspectOption(it) }.toTypedArray()
                 loadOptions = { input, callback ->
-                    launch {
-                        val suggestedAspects = withTimeoutOrNull(500) {
-                            getSuggestedAspects(input, null, null)
+                    if (input.isNotEmpty()) {
+                        launch {
+                            val suggestedAspects = withTimeoutOrNull(500) {
+                                getSuggestedAspects(input, null, null)
+                            }
+                            callback(null, jsObject {
+                                options = suggestedAspects?.aspects?.map { aspectOption(it) }?.toTypedArray() ?: emptyArray()
+                            })
                         }
+                    } else {
                         callback(null, jsObject {
-                            options = suggestedAspects?.aspects?.map { aspectOption(it) }?.toTypedArray() ?:
-                                    emptyArray()
+                            options = emptyArray()
                         })
                     }
                     false
                 }
-                filterOptions = { options, _, _ -> options }
                 clearable = false
             }
         }
@@ -57,7 +58,6 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
 
     interface Props : RProps {
         var selectedAspects: List<AspectData>
-        var initialOptions: List<AspectData>
         var onChange: (List<AspectData>) -> Unit
     }
 }
