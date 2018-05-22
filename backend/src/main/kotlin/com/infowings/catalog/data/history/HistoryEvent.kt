@@ -8,7 +8,10 @@ data class DiffPayload(
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
     val removedLinks: Map<String, List<ORID>>
-)
+) {
+    fun addedFor(vertexClass: String): List<ORID> = addedLinks[vertexClass] ?: emptyList()
+    fun removedFor(vertexClass: String): List<ORID> = removedLinks[vertexClass] ?: emptyList()
+}
 
 data class Snapshot(
     val data: Map<String, String>,

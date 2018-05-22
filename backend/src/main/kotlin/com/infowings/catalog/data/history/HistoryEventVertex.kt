@@ -10,6 +10,7 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import java.time.Instant
+import java.util.*
 
 const val HISTORY_EVENT_CLASS = "HistoryEvent"
 
@@ -65,4 +66,10 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         get() = getVertices(ODirection.IN, HISTORY_USER_EDGE)
             .map { it.toUserVertex() }
             .first()
+
+    var sessionId: UUID
+        get() = UUID.fromString(vertex["sessionUUID"])
+        set(value) {
+            vertex["sessionUUID"] = value.toString()
+        }
 }

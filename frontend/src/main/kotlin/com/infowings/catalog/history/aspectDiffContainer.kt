@@ -32,14 +32,14 @@ fun RBuilder.aspectDiffContainer(handler: RHandler<AspectDiffContainer.Props>) =
 
 private val Delta.color
     get() = when {
-        before == null -> "green"
-        after == null -> "red"
+        before.isNullOrEmpty() -> "green"
+        after.isNullOrEmpty() -> "red"
         else -> ""
     }
 
 private val Delta.line: String
     get() = when {
-        before == null -> after!!
-        after == null -> before!!
+        before.isNullOrEmpty() -> after!!
+        after.isNullOrEmpty() -> before!!
         else -> "$before → $after"
     }

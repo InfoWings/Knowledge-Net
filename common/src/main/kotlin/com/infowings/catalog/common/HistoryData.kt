@@ -28,11 +28,40 @@ data class HistoryData<T>(
 
 typealias AspectHistory = HistoryData<AspectDataView>
 
+
 @Serializable
 data class AspectDataView(val aspectData: AspectData, val related: List<AspectData>)
 
+
 enum class AspectField {
-    NAME, MEASURE, BASE_TYPE;
+    NAME {
+        override val view: String
+            get() = "Name"
+    },
+    MEASURE {
+        override val view: String
+            get() = "Measure"
+    },
+    BASE_TYPE {
+        override val view: String
+            get() = "Base type"
+    },
+    DESCRIPTION {
+        override val view: String
+            get() = "Description"
+    };
+
+    abstract val view: String
+
+    companion object {
+        const val PROPERTY = "Property"
+        const val SUBJECT = "Subject"
+        const val REFERENCE_BOOK = "Reference book"
+    }
+}
+
+enum class AspectPropertyField {
+    NAME, CARDINALITY, ASPECT;
 }
 
 @Serializable
