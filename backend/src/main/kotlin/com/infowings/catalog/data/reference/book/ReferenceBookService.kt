@@ -89,6 +89,7 @@ class ReferenceBookService(
     /**
      * Update ReferenceBook name or description
      * @throws RefBookNotExist
+     * @throws RefBookEmptyChangeException if no changes are required
      */
     fun updateReferenceBook(book: ReferenceBook, username: String) {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -207,6 +208,7 @@ class ReferenceBookService(
      * @throws RefBookItemIllegalArgumentException if parent vertex does not exist
      * @throws RefBookItemNotExist if id in received DTO is illegal
      * @throws RefBookChildAlreadyExist if reference item with the same value as supplied already exists within the parent context
+     * @throws RefBookEmptyChangeException if no changes are required
      */
     fun updateReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -215,7 +217,6 @@ class ReferenceBookService(
             logger.debug("Updating: $bookItem by $username")
 
             val itemVertex = dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
-
             if (itemVertex.toReferenceBookItem() == bookItem) {
                 throw RefBookEmptyChangeException()
             }
