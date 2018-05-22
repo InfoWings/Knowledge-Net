@@ -13,16 +13,8 @@ private interface SubjectOption : SelectOption {
 }
 
 private fun subjectOption(subjectData: SubjectData?) = jsObject<SubjectOption> {
-    when (subjectData) {
-        null -> {
-            this.subjectName = "Global"
-            this.subjectData = null
-        }
-        else -> {
-            this.subjectName = subjectData.name
-            this.subjectData = subjectData
-        }
-    }
+    this.subjectName = subjectData?.name ?: "Global"
+    this.subjectData = subjectData
 }
 
 class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Props, RState>() {
