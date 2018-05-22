@@ -28,6 +28,7 @@ data class AspectPropertyData(
     val name: String,
     val aspectId: String,
     val cardinality: String,
+    val description: String?,
     val version: Int = 0,
     val deleted: Boolean = false
 )
@@ -37,6 +38,6 @@ val emptyAspectData: AspectData
     get() = AspectData(null, "", null, null, null)
 
 val emptyAspectPropertyData: AspectPropertyData
-    get() = AspectPropertyData("", "", "", "")
+    get() = AspectPropertyData("", "", "", "", null)
 
 fun AspectData.actualData() = copy(properties = properties.filter { !it.deleted })

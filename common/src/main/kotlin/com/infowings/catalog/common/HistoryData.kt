@@ -61,7 +61,7 @@ enum class AspectField {
 }
 
 enum class AspectPropertyField {
-    NAME, CARDINALITY, ASPECT;
+    NAME, CARDINALITY, ASPECT, DESCRIPTION;
 }
 
 @Serializable

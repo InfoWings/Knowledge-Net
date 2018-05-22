@@ -140,13 +140,14 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         data = mapOf(
             AspectPropertyField.NAME.name to asStringOrEmpty(name),
             AspectPropertyField.ASPECT.name to asStringOrEmpty(aspect),
-            AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality)
+            AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality),
+            AspectPropertyField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = emptyMap()
     )
 
     fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, version)
+        AspectPropertyData(id, name, aspect, cardinality, description, version)
 
     var name: String
         get() = vertex["name"]
@@ -170,6 +171,12 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         get() = vertex["deleted"] ?: false
         set(value) {
             vertex["deleted"] = value
+        }
+
+    var description: String?
+        get() = vertex[ATTR_DESC]
+        set(value) {
+            vertex[ATTR_DESC] = value
         }
 
     override fun equals(other: Any?): Boolean {

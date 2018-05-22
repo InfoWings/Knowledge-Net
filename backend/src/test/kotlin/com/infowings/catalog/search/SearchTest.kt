@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import org.xmlunit.diff.DifferenceEvaluators.first
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -219,7 +218,8 @@ class SearchTest {
             emptyList()
         )
         val level2: Aspect = aspectService.save(level2_data, username)
-        val level2_property = AspectPropertyData("", "p_level2", level2.id, AspectPropertyCardinality.INFINITY.name)
+        val level2_property =
+            AspectPropertyData("", "p_level2", level2.id, AspectPropertyCardinality.INFINITY.name, null)
 
 
         val level1_1_data = AspectData(
@@ -232,7 +232,7 @@ class SearchTest {
         )
         val level1_1: Aspect = aspectService.save(level1_1_data, username)
         val level1_1_property =
-            AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name)
+            AspectPropertyData("", "p_level1_1", level1_1.id, AspectPropertyCardinality.INFINITY.name, null)
 
         val level1_data = AspectData(
             "",
@@ -243,7 +243,8 @@ class SearchTest {
             listOf(level2_property)
         )
         val level1: Aspect = aspectService.save(level1_data, username)
-        val level1_property = AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name)
+        val level1_property =
+            AspectPropertyData("", "p_level1", level1.id, AspectPropertyCardinality.INFINITY.name, null)
 
         val ad = AspectData(
             "",

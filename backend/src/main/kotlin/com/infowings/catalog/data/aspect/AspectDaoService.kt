@@ -101,6 +101,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         aspectPropertyVertex.name = aspectPropertyData.name.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
+        aspectPropertyVertex.description = aspectPropertyData.description
 
         // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
         if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).contains(aspectVertex)) {

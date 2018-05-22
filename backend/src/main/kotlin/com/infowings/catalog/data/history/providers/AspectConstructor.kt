@@ -75,6 +75,7 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
             name = fact.payload.data.getOrDefault(AspectPropertyField.NAME.name, name),
             cardinality = fact.payload.data.getOrDefault(AspectPropertyField.CARDINALITY.name, cardinality),
             aspectId = fact.payload.data.getOrDefault(AspectPropertyField.ASPECT.name, aspectId),
+            description = fact.payload.data.getOrDefault(AspectPropertyField.DESCRIPTION.name, description),
             version = fact.event.version
         )
         else -> copy(deleted = true, version = fact.event.version)
