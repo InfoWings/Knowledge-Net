@@ -64,11 +64,7 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
 
         val updatedProps = map { aspectPropertyData ->
             val relatedEvents = propertyEventMap[ORecordId(aspectPropertyData.id)]?.sortedBy { it.event.timestamp } ?: emptyList()
-            var initial = aspectPropertyData
-            relatedEvents.forEach {
-                initial = aspectPropertyData.submitFieldsEvents(it)
-            }
-            return@map initial
+            return@map relatedEvents.fold(aspectPropertyData) { acc, event -> acc.submitFieldsEvents(event) }
         }
 
         return updatedProps.filterNot { it.deleted }
