@@ -99,6 +99,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             )
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
+            is RefBookEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }

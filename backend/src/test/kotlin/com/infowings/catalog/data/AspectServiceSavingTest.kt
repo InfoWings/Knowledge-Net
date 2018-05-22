@@ -457,6 +457,17 @@ class AspectServiceSavingTest {
         Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
     }
 
+    @Test
+    fun testUpdateSameData() {
+        prepareAspect()
+        val ad = aspectService.getAspects().first().toAspectData()
+        try {
+            aspectService.save(ad, username)
+        } catch (e: AspectEmptyChangeException) {
+        }
+        val newAspect = aspectService.findById(ad.id!!)
+        Assert.assertEquals("Same data shouldn't be rewritten", ad.version, newAspect.version)
+    }
 
     private fun prepareAspect(): Aspect {
         /*

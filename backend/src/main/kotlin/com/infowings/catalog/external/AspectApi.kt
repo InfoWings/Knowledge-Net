@@ -155,6 +155,7 @@ class AspectApi(val aspectService: AspectService) {
                         )
                     )
                 )
+            is AspectEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("${exception.message}")
         }
