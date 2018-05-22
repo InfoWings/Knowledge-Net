@@ -32,7 +32,7 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 labelKey = "aspectLabel"
                 valueKey = "aspectLabel"
                 onChange = {
-                    props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData })
+                    props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData }) // TODO: KS-143
                 }
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {

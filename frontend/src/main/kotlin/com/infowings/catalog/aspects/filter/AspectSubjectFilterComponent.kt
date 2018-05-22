@@ -37,19 +37,21 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
                 labelKey = "subjectName"
                 valueKey = "subjectName"
                 onChange = {
-                    props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData })
+                    props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData }) // TODO: KS-143
                 }
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {
                         launch {
-                            val filteredSubjects = getSuggestedSubject(input, "")
+                            val filteredSubjects = getSuggestedSubject(input, "").subject
+                            val filteredSubjectsPlusNull = if ("Global".contains(input, ignoreCase = true))
+                                filteredSubjects.plus<SubjectData?>(null) else filteredSubjects
                             callback(null, jsObject {
-                                options = filteredSubjects.subject.map { subjectOption(it) }.toTypedArray()
+                                options = filteredSubjectsPlusNull.map { subjectOption(it) }.toTypedArray()
                             })
                         }
                     } else {
                         callback(null, jsObject {
-                            options = emptyArray()
+                            options = arrayOf(subjectOption(null))
                         })
                     }
                     false
