@@ -40,6 +40,9 @@ class SubjectService(
 
         val resultVertex = transaction(db) {
             val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            if (subjectData == vertex.toSubject().toSubjectData()) {
+                throw SubjectEmptyChangeException()
+            }
 
             // временно отключим до гарантированной поддержки на фронте
             //if (subjectData.isModified(vertex.version)) {
@@ -100,3 +103,5 @@ class SubjectConcurrentModificationException(expected: Int, real: Int) :
 
 class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
     SubjectException("Subject ${subject.id} is linked by ${aspect.id}")
+
+class SubjectEmptyChangeException : SubjectException()

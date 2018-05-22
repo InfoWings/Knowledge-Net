@@ -98,9 +98,10 @@ class ReferenceBookService(
             val newName: String = book.name
             val newDescription: String? = book.description
 
-            logger.debug("Updating ReferenceBook name: $newName aspectId: $aspectId by $username")
-
             val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
+            if (rootVertex.toReferenceBook(aspectId) == book) {
+                throw RefBookEmptyChangeException()
+            }
             val before = rootVertex.currentSnapshot()
 
             rootVertex
@@ -211,7 +212,14 @@ class ReferenceBookService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
+            logger.debug("Updating: $bookItem by $username")
+
             val itemVertex = dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
+
+            if (itemVertex.toReferenceBookItem() == bookItem) {
+                throw RefBookEmptyChangeException()
+            }
+
             val before = itemVertex.currentSnapshot()
 
             val parentVertex =
@@ -359,3 +367,5 @@ class RefBookConcurrentModificationException(id: String, message: String) :
 
 class RefBookIncorrectAspectType(aspectId: String, type: String?, expected: String) :
     ReferenceBookException("Bad type of aspect $aspectId: $type. Expected: $expected")
+
+class RefBookEmptyChangeException : ReferenceBookException()
