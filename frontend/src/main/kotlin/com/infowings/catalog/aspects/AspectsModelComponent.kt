@@ -1,23 +1,11 @@
 package com.infowings.catalog.aspects
 
-import com.infowings.catalog.aspects.editconsole.aspectConsole
-import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
 import com.infowings.catalog.aspects.filter.AspectsFilter
-import com.infowings.catalog.aspects.filter.aspectExcludeFilterComponent
-import com.infowings.catalog.aspects.filter.aspectSubjectFilterComponent
-import com.infowings.catalog.aspects.sort.aspectSort
-import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.ServerException
-import com.infowings.catalog.wrappers.blueprint.Intent
-import com.infowings.catalog.wrappers.blueprint.Position
-import com.infowings.catalog.wrappers.blueprint.Toast
-import com.infowings.catalog.wrappers.blueprint.Toaster
-import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.RComponent
 import react.RState
-import react.dom.div
 import react.setState
 import kotlin.math.min
 
@@ -281,69 +269,26 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
     }
 
     override fun RBuilder.render() {
-        val selectedAspect = state.selectedAspect
-        val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
-            div(classes = "aspect-tree-view__header") {
-                aspectSort {
-                    attrs {
-                        onFetchAspect = props.onFetchAspects
-                    }
-                }
-                aspectSubjectFilterComponent {
-                    attrs {
-                        subjectsFilter = state.aspectsFilter.subjects
-                        onChange = ::setSubjectsFilter
-                    }
-                }
-                aspectExcludeFilterComponent {
-                    attrs {
-                        selectedAspects = state.aspectsFilter.excludedAspects
-                        onChange = ::setExcludedAspectsToFilter
-                    }
-                }
-            }
-            aspectTreeView {
-                attrs {
-                    aspects = state.aspectsFilter.applyToAspects(props.data)
-                    aspectContext = props.aspectContext
-                    selectedAspectId = state.selectedAspect.id
-                    selectedPropertyIndex = state.selectedAspectPropertyIndex
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            aspectConsole {
-                attrs {
-                    aspect = selectedAspect
-                    propertyIndex = selectedAspectPropertyIndex
-                    aspectContext = props.aspectContext
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            unsafeChangesWindow(state.unsafeSelection) {
-                setState { unsafeSelection = false }
-            }
-            Toaster {
-                attrs {
-                    position = Position.TOP_RIGHT
-                }
-                state.errorMessages.reversed().forEach { errorMessage ->
-                    Toast {
-                        attrs {
-                            icon = "warning-sign"
-                            intent = Intent.DANGER
-                            message = errorMessage.asReactElement()
-                            onDismiss = {
-                                setState {
-                                    errorMessages = errorMessages.filterNot { it == errorMessage }
-                                }
-                            }
-                            timeout = 9000
-                        }
-                    }
-                }
-            }
-
+            aspectPageHeader(
+                onFetchAspects = props.onFetchAspects,
+                filter = state.aspectsFilter,
+                setFilterSubjects = ::setSubjectsFilter,
+                setFilterAspects = ::setExcludedAspectsToFilter
+            )
+            aspectPageContent(
+                filteredAspects = state.aspectsFilter.applyToAspects(props.data),
+                aspectContext = props.aspectContext,
+                aspectsModel = this@AspectsModelComponent,
+                selectedAspect = state.selectedAspect,
+                selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
+            )
+            aspectPageOverlay(
+                isUnsafeSelection = state.unsafeSelection,
+                onCloseUnsafeSelection = { setState { unsafeSelection = false } },
+                errorMessages = state.errorMessages,
+                onDismissErrorMessage = { errorMessage -> setState { errorMessages = errorMessages.filterNot { it == errorMessage } } }
+            )
         }
     }
 
