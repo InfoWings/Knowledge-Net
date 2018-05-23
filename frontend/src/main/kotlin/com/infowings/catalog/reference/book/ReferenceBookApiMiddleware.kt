@@ -7,6 +7,7 @@ import com.infowings.catalog.utils.BadRequestException
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
+import react.dom.div
 import kotlin.reflect.KClass
 
 class RefBookBadRequestException(val exceptionInfo: BadRequest) : RuntimeException(exceptionInfo.message)
@@ -149,9 +150,11 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
 
     override fun RBuilder.render() {
-        aspectSort {
-            attrs {
-                onFetchAspect = ::fetchData
+        div(classes = "aspect-tree-view__header") {
+            aspectSort {
+                attrs {
+                    onFetchAspect = ::fetchData
+                }
             }
         }
         child(props.apiReceiverComponent) {
