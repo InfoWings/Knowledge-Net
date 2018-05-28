@@ -33,7 +33,7 @@ fun RBuilder.aspectLabel(
     }
     +":"
     span(classes = "text-grey") {
-        + if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
+        +if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
     }
     +":"
     span(classes = "text-grey") {

@@ -55,7 +55,7 @@ class ObjectServiceExampleTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
+        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -83,10 +83,12 @@ class ObjectServiceExampleTest {
             ), username
         )
 
-        val propertyStage1 = AspectPropertyData("", "1-й ступени ток", aspectStage1.id, PropertyCardinality.ONE.name)
-        val propertyStage2 = AspectPropertyData("", "2-й ступени ток", aspectStage2.id, PropertyCardinality.ONE.name)
+        val propertyStage1 =
+            AspectPropertyData("", "1-й ступени ток", aspectStage1.id, PropertyCardinality.ONE.name, null)
+        val propertyStage2 =
+            AspectPropertyData("", "2-й ступени ток", aspectStage2.id, PropertyCardinality.ONE.name, null)
         val propertyMaxTempr =
-            AspectPropertyData("", "Max температура", aspectMaxTempr.id, PropertyCardinality.ONE.name)
+            AspectPropertyData("", "Max температура", aspectMaxTempr.id, PropertyCardinality.ONE.name, null)
 
         val aspectChargeMode = aspectService.save(
             AspectData(
@@ -104,7 +106,7 @@ class ObjectServiceExampleTest {
 
 
         val propertyChargeMode =
-            AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name)
+            AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name, null)
         val aspectChargeCharacteristic = aspectService.save(
             AspectData(
                 name = "сharge-characteristic",
@@ -116,8 +118,8 @@ class ObjectServiceExampleTest {
 
         val refBook = refBookService.createReferenceBook("rb-charge", aspectChargeMode.id, username)
         val refBookItemIds = listOf("Ускоренный", "Номинальный", "Глубокий").map {
-            val item = ReferenceBookItem(aspectChargeMode.id, refBook.root.id, "", it, emptyList(), false, 0)
-            refBookService.addReferenceBookItem(item, "admin")
+            val item = ReferenceBookItem(aspectChargeMode.id, it, "descr of $it", emptyList(), false, 0)
+            refBookService.addReferenceBookItem(refBook.id, item, "admin")
         }
         refBookService.getReferenceBook(aspectChargeMode.id)
 

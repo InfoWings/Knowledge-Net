@@ -71,7 +71,7 @@ class ObjectValidatorTest {
                 baseType = BaseType.Text.name
             ), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
+        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",

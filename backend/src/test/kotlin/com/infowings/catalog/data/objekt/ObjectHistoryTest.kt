@@ -25,7 +25,7 @@ import kotlin.test.assertEquals
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class  ObjectHistoryTest {
+class ObjectHistoryTest {
     @Autowired
     private lateinit var db: OrientDatabase
     @Autowired
@@ -53,8 +53,9 @@ class  ObjectHistoryTest {
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(
-            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name)
+            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
+        )
+        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -96,7 +97,7 @@ class  ObjectHistoryTest {
     }
 
     private fun eventsByClass(events: Set<HistoryFactDto>, entityClass: String) =
-        events.filter {it.event.entityClass == entityClass}
+        events.filter { it.event.entityClass == entityClass }
 
     private fun objectEvents(events: Set<HistoryFactDto>) = eventsByClass(events, OBJECT_CLASS)
 
