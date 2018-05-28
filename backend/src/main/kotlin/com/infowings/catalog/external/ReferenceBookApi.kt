@@ -1,10 +1,7 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.reference.book.*
 import kotlinx.serialization.json.JSON
@@ -31,7 +28,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
 
     @PostMapping("create")
     fun create(@RequestBody book: ReferenceBook, principal: Principal): ReferenceBook {
-        return referenceBookService.createReferenceBook(book.name, book.aspectId, principal.name)
+        return referenceBookService.createReferenceBook(
+            name = book.name,
+            aspectId = book.aspectId,
+            username = principal.name
+        )
     }
 
     @PostMapping("update")
@@ -50,18 +51,22 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     }
 
     @PostMapping("item/create")
-    fun createItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.addReferenceBookItem(bookItem, principal.name)
+    fun createItem(@RequestBody data: ReferenceBookItemData, principal: Principal) {
+        referenceBookService.addReferenceBookItem(
+            parentId = data.parentId,
+            bookItem = data.bookItem,
+            username = principal.name
+        )
     }
 
     @PostMapping("item/update")
     fun updateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name)
     }
 
     @PostMapping("item/forceUpdate")
     fun forceUpdateItem(@RequestBody bookItem: ReferenceBookItem, principal: Principal) {
-        referenceBookService.changeValue(bookItem, principal.name, true)
+        referenceBookService.updateReferenceBookItem(bookItem, principal.name, true)
     }
 
     @PostMapping("item/remove")
@@ -92,10 +97,9 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
                     )
                 )
             )
-            is RefBookItemConcurrentModificationException ->
-                ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book Item. Please refresh page.")
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
+            is RefBookEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.message)
         }
     }

@@ -41,34 +41,26 @@ class ReferenceBookDaoTest {
 
     //todo: after Object entity will added this test could be moved to ReferenceBookDaoTest
     @Test
-    fun fakeRemoveTest() {
+    fun markReferenceBookAsRemovedTest() {
         val book1 = referenceBookService.createReferenceBook("book1", aspect.id, username)
-        val anotherAspect =
-            aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name), username)
+        val anotherAspect = aspectService.save(AspectData("", "asp2", null, null, BaseType.Text.name), username)
         val anotherAspectId = anotherAspect.id
-        val book2 = referenceBookService.createReferenceBook("book2", anotherAspectId, username)
-        val item1 = createReferenceBookItem(anotherAspectId, book2.id, "v1")
-        val idItem1 = referenceBookService.addReferenceBookItem(item1, username)
-        val item11 = createReferenceBookItem(anotherAspectId, idItem1, "v2")
-        val idItem11 = referenceBookService.addReferenceBookItem(item11, username)
-        dao.markBookVertexAsDeleted(
-            dao.getReferenceBookVertex(anotherAspectId) ?: throw RefBookNotExist(anotherAspectId)
-        )
+        val anotherBook = referenceBookService.createReferenceBook("book2", anotherAspectId, username)
+        val item1 = createReferenceBookItem("v1")
+        val idItem1 = referenceBookService.addReferenceBookItem(anotherBook.id, item1, username)
+        val item11 = createReferenceBookItem("v2")
+        val idItem11 = referenceBookService.addReferenceBookItem(idItem1, item11, username)
+        dao.getRootVertex(anotherAspectId)?.also { dao.markItemVertexAsDeleted(it) }
         assertEquals(listOf(book1), referenceBookService.getAllReferenceBooks())
         assertTrue(referenceBookService.getReferenceBookItem(idItem1).deleted)
         assertTrue(referenceBookService.getReferenceBookItem(idItem11).deleted)
     }
 
-    private fun createReferenceBookItem(
-        aspectId: String,
-        parentId: String,
-        value: String
-    ): ReferenceBookItem {
+    private fun createReferenceBookItem(value: String): ReferenceBookItem {
         return ReferenceBookItem(
-            aspectId,
-            parentId,
             "",
             value,
+            null,
             emptyList(),
             false,
             0

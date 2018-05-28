@@ -3,6 +3,8 @@ package com.infowings.catalog.reference.book.treeview
 import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
@@ -37,7 +39,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
     }
 
     private suspend fun handleCreateBookItem(bookItem: ReferenceBookItem) {
-        props.createBookItem(bookItem)
+        props.createBookItem(props.aspectId, ReferenceBookItemData(props.book.id, bookItem))
         setState {
             creatingBookItem = false
         }
@@ -86,6 +88,19 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
                             }
                         }
 
+                        descriptionComponent(
+                            className = "book-tree-view--description",
+                            description = props.book.description,
+                            onNewDescriptionConfirmed = {
+                                launch {
+                                    props.updateBook(
+                                        props.book.copy(description = it)
+                                    )
+                                }
+                            },
+                            onEditStarted = null
+                        )
+
                         addToListIcon(classes = "book-tree-view--add-to-list-icon") {
                             attrs {
                                 onClickFunction = ::startCreatingBookItem
@@ -131,7 +146,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
             if (state.creatingBookItem) {
                 bookItemEditConsole {
                     attrs {
-                        bookItem = ReferenceBookItem(props.aspectId, props.book.id, "", "", emptyList(), false, 0)
+                        bookItem = ReferenceBookItem("", "", null, emptyList(), false, 0)
                         onCancel = ::cancelCreatingBookItem
                         onSubmit = { bookItem, _ -> handleCreateBookItem(bookItem) }
                     }
@@ -148,9 +163,9 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
         var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: suspend (ReferenceBook) -> Unit
         var deleteBook: suspend (ReferenceBook, force: Boolean) -> Unit
-        var createBookItem: suspend (ReferenceBookItem) -> Unit
-        var updateBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
-        var deleteBookItem: suspend (ReferenceBookItem, force: Boolean) -> Unit
+        var createBookItem: suspend (aspectId: String, ReferenceBookItemData) -> Unit
+        var updateBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
+        var deleteBookItem: suspend (aspectId: String, ReferenceBookItem, force: Boolean) -> Unit
     }
 
     interface State : RState {

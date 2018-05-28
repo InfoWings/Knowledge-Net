@@ -343,6 +343,7 @@ private fun AspectData.updatePropertyAtIndex(atIndex: Int, aspectProperty: Aspec
                     name = aspectProperty.name,
                     cardinality = aspectProperty.cardinality,
                     aspectId = aspectProperty.aspectId,
+                    description = aspectProperty.description,
                     deleted = aspectProperty.deleted
                 )
             } else {

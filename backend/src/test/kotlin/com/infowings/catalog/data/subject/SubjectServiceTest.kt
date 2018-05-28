@@ -98,7 +98,7 @@ class SubjectServiceTest {
          */
         val subject = createTestSubject("TestSubjectUpdate")
         val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
-        val level1Property = AspectPropertyData("", "p_level1", aspect.id, PropertyCardinality.INFINITY.name)
+        val level1Property = AspectPropertyData("", "p_level1", aspect.id, PropertyCardinality.INFINITY.name, null)
         aspectService.save(
             createTestAspect(
                 "aspectBase",
@@ -215,6 +215,17 @@ class SubjectServiceTest {
         } catch (e: Throwable) {
             Assert.fail("Unexpected error is thrown: $e")
         }
+    }
+
+    @Test
+    fun testUpdateSameData() {
+        val created = createTestSubject("testSubject")
+        try {
+            subjectService.updateSubject(created.toSubjectData(), username)
+        } catch (e: SubjectEmptyChangeException) {
+        }
+        val updated = subjectService.findById(created.id)
+        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
     }
 
     private fun createTestSubject(

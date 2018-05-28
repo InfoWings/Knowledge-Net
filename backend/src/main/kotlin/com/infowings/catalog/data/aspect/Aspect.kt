@@ -54,8 +54,9 @@ data class AspectProperty(
     val id: String,
     val name: String,
     val aspect: Aspect,
+    val description: String?,
     val cardinality: PropertyCardinality,
     val version: Int = 0
 ) {
-    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, version)
+    fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, description, version)
 }

@@ -56,7 +56,7 @@ class SubjectApiTest : AbstractMvcTest() {
     @Test
     fun update() {
         val subject = createTestSubject("TestSubjectUpdate")
-        val subjectDataJson: String = ObjectMapper().writeValueAsString(subject.toSubjectData())
+        val subjectDataJson: String = ObjectMapper().writeValueAsString(subject.toSubjectData().copy(description = "123"))
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/subject/update")

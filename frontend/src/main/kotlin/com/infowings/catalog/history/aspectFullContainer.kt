@@ -4,6 +4,7 @@ import com.infowings.catalog.aspects.treeview.view.aspectLabel
 import com.infowings.catalog.aspects.treeview.view.propertyLabel
 import com.infowings.catalog.common.AspectDataView
 import com.infowings.catalog.components.treeview.treeNode
+import com.infowings.catalog.utils.ripIcon
 import react.*
 import react.dom.div
 
@@ -27,6 +28,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                             aspectMeasure = props.view.aspectData.measure ?: "",
                             aspectDomain = props.view.aspectData.domain ?: "",
                             aspectBaseType = props.view.aspectData.baseType ?: "",
+                            aspectRefBookName = props.view.aspectData.refBookName ?: "",
                             aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
                             isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
                             onClick = { }
@@ -34,20 +36,30 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                     }!!
                 }
                 val propMap = props.view.related.map { it.id to it }.toMap()
-                div("history_properties") {
-                    props.view.aspectData.properties.forEach {
-                        propertyLabel(
-                            className = null,
-                            aspectPropertyName = it.name,
-                            aspectPropertyCardinality = it.cardinality,
-                            aspectName = propMap[it.aspectId]?.name ?: "",
-                            aspectMeasure = propMap[it.aspectId]?.measure ?: "",
-                            aspectDomain = propMap[it.aspectId]?.domain ?: "",
-                            aspectBaseType = propMap[it.aspectId]?.baseType ?: "",
-                            aspectSubjectName = propMap[it.aspectId]?.subject?.name ?: "Global",
-                            isSubjectDeleted = propMap[it.aspectId]?.subject?.deleted ?: false,
-                            onClick = {}
-                        )
+                if (propMap.isNotEmpty()) {
+                    div("history_properties") {
+                        props.view.aspectData.properties.forEach {
+                            val aspect = propMap[it.aspectId]
+                            div {
+                                propertyLabel(
+                                    className = null,
+                                    aspectPropertyName = it.name,
+                                    aspectPropertyCardinality = it.cardinality,
+                                    aspectName = aspect?.name ?: "",
+                                    aspectMeasure = aspect?.measure ?: "",
+                                    aspectDomain = aspect?.domain ?: "",
+                                    aspectBaseType = aspect?.baseType ?: "",
+                                    aspectSubjectName = aspect?.subject?.name ?: "Global",
+                                    isSubjectDeleted = aspect?.subject?.deleted ?: false,
+                                    onClick = {}
+                                )
+                                aspect?.let {
+                                    if (it.deleted) {
+                                        ripIcon("aspect-tree-view--rip-icon") {}
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

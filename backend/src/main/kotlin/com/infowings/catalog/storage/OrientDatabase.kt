@@ -17,6 +17,7 @@ import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
+import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PreDestroy
 
@@ -68,7 +69,7 @@ class  OrientDatabase(
      */
     fun getPool(): Versioned<ODatabasePool> = dbPool.get()
 
-    fun acquire(): ODatabaseDocument = dbPool.get().entity.acquire()
+    fun acquire(): ODatabaseSession = dbPool.get().entity.acquire()
 
     /*
       Изначально хотелось обойтись одним экземпляром пула.
@@ -219,7 +220,7 @@ class  OrientDatabase(
     }
 }
 
-val sessionStore: ThreadLocal<ODatabaseDocument> = ThreadLocal()
+val sessionStore: ThreadLocal<UniqueODatabaseSessionContainer> = ThreadLocal()
 
 /**
  * DO NOT use directly, use [transaction] and [session] instead
@@ -273,10 +274,10 @@ const val POOL_RETRIES = 2
 class DatabaseConnectionFailedException(reason: Throwable) : Exception("last thrown: $reason")
 
 inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODatabaseDocument) -> U): U {
-    val session = sessionStore.get()
+    val sessionContainer = sessionStore.get()
 
-    if (session != null)
-        return block(session)
+    if (sessionContainer != null)
+        return block(sessionContainer.session)
 
     var lastThrown: Throwable? = null
 
@@ -286,7 +287,7 @@ inline fun <U> session(database: OrientDatabase, crossinline block: (db: ODataba
         try {
             val newSession = pool.entity.acquire()
             try {
-                sessionStore.set(newSession)
+                sessionStore.set(newSession.withUUID())
                 return block(newSession)
             } finally {
                 sessionStore.remove()
@@ -317,22 +318,22 @@ inline fun <U> transaction(
     txtype: OTransaction.TXTYPE = OTransaction.TXTYPE.OPTIMISTIC,
     crossinline block: (db: ODatabaseDocument) -> U
 ): U {
-    val session = sessionStore.get()
-    if (session != null && session.transaction !is OTransactionNoTx)
-        return block(session)
+    val sessionContainer = sessionStore.get()
+    if (sessionContainer != null && sessionContainer.session.transaction !is OTransactionNoTx)
+        return block(sessionContainer.session)
 
-    if (session != null && session.transaction is OTransactionNoTx)
-        return transactionInner(session, retryOnFailure, txtype, block)
+    if (sessionContainer != null && sessionContainer.session.transaction is OTransactionNoTx)
+        return transactionInner(sessionContainer.session, retryOnFailure, txtype, block)
 
     var lastThrown: Throwable? = null
 
-    repeat (times = POOL_RETRIES) {
+    repeat(times = POOL_RETRIES) {
         val pool = database.getPool()
 
         try {
             val newSession = database.acquire()
             try {
-                sessionStore.set(newSession)
+                sessionStore.set(newSession.withUUID())
                 return transactionInner(newSession, retryOnFailure, txtype, block)
             } finally {
                 sessionStore.remove()
@@ -348,7 +349,7 @@ inline fun <U> transaction(
         }
     }
 
-    lastThrown ?.let {
+    lastThrown?.let {
         throw DatabaseConnectionFailedException(it)
     } ?: throw Exception("failed to complete session without any exception noticed")
 }
@@ -356,3 +357,8 @@ inline fun <U> transaction(
 class OrientException(reason: String) : Exception(reason)
 class VertexNotFound(id: String) : Exception("No vertex for id: $id")
 
+class UniqueODatabaseSessionContainer(val session: ODatabaseSession) {
+    val uuid = UUID.randomUUID()!!
+}
+
+fun ODatabaseSession.withUUID() = UniqueODatabaseSessionContainer(this)

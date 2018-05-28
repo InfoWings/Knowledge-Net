@@ -3,6 +3,7 @@ package com.infowings.catalog.aspects.treeview
 import com.infowings.catalog.aspects.treeview.view.aspectPropertyLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.treeview.TreeNodeContentProps
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.ripIcon
@@ -34,6 +35,13 @@ class AspectPropertyNode : RComponent<AspectPropertyNode.CombinedProps, RState>(
         }
 
         val correspondingAspect = props.correspondingAspect
+        if (correspondingAspect != null) {
+            descriptionComponent(
+                className = "aspect-tree-view--description-icon",
+                description = props.aspectProperty.description
+            )
+        }
+
         if (props.aspectProperty.id.isNotEmpty() && correspondingAspect != null) {
             if (correspondingAspect.deleted) {
                 ripIcon("aspect-tree-view--rip-icon") {}

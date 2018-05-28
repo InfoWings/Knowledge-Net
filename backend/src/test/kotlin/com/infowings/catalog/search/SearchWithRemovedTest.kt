@@ -19,7 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class  SearchWithRemovedTest {
+class SearchWithRemovedTest {
     private val username = "admin"
 
     @Autowired
@@ -43,7 +43,7 @@ class  SearchWithRemovedTest {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
 
-        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name)
+        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name, null)
         val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2, username)
 

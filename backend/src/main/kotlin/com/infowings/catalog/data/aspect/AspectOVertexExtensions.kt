@@ -6,8 +6,9 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
-import com.infowings.catalog.data.reference.book.ReferenceBookVertex
-import com.infowings.catalog.data.reference.book.toReferenceBookVertex
+import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
+import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
@@ -32,12 +33,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "measure" to asStringOrEmpty(measure),
-            "baseType" to asStringOrEmpty(baseType)
+            AspectField.NAME.name to asStringOrEmpty(name),
+            AspectField.MEASURE.name to asStringOrEmpty(measure),
+            AspectField.BASE_TYPE.name to asStringOrEmpty(baseType),
+            AspectField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = mapOf(
-            "properties" to properties.map { it.identity }
+            AspectField.PROPERTY to properties.map { it.identity },
+            AspectField.SUBJECT to (subjectVertex?.let { listOf(it.identity) } ?: emptyList()),
+            AspectField.REFERENCE_BOOK to (referenceBookRootVertex?.let { listOf(it.identity) } ?: emptyList())
         )
     )
 
@@ -54,16 +58,16 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             subject?.toSubjectData(),
             deleted,
             description,
-            referenceBookVertex?.name
+            referenceBookRootVertex?.value
         )
     }
 
     val properties: List<OVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
 
-    val referenceBookVertex: ReferenceBookVertex?
+    val referenceBookRootVertex: ReferenceBookItemVertex?
         get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
-            .map { it.toReferenceBookVertex() }
+            .map { it.toReferenceBookItemVertex() }
             .filterNot { it.deleted }
             .firstOrNull()
 
@@ -99,12 +103,15 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         }
 
     val subject: Subject?
+        get() = subjectVertex?.toSubject()
+
+    val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
             if (subjects.size > 1) {
                 throw OnlyOneSubjectForAspectIsAllowed(name)
             }
-            return subjects.firstOrNull()?.toSubjectVertex()?.toSubject()
+            return subjects.firstOrNull()?.toSubjectVertex()
         }
 
     var description: String?
@@ -131,15 +138,16 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "name" to asStringOrEmpty(name),
-            "aspect" to asStringOrEmpty(aspect),
-            "cardinality" to asStringOrEmpty(cardinality)
+            AspectPropertyField.NAME.name to asStringOrEmpty(name),
+            AspectPropertyField.ASPECT.name to asStringOrEmpty(aspect),
+            AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality),
+            AspectPropertyField.DESCRIPTION.name to asStringOrEmpty(description)
         ),
         links = emptyMap()
     )
 
     fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, version)
+        AspectPropertyData(id, name, aspect, cardinality, description, version)
 
     var name: String
         get() = vertex["name"]
@@ -163,6 +171,12 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         get() = vertex["deleted"] ?: false
         set(value) {
             vertex["deleted"] = value
+        }
+
+    var description: String?
+        get() = vertex[ATTR_DESC]
+        set(value) {
+            vertex[ATTR_DESC] = value
         }
 
     override fun equals(other: Any?): Boolean {

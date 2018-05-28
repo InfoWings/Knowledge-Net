@@ -68,7 +68,7 @@ class AspectServiceDeletingTest {
 
     @Test(expected = AspectDoesNotExist::class)
     fun testCreatePropertyLinksToRemoved() {
-        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name)
+        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspect1", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
     }
@@ -104,7 +104,7 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
 
-        val aspectProperty = AspectPropertyData("", "prop1", aspect.id, PropertyCardinality.INFINITY.name)
+        val aspectProperty = AspectPropertyData("", "prop1", aspect.id, PropertyCardinality.INFINITY.name, null)
         val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP", listOf(aspectProperty))
         aspectService.save(aspectData2, username)
 
@@ -137,7 +137,7 @@ class AspectServiceDeletingTest {
     @Test
     fun testDeleteLinkedAspect() {
         var a1 = aspectService.save(initialAspectData("a1"), username)
-        val p1 = AspectPropertyData("", "", a1.id, PropertyCardinality.ONE.name)
+        val p1 = AspectPropertyData("", "", a1.id, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
@@ -168,7 +168,7 @@ class AspectServiceDeletingTest {
         val foundAspectVertex = database.getVertexById(aspect.id)?.toAspectVertex()
         assertNull("Aspect not exists in db", foundAspectVertex)
 
-        val foundBookVertex = referenceBookDao.getReferenceBookVertex(aspect.id)
+        val foundBookVertex = referenceBookDao.getRootVertex(aspect.id)
         assertNull("RefBook not exists in db", foundBookVertex)
     }
 
@@ -176,8 +176,8 @@ class AspectServiceDeletingTest {
     fun testDeleteAspectProperty() {
         val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"), username)
         val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"), username)
-        val property1 = AspectPropertyData("", "", simpleAspect1.id, PropertyCardinality.ONE.name)
-        val property2 = AspectPropertyData("", "", simpleAspect2.id, PropertyCardinality.ONE.name)
+        val property1 = AspectPropertyData("", "", simpleAspect1.id, PropertyCardinality.ONE.name, null)
+        val property2 = AspectPropertyData("", "", simpleAspect2.id, PropertyCardinality.ONE.name, null)
         val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)), username)
         val initialAspectData = initial.toAspectData()
 

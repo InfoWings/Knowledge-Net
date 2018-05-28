@@ -2,7 +2,7 @@ package com.infowings.catalog.utils
 
 
 import com.infowings.catalog.common.JwtToken
-import com.infowings.catalog.common.UserDto
+import com.infowings.catalog.common.UserCredentials
 import kotlinx.coroutines.experimental.await
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
@@ -25,6 +25,7 @@ private const val OK = 200
 private const val BAD_REQUEST = 400
 private const val UNAUTHORIZED = 401
 private const val FORBIDDEN = 403
+private const val NOT_MODIFIED = 304
 
 external fun encodeURIComponent(component: String): String = definedExternally
 external fun decodeURIComponent(component: String): String = definedExternally
@@ -80,6 +81,7 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
                 refreshTokenAndRepeatRequest(method, url, body)
             }
         }
+        NOT_MODIFIED -> throw NotModifiedException()
         BAD_REQUEST -> throw BadRequestException(response.text().await())
         else -> throw ServerException(response.text().await())
     }
@@ -96,6 +98,8 @@ class ServerException(message: String) : RuntimeException(message)
  * Exception that contains message about what was wrong with request to server.
  */
 class BadRequestException(override val message: String) : RuntimeException(message)
+
+class NotModifiedException() : RuntimeException()
 
 private fun redirectToLoginPage() {
     removeAuthRole()
@@ -143,7 +147,7 @@ private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, bo
 /**
  * Method for login to server.
  */
-suspend fun login(body: UserDto): Boolean {
+suspend fun login(body: UserCredentials): Boolean {
     val response = request(POST, "/api/access/signIn", JSON.stringify(body))
     return if (response.ok) {
         try {

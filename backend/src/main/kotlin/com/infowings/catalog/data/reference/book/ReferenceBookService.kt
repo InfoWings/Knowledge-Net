@@ -8,7 +8,9 @@ import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.history.HistoryContext
+import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -17,12 +19,6 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
-
-
-const val REFERENCE_BOOK_VERTEX = "ReferenceBookVertex"
-const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
-const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
-const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 
 
 class ReferenceBookService(
@@ -38,27 +34,27 @@ class ReferenceBookService(
      */
     fun getAllReferenceBooks(): List<ReferenceBook> = transaction(db) {
         logger.debug("Getting all ReferenceBook instances")
-        return@transaction dao.getAllReferenceBookVertex().map { it.toReferenceBook() }.toList()
+        return@transaction dao.getAllRootVertices()
+            .map { it.toReferenceBook(it.aspect?.id ?: throw RefBookAspectNotFoundException(it.id)) }
     }
 
-    /**
-     * Get ReferenceBook instance by [aspectId]
-     * @throws RefBookNotExist
-     */
-    fun getReferenceBook(aspectId: String): ReferenceBook = transaction(db) {
-        logger.debug("Getting ReferenceBook by aspectId: $aspectId")
-        val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-        return@transaction referenceBookVertex.toReferenceBook()
-    }
+    fun getReferenceBookNameById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBookItem()?.value
 
     /**
      * Return ReferenceBook instance by [aspectId] or null if not found
      */
     fun getReferenceBookOrNull(aspectId: String): ReferenceBook? = transaction(db) {
         logger.debug("Getting ReferenceBook by aspectId: $aspectId")
-        val referenceBookVertex = dao.getReferenceBookVertex(aspectId)
-        return@transaction referenceBookVertex?.toReferenceBook()
+        val rootVertex = dao.getRootVertex(aspectId)
+        return@transaction rootVertex?.toReferenceBook(aspectId)
     }
+
+    /**
+     * Get ReferenceBook instance by [aspectId]
+     * @throws RefBookNotExist
+     */
+    fun getReferenceBook(aspectId: String): ReferenceBook =
+        getReferenceBookOrNull(aspectId) ?: throw RefBookNotExist(aspectId)
 
     /**
      * Create ReferenceBook with name = [name]
@@ -71,51 +67,34 @@ class ReferenceBookService(
             logger.debug("Creating ReferenceBook name: $name aspectId: $aspectId by $username")
             val context = HistoryContext(userVertex)
 
-            dao.getReferenceBookVertex(aspectId)?.let { throw RefBookAlreadyExist(aspectId) }
-
-            val referenceBookVertex = dao.createReferenceBookVertex()
-            referenceBookVertex.name = name
-
-            val rootVertex = dao.createReferenceBookItemVertex()
-            rootVertex.value = "root"
-            rootVertex.aspectId = aspectId
-
-            referenceBookVertex.addEdge(rootVertex, REFERENCE_BOOK_CHILD_EDGE).save<OEdge>()
             // TODO: get aspect vertex via AspectService
             val aspectVertex = dao.getAspectVertex(aspectId) ?: throw AspectDoesNotExist(aspectId)
+            val aspectBefore = aspectVertex.currentSnapshot()
+
             aspectVertex.validateForRemoved()
             if (aspectVertex.baseType != BaseType.Text.name) {
                 throw RefBookIncorrectAspectType(aspectVertex.id, aspectVertex.baseType, BaseType.Text.name)
             }
-            aspectVertex.addEdge(referenceBookVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
-            aspectVertex.save<OVertex>()
+            aspectVertex.referenceBookRootVertex?.let { throw RefBookAlreadyExist(aspectId) }
 
-            val savedReferenceBookVertex = referenceBookVertex.save<OVertex>().toReferenceBookVertex()
-            historyService.storeFact(savedReferenceBookVertex.toCreateFact(context))
+            val rootVertex = dao.createReferenceBookItemVertex()
+            rootVertex.value = name
+
+            aspectVertex.addEdge(rootVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
+            aspectVertex.save<OVertex>()
 
             val savedRootVertex = rootVertex.save<OVertex>().toReferenceBookItemVertex()
             historyService.storeFact(savedRootVertex.toCreateFact(context))
+            historyService.storeFact(aspectVertex.toUpdateFact(context, aspectBefore))
 
-            return@transaction Pair(savedReferenceBookVertex, savedRootVertex)
-        }.let {
-            val bookVertex = it.first
-            val rootVertex = it.second
-            val root = ReferenceBookItem(
-                aspectId,
-                null,
-                rootVertex.id,
-                rootVertex.value,
-                emptyList(),
-                rootVertex.deleted,
-                rootVertex.version
-            )
-            ReferenceBook(aspectId, bookVertex.name, root, bookVertex.deleted, bookVertex.version)
-        }
+            return@transaction savedRootVertex
+        }.toReferenceBook(aspectId)
     }
 
     /**
-     * Update ReferenceBook name
+     * Update ReferenceBook name or description
      * @throws RefBookNotExist
+     * @throws RefBookEmptyChangeException if no changes are required
      */
     fun updateReferenceBook(book: ReferenceBook, username: String) {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -123,25 +102,23 @@ class ReferenceBookService(
         transaction(db) {
             val aspectId = book.aspectId
             val newName: String = book.name
+            val newDescription: String? = book.description
 
-            logger.debug("Updating ReferenceBook name: $newName aspectId: $aspectId by $username")
+            val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
+            if (rootVertex.toReferenceBook(aspectId) == book) {
+                throw RefBookEmptyChangeException()
+            }
+            val before = rootVertex.currentSnapshot()
 
-            val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-            val before = referenceBookVertex.currentSnapshot()
-
-            referenceBookVertex
+            rootVertex
                 .validateForRemoved()
-                .validateVersion(book)
+                .validateVersion(book.toRoot())
 
-            referenceBookVertex.name = newName
-            referenceBookVertex.save<OVertex>()
+            rootVertex.value = newName
+            rootVertex.description = newDescription
+            rootVertex.save<OVertex>()
 
-            return@transaction historyService.storeFact(
-                referenceBookVertex.toUpdateFact(
-                    HistoryContext(userVertex),
-                    before
-                )
-            )
+            historyService.storeFact(rootVertex.toUpdateFact(HistoryContext(userVertex), before))
         }
     }
 
@@ -165,21 +142,29 @@ class ReferenceBookService(
     fun removeReferenceBook(referenceBook: ReferenceBook, userVertex: UserVertex, force: Boolean = false) =
         transaction(db) {
             val aspectId = referenceBook.aspectId
-            logger.debug("Removing ReferenceBook aspectId: $aspectId by ${userVertex.username}")
+            val aspectVertex = dao.getAspectVertex(aspectId) ?: throw AspectDoesNotExist(aspectId)
+            val previous = aspectVertex.currentSnapshot()
+            logger.debug("Removing reference book with aspectId: $aspectId by ${userVertex.username}")
 
-            val referenceBookVertex = dao.getReferenceBookVertex(aspectId) ?: throw RefBookNotExist(aspectId)
-            referenceBookVertex.validateRefBookAndItemsVersions(referenceBook)
+            val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
+            rootVertex.validateItemAndChildrenVersions(referenceBook.toRoot())
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                hasChildItemLinkedByObject && force -> dao.markBookVertexAsDeleted(referenceBookVertex)
+                hasChildItemLinkedByObject && force -> {
+                    historyService.storeFact(rootVertex.toSoftDeleteFact(HistoryContext(userVertex)))
+                    dao.markItemVertexAsDeleted(rootVertex)
+                }
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> dao.removeRefBookVertex(referenceBookVertex)
+                else -> {
+                    historyService.storeFact(rootVertex.toDeleteFact(HistoryContext(userVertex)))
+                    dao.removeRefBookItemVertex(rootVertex)
+                }
             }
 
-            //TODO: add history
+            historyService.storeFact(aspectVertex.toUpdateFact(HistoryContext(userVertex), previous))
         }
 
     fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex = transaction(db) {
@@ -203,75 +188,77 @@ class ReferenceBookService(
      * @throws RefBookItemIllegalArgumentException if parentId is null
      * @return id of added ReferenceBookItem
      */
-    fun  addReferenceBookItem(bookItem: ReferenceBookItem, username: String): String {
+    fun addReferenceBookItem(parentId: String, bookItem: ReferenceBookItem, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
 
         return transaction(db) {
-            val parentId = bookItem.parentId ?: throw RefBookItemIllegalArgumentException("parent id must not be null")
             val value = bookItem.value
+            val description = bookItem.description
 
             logger.debug("Adding ReferenceBookItem parentId: $parentId, value: $value by $username")
 
+            val savedItemVertex: ReferenceBookItemVertex
+            val parentBefore: Snapshot
+            val updateFact: HistoryFact
+            val context = HistoryContext(userVertex)
+
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
-            val parentBefore = parentVertex.currentSnapshot()
+            parentBefore = parentVertex.currentSnapshot()
             parentVertex.validateValue(value, null)
 
             val itemVertex = dao.createReferenceBookItemVertex()
-            itemVertex.aspectId = bookItem.aspectId
             itemVertex.value = value
+            itemVertex.description = description
 
-            val savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
+            savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
+            updateFact = parentVertex.toUpdateFact(context, parentBefore)
 
-            val context = HistoryContext(userVertex)
             historyService.storeFact(savedItemVertex.toCreateFact(context))
-            historyService.storeFact(parentVertex.toUpdateFact(context, parentBefore))
-
+            historyService.storeFact(updateFact)
             return@transaction savedItemVertex
         }.id
     }
 
     /**
-     * Change value of ReferenceBookItem [bookItem] if it has not linked by Object child
-     * or if it has linked by Object child and [force] == true
-     * @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] has linked by Objects child
-     * @throws RefBookItemIllegalArgumentException if cannot parent vertex is null
-     * @throws RefBookItemNotExist
-     * @throws RefBookChildAlreadyExist
+     * Update ReferenceBookItem [bookItem] if satisfies all validation constraints
+     * TODO: KS-141 - @throws RefBookItemHasLinkedEntitiesException if [force] == false and [bookItem] is linked by any object value
+     * @throws RefBookItemIllegalArgumentException if parent vertex does not exist
+     * @throws RefBookItemNotExist if id in received DTO is illegal
+     * @throws RefBookChildAlreadyExist if reference item with the same value as supplied already exists within the parent context
+     * @throws RefBookEmptyChangeException if no changes are required
      */
-    fun changeValue(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
+    fun updateReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
-            val id = bookItem.id
-            val value = bookItem.value
+            logger.debug("Updating: $bookItem by $username")
 
-            logger.debug("Updating ReferenceBookItem id: $id, value: $value by $username")
-
-            val itemVertex = dao.getReferenceBookItemVertex(id) ?: throw RefBookItemNotExist(id)
-            val before = itemVertex.currentSnapshot()
-            val parentVertex =
-                itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must not be null")
-
-            itemVertex
-                .validateForRemoved()
-                .validateItemAndChildrenVersions(bookItem)
-
-            parentVertex
-                .validateValue(value, id)
-
-            //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
-            val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
-            val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
-            if (hasChildItemLinkedByObject && !force) {
-                throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
+            val itemVertex = dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
+            if (itemVertex.toReferenceBookItem() == bookItem) {
+                throw RefBookEmptyChangeException()
             }
 
-            itemVertex.value = value
-            val savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
+            val before = itemVertex.currentSnapshot()
+
+            val parentVertex =
+                itemVertex.parent ?: throw RefBookItemIllegalArgumentException("parent vertex must exist")
+
+            with(itemVertex) {
+                validateForRemoved()
+                validateItemAndChildrenVersions(bookItem)
+                if (!force) {
+                    validateLinkedByObjects()
+                }
+            }
+            if (itemVertex.value != bookItem.value) {
+                parentVertex.validateValue(bookItem.value, bookItem.id)
+            }
+
+            itemVertex.value = bookItem.value
+            itemVertex.description = bookItem.description
+            dao.saveBookItemVertex(parentVertex, itemVertex)
 
             historyService.storeFact(itemVertex.toUpdateFact(HistoryContext(userVertex), before))
-
-            return@transaction savedItemVertex
         }
     }
 
@@ -283,26 +270,30 @@ class ReferenceBookService(
      * @throws RefBookItemNotExist
      */
     fun removeReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false) {
+        val userVertex = userService.findUserVertexByUsername(username)
         transaction(db) {
-            logger.debug("Removing ReferenceBookItem id: ${bookItem.id} by $username")
+            val itemId = bookItem.id
+            logger.debug("Removing ReferenceBookItem id: $itemId by $username")
 
-            val bookItemVertex =
-                dao.getReferenceBookItemVertex(bookItem.id) ?: throw RefBookItemNotExist(bookItem.aspectId)
+            val bookItemVertex = dao.getReferenceBookItemVertex(itemId) ?: throw RefBookItemNotExist(itemId)
 
             bookItemVertex
-                .validateIsNotRoot()
                 .validateItemAndChildrenVersions(bookItem)
 
             //TODO: checking if children items linked by Objects and set correct itemsWithLinkedObjects!
             val itemsWithLinkedObjects: List<ReferenceBookItem> = emptyList()
             val hasChildItemLinkedByObject = itemsWithLinkedObjects.isNotEmpty()
             when {
-                hasChildItemLinkedByObject && force -> dao.markItemVertexAsDeleted(bookItemVertex)
+                hasChildItemLinkedByObject && force -> {
+                    historyService.storeFact(bookItemVertex.toSoftDeleteFact(HistoryContext(userVertex)))
+                    dao.markItemVertexAsDeleted(bookItemVertex)
+                }
                 hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException(itemsWithLinkedObjects)
-                else -> dao.removeRefBookItemVertex(bookItemVertex)
+                else -> {
+                    historyService.storeFact(bookItemVertex.toDeleteFact(HistoryContext(userVertex)))
+                    dao.removeRefBookItemVertex(bookItemVertex)
+                }
             }
-
-            //TODO: add history
         }
     }
 
@@ -313,6 +304,7 @@ class ReferenceBookService(
      * @throws RefBookItemIllegalArgumentException if [source] is root
      */
     fun moveReferenceBookItem(source: ReferenceBookItem, target: ReferenceBookItem, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
         transaction(db) {
             val sourceId = source.id
             val targetId = target.id
@@ -327,23 +319,39 @@ class ReferenceBookService(
 
             sourceVertex
                 .validateForRemoved()
-                .validateIsNotRoot()
                 .validateItemAndChildrenVersions(source)
                 .validateForMoving(targetVertex)
 
-            sourceVertex.getEdges(ODirection.IN, REFERENCE_BOOK_CHILD_EDGE).forEach { it.delete<OEdge>() }
-
-            //TODO: add history
-
-            return@transaction targetVertex.addEdge(sourceVertex, REFERENCE_BOOK_CHILD_EDGE).save<ORecord>()
+            sourceVertex.getEdges(ODirection.IN, sourceVertex.edgeName).forEach {
+                it.delete<OEdge>()
+                historyService.storeFact(it.from.toReferenceBookItemVertex().toDeleteFact(HistoryContext(userVertex)))
+            }
+            targetVertex.addEdge(sourceVertex, sourceVertex.edgeName).save<ORecord>()
+            historyService.storeFact(targetVertex.toCreateFact(HistoryContext(userVertex)))
         }
     }
 
+    private fun ReferenceBook.toRoot() = ReferenceBookItem(
+        id = id,
+        value = name,
+        description = description,
+        children = children,
+        deleted = deleted,
+        version = version
+    )
+
+    private fun ReferenceBookItemVertex.toReferenceBook(aspectId: String) = ReferenceBook(
+        aspectId = aspectId,
+        id = id,
+        name = value,
+        description = description,
+        children = toReferenceBookItem().children,
+        deleted = deleted,
+        version = version
+    )
+
     private fun AspectVertex.validateForRemoved() =
         this.also { if (it.deleted) throw AspectDoesNotExist(it.id) }
-
-    private fun ReferenceBookItemVertex.validateIsNotRoot(): ReferenceBookItemVertex =
-        this.also { validator.checkIsNotRoot(this) }
 
     private fun ReferenceBookItemVertex.validateForRemoved(): ReferenceBookItemVertex =
         this.also { validator.checkForBookItemRemoved(this) }
@@ -357,19 +365,18 @@ class ReferenceBookService(
     private fun ReferenceBookItemVertex.validateValue(value: String, id: String?): ReferenceBookItemVertex =
         this.also { validator.checkRefBookItemValue(this, value, id) }
 
-    private fun ReferenceBookVertex.validateVersion(book: ReferenceBook): ReferenceBookVertex =
-        this.also { validator.checkRefBookVersion(this, book) }
+    private fun ReferenceBookItemVertex.validateVersion(bookItem: ReferenceBookItem): ReferenceBookItemVertex =
+        this.also { validator.checkRefBookItemVersion(this, bookItem) }
 
-    private fun ReferenceBookVertex.validateForRemoved(): ReferenceBookVertex =
-        this.also { validator.checkForBookRemoved(this) }
+    private fun ReferenceBookItemVertex.validateLinkedByObjects(): ReferenceBookItemVertex =
+        this // TODO: KS-141 - Check if the vertex is referenced as value from any object
 
-    private fun ReferenceBookVertex.validateRefBookAndItemsVersions(book: ReferenceBook): ReferenceBookVertex =
-        this.also { validator.checkRefBookAndItemsVersions(this, book) }
 }
 
 private val logger = loggerFor<ReferenceBookService>()
 
 sealed class ReferenceBookException(message: String? = null) : Exception(message)
+class RefBookAspectNotFoundException(id: String) : ReferenceBookException("id: $id")
 class RefBookAlreadyExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookNotExist(val aspectId: String) : ReferenceBookException("aspectId: $aspectId")
 class RefBookItemNotExist(val id: String) : ReferenceBookException("id: $id")
@@ -382,11 +389,10 @@ class RefBookItemIllegalArgumentException(message: String) : ReferenceBookExcept
 class RefBookItemHasLinkedEntitiesException(val itemsWithLinkedObjects: List<ReferenceBookItem>) :
     ReferenceBookException("${itemsWithLinkedObjects.map { it.id }}")
 
-class RefBookItemConcurrentModificationException(id: String, message: String) :
+class RefBookConcurrentModificationException(id: String, message: String) :
     ReferenceBookException("id: $id, message: $message")
-
-class RefBookConcurrentModificationException(aspectId: String, message: String) :
-    ReferenceBookException("aspectId: $aspectId, message: $message")
 
 class RefBookIncorrectAspectType(aspectId: String, type: String?, expected: String) :
     ReferenceBookException("Bad type of aspect $aspectId: $type. Expected: $expected")
+
+class RefBookEmptyChangeException : ReferenceBookException()

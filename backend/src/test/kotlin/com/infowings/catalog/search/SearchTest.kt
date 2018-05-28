@@ -32,7 +32,7 @@ private val logger = loggerFor<SearchTest>()
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class  SearchTest {
+class SearchTest {
     private val username = "admin"
 
     @Autowired
@@ -208,7 +208,7 @@ class  SearchTest {
          *       level1_1
          */
 
-        val level2_data = AspectData(
+        val level2Data = AspectData(
             "",
             "level2",
             Kilogram.name,
@@ -216,11 +216,11 @@ class  SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level2: Aspect = aspectService.save(level2_data, username)
-        val level2_property = AspectPropertyData("", "p_level2", level2.id, PropertyCardinality.INFINITY.name)
+        val level2: Aspect = aspectService.save(level2Data, username)
+        val level2Property = AspectPropertyData("", "p_level2", level2.id, PropertyCardinality.INFINITY.name, null)
 
 
-        val level1_1_data = AspectData(
+        val level11Data = AspectData(
             "",
             "level1_1",
             Kilogram.name,
@@ -228,20 +228,20 @@ class  SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level1_1: Aspect = aspectService.save(level1_1_data, username)
-        val level1_1_property =
-            AspectPropertyData("", "p_level1_1", level1_1.id, PropertyCardinality.INFINITY.name)
+        val level11: Aspect = aspectService.save(level11Data, username)
+        val level11Property =
+            AspectPropertyData("", "p_level1_1", level11.id, PropertyCardinality.INFINITY.name, null)
 
-        val level1_data = AspectData(
+        val level1Data = AspectData(
             "",
             "level1",
             Kilometre.name,
             null,
             BaseType.Decimal.name,
-            listOf(level2_property)
+            listOf(level2Property)
         )
-        val level1: Aspect = aspectService.save(level1_data, username)
-        val level1_property = AspectPropertyData("", "p_level1", level1.id, PropertyCardinality.INFINITY.name)
+        val level1: Aspect = aspectService.save(level1Data, username)
+        val level1Property = AspectPropertyData("", "p_level1", level1.id, PropertyCardinality.INFINITY.name, null)
 
         val ad = AspectData(
             "",
@@ -249,7 +249,7 @@ class  SearchTest {
             Kilometre.name,
             null,
             BaseType.Decimal.name,
-            listOf(level1_1_property, level1_property)
+            listOf(level11Property, level1Property)
         )
         aspectService.save(ad, username)
 

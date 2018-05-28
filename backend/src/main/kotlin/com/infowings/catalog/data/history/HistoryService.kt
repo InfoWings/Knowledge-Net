@@ -1,19 +1,19 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
-import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.sessionStore
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
 import java.time.Instant
+import java.util.*
 
 class HistoryService(
     private val db: OrientDatabase,
-    private val historyDao: HistoryDao,
-    private val userService: UserService
+    private val historyDao: HistoryDao
 ) {
 
     fun getAll(): Set<HistoryFactDto> = transaction(db) {
@@ -47,7 +47,7 @@ class HistoryService(
 
                 val payload = DiffPayload(data, addedLinks, removedLinks)
 
-                return@map HistoryFactDto(event, payload)
+                return@map HistoryFactDto(event, it.sessionId, payload)
             }
             .toSet()
     }
@@ -85,6 +85,7 @@ class HistoryService(
             entityVersion = event.version
             timestamp = Instant.ofEpochMilli(event.timestamp)
             eventType = event.type.name
+            sessionId = sessionStore.get().uuid
         }
 
     private fun linksVertices(
@@ -103,6 +104,6 @@ class HistoryService(
 
 // We can't use HistoryFact because vertex HistoryAware possible not exist
 // TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
-data class HistoryFactDto(val event: HistoryEvent, var payload: DiffPayload)
+data class HistoryFactDto(val event: HistoryEvent, val sessionId: UUID, var payload: DiffPayload)
 
 data class HistoryContext(val userVertex: UserVertex)

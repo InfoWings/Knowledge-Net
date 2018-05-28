@@ -9,6 +9,8 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.providers.AspectConstructor
+import com.infowings.catalog.data.history.providers.AspectDeltaConstructor
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.objekt.ObjectDaoService
 import com.infowings.catalog.data.objekt.ObjectService
@@ -45,7 +47,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
     override fun initialize(ctx: GenericApplicationContext) = beans {
         bean { UserProperties() }
         bean { UserDao(db = ref()) }
-        bean { UserService(dao = ref()) }
+        bean { UserService(db = ref(), dao = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref()) }
@@ -63,8 +65,16 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         }
         bean { SuggestionService(database = ref()) }
         bean { HistoryDao(db = ref()) }
-        bean { HistoryService(db = ref(), historyDao = ref(), userService = ref()) }
-        bean { AspectHistoryProvider(aspectHistoryService = ref()) }
+        bean { HistoryService(db = ref(), historyDao = ref()) }
+        bean { AspectConstructor(subjectService = ref(), referenceBookService = ref()) }
+        bean { AspectDeltaConstructor(aspectService = ref()) }
+        bean {
+            AspectHistoryProvider(
+                aspectHistoryService = ref(),
+                aspectConstructor = ref(),
+                aspectDeltaConstructor = ref()
+            )
+        }
         bean { ObjectDaoService(db = ref()) }
         bean {
             ObjectService(

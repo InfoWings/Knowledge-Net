@@ -2,6 +2,7 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
+import com.infowings.catalog.utils.NotModifiedException
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.coroutines.experimental.Job
@@ -81,7 +82,13 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
         setState {
             loading = true
         }
-        val res = updateSubject(subjectData)
+
+        val res = try {
+            updateSubject(subjectData)
+        } catch (e: NotModifiedException) {
+            subjectData
+        }
+
         setState {
             data[res.id] = res
             loading = false
