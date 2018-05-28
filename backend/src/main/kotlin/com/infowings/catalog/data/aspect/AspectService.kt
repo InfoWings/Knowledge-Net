@@ -292,6 +292,7 @@ class AspectService(
             subject,
             deleted,
             description,
+            lastChange,
             referenceBookRootVertex?.value
         )
     }

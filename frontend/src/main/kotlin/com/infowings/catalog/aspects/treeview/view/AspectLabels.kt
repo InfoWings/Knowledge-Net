@@ -5,6 +5,7 @@ import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
 import react.dom.span
+import kotlin.js.Date
 
 fun RBuilder.aspectLabel(
     className: String?,
@@ -15,6 +16,7 @@ fun RBuilder.aspectLabel(
     aspectRefBookName: String,
     aspectSubjectName: String,
     isSubjectDeleted: Boolean,
+    lastChangedTimestamp: Long?,
     onClick: () -> Unit
 ) = div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
@@ -47,6 +49,12 @@ fun RBuilder.aspectLabel(
         ripIcon("aspect-tree-view--rip-icon") {}
     }
     +" )"
+    lastChangedTimestamp?.let {
+        span(classes = "text-grey") {
+            val date = Date(it * 1000)
+            +"${date.getDate().toString().padStart(2, '0')}.${date.getMonth().toString().padStart(2, '0')} at ${date.getHours()}:${date.getMinutes()}"
+        }
+    }
 }
 
 fun RBuilder.placeholderAspectLabel(className: String?) =

@@ -19,6 +19,7 @@ data class AspectData(
     val subject: SubjectData? = null,
     val deleted: Boolean = false,
     val description: String? = null,
+    val lastChangeTimestamp: Long? = null,
     val refBookName: String? = null
 )
 
