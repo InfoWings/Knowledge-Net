@@ -34,6 +34,7 @@ class AspectPropertyNode : RComponent<AspectPropertyNode.CombinedProps, RState>(
             }
         }
 
+        // todo: check me!
         val correspondingAspect = props.correspondingAspect
         if (correspondingAspect != null) {
             descriptionComponent(
