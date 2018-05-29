@@ -8,6 +8,13 @@
   margin: 3rem auto;
   padding-bottom: 20rem;
 
+  &__header {
+    display: flex;
+    align-items: start;
+    max-width: 120rem;
+    margin: 1rem auto;
+  }
+
   &--new-aspect {
     margin-left: 1.8rem;
   }
