@@ -16,6 +16,8 @@ suspend fun getAllAspects(orderBy: List<AspectOrderBy>): AspectsList =
     )
     )
 
+suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))
+
 suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/create", JSON.stringify(body)))
 
 suspend fun updateAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/update", JSON.stringify(body)))
