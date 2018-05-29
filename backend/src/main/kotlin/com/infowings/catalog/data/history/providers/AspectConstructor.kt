@@ -44,13 +44,13 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
 
     private fun AspectData.submitFieldsEvents(fact: HistoryFactDto): AspectData = when (fact.event.type) {
         EventType.CREATE, EventType.UPDATE -> {
-            val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+            val newBaseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType)
             copy(
                 measure = fact.payload.data.getOrDefault(AspectField.MEASURE.name, measure),
-                baseType = fact.payload.data.getOrDefault(AspectField.BASE_TYPE.name, baseType),
+                baseType = newBaseType,
                 name = fact.payload.data.getOrDefault(AspectField.NAME.name, name),
                 description = fact.payload.data.getOrDefault(AspectField.DESCRIPTION.name, description),
-                domain = baseTypeObj?.let { OpenDomain(it).toString() },
+                domain = newBaseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                 version = fact.event.version
             )
         }

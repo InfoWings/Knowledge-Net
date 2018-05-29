@@ -23,7 +23,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                 attrs {
                     expanded = true
                     treeNodeContent = buildElement {
-                        div {
+                        div("aspect-tree-history") {
                             aspectLabel(
                                 className = null,
                                 aspectName = props.view.aspectData.name ?: "",
@@ -35,12 +35,10 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                                 isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
                                 onClick = { }
                             )
-                            if (props.view.aspectData.name != "") {
-                                descriptionComponent(
-                                    className = "aspect-tree-view--description-icon",
-                                    description = props.view.aspectData.description
-                                )
-                            }
+                            descriptionComponent(
+                                className = "aspect-tree-view--description-icon",
+                                description = props.view.aspectData.description
+                            )
                         }
                     }!!
                 }
@@ -49,7 +47,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                     div("history_properties") {
                         props.view.aspectData.properties.forEach {
                             val aspect = propMap[it.aspectId]
-                            div {
+                            div("aspect-tree-history") {
                                 propertyLabel(
                                     className = null,
                                     aspectPropertyName = it.name,
@@ -67,13 +65,10 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                                         ripIcon("aspect-tree-view--rip-icon") {}
                                     }
                                 }
-                                //todo: check me!
-                                if (aspect != null) {
-                                    descriptionComponent(
-                                        className = "aspect-tree-view--description-icon",
-                                        description = it.description
-                                    )
-                                }
+                                descriptionComponent(
+                                    className = "aspect-tree-view--description-icon",
+                                    description = it.description
+                                )
                             }
                         }
                     }
