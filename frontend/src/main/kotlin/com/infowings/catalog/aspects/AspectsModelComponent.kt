@@ -92,10 +92,10 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
         if (state.selectedAspect.id != null) {
             setState {
-                val newSelectedAspect =
+                val selectedAspectOnServer =
                     nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
                 selectedAspect =
-                        selectedAspect.copy(version = newSelectedAspect.version, deleted = newSelectedAspect.deleted)
+                        selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
             }
         }
     }

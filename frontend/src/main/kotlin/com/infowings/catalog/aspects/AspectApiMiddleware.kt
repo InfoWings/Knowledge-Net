@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -105,7 +106,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             try {
                 val response = getAspectById(id)
                 setState {
-                    data = data.updateAspect(response)
+                    data = data.replaceBy(response) { it.id == response.id }
                     context[response.id ?: error("Server returned Aspect with aspectId == null")] = response
                 }
             } catch (exception: ServerException) {
@@ -134,7 +135,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
 
         setState {
-            data = data.updateAspect(deletedAspect)
+            data = data.replaceBy(deletedAspect) { deletedAspect.id == it.id }
             if (!aspectData.id.isNullOrEmpty()) {
                 context[aspectData.id!!] = deletedAspect
             }
@@ -207,11 +208,6 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         var serverError: Boolean
     }
 }
-
-private fun List<AspectData>.updateAspect(aspectData: AspectData) =
-    this.map {
-        if (it.id == aspectData.id) aspectData else it
-    }
 
 fun RBuilder.aspectApiMiddleware(apiReceiverComponent: KClass<out RComponent<AspectApiReceiverProps, *>>) =
     child(AspectApiMiddleware::class) {
