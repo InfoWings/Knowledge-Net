@@ -35,7 +35,7 @@ fun RBuilder.aspectLabel(
     }
     +":"
     span(classes = "text-grey") {
-        + if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
+        +if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
     }
     +":"
     span(classes = "text-grey") {
@@ -52,10 +52,15 @@ fun RBuilder.aspectLabel(
     lastChangedTimestamp?.let {
         span(classes = "text-grey") {
             val date = Date(it * 1000)
-            +"${date.getDate().toString().padStart(2, '0')}.${date.getMonth().toString().padStart(2, '0')} at ${date.getHours()}:${date.getMinutes()}"
+            +"${date.getDateWithPadding()}.${date.getMonthWithPadding()} at ${date.getHoursWithPadding()}:${date.getMinutesWithPadding()}"
         }
     }
 }
+
+private fun Date.getDateWithPadding() = this.getDate().toString().padStart(2, '0')
+private fun Date.getMonthWithPadding() = this.getMonth().toString().padStart(2, '0')
+private fun Date.getHoursWithPadding() = this.getHours().toString().padStart(2, '0')
+private fun Date.getMinutesWithPadding() = this.getMinutes().toString().padStart(2, '0')
 
 fun RBuilder.placeholderAspectLabel(className: String?) =
     div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
