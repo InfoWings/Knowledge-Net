@@ -3,6 +3,7 @@ package com.infowings.catalog.history
 import com.infowings.catalog.aspects.treeview.view.aspectLabel
 import com.infowings.catalog.aspects.treeview.view.propertyLabel
 import com.infowings.catalog.common.AspectDataView
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.utils.ripIcon
 import react.*
@@ -22,18 +23,24 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                 attrs {
                     expanded = true
                     treeNodeContent = buildElement {
-                        aspectLabel(
-                            className = null,
-                            aspectName = props.view.aspectData.name ?: "",
-                            aspectMeasure = props.view.aspectData.measure ?: "",
-                            aspectDomain = props.view.aspectData.domain ?: "",
-                            aspectBaseType = props.view.aspectData.baseType ?: "",
-                            aspectRefBookName = props.view.aspectData.refBookName ?: "",
-                            aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
-                            isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
-                            lastChangedTimestamp = props.view.aspectData.lastChangeTimestamp,
-                            onClick = { }
-                        )
+                        div("aspect-tree-history") {
+                            aspectLabel(
+                                className = null,
+                                aspectName = props.view.aspectData.name ?: "",
+                                aspectMeasure = props.view.aspectData.measure ?: "",
+                                aspectDomain = props.view.aspectData.domain ?: "",
+                                aspectBaseType = props.view.aspectData.baseType ?: "",
+                                aspectRefBookName = props.view.aspectData.refBookName ?: "",
+                                aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
+                                isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
+                                lastChangedTimestamp = props.view.aspectData.lastChangeTimestamp,
+                                onClick = { }
+                            )
+                            descriptionComponent(
+                                className = "aspect-tree-view--description-icon",
+                                description = props.view.aspectData.description
+                            )
+                        }
                     }!!
                 }
                 val propMap = props.view.related.map { it.id to it }.toMap()
@@ -41,7 +48,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                     div("history_properties") {
                         props.view.aspectData.properties.forEach {
                             val aspect = propMap[it.aspectId]
-                            div {
+                            div("aspect-tree-history") {
                                 propertyLabel(
                                     className = null,
                                     aspectPropertyName = it.name,
@@ -59,6 +66,10 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                                         ripIcon("aspect-tree-view--rip-icon") {}
                                     }
                                 }
+                                descriptionComponent(
+                                    className = "aspect-tree-view--description-icon",
+                                    description = it.description
+                                )
                             }
                         }
                     }
