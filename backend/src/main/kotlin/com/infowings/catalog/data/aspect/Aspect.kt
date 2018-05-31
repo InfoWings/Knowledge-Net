@@ -6,6 +6,7 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.toSubjectData
+import java.time.Instant
 
 
 enum class AspectPropertyCardinality {
@@ -30,6 +31,7 @@ data class Aspect(
     val subject: Subject? = null,
     val deleted: Boolean = false,
     val description: String? = null,
+    val lastChange: Instant?,
     val refBookName: String?    // только имя, потому что ссылка на RefBook чревата разверткой дерева - а всегда
     // таскать за собой все дерево не хочется
 ) {
@@ -50,6 +52,7 @@ data class Aspect(
             subject?.toSubjectData(),
             deleted,
             description,
+            lastChange?.epochSecond,
             refBookName
         )
 }

@@ -33,6 +33,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                                 aspectRefBookName = props.view.aspectData.refBookName ?: "",
                                 aspectSubjectName = props.view.aspectData.subject?.name ?: "Global",
                                 isSubjectDeleted = props.view.aspectData.subject?.deleted ?: false,
+                                lastChangedTimestamp = props.view.aspectData.lastChangeTimestamp,
                                 onClick = { }
                             )
                             descriptionComponent(

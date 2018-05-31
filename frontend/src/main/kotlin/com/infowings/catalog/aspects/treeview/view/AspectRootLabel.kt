@@ -20,6 +20,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
                 aspectRefBookName = props.aspect.refBookName ?: "",
                 aspectSubjectName = props.aspect.subject?.name ?: "Global",
                 isSubjectDeleted = props.aspect.subject?.deleted ?: false,
+                lastChangedTimestamp = props.aspect.lastChangeTimestamp,
                 onClick = { props.onClick(props.aspect.id) }
             )
         } else {
