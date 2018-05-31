@@ -1,0 +1,10 @@
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/common/color-aliases";
+
+.link-button {
+  &--icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    fill: $pt-intent-primary;
+  }
+}

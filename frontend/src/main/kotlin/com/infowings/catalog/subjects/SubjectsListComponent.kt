@@ -6,6 +6,7 @@ import com.infowings.catalog.common.emptySubjectData
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.components.reference.referenceButtonComponent
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.ServerException
@@ -127,6 +128,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         onDeleteClick = { tryDeleteSubject(subjectData) },
                         entityName = "subject"
                     )
+                    referenceButtonComponent()
                 }
             }
 
