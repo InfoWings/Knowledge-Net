@@ -161,7 +161,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
         div(classes = "aspect-tree-view__header") {
             aspectSort {
                 attrs {
-                    onFetchAspect = ::fetchData
+                    onChangeSort = ::fetchData
                 }
             }
         }

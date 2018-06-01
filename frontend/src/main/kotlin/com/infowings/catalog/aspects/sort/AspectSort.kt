@@ -54,7 +54,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
                 }
                 orderBy.remove(curOrder)
             }
-            props.onFetchAspect(orderBy)
+            props.onChangeSort(orderBy)
         }
     }
 
@@ -68,7 +68,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
     }
 
     interface Props : RProps {
-        var onFetchAspect: (List<AspectOrderBy>) -> Unit
+        var onChangeSort: (List<AspectOrderBy>) -> Unit
     }
 
     interface State : RState {
