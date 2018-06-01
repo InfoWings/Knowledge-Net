@@ -36,9 +36,9 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
     }
 
     override fun RBuilder.render() {
-        div(classes = "pt-input-group pt-round pt-large aspect-search") {
+        div(classes = "pt-input-group aspect-search") {
             span(classes = "pt-icon pt-icon-search") {}
-            input(type = InputType.search, classes = "pt-input") {
+            input(type = InputType.text, classes = "pt-input") {
                 attrs {
                     value = state.searchQuery
                     placeholder = "Search Aspect..."
