@@ -177,9 +177,10 @@ class AspectService(
                 AspectSortField.NAME,
                 Direction.ASC
             )
-        )
-    ): List<Aspect> =
-        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
+        ),
+        query: String
+    ): List<Aspect> = (if (query == "") aspectDaoService.getAspects() else
+        aspectDaoService.findTransitiveByName(query)).map { it.toAspect() }.toList().sort(orderBy)
 
     /**
      * Search [Aspect] by it's id
