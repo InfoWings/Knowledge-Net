@@ -1,11 +1,12 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
-import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality.INFINITY
+import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
@@ -301,7 +302,7 @@ class AspectServiceSavingTest {
         } catch (e: AspectAlreadyExist) {
 
         } catch (e: Throwable) {
-            Assert.fail("Thrown unexpected " + e)
+            Assert.fail("Thrown unexpected $e")
         }
     }
 
@@ -314,7 +315,7 @@ class AspectServiceSavingTest {
             Assert.fail("Nothing thrown")
         } catch (e: AspectAlreadyExist) {
         } catch (e: Throwable) {
-            Assert.fail("Thrown unexpected " + e)
+            Assert.fail("Thrown unexpected $e")
         }
     }
 

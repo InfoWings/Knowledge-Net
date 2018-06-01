@@ -24,7 +24,12 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
 
     private fun AspectData.submitSubjectEvents(payload: DiffPayload): AspectData {
         val afterAdded = payload.addedFor(AspectField.SUBJECT).fold(this) { acc, nextFact ->
-            acc.copy(subject = subjectService.findById(nextFact.identity.toString())?.toSubject()?.toSubjectData())
+            val entityId = nextFact.identity.toString()
+
+            // если когда-то добавляли субъект, но сейчас он удален, то подсталяем специальный маркер
+            val subjectData = subjectService.findById(entityId)?.toSubject()?.toSubjectData() ?: removedSubjectPlaceholder(entityId)
+
+            acc.copy(subject = subjectData)
         }
 
         return payload.removedFor(AspectField.SUBJECT).fold(afterAdded) { acc, _ ->
@@ -81,3 +86,5 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
         else -> copy(deleted = true, version = fact.event.version)
     }
 }
+
+fun removedSubjectPlaceholder(id: String) = SubjectData(id = id, name = "REMOVED SUBJECT", description = null)

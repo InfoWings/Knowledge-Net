@@ -39,7 +39,7 @@ class SubjectService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
-            val vertex: SubjectVertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            val vertex: SubjectVertex = dao.findByIdStrict(id)
             if (subjectData == vertex.toSubject().toSubjectData()) {
                 throw SubjectEmptyChangeException()
             }
@@ -65,7 +65,7 @@ class SubjectService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
-            val vertex = dao.findById(id) ?: throw SubjectNotFoundException(id)
+            val vertex = dao.findByIdStrict(id)
 
             // временно отключим до гарантированной поддержки на фронте
             //if (subjectData.isModified(vertex.version)) {

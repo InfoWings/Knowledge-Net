@@ -2,6 +2,7 @@ package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
@@ -28,7 +29,17 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
     }
 
-    fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()
+    fun findById(id: String): SubjectVertex? = try {
+        db[id].toSubjectVertex()
+    } catch (e: VertexNotFound) {
+        null
+    }
+
+    fun findByIdStrict(id: String): SubjectVertex = try {
+        db[id].toSubjectVertex()
+    } catch (e: VertexNotFound) {
+        throw SubjectNotFoundException(id)
+    }
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
 
