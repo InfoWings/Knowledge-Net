@@ -20,7 +20,8 @@ import react.RBuilder
 import react.dom.div
 
 fun RBuilder.aspectPageHeader(
-    onFetchAspects: (List<AspectOrderBy>) -> Unit,
+    onOrderByChanged: (List<AspectOrderBy>) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
     setFilterAspects: (List<AspectData>) -> Unit
@@ -28,12 +29,12 @@ fun RBuilder.aspectPageHeader(
     div(classes = "aspect-header__sort-search") {
         aspectSort {
             attrs {
-                onChangeSort = onFetchAspects
+                this.onOrderByChanged = onOrderByChanged
             }
         }
         aspectSearchComponent {
             attrs {
-                onConfirmSearch = { query -> console.log("Hit Enter: $query") }
+                onConfirmSearch = onSearchQueryChanged
             }
         }
     }

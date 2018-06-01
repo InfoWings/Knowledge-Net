@@ -1,5 +1,7 @@
 package com.infowings.catalog.aspects.search
 
+import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.Intent
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onKeyDownFunction
@@ -34,13 +36,27 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
     }
 
     override fun RBuilder.render() {
-        div(classes = "pt-input-group pt-large aspect-search") {
+        div(classes = "pt-input-group pt-round pt-large aspect-search") {
             span(classes = "pt-icon pt-icon-search") {}
             input(type = InputType.search, classes = "pt-input") {
                 attrs {
+                    value = state.searchQuery
                     placeholder = "Search Aspect..."
                     onKeyDownFunction = this@AspectSearchComponent::handleKeyDown
                     onChangeFunction = this@AspectSearchComponent::handleChange
+                }
+            }
+            Button {
+                attrs {
+                    className = "pt-minimal"
+                    intent = Intent.NONE
+                    icon = "delete"
+                    onClick = {
+                        setState {
+                            searchQuery = ""
+                        }
+                        props.onConfirmSearch("")
+                    }
                 }
             }
         }

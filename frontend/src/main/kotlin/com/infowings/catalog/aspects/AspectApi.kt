@@ -9,10 +9,11 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllAspects(orderBy: List<AspectOrderBy>): AspectsList =
+suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery: String = ""): AspectsList =
     JSON.parse(get("/api/aspect/all" +
             "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
-            "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}"
+            "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
+            "&q=$nameQuery"
     )
     )
 
