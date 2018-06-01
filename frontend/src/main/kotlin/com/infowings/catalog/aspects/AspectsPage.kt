@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects
 
+import com.infowings.catalog.aspects.model.DefaultAspectsModelComponent
 import com.infowings.catalog.layout.header
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RBuilder
@@ -12,6 +13,6 @@ class AspectsPage : RComponent<RouteSuppliedProps, RState>() {
             attrs.location = props.location.pathname
             attrs.history = props.history
         }
-        aspectApiMiddleware(AspectsModelComponent::class)
+        aspectApiMiddleware(DefaultAspectsModelComponent::class)
     }
 }

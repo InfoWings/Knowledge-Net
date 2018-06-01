@@ -21,6 +21,8 @@ class SubjectService(
 
     fun findById(id: String): SubjectVertex? = dao.findById(id)
 
+    fun findByName(name: String): SubjectData? = dao.findByName(name)?.toSubject()?.toSubjectData()
+
     fun createSubject(sd: SubjectData, username: String): Subject {
         val userVertex = userService.findUserVertexByUsername(username)
 

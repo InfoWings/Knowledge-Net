@@ -24,14 +24,13 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
     }
 
-    private fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
-        rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
+    fun findByName(name: String): SubjectVertex? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
+        rs.map { it.toVertex().toSubjectVertex() }.firstOrNull()
     }
 
     fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
-
 
     private fun save(sd: SubjectData): SubjectVertex {
         val vertex: SubjectVertex = newSubjectVertex()
@@ -43,7 +42,7 @@ class SubjectDao(private val db: OrientDatabase) {
 
     fun createSubject(sd: SubjectData): SubjectVertex =
         transaction(db) {
-            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(it) } ?: save(sd)
+            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(it.toSubject()) } ?: save(sd)
         }
 
     fun updateSubjectVertex(vertex: SubjectVertex, sd: SubjectData): SubjectVertex =

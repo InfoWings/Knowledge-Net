@@ -1,6 +1,10 @@
 @import "~@blueprintjs/core/src/common/colors";
 @import "~@blueprintjs/core/src/common/color-aliases";
 
+.pt-dialog.aspects-overlay {
+  width: 120rem;
+}
+
 .link-button {
   &--icon {
     height: 1.6rem;

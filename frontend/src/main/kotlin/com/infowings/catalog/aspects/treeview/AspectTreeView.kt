@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.treeview
 
-import com.infowings.catalog.aspects.AspectsModel
+import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.aspects.treeview.view.newAspectButton
 import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
