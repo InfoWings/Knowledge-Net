@@ -21,6 +21,10 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
         }
     }
 
+    override fun State.init() {
+        searchQuery = ""
+    }
+
     private fun handleChange(event: Event) {
         val query = event.target.unsafeCast<HTMLInputElement>().value
         setState {
