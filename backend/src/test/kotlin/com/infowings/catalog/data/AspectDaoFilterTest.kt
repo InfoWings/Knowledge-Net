@@ -5,7 +5,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.storage.OrientDatabase
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.Before
@@ -22,9 +21,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 class AspectDaoFilterTest {
 
     val username = "admin"
-
-    @Autowired
-    lateinit var db: OrientDatabase
 
     @Autowired
     lateinit var aspectDao: AspectDaoService
