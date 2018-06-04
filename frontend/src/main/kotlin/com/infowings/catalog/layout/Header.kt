@@ -3,6 +3,7 @@ package com.infowings.catalog.layout
 import com.infowings.catalog.utils.removeAuthRole
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.blueprint.*
+import com.infowings.catalog.wrappers.react.asReactElement
 import react.*
 
 class Header : RComponent<Header.Props, RState>() {
@@ -18,9 +19,17 @@ class Header : RComponent<Header.Props, RState>() {
                 Button {
                     attrs {
                         className = "pt-minimal"
+                        active = props.location == "/objects"
+                        onClick = { props.history.push("/objects") }
+                        text = "Objects".asReactElement()
+                    }
+                }
+                Button {
+                    attrs {
+                        className = "pt-minimal"
                         active = props.location == "/aspects"
                         onClick = { props.history.push("/aspects") }
-                        text = buildElement { +"Aspects" }
+                        text = "Aspects".asReactElement()
                     }
                 }
                 Button {
@@ -28,7 +37,7 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         active = props.location == "/measures"
                         onClick = { props.history.push("/measures") }
-                        text = buildElement { +"Measures" }
+                        text = "Measures".asReactElement()
                     }
                 }
                 Button {
@@ -36,7 +45,7 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         active = props.location == "/subjects"
                         onClick = { props.history.push("/subjects") }
-                        text = buildElement { +"Subjects" }
+                        text = "Subjects".asReactElement()
                     }
                 }
                 Button {
@@ -44,7 +53,7 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         active = props.location == "/reference"
                         onClick = { props.history.push("/reference") }
-                        text = buildElement { +"Reference Books" }
+                        text = "Reference Books".asReactElement()
                     }
                 }
                 Button {
@@ -52,7 +61,7 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         active = props.location == "/history"
                         onClick = { props.history.push("/history") }
-                        text = buildElement { +"History" }
+                        text = "History".asReactElement()
                     }
                 }
             }
@@ -63,9 +72,9 @@ class Header : RComponent<Header.Props, RState>() {
                         className = "pt-minimal"
                         onClick = {
                             removeAuthRole()
-                            props.history.push("/aspects")
+                            props.history.push("/objects")
                         }
-                        text = buildElement { +"Logout" }
+                        text = "Logout".asReactElement()
                     }
                 }
             }

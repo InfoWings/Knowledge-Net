@@ -1,6 +1,7 @@
 package com.infowings.catalog.common
 
-data class ObjectPropertyData(
+
+data class ObjectPropertyData2(
     val id: String?,
     val name: String,
     val cardinality: PropertyCardinality,

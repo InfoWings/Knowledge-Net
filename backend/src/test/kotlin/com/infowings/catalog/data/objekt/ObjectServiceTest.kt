@@ -2,6 +2,9 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -67,98 +70,106 @@ class ObjectServiceTest {
 
     @Test
     fun createObjectTest() {
-        val data = ObjectData(null, "createObjectTestName", "object descr", subject.id, emptyList())
-        val saved = objectService.create(data, "user")
+        val request = ObjectCreateRequest("createObjectTestName", "object descr", subject.id, subject.version)
+        val createdObjectId = objectService.create(request, "user")
 
-        assertTrue(saved.id != null)
-        assertEquals(data.name, saved.name, "names must be equal")
-        assertEquals(data.description, saved.description, "descriptions must be equal")
-        assertEquals(data.subjectId, saved.subject.id, "subjects must be equal")
-    }
-
-    @Test
-    fun createObjectWithPropertyTest() {
-        val data = ObjectData(null, "createObjectWithPropertyTestName", "object descr", subject.id, emptyList())
-        val savedObject = objectService.create(data, "user")
-
-        val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
-
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_createObjectWithPropertyTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
-            valueIds = emptyList()
-        )
-
-        val savedProperty = objectService.create(objectPropertyData, username)
-        val foundObject = objectService.findById(savedObjectId)
-        val updatedObject = savedProperty.objekt
-
-        assertTrue(savedProperty.id != null)
-        assertEquals(objectPropertyData.name, savedProperty.name, "name is incorrect")
-        assertEquals(objectPropertyData.cardinality, savedProperty.cardinality, "cardinality is incorrect")
-        assertEquals(objectPropertyData.aspectId, savedProperty.aspect.id, "aspect id is incorrect is incorrect")
-        assertEquals(objectPropertyData.objectId, savedProperty.objekt.id, "object id is incorrect is incorrect")
+        assertTrue(createdObjectId != null)
+        val objectVertex = objectService.findById(createdObjectId)
+        assertEquals(request.name, objectVertex.name, "names must be equal")
+        assertEquals(request.description, objectVertex.description, "descriptions must be equal")
         transaction(db) {
-            assertEquals(1, foundObject.properties.size, "found parent object must contain 1 property")
-            assertEquals(1, updatedObject.properties.size, "updated parent object must contain 1 property")
-            assertEquals(
-                savedProperty.id, foundObject.properties.first().identity,
-                "found parent object must contain correct property"
-            )
-            assertEquals(
-                savedProperty.id, updatedObject.properties.first().identity,
-                "found parent object must contain correct property"
-            )
+            assertEquals(request.subjectId, objectVertex.subject?.id, "subjects must be equal")
         }
     }
 
+
+    @Test
+    fun createObjectWithPropertyTest() {
+        val objectRequest =
+            ObjectCreateRequest("createObjectWithPropertyTestName", "object descr", subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_createObjectWithPropertyTestName",
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObjectId, aspectId = aspect.id
+        )
+
+        val createdPropertyId = objectService.create(propertyRequest, username)
+        assertTrue(createdPropertyId != null)
+
+        val foundObject = objectService.findById(createdObjectId)
+        val foundProperty = objectService.findPropertyById(createdPropertyId)
+
+        assertEquals(propertyRequest.name, foundProperty.name, "name is incorrect")
+        assertEquals(propertyRequest.cardinality, foundProperty.cardinality.name, "cardinality is incorrect")
+
+        transaction(db) {
+            val objectOfProperty = foundProperty.objekt
+
+            if (objectOfProperty == null) {
+                fail("object of property is null")
+            } else {
+                assertEquals(foundObject.id, objectOfProperty.id, "ids must be same")
+                assertEquals(propertyRequest.aspectId, foundProperty.aspect?.id, "aspect id is incorrect is incorrect")
+
+                assertEquals(1, foundObject.properties.size, "found parent object must contain 1 property")
+                assertEquals(1, objectOfProperty.properties.size, "updated parent object must contain 1 property")
+                assertEquals(
+                    createdPropertyId, foundObject.properties.first().id,
+                    "found parent object must contain correct property"
+                )
+                assertEquals(
+                    createdPropertyId, objectOfProperty.properties.first().id,
+                    "found parent object must contain correct property"
+                )
+            }
+        }
+    }
+
+
     @Test
     fun createObjectWithValueTest() {
-        val data = ObjectData(null, "createObjectWithValueTestName", "object descr", subject.id, emptyList())
-        val savedObject = objectService.create(data, "user")
+        val objectRequest =
+            ObjectCreateRequest("createObjectWithValueTestName", "object descr", subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
 
-        val savedObjectId = savedObject.id?.toString() ?: fail("saved object has null id")
-
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_createObjectWithValueTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObjectId, aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_createObjectWithValueTestName",
+            cardinality = PropertyCardinality.INFINITY.name,
+            objectId = createdObjectId, aspectId = aspect.id
         )
+        val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val savedProperty = objectService.create(objectPropertyData, username)
-
-        val savedObjectPropertyId = savedProperty.id?.toString() ?: fail("saved object property has null id")
-
-        val typeName = "size"
         val scalarInt = 123
 
-        val valueData = ObjectPropertyValueData(
-            null,
-            ObjectValueData.IntegerValue(scalarInt, null),
-            savedObjectPropertyId, complexAspect.properties[0].id,
-            null,
-            null
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
         )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
-        val savedValue: ObjectPropertyValue = objectService.create(valueData, username)
-        val objectValue = savedValue.value
+        val objectValue = createdValue.value
 
         when (objectValue) {
             is ObjectValue.IntegerValue -> {
                 assertEquals(scalarInt, objectValue.value, "scalar value must be with correct type name")
                 assertEquals(
-                    valueData.objectPropertyId, savedValue.objectProperty.id,
+                    valueRequest.objectPropertyId, createdValue.objectProperty.id,
                     "object property must point to parent property"
                 )
                 assertEquals(
-                    valueData.aspectPropertyId, savedValue.aspectProperty.id,
+                    valueRequest.aspectPropertyId, createdValue.aspectProperty?.id,
                     "object property must point to proper root characteristic"
                 )
-                assertTrue(valueData.parentValueId == null)
-
+                assertTrue(createdValue.parentValue == null)
             }
             else ->
                 fail("value must be integer")
         }
+
     }
+
 }

@@ -2,6 +2,7 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -75,8 +76,8 @@ class ObjectHistoryTest {
         val objectEventsBefore = objectEvents(eventsBefore)
         val subjectEventsBefore = subjectEvents(eventsBefore)
 
-        val data = ObjectData(null, testName, "object descr", subject.id, emptyList())
-        val saved = objectService.create(data, "user")
+        val request = ObjectCreateRequest(testName, "object descr", subject.id, subject.version)
+        val created = objectService.create(request, "user")
 
         val eventsAfter = historyService.getAll().toSet()
         val objectEventsAfter = objectEvents(eventsAfter)

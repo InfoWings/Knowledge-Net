@@ -1,8 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectData
 import com.infowings.catalog.data.subject.SubjectVertex
-import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
@@ -19,6 +17,6 @@ data class Objekt(
     val description: String?,
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>
-) {
-    fun toObjectData(): ObjectData = ObjectData(id?.toString(), name, description, subject.id, properties.map { it.id })
-}
+)
+
+data class ObjectCreateInfo(val name: String, val description: String?, val subject: SubjectVertex)

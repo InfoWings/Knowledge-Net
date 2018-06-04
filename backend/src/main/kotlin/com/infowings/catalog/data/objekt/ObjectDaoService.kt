@@ -1,13 +1,12 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectData
-import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-import kotlinx.serialization.json.JSON
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -23,36 +22,41 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun saveObject(vertex: ObjectVertex, objekt: Objekt): ObjectVertex = transaction(db) {
-        vertex.name = objekt.name
-        vertex.description = objekt.description
-
-        if (vertex.subject != objekt.subject) {
-            vertex.addEdge(objekt.subject, OBJECT_SUBJECT_EDGE).save<OEdge>()
-        }
-
-        val newProperties = objekt.properties.toSet()
-        val currentProperties = vertex.properties.toSet()
-        val toDelete = currentProperties.minus(newProperties)
-        val toAdd = newProperties.minus(currentProperties)
-
-        toDelete.forEach { it.delete<ObjectPropertyVertex>() }
-        toAdd.forEach {
-            it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
-        }
-
-        return@transaction vertex.save<OVertex>().toObjectVertex()
-    }
-
-    fun saveObjectProperty(vertex: ObjectPropertyVertex, objectProperty: ObjectProperty): ObjectPropertyVertex =
+    fun saveObject(vertex: ObjectVertex, info: ObjectCreateInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
         transaction(db) {
-            vertex.name = objectProperty.name
-            vertex.cardinality = objectProperty.cardinality
+            vertex.name = info.name
+            vertex.description = info.description
 
-            replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, objectProperty.objekt)
-            replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, objectProperty.aspect)
+            if (vertex.subject != info.subject) {
+                vertex.addEdge(info.subject, OBJECT_SUBJECT_EDGE).save<OEdge>()
+            }
 
-            var valuesSet = objectProperty.values.toSet()
+            val newProperties: Set<ObjectPropertyVertex> = properties.toSet()
+            val currentProperties: Set<ObjectPropertyVertex> = vertex.properties.toSet()
+            val toDelete: Set<ObjectPropertyVertex> = currentProperties.minus(newProperties)
+            val toAdd = newProperties.minus(currentProperties)
+
+            toDelete.forEach { it.delete<ObjectPropertyVertex>() }
+            toAdd.forEach {
+                it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
+            }
+
+            return@transaction vertex.save<OVertex>().toObjectVertex()
+        }
+
+    fun saveObjectProperty(
+        vertex: ObjectPropertyVertex,
+        info: PropertyWriteInfo,
+        values: List<ObjectPropertyValueVertex>
+    ): ObjectPropertyVertex =
+        transaction(db) {
+            vertex.name = info.name
+            vertex.cardinality = info.cardinality
+
+            replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
+            replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
+
+            var valuesSet = values.toSet()
             var toDelete = emptySet<ObjectPropertyValueVertex>()
             vertex.values.forEach {
                 if (valuesSet.contains(it)) {
@@ -72,9 +76,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
     fun saveObjectValue(
         vertex: ObjectPropertyValueVertex,
-        propertyValue: ObjectPropertyValue
+        valueInfo: ValueWriteInfo
     ): ObjectPropertyValueVertex = transaction(db) {
-        val newTypeTag = propertyValue.value.tag()
+        val newTypeTag = valueInfo.value.tag()
 
         if (vertex.typeTag != newTypeTag) {
             when (vertex.typeTag) {
@@ -82,6 +86,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
                     vertex.removeProperty<Int>(PRECISION_PROPERTY)
                 }
+                ScalarTypeTag.DECIMAL -> vertex.removeProperty<Int>(DECIMAL_TYPE_PROPERTY)
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
                 ScalarTypeTag.SUBJECT -> {
@@ -98,11 +103,14 @@ class ObjectDaoService(private val db: OrientDatabase) {
             vertex.typeTag = newTypeTag
         }
 
-        val objectValue = propertyValue.value
+        val objectValue = valueInfo.value
         when (objectValue) {
             is ObjectValue.IntegerValue -> {
                 vertex.intValue = objectValue.value
                 vertex.precision = objectValue.precision
+            }
+            is ObjectValue.DecimalValue -> {
+                vertex.decimalValue = objectValue.value
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value
@@ -129,10 +137,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-        replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, propertyValue.measure)
-        replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, propertyValue.objectProperty)
-        replaceEdge(vertex, OBJECT_VALUE_ASPECT_PROPERTY_EDGE, vertex.aspectProperty, propertyValue.aspectProperty)
-        replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, propertyValue.parentValue)
+        replaceEdge(vertex, OBJECT_VALUE_MEASURE_EDGE, vertex.measure, valueInfo.measure)
+        replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, valueInfo.objectProperty)
+        replaceEdge(vertex, OBJECT_VALUE_ASPECT_PROPERTY_EDGE, vertex.aspectProperty, valueInfo.aspectProperty)
+        replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, valueInfo.parentValue)
 
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
@@ -143,8 +151,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
 }
 
 abstract class ObjectException(message: String) : Exception(message)
-class EmptyObjectNameException(data: ObjectData) : ObjectException("object name is empty: $data")
-class EmptyObjectPropertyNameException(data: ObjectPropertyData) : ObjectException("object name is empty: $data")
+class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
+class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectException("object name is empty: $data")
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")

@@ -24,7 +24,11 @@ suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.str
 
 suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(body))
 
-suspend fun getSuggestedAspects(query: String, aspectId: String?, aspectPropertyId: String?): AspectsList {
+suspend fun getSuggestedAspects(
+    query: String,
+    aspectId: String? = null,
+    aspectPropertyId: String? = null
+): AspectsList {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
     return JSON.parse(get("/api/search/aspect/suggestion?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
