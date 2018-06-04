@@ -2,6 +2,21 @@ package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 
+enum class AspectPropertyCardinality {
+
+    ZERO {
+        override val label = "Group"
+    },
+    ONE {
+        override val label = "0..1"
+    },
+    INFINITY {
+        override val label = "0..∞"
+    };
+
+    abstract val label: String
+}
+
 @Serializable
 data class AspectsList(
     val aspects: List<AspectData> = emptyList()
