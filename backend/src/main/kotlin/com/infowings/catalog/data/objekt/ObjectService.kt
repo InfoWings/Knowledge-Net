@@ -1,9 +1,9 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.ObjectData
-import com.infowings.catalog.common.ObjectPropertyData
-import com.infowings.catalog.common.ObjectPropertyValueData
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
@@ -11,6 +11,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 
 class ObjectService(
@@ -25,11 +26,12 @@ class ObjectService(
 ) {
     private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectDao)
 
-    fun create(objectData: ObjectData, username: String): Objekt {
+    fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
-        return transaction(db) {
-            val objekt = validator.checkedForCreation(objectData)
+
+        val createdVertex = transaction(db) {
+            val objectInfo: ObjectCreateInfo = validator.checkedForCreation(request)
 
             /* В свете такого описания бизнес ключа не совсем понятно, как простым и эффективным образом обеспечивать
              * его уникальность при каждлом изменении:
@@ -39,45 +41,50 @@ class ObjectService(
              * //формируется на основе Значение_свойств_объекта.Характеристика
              */
 
-            val subjectBefore = objekt.subject.currentSnapshot()
-
+            val subjectBefore = objectInfo.subject.currentSnapshot()
 
             val newVertex = dao.newObjectVertex()
 
-            val objectVertex = dao.saveObject(newVertex, objekt)
+            val objectVertex = dao.saveObject(newVertex, objectInfo, emptyList())
 
-            val newObject = objectVertex.toObjekt()
+            val createdObject = objectVertex.toObjekt()
 
-            historyService.storeFact(newObject.subject.toUpdateFact(context, subjectBefore))
+            historyService.storeFact(createdObject.subject.toUpdateFact(context, subjectBefore))
             historyService.storeFact(objectVertex.toCreateFact(context))
 
-            newObject
+            objectVertex
         }
+
+        return createdVertex.id
     }
 
-    fun create(objectPropertyData: ObjectPropertyData, username: String): ObjectProperty {
+    fun create(request: PropertyCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
-        return transaction(db) {
-            val objectProperty = validator.checkedForCreation(objectPropertyData)
+        val propertyVertex = transaction(db) {
+            val propertyInfo = validator.checkedForCreation(request)
 
             //validator.checkBusinessKey(objectProperty)
 
             val newVertex = dao.newObjectPropertyVertex()
 
-            dao.saveObjectProperty(newVertex, objectProperty).toObjectProperty()
+            val p: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+
+            return@transaction dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
         }
+
+        return propertyVertex.id
     }
 
-    fun create(objectValueData: ObjectPropertyValueData, username: String): ObjectPropertyValue {
+    fun create(request: ValueCreateRequest, username: String): ObjectPropertyValue {
         val userVertex = userService.findUserVertexByUsername(username)
         return transaction(db) {
-            val objectValue = validator.checkedForCreation(objectValueData)
+            val valueInfo: ValueWriteInfo = validator.checkedForCreation(request)
 
             //validator.checkBusinessKey(objectProperty)
 
             val newVertex = dao.newObjectValueVertex()
 
-            dao.saveObjectValue(newVertex, objectValue).toObjectPropertyValue()
+            dao.saveObjectValue(newVertex, valueInfo).toObjectPropertyValue()
         }
     }
 

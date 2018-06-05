@@ -12,6 +12,7 @@ sealed class ObjectValueData {
     data class RangeValue(val range: Range) : ObjectValueData()
     data class DecimalValue(val valueRepr: String) : ObjectValueData()
     data class Link(val value: LinkValueData) : ObjectValueData()
+    object NullValue : ObjectValueData()
 }
 
 
@@ -24,21 +25,3 @@ sealed class LinkValueData(open val id: String) {
     class Object(override val id: String) : LinkValueData(id)
     class DomainElement(override val id: String) : LinkValueData(id)
 }
-
-data class ObjectPropertyValueData(
-    val id: String?,
-    /* Простые типа - это что-то типа челых или перечислений
-    Сложные - что-то типа графиков функций. Кортежи, списки и т.п.
-
-    Пока задачу кодирования отдаем фронту. Возможно, это не идеально эффективно (будет двойная сериализация), но более
-    надежно.
-    Альтернатива - где-то в бекенде разьираться с двумя зоопарками типов (простыми и составными), но тогда
-     ObjectPropertyValueData должен стать дженериком с двумя параметрами и не факт, чтро стандартная котлиновская
-     json-сериализация с этим справится.
-     */
-    val value: ObjectValueData,
-    val objectPropertyId: String,
-    val aspectPropertyId: String,
-    val parentValueId: String?,
-    val measureId: String?
-)

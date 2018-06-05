@@ -2,6 +2,9 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -81,9 +84,9 @@ class ObjectDaoTest {
 
     @Test
     fun saveTest() {
-        val data = ObjectData(null, "saveTestName", "object descr", subject.id, emptyList())
-        val objekt = validator.checkedForCreation(data)
-        val saved = createObject(objekt)
+        val data = ObjectCreateRequest("saveTestName", "object descr", subject.id, subject.version)
+        val objectCreateInfo = validator.checkedForCreation(data)
+        val saved = createObject(objectCreateInfo)
 
         assertEquals(data.name, saved.name, "names must be equal")
         assertEquals(data.description, saved.description, "descriptions must be equal")
@@ -93,13 +96,13 @@ class ObjectDaoTest {
 
     @Test
     fun saveTwiceTest() {
-        val data1 = ObjectData(null, "saveTwiceName-1", "object descr-1", subject.id, emptyList())
-        val data2 = ObjectData(null, "saveTwiceName-2", "object descr-2", subject.id, emptyList())
+        val request1 = ObjectCreateRequest("saveTwiceName-1", "object descr-1", subject.id, subject.version)
+        val request2 = ObjectCreateRequest("saveTwiceName-2", "object descr-2", subject.id, subject.version)
 
-        val objekt1 = validator.checkedForCreation(data1)
+        val objekt1 = validator.checkedForCreation(request1)
         val saved1 = createObject(objekt1)
 
-        val objekt2 = validator.checkedForCreation(data2)
+        val objekt2 = validator.checkedForCreation(request2)
         val saved2 = createObject(objekt2)
 
         assert(saved1.id != saved2.id)
@@ -107,86 +110,94 @@ class ObjectDaoTest {
 
     @Test
     fun savePropertyTest() {
-        val objectData = ObjectData(null, "savePropertyTestObjectName", "some descr", subject.id, emptyList())
-        val obj = createObject(objectData)
-        val propertyData = ObjectPropertyData(
-            null,
-            "savePropertyTestObjectPropertyName",
-            PropertyCardinality.ONE,
-            obj.id, aspect.id, emptyList()
+        val objectRequest = ObjectCreateRequest("savePropertyTestObjectName", "some descr", subject.id, subject.version)
+        val createdObject = createObject(objectRequest)
+        val propertyData = PropertyCreateRequest(
+            name = "savePropertyTestObjectPropertyName",
+            cardinality = PropertyCardinality.ONE.name,
+            objectId = createdObject.id,
+            aspectId = aspect.id
         )
 
 
-        val objectProperty = validator.checkedForCreation(propertyData)
-        val saved = createObjectProperty(objectProperty)
+        val propertyCreateInfo = validator.checkedForCreation(propertyData)
+        val createdProperty = createObjectProperty(propertyCreateInfo)
 
-        val updatedObject = objectProperty.objekt
-        val foundObject = objectService.findById(obj.id)
-
-        assertEquals(objectProperty.name, saved.name, "names must be equal")
-        assertEquals(objectProperty.objekt.id, obj.id, "objekt must point to parent object")
         transaction(db) {
-            assertEquals(1, updatedObject.properties.size, "updated object must contain one property")
-            assertEquals(1, foundObject.properties.size, "found object must contain one property")
+            val objectOfProperty = createdProperty.objekt
+            if (objectOfProperty == null) {
+                fail("no reference to object from property")
+            } else {
+                val foundObject = objectService.findById(objectOfProperty.id)
 
-            assertEquals(
-                updatedObject.properties.first().id,
-                saved.id,
-                "updated object's property must link to new one"
-            )
-            assertEquals(foundObject.properties.first().id, saved.id, "found object's property must link to new one")
+                assertEquals(propertyCreateInfo.name, createdProperty.name, "names must be equal")
+                assertEquals(createdObject.id, createdProperty.objekt?.id, "objekt must point to parent object")
+                assertEquals(1, objectOfProperty.properties.size, "updated object must contain one property")
+                assertEquals(1, foundObject.properties.size, "found object must contain one property")
+
+
+                assertEquals(
+                    objectOfProperty.properties.first().id,
+                    createdProperty.id,
+                    "updated object's property must link to new one"
+                )
+                assertEquals(
+                    foundObject.properties.first().id,
+                    createdProperty.id,
+                    "found object's property must link to new one"
+                )
+            }
         }
     }
 
     @Test
     fun savePropertySimpleIntValueTest() {
-        val objectData = ObjectData(null, "savePropertySimpleIntValueTest", "some descr", subject.id, emptyList())
-        val savedObject = createObject(objectData)
-        val propertyData = ObjectPropertyData(
-            null,
-            "savePropertySimpleIntValueTest",
-            PropertyCardinality.ONE,
-            savedObject.id, aspect.id, emptyList()
+        val objectRequest =
+            ObjectCreateRequest("savePropertySimpleIntValueTest", "some descr", subject.id, subject.version)
+        val createdObject = createObject(objectRequest)
+        val propertyRequest = PropertyCreateRequest(
+            objectId = createdObject.id,
+            name = "savePropertySimpleIntValueTest",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
         )
 
+        val propertyInfo = validator.checkedForCreation(propertyRequest)
+        val createdProperty = createObjectProperty(propertyInfo)
 
-        val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
-        val savedProperty = createObjectProperty(objectProperty)
-
-        val intType = "size"
-
-        val propertyValueData = ObjectPropertyValueData(
-            null,
-            ObjectValueData.IntegerValue(123, null),
-            savedProperty.id,
-            complexAspect.id,
-            null,
-            null
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = createdProperty.id,
+            aspectPropertyId = complexAspect.id,
+            measureId = null,
+            parentValueId = null
         )
-        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
-        val savedValue = createObjectPropertyValue(objectPropertyValue)
+        val valueInfo = validator.checkedForCreation(valueRequest)
+        val createdValue = createObjectPropertyValue(valueInfo)
 
-        assertEquals(ScalarTypeTag.INTEGER, savedValue.typeTag, "type tag must be integer")
-        assertNotNull(savedValue.intValue, "int value must be non-null")
-        assertTrue("str type must be non-null", savedValue.strValue == null)
+        assertEquals(ScalarTypeTag.INTEGER, createdValue.typeTag, "type tag must be integer")
+        assertNotNull(createdValue.intValue, "int value must be non-null")
+        assertTrue("str type must be null", createdValue.strValue == null)
+        assertEquals(123, createdValue.intValue, "int value must be 123")
 
-        val updatedObjectProperty = transaction(db) { savedValue.objectProperty }
-        val foundObjectProperty = objectService.findPropertyById(savedProperty.id)
 
-        if (updatedObjectProperty != null) {
+        val propertyOfValue = transaction(db) { createdValue.objectProperty }
+        val foundObjectProperty = objectService.findPropertyById(createdProperty.id)
+
+        if (propertyOfValue != null) {
             transaction(db) {
                 assertEquals(
-                    updatedObjectProperty.id,
-                    savedValue.objectProperty?.id,
+                    propertyOfValue.id,
+                    createdValue.objectProperty?.id,
                     "object property id must point to parent"
                 )
                 assertEquals(
                     foundObjectProperty.id,
-                    savedValue.objectProperty?.id,
+                    createdValue.objectProperty?.id,
                     "object property id must point to found property"
                 )
 
-                assertEquals(1, updatedObjectProperty.values.size, "property must contain 1 value")
+                assertEquals(1, propertyOfValue.values.size, "property must contain 1 value")
                 assertEquals(1, foundObjectProperty.values.size, "property must contain 1 value")
             }
         } else {
@@ -196,55 +207,55 @@ class ObjectDaoTest {
 
     @Test
     fun savePropertySimpleStrValueTest() {
-        val objectData = ObjectData(null, "savePropertySimpleStrValueTest", "some descr", subject.id, emptyList())
-        val savedObject = createObject(objectData)
-        val propertyData = ObjectPropertyData(
-            null,
-            "savePropertySimpleStrValueTest",
-            PropertyCardinality.ONE,
-            savedObject.id, aspect.id, emptyList()
+        val objectRequest =
+            ObjectCreateRequest("savePropertySimpleStrValueTest", "some descr", subject.id, subject.version)
+        val createdObject = createObject(objectRequest)
+        val propertyRequest = PropertyCreateRequest(
+            objectId = createdObject.id,
+            name = "savePropertySimpleStrValueTest",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
         )
 
+        val propertyInfo = validator.checkedForCreation(propertyRequest)
+        val createdProperty = createObjectProperty(propertyInfo)
 
-        val objectProperty: ObjectProperty = validator.checkedForCreation(propertyData)
-        val savedProperty = createObjectProperty(objectProperty)
-
-        val typeName = "type-tag"
-
-        val propertyValueData = ObjectPropertyValueData(
-            null,
-            ObjectValueData.StringValue("some value"),
-            savedProperty.id,
-            complexAspect.id,
-            null,
-            null
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.StringValue("some value"),
+            objectPropertyId = createdProperty.id,
+            aspectPropertyId = complexAspect.id,
+            measureId = null,
+            parentValueId = null
         )
-        val objectPropertyValue = validator.checkedForCreation(propertyValueData)
-        val savedValue = createObjectPropertyValue(objectPropertyValue)
+        val valueInfo = validator.checkedForCreation(valueRequest)
+        val createdValue = createObjectPropertyValue(valueInfo)
 
-        assertEquals(ScalarTypeTag.STRING, savedValue.typeTag, "type tag must be string")
-        assertNotNull(savedValue.strValue, "str value must be non-null")
-        assertEquals("some value", savedValue.strValue, "str value must be correct")
-        assertTrue("int type must be non-null", savedValue.intValue == null)
+        assertEquals(ScalarTypeTag.STRING, createdValue.typeTag, "type tag must be string")
+        assertNotNull(createdValue.strValue, "str value must be non-null")
+        assertTrue("int value must be null", createdValue.intValue == null)
+        assertEquals("some value", createdValue.strValue, "str value must be correct")
     }
 
-    private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
+
+    private fun createObject(objekt: ObjectCreateInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
-        return@transaction dao.saveObject(newVertex, objekt)
+        return@transaction dao.saveObject(newVertex, objekt, emptyList())
     }
 
-    private fun createObject(objectData: ObjectData): ObjectVertex {
-        val objekt = validator.checkedForCreation(objectData)
+
+    private fun createObject(request: ObjectCreateRequest): ObjectVertex {
+        val objekt = validator.checkedForCreation(request)
         return createObject(objekt)
     }
 
-    private fun createObjectProperty(propertyData: ObjectProperty): ObjectPropertyVertex = transaction(db) {
+
+    private fun createObjectProperty(property: PropertyWriteInfo): ObjectPropertyVertex = transaction(db) {
         val newVertex = dao.newObjectPropertyVertex()
-        return@transaction dao.saveObjectProperty(newVertex, propertyData)
+        return@transaction dao.saveObjectProperty(newVertex, property, emptyList())
     }
 
-    private fun createObjectPropertyValue(valueData: ObjectPropertyValue): ObjectPropertyValueVertex = transaction(db) {
+    private fun createObjectPropertyValue(valueInfo: ValueWriteInfo): ObjectPropertyValueVertex = transaction(db) {
         val newVertex = dao.newObjectValueVertex()
-        return@transaction dao.saveObjectValue(newVertex, valueData)
+        return@transaction dao.saveObjectValue(newVertex, valueInfo)
     }
 }

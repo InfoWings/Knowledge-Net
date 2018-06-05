@@ -46,26 +46,6 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             ODirection.IN,
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
         ).map { it.toObjectPropertyValueVertex() }
-
-    fun toObjectProperty(): ObjectProperty {
-        val currentObject = objekt
-        val currentAspect = aspect
-
-        if (currentObject == null) {
-            throw ObjectPropertyWithoutObjectException(this)
-        }
-
-        if (currentAspect == null) {
-            throw ObjectPropertyWithoutAspectException(this)
-        }
-
-        return ObjectProperty(identity, name, cardinality, currentObject, currentAspect, values)
-    }
 }
 
 abstract class ObjectPropertyException(message: String) : Exception(message)
-class ObjectPropertyWithoutObjectException(vertex: ObjectPropertyVertex) :
-    ObjectPropertyException("Object vertex not linked for ${vertex.id} ")
-
-class ObjectPropertyWithoutAspectException(vertex: ObjectPropertyVertex) :
-    ObjectPropertyException("Aspect vertex not linked for ${vertex.id} ")

@@ -1,5 +1,7 @@
 package com.infowings.catalog.common
 
+import kotlinx.serialization.Serializable
+
 /*
  DTO-классы реализуют своего рода туннель для передачи Data-классов от фронтенда к бекенду и обратно.
  Другая функция DTO-классов - json-представление данных в REST API для сторонних клиентов.
@@ -40,6 +42,7 @@ enum class ValueDTOTags {
 }
 
 /* json-представление скалярного значения. */
+@Serializable
 data class ValueDTO(
     val tag: String,
     val stringValue: String?,
@@ -51,7 +54,10 @@ data class ValueDTO(
 
 /* заполнители */
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, null, null, null, null)
-fun integerValueDto(value: Int, precision: Int?) = ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null)
+
+fun integerValueDto(value: Int, precision: Int?) =
+    ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null)
+
 fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, null, value, null, null)
 fun subjectValueDto(id: String) = ValueDTO(ValueDTOTags.SUBJECT.name, null, null, null, null, id)
 fun objectValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT.name, null, null, null, null, id)
@@ -105,22 +111,4 @@ data class ObjectPropertyValueDTO(
     val aspectPropertyId: String,
     val parentValueId: String?,
     val measureId: String?
-)
-
-fun ObjectPropertyValueData.toDTO() = ObjectPropertyValueDTO(
-    id = this.id,
-    valueDto = this.value.toDTO(),
-    objectPropertyId = this.objectPropertyId,
-    aspectPropertyId = this.aspectPropertyId,
-    parentValueId = this.parentValueId,
-    measureId = this.measureId
-)
-
-fun ObjectPropertyValueDTO.toData() = ObjectPropertyValueData(
-    id = this.id,
-    value = this.valueDto.toData(),
-    objectPropertyId = this.objectPropertyId,
-    aspectPropertyId = this.aspectPropertyId,
-    parentValueId = this.parentValueId,
-    measureId = this.measureId
 )

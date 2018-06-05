@@ -3,6 +3,9 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectNotFoundException
@@ -15,7 +18,6 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
-import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
 import org.junit.Assert
 import org.junit.Before
@@ -83,58 +85,45 @@ class ObjectValidatorTest {
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
+
     @Test
     fun objectValidatorTest() {
-        val data = ObjectData(null, "objectValidatorTestName", "object descr", subject.id, emptyList())
+        val request = ObjectCreateRequest("objectValidatorTestName", "object descr", subject.id, subject.version)
 
-        val vertex = validator.checkedForCreation(data)
+        val createInfo = validator.checkedForCreation(request)
 
-        assertEquals(data.name, vertex.name, "names must be equal")
-        assertEquals(data.description, vertex.description, "descriptions must be equal")
-        assertEquals(subject.id, vertex.subject.id, "vertex's subject must point to subject")
-        assertEquals(ORecordId(subject.id), vertex.subject.identity, "vertex's subject must point to subject")
-        assertEquals(emptyList(), vertex.properties, "vertex's properties must be empty")
+        assertEquals(request.name, createInfo.name, "names must be equal")
+        assertEquals(request.description, createInfo.description, "descriptions must be equal")
+        assertEquals(subject.id, createInfo.subject.id, "vertex's subject must point to subject")
+        assertEquals(ORecordId(subject.id), createInfo.subject.identity, "vertex's subject must point to subject")
     }
 
-    @Test
-    fun objectValidatorNonNullIdTest() {
-        //val s = JSON.stringify(listOf(1, 2, 3))
-        //println("JSON: " + s)
-
-        val data = ObjectData("id", "objectValidatorNullIdTestName", "object descr", subject.id, emptyList())
-
-        try {
-            validator.checkedForCreation(data)
-            fail("Nothing thrown")
-        } catch (e: IllegalStateException) {
-
-        } catch (e: Throwable) {
-            fail("Unexpected exception: $e")
-        }
-    }
 
     @Test
     fun objectValidatorAbsentSubjectTest() {
-        val data = ObjectData(
-            null, "objectValidatorAbsentSubjectTestName", "object descr",
-            createNonExistentSubjectKey(), emptyList()
+        val request = ObjectCreateRequest(
+            "objectValidatorAbsentSubjectTestName",
+            "object descr",
+            createNonExistentSubjectKey(),
+            null
         )
 
         try {
-            validator.checkedForCreation(data)
+            validator.checkedForCreation(request)
             Assert.fail("Nothing thrown")
         } catch (e: SubjectNotFoundException) {
         } catch (e: Exception) {
             Assert.fail("Unexpected exception: $e")
         }
+
     }
 
     @Test
     fun objectValidatorEmptyObjectNameTest() {
-        val data = ObjectData(null, "", "object descr", subject.id, emptyList())
+        val request = ObjectCreateRequest("", "object descr", subject.id, subject.version)
 
         try {
-            validator.checkedForCreation(data)
+            validator.checkedForCreation(request)
             Assert.fail("Nothing thrown")
         } catch (e: EmptyObjectNameException) {
         } catch (e: Exception) {
@@ -144,65 +133,42 @@ class ObjectValidatorTest {
 
     @Test
     fun objectPropertyValidatorTest() {
-        val data = ObjectData(null, "objectPropertyValidatorTestName", "object descr", subject.id, emptyList())
-        val objectVertex = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest("objectPropertyValidatorTestName", "object descr", subject.id, subject.version)
+        val objectVertex = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_objectPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = objectVertex.id, aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_objectPropertyValidatorTestName",
+            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.id
         )
+        val propertyInfo = validator.checkedForCreation(propertyRequest)
 
-        val objectProperty = validator.checkedForCreation(objectPropertyData)
-
-        assertTrue(objectProperty.id == null)
-        assertEquals(0, objectProperty.values.size, "values must be empty")
-        assertEquals(objectPropertyData.name, objectProperty.name, "names must be equal")
-        assertEquals(objectPropertyData.cardinality, objectProperty.cardinality, "cardinalities must be equal")
-        assertEquals(objectPropertyData.objectId, objectProperty.objekt.id, "object id must keep the same")
-        assertEquals(objectPropertyData.aspectId, objectProperty.aspect.id, "aspect id must keep the same")
-    }
-
-    @Test
-    fun objectPropertyNonNullPropertyIdValidatorTest() {
-        val data = ObjectData(
-            null,
-            "objectPropertyNonNullPropertyIdValidatorTestName",
-            "object descr",
-            subject.id,
-            emptyList()
-        )
-        val objectVertex = createObject(data)
-
-        val objectPropertyData = ObjectPropertyData(
-            "someId", name = "prop_objectPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = objectVertex.id, aspectId = aspect.id,
-            valueIds = emptyList()
-        )
-
-        try {
-            validator.checkedForCreation(objectPropertyData)
-            fail("Nothing thrown")
-        } catch (e: IllegalStateException) {
-        } catch (e: Throwable) {
-            fail("Unexpected exception: $e")
-        }
+        assertEquals(propertyRequest.name, propertyInfo.name, "names must be equal")
+        assertEquals(propertyRequest.cardinality, propertyInfo.cardinality.name, "cardinalities must be equal")
+        assertEquals(propertyRequest.objectId, propertyInfo.objekt.id, "object id must keep the same")
+        assertEquals(propertyRequest.aspectId, propertyInfo.aspect.id, "aspect id must keep the same")
     }
 
     @Test
     fun objectPropertyAbsentObjectValidatorTest() {
-        val data =
-            ObjectData(null, "objectPropertyAbsentObjectValidatorTestName", "object descr", subject.id, emptyList())
-        val objectVertex = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest(
+                "objectPropertyAbsentObjectValidatorTestName",
+                "object descr",
+                subject.id,
+                subject.version
+            )
+        val objectVertex = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_objectPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = createNonExistentObjectKey(), aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_objectPropertyValidatorTestName",
+            cardinality = PropertyCardinality.INFINITY.name,
+            objectId = createNonExistentObjectKey(),
+            aspectId = aspect.id
         )
 
         try {
-            validator.checkedForCreation(objectPropertyData)
+            validator.checkedForCreation(propertyRequest)
             fail("Nothing thrown")
         } catch (e: ObjectNotFoundException) {
         } catch (e: Throwable) {
@@ -212,21 +178,24 @@ class ObjectValidatorTest {
 
     @Test
     fun objectPropertyAbsentAspectValidatorTest() {
-        val data =
-            ObjectData(null, "objectPropertyAbsentAspectValidatorTestName", "object descr", subject.id, emptyList())
-        val objectVertex = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest(
+                "objectPropertyAbsentAspectValidatorTestName",
+                "object descr",
+                subject.id,
+                subject.version
+            )
+        val objectVertex = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null,
+        val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY,
+            cardinality = PropertyCardinality.INFINITY.name,
             objectId = objectVertex.id,
-            aspectId = createNonExistentAspectKey(),
-            valueIds = emptyList()
+            aspectId = createNonExistentAspectKey()
         )
 
         try {
-            validator.checkedForCreation(objectPropertyData)
+            validator.checkedForCreation(propertyRequest)
             fail("Nothing thrown")
         } catch (e: AspectDoesNotExist) {
         } catch (e: Throwable) {
@@ -236,17 +205,22 @@ class ObjectValidatorTest {
 
     @Test
     fun objectValidatorEmptyObjectPropertyNameTest() {
-        val data =
-            ObjectData(null, "objectValidatorEmptyObjectPropertyNameTestName", "object descr", subject.id, emptyList())
-        val objectVertex = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest(
+                "objectValidatorEmptyObjectPropertyNameTestName",
+                "object descr",
+                subject.id,
+                subject.version
+            )
+        val objectVertex = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "", cardinality = PropertyCardinality.INFINITY,
-            objectId = objectVertex.id, aspectId = aspect.id, valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "", cardinality = PropertyCardinality.INFINITY.name,
+            objectId = objectVertex.id, aspectId = aspect.id
         )
 
         try {
-            validator.checkedForCreation(objectPropertyData)
+            validator.checkedForCreation(propertyRequest)
             Assert.fail("Nothing thrown")
         } catch (e: EmptyObjectPropertyNameException) {
         } catch (e: Exception) {
@@ -254,54 +228,57 @@ class ObjectValidatorTest {
         }
     }
 
+
     @Test
     fun objectValueValidatorSimpleIntTest() {
-        val data = ObjectData(null, "objectValueValidatorTestSimpleIntName", "object descr", subject.id, emptyList())
-        val savedObject = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest("objectValueValidatorTestSimpleIntName", "object descr", subject.id, subject.version)
+        val createdObject = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_objectPropertyValidatorSimpleIntTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_objectPropertyValidatorSimpleIntTestName",
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.id
         )
-        val savedProperty = createObjectProperty(objectPropertyData)
+        val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueData = ObjectPropertyValueData(
-            null,
-            scalarValue,
-            savedProperty.id,
-            complexAspect.properties[0].id,
-            null,
-            null
+        val valueRequest = ValueCreateRequest(
+            value = scalarValue,
+            objectPropertyId = savedProperty.id,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
         )
-        val objectValue = validator.checkedForCreation(valueData)
+        val objectValue = validator.checkedForCreation(valueRequest)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
-        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "root characteristics must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        assertEquals(
+            valueRequest.aspectPropertyId,
+            objectValue.aspectProperty?.id,
+            "root characteristics must be equal"
+        )
+        assertEquals(valueRequest.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
 
 
     @Test
     fun objectValueValidatorSimpleIntWithRangeTest() {
-        val data = ObjectData(
-            null, "objectValueValidatorTestSimpleIntWithRangeName",
-            "object descr", subject.id, emptyList()
+        val objectRequest = ObjectCreateRequest(
+            "objectValueValidatorTestSimpleIntWithRangeName",
+            "object descr", subject.id, subject.version
         )
-        val savedObject = createObject(data)
+        val createdObject = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null,
+        val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntWithRangeTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
-            valueIds = emptyList()
+            cardinality = PropertyCardinality.INFINITY.name,
+            objectId = createdObject.id, aspectId = aspect.id
         )
-        val savedProperty = createObjectProperty(objectPropertyData)
+        val createdProperty = createObjectProperty(propertyRequest)
+
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueData = ObjectPropertyValueData(
-            null,
+        val valueData = ValueCreateRequest(
             scalarValue,
-            savedProperty.id,
+            createdProperty.id,
             complexAspect.properties[0].id,
             null,
             null
@@ -309,84 +286,82 @@ class ObjectValidatorTest {
         val objectValue = validator.checkedForCreation(valueData)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
-        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
+        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty?.id, "aspect properties must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
 
 
     @Test
     fun objectValueValidatorSimpleStrTest() {
-        val data = ObjectData(null, "objectValueValidatorTestSimpleStrName", "object descr", subject.id, emptyList())
-        val savedObject = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest("objectValueValidatorTestSimpleStrName", "object descr", subject.id, subject.version)
+        val createdObject = createObject(objectRequest)
 
-        val objectPropertyData = ObjectPropertyData(
-            null, name = "prop_objectPropertyValidatorSimpleStrTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = savedObject.id, aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_objectPropertyValidatorSimpleStrTestName",
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.id
         )
-        val savedProperty = createObjectProperty(objectPropertyData)
+        val createdProperty = createObjectProperty(propertyRequest)
+
         val scalarValue = ObjectValueData.StringValue("string-value")
-        val valueData = ObjectPropertyValueData(
-            null,
-            scalarValue,
-            savedProperty.id,
-            complexAspect.properties[0].id,
-            null,
-            null
+        val valueRequest = ValueCreateRequest(
+            value = scalarValue,
+            objectPropertyId = createdProperty.id,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
         )
-        val objectValue = validator.checkedForCreation(valueData)
+        val valueInfo = validator.checkedForCreation(valueRequest)
 
-        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
-        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty.id, "aspect properties must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
+        assertEquals(scalarValue, valueInfo.value.toObjectValueData(), "values must be equal")
+        assertEquals(valueRequest.aspectPropertyId, valueInfo.aspectProperty?.id, "aspect properties must be equal")
+        assertEquals(valueRequest.objectPropertyId, valueInfo.objectProperty.id, "object properties must be equal")
     }
 
     @Test
     fun objectSecondPropertyValidatorTest() {
-        val data = ObjectData(null, "objectSecondPropertyValidatorTestName", "object descr", subject.id, emptyList())
-        val objectVertex = createObject(data)
+        val objectRequest =
+            ObjectCreateRequest("objectSecondPropertyValidatorTestName", "object descr", subject.id, subject.version)
+        val objectVertex = createObject(objectRequest)
 
-        val objectPropertyData1 = ObjectPropertyData(
-            null, name = "1:prop_objectSecondPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY, objectId = objectVertex.id, aspectId = aspect.id,
-            valueIds = emptyList()
+        val propertyRequest1 = PropertyCreateRequest(
+            name = "1:prop_objectSecondPropertyValidatorTestName",
+            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.id
         )
-        val savedProperty = createObjectProperty(objectPropertyData1)
+        val propertyVertex = createObjectProperty(propertyRequest1)
 
-        val objectPropertyData2 = ObjectPropertyData(
-            null, name = "2:prop_objectSecondPropertyValidatorTestName",
-            cardinality = PropertyCardinality.ONE, objectId = objectVertex.id, aspectId = complexAspect.id,
-            valueIds = emptyList()
+        val propertyRequest2 = PropertyCreateRequest(
+            name = "2:prop_objectSecondPropertyValidatorTestName",
+            cardinality = PropertyCardinality.ONE.name, objectId = objectVertex.id, aspectId = complexAspect.id
         )
 
-        val objectProperty2 = validator.checkedForCreation(objectPropertyData2)
+        val propertyInfo = validator.checkedForCreation(propertyRequest2)
 
-        assertTrue(objectProperty2.id == null)
-        assertEquals(0, objectProperty2.values.size, "values must be empty")
-        assertEquals(objectPropertyData2.name, objectProperty2.name, "names must be equal")
-        assertEquals(objectPropertyData2.cardinality, objectProperty2.cardinality, "cardinalities must be equal")
-        assertEquals(objectPropertyData2.objectId, objectProperty2.objekt.id, "object id must keep the same")
-        assertEquals(objectPropertyData2.aspectId, objectProperty2.aspect.id, "aspect id must keep the same")
+        assertEquals(propertyRequest2.name, propertyInfo.name, "names must be equal")
+        assertEquals(propertyRequest2.cardinality, propertyInfo.cardinality.name, "cardinalities must be equal")
+        assertEquals(propertyRequest2.objectId, propertyInfo.objekt.id, "object id must keep the same")
+        assertEquals(propertyRequest2.aspectId, propertyInfo.aspect.id, "aspect id must keep the same")
     }
 
-    private fun createObject(objekt: Objekt): ObjectVertex = transaction(db) {
+
+    private fun createObject(info: ObjectCreateInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
-        return@transaction dao.saveObject(newVertex, objekt)
+        return@transaction dao.saveObject(newVertex, info, emptyList())
     }
 
-    private fun createObject(objectData: ObjectData): ObjectVertex {
-        val objekt = validator.checkedForCreation(objectData)
-        return createObject(objekt)
+    private fun createObject(request: ObjectCreateRequest): ObjectVertex {
+        val info = validator.checkedForCreation(request)
+        return createObject(info)
     }
 
-    private fun createObjectProperty(objectProperty: ObjectProperty): ObjectPropertyVertex = transaction(db) {
+    private fun createObjectProperty(propertyWriteInfo: PropertyWriteInfo): ObjectPropertyVertex = transaction(db) {
         val newPropertyVertex = dao.newObjectPropertyVertex()
-        return@transaction dao.saveObjectProperty(newPropertyVertex, objectProperty)
+        return@transaction dao.saveObjectProperty(newPropertyVertex, propertyWriteInfo, emptyList())
     }
 
-    private fun createObjectProperty(objectPropertyData: ObjectPropertyData): ObjectPropertyVertex {
-        val data = validator.checkedForCreation(objectPropertyData)
-        return createObjectProperty(data)
+    private fun createObjectProperty(propertyRequest: PropertyCreateRequest): ObjectPropertyVertex {
+        val info: PropertyWriteInfo = validator.checkedForCreation(propertyRequest)
+        return createObjectProperty(info)
     }
 
     private fun createNonExistentKey(type: String): String {

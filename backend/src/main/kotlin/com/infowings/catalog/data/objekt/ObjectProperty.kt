@@ -1,10 +1,10 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectPropertyData
 import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
 
@@ -20,8 +20,19 @@ data class ObjectProperty(
     val objekt: ObjectVertex,
     val aspect: AspectVertex,
     val values: List<ObjectPropertyValueVertex>
-) {
-    fun toObjectPropertyData(): ObjectPropertyData {
-        return ObjectPropertyData(id?.toString(), name, cardinality, objekt.id, aspect.id, values.map { it.id })
-    }
-}
+)
+
+data class PropertyWriteInfo(
+    val name: String,
+    val cardinality: PropertyCardinality,
+    val objekt: ObjectVertex,
+    val aspect: AspectVertex
+)
+
+data class ValueWriteInfo(
+    val value: ObjectValue,
+    val objectProperty: ObjectPropertyVertex,
+    val aspectProperty: AspectPropertyVertex?,
+    val parentValue: ObjectPropertyValueVertex?,
+    val measure: OVertex?
+)

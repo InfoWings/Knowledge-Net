@@ -32,6 +32,7 @@ enum class ScalarTypeTag(val code: Int) {
     STRING(2),
     RANGE(3),
     DECIMAL(4),
+    NULL(5),
     OBJECT(100),
     SUBJECT(101),
     DOMAIN_ELEMENT(102),
@@ -45,6 +46,7 @@ fun ObjectValue.tag() = when (this) {
     is ObjectValue.StringValue -> ScalarTypeTag.STRING
     is ObjectValue.RangeValue -> ScalarTypeTag.RANGE
     is ObjectValue.DecimalValue -> ScalarTypeTag.DECIMAL
+    is ObjectValue.NullValue -> ScalarTypeTag.NULL
     is ObjectValue.Link -> when (this.value) {
         is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT
         is LinkValueVertex.SubjectValue -> ScalarTypeTag.SUBJECT
@@ -158,7 +160,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
-        val currentAspectProperty = aspectProperty ?: throw ObjectValueWithoutAspectPropertyException(this)
+        val currentAspectProperty = aspectProperty
 
         val value: ObjectValue = when (typeTag) {
             ScalarTypeTag.OBJECT ->
@@ -185,8 +187,9 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
             ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)
+            ScalarTypeTag.NULL -> ObjectValue.NullValue
             else ->
-                throw IllegalStateException("type tag is not defined")
+                throw IllegalStateException("type tag is not defined: $typeTag")
         }
 
 

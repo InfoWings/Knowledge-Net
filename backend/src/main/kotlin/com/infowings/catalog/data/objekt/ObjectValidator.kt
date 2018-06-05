@@ -1,13 +1,17 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.orientechnologies.orient.core.id.ORecordId
 import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -28,66 +32,50 @@ class ObjectValidator(
     private val refBookService: ReferenceBookService,
     private val aspectDao: AspectDaoService
 ) {
-    fun checkedForCreation(data: ObjectData): Objekt {
-        val subjectVertex = subjectService.findById(data.subjectId)
+    fun checkedForCreation(request: ObjectCreateRequest): ObjectCreateInfo {
+        val subjectVertex = subjectService.findById(request.subjectId)
 
-        data.id?.let {
-            throw IllegalStateException("id must be null for creation: $data")
-        }
-
-        if (data.propertyIds.isNotEmpty()) {
-            throw IllegalStateException("there should be no properties for object creation: $data")
-        }
-
-        val trimmedName = data.name.trim()
+        val trimmedName: String = request.name.trim()
         if (trimmedName.isEmpty()) {
-            throw EmptyObjectNameException(data)
+            throw EmptyObjectNameException(request)
         }
 
-        return Objekt(
-            data.id?.let { ORecordId(it) },
-            trimmedName,
-            data.description,
-            subjectVertex,
-            emptyList()
+        return ObjectCreateInfo(
+            name = trimmedName,
+            description = request.description,
+            subject = subjectVertex
         )
     }
 
-    fun checkedForCreation(data: ObjectPropertyData): ObjectProperty {
-        val objectVertex = objectService.findById(data.objectId)
-        val aspectVertex = aspectDao.getAspectVertex(data.aspectId) ?: throw AspectDoesNotExist(data.aspectId)
+    fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
+        val objectVertex = objectService.findById(request.objectId)
+        val aspectVertex = aspectDao.getAspectVertex(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
 
-        data.id?.let { throw IllegalStateException("id must be null for creation: $data") }
-
-        if (data.valueIds.isNotEmpty()) {
-            throw IllegalStateException("there should be no values for object creation: $data")
-        }
-
-        val trimmedName = data.name.trim()
+        val trimmedName = request.name.trim()
         if (trimmedName.isEmpty()) {
-            throw EmptyObjectPropertyNameException(data)
+            throw EmptyObjectPropertyNameException(request)
         }
 
-        return ObjectProperty(
-            data.id?.let { ORecordId(it) },
-            trimmedName,
-            data.cardinality,
+        return PropertyWriteInfo(
+            request.name,
+            PropertyCardinality.valueOf(request.cardinality),
             objectVertex,
-            aspectVertex,
-            emptyList()
+            aspectVertex
         )
     }
 
-    fun checkedForCreation(data: ObjectPropertyValueData): ObjectPropertyValue {
-        val objectPropertyVertex = objectService.findPropertyById(data.objectPropertyId)
+    fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
+        val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
-        data.id?.let { throw IllegalStateException("id must be null for creation: $data") }
+        val aspectVertex = request.aspectPropertyId?.let {
+            aspectDao.getAspectPropertyVertex(it)
+                    ?: throw AspectPropertyDoesNotExist(it)
+        }
 
-        val aspectVertex = aspectDao.getAspectPropertyVertex(data.aspectPropertyId)
-                ?: throw AspectPropertyDoesNotExist(data.aspectPropertyId)
-        val parentValueVertex = data.parentValueId?.let { objectService.findPropertyValueById(it) }
+        val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
 
-        val dataValue = data.value
+
+        val dataValue = request.value
 
         val value = when (dataValue) {
             is ObjectValueData.Link -> {
@@ -111,12 +99,13 @@ class ObjectValidator(
                 ObjectValue.RangeValue(dataValue.range)
             is ObjectValueData.DecimalValue ->
                 ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr))
+            is ObjectValueData.NullValue ->
+                ObjectValue.NullValue
         }
 
-        val measureVertex = data.measureId?.let { measureService.findById(it) }
+        val measureVertex = request.measureId?.let { measureService.findById(it) }
 
-        return ObjectPropertyValue(
-            data.id?.let { ORecordId(it) },
+        return ValueWriteInfo(
             value,
             objectPropertyVertex,
             aspectVertex,
@@ -125,6 +114,6 @@ class ObjectValidator(
         )
     }
 
-    fun checkBusinessKey(property: ObjectProperty) {
-    }
+    //fun checkBusinessKey(property: ObjectProperty) {
+    //}
 }
