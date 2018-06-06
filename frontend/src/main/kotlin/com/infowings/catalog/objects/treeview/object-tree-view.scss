@@ -14,6 +14,11 @@
     align-items: center;
   }
 
+  &__aspect-value {
+    display: flex;
+    align-items: center;
+  }
+
 }
 
 .aspect-value {
@@ -46,4 +51,8 @@
 .object-input-subject {
   margin: 0 .6rem;
   min-width: 20rem;
+}
+
+.object-value-input__boolean.pt-switch {
+  margin: 0;
 }

@@ -107,6 +107,8 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
                 ObjectValueData.IntegerValue(value.toInt(), 0)
             aspect.baseType == BaseType.Decimal.name ->
                 ObjectValueData.DecimalValue(value)
+            aspect.baseType == BaseType.Boolean.name ->
+                ObjectValueData.BooleanValue(value.toBoolean())
             else -> null
         }
 
@@ -116,6 +118,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
             property.aspectBaseType == BaseType.Text.name -> ObjectValueData.StringValue(value)
             property.aspectBaseType == BaseType.Integer.name -> ObjectValueData.IntegerValue(value.toInt(), 0)
             property.aspectBaseType == BaseType.Decimal.name -> ObjectValueData.DecimalValue(value)
+            property.aspectBaseType == BaseType.Boolean.name -> ObjectValueData.BooleanValue(value.toBoolean())
             else -> null
         }
     }

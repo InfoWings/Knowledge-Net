@@ -34,6 +34,7 @@ import kotlinx.serialization.Serializable
  */
 enum class ValueDTOTags {
     INTEGER,
+    BOOLEAN,
     STRING,
     RANGE,
     SUBJECT,
@@ -49,24 +50,29 @@ data class ValueDTO(
     val intValue: Int?,
     val range: Range?,
     val precision: Int?,
-    val vertexId: String?
+    val vertexId: String?,
+    val booleanValue: Boolean?
 )
 
 /* заполнители */
-fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, null, null, null, null)
+fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, null, null, null, null, null)
+
+fun booleanValueDto(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, null, null, null, null, null, value)
 
 fun integerValueDto(value: Int, precision: Int?) =
-    ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null)
+    ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null, null)
 
-fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, null, value, null, null)
-fun subjectValueDto(id: String) = ValueDTO(ValueDTOTags.SUBJECT.name, null, null, null, null, id)
-fun objectValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT.name, null, null, null, null, id)
-fun domainElementValueDto(id: String) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.name, null, null, null, null, id)
+fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, null, value, null, null, null)
+fun subjectValueDto(id: String) = ValueDTO(ValueDTOTags.SUBJECT.name, null, null, null, null, id, null)
+fun objectValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT.name, null, null, null, null, id, null)
+fun domainElementValueDto(id: String) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.name, null, null, null, null, id, null)
 
 /* Конвертеры */
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
     is ObjectValueData.IntegerValue ->
         integerValueDto(value, precision)
+    is ObjectValueData.BooleanValue ->
+        booleanValueDto(value)
     is ObjectValueData.StringValue ->
         stringValueDto(value)
     is ObjectValueData.RangeValue ->
@@ -85,6 +91,7 @@ fun ValueDTO.idStrict(): String = vertexId ?: throw IllegalStateException("id is
 fun ValueDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int value is absent")
 fun ValueDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
 fun ValueDTO.rangeStrict(): Range = range ?: throw IllegalStateException("range value is absent")
+fun ValueDTO.booleanStrict(): Boolean = booleanValue ?: throw IllegalStateException("boolean value is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.INTEGER -> {
@@ -92,6 +99,9 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     }
     ValueDTOTags.STRING -> {
         ObjectValueData.StringValue(stringStrict())
+    }
+    ValueDTOTags.BOOLEAN -> {
+        ObjectValueData.BooleanValue(booleanStrict())
     }
     ValueDTOTags.RANGE -> {
         ObjectValueData.RangeValue(rangeStrict())

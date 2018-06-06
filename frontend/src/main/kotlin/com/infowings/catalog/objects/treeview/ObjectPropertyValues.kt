@@ -1,11 +1,15 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
+import com.infowings.catalog.objects.treeview.inputs.values.booleanInput
+import com.infowings.catalog.objects.treeview.inputs.values.decimalInput
+import com.infowings.catalog.objects.treeview.inputs.values.integerInput
+import com.infowings.catalog.objects.treeview.inputs.values.textInput
 import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
-import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
@@ -41,7 +45,8 @@ fun RBuilder.objectPropertyValues(
                                 }
                             }
                         },
-                        onEdit = onEdit
+                        onEdit = onEdit,
+                        baseType = aspect.baseType ?: error("Aspect must have base type")
                     )
                 }!!
             }
@@ -75,16 +80,16 @@ fun RBuilder.objectPropertyValues(
 }
 
 fun RBuilder.objectPropertyValueLine(
+    baseType: String,
     value: String,
     onUpdate: (String) -> Unit,
     onEdit: () -> Unit
-) =
-    EditableText {
-        attrs {
-            this.value = value
-            onChange = onUpdate
-            this.onEdit = onEdit
-            onCancel = onUpdate
-        }
+) {
+    when (baseType) {
+        BaseType.Text.name -> textInput(value, onUpdate, onEdit)
+        BaseType.Integer.name -> integerInput(value, onUpdate)
+        BaseType.Decimal.name -> decimalInput(value, onUpdate)
+        BaseType.Boolean.name -> booleanInput(value, onUpdate)
     }
+}
 

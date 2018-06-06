@@ -59,6 +59,7 @@ fun RBuilder.objectPropertyLine(
                     propertyAspectTypePrompt(property.aspect ?: error("Memory Model inconsistency"))
                     propertyValue(
                         value = property.values?.firstOrNull()?.value ?: "",
+                        baseType = property.aspect?.baseType ?: error("Memory Model inconsistency"),
                         onEdit = onEdit,
                         onChange = {
                             onUpdate {
@@ -69,11 +70,6 @@ fun RBuilder.objectPropertyLine(
                                 } else {
                                     values[0].value = it
                                 }
-                            }
-                        },
-                        onCancel = {
-                            onUpdate {
-                                (values ?: error("Inconsistent State"))[0].value = it
                             }
                         }
                     )
