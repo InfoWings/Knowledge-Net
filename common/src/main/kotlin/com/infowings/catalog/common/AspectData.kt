@@ -23,8 +23,11 @@ data class AspectData(
     val subject: SubjectData? = null,
     val deleted: Boolean = false,
     val description: String? = null,
+    val lastChangeTimestamp: Long? = null,
     val refBookName: String? = null
-)
+) {
+    operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
+}
 
 @Serializable
 data class AspectPropertyData(

@@ -224,7 +224,7 @@ class SubjectServiceTest {
             subjectService.updateSubject(created.toSubjectData(), username)
         } catch (e: SubjectEmptyChangeException) {
         }
-        val updated = subjectService.findById(created.id)
+        val updated = subjectService.findByIdStrict(created.id)
         Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
     }
 
@@ -268,5 +268,5 @@ fun createTestSubject(
     }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
 
-    return subjectService.findById(subject.id).toSubject()
+    return subjectService.findByIdStrict(subject.id).toSubject()
 }

@@ -9,6 +9,11 @@ $color-yellow: #ffa500;
   min-width: 60rem;
 }
 
+.aspect-tree-history {
+  display: flex;
+  align-items: center;
+}
+
 .history-item {
   width: 95%;
   display: flex;

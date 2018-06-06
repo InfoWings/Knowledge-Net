@@ -30,10 +30,10 @@ class AspectApi(val aspectService: AspectService) {
         return aspectService.save(aspectData, username).toAspectData()
     }
 
-    @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): List<AspectData> {
-        logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name).map { it.toAspectData() }
+    @GetMapping("/id/{id}")
+    fun getAspectById(@PathVariable id: String): AspectData {
+        logger.debug("Get aspect by id: $id")
+        return aspectService.findById(id).toAspectData()
     }
 
     @GetMapping("all")

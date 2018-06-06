@@ -33,7 +33,7 @@ class ObjectValidator(
     private val aspectDao: AspectDaoService
 ) {
     fun checkedForCreation(request: ObjectCreateRequest): ObjectCreateInfo {
-        val subjectVertex = subjectService.findById(request.subjectId)
+        val subjectVertex = subjectService.findByIdStrict(request.subjectId)
 
         val trimmedName: String = request.name.trim()
         if (trimmedName.isEmpty()) {
@@ -82,7 +82,7 @@ class ObjectValidator(
                 val refValueVertex = dataValue.value.let {
                     when (it) {
                         is LinkValueData.Subject ->
-                            LinkValueVertex.SubjectValue(subjectService.findById(it.id))
+                            LinkValueVertex.SubjectValue(subjectService.findByIdStrict(it.id))
                         is LinkValueData.Object ->
                             LinkValueVertex.ObjectValue(objectService.findById(it.id))
                         is LinkValueData.DomainElement ->

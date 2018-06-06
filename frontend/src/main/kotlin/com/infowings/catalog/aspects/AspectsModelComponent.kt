@@ -1,16 +1,8 @@
 package com.infowings.catalog.aspects
 
-import com.infowings.catalog.aspects.editconsole.aspectConsole
-import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
-import com.infowings.catalog.aspects.sort.aspectSort
-import com.infowings.catalog.aspects.treeview.aspectTreeView
+import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.ServerException
-import com.infowings.catalog.wrappers.blueprint.Intent
-import com.infowings.catalog.wrappers.blueprint.Position
-import com.infowings.catalog.wrappers.blueprint.Toast
-import com.infowings.catalog.wrappers.blueprint.Toaster
-import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -87,6 +79,18 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         selectedAspectPropertyIndex = null
         unsafeSelection = false
         errorMessages = emptyList()
+        aspectsFilter = AspectsFilter(emptyList(), emptyList())
+    }
+
+    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
+        if (state.selectedAspect.id != null) {
+            setState {
+                val selectedAspectOnServer =
+                    nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                selectedAspect =
+                        selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
+            }
+        }
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -99,6 +103,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
                 }
                 selectedAspectPropertyIndex = null
+                aspectId?.let { props.refreshAspect(it) }
             }
         }
     }
@@ -220,6 +225,14 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
     }
 
+    private fun setSubjectsFilter(subjects: List<SubjectData?>) = setState {
+        aspectsFilter = aspectsFilter.copy(subjects = subjects)
+    }
+
+    private fun setExcludedAspectsToFilter(aspects: List<AspectData>) = setState {
+        aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
+    }
+
     private inline fun tryMakeApiCall(block: () -> Unit) {
         try {
             block()
@@ -268,55 +281,26 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
     }
 
     override fun RBuilder.render() {
-        val selectedAspect = state.selectedAspect
-        val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
-            aspectSort {
-                attrs {
-                    onFetchAspect = props.onFetchAspects
-                }
-            }
-            aspectTreeView {
-                attrs {
-                    aspects = props.data
-                    aspectContext = props.aspectContext
-                    selectedAspectId = state.selectedAspect.id
-                    selectedPropertyIndex = state.selectedAspectPropertyIndex
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            aspectConsole {
-                attrs {
-                    aspect = selectedAspect
-                    propertyIndex = selectedAspectPropertyIndex
-                    aspectContext = props.aspectContext
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            unsafeChangesWindow(state.unsafeSelection) {
-                setState { unsafeSelection = false }
-            }
-            Toaster {
-                attrs {
-                    position = Position.TOP_RIGHT
-                }
-                state.errorMessages.reversed().forEach { errorMessage ->
-                    Toast {
-                        attrs {
-                            icon = "warning-sign"
-                            intent = Intent.DANGER
-                            message = errorMessage.asReactElement()
-                            onDismiss = {
-                                setState {
-                                    errorMessages = errorMessages.filterNot { it == errorMessage }
-                                }
-                            }
-                            timeout = 9000
-                        }
-                    }
-                }
-            }
-
+            aspectPageHeader(
+                onFetchAspects = props.onFetchAspects,
+                filter = state.aspectsFilter,
+                setFilterSubjects = ::setSubjectsFilter,
+                setFilterAspects = ::setExcludedAspectsToFilter
+            )
+            aspectPageContent(
+                filteredAspects = state.aspectsFilter.applyToAspects(props.data),
+                aspectContext = props.aspectContext,
+                aspectsModel = this@AspectsModelComponent,
+                selectedAspect = state.selectedAspect,
+                selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
+            )
+            aspectPageOverlay(
+                isUnsafeSelection = state.unsafeSelection,
+                onCloseUnsafeSelection = { setState { unsafeSelection = false } },
+                errorMessages = state.errorMessages,
+                onDismissErrorMessage = { errorMessage -> setState { errorMessages = errorMessages.filterNot { it == errorMessage } } }
+            )
         }
     }
 
@@ -325,6 +309,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
         var errorMessages: List<String>
+        var aspectsFilter: AspectsFilter
     }
 }
 

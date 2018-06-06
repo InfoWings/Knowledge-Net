@@ -44,36 +44,35 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
         return createHistoryElement(mainFact.event, diffs, after, after.properties.map { getAspect(it.aspectId) })
     }
 
-    private fun fieldsDiff(mainFact: HistoryFactDto, before: AspectData, after: AspectData): List<Delta> =
-        mainFact.payload.data.mapNotNull { (fieldName, _) ->
+    private fun fieldsDiff(mainFact: HistoryFactDto, before: AspectData, after: AspectData): List<Delta> = mainFact.payload.data.mapNotNull { (fieldName, _) ->
 
-            when (AspectField.valueOf(fieldName)) {
-                AspectField.MEASURE -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.MEASURE.view,
-                    before.measure,
-                    after.measure
-                )
-                AspectField.BASE_TYPE -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.BASE_TYPE.view,
-                    before.baseType,
-                    after.baseType
-                )
-                AspectField.NAME -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.NAME.view,
-                    before.name,
-                    after.name
-                )
-                AspectField.DESCRIPTION -> createAspectFieldDelta(
-                    mainFact.event.type,
-                    AspectField.NAME.view,
-                    before.name,
-                    after.name
-                )
-            }
+        when (AspectField.valueOf(fieldName)) {
+            AspectField.MEASURE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.MEASURE.view,
+                before.measure,
+                after.measure
+            )
+            AspectField.BASE_TYPE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.BASE_TYPE.view,
+                before.baseType,
+                after.baseType
+            )
+            AspectField.NAME -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.NAME.view,
+                before.name,
+                after.name
+            )
+            AspectField.DESCRIPTION -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.DESCRIPTION.view,
+                before.description,
+                after.description
+            )
         }
+    }
 
     private fun propertiesDiff(before: AspectData, after: AspectData): List<Delta> {
 
@@ -82,46 +81,27 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
         val beforePropertyIdSet = before.properties.map { it.id }.toSet()
         val afterPropertyIdSet = after.properties.map { it.id }.toSet()
 
-        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).map { id ->
-            val afterProperty = after.properties.find { it.id == id }
-            createAspectFieldDelta(
-                EventType.UPDATE,
-                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
-                before.properties.find { it.id == id }?.toView(),
-                afterProperty?.toView()
-            )
-        })
-
-        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).map { id ->
-            val beforeProperty = before.properties.find { it.id == id }
-            createAspectFieldDelta(
-                EventType.DELETE,
-                "${AspectField.PROPERTY} ${beforeProperty?.name ?: ""}",
-                before.properties.find { it.id == id }?.toView(),
-                null
-            )
-        })
-
-        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).map { id ->
-            val afterProperty = after.properties.find { it.id == id }
-            createAspectFieldDelta(
-                EventType.CREATE,
-                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
-                null,
-                after.properties.find { it.id == id }?.toView()
-            )
-        })
+        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).flatMap { id -> propertyDiff(id, EventType.UPDATE, before, after) })
+        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).flatMap { id -> propertyDiff(id, EventType.DELETE, before, after) })
+        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).flatMap { id -> propertyDiff(id, EventType.CREATE, before, after) })
 
         return diffs
     }
 
+    private fun propertyDiff(id: String, eventType: EventType, before: AspectData, after: AspectData): List<Delta> {
+        val propertyDiff = createAspectFieldDelta(eventType, after[id].deltaName, before[id]?.view, after[id]?.view)
 
-    private fun createHistoryElement(
-        event: HistoryEvent,
-        changes: List<Delta>,
-        data: AspectData,
-        related: List<AspectData>
-    ) =
+        if (before[id]?.description != after[id]?.description) {
+
+            val descriptionDiff =
+                createAspectFieldDelta(eventType, after[id].deltaName + "(Description)", before[id]?.description, after[id]?.description)
+
+            return listOf(propertyDiff, descriptionDiff)
+        }
+        return listOf(propertyDiff)
+    }
+
+    private fun createHistoryElement(event: HistoryEvent, changes: List<Delta>, data: AspectData, related: List<AspectData>) =
         AspectHistory(
             event.username,
             event.type,
@@ -134,15 +114,18 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
             changes
         )
 
-    private fun AspectPropertyData.toView(): String {
+    private val AspectPropertyData?.deltaName
+        get() = "${AspectField.PROPERTY} ${this?.name ?: " "}"
 
-        val cardinalityLabel = when (PropertyCardinality.valueOf(cardinality)) {
-            PropertyCardinality.ZERO -> "0"
-            PropertyCardinality.INFINITY -> "∞"
-            PropertyCardinality.ONE -> "0:1"
+    private val AspectPropertyData.view: String
+        get() {
+            val cardinalityLabel = when (PropertyCardinality.valueOf(cardinality)) {
+                PropertyCardinality.ZERO -> "0"
+                PropertyCardinality.INFINITY -> "∞"
+                PropertyCardinality.ONE -> "0:1"
+            }
+            return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
         }
-        return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
-    }
 
     private fun getAspect(aspectId: String): AspectData = try {
         aspectService.findById(aspectId).toAspectData()

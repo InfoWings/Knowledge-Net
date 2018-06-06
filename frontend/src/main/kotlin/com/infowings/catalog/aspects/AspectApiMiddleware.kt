@@ -6,6 +6,7 @@ import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.NotModifiedException
 import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -20,6 +21,7 @@ interface AspectApiReceiverProps : RProps {
     var loading: Boolean
     var data: List<AspectData>
     var aspectContext: Map<String, AspectData>
+    var refreshAspect: (id: String) -> Unit
     var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
@@ -103,6 +105,25 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         return updatedAspect
     }
 
+    private fun refreshAspect(id: String) {
+        launch {
+            try {
+                val response = getAspectById(id)
+                setState {
+                    data = data.replaceBy(response) { it.id == response.id }
+                    context[response.id ?: error("Server returned Aspect with aspectId == null")] = response
+                }
+            } catch (exception: ServerException) {
+                setState {
+                    data = emptyList()
+                    context = mutableMapOf()
+                    loading = false
+                    serverError = true
+                }
+            }
+        }
+    }
+
     private suspend fun handleDeleteAspect(aspectData: AspectData, force: Boolean): String {
 
         try {
@@ -118,9 +139,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
 
         setState {
-            data = data.map {
-                if (aspectData.id == it.id) deletedAspect else it
-            }
+            data = data.replaceBy(deletedAspect) { deletedAspect.id == it.id }
             if (!aspectData.id.isNullOrEmpty()) {
                 context[aspectData.id!!] = deletedAspect
             }
@@ -138,6 +157,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     loading = state.loading
                     onAspectCreate = { handleCreateNewAspect(it) }
                     onAspectUpdate = { handleUpdateAspect(it) }
+                    refreshAspect = ::refreshAspect
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onFetchAspects = ::fetchAspects
                 }
