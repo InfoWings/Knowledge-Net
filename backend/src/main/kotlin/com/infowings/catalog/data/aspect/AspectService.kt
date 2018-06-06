@@ -178,9 +178,11 @@ class AspectService(
                 Direction.ASC
             )
         ),
-        query: String = ""
-    ): List<Aspect> = (if (query.isBlank()) aspectDaoService.getAspects() else
-        aspectDaoService.findTransitiveByNameQuery(query)).map { it.toAspect() }.toList().sort(orderBy)
+        query: String? = null
+    ): List<Aspect> = when {
+        query == null || query.isBlank() -> aspectDaoService.getAspects()
+        else -> aspectDaoService.findTransitiveByNameQuery(query)
+    }.map { it.toAspect() }.sort(orderBy)
 
     /**
      * Search [Aspect] by it's id

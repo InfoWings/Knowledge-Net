@@ -36,11 +36,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun findTransitiveByNameQuery(nameQuery: String): Set<AspectVertex> {
+    fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
         val traverseQuery = "TRAVERSE IN(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM ($selectQuery)"
         val filterQuery = "SELECT FROM ($traverseQuery) WHERE @class = \"$ASPECT_CLASS\" AND $notDeletedSql"
-        return db.query(filterQuery, mapOf("nameQuery" to "($nameQuery~) ($nameQuery*) (*$nameQuery*)")) {
+        return db.query(filterQuery, mapOf("nameQuery" to "($nameFragment~) ($nameFragment*) (*$nameFragment*)")) {
             it.map { it.toVertex().toAspectVertex() }.toSet()
         }
     }
