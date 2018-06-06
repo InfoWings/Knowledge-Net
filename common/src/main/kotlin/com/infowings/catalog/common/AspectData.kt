@@ -8,7 +8,17 @@ data class AspectsList(
 )
 
 enum class PropertyCardinality {
-    ZERO, ONE, INFINITY
+    ZERO {
+        override val label = "Group"
+    },
+    ONE {
+        override val label = "0..1"
+    },
+    INFINITY {
+        override val label = "0..∞"
+    };
+
+    abstract val label: String
 }
 
 @Serializable

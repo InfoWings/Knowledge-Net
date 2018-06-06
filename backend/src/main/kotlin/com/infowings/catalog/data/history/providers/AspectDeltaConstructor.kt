@@ -119,11 +119,7 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
 
     private val AspectPropertyData.view: String
         get() {
-            val cardinalityLabel = when (PropertyCardinality.valueOf(cardinality)) {
-                PropertyCardinality.ZERO -> "0"
-                PropertyCardinality.INFINITY -> "∞"
-                PropertyCardinality.ONE -> "0:1"
-            }
+            val cardinalityLabel = PropertyCardinality.valueOf(cardinality).label
             return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
         }
 
