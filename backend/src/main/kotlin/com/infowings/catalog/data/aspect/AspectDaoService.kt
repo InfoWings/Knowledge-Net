@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyCardinality
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor

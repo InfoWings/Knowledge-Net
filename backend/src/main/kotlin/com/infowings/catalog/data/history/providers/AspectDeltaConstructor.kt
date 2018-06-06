@@ -2,7 +2,6 @@ package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
@@ -86,11 +85,7 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
 
     private val AspectPropertyData.view: String
         get() {
-            val cardinalityLabel = when (AspectPropertyCardinality.valueOf(cardinality)) {
-                AspectPropertyCardinality.ZERO -> "0"
-                AspectPropertyCardinality.INFINITY -> "∞"
-                AspectPropertyCardinality.ONE -> "0:1"
-            }
+            val cardinalityLabel = AspectPropertyCardinality.valueOf(cardinality).label
             return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
         }
 
