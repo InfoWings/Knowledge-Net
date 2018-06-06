@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.treeview.view
 
-import com.infowings.catalog.common.AspectPropertyCardinality
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
@@ -38,7 +38,7 @@ fun RBuilder.propertyLabel(
     span(classes = "text-grey") {
         +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
-            +AspectPropertyCardinality.valueOf(aspectPropertyCardinality).label
+            +PropertyCardinality.valueOf(aspectPropertyCardinality).label
         }
         +"]"
     }
