@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.editconsole
 
-import com.infowings.catalog.aspects.AspectsModel
+import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.emptyAspectPropertyData
