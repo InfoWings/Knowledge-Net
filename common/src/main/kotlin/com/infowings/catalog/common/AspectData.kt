@@ -7,6 +7,20 @@ data class AspectsList(
     val aspects: List<AspectData> = emptyList()
 )
 
+enum class PropertyCardinality {
+    ZERO {
+        override val label = "Group"
+    },
+    ONE {
+        override val label = "0..1"
+    },
+    INFINITY {
+        override val label = "0..∞"
+    };
+
+    abstract val label: String
+}
+
 @Serializable
 data class AspectData(
     val id: String? = null,
@@ -34,6 +48,19 @@ data class AspectPropertyData(
     val description: String?,
     val version: Int = 0,
     val deleted: Boolean = false
+)
+
+/** Data about AspectProperty together with data about relevant aspect */
+@Serializable
+data class AspectPropertyDataExtended(
+    val id: String,
+    val name: String,
+    val aspectId: String,
+    val cardinality: String,
+    val aspectName: String,
+    val aspectMeasure: String?,
+    val aspectDomain: String,
+    val aspectBaseType: String
 )
 
 /** Helpful extensions */

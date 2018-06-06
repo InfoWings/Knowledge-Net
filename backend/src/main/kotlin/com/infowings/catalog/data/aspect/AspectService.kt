@@ -184,11 +184,14 @@ class AspectService(
         else -> aspectDaoService.findTransitiveByNameQuery(query)
     }.map { it.toAspect() }.sort(orderBy)
 
+    private fun findVertexById(id: String): AspectVertex =
+        aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
+
     /**
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = aspectDaoService.getAspectVertex(id)?.toAspect() ?: throw AspectDoesNotExist(id)
+    fun findById(id: String): Aspect = findVertexById(id).toAspect()
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
@@ -301,7 +304,7 @@ class AspectService(
     }
 
     private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
-        AspectProperty(id, name, findById(aspect), description, AspectPropertyCardinality.valueOf(cardinality), version)
+        AspectProperty(id, name, findById(aspect), description, PropertyCardinality.valueOf(cardinality), version)
 
     private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex =
         this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }

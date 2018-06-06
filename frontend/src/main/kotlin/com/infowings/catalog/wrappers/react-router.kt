@@ -15,14 +15,14 @@ external class ReactRouter {
     var Redirect: RClass<RedirectProps>
 }
 
-external class RouteSuppliedProps : RProps {
-    var match: Match = definedExternally
-    var location: Location = definedExternally
-    var history: History = definedExternally
+external interface RouteSuppliedProps : RProps {
+    var match: Match
+    var location: Location
+    var history: History
 }
 
 external class Match {
-    var params: Map<String, String>
+    var params: TypedJsObject<String>
     var isExact: Boolean
     var path: String
     var url: String

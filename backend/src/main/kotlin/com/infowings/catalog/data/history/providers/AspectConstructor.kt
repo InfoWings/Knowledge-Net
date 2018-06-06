@@ -10,11 +10,15 @@ import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.toSubjectData
 import com.orientechnologies.orient.core.id.ORecordId
 
-class AspectConstructor(private val subjectService: SubjectService, private val referenceBookService: ReferenceBookService) {
+class AspectConstructor(
+    private val subjectService: SubjectService,
+    private val referenceBookService: ReferenceBookService
+) {
 
     fun toNextVersion(aspect: AspectData, fact: HistoryFactDto, relatedFacts: List<HistoryFactDto>): AspectData {
 
-        val newProps = fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
+        val newProps =
+            fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
         val updatedProps = aspect.properties.plus(newProps).submit(relatedFacts)
 
         return aspect.submitFieldsEvents(fact).copy(properties = updatedProps)
@@ -24,7 +28,12 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
 
     private fun AspectData.submitSubjectEvents(payload: DiffPayload): AspectData {
         val afterAdded = payload.addedFor(AspectField.SUBJECT).fold(this) { acc, nextFact ->
-            acc.copy(subject = subjectService.findById(nextFact.identity.toString())?.toSubject()?.toSubjectData())
+            val entityId = nextFact.identity.toString()
+
+            // если когда-то добавляли субъект, но сейчас он удален, то подсталяем специальный маркер
+            val subjectData = subjectService.findById(entityId)?.toSubject()?.toSubjectData() ?: removedSubjectPlaceholder(entityId)
+
+            acc.copy(subject = subjectData)
         }
 
         return payload.removedFor(AspectField.SUBJECT).fold(afterAdded) { acc, _ ->
@@ -34,7 +43,9 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
 
     private fun AspectData.submitReferenceBookEvents(payload: DiffPayload): AspectData {
         val afterAdded = payload.addedFor(AspectField.REFERENCE_BOOK).fold(this) { acc, nextFact ->
-            acc.copy(refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted")
+            acc.copy(
+                refBookName = referenceBookService.getReferenceBookNameById(nextFact.identity.toString()) ?: "Deleted"
+            )
         }
 
         return payload.removedFor(AspectField.REFERENCE_BOOK).fold(afterAdded) { acc, _ ->
@@ -63,21 +74,25 @@ class AspectConstructor(private val subjectService: SubjectService, private val 
         val propertyEventMap = events.groupBy { it.event.entityId }
 
         val updatedProps = map { aspectPropertyData ->
-            val relatedEvents = propertyEventMap[ORecordId(aspectPropertyData.id)]?.sortedBy { it.event.timestamp } ?: emptyList()
+            val relatedEvents =
+                propertyEventMap[ORecordId(aspectPropertyData.id)]?.sortedBy { it.event.timestamp } ?: emptyList()
             return@map relatedEvents.fold(aspectPropertyData) { acc, event -> acc.submitFieldsEvents(event) }
         }
 
         return updatedProps.filterNot { it.deleted }
     }
 
-    private fun AspectPropertyData.submitFieldsEvents(fact: HistoryFactDto): AspectPropertyData = when (fact.event.type) {
-        EventType.CREATE, EventType.UPDATE -> copy(
-            name = fact.payload.data.getOrDefault(AspectPropertyField.NAME.name, name),
-            cardinality = fact.payload.data.getOrDefault(AspectPropertyField.CARDINALITY.name, cardinality),
-            aspectId = fact.payload.data.getOrDefault(AspectPropertyField.ASPECT.name, aspectId),
-            description = fact.payload.data.getOrDefault(AspectPropertyField.DESCRIPTION.name, description),
-            version = fact.event.version
-        )
-        else -> copy(deleted = true, version = fact.event.version)
-    }
+    private fun AspectPropertyData.submitFieldsEvents(fact: HistoryFactDto): AspectPropertyData =
+        when (fact.event.type) {
+            EventType.CREATE, EventType.UPDATE -> copy(
+                name = fact.payload.data.getOrDefault(AspectPropertyField.NAME.name, name),
+                cardinality = fact.payload.data.getOrDefault(AspectPropertyField.CARDINALITY.name, cardinality),
+                aspectId = fact.payload.data.getOrDefault(AspectPropertyField.ASPECT.name, aspectId),
+                description = fact.payload.data.getOrDefault(AspectPropertyField.DESCRIPTION.name, description),
+                version = fact.event.version
+            )
+            else -> copy(deleted = true, version = fact.event.version)
+        }
 }
+
+fun removedSubjectPlaceholder(id: String) = SubjectData(id = id, name = "REMOVED SUBJECT", description = null)

@@ -67,7 +67,7 @@ class AspectApi(val aspectService: AspectService) {
         return when (exception) {
             is AspectAlreadyExist -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Aspect with such name already exists (${exception.name})."
@@ -76,7 +76,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectDoesNotExist -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Supplied aspect does not exist or it is deleted"
@@ -85,7 +85,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Attempt to modify old version of aspect, please refresh."
@@ -94,7 +94,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Updates to aspect ${exception.id} violates update constraints: ${exception.message}"
@@ -103,7 +103,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectPropertyModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Updates to aspect property ${exception.id} violates update constraints: ${exception.message}"
@@ -112,7 +112,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectCyclicDependencyException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Failed to create/modify aspect due to emerging cycle among aspects"
@@ -121,7 +121,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectInconsistentStateException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             exception.message

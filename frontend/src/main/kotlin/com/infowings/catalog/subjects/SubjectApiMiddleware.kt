@@ -5,13 +5,20 @@ import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.utils.NotModifiedException
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RState
+import react.setState
 
 suspend fun getAllSubjects(): SubjectsList =
     JSON.parse(get("/api/subject/all"))
+
+suspend fun getSubjectByName(name: String): SubjectData =
+    JSON.parse(get("/api/subject/get/$name"))
 
 suspend fun createSubject(body: SubjectData): SubjectData =
     JSON.parse(post("/api/subject/create", JSON.stringify(body)))
@@ -31,7 +38,7 @@ suspend fun deleteSubject(body: SubjectData, force: Boolean) {
 }
 
 
-interface SubjectApiReceiverProps : RProps {
+interface SubjectApiReceiverProps : RouteSuppliedProps {
     var data: Array<SubjectData>
     var loading: Boolean
     var onSubjectUpdate: suspend (SubjectData) -> Unit
@@ -40,7 +47,7 @@ interface SubjectApiReceiverProps : RProps {
     var onFetchData: (filterParam: Map<String, String>) -> Unit
 }
 
-class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
+class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware.State>() {
 
     private var job: Job? = null
 
@@ -124,6 +131,9 @@ class SubjectApiMiddleware : RComponent<RProps, SubjectApiMiddleware.State>() {
     override fun RBuilder.render() {
         child(SubjectsListComponent::class) {
             attrs {
+                history = props.history
+                location = props.location
+                match = props.match
                 data = state.data.values.toTypedArray()
                 loading = state.loading
                 onSubjectUpdate = { handleUpdateSubject(it) }

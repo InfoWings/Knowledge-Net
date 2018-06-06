@@ -1,11 +1,12 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.Metre
-import com.infowings.catalog.common.Tonne
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
@@ -46,7 +47,7 @@ class SearchWithRemovedTest {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
 
-        val p1 = AspectPropertyData("", "", initialAspect.id, AspectPropertyCardinality.ONE.name, null)
+        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name, null)
         val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2, username)
 

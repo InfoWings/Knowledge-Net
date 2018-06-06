@@ -6,6 +6,7 @@ import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.storage.OrientDatabase
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +21,8 @@ import kotlin.test.assertTrue
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ReferenceBookDaoTest {
+    @Autowired
+    private lateinit var db: OrientDatabase
     @Autowired
     private lateinit var dao: ReferenceBookDao
     @Autowired

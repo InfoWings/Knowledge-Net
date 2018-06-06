@@ -5,6 +5,7 @@ import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
 import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.aspects.filter.aspectExcludeFilterComponent
 import com.infowings.catalog.aspects.filter.aspectSubjectFilterComponent
+import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.aspects.search.aspectSearchComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView

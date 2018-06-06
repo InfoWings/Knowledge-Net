@@ -4,7 +4,10 @@ import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.data.objekt.ObjectVertex
+import com.infowings.catalog.data.objekt.toObjectVertex
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import incomingEdges
 
@@ -18,12 +21,15 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
             "value" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)
         ),
-        links = emptyMap()
+        links = mapOf(
+            "objects" to objects.map { it.identity }
+        )
     )
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) { vertex[ATTR_NAME] = value
+        set(value) {
+            vertex[ATTR_NAME] = value
         }
 
     var description: String?
@@ -38,6 +44,10 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
             vertex["deleted"] = value
         }
 
+    val objects: List<ObjectVertex>
+        get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
+
+
     fun linkedByAspects() = incomingEdges(ASPECT_SUBJECT_EDGE).map {
         val source = it.from.asVertex()
         val vertex = if (source.isPresent) source.get() else
@@ -51,5 +61,5 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
         } else throw InternalError("Source of $ASPECT_SUBJECT_EDGE is not aspect vertex")
 
         aspectVertex
-    }.filterNot {it.deleted}
+    }.filterNot { it.deleted }
 }

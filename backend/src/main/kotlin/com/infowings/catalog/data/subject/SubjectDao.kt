@@ -2,6 +2,7 @@ package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
+import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.OVertex
@@ -24,26 +25,35 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
     }
 
-    private fun findByName(name: String): Subject? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
-        rs.map { it.toVertex().toSubjectVertex().toSubject() }.firstOrNull()
+    fun findByName(name: String): SubjectVertex? = db.query(SELECT_BY_NAME, SUBJECT_CLASS, name) { rs ->
+        rs.map { it.toVertex().toSubjectVertex() }.firstOrNull()
     }
 
-    fun findById(id: String): SubjectVertex? = db[id].toSubjectVertex()
+    fun findById(id: String): SubjectVertex? = try {
+        db[id].toSubjectVertex()
+    } catch (e: VertexNotFound) {
+        null
+    }
+
+    fun findByIdStrict(id: String): SubjectVertex = try {
+        db[id].toSubjectVertex()
+    } catch (e: VertexNotFound) {
+        throw SubjectNotFoundException(id)
+    }
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
 
-
-    private fun save(sd: SubjectData): SubjectVertex {
+    private fun save(sd: SubjectData): SubjectVertex = transaction(db) {
         val vertex: SubjectVertex = newSubjectVertex()
         vertex.name = sd.name
         vertex.description = sd.description
         vertex.save<SubjectVertex>().toSubjectVertex()
-        return vertex.save<SubjectVertex>().toSubjectVertex()
+        return@transaction  vertex.save<SubjectVertex>().toSubjectVertex()
     }
 
     fun createSubject(sd: SubjectData): SubjectVertex =
         transaction(db) {
-            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(it) } ?: save(sd)
+            findByName(sd.name)?.let { throw SubjectWithNameAlreadyExist(it.toSubject()) } ?: save(sd)
         }
 
     fun updateSubjectVertex(vertex: SubjectVertex, sd: SubjectData): SubjectVertex =

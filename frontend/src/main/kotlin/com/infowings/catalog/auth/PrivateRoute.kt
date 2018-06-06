@@ -6,11 +6,11 @@ import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.buildElements
 
-fun RBuilder.privateRoute(path: String, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {
+fun RBuilder.privateRoute(path: String, exact: Boolean = true, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {
     reactRouter.Route {
         attrs {
             this.path = path
-            this.exact = true
+            this.exact = exact
             this.render = { props: RouteSuppliedProps ->
                 if (getAuthorizationRole() != null) {
                     buildElements {

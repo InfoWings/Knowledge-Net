@@ -34,7 +34,8 @@ class AspectHistoryProvider(
                 return@map aspectDataAccumulator
             })
 
-            return@flatMap versionList.zipWithNext().zip(entityEvents).map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
+            return@flatMap versionList.zipWithNext().zip(entityEvents)
+                .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
 
         }.sortedByDescending { it.timestamp }
     }

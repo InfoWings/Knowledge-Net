@@ -1,8 +1,7 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction
@@ -42,7 +41,7 @@ class AspectServicePropertyTest {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
-        val property = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", baseAspect.id, PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             "",
@@ -92,7 +91,7 @@ class AspectServicePropertyTest {
 
     @Test
     fun testAddAspectPropertiesToAspect() {
-        val propertyData = AspectPropertyData("", "p2", baseAspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val propertyData = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name, null)
         val dataForUpdate =
             complexAspect.toAspectData().copy(properties = complexAspect.toAspectData().properties.plus(propertyData))
         val updatedAspect = aspectService.save(dataForUpdate, username)
@@ -102,8 +101,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesDifferentNames() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p2", complexAspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.id, PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p2", complexAspect.id, PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             "",
@@ -117,7 +116,8 @@ class AspectServicePropertyTest {
 
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
 
-        assertThat("aspect should have correct properties",
+        assertThat(
+            "aspect should have correct properties",
             loaded.properties.map { it.name },
             Is.`is`(listOf(property, property2).map { it.name })
         )
@@ -125,8 +125,8 @@ class AspectServicePropertyTest {
 
     @Test(expected = AspectInconsistentStateException::class)
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.id, PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p", complexAspect.id, PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             "",
@@ -141,8 +141,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesSameNamesDifferentAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.id, AspectPropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p", baseAspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.id, PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p", baseAspect.id, PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             "",
@@ -191,7 +191,7 @@ class AspectServicePropertyTest {
     @Test
     fun testChangePowerAspectProperty() {
         val propertyList = complexAspect.toAspectData().properties.toMutableList()
-        propertyList[0] = propertyList[0].copy(cardinality = AspectPropertyCardinality.ONE.name)
+        propertyList[0] = propertyList[0].copy(cardinality = PropertyCardinality.ONE.name)
         val dataForUpdate = complexAspect.toAspectData().copy(properties = propertyList)
 
         val saved = aspectService.save(dataForUpdate, username)

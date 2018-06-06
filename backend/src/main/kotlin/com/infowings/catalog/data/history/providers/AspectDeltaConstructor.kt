@@ -2,7 +2,6 @@ package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFactDto
@@ -17,11 +16,25 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
         diffs.addAll(fieldsDiff(mainFact, before, after))
 
         if (before.subject != after.subject) {
-            diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.SUBJECT, before.subject?.name, after.subject?.name))
+            diffs.add(
+                createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.SUBJECT,
+                    before.subject?.name,
+                    after.subject?.name
+                )
+            )
         }
 
         if (before.refBookName != after.refBookName) {
-            diffs.add(createAspectFieldDelta(mainFact.event.type, AspectField.REFERENCE_BOOK, before.refBookName, after.refBookName))
+            diffs.add(
+                createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.REFERENCE_BOOK,
+                    before.refBookName,
+                    after.refBookName
+                )
+            )
         }
 
         diffs.addAll(propertiesDiff(before, after))
@@ -34,10 +47,30 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
     private fun fieldsDiff(mainFact: HistoryFactDto, before: AspectData, after: AspectData): List<Delta> = mainFact.payload.data.mapNotNull { (fieldName, _) ->
 
         when (AspectField.valueOf(fieldName)) {
-            AspectField.MEASURE -> createAspectFieldDelta(mainFact.event.type, AspectField.MEASURE.view, before.measure, after.measure)
-            AspectField.BASE_TYPE -> createAspectFieldDelta(mainFact.event.type, AspectField.BASE_TYPE.view, before.baseType, after.baseType)
-            AspectField.NAME -> createAspectFieldDelta(mainFact.event.type, AspectField.NAME.view, before.name, after.name)
-            AspectField.DESCRIPTION -> createAspectFieldDelta(mainFact.event.type, AspectField.DESCRIPTION.view, before.description, after.description)
+            AspectField.MEASURE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.MEASURE.view,
+                before.measure,
+                after.measure
+            )
+            AspectField.BASE_TYPE -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.BASE_TYPE.view,
+                before.baseType,
+                after.baseType
+            )
+            AspectField.NAME -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.NAME.view,
+                before.name,
+                after.name
+            )
+            AspectField.DESCRIPTION -> createAspectFieldDelta(
+                mainFact.event.type,
+                AspectField.DESCRIPTION.view,
+                before.description,
+                after.description
+            )
         }
     }
 
@@ -86,11 +119,7 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
 
     private val AspectPropertyData.view: String
         get() {
-            val cardinalityLabel = when (AspectPropertyCardinality.valueOf(cardinality)) {
-                AspectPropertyCardinality.ZERO -> "0"
-                AspectPropertyCardinality.INFINITY -> "∞"
-                AspectPropertyCardinality.ONE -> "0:1"
-            }
+            val cardinalityLabel = PropertyCardinality.valueOf(cardinality).label
             return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
         }
 

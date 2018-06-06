@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.editconsole.aspectproperty
 
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.commonSelect
@@ -12,9 +13,9 @@ private interface CardinalityOption : SelectOption {
     var cardinalityEnumValue: String
 }
 
-private fun cardinalityOption(cardinalityLabel: String, cardinalityEnumValue: String) = jsObject<CardinalityOption> {
-    this.cardinalityLabel = cardinalityLabel
-    this.cardinalityEnumValue = cardinalityEnumValue
+private fun cardinalityOption(cardinality: PropertyCardinality) = jsObject<CardinalityOption> {
+    this.cardinalityLabel = cardinality.label
+    this.cardinalityEnumValue = cardinality.name
 }
 
 class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput.Props, RState>() {
@@ -37,11 +38,7 @@ class AspectPropertyCardinalityInput : RComponent<AspectPropertyCardinalityInput
                         valueKey = "cardinalityEnumValue"
                         onChange = ::handleSelectCardinalityOption
                         clearable = false
-                        options = arrayOf(
-                                cardinalityOption("0", "ZERO"),
-                                cardinalityOption("0..1", "ONE"),
-                                cardinalityOption("0..∞", "INFINITY")
-                        )
+                        options = PropertyCardinality.values().map { cardinalityOption(it) }.toTypedArray()
                     }
                 }
             }
