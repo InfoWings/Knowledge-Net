@@ -1,12 +1,8 @@
 package com.infowings.catalog.objects.treeview
 
-import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.objects.AspectPropertyViewModel
 import com.infowings.catalog.objects.Cardinality
-import com.infowings.catalog.objects.treeview.inputs.values.booleanInput
-import com.infowings.catalog.objects.treeview.inputs.values.decimalInput
-import com.infowings.catalog.objects.treeview.inputs.values.integerInput
-import com.infowings.catalog.objects.treeview.inputs.values.textInput
+import com.infowings.catalog.objects.treeview.inputs.propertyValue
 import react.RBuilder
 import react.dom.div
 import react.dom.span
@@ -29,11 +25,6 @@ fun RBuilder.aspectPropertyValueLine(
             }
         }
         if (aspectProperty.cardinality != Cardinality.ZERO) {
-            when (aspectProperty.baseType) {
-                BaseType.Text.name -> textInput(value, onUpdate, onEdit)
-                BaseType.Integer.name -> integerInput(value, onUpdate)
-                BaseType.Decimal.name -> decimalInput(value, onUpdate)
-                BaseType.Boolean.name -> booleanInput(value, onUpdate)
-            }
+            propertyValue(value, aspectProperty.baseType, onEdit, onUpdate)
         }
     }

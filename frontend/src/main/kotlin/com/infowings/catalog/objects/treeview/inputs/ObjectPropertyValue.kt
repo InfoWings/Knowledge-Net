@@ -7,7 +7,7 @@ import com.infowings.catalog.objects.treeview.inputs.values.integerInput
 import com.infowings.catalog.objects.treeview.inputs.values.textInput
 import react.RBuilder
 
-fun RBuilder.propertyValue(value: String, baseType: String, onEdit: () -> Unit, onChange: (String) -> Unit) {
+fun RBuilder.propertyValue(value: String?, baseType: String, onEdit: () -> Unit, onChange: (String) -> Unit) {
     when (baseType) {
         BaseType.Text.name -> textInput(value, onChange, onEdit)
         BaseType.Integer.name -> integerInput(value, onChange)

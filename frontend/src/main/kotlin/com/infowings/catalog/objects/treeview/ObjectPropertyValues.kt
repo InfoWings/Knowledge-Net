@@ -1,13 +1,9 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
-import com.infowings.catalog.objects.treeview.inputs.values.booleanInput
-import com.infowings.catalog.objects.treeview.inputs.values.decimalInput
-import com.infowings.catalog.objects.treeview.inputs.values.integerInput
-import com.infowings.catalog.objects.treeview.inputs.values.textInput
+import com.infowings.catalog.objects.treeview.inputs.propertyValue
 import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
@@ -35,9 +31,9 @@ fun RBuilder.objectPropertyValues(
                     }
                 }
                 treeNodeContent = buildElement {
-                    objectPropertyValueLine(
+                    propertyValue(
                         value = value.value ?: "",
-                        onUpdate = {
+                        onChange = {
                             onUpdate(valueIndex) {
                                 this.value = it
                                 if (valueGroups.isEmpty()) {
@@ -76,20 +72,6 @@ fun RBuilder.objectPropertyValues(
             onClick = { onAddValue() }
             text = ("Add value to property " + (aspect.name ?: "")).asReactElement()
         }
-    }
-}
-
-fun RBuilder.objectPropertyValueLine(
-    baseType: String,
-    value: String,
-    onUpdate: (String) -> Unit,
-    onEdit: () -> Unit
-) {
-    when (baseType) {
-        BaseType.Text.name -> textInput(value, onUpdate, onEdit)
-        BaseType.Integer.name -> integerInput(value, onUpdate)
-        BaseType.Decimal.name -> decimalInput(value, onUpdate)
-        BaseType.Boolean.name -> booleanInput(value, onUpdate)
     }
 }
 
