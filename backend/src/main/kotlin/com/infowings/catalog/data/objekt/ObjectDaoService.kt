@@ -7,6 +7,7 @@ import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import java.math.BigDecimal
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -86,7 +87,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
                     vertex.removeProperty<Int>(PRECISION_PROPERTY)
                 }
-                ScalarTypeTag.DECIMAL -> vertex.removeProperty<Int>(DECIMAL_TYPE_PROPERTY)
+                ScalarTypeTag.DECIMAL -> vertex.removeProperty<BigDecimal>(DECIMAL_TYPE_PROPERTY)
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
                 ScalarTypeTag.BOOLEAN -> vertex.removeProperty<Boolean>(BOOL_TYPE_PROPERTY)
