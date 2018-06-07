@@ -22,6 +22,7 @@ const val DECIMAL_TYPE_PROPERTY = "decimal"
 const val STR_TYPE_PROPERTY = "str"
 const val RANGE_TYPE_PROPERTY = "range"
 const val PRECISION_PROPERTY = "precision"
+const val BOOL_TYPE_PROPERTY = "bool"
 private const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
@@ -93,6 +94,14 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         }
     private val strValueStrict: String
         get() = strValue ?: throw StringValueNotDefinedException(id)
+
+    var booleanValue: Boolean?
+        get() = vertex[BOOL_TYPE_PROPERTY]
+        set(value) {
+            vertex[BOOL_TYPE_PROPERTY] = value
+        }
+    private val booleanValueStrict: Boolean
+        get() = booleanValue ?: throw BooleanValueNodDefinedException(id)
 
 
     private fun <T> setOrRemove(key: String, value: T?) {
@@ -189,6 +198,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
             ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)
+            ScalarTypeTag.BOOLEAN -> ObjectValue.BooleanValue(booleanValueStrict)
             ScalarTypeTag.NULL -> ObjectValue.NullValue
             else ->
                 throw IllegalStateException("type tag is not defined: $typeTag")
@@ -229,3 +239,6 @@ class DomainElementVertexNotDefinedException(id: String) :
 
 class IncorrectTypeTagException(id: String, tag: Int) :
     ObjectValueException("incorrect type tag for object value $id, tag: $tag")
+
+class BooleanValueNodDefinedException(id: String) :
+    ObjectValueException("boolean value is not defined for value $id")

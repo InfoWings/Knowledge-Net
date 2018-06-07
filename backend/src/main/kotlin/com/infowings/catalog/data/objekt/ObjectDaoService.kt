@@ -89,6 +89,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 ScalarTypeTag.DECIMAL -> vertex.removeProperty<Int>(DECIMAL_TYPE_PROPERTY)
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
+                ScalarTypeTag.BOOLEAN -> vertex.removeProperty<Boolean>(BOOL_TYPE_PROPERTY)
                 ScalarTypeTag.SUBJECT -> {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
                 }
@@ -117,6 +118,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
             is ObjectValue.RangeValue -> {
                 vertex.range = objectValue.range
+            }
+            is ObjectValue.BooleanValue -> {
+                vertex.booleanValue = objectValue.value
             }
 
             is ObjectValue.Link -> {
