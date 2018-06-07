@@ -3,9 +3,9 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
+import com.infowings.catalog.objects.treeview.inputs.propertyValue
 import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
-import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
@@ -31,9 +31,9 @@ fun RBuilder.objectPropertyValues(
                     }
                 }
                 treeNodeContent = buildElement {
-                    objectPropertyValueLine(
+                    propertyValue(
                         value = value.value ?: "",
-                        onUpdate = {
+                        onChange = {
                             onUpdate(valueIndex) {
                                 this.value = it
                                 if (valueGroups.isEmpty()) {
@@ -41,7 +41,8 @@ fun RBuilder.objectPropertyValues(
                                 }
                             }
                         },
-                        onEdit = onEdit
+                        onEdit = onEdit,
+                        baseType = aspect.baseType ?: error("Aspect must have base type")
                     )
                 }!!
             }
@@ -73,18 +74,4 @@ fun RBuilder.objectPropertyValues(
         }
     }
 }
-
-fun RBuilder.objectPropertyValueLine(
-    value: String,
-    onUpdate: (String) -> Unit,
-    onEdit: () -> Unit
-) =
-    EditableText {
-        attrs {
-            this.value = value
-            onChange = onUpdate
-            this.onEdit = onEdit
-            onCancel = onUpdate
-        }
-    }
 
