@@ -3,7 +3,6 @@ package com.infowings.catalog.data
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
@@ -36,8 +35,8 @@ class AspectDaoFilterTest {
         widthAspectData = aspectService.save(widthAspectData, username).toAspectData()
         val dimensionAspectData = AspectData(
             null, "Dimensions", null, null, BaseType.Text.name, properties = listOf(
-                AspectPropertyData("", "", heightAspectData.id!!, AspectPropertyCardinality.ONE.name, ""),
-                AspectPropertyData("", "", widthAspectData.id!!, AspectPropertyCardinality.ONE.name, "")
+                AspectPropertyData("", "", heightAspectData.id!!, PropertyCardinality.ONE.name, ""),
+                AspectPropertyData("", "", widthAspectData.id!!, PropertyCardinality.ONE.name, "")
             )
         )
         aspectService.save(dimensionAspectData, username)
