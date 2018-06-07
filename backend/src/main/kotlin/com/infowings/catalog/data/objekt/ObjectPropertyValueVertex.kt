@@ -33,6 +33,7 @@ enum class ScalarTypeTag(val code: Int) {
     RANGE(3),
     DECIMAL(4),
     NULL(5),
+    BOOLEAN(6),
     OBJECT(100),
     SUBJECT(101),
     DOMAIN_ELEMENT(102),
@@ -42,6 +43,7 @@ enum class ScalarTypeTag(val code: Int) {
    На уровне хранения в базе используем общий тег для того, чтобы отличать любые значения - и скалярные, и ссылки
  */
 fun ObjectValue.tag() = when (this) {
+    is ObjectValue.BooleanValue -> ScalarTypeTag.BOOLEAN
     is ObjectValue.IntegerValue -> ScalarTypeTag.INTEGER
     is ObjectValue.StringValue -> ScalarTypeTag.STRING
     is ObjectValue.RangeValue -> ScalarTypeTag.RANGE

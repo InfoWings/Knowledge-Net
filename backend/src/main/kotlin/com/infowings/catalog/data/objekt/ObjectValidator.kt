@@ -95,6 +95,8 @@ class ObjectValidator(
                 ObjectValue.IntegerValue(dataValue.value, dataValue.precision)
             is ObjectValueData.StringValue ->
                 ObjectValue.StringValue(dataValue.value)
+            is ObjectValueData.BooleanValue ->
+                ObjectValue.BooleanValue(dataValue.value)
             is ObjectValueData.RangeValue ->
                 ObjectValue.RangeValue(dataValue.range)
             is ObjectValueData.DecimalValue ->

@@ -1,6 +1,8 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.Range
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
@@ -37,6 +39,10 @@ sealed class LinkValueVertex {
 sealed class ObjectValue {
     data class IntegerValue(val value: Int, val precision: Int?) : ObjectValue() {
         override fun toObjectValueData() = ObjectValueData.IntegerValue(value, precision)
+    }
+
+    data class BooleanValue(val value: Boolean) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.BooleanValue(value)
     }
 
     data class StringValue(val value: String) : ObjectValue() {
