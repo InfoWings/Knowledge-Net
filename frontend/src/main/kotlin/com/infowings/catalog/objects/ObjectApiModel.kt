@@ -16,8 +16,11 @@ suspend fun getAllObjects(): List<ObjectData> = JSON.parse(get("/api/objects/all
 
 suspend fun saveObject(objData: ObjectData): ObjectData = JSON.parse(post("/api/object/save", JSON.stringify(objData)))
 
-suspend fun createObject(request: ObjectCreateRequest): ObjectData =
-    JSON.parse(post("/api/object/create", JSON.stringify(request)))
+suspend fun createObject(request: ObjectCreateRequest): ObjectData {
+    console.log(request)
+    val value = post("/api/object/create", JSON.stringify(request))
+    return JSON.parse(post("/api/object/create", JSON.stringify(request)))
+}
 
 suspend fun createObject(data: ObjectData): ObjectData {
     val name = data.name ?: throw IllegalStateException("name is not defined")

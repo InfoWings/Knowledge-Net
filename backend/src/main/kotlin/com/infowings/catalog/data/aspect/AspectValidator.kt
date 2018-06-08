@@ -58,8 +58,10 @@ class AspectValidator(
 
         when {
             measureName == null && baseType == null ->
-                throw AspectInconsistentStateException("Measure and Base Type can't be null at the same time. " +
-                        "Please, enter either Measure or Base Type")
+                throw AspectInconsistentStateException(
+                    "Measure and Base Type can't be null at the same time. " +
+                            "Please, enter either Measure or Base Type"
+                )
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType)
         // will throw on incorrect baseType
 
@@ -146,6 +148,7 @@ class AspectValidator(
                 }
             }
     }
+
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
 
         // check aspect properties business key
@@ -179,9 +182,7 @@ class AspectValidator(
 
     private fun AspectVertex.checkBaseTypeChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.baseType != baseType) {
-            if ((aspectData.measure != null && aspectData.measure == measureName)
-                || thereExistAspectImplementation(id)
-            ) {
+            if ((aspectData.measure != null && aspectData.measure == measureName) || thereExistAspectImplementation()) {
                 throw AspectModificationException(id, "Impossible to change base type")
             }
         }
@@ -189,8 +190,8 @@ class AspectValidator(
 
     private fun AspectVertex.checkMeasureChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.measure != measureName) {
-            val sameGroup = measureName == aspectData.measure
-            if (!sameGroup && thereExistAspectImplementation(id)) {
+            val sameGroup = MeasureMesureGrupMap[measureName] == MeasureMesureGrupMap[aspectData.measure]
+            if (!sameGroup && thereExistAspectImplementation()) {
                 throw AspectModificationException(id, "Impossible to change measure")
             }
         }
@@ -199,7 +200,7 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-                if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
+                if (thereExistAspectPropertyImplementation()) {
                     throw AspectPropertyModificationException(id, "Impossible to change aspectId")
                 }
             }
@@ -223,9 +224,8 @@ class AspectValidator(
         return relatedAspect != null && relatedAspect.deleted
     }
 
-    // todo: Complete this method in future
-    private fun thereExistAspectImplementation(aspectId: String): Boolean = false
+    private fun AspectVertex.thereExistAspectImplementation(): Boolean = properties.any { it.isLinkedBy() }
 
     // todo: Complete this method in future
-    private fun thereExistAspectPropertyImplementation(aspectPropertyId: String): Boolean = false
+    private fun AspectPropertyVertex.thereExistAspectPropertyImplementation(): Boolean = isLinkedBy()
 }
