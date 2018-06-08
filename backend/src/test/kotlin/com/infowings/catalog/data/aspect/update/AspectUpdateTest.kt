@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect.update
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectEmptyChangeException
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.core.Is
@@ -27,9 +26,9 @@ class AspectUpdateTest {
     lateinit var aspect: AspectData
 
     @Before
-    fun init() {
+    fun initTestData() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspect = aspectService.save(ad, username).toAspectData().copy(measure = Litre.name)
+        aspect = aspectService.save(ad, username).toAspectData()
     }
 
     @Test
@@ -107,7 +106,6 @@ class AspectUpdateTest {
 
     @Test
     fun testUpdateSameData() {
-        prepareAspect()
         val ad = aspectService.getAspects().first().toAspectData()
         try {
             aspectService.save(ad, username)
@@ -115,26 +113,5 @@ class AspectUpdateTest {
         }
         val newAspect = aspectService.findById(ad.id!!)
         Assert.assertEquals("Same data shouldn't be rewritten", ad.version, newAspect.version)
-    }
-
-    private fun prepareAspect(): Aspect {
-        /*
-         *  aspect
-         *    aspectProperty
-         *       aspect1
-         *          aspectProperty1
-         *              aspect2
-         */
-
-        val aspectData2 = AspectData(null, "aspect2", Kilogram.name, null, BaseType.Decimal.name, emptyList())
-        val aspect2: Aspect = aspectService.save(aspectData2, username)
-
-        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.id, PropertyCardinality.INFINITY.name, null)
-        val aspectData1 = AspectData(null, "aspect1", Metre.name, null, BaseType.Decimal.name, listOf(aspectPropertyData1))
-        val aspect1: Aspect = aspectService.save(aspectData1, username)
-
-        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.id, PropertyCardinality.INFINITY.name, null)
-        val aspectData = AspectData(null, "aspect", Metre.name, null, BaseType.Decimal.name, listOf(aspectPropertyData))
-        return aspectService.save(aspectData, username)
     }
 }

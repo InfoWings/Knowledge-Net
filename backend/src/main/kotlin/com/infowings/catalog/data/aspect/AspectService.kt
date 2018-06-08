@@ -222,7 +222,7 @@ class AspectService(
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
         if (vertex.isLinkedBy()) {
-            throw AspectPropertyHasValueException(vertex.id)
+            return@transaction aspectDaoService.fakeRemove(vertex)
         }
 
         return@transaction aspectDaoService.remove(vertex)
@@ -359,7 +359,6 @@ class AspectCyclicDependencyException(cyclicIds: List<String>) :
 
 class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
-class AspectPropertyHasValueException(val id: String) : AspectException("Aspect Property $id has a value")
 class AspectInconsistentStateException(message: String) : AspectException(message)
 
 class AspectEmptyChangeException : AspectException()

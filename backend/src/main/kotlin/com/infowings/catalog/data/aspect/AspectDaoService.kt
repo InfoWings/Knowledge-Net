@@ -43,6 +43,13 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun fakeRemove(vertex: AspectPropertyVertex) {
+        transaction(db) {
+            vertex.deleted = true
+            vertex.save<OVertex>()
+        }
+    }
+
     fun remove(vertex: AspectVertex) {
         transaction(db) {
             vertex.properties.forEach {
