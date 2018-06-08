@@ -37,14 +37,14 @@ class AspectApi(val aspectService: AspectService) {
     }
 
     @GetMapping("all")
-    fun getAspects(@RequestParam(required = false) orderFields: List<String>, @RequestParam(required = false) direct: List<String>): AspectsList {
-        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}  direct: ${direct.joinToString { it }}")
-        val directIterator = direct.map { Direction.valueOf(it) }.iterator()
-        val orderBy = mutableListOf<AspectOrderBy>()
-        orderFields.map { AspectSortField.valueOf(it) }.forEach {
-            orderBy += AspectOrderBy(it, directIterator.next())
-        }
-        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
+    fun getAspects(
+        @RequestParam(required = false) orderFields: List<String>,
+        @RequestParam(required = false) direct: List<String>,
+        @RequestParam("q", required = false) query: String?
+    ): AspectsList {
+        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
+        val orderBy = direct.zip(orderFields).map { AspectOrderBy(AspectSortField.valueOf(it.first), Direction.valueOf(it.second)) }
+        return AspectsList(aspectService.getAspects(orderBy, query).toAspectData())
     }
 
     @PostMapping("remove")
