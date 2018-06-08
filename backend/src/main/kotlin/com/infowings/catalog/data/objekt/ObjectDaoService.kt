@@ -14,7 +14,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).toObjectPropertyValueVertex()
 
     private fun <T : OVertex> replaceEdge(vertex: OVertex, edgeClass: String, oldTarget: T?, newTarget: T?) {
-        if (oldTarget != newTarget) {
+        if (oldTarget?.identity != newTarget?.identity) {
             vertex.getEdges(ODirection.OUT, edgeClass).forEach { it.delete<OEdge>() }
             newTarget?.let {
                 vertex.addEdge(it, edgeClass).save<OEdge>()

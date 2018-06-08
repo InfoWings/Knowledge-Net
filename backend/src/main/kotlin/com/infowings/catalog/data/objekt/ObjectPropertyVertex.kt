@@ -20,7 +20,11 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             "name" to asStringOrEmpty(name),
             "cardinality" to asStringOrEmpty(cardinality)
         ),
-        links = emptyMap()
+        links = mapOf(
+            "aspect" to listOfNotNull(aspect?.identity),
+            "object" to listOfNotNull(objekt?.identity),
+            "values" to values.map { it.identity }
+        )
     )
 
     var name: String
