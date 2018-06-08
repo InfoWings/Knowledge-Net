@@ -30,21 +30,21 @@ class AspectApi(val aspectService: AspectService) {
         return aspectService.save(aspectData, username).toAspectData()
     }
 
-    @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): List<AspectData> {
-        logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name).map { it.toAspectData() }
+    @GetMapping("/id/{id}")
+    fun getAspectById(@PathVariable id: String): AspectData {
+        logger.debug("Get aspect by id: $id")
+        return aspectService.findById(id).toAspectData()
     }
 
     @GetMapping("all")
-    fun getAspects(@RequestParam(required = false) orderFields: List<String>, @RequestParam(required = false) direct: List<String>): AspectsList {
-        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}  direct: ${direct.joinToString { it }}")
-        val directIterator = direct.map { Direction.valueOf(it) }.iterator()
-        val orderBy = mutableListOf<AspectOrderBy>()
-        orderFields.map { AspectSortField.valueOf(it) }.forEach {
-            orderBy += AspectOrderBy(it, directIterator.next())
-        }
-        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
+    fun getAspects(
+        @RequestParam(required = false) orderFields: List<String>,
+        @RequestParam(required = false) direct: List<String>,
+        @RequestParam("q", required = false) query: String?
+    ): AspectsList {
+        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
+        val orderBy = direct.zip(orderFields).map { AspectOrderBy(AspectSortField.valueOf(it.first), Direction.valueOf(it.second)) }
+        return AspectsList(aspectService.getAspects(orderBy, query).toAspectData())
     }
 
     @PostMapping("remove")

@@ -8,7 +8,17 @@ data class AspectsList(
 )
 
 enum class PropertyCardinality {
-    ZERO, ONE, INFINITY
+    ZERO {
+        override val label = "Group"
+    },
+    ONE {
+        override val label = "0..1"
+    },
+    INFINITY {
+        override val label = "0..∞"
+    };
+
+    abstract val label: String
 }
 
 @Serializable
@@ -23,8 +33,11 @@ data class AspectData(
     val subject: SubjectData? = null,
     val deleted: Boolean = false,
     val description: String? = null,
+    val lastChangeTimestamp: Long? = null,
     val refBookName: String? = null
-)
+) {
+    operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
+}
 
 @Serializable
 data class AspectPropertyData(

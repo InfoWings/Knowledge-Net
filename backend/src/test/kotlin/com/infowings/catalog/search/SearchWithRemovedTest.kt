@@ -3,6 +3,10 @@ package com.infowings.catalog.search
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.aspect.Aspect
+import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex

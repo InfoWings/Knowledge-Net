@@ -6,8 +6,9 @@ import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
 import com.infowings.catalog.measures.MeasuresPage
 import com.infowings.catalog.objects.ObjectsPage
-import com.infowings.catalog.reference.book.ReferenceBookPage
 import com.infowings.catalog.subjects.SubjectsPage
+import com.infowings.catalog.reference.book.ReferenceBookPage
+import com.infowings.catalog.subjects.SubjectRouter
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
@@ -25,12 +26,14 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
                     component = ::AuthComponent
                 }
             }
-            privateRoute("/aspects", renderFunction<AspectsPage>())
-            privateRoute("/objects", renderFunction<ObjectsPage>())
-            privateRoute("/measures", renderFunction<MeasuresPage>())
-            privateRoute("/reference", renderFunction<ReferenceBookPage>())
-            privateRoute("/subjects", renderFunction<SubjectsPage>())
-            privateRoute("/history", renderFunction<HistoryPage>())
+
+            privateRoute("/aspects", true, renderFunction<AspectsPage>())
+            privateRoute("/objects", true, renderFunction<ObjectsPage>())
+            privateRoute("/measures", true, renderFunction<MeasuresPage>())
+            privateRoute("/reference", true, renderFunction<ReferenceBookPage>())
+            privateRoute("/subjects", false, renderFunction<SubjectRouter>())
+            privateRoute("/history", true, renderFunction<HistoryPage>())
+
             reactRouter.Route {
                 attrs {
                     path = "/"
@@ -39,13 +42,13 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
             }
         }
     }
+}
 
-    private inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFunction(): RBuilder.(RouteSuppliedProps) -> Unit {
-        return { props ->
-            child(T::class) {
-                attrs {
-                    location = props.location; history = props.history; match = props.match
-                }
+inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFunction(): RBuilder.(RouteSuppliedProps) -> Unit {
+    return { props ->
+        child(T::class) {
+            attrs {
+                location = props.location; history = props.history; match = props.match
             }
         }
     }

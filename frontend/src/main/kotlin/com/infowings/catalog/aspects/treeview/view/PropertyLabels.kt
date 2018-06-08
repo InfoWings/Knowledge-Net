@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.treeview.view
 
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
@@ -37,7 +38,7 @@ fun RBuilder.propertyLabel(
     span(classes = "text-grey") {
         +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
-            +cardinalityLabel(aspectPropertyCardinality)
+            +PropertyCardinality.valueOf(aspectPropertyCardinality).label
         }
         +"]"
     }
@@ -67,10 +68,3 @@ fun RBuilder.placeholderPropertyLabel(className: String?) =
     div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {
         +"(Enter new Aspect Property)"
     }
-
-fun cardinalityLabel(cardinalityValue: String) = when (cardinalityValue) {
-    "ZERO" -> "0"
-    "ONE" -> "0..1"
-    "INFINITY" -> "0..∞"
-    else -> ""
-}
