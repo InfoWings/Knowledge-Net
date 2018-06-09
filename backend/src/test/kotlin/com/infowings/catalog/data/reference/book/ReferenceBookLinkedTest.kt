@@ -100,7 +100,36 @@ class ReferenceBookLinkedTest {
         val child = referenceBookService.getReferenceBookItem(layer1Child1)
         Assert.assertTrue("move should be correct", parent.children.contains(child))
     }
-    
+
+    @Test
+    fun removeLinkedItem() {
+        val child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("child"), username)
+        addLinkToRefBookItem(child)
+        thrown.expect(RefBookItemHasLinkedEntitiesException::class.java)
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username)
+
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username, true)
+        val deleted = referenceBookService.getReferenceBook(child)
+        Assert.assertTrue("deleted book item must have deleted flag", deleted.deleted)
+    }
+
+    @Test
+    fun removeParentLinkedItem() {
+        val layer1Child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
+        val layer2Child = referenceBookService.addReferenceBookItem(layer1Child, createReferenceBookItem("layer2_child1"), username)
+
+        addLinkToRefBookItem(layer2Child)
+        thrown.expect(RefBookItemHasLinkedEntitiesException::class.java)
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username)
+
+        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username, true)
+
+        val deletedParent = referenceBookService.getReferenceBook(layer1Child)
+        Assert.assertTrue("deleted parent book item must have deleted flag", deletedParent.deleted)
+
+        val deletedChild = referenceBookService.getReferenceBook(layer2Child)
+        Assert.assertTrue("deleted child book item must have deleted flag", deletedChild.deleted)
+    }
 
     private fun createReferenceBookItem(value: String): ReferenceBookItem {
         return ReferenceBookItem(
