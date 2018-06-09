@@ -101,8 +101,4 @@ class HistoryService(
         }
 }
 
-// We can't use HistoryFact because vertex HistoryAware possible not exist
-// TODO:redesign data structures to easily detach backend specific elements (like OVertex descendants) from ones reasonable for frontend
-//data class HistoryFactDto(val event: HistoryEvent, val sessionId: UUID, var payload: DiffPayload)
-
 data class HistoryContext(val userVertex: UserVertex)

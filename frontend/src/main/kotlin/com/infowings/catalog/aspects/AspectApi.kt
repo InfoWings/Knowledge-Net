@@ -9,12 +9,15 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllAspects(orderBy: List<AspectOrderBy>): AspectsList =
+suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery: String = ""): AspectsList =
     JSON.parse(get("/api/aspect/all" +
             "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
-            "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}"
+            "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
+            "&q=$nameQuery"
     )
     )
+
+suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))
 
 suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/create", JSON.stringify(body)))
 
@@ -24,7 +27,11 @@ suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.str
 
 suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(body))
 
-suspend fun getSuggestedAspects(query: String, aspectId: String?, aspectPropertyId: String?): AspectsList {
+suspend fun getSuggestedAspects(
+    query: String,
+    aspectId: String? = null,
+    aspectPropertyId: String? = null
+): AspectsList {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
     return JSON.parse(get("/api/search/aspect/suggestion?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))

@@ -104,7 +104,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
      * boolean to enable default filtering or function to filter the options array
      * (Array<option>, filterString, Array<values>) => Array<options>
      */
-    //var filterOptions: boolean or function
+    var filterOptions: (Array<T>, input: String, currentValues: Array<String>) -> Array<T>
 
     /**
      * html id to set on the input element for accessibility or tests

@@ -2,7 +2,6 @@ package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFact
@@ -84,69 +83,84 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
 
         /* TODO:
          * по идее сервис типа AspectDeltaConstructor должен выдавать структуру отличий,
-         * а метод toView выдает вариант внешнего представления отличий.
+         * а метод propertyDiff выдает вариант внешнего представления отличий.
          * В частности, если в при нынешнем дизайне захочется нописать внешний скрипт, который
          * бы запрашивал историю аспектов через rest api и выдал отчет о добавленных пропертях,
          * придется парсить поле after, делалая предположения о его структуре
          */
 
-        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).map { id ->
-            val afterProperty = after.properties.find { it.id == id }
-            createAspectFieldDelta(
+        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
                 EventType.UPDATE,
-                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
-                before.properties.find { it.id == id }?.toView(),
-                afterProperty?.toView()
+                before,
+                after
             )
         })
-
-        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).map { id ->
-            val beforeProperty = before.properties.find { it.id == id }
-            createAspectFieldDelta(
+        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
                 EventType.DELETE,
-                "${AspectField.PROPERTY} ${beforeProperty?.name ?: ""}",
-                before.properties.find { it.id == id }?.toView(),
-                null
+                before,
+                after
             )
         })
-
-        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).map { id ->
-            val afterProperty = after.properties.find { it.id == id }
-            createAspectFieldDelta(
+        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
                 EventType.CREATE,
-                "${AspectField.PROPERTY} ${afterProperty?.name ?: ""}",
-                null,
-                after.properties.find { it.id == id }?.toView()
+                before,
+                after
             )
         })
 
         return diffs
     }
 
+    private fun propertyDiff(
+        id: String,
+        eventType: EventType,
+        before: AspectData,
+        after: AspectData
+    ): List<FieldDelta> {
+        val propertyDiff = createAspectFieldDelta(eventType, after[id].deltaName, before[id]?.view, after[id]?.view)
+
+        if (before[id]?.description != after[id]?.description) {
+
+            val descriptionDiff =
+                createAspectFieldDelta(
+                    eventType,
+                    after[id].deltaName + "(Description)",
+                    before[id]?.description,
+                    after[id]?.description
+                )
+
+            return listOf(propertyDiff, descriptionDiff)
+        }
+        return listOf(propertyDiff)
+    }
 
     private fun createHistoryElement(
         event: HistoryEvent,
         changes: List<FieldDelta>,
         data: AspectData,
         related: List<AspectData>
-    ) =
-        AspectHistory(
-            event.toHistoryEventData(),
-            data.name,
-            data.deleted,
-            AspectDataView(data, related),
-            changes
-        )
+    ) = AspectHistory(
+        event.toHistoryEventData(),
+        data.name,
+        data.deleted,
+        AspectDataView(data, related),
+        changes
+    )
 
-    private fun AspectPropertyData.toView(): String {
+    private val AspectPropertyData?.deltaName
+        get() = "${AspectField.PROPERTY} ${this?.name ?: " "}"
 
-        val cardinalityLabel = when (AspectPropertyCardinality.valueOf(cardinality)) {
-            AspectPropertyCardinality.ZERO -> "0"
-            AspectPropertyCardinality.INFINITY -> "∞"
-            AspectPropertyCardinality.ONE -> "0:1"
+    private val AspectPropertyData.view: String
+        get() {
+            val cardinalityLabel = PropertyCardinality.valueOf(cardinality).label
+            return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
         }
-        return "$name ${getAspect(aspectId).name} : [$cardinalityLabel]"
-    }
 
     private fun getAspect(aspectId: String): AspectData = try {
         aspectService.findById(aspectId).toAspectData()

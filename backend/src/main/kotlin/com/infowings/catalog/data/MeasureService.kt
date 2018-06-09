@@ -30,6 +30,7 @@ fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
  * Базовый <-> группа имеет тип {MEASURE_GROUP_EDGE}. Связь между группами - {MEASURE_GROUP_EDGE}
  * */
 class MeasureService(val database: OrientDatabase) {
+    fun findById(id: String) = database.getVertexById(id) ?: throw MeasureNotFoundException(id)
 
     /** Возвращает вершину типа {MeasureGroupVertex}, описывающую запрашиваемую группу измерений.
      *  Если группа измерений с указанным именем не найдена, возвращает null. */
@@ -89,7 +90,7 @@ class MeasureService(val database: OrientDatabase) {
     /** Соединяем две вершины типа {MeasureGroupVertex} односторонней связью типа {MeasureGroupEdge}.
      *  Пример:   LengthGroup ----> SpeedGroup]
      * */
-    fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>): OEdge? {
+    private fun linkGroups(source: MeasureGroup<*>, target: MeasureGroup<*>): OEdge? {
         val firstVertexGroup = findMeasureGroup(source.name) ?: return null
         val secondVertexGroup = findMeasureGroup(target.name) ?: return null
         val addedBefore =
@@ -108,3 +109,6 @@ class MeasureService(val database: OrientDatabase) {
         return measureVertex
     }
 }
+
+abstract class MeasureException(message: String) : Exception(message)
+class MeasureNotFoundException(id: String) : MeasureException("measure wit id $id not found")

@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -36,6 +37,15 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
+    fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
+        val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
+        val traverseQuery = "TRAVERSE IN(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM ($selectQuery)"
+        val filterQuery = "SELECT FROM ($traverseQuery) WHERE @class = \"$ASPECT_CLASS\" AND $notDeletedSql"
+        return db.query(filterQuery, mapOf("nameQuery" to "($nameFragment~) ($nameFragment*) (*$nameFragment*)")) {
+            it.map { it.toVertex().toAspectVertex() }.toSet()
+        }
+    }
+
     fun remove(vertex: OVertex) {
         db.delete(vertex)
     }
@@ -52,7 +62,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
     }
 
-    fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = session(db) {
+    fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
         aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
@@ -78,7 +88,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
 
-        return@session aspectVertex.save<OVertex>().toAspectVertex()
+        return@transaction aspectVertex.save<OVertex>().toAspectVertex()
     }
 
     fun saveAspectProperty(
@@ -93,7 +103,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
         val cardinality = try {
-            AspectPropertyCardinality.valueOf(aspectPropertyData.cardinality)
+            PropertyCardinality.valueOf(aspectPropertyData.cardinality)
         } catch (exception: IllegalArgumentException) {
             throw AspectInconsistentStateException("Property has illegal cardinality value")
         }

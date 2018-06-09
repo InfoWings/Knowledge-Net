@@ -99,7 +99,7 @@ class ServerException(message: String) : RuntimeException(message)
  */
 class BadRequestException(override val message: String) : RuntimeException(message)
 
-class NotModifiedException() : RuntimeException()
+class NotModifiedException : RuntimeException()
 
 private fun redirectToLoginPage() {
     removeAuthRole()

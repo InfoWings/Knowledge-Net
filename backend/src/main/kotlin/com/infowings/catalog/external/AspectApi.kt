@@ -30,21 +30,21 @@ class AspectApi(val aspectService: AspectService) {
         return aspectService.save(aspectData, username).toAspectData()
     }
 
-    @GetMapping("get/{name}")
-    fun getAspect(@PathVariable name: String): List<AspectData> {
-        logger.debug("Get aspect request: $name")
-        return aspectService.findByName(name).map { it.toAspectData() }
+    @GetMapping("/id/{id}")
+    fun getAspectById(@PathVariable id: String): AspectData {
+        logger.debug("Get aspect by id: $id")
+        return aspectService.findById(id).toAspectData()
     }
 
     @GetMapping("all")
-    fun getAspects(@RequestParam(required = false) orderFields: List<String>, @RequestParam(required = false) direct: List<String>): AspectsList {
-        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}  direct: ${direct.joinToString { it }}")
-        val directIterator = direct.map { Direction.valueOf(it) }.iterator()
-        val orderBy = mutableListOf<AspectOrderBy>()
-        orderFields.map { AspectSortField.valueOf(it) }.forEach {
-            orderBy += AspectOrderBy(it, directIterator.next())
-        }
-        return AspectsList(aspectService.getAspects(orderBy).toAspectData())
+    fun getAspects(
+        @RequestParam(required = false) orderFields: List<String>,
+        @RequestParam(required = false) direct: List<String>,
+        @RequestParam("q", required = false) query: String?
+    ): AspectsList {
+        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
+        val orderBy = direct.zip(orderFields).map { AspectOrderBy(AspectSortField.valueOf(it.first), Direction.valueOf(it.second)) }
+        return AspectsList(aspectService.getAspects(orderBy, query).toAspectData())
     }
 
     @PostMapping("remove")
@@ -67,7 +67,7 @@ class AspectApi(val aspectService: AspectService) {
         return when (exception) {
             is AspectAlreadyExist -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Aspect with such name already exists (${exception.name})."
@@ -76,7 +76,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectDoesNotExist -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Supplied aspect does not exist or it is deleted"
@@ -85,7 +85,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectConcurrentModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Attempt to modify old version of aspect, please refresh."
@@ -94,7 +94,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Updates to aspect ${exception.id} violates update constraints: ${exception.message}"
@@ -103,7 +103,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectPropertyModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Updates to aspect property ${exception.id} violates update constraints: ${exception.message}"
@@ -112,7 +112,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectCyclicDependencyException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Failed to create/modify aspect due to emerging cycle among aspects"
@@ -121,7 +121,7 @@ class AspectApi(val aspectService: AspectService) {
                 )
             is AspectInconsistentStateException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             exception.message

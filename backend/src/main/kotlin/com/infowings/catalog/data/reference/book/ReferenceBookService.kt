@@ -164,14 +164,18 @@ class ReferenceBookService(
             historyService.storeFact(aspectVertex.toUpdateFact(HistoryContext(userVertex), previous))
         }
 
+    fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex = transaction(db) {
+        logger.debug("Getting ReferenceBookItem id: $id")
+        val bookItemVertex = dao.getReferenceBookItemVertex(id)
+        return@transaction bookItemVertex ?: throw RefBookItemNotExist(id)
+    }
+
     /**
      * Get ReferenceBookItem by [id]
      * @throws RefBookItemNotExist
      */
     fun getReferenceBookItem(id: String): ReferenceBookItem = transaction(db) {
-        logger.debug("Getting ReferenceBookItem id: $id")
-        val bookItemVertex = dao.getReferenceBookItemVertex(id)
-        return@transaction bookItemVertex?.toReferenceBookItem() ?: throw RefBookItemNotExist(id)
+        getReferenceBookItemVertex(id).toReferenceBookItem()
     }
 
     /**

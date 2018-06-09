@@ -1,16 +1,9 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.toSubjectData
-
-
-enum class AspectPropertyCardinality {
-    ZERO, ONE, INFINITY
-}
+import java.time.Instant
 
 /**
  * Аспект - https://iwings.atlassian.net/wiki/spaces/CHR/pages/219217938
@@ -30,6 +23,7 @@ data class Aspect(
     val subject: Subject? = null,
     val deleted: Boolean = false,
     val description: String? = null,
+    val lastChange: Instant?,
     val refBookName: String?    // только имя, потому что ссылка на RefBook чревата разверткой дерева - а всегда
     // таскать за собой все дерево не хочется
 ) {
@@ -50,6 +44,7 @@ data class Aspect(
             subject?.toSubjectData(),
             deleted,
             description,
+            lastChange?.epochSecond,
             refBookName
         )
 }
@@ -62,7 +57,7 @@ data class AspectProperty(
     val name: String,
     val aspect: Aspect,
     val description: String?,
-    val cardinality: AspectPropertyCardinality,
+    val cardinality: PropertyCardinality,
     val version: Int = 0
 ) {
     fun toAspectPropertyData() = AspectPropertyData(id, name, aspect.id, cardinality.name, description, version)

@@ -29,6 +29,12 @@ class SubjectApi(val subjectService: SubjectService) {
         return SubjectsList(subjectService.getSubjects().map { it.toSubjectData() })
     }
 
+    @GetMapping("get/{name}")
+    fun getSubjectByName(@PathVariable("name") subjectName: String): SubjectData {
+        logger.debug("Get subject by name $subjectName")
+        return subjectService.findByName(subjectName) ?: throw SubjectNotFoundException("No subject with name $subjectName")
+    }
+
     @PostMapping("update")
     fun updateSubject(@RequestBody subjectData: SubjectData, principal: Principal): SubjectData {
         val username = principal.name
@@ -56,7 +62,7 @@ class SubjectApi(val subjectService: SubjectService) {
         return when (exception) {
             SubjectIdIsNull -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Subject Id is null"
@@ -65,7 +71,7 @@ class SubjectApi(val subjectService: SubjectService) {
                 )
             is SubjectWithNameAlreadyExist -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Subject with name ${exception.subject.name} is already exist"
@@ -74,7 +80,7 @@ class SubjectApi(val subjectService: SubjectService) {
                 )
             is SubjectNotFoundException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             "Supplied subject with id ${exception.id} has not been found"
@@ -83,7 +89,7 @@ class SubjectApi(val subjectService: SubjectService) {
                 )
             is SubjectConcurrentModificationException -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.INCORRECT_INPUT,
                             exception.message
@@ -92,7 +98,7 @@ class SubjectApi(val subjectService: SubjectService) {
                 )
             is SubjectIsLinkedByAspect -> ResponseEntity.badRequest()
                 .body(
-                    JSON.Companion.stringify(
+                    JSON.stringify(
                         BadRequest(
                             BadRequestCode.NEED_CONFIRMATION,
                             "Subject ${exception.subject.name} is linked by aspect"

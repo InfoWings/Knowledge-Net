@@ -7,6 +7,8 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.subject.SubjectDao
+import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
@@ -20,15 +22,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.fail
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class SubjectHistoryTest {
+class AspectHistoryTest {
     private val username = "admin"
 
     @Autowired
     lateinit var subjectService: SubjectService
+
+    @Autowired
+    lateinit var subjectDao: SubjectDao
 
     @Autowired
     private lateinit var aspectService: AspectService
@@ -163,7 +169,7 @@ class SubjectHistoryTest {
                 properties = listOf(
                     AspectPropertyData(
                         id = "", name = "prop", aspectId = aspect2.id,
-                        cardinality = AspectPropertyCardinality.INFINITY.name, description = null
+                        cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
             ), username = "admin"
@@ -280,7 +286,7 @@ class SubjectHistoryTest {
                 properties = listOf(
                     AspectPropertyData(
                         id = "", name = "prop", aspectId = aspect2.id,
-                        cardinality = AspectPropertyCardinality.INFINITY.name, description = null
+                        cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
             ), username = "admin"
@@ -320,5 +326,46 @@ class SubjectHistoryTest {
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
+    }
+
+    @Test
+    fun testAspectHistoryRemovedSubject() {
+        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val aspect1 = aspectService.save(
+            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
+        val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
+
+        val subjectId = subject.id
+        if (subjectId == null) {
+            fail("id must be non-null")
+        } else {
+            val subjectVertex = subjectService.findById(subjectId)
+
+            subjectService.remove(subject, username, force = false)
+
+            val history = historyProvider.getAllHistory()
+
+            assertEquals(2, history.size, "it must be 2 elements")
+        }
+    }
+
+    @Test
+    fun testAspectHistoryRemovedSubject2() {
+        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val aspect1 = aspectService.save(
+            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
+        val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
+
+        val subjectId = subject.id
+        if (subjectId == null) {
+            fail("id must be non-null")
+        } else {
+            val subjectVertex = subjectService.findById(subjectId)
+
+            subjectDao.remove(subjectVertex!!)
+
+            val history = historyProvider.getAllHistory()
+            assertEquals(2, history.size, "it must be 2 elements")
+        }
     }
 }

@@ -124,20 +124,16 @@ expect class DecimalNumber(value: Double) {
 }
 
 /**
- * низкоуровневый тип данных в котором хранится значение свойства,
- * на уровне БД это не обязательно тот же тип
+ * Тип данных, соответствующий значению свойства, на уровне БД это не обязательно тот же тип
  **/
 expect sealed class BaseType(_name: String) {
 
     val name: String
 
-    object Nothing : BaseType
     object Integer : BaseType
-    object Long : BaseType
     object Decimal : BaseType
     object Boolean : BaseType
     object Text : BaseType
-    object Binary : BaseType
 }
 
 fun createDecimalMeasure(

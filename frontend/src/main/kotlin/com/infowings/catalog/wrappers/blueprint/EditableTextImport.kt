@@ -9,7 +9,7 @@ external val EditableText: RClass<EditableTextProps>
 
 external interface EditableTextProps : BlueprintComponentProps {
     /**
-     * If true and in multiline mode, the enter key will trigger onConfirm and mod+enter will insert a newline.
+     * If true and in multiline mode, the enter key will trigger onConfirmSearch and mod+enter will insert a newline.
      * If false, the key bindings are inverted such that enter adds a newline.
      */
     var confirmOnEnterKey: Boolean

@@ -46,7 +46,7 @@ var OVertex.description: String?
         this[ATTR_DESC] = value
     }
 
-data class Versioned<T>(val entity: T, val version: Int)
+data class Versioned<out T>(val entity: T, val version: Int)
 
 /**
  * Main class for work with database
@@ -152,6 +152,7 @@ class OrientDatabase(
             .initMeasures()
             .initReferenceBooks()
             .initSubject()
+            .initObject()
             .initSearch() // this call should be latest
 
     }
@@ -355,8 +356,6 @@ inline fun <U> transaction(
 
 class OrientException(reason: String) : Exception(reason)
 class VertexNotFound(id: String) : Exception("No vertex for id: $id")
-
-private const val selectById = "SELECT FROM ?"
 
 class UniqueODatabaseSessionContainer(val session: ODatabaseSession) {
     val uuid = UUID.randomUUID()!!

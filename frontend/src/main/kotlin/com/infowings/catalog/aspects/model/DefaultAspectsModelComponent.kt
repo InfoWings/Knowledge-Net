@@ -1,92 +1,36 @@
-package com.infowings.catalog.aspects
+package com.infowings.catalog.aspects.model
 
-import com.infowings.catalog.aspects.editconsole.aspectConsole
-import com.infowings.catalog.aspects.editconsole.popup.unsafeChangesWindow
-import com.infowings.catalog.aspects.sort.aspectSort
-import com.infowings.catalog.aspects.treeview.aspectTreeView
+import com.infowings.catalog.aspects.*
+import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.ServerException
-import com.infowings.catalog.wrappers.blueprint.Intent
-import com.infowings.catalog.wrappers.blueprint.Position
-import com.infowings.catalog.wrappers.blueprint.Toast
-import com.infowings.catalog.wrappers.blueprint.Toaster
-import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
 import kotlin.math.min
 
-interface AspectsModel {
-    /**
-     * Method for selecting existing aspect (or new but not yet saved if [AspectData.id] == null)
-     *
-     * if supplied [AspectData.id] does not exist in context (should not happen at all), does nothing
-     *
-     * @param aspectId - [AspectData.id] of [AspectData] to select.
-     */
-    fun selectAspect(aspectId: String?)
 
-    /**
-     * Method for selecting property of existing (or new) aspect by index of the property inside the aspect.
-     *
-     * The reason for selecting aspect property by index instead of by id or instance is that new aspect properties
-     * have all the same id (empty string) and there are no restrictions on the state of the properties while editing,
-     * which means that there may be two properties with exact same content inside one aspect (may be use case for
-     * copying). Validation regarding possible restrictions is performed on server side.
-     *
-     * @param index - index of [AspectPropertyData] inside [AspectData.properties] list to select.
-     */
-    fun selectProperty(index: Int)
-
-    /**
-     * Method for canceling selected state.
-     *
-     * By default resets state to creating new aspect.
-     */
-    fun discardSelect()
-
-    /**
-     * Method for creating new [AspectPropertyData] inside currently selected [AspectData] at index.
-     */
-    fun createProperty(index: Int)
-
-    /**
-     * Method for updating currently selected [AspectData]
-     *
-     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
-     * complete before submission to the server).
-     */
-    fun updateAspect(aspect: AspectData)
-
-    /**
-     * Method for updating currently selected [AspectPropertyData]
-     *
-     * Made suspended in case if submission to server happens immediately after a call to this method (setState should
-     * complete before submission to the server).
-     */
-    fun updateProperty(property: AspectPropertyData)
-
-    /**
-     * Method for submitting changes of currently selected [AspectData] to the server
-     */
-    suspend fun submitAspect()
-
-    /**
-     * Method for requesting delete of currently selected [AspectData] to the server
-     */
-    suspend fun deleteAspect(force: Boolean)
-
-    suspend fun deleteAspectProperty()
-}
-
-class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelComponent.State>(), AspectsModel {
+class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultAspectsModelComponent.State>(),
+    AspectsModel {
 
     override fun State.init() {
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
         errorMessages = emptyList()
+        aspectsFilter = AspectsFilter(emptyList(), emptyList())
+    }
+
+    override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
+        if (state.selectedAspect.id != null) {
+            setState {
+                val selectedAspectOnServer =
+                    nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                selectedAspect =
+                        selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
+            }
+        }
     }
 
     override fun selectAspect(aspectId: String?) {
@@ -99,6 +43,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
                     selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
                 }
                 selectedAspectPropertyIndex = null
+                aspectId?.let { props.refreshAspect(it) }
             }
         }
     }
@@ -220,6 +165,14 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         }
     }
 
+    private fun setSubjectsFilter(subjects: List<SubjectData?>) = setState {
+        aspectsFilter = aspectsFilter.copy(subjects = subjects)
+    }
+
+    private fun setExcludedAspectsToFilter(aspects: List<AspectData>) = setState {
+        aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
+    }
+
     private inline fun tryMakeApiCall(block: () -> Unit) {
         try {
             block()
@@ -268,55 +221,27 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
     }
 
     override fun RBuilder.render() {
-        val selectedAspect = state.selectedAspect
-        val selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
         if (!props.loading) {
-            aspectSort {
-                attrs {
-                    onFetchAspect = props.onFetchAspects
-                }
-            }
-            aspectTreeView {
-                attrs {
-                    aspects = props.data
-                    aspectContext = props.aspectContext
-                    selectedAspectId = state.selectedAspect.id
-                    selectedPropertyIndex = state.selectedAspectPropertyIndex
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            aspectConsole {
-                attrs {
-                    aspect = selectedAspect
-                    propertyIndex = selectedAspectPropertyIndex
-                    aspectContext = props.aspectContext
-                    aspectsModel = this@AspectsModelComponent
-                }
-            }
-            unsafeChangesWindow(state.unsafeSelection) {
-                setState { unsafeSelection = false }
-            }
-            Toaster {
-                attrs {
-                    position = Position.TOP_RIGHT
-                }
-                state.errorMessages.reversed().forEach { errorMessage ->
-                    Toast {
-                        attrs {
-                            icon = "warning-sign"
-                            intent = Intent.DANGER
-                            message = errorMessage.asReactElement()
-                            onDismiss = {
-                                setState {
-                                    errorMessages = errorMessages.filterNot { it == errorMessage }
-                                }
-                            }
-                            timeout = 9000
-                        }
-                    }
-                }
-            }
-
+            aspectPageHeader(
+                onOrderByChanged = props.onOrderByChanged,
+                onSearchQueryChanged = props.onSearchQueryChanged,
+                filter = state.aspectsFilter,
+                setFilterSubjects = ::setSubjectsFilter,
+                setFilterAspects = ::setExcludedAspectsToFilter
+            )
+            aspectPageContent(
+                filteredAspects = state.aspectsFilter.applyToAspects(props.data),
+                aspectContext = props.aspectContext,
+                aspectsModel = this@DefaultAspectsModelComponent,
+                selectedAspect = state.selectedAspect,
+                selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
+            )
+            aspectPageOverlay(
+                isUnsafeSelection = state.unsafeSelection,
+                onCloseUnsafeSelection = { setState { unsafeSelection = false } },
+                errorMessages = state.errorMessages,
+                onDismissErrorMessage = { errorMessage -> setState { errorMessages = errorMessages.filterNot { it == errorMessage } } }
+            )
         }
     }
 
@@ -325,6 +250,7 @@ class AspectsModelComponent : RComponent<AspectApiReceiverProps, AspectsModelCom
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean
         var errorMessages: List<String>
+        var aspectsFilter: AspectsFilter
     }
 }
 

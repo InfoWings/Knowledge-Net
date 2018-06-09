@@ -22,7 +22,7 @@ import java.net.URLDecoder
 class UserAccessController(var userService: UserService, var jwtService: JWTService) {
 
     @Value("\${spring.security.header.refresh}")
-    lateinit var REFRESH_HEADER: String
+    lateinit var refreshHeader: String
 
     @PostMapping("signIn")
     fun signIn(@RequestBody userCredentials: UserCredentials): ResponseEntity<*> {
@@ -52,7 +52,7 @@ class UserAccessController(var userService: UserService, var jwtService: JWTServ
 
             val refreshTokenHeader = cookieHeader
                 .split("; ")
-                .filter { it.startsWith(REFRESH_HEADER) }
+                .filter { it.startsWith(refreshHeader) }
                 .map { it.split("=")[1] }
                 .map { URLDecoder.decode(it, "UTF-8") }
                 .first()

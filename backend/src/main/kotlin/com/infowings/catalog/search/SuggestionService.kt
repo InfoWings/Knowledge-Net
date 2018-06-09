@@ -206,11 +206,7 @@ class SuggestionService(
                 }
             } else {
                 if (aspectId == null) {
-                    val q =
-                        "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(
-                            ASPECT_CLASS,
-                            ATTR_NAME
-                        )}, :$lq) = true"
+                    val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_NAME)}, :$lq) = true"
                     database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))

@@ -2,9 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.history.HistoryAware
-import com.infowings.catalog.data.history.Snapshot
-import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
@@ -17,6 +15,7 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
+import java.time.Instant
 
 
 fun OVertex.toAspectVertex() = AspectVertex(this)
@@ -58,6 +57,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             subject?.toSubjectData(),
             deleted,
             description,
+            lastChange?.epochSecond,
             referenceBookRootVertex?.value
         )
     }
@@ -105,6 +105,17 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
+    val lastChange: Instant?
+        get() {
+            val maybeLastAspectUpdate: Instant? = vertex.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
+            val maybeLastPropertyUpdates: List<Instant?> = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map {
+                it.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
+            }
+            return maybeLastPropertyUpdates.filterNotNull().let { lastPropertyUpdates ->
+                maybeLastAspectUpdate?.let { lastPropertyUpdates.plus(it) } ?: lastPropertyUpdates
+            }.max()
+        }
+
     val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
@@ -129,6 +140,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     override fun hashCode(): Int {
         return vertex.hashCode()
     }
+
+    override fun toString(): String =
+        "AspectVertex[id=${this.id}, name=${this.name}]"
+
 }
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")

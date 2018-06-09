@@ -5,7 +5,6 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.search.CommonSuggestionParam
 import com.infowings.catalog.search.SubjectSuggestionParam
@@ -99,8 +98,7 @@ class SubjectServiceTest {
          */
         val subject = createTestSubject("TestSubjectUpdate")
         val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
-        val level1Property =
-            AspectPropertyData("", "p_level1", aspect.id, AspectPropertyCardinality.INFINITY.name, null)
+        val level1Property = AspectPropertyData("", "p_level1", aspect.id, PropertyCardinality.INFINITY.name, null)
         aspectService.save(
             createTestAspect(
                 "aspectBase",
@@ -226,8 +224,8 @@ class SubjectServiceTest {
             subjectService.updateSubject(created.toSubjectData(), username)
         } catch (e: SubjectEmptyChangeException) {
         }
-        val updated = subjectService.findById(created.id)
-        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated!!.version)
+        val updated = subjectService.findByIdStrict(created.id)
+        Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
     }
 
     private fun createTestSubject(
@@ -270,5 +268,5 @@ fun createTestSubject(
     }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
 
-    return subjectService.findById(subject.id)?.toSubject() ?: throw IllegalStateException()
+    return subjectService.findByIdStrict(subject.id).toSubject()
 }
