@@ -190,7 +190,7 @@ class AspectValidator(
 
     private fun AspectVertex.checkMeasureChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.measure != measureName) {
-            val sameGroup = MeasureMesureGrupMap[measureName] == MeasureMesureGrupMap[aspectData.measure]
+            val sameGroup = MeasureMeasureGroupMap[measureName] == MeasureMeasureGroupMap[aspectData.measure]
             if (!sameGroup && thereExistAspectImplementation()) {
                 throw AspectModificationException(id, "Impossible to change measure")
             }
@@ -223,9 +223,4 @@ class AspectValidator(
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
         return relatedAspect != null && relatedAspect.deleted
     }
-
-    private fun AspectVertex.thereExistAspectImplementation(): Boolean = properties.any { it.isLinkedBy() }
-
-    // todo: Complete this method in future
-    private fun AspectPropertyVertex.thereExistAspectPropertyImplementation(): Boolean = isLinkedBy()
 }

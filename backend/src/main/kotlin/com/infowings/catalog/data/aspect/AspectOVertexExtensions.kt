@@ -133,6 +133,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE)
 
+    fun thereExistAspectImplementation(): Boolean =
+        getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any { it.toAspectPropertyVertex().isLinkedBy() }
+
     override fun equals(other: Any?): Boolean {
         return vertex == other
     }
@@ -195,6 +198,8 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         }
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
+
+    fun thereExistAspectPropertyImplementation(): Boolean = isLinkedBy()
 
     override fun equals(other: Any?): Boolean {
         return vertex == other
