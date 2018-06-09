@@ -15,6 +15,12 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
         checkChildrenVersions(bookItemVertex, bookItem)
     }
 
+    fun checkRefBookItemLinkedByObject(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
+        if (bookItemVertex.value != bookItem.value && bookItemVertex.isLinkedBy()) {
+            throw RefBookItemHasLinkedEntitiesException()
+        }
+    }
+
     fun checkRefBookItemVersion(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         if (bookItemVertex.version != bookItem.version) {
             throw RefBookConcurrentModificationException(bookItem.id, "ReferenceBookItem changed.")

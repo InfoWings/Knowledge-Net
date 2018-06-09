@@ -6,11 +6,13 @@ import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
+import com.infowings.catalog.storage.OBJECT_VALUE_REFBOOK_ITEM_EDGE
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
+import hasIncomingEdges
 
 fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 
@@ -65,11 +67,11 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         return ReferenceBookItem(id, value, description, children, deleted, version)
     }
 
-    override fun equals(other: Any?): Boolean {
-        return vertex == other
-    }
+    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_REFBOOK_ITEM_EDGE)
 
-    override fun hashCode(): Int {
-        return vertex.hashCode()
-    }
+    fun isSubtreeLinked(): Boolean = isLinkedBy() || children.any { it.isSubtreeLinked() }
+
+    override fun equals(other: Any?): Boolean = vertex == other
+
+    override fun hashCode(): Int = vertex.hashCode()
 }
