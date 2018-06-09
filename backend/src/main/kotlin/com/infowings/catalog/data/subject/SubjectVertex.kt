@@ -15,7 +15,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "value" to asStringOrEmpty(name),
+            "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)
         ),
         links = emptyMap()
@@ -23,7 +23,8 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) { vertex[ATTR_NAME] = value
+        set(value) {
+            vertex[ATTR_NAME] = value
         }
 
     var description: String?
@@ -51,5 +52,5 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
         } else throw InternalError("Source of $ASPECT_SUBJECT_EDGE is not aspect vertex")
 
         aspectVertex
-    }.filterNot {it.deleted}
+    }.filterNot { it.deleted }
 }

@@ -26,7 +26,7 @@ class SnapshotTest {
     private fun initVertex(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createVertexClass(name)
 
-    val EmptyDiffPayload = DiffPayload(emptyMap(), emptyMap(), emptyMap())
+    val emptyDiffPayload = DiffPayload(emptyMap(), emptyMap(), emptyMap())
 
     @Autowired
     lateinit var database: OrientDatabase
@@ -38,8 +38,6 @@ class SnapshotTest {
         val data = session(database) {
             initVertex(it, "SOME_CLASS")
         }
-        println(data)
-
         val vertices = transaction(database) {
             val verts = listOf(
                 it.newVertex("SOME_CLASS"), it.newVertex("SOME_CLASS")
@@ -54,8 +52,6 @@ class SnapshotTest {
 
     @Test
     fun diffSnapshotsSame() {
-        println(ids)
-
         val snapshots = listOf(
             Snapshot(emptyMap(), emptyMap()),
             Snapshot(mapOf("name" to "value"), emptyMap()),
@@ -64,10 +60,10 @@ class SnapshotTest {
 
         for (s in snapshots) {
             val diffCopy = diffSnapshots(s, s.copy())
-            Assert.assertThat("(1) diff should be empty", diffCopy, Is.`is`(EmptyDiffPayload))
+            Assert.assertThat("(1) diff should be empty", diffCopy, Is.`is`(emptyDiffPayload))
 
             val diff = diffSnapshots(s, s.copy())
-            Assert.assertThat("(2) diff should be empty", diff, Is.`is`(EmptyDiffPayload))
+            Assert.assertThat("(2) diff should be empty", diff, Is.`is`(emptyDiffPayload))
         }
     }
 

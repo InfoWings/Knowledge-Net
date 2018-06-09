@@ -7,10 +7,7 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.history.HistoryContext
-import com.infowings.catalog.data.history.HistoryFact
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -195,7 +192,7 @@ class ReferenceBookService(
 
             val savedItemVertex: ReferenceBookItemVertex
             val parentBefore: Snapshot
-            val updateFact: HistoryFact
+            val updateFact: HistoryFactWrite
             val context = HistoryContext(userVertex)
 
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)

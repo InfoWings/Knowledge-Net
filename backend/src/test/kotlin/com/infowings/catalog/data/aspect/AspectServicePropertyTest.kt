@@ -1,8 +1,7 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction
@@ -117,7 +116,8 @@ class AspectServicePropertyTest {
 
         assertThat("aspect properties should be saved", aspectService.findById(loaded.id), Is.`is`(loaded))
 
-        assertThat("aspect should have correct properties",
+        assertThat(
+            "aspect should have correct properties",
             loaded.properties.map { it.name },
             Is.`is`(listOf(property, property2).map { it.name })
         )

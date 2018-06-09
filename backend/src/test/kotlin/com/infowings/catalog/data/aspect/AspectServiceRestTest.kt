@@ -1,9 +1,7 @@
-package com.infowings.catalog.data
+package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectPropertyCardinality
-import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
 import org.hamcrest.core.Is

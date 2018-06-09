@@ -189,7 +189,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     var multi: Boolean
 
     /**
-     * field name, for hidden `<input />` tag
+     * fieldName name, for hidden `<input />` tag
      */
     var name: String
 
@@ -304,7 +304,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     var pageSize: Int
 
     /**
-     * field placeholder, displayed when there's no value
+     * fieldName placeholder, displayed when there's no value
      */
     var placeholder: String //Or ReactElement (node)
 
@@ -364,7 +364,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     var trimFilter: Boolean
 
     /**
-     * initial field value
+     * initial fieldName value
      */
     var value: Any
 
@@ -518,7 +518,7 @@ external interface ShouldKeyDownEventCreateNewOptionArgs {
 external interface AsyncSelectProps<T : SelectOption> : CommonSelectProps<T>, AsyncSpecificProps<T>
 external interface CreatableSelectProps<T : SelectOption> : CommonSelectProps<T>, CreatableSpecificProps<T>
 external interface AsyncCreatableSelectProps<T : SelectOption> : CommonSelectProps<T>,
-        AsyncSpecificProps<T>, CreatableSpecificProps<T>
+    AsyncSpecificProps<T>, CreatableSpecificProps<T>
 
 external interface SelectOption
 
