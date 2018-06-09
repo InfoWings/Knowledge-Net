@@ -223,7 +223,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     override fun RBuilder.render() {
         if (!props.loading) {
             aspectPageHeader(
-                onFetchAspects = props.onFetchAspects,
+                onOrderByChanged = props.onOrderByChanged,
+                onSearchQueryChanged = props.onSearchQueryChanged,
                 filter = state.aspectsFilter,
                 setFilterSubjects = ::setSubjectsFilter,
                 setFilterAspects = ::setExcludedAspectsToFilter

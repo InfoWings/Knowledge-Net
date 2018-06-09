@@ -2,10 +2,7 @@ package com.infowings.catalog.objects
 
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateResponse
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.coroutines.experimental.launch
@@ -16,13 +13,10 @@ suspend fun getAllObjects(): List<ObjectData> = JSON.parse(get("/api/objects/all
 
 suspend fun saveObject(objData: ObjectData): ObjectData = JSON.parse(post("/api/object/save", JSON.stringify(objData)))
 
-suspend fun createObject(request: ObjectCreateRequest): ObjectData {
-    console.log(request)
-    val value = post("/api/object/create", JSON.stringify(request))
-    return JSON.parse(post("/api/object/create", JSON.stringify(request)))
-}
+suspend fun createObject(request: ObjectCreateRequest): ObjectCreateResponse =
+    JSON.parse(post("/api/object/create", JSON.stringify(request)))
 
-suspend fun createObject(data: ObjectData): ObjectData {
+suspend fun createObject(data: ObjectData): ObjectCreateResponse {
     val name = data.name ?: throw IllegalStateException("name is not defined")
     val subjectId = data.subject.id ?: throw IllegalStateException("subject id is not defined")
 
@@ -30,10 +24,10 @@ suspend fun createObject(data: ObjectData): ObjectData {
 }
 
 
-suspend fun createProperty(request: PropertyCreateRequest): ObjectPropertyData =
+suspend fun createProperty(request: PropertyCreateRequest): PropertyCreateResponse =
     JSON.parse(post("/api/object/createProperty", JSON.stringify(request)))
 
-suspend fun createProperty(objectId: String, data: ObjectPropertyData): ObjectPropertyData {
+suspend fun createProperty(objectId: String, data: ObjectPropertyData): PropertyCreateResponse {
     val name = data.name ?: throw IllegalStateException("name is not defined")
     val aspectId = data.aspect.id ?: throw IllegalStateException("aspect id is not defined")
 
@@ -110,6 +104,8 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
                 ObjectValueData.IntegerValue(value.toInt(), 0)
             aspect.baseType == BaseType.Decimal.name ->
                 ObjectValueData.DecimalValue(value)
+            aspect.baseType == BaseType.Boolean.name ->
+                ObjectValueData.BooleanValue(value.toBoolean())
             else -> null
         }
 
@@ -119,6 +115,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
             property.aspectBaseType == BaseType.Text.name -> ObjectValueData.StringValue(value)
             property.aspectBaseType == BaseType.Integer.name -> ObjectValueData.IntegerValue(value.toInt(), 0)
             property.aspectBaseType == BaseType.Decimal.name -> ObjectValueData.DecimalValue(value)
+            property.aspectBaseType == BaseType.Boolean.name -> ObjectValueData.BooleanValue(value.toBoolean())
             else -> null
         }
     }
@@ -126,15 +123,14 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
     override suspend fun submitObj(objData: ObjectData) {
         val response = createObject(objData)
         val createdObjectId = response.id
-        createdObjectId ?: throw IllegalStateException("id of created object is not specified")
 
         objData.properties.forEach {
             val prop = it
-            val createdProperty = createProperty(createdObjectId, prop)
-            val createdPropertyId =
-                createdProperty.id ?: throw IllegalStateException("id of created property is not specified")
+            val createdPropertyResponse = createProperty(createdObjectId, prop)
+            val createdPropertyId = createdPropertyResponse.id
+            val createdProperty = prop.copy(id = createdPropertyId)
 
-            prop.values.forEach {
+            createdProperty.values.forEach {
                 val valueText = it.scalarValue ?: throw IllegalStateException("scalar value is not specified: $it")
                 val valueData = convertValue(createdProperty, createdProperty.aspect, valueText)
                         ?: throw IllegalStateException("could not create value data")

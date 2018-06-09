@@ -169,9 +169,12 @@ class AspectService(
                 AspectSortField.NAME,
                 Direction.ASC
             )
-        )
-    ): List<Aspect> =
-        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
+        ),
+        query: String? = null
+    ): List<Aspect> = when {
+        query == null || query.isBlank() -> aspectDaoService.getAspects()
+        else -> aspectDaoService.findTransitiveByNameQuery(query)
+    }.map { it.toAspect() }.sort(orderBy)
 
     private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)

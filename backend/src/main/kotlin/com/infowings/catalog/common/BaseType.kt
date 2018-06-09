@@ -8,50 +8,32 @@ actual sealed class BaseType actual constructor(_name: String) {
 
     actual val name = _name
 
-    //todo:
-    class Directory(val dName: String) : BaseType("") // временно
-
-    class Link : BaseType("")
-
     companion object {
         fun restoreBaseType(name: String?): BaseType =
-                when (name) {
-                    null -> Nothing
-                    Nothing.name -> Nothing
-                    Integer.name -> Integer
-                    Long.name -> Long
-                    Decimal.name -> Decimal
-                    Boolean.name -> Boolean
-                    Text.name -> Text
-                    Binary.name -> Binary
-
-                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
-
-                }
+            when (name) {
+                Integer.name -> Integer
+                Decimal.name -> Decimal
+                Boolean.name -> Boolean
+                Text.name -> Text
+                else -> TODO("Base type $name is not supported")
+            }
 
         fun getTypeClass(name: String): KClass<*> =
-                when (name) {
-                    Integer.name -> Int::class
-                    Long.name -> Long::class
-                    Decimal.name -> BigDecimal::class
-                    Boolean.name -> Boolean::class
-                    Text.name -> String::class
-                    Binary.name -> ByteArray::class
-
-                    else -> TODO("реализовать хранение сложных типов, $name is not supported")
-
-                }
+            when (name) {
+                Integer.name -> Int::class
+                Decimal.name -> BigDecimal::class
+                Boolean.name -> Boolean::class
+                Text.name -> String::class
+                else -> TODO("Base type $name is not supported")
+            }
     }
 
     override fun toString(): String {
         return "BaseType($name)"
     }
 
-    actual object Nothing : BaseType("Composite Aspect")
     actual object Integer : BaseType("Integer")
-    actual object Long : BaseType("Long")
     actual object Decimal : BaseType("Decimal")
     actual object Boolean : BaseType("Boolean")
     actual object Text : BaseType("String")
-    actual object Binary : BaseType("Binary")
 }

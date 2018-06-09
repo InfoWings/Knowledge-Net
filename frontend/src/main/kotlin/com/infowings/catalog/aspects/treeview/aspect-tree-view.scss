@@ -9,8 +9,6 @@
   padding-bottom: 20rem;
 
   &__header {
-    display: flex;
-    align-items: start;
     max-width: 120rem;
     margin: 1rem auto;
   }
@@ -99,6 +97,21 @@
     &-cardinality {
       padding: 0 .2rem;
     }
+  }
+
+}
+
+.aspect-header {
+
+  &__sort-search {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  &__text-filters {
+    display: flex;
+    align-items: start
   }
 
 }

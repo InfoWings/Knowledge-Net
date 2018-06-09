@@ -8,6 +8,7 @@ data class Range(val left: Int, val right: Int)
  */
 sealed class ObjectValueData {
     data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData()
+    data class BooleanValue(val value: Boolean) : ObjectValueData()
     data class StringValue(val value: String) : ObjectValueData()
     data class RangeValue(val range: Range) : ObjectValueData()
     data class DecimalValue(val valueRepr: String) : ObjectValueData()

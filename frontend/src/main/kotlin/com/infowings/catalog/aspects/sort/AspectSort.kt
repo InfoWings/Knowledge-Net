@@ -19,7 +19,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
     }
 
     override fun AspectSort.State.init() {
-        orderBy = mutableListOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC))
+        orderBy = mutableListOf()
     }
 
     override fun RBuilder.render() {
@@ -54,7 +54,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
                 }
                 orderBy.remove(curOrder)
             }
-            props.onFetchAspect(orderBy)
+            props.onOrderByChanged(orderBy)
         }
     }
 
@@ -68,7 +68,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
     }
 
     interface Props : RProps {
-        var onFetchAspect: (List<AspectOrderBy>) -> Unit
+        var onOrderByChanged: (List<AspectOrderBy>) -> Unit
     }
 
     interface State : RState {
