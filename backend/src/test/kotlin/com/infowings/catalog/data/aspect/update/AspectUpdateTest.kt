@@ -6,7 +6,6 @@ import com.infowings.catalog.data.aspect.AspectEmptyChangeException
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.core.Is
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,12 +23,6 @@ class AspectUpdateTest {
     lateinit var aspectService: AspectService
 
     lateinit var aspect: AspectData
-
-    @Before
-    fun initTestData() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspect = aspectService.save(ad, username).toAspectData()
-    }
 
     @Test
     fun testChangeAspectNameMeasure() {
@@ -106,12 +99,15 @@ class AspectUpdateTest {
 
     @Test
     fun testUpdateSameData() {
-        val ad = aspectService.getAspects().first().toAspectData()
+        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        aspectService.save(ad, username)
+
+        val ad2 = aspectService.getAspects().first().toAspectData()
         try {
-            aspectService.save(ad, username)
+            aspectService.save(ad2, username)
         } catch (e: AspectEmptyChangeException) {
         }
-        val newAspect = aspectService.findById(ad.id!!)
-        Assert.assertEquals("Same data shouldn't be rewritten", ad.version, newAspect.version)
+        val newAspect = aspectService.findById(ad2.id!!)
+        Assert.assertEquals("Same data shouldn't be rewritten", ad2.version, newAspect.version)
     }
 }
