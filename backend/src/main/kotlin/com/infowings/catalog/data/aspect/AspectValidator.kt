@@ -182,8 +182,11 @@ class AspectValidator(
 
     private fun AspectVertex.checkBaseTypeChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.baseType != baseType) {
-            if ((aspectData.measure != null && aspectData.measure == measureName) || thereExistAspectImplementation()) {
-                throw AspectModificationException(id, "Impossible to change base type")
+            if (aspectData.measure != null && aspectData.measure == measureName) {
+                throw AspectModificationException(id, "Measure is not null")
+            }
+            if (thereExistAspectImplementation()) {
+                throw AspectModificationException(id, "There exist values of the aspect")
             }
         }
     }
@@ -192,7 +195,7 @@ class AspectValidator(
         if (aspectData.measure != measureName) {
             val sameGroup = MeasureMeasureGroupMap[measureName] == MeasureMeasureGroupMap[aspectData.measure]
             if (!sameGroup && thereExistAspectImplementation()) {
-                throw AspectModificationException(id, "Impossible to change measure")
+                throw AspectModificationException(id, "Impossible to change measure group in case of there exist values of the aspect")
             }
         }
     }
