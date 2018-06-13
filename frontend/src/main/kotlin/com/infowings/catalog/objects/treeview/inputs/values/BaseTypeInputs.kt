@@ -44,3 +44,9 @@ fun RBuilder.booleanInput(value: String?, onUpdate: (String) -> Unit) = Switch {
         }
     }
 }
+
+class RefBookValue(val refBookId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
+
+class RefBookNodeDescriptor(val id: String, val name: String)
+
+//fun RBuilder.refBookInput(value: RefBookValue, onUpdate: (RefBookValue) -> Unit) =

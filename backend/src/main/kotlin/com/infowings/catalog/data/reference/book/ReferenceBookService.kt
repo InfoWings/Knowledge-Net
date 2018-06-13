@@ -40,6 +40,8 @@ class ReferenceBookService(
 
     fun getReferenceBookNameById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBookItem()?.value
 
+    fun getReferenceBookById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBook()
+
     /**
      * Return ReferenceBook instance by [aspectId] or null if not found
      */

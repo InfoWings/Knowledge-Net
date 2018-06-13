@@ -60,6 +60,8 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val parent: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, edgeName).firstOrNull()?.toReferenceBookItemVertex()
 
+    val aspect:
+
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }
         return ReferenceBookItem(id, value, description, children, deleted, version)
