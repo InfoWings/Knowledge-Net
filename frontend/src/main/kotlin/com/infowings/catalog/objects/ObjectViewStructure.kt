@@ -116,7 +116,8 @@ data class AspectPropertyViewModel(
     val aspectName: String,
     val measure: String?,
     val baseType: String,
-    val domain: String
+    val domain: String,
+    val refBookName: String?
 ) {
     constructor(aspectPropertyData: AspectPropertyDataExtended) : this(
         aspectPropertyData.id,
@@ -126,7 +127,8 @@ data class AspectPropertyViewModel(
         aspectPropertyData.aspectName,
         aspectPropertyData.aspectMeasure,
         aspectPropertyData.aspectBaseType,
-        aspectPropertyData.aspectDomain
+        aspectPropertyData.aspectDomain,
+        aspectPropertyData.refBookName
     )
 
     fun toExtendedPropertyData() = AspectPropertyDataExtended(
@@ -137,7 +139,8 @@ data class AspectPropertyViewModel(
         aspectName = aspectName,
         aspectMeasure = measure,
         aspectDomain = domain,
-        aspectBaseType = baseType
+        aspectBaseType = baseType,
+        refBookName = refBookName
     )
 }
 

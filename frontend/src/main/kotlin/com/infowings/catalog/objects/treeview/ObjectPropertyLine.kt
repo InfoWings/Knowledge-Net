@@ -71,7 +71,8 @@ fun RBuilder.objectPropertyLine(
                                     values[0].value = it
                                 }
                             }
-                        }
+                        },
+                        refBookName = property.aspect?.refBookName
                     )
                 }
                 property.cardinality == Cardinality.INFINITY ->
