@@ -1,8 +1,8 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.Cardinality
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.objects.ObjectPropertyViewModel
 import react.RBuilder
@@ -34,7 +34,7 @@ fun RBuilder.objectPropertyNode(
             }!!
         }
         when {
-            property.cardinality == Cardinality.ZERO && property.aspect != null -> aspectPropertyValues(
+            property.cardinality == PropertyCardinality.ZERO && property.aspect != null -> aspectPropertyValues(
                 groups = property.values?.get(0)?.valueGroups
                         ?: error("ObjectProperty with Cardinality.ZERO and assigned aspect should have one fake value"),
                 aspectsMap = aspectsMap,
@@ -52,7 +52,7 @@ fun RBuilder.objectPropertyNode(
                     }
                 }
             )
-            property.cardinality == Cardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> aspectPropertyValues(
+            property.cardinality == PropertyCardinality.ONE && property.aspect != null && property.values?.firstOrNull() != null -> aspectPropertyValues(
                 groups = property.values?.get(0)?.valueGroups ?: error("Memory Model inconsistency"),
                 aspectsMap = aspectsMap,
                 onEdit = onEdit,
@@ -67,7 +67,7 @@ fun RBuilder.objectPropertyNode(
                     }
                 }
             )
-            property.cardinality == Cardinality.INFINITY && property.aspect != null -> objectPropertyValues(
+            property.cardinality == PropertyCardinality.INFINITY && property.aspect != null -> objectPropertyValues(
                 values = property.values ?: error("Memory Model inconsistency"),
                 aspectsMap = aspectsMap,
                 aspect = property.aspect ?: error("Memory Model inconsistency"),

@@ -1,11 +1,11 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueGroupViewModel
 import com.infowings.catalog.objects.AspectPropertyValueViewModel
 import com.infowings.catalog.objects.AspectPropertyViewModel
-import com.infowings.catalog.objects.Cardinality
 import com.infowings.catalog.objects.treeview.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
@@ -41,7 +41,7 @@ fun RBuilder.aspectPropertyValues(
                 }
             )
         }
-        if (property.cardinality == Cardinality.INFINITY || (property.cardinality == Cardinality.ONE && values.size == 0)) {
+        if (property.cardinality == PropertyCardinality.INFINITY || (property.cardinality == PropertyCardinality.ONE && values.size == 0)) {
             div {
                 Button {
                     attrs {
