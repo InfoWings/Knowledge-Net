@@ -35,6 +35,7 @@ class NotFreeAspectUpdateTest {
     private lateinit var aspectLinkedOtherAspect: AspectData
     private lateinit var aspectWithObjectProperty: AspectData
     private lateinit var aspectWithValue: AspectData
+    private lateinit var objectPropertyId: String
 
     @Before
     fun init() {
@@ -51,9 +52,13 @@ class NotFreeAspectUpdateTest {
 
     @Test(expected = AspectModificationException::class)
     fun testChangeBaseTypeHasValue() {
-        val newAspect = aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
+        createValue()
+        aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
+    }
 
-        Assert.assertEquals("aspect should have net base type", newAspect.baseType, BaseType.Text.name)
+    @Test(expected = AspectModificationException::class)
+    fun testChangeBaseTypePropHasValue() {
+        aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
     }
 
     @Test
@@ -67,8 +72,14 @@ class NotFreeAspectUpdateTest {
     }
 
     @Test(expected = AspectModificationException::class)
-    fun testChangeAspectMeasureOtherGroupHasValue() {
+    fun testChangeAspectMeasureOtherGroupPropHasValue() {
         aspectService.save(aspectWithValue.copy(measure = Litre.name), username)
+    }
+
+    @Test(expected = AspectModificationException::class)
+    fun testChangeAspectMeasureOtherGroupHasValue() {
+        createValue()
+        aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
     }
 
     @Test
@@ -117,15 +128,8 @@ class NotFreeAspectUpdateTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
-        val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = objProperty,
-            aspectPropertyId = aspectWithObjectProperty.properties[0].id,
-            measureId = null,
-            parentValueId = null
-        )
-        objectService.create(objPropertyValueRequest, username)
+        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
+        createValue(aspectWithObjectProperty.properties[0].id)
 
         aspectWithObjectProperty = aspectService.findById(aspectWithObjectProperty.id!!).toAspectData()
         aspectWithValue = aspectService.findById(aspectWithValue.id!!).toAspectData()
@@ -138,5 +142,16 @@ class NotFreeAspectUpdateTest {
         val ad1 = AspectData("", "aspectLinkedOtherAspect", Kilometre.name, null, BaseType.Decimal.name, listOf(ap))
         aspectService.save(ad1, username).toAspectData()
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!).toAspectData()
+    }
+
+    private fun createValue(aspectPropertyId: String? = null) {
+        val objPropertyValueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = objectPropertyId,
+            aspectPropertyId = aspectPropertyId,
+            measureId = null,
+            parentValueId = null
+        )
+        objectService.create(objPropertyValueRequest, username)
     }
 }

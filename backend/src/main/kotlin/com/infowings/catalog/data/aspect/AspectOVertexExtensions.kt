@@ -3,6 +3,8 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.objekt.ObjectValue
+import com.infowings.catalog.data.objekt.toObjectPropertyVertex
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
@@ -133,8 +135,17 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE)
 
-    fun thereExistAspectImplementation(): Boolean =
-        getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any { it.toAspectPropertyVertex().isLinkedBy() }
+    fun thereExistAspectImplementation(): Boolean {
+        val inPropertyWithValue = getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any {
+            it.toAspectPropertyVertex().thereExistAspectPropertyImplementation()
+        }
+
+        val hasObjectPropertyWithValue = getVertices(ODirection.IN, ASPECT_OBJECT_PROPERTY_EDGE).any {
+            it.toObjectPropertyVertex().values.map { it.toObjectPropertyValue() }.any { it.aspectProperty == null && it.value != ObjectValue.NullValue }
+        }
+
+        return inPropertyWithValue || hasObjectPropertyWithValue
+    }
 
     override fun equals(other: Any?): Boolean {
         return vertex == other
