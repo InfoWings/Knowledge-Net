@@ -17,14 +17,23 @@ fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
 const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
+const val REFERENCE_BOOK_ROOT_EDGE = "ReferenceBookRootEdge"
 
 class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
     val edgeName = REFERENCE_BOOK_CHILD_EDGE
 
     override fun currentSnapshot(): Snapshot = Snapshot(
-        data = mapOf("value" to asStringOrEmpty(value), "description" to asStringOrEmpty(description)),
-        links = mapOf("children" to children.map { it.identity })
+        data = mapOf(
+            "value" to asStringOrEmpty(value),
+            "description" to asStringOrEmpty(description)
+        ),
+        links = mapOf(
+            "children" to children.map { it.identity },
+            "aspect" to listOfNotNull(aspect).map { it.identity },
+            "parent" to listOfNotNull(parent).map { it.identity },
+            "root" to listOfNotNull(root).map { it.identity }
+        )
     )
 
     val aspect: AspectVertex?
@@ -51,8 +60,11 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
             this["deleted"] = value
         }
 
-    val children: List<ReferenceBookItemVertex> =
-        getVertices(ODirection.OUT, edgeName).map { it.toReferenceBookItemVertex() }
+    val children: List<ReferenceBookItemVertex>
+        get() = getVertices(ODirection.OUT, edgeName).map { it.toReferenceBookItemVertex() }
+
+    val root: ReferenceBookItemVertex?
+        get() = getVertices(ODirection.IN, REFERENCE_BOOK_ROOT_EDGE).firstOrNull()?.toReferenceBookItemVertex()
 
     /**
      * Return parent ReferenceBookItemVertex or null

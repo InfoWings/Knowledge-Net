@@ -2,10 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
-import com.infowings.catalog.storage.toVertexOrNull
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -51,6 +48,12 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         transaction(db) {
             if (!parentVertex.children.contains(bookItemVertex)) {
                 parentVertex.addEdge(bookItemVertex, bookItemVertex.edgeName).save<OEdge>()
+                val rootOfParent = parentVertex.root
+                if (rootOfParent == null) {
+                    parentVertex.addEdge(bookItemVertex, REFERENCE_BOOK_ROOT_EDGE).save<OEdge>()
+                } else {
+                    rootOfParent.addEdge(bookItemVertex, REFERENCE_BOOK_ROOT_EDGE).save<OEdge>()
+                }
             }
             return@transaction bookItemVertex.save<OVertex>().toReferenceBookItemVertex()
         }

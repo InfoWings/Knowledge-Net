@@ -9,13 +9,14 @@ import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ROOT_EDGE
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 
-const val ATTR_NAME  = "name"
+const val ATTR_NAME = "name"
 const val ATTR_DESC = "description"
 
 const val USER_CLASS = "User"
@@ -187,6 +188,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         }
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
+        session.getClass(REFERENCE_BOOK_ROOT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ROOT_EDGE)
         session.getClass(ASPECT_REFERENCE_BOOK_EDGE) ?: session.createEdgeClass(ASPECT_REFERENCE_BOOK_EDGE)
         return@session this
     }

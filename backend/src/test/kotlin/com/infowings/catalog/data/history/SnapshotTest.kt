@@ -38,7 +38,6 @@ class SnapshotTest {
         val data = session(database) {
             initVertex(it, "SOME_CLASS")
         }
-        println(data)
 
         val vertices = transaction(database) {
             val verts = listOf(
@@ -54,8 +53,6 @@ class SnapshotTest {
 
     @Test
     fun diffSnapshotsSame() {
-        println(ids)
-
         val snapshots = listOf(
             Snapshot(emptyMap(), emptyMap()),
             Snapshot(mapOf("name" to "value"), emptyMap()),

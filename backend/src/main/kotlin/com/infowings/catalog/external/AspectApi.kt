@@ -43,7 +43,11 @@ class AspectApi(val aspectService: AspectService) {
         @RequestParam("q", required = false) query: String?
     ): AspectsList {
         logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
-        val orderBy = direct.zip(orderFields).map { AspectOrderBy(AspectSortField.valueOf(it.first), Direction.valueOf(it.second)) }
+        val orderBy = direct.zip(orderFields).map { (direction, order) ->
+            logger.info("directrion: <$direction>")
+            logger.info("order: <$order>")
+            AspectOrderBy(AspectSortField.valueOf(order), Direction.valueOf(direction))
+        }
         return AspectsList(aspectService.getAspects(orderBy, query).toAspectData())
     }
 

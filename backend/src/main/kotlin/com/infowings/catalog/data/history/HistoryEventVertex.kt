@@ -3,6 +3,7 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.auth.user.toUserVertex
+import com.infowings.catalog.common.EventType
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
@@ -72,4 +73,39 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         set(value) {
             vertex["sessionUUID"] = value.toString()
         }
+
+    private fun toEvent() = HistoryEvent(
+        userVertex.username,
+        timestamp.toEpochMilli(),
+        entityVersion,
+        EventType.valueOf(eventType),
+        entityRID,
+        entityClass
+    )
+
+    private fun dataMap() = getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE).map { vertex ->
+        val heVertex = vertex.toHistoryElementVertex()
+        heVertex.key to heVertex.stringValue
+    }.toMap()
+
+    private fun addedLinks() = getVertices(ODirection.OUT, HISTORY_ADD_LINK_EDGE)
+        .map { vertex -> vertex.toHistoryLinksVertex() }
+        .groupBy { linksVertex -> linksVertex.key }
+        .mapValues { (_, peers) -> peers.map { it.peerId } }
+
+    private fun removedLinks() = getVertices(ODirection.OUT, HISTORY_DROP_LINK_EDGE)
+        .map { vertex -> vertex.toHistoryLinksVertex() }
+        .groupBy { linksVertex -> linksVertex.key }
+        .mapValues { (_, peers) -> peers.map { it.peerId } }
+
+
+    fun toFact(): HistoryFactDto {
+        val event = toEvent()
+        val data = dataMap()
+        val addedLinks = addedLinks()
+        val removedLinks = removedLinks()
+        val payload = DiffPayload(data, addedLinks, removedLinks)
+
+        return HistoryFactDto(event, sessionId, payload)
+    }
 }

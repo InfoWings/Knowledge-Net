@@ -5,6 +5,7 @@ import com.infowings.catalog.storage.toVertexOrNull
 
 const val HISTORY_CLASS = "History"
 const val selectFromHistory = "SELECT FROM $HISTORY_EVENT_CLASS"
+const val selectFromHistoryTS = "SELECT FROM $HISTORY_EVENT_CLASS ORDER BY timestamp"
 
 class HistoryDao(private val db: OrientDatabase) {
     fun newHistoryEventVertex() = db.createNewVertex(HISTORY_EVENT_CLASS).toHistoryEventVertex()
@@ -16,6 +17,10 @@ class HistoryDao(private val db: OrientDatabase) {
     fun newDropLinkVertex() = db.createNewVertex(HISTORY_DROP_LINK_CLASS).toHistoryLinksVertex()
 
     fun getAllHistoryEvents() = db.query(selectFromHistory) { rs ->
-        rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toSet()
+        rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
+    }
+
+    fun getAllHistoryEventsByTime() = db.query(selectFromHistoryTS) { rs ->
+        rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
 }

@@ -9,8 +9,7 @@ import com.orientechnologies.orient.core.id.ORID
 fun Set<HistoryFactDto>.idEventMap(classname: String): Map<ORID, List<HistoryFactDto>> = this
     .filter { it.event.entityClass == classname }
     .groupBy { it.event.entityId }
-    .map { (id, events) -> id to events.sortedBy { it.event.timestamp } }
-    .toMap()
+    .mapValues { (_, events) -> events.sortedBy { it.event.timestamp } }
 
 
 fun createAspectFieldDelta(event: EventType, field: String, before: String?, after: String?): Delta =

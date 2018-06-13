@@ -41,16 +41,16 @@ fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
     // Предполагаем, что поля не выкидываются, но могут добавляться
     // выкинутое поле отследить не сложно, но его надо как-то особо в базе представить.
     // Без явной необходимости не хочется
+
     val updatedData = other.data
         .filter {
             it.value != base.data[it.key]
         }
 
     val addedLinks = other.links
-        .mapValues {
-            it.value - (base.links.getOrElse(it.key, { emptyList() }))
-        }
-        .filterValues {
+        .mapValues { (linkType, links) ->
+            links - (base.links.getOrElse(linkType, { emptyList() }))
+        }.filterValues {
             it.isNotEmpty()
         }
 

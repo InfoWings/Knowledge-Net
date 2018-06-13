@@ -20,6 +20,7 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
+data class ItemCreateRequest(val parentId: String, val value: String, val description: String)
 
 class ReferenceBookService(
     val db: OrientDatabase,
@@ -38,7 +39,7 @@ class ReferenceBookService(
             .map { it.toReferenceBook(it.aspect?.id ?: throw RefBookAspectNotFoundException(it.id)) }
     }
 
-    fun getReferenceBookNameById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBookItem()?.value
+    fun getReferenceBookNameById(id: String) = dao.getReferenceBookVertexById(id)?.value
 
     /**
      * Return ReferenceBook instance by [aspectId] or null if not found
@@ -88,7 +89,7 @@ class ReferenceBookService(
             historyService.storeFact(aspectVertex.toUpdateFact(context, aspectBefore))
 
             return@transaction savedRootVertex
-        }.toReferenceBook(aspectId)
+        }.toNewRoot(aspectId)
     }
 
     /**
@@ -181,6 +182,18 @@ class ReferenceBookService(
         getReferenceBookItemVertex(id).toReferenceBookItem()
     }
 
+    fun addReferenceBookItem(request: ItemCreateRequest, username: String): String = addReferenceBookItem(
+        request.parentId,
+        ReferenceBookItem(
+            id = "",
+            value = request.value,
+            description = request.description,
+            children = emptyList(),
+            deleted = false,
+            version = 0
+        ), username
+    )
+
     /**
      * Add ReferenceBookItem instance to item parent
      * @throws RefBookItemNotExist if parent item doesn't exist
@@ -204,6 +217,7 @@ class ReferenceBookService(
 
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
             parentBefore = parentVertex.currentSnapshot()
+
             parentVertex.validateValue(value, null)
 
             val itemVertex = dao.createReferenceBookItemVertex()
@@ -211,10 +225,12 @@ class ReferenceBookService(
             itemVertex.description = description
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
+            val parentVertex2 = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
 
             historyService.storeFact(savedItemVertex.toCreateFact(context))
             historyService.storeFact(updateFact)
+
             return@transaction savedItemVertex
         }.id
     }
@@ -346,6 +362,16 @@ class ReferenceBookService(
         name = value,
         description = description,
         children = toReferenceBookItem().children,
+        deleted = deleted,
+        version = version
+    )
+
+    private fun ReferenceBookItemVertex.toNewRoot(aspectId: String) = ReferenceBook(
+        aspectId = aspectId,
+        id = id,
+        name = value,
+        description = description,
+        children = emptyList(),
         deleted = deleted,
         version = version
     )

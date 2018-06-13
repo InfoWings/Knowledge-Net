@@ -3,6 +3,7 @@ package com.infowings.catalog.history
 import com.infowings.catalog.common.AspectDataView
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.HistoryData
+import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.userIcon
 import com.infowings.catalog.wrappers.blueprint.Collapse
@@ -66,6 +67,20 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                         }
                     }
                 }
+            is RefBookHistoryData.Companion.BriefState -> {
+                Collapse {
+                    attrs {
+                        className = "history-refbook-view--wrapper"
+                        isOpen = state.showFullVersion
+                    }
+                    refbookFullContainer {
+                        attrs {
+                            view = props.historyData.fullData as RefBookHistoryData.Companion.BriefState
+                            onExit = { setState { showFullVersion = false } }
+                        }
+                    }
+                }
+            }
 
             else -> Unit
         }
