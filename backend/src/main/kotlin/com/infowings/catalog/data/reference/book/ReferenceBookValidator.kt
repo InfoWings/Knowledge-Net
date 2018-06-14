@@ -17,7 +17,7 @@ class ReferenceBookValidator(private val dao: ReferenceBookDao) {
 
     fun checkRefBookItemLinkedByObject(bookItemVertex: ReferenceBookItemVertex, bookItem: ReferenceBookItem) {
         if (bookItemVertex.value != bookItem.value && bookItemVertex.isLinkedBy()) {
-            throw RefBookItemHasLinkedEntitiesException()
+            throw RefBookItemHasLinkedEntitiesException(bookItemVertex.id)
         }
     }
 
