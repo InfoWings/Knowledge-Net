@@ -185,7 +185,7 @@ class AspectValidator(
             if (aspectData.measure != null && aspectData.measure == measureName) {
                 throw AspectModificationException(id, "Measure is not null")
             }
-            if (thereExistAspectImplementation()) {
+            if (existsAspectImplementation()) {
                 throw AspectModificationException(id, "There exist values of the aspect")
             }
         }
@@ -194,7 +194,7 @@ class AspectValidator(
     private fun AspectVertex.checkMeasureChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.measure != measureName) {
             val sameGroup = MeasureMeasureGroupMap[measureName] == MeasureMeasureGroupMap[aspectData.measure]
-            if (!sameGroup && thereExistAspectImplementation()) {
+            if (!sameGroup && existsAspectImplementation()) {
                 throw AspectModificationException(id, "Impossible to change measure group in case of there exist values of the aspect")
             }
         }
@@ -203,7 +203,7 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-                if (thereExistAspectPropertyImplementation()) {
+                if (existsAspectPropertyImplementation()) {
                     throw AspectPropertyModificationException(id, "Impossible to change aspectId")
                 }
             }

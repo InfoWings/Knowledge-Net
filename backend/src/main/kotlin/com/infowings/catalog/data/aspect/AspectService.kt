@@ -143,6 +143,7 @@ class AspectService(
             when {
                 linked && force -> {
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex, force)
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked -> {
@@ -224,11 +225,7 @@ class AspectService(
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
-        if (vertex.isLinkedBy()) {
-            return@transaction aspectDaoService.fakeRemove(vertex)
-        }
-
-        return@transaction aspectDaoService.remove(vertex)
+        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(vertex)
     }
 
     /**

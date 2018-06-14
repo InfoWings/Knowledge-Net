@@ -150,13 +150,16 @@ class ReferenceBookService(
             val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
             rootVertex.validateItemAndChildrenVersions(referenceBook.toRoot())
 
-            val hasChildItemLinkedByObject = rootVertex.isSubtreeLinked()
+            val itemsLinkedByObject = rootVertex.getLinkedInSubtree()
             when {
-                hasChildItemLinkedByObject && force -> {
+                itemsLinkedByObject.isNotEmpty() && force -> {
                     historyService.storeFact(rootVertex.toSoftDeleteFact(HistoryContext(userVertex)))
                     dao.markItemVertexAsDeleted(rootVertex)
                 }
-                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException()
+                itemsLinkedByObject.isNotEmpty() -> {
+                    val itemsIds = itemsLinkedByObject.joinToString(", ") { it.id }
+                    throw RefBookItemHasLinkedEntitiesException(itemsIds)
+                }
                 else -> {
                     historyService.storeFact(rootVertex.toDeleteFact(HistoryContext(userVertex)))
                     dao.removeRefBookItemVertex(rootVertex)
@@ -280,13 +283,16 @@ class ReferenceBookService(
                 .validateItemAndChildrenVersions(bookItem)
 
             // Important! Not described in wiki. Possibly, need to discuss
-            val hasChildItemLinkedByObject = bookItemVertex.isSubtreeLinked()
+            val itemsLinkedByObject = bookItemVertex.getLinkedInSubtree()
             when {
-                hasChildItemLinkedByObject && force -> {
+                itemsLinkedByObject.isNotEmpty() && force -> {
                     historyService.storeFact(bookItemVertex.toSoftDeleteFact(HistoryContext(userVertex)))
                     dao.markItemVertexAsDeleted(bookItemVertex)
                 }
-                hasChildItemLinkedByObject -> throw RefBookItemHasLinkedEntitiesException()
+                itemsLinkedByObject.isNotEmpty() -> {
+                    val itemsIds = itemsLinkedByObject.joinToString(", ") { it.id }
+                    throw RefBookItemHasLinkedEntitiesException(itemsIds)
+                }
                 else -> {
                     historyService.storeFact(bookItemVertex.toDeleteFact(HistoryContext(userVertex)))
                     dao.removeRefBookItemVertex(bookItemVertex)
@@ -384,7 +390,7 @@ class RefBookItemMoveImpossible(sourceId: String, targetId: String) :
 
 class RefBookItemIllegalArgumentException(message: String) : ReferenceBookException(message)
 
-class RefBookItemHasLinkedEntitiesException : ReferenceBookException()
+class RefBookItemHasLinkedEntitiesException(ids: String) : ReferenceBookException(ids)
 
 class RefBookConcurrentModificationException(id: String, message: String) :
     ReferenceBookException("id: $id, message: $message")

@@ -14,21 +14,22 @@ fun OVertex.toObjectVertex() = ObjectVertex(this)
 class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = OBJECT_CLASS
 
-    override  fun currentSnapshot(): Snapshot = Snapshot(
+    override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)
         ),
         links = mapOf(
             "subject" to listOfNotNull(subject?.identity),
-            "properties" to properties.map {it.identity}
+            "properties" to properties.map { it.identity }
         )
     )
 
 
     var name: String
         get() = vertex[ATTR_NAME]
-        set(value) { vertex[ATTR_NAME] = value
+        set(value) {
+            vertex[ATTR_NAME] = value
         }
 
     var description: String?

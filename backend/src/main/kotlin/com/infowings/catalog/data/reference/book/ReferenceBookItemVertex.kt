@@ -69,7 +69,13 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_REFBOOK_ITEM_EDGE)
 
-    fun isSubtreeLinked(): Boolean = isLinkedBy() || children.any { it.isSubtreeLinked() }
+    fun getLinkedInSubtree(): MutableList<ReferenceBookItemVertex> {
+        val linkedChildren = children.flatMap { it.getLinkedInSubtree() }.toMutableList()
+        if (isLinkedBy()) {
+            linkedChildren.add(this)
+        }
+        return linkedChildren
+    }
 
     override fun equals(other: Any?): Boolean = vertex == other
 
