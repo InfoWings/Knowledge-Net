@@ -42,19 +42,13 @@ data class MutableSnapshot(val data: MutableMap<String, String>, val links: Muta
     }
 
     fun addLink(target: String, link: ORID) {
-        if (target in links) {
-            links[target]?.add(link)
-        } else {
-            links[target] = mutableSetOf(link)
-        }
+        links.computeIfAbsent(target) { mutableSetOf() }.add(link)
     }
 
     fun removeLink(target: String, link: ORID) {
         if (target in links) {
             links[target]?.remove(link)
             if (links[target]?.size == 0) links.remove(target)
-        } else {
-            links[target] = mutableSetOf(link)
         }
     }
 
@@ -89,6 +83,7 @@ data class HistoryEventWrite(
 /*
 Структура для представления прочитанного события - вместе vertex - данные, извелеченные оттуда
  */
+/*
 data class HistoryEvent(
     val username: String,
     val timestamp: Long,
@@ -103,7 +98,7 @@ data class HistoryEvent(
         entityId = entityId.toString(), entityClass = entityClass, sessionId = sessionId.toString()
     )
 }
-
+*/
 
 /* Исторический факт. Состоит из метаданных (event) и данных о внесенных изменениях (payload)
  */
@@ -113,19 +108,19 @@ data class HistoryFactWrite(
 )
 
 data class HistoryFact(
-    val event: HistoryEvent,
+    val event: HistoryEventData,
     val payload: DiffPayload
 )
 
 
 data class HistorySnapshot(
-    val event: HistoryEvent,
+    val event: HistoryEventData,
     val before: Snapshot,
     val after: Snapshot,
     val diff: DiffPayload
 ) {
     fun toData(): HistorySnapshotData = HistorySnapshotData(
-        event = event.toHistoryEventData(),
+        event = event,
         before = before.toSnapshotData(),
         after = after.toSnapshotData(),
         diff = diff.toData()

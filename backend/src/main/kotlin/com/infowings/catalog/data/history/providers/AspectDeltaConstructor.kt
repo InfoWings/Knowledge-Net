@@ -3,7 +3,6 @@ package com.infowings.catalog.data.history.providers
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryEvent
 import com.infowings.catalog.data.history.HistoryFact
 
 class AspectDeltaConstructor(val aspectService: AspectService) {
@@ -67,7 +66,7 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
                 )
                 AspectField.DESCRIPTION -> createAspectFieldDelta(
                     mainFact.event.type,
-                    AspectField.NAME.view,
+                    AspectField.DESCRIPTION.view,
                     before.name,
                     after.name
                 )
@@ -141,12 +140,12 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
     }
 
     private fun createHistoryElement(
-        event: HistoryEvent,
+        event: HistoryEventData,
         changes: List<FieldDelta>,
         data: AspectData,
         related: List<AspectData>
     ) = AspectHistory(
-        event.toHistoryEventData(),
+        event,
         data.name,
         data.deleted,
         AspectDataView(data, related),

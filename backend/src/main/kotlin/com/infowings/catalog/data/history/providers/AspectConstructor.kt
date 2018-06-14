@@ -76,7 +76,7 @@ class AspectConstructor(
 
         val updatedProps = map { aspectPropertyData ->
             val relatedEvents =
-                propertyEventMap[ORecordId(aspectPropertyData.id)]?.sortedBy { it.event.timestamp } ?: emptyList()
+                propertyEventMap[aspectPropertyData.id]?.sortedBy { it.event.timestamp } ?: emptyList()
             return@map relatedEvents.fold(aspectPropertyData) { acc, event -> acc.submitFieldsEvents(event) }
         }
 

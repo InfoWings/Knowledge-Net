@@ -3,6 +3,7 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
@@ -17,14 +18,14 @@ class HistoryService(
     fun getAll(): Set<HistoryFact> = transaction(db) {
         return@transaction historyDao.getAllHistoryEvents()
             .map {
-                val event = HistoryEvent(
+                val event = HistoryEventData(
                     it.userVertex.username,
                     it.timestamp.toEpochMilli(),
                     it.entityVersion,
                     EventType.valueOf(it.eventType),
-                    it.entityRID,
+                    it.entityRID.toString(),
                     it.entityClass,
-                    it.sessionId
+                    it.sessionId.toString()
                 )
 
                 val data = it.getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE)
