@@ -22,6 +22,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 data class ItemCreateRequest(val parentId: String, val value: String, val description: String?)
 data class LeafEditRequest(val id: String, val value: String, val description: String?, val version: Int)
+data class RootEditRequest(val aspectId: String, val value: String, val description: String?, val version: Int)
 
 class ReferenceBookService(
     val db: OrientDatabase,
@@ -93,6 +94,11 @@ class ReferenceBookService(
         }.toNewRoot(aspectId)
     }
 
+    fun editRoot(request: RootEditRequest, username: String) {
+        updateReferenceBook(ReferenceBook(aspectId = request.aspectId, id = "", name = request.value,
+            description = request.description, version = request.version, children = emptyList(), deleted = false), username)
+    }
+
     /**
      * Update ReferenceBook name or description
      * @throws RefBookNotExist
@@ -107,7 +113,10 @@ class ReferenceBookService(
             val newDescription: String? = book.description
 
             val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
+
             if (rootVertex.toReferenceBook(aspectId) == book) {
+                // кажется, это не очень корректное условие
+                // потому что children участвует в сравнении, но не участвует в изменениях
                 throw RefBookEmptyChangeException()
             }
             val before = rootVertex.currentSnapshot()
