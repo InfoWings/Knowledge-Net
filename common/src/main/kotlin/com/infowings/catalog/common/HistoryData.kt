@@ -27,6 +27,11 @@ data class HistoryData<T>(
     var changes: List<Delta>
 )
 
+@Serializable
+data class SnapshotData(
+    val data: Map<String, String>,
+    val links: Map<String, List<String>>
+)
 
 
 typealias AspectHistory = HistoryData<AspectDataView>

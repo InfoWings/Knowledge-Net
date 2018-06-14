@@ -1,11 +1,14 @@
 package com.infowings.catalog.data.history.providers
 
 
-import com.infowings.catalog.common.*
-import com.infowings.catalog.common.history.refbook.RefBookHistoryData
+import com.infowings.catalog.common.Delta
+import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.MutableSnapshot
+import com.infowings.catalog.data.history.RefBookHistoryInfo
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 
 const val HISTORY_ENTITY_REFBOOK = "Reference Book"
@@ -44,8 +47,10 @@ class RefBookHistoryProvider(
 
         val grb = rbFacts.groupBy { it.sessionId }
 
-        val lastSnapshots = mutableMapOf<String, RefBookHistoryData.Companion.Header>()
+        val lastHeaders = mutableMapOf<String, RefBookHistoryInfo.Companion.Header>()
         val lastVersions = mutableMapOf<String, Int>()
+        val lastRoots = mutableMapOf<String, String>()
+        val lastItems = mutableMapOf<String, RefBookHistoryInfo.Companion.Item>()
 
         val res = grb.values.map { sessionFacts ->
 
@@ -60,21 +65,22 @@ class RefBookHistoryProvider(
                 if (sessionFacts.size == 1) {
                     val fact = sessionFacts[0]
                     val refBookId = fact.event.entityId.toString()
+                    val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
                     val aspectId = fact.payload.addedLinks.getValue("aspect")[0].toString()
                     val aspectName = aspectDao.getAspectVertex(aspectId)?.name ?: "???"
 
-                    val header = RefBookHistoryData.Companion.Header(
-                        id = refBookId, name = fact.payload.data.getValue("value"),
-                        description = fact.payload.data["description"],
-                        aspectId = fact.payload.addedLinks.getValue("aspect")[0].toString(),
+                    initial.apply(fact.payload)
+
+                    val header = RefBookHistoryInfo.Companion.Header(
+                        id = refBookId, snapshot = initial,
                         aspectName = aspectName
                     )
 
-                    lastSnapshots[refBookId] = header
+                    lastHeaders[refBookId] = header
                     lastVersions[refBookId] = fact.event.version
 
-                    val q1 = fact.payload.data.map { (key, value) -> Delta(key, "", value) }
-                    val q2 = fact.payload.addedLinks.map { (key, ids) ->
+                    val dataDeltas = fact.payload.data.map { (key, value) -> Delta(key, "", value) }
+                    val linkDeltas = fact.payload.addedLinks.map { (key, ids) ->
                         Delta(
                             "link_$key", "",
                             ids.joinToString(separator = ":") { it.toString() }
@@ -85,40 +91,71 @@ class RefBookHistoryProvider(
                         username = users.first(),
                         eventType = EventType.CREATE,
                         entityName = HISTORY_ENTITY_REFBOOK,
-                        info = header.name,
+                        info = header.snapshot.data.getValue("value"),
                         deleted = false,
                         timestamp = fact.event.timestamp,
                         version = fact.event.version,
-                        fullData = RefBookHistoryData.Companion.BriefState(header, null),
-                        changes = (q1 + q2).flatMap { transformDelta(it) }
+                        fullData = RefBookHistoryInfo.Companion.BriefState(header, null).toData(),
+                        changes = (dataDeltas + linkDeltas).flatMap { transformDelta(it) }
                     )
                 } else {
                     val itemId = createFact.event.entityId.toString()
                     val rootId = createFact.payload.addedLinks.getValue("root")[0].toString()
-                    val header = lastSnapshots.getValue(rootId)
+                    val header = lastHeaders.getValue(rootId)
+                    val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
 
-                    val newItem = RefBookHistoryData.Companion.Item(
-                        id = itemId, name = createFact.payload.data.getValue("value"),
-                        description = createFact.payload.data["description"]
+                    initial.apply(createFact.payload)
+
+                    val newItem = RefBookHistoryInfo.Companion.Item(
+                        id = itemId, snapshot = initial
                     )
 
-                    val q1 = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
+                    val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
 
+                    lastRoots[itemId] = rootId
+                    lastItems[itemId] = newItem
 
                     RefBookHistory(
                         username = users.first(),
                         eventType = EventType.UPDATE,
                         entityName = HISTORY_ENTITY_REFBOOK,
-                        info = header.name,
+                        info = header.snapshot.data.getValue("value"),
                         deleted = false,
                         timestamp = ts.max() ?: 0,
                         version = lastVersions.getValue(rootId),
-                        fullData = RefBookHistoryData.Companion.BriefState(header, newItem),
-                        changes = q1
+                        fullData = RefBookHistoryInfo.Companion.BriefState(header, newItem).toData(),
+                        changes = dataDeltas
                     )
                 }
+            } else if (sessionFacts.size == 1 && sessionFacts.first().event.type == EventType.UPDATE) {
+                val fact = sessionFacts.first()
+                val itemId = fact.event.entityId.toString()
+                val rootId = lastRoots.getValue(itemId)
+                val header = lastHeaders.getValue(rootId)
+
+                val item = lastItems.getValue(itemId)
+
+                val prev = item.snapshot.toSnapshot()
+
+                item.snapshot.apply(fact.payload)
+
+                val dataDeltas = fact.payload.data.map { (key, value) -> Delta(key, prev.data[key], value) }
+
+                RefBookHistory(
+                    username = users.first(),
+                    eventType = EventType.UPDATE,
+                    entityName = HISTORY_ENTITY_REFBOOK,
+                    info = header.snapshot.data.getValue("value"),
+                    deleted = false,
+                    timestamp = fact.event.timestamp,
+                    version = lastVersions.getValue(rootId),
+                    fullData = RefBookHistoryInfo.Companion.BriefState(header, item).toData(),
+                    changes = dataDeltas
+                )
+
             } else {
-                throw IllegalStateException("Sessions without creations are not supported yet")
+
+                throw IllegalStateException("Unexpected set of session facts: $sessionFacts")
             }
         }
 

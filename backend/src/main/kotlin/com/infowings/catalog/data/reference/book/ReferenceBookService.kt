@@ -20,7 +20,8 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 
-data class ItemCreateRequest(val parentId: String, val value: String, val description: String)
+data class ItemCreateRequest(val parentId: String, val value: String, val description: String?)
+data class LeafEditRequest(val id: String, val value: String, val description: String?, val version: Int)
 
 class ReferenceBookService(
     val db: OrientDatabase,
@@ -233,6 +234,19 @@ class ReferenceBookService(
 
             return@transaction savedItemVertex
         }.id
+    }
+
+    fun editReferenceBookItem(request: LeafEditRequest, username: String, force: Boolean = false) {
+        updateReferenceBookItem(
+            ReferenceBookItem(
+                id = request.id,
+                value = request.value,
+                description = request.description,
+                children = emptyList(),
+                deleted = false,
+                version = request.version
+            ), username, force
+        )
     }
 
     /**
