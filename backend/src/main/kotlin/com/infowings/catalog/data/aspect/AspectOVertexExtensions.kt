@@ -136,20 +136,22 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE)
 
     fun existsAspectImplementation(): Boolean {
-        val inPropertyWithValue = getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any {
-            it.toAspectPropertyVertex().existsAspectPropertyImplementation()
-        }
-
-        if (inPropertyWithValue) return true
-
-        val hasObjectPropertyWithValue = getVertices(ODirection.IN, ASPECT_OBJECT_PROPERTY_EDGE).any {
-            it.toObjectPropertyVertex().values.any {
-                val objPropertyValue = it.toObjectPropertyValue()
-                return objPropertyValue.aspectProperty == null && objPropertyValue.value != ObjectValue.NullValue
+        val inPropertyWithValue = lazy {
+            getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any {
+                it.toAspectPropertyVertex().existsAspectPropertyImplementation()
             }
         }
 
-        return hasObjectPropertyWithValue
+        val hasObjectPropertyWithValue = lazy {
+            getVertices(ODirection.IN, ASPECT_OBJECT_PROPERTY_EDGE).any {
+                it.toObjectPropertyVertex().values.any {
+                    val objPropertyValue = it.toObjectPropertyValue()
+                    objPropertyValue.aspectProperty == null && objPropertyValue.value != ObjectValue.NullValue
+                }
+            }
+        }
+
+        return inPropertyWithValue.value || hasObjectPropertyWithValue.value
     }
 
     override fun equals(other: Any?): Boolean {
