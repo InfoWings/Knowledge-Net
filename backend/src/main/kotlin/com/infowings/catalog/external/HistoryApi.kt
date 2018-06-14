@@ -22,17 +22,20 @@ class HistoryApi(val aspectHistoryProvider: AspectHistoryProvider, val subjectHi
         val deleteVersions: Map<String, Int> = history.filter {
             it.event.type.isDelete()
         }.map {
-            it.event.entityId.toString() to it.event.version
+            it.event.entityId to it.event.version
         }.toMap()
 
         return SubjectHistoryList(history.map {
             val snapshot = it.toData()
             val deletedAt = deleteVersions[snapshot.event.entityId]
+            val isDeleted =
+                it.event.type.isDelete() //if (deletedAt != null) deletedAt < snapshot.event.version else false
+
             SubjectHistory(
                 event = snapshot.event,
                 info = snapshot.after.data["name"],
-                deleted = if (deletedAt != null) deletedAt < snapshot.event.version else false,
-                fullData = snapshot.after,
+                deleted = isDeleted,
+                fullData = if (isDeleted) snapshot.before else snapshot.after,
                 changes = snapshot.diff.data.map { FieldDelta(it.key, snapshot.before.data[it.key], it.value) })
         })
     }

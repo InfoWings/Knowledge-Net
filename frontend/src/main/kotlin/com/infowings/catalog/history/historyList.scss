@@ -21,6 +21,13 @@ $color-yellow: #ffa500;
   align-items: center;
   margin: 3rem auto 3rem;
 
+  &--fieldName {
+    margin: 0.1rem 1rem 0.1rem 0;
+    cursor: default;
+    color: $color-red;
+    font-weight: bold;
+  }
+
   &--field {
 
     margin: 0.1rem 1rem 0.1rem 0;
