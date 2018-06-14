@@ -2,6 +2,7 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.Range
 import com.orientechnologies.orient.core.id.ORID
 
 data class DiffPayload(
@@ -66,3 +67,5 @@ fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
 }
 
 fun <T> asStringOrEmpty(v: T?) = v?.toString().orEmpty()
+
+fun Range.asString() = "$left:$right"

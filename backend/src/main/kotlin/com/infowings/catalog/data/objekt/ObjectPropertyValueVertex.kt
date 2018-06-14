@@ -5,6 +5,7 @@ import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.asString
 import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
@@ -64,10 +65,23 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "range" to asStringOrEmpty(range),
-            "precision" to asStringOrEmpty(precision)
+            "typeTag" to asStringOrEmpty(typeTag),
+            "range" to range?.asString().orEmpty(),
+            "precision" to asStringOrEmpty(precision),
+            "intValue" to asStringOrEmpty(intValue),
+            "strValue" to asStringOrEmpty(strValue),
+            "decimalValue" to asStringOrEmpty(decimalValue)
         ),
-        links = emptyMap()
+        links = mapOf(
+            "objectProperty" to listOfNotNull(objectProperty?.identity),
+            "aspectProperty" to listOfNotNull(aspectProperty?.identity),
+            "refValueObject" to listOfNotNull(refValueObject?.identity),
+            "refValueSubject" to listOfNotNull(refValueSubject?.identity),
+            "refValueDomainElement" to listOfNotNull(refValueDomainElement?.identity),
+            "measure" to listOfNotNull(measure?.identity),
+            "parentValue" to listOfNotNull(parentValue?.identity),
+            "children" to childrenValues.orEmpty().map { it.identity }
+        )
     )
 
     var typeTag: ScalarTypeTag?
@@ -153,6 +167,10 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     val parentValue: ObjectPropertyValueVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_VALUE_EDGE).firstOrNull()
             ?.toObjectPropertyValueVertex()
+
+    private val childrenValues: List<ObjectPropertyValueVertex>?
+        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
+            ?.map { it.toObjectPropertyValueVertex() }
 
     val refValueObject: ObjectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).firstOrNull()

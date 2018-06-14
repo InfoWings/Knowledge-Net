@@ -32,6 +32,14 @@ data class ValueCreateRequest(
 ) {
     constructor(value: ObjectValueData, objectPropertyId: String) : this(value, objectPropertyId, null, null, null)
 
+    constructor(value: ObjectValueData, objectPropertyId: String, measureId: String) : this(
+        value,
+        objectPropertyId,
+        measureId,
+        null,
+        null
+    )
+
     fun toDTO() = ValueCreateRequestDTO(value.toDTO(), objectPropertyId, measureId, aspectPropertyId, parentValueId)
 }
 
