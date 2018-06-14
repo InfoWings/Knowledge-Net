@@ -4,13 +4,11 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -111,18 +109,6 @@ class AspectServiceSavingTest {
         aspectService.save(ad, username)
     }
 
-    @Test
-    fun testChangeAspectParams() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username)
-
-        val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, Decimal.name, emptyList(), 1)
-        val newAspect = aspectService.save(ad2, username)
-
-        assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
-        assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
-    }
-
     @Test(expected = AspectAlreadyExist::class)
     fun testAddTwoAspectsSameName() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
@@ -171,94 +157,6 @@ class AspectServiceSavingTest {
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
         aspectService.save(ad, username)
-    }
-
-    @Test
-    fun testChangeAspectMeasureSameGroup() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username).toAspectData().copy(measure = Metre.name)
-
-        val newAspect = aspectService.save(aspect, username)
-
-        assertTrue("aspect should have new measure", newAspect.measure == Metre)
-
-        assertTrue("aspect should have correct base type", newAspect.baseType == Decimal)
-    }
-
-    // todo: Change to change measure in case no values for aspect
-    @Test
-    fun testChangeAspectMeasureOtherGroupFreeAspect() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username).toAspectData().copy(measure = Litre.name)
-
-        val newAspect = aspectService.save(aspect, username)
-
-        assertTrue("aspect should have new measure", newAspect.measure == Litre)
-
-        assertTrue("aspect should have correct base type", newAspect.baseType == Decimal)
-    }
-
-    // todo: Change to change measure in case no values for aspect
-    @Test
-    fun testChangeAspectMeasureOtherGroupOtherBaseType() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username)
-
-        // We have not measures with different from Decimal BaseType. So, little hack
-        val field = Gram::class.java.getDeclaredField("baseType")
-        field.isAccessible = true
-        field.set(Gram, Boolean)
-
-        val newAspect =
-            aspectService.save(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name), username)
-
-        assertTrue("aspect should have new measure", newAspect.measure == Gram)
-
-        assertTrue("aspect should have correct base type", newAspect.measure?.baseType == Boolean)
-
-        field.set(Gram, Decimal)
-    }
-
-    @Test
-    fun testChangeAspectMeasureOtherGroupNotFreeAspect() {
-        val ad = AspectData("", "aspect", null, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username)
-
-        val property = AspectProperty("", "name", aspect, null, PropertyCardinality.ONE, 0).toAspectPropertyData()
-        aspectService.save(aspect.toAspectData().copy(name = "new", id = null, properties = listOf(property)), username)
-
-        val ad2 = aspect.copy(measure = Litre, version = 2)
-        val saved = aspectService.save(ad2.toAspectData(), username)
-        assertTrue("measure should be Litre", saved.measure == Litre)
-    }
-
-    @Test
-    fun testMeasureBaseTypeManipulating() {
-        val ad = AspectData("", "aspect", Litre.name, null, null, emptyList())
-        val aspect = aspectService.save(ad, username)
-
-        assertTrue("base type should be decimal", aspect.baseType == Decimal)
-        assertTrue("measure should be litre", aspect.measure == Litre)
-
-        val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
-        val aspect2 = aspectService.save(ad2, username)
-
-        assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean)
-        assertTrue("measure should be null", aspect2.measure == null)
-
-        val ad3 = AspectData(
-            aspect.id,
-            "aspect",
-            Metre.name,
-            null,
-            BaseType.Decimal.name,
-            emptyList(),
-            aspect2.version
-        )
-        val aspect3 = aspectService.save(ad3, username)
-
-        assertTrue("base type should be decimal", aspect3.baseType == BaseType.Decimal)
-        assertTrue("measure should be metre", aspect3.measure == Metre)
     }
 
     @Test
@@ -456,18 +354,6 @@ class AspectServiceSavingTest {
             aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
         )
         Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
-    }
-
-    @Test
-    fun testUpdateSameData() {
-        prepareAspect()
-        val ad = aspectService.getAspects().first().toAspectData()
-        try {
-            aspectService.save(ad, username)
-        } catch (e: AspectEmptyChangeException) {
-        }
-        val newAspect = aspectService.findById(ad.id!!)
-        Assert.assertEquals("Same data shouldn't be rewritten", ad.version, newAspect.version)
     }
 
     private fun prepareAspect(): Aspect {
