@@ -4,6 +4,7 @@ import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
+import com.infowings.catalog.common.Range
 import com.orientechnologies.orient.core.id.ORID
 
 data class DiffPayload(
@@ -139,3 +140,5 @@ class RefBookHistoryInfo {
         }
     }
 }
+
+fun Range.asString() = "$left:$right"

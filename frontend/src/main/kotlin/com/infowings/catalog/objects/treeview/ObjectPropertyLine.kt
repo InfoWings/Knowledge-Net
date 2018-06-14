@@ -1,7 +1,7 @@
 package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.objects.Cardinality
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.objects.ObjectPropertyViewModel
 import com.infowings.catalog.objects.treeview.inputs.propertyAspect
 import com.infowings.catalog.objects.treeview.inputs.propertyCardinality
@@ -55,7 +55,7 @@ fun RBuilder.objectPropertyLine(
         )
         if (property.aspect != null) {
             when {
-                property.cardinality == Cardinality.ONE -> {
+                property.cardinality == PropertyCardinality.ONE -> {
                     propertyAspectTypePrompt(property.aspect ?: error("Memory Model inconsistency"))
                     propertyValue(
                         value = property.values?.firstOrNull()?.value ?: "",
@@ -74,7 +74,7 @@ fun RBuilder.objectPropertyLine(
                         }
                     )
                 }
-                property.cardinality == Cardinality.INFINITY ->
+                property.cardinality == PropertyCardinality.INFINITY ->
                     propertyAspectTypeInfo(property.aspect ?: error("Memory Model inconsistency"))
             }
         }
@@ -82,7 +82,7 @@ fun RBuilder.objectPropertyLine(
 
 fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, AspectData>) {
     when {
-        aspect != null && cardinality == Cardinality.ZERO && values == null -> {
+        aspect != null && cardinality == PropertyCardinality.ZERO && values == null -> {
             values = ArrayList()
             addValue(aspectsMap)
         }

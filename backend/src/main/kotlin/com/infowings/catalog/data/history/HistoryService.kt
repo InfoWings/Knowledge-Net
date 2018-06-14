@@ -37,6 +37,7 @@ class HistoryService(
         elementVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ELEMENT_EDGE) }
 
         val addLinkVertices = linksVertices(fact.payload.addedLinks, { historyDao.newAddLinkVertex() })
+
         addLinkVertices.forEach { historyEventVertex.addEdge(it, HISTORY_ADD_LINK_EDGE) }
 
         val dropLinkVertices = linksVertices(fact.payload.removedLinks, { historyDao.newDropLinkVertex() })
@@ -49,6 +50,26 @@ class HistoryService(
         db.saveAll(listOf(historyEventVertex) + elementVertices + addLinkVertices + dropLinkVertices)
 
         return@transaction historyEventVertex
+    }
+
+    fun <T> trackUpdate(entity: HistoryAware, context: HistoryContext, action: () -> T): T {
+        val before = entity.currentSnapshot()
+
+        val result = action()
+
+        storeFact(entity.toUpdateFact(context, before))
+
+        return result
+    }
+
+    fun <T> trackUpdates(entities: List<HistoryAware>, context: HistoryContext, action: () -> T): T {
+        fun worker(current: Int): T = when {
+            current == entities.size -> action()
+            current < entities.size -> trackUpdate(entities[current], context, { worker(current + 1) })
+            else -> throw IllegalStateException("incorrect index: $current")
+        }
+
+        return worker(0)
     }
 
     private fun HistoryFact.newHistoryEventVertex(): HistoryEventVertex =
