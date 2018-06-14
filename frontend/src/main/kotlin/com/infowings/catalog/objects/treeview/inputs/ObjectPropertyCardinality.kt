@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.treeview.inputs
 
-import com.infowings.catalog.objects.Cardinality
+import com.infowings.catalog.common.PropertyCardinality
 import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.HTMLSelectElement
 import react.RBuilder
@@ -9,7 +9,7 @@ import react.dom.option
 import react.dom.select
 
 
-fun RBuilder.propertyCardinality(value: Cardinality?, onChange: (Cardinality) -> Unit) =
+fun RBuilder.propertyCardinality(value: PropertyCardinality?, onChange: (PropertyCardinality) -> Unit) =
     div(classes = "pt-select object-property-input-cardinality") {
         select {
             attrs {
@@ -17,9 +17,9 @@ fun RBuilder.propertyCardinality(value: Cardinality?, onChange: (Cardinality) ->
                 onChangeFunction = { event ->
                     onChange(
                         when (event.target.unsafeCast<HTMLSelectElement>().value) {
-                            "ZERO" -> Cardinality.ZERO
-                            "ONE" -> Cardinality.ONE
-                            "INFINITY" -> Cardinality.INFINITY
+                            "ZERO" -> PropertyCardinality.ZERO
+                            "ONE" -> PropertyCardinality.ONE
+                            "INFINITY" -> PropertyCardinality.INFINITY
                             else -> error("Inconsistent state")
                         }
                     )
@@ -35,21 +35,21 @@ fun RBuilder.propertyCardinality(value: Cardinality?, onChange: (Cardinality) ->
             }
             option {
                 attrs {
-                    this.value = Cardinality.ZERO.name
+                    this.value = PropertyCardinality.ZERO.name
                 }
-                +"[0]"
+                +PropertyCardinality.ZERO.label
             }
             option {
                 attrs {
-                    this.value = Cardinality.ONE.name
+                    this.value = PropertyCardinality.ONE.name
                 }
-                +"[0..1]"
+                +PropertyCardinality.ONE.label
             }
             option {
                 attrs {
-                    this.value = Cardinality.INFINITY.name
+                    this.value = PropertyCardinality.INFINITY.name
                 }
-                +"[0..∞]"
+                +PropertyCardinality.INFINITY.label
             }
         }
     }
