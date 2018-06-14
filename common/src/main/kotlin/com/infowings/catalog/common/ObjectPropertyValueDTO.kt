@@ -36,6 +36,7 @@ enum class ValueDTOTags {
     INTEGER,
     BOOLEAN,
     STRING,
+    DECIMAL,
     RANGE,
     SUBJECT,
     OBJECT,
@@ -59,6 +60,8 @@ fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, nu
 
 fun booleanValueDto(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, null, null, null, null, null, value)
 
+fun decimalValueDto(valueRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, valueRepr, null, null, null, null, null)
+
 fun integerValueDto(value: Int, precision: Int?) =
     ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null, null)
 
@@ -71,6 +74,8 @@ fun domainElementValueDto(id: String) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.nam
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
     is ObjectValueData.IntegerValue ->
         integerValueDto(value, precision)
+    is ObjectValueData.DecimalValue ->
+        decimalValueDto(valueRepr)
     is ObjectValueData.BooleanValue ->
         booleanValueDto(value)
     is ObjectValueData.StringValue ->
@@ -92,6 +97,7 @@ fun ValueDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int val
 fun ValueDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
 fun ValueDTO.rangeStrict(): Range = range ?: throw IllegalStateException("range value is absent")
 fun ValueDTO.booleanStrict(): Boolean = booleanValue ?: throw IllegalStateException("boolean value is absent")
+fun ValueDTO.decimalStrict(): String = stringValue ?: throw IllegalStateException("decimal value representation is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.INTEGER -> {
@@ -105,6 +111,9 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     }
     ValueDTOTags.RANGE -> {
         ObjectValueData.RangeValue(rangeStrict())
+    }
+    ValueDTOTags.DECIMAL -> {
+        ObjectValueData.DecimalValue(decimalStrict())
     }
     ValueDTOTags.OBJECT ->
         ObjectValueData.Link(LinkValueData.Object(idStrict()))
