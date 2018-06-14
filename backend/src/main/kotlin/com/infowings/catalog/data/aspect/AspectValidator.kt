@@ -58,8 +58,10 @@ class AspectValidator(
 
         when {
             measureName == null && baseType == null ->
-                throw AspectInconsistentStateException("Measure and Base Type can't be null at the same time. " +
-                        "Please, enter either Measure or Base Type")
+                throw AspectInconsistentStateException(
+                    "Measure and Base Type can't be null at the same time. " +
+                            "Please, enter either Measure or Base Type"
+                )
             measureName == null && baseType != null -> BaseType.restoreBaseType(baseType)
         // will throw on incorrect baseType
 
@@ -146,6 +148,7 @@ class AspectValidator(
                 }
             }
     }
+
     private fun AspectData.checkAspectPropertyBusinessKey() = this.also {
 
         // check aspect properties business key
@@ -179,19 +182,20 @@ class AspectValidator(
 
     private fun AspectVertex.checkBaseTypeChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.baseType != baseType) {
-            if ((aspectData.measure != null && aspectData.measure == measureName)
-                || thereExistAspectImplementation(id)
-            ) {
-                throw AspectModificationException(id, "Impossible to change base type")
+            if (aspectData.measure != null && aspectData.measure == measureName) {
+                throw AspectModificationException(id, "Measure is not null")
+            }
+            if (existsAspectImplementation()) {
+                throw AspectModificationException(id, "There exist values of the aspect")
             }
         }
     }
 
     private fun AspectVertex.checkMeasureChangeCriteria(aspectData: AspectData) = this.also {
         if (aspectData.measure != measureName) {
-            val sameGroup = measureName == aspectData.measure
-            if (!sameGroup && thereExistAspectImplementation(id)) {
-                throw AspectModificationException(id, "Impossible to change measure")
+            val sameGroup = MeasureMeasureGroupMap[measureName] == MeasureMeasureGroupMap[aspectData.measure]
+            if (!sameGroup && existsAspectImplementation()) {
+                throw AspectModificationException(id, "Impossible to change measure group in case of there exist values of the aspect")
             }
         }
     }
@@ -199,7 +203,7 @@ class AspectValidator(
     private fun AspectPropertyVertex.checkPropertyAspectChangeCriteria(aspectPropertyData: AspectPropertyData) =
         this.also {
             if (aspect != aspectPropertyData.aspectId) {
-                if (thereExistAspectPropertyImplementation(aspectPropertyData.id)) {
+                if (existsAspectPropertyImplementation()) {
                     throw AspectPropertyModificationException(id, "Impossible to change aspectId")
                 }
             }
@@ -222,10 +226,4 @@ class AspectValidator(
         val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
         return relatedAspect != null && relatedAspect.deleted
     }
-
-    // todo: Complete this method in future
-    private fun thereExistAspectImplementation(aspectId: String): Boolean = false
-
-    // todo: Complete this method in future
-    private fun thereExistAspectPropertyImplementation(aspectPropertyId: String): Boolean = false
 }

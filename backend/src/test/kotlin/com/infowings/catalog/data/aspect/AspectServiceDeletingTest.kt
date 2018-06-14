@@ -2,6 +2,10 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
@@ -38,6 +42,12 @@ class AspectServiceDeletingTest {
 
     @Autowired
     lateinit var referenceBookDao: ReferenceBookDao
+
+    @Autowired
+    lateinit var subjectService: SubjectService
+
+    @Autowired
+    lateinit var objectService: ObjectService
 
     private lateinit var initialAspect: Aspect
 
@@ -134,7 +144,7 @@ class AspectServiceDeletingTest {
     }
 
     @Test
-    fun testDeleteLinkedAspect() {
+    fun testDeleteLinkedByAspect() {
         var a1 = aspectService.save(initialAspectData("a1"), username)
         val p1 = AspectPropertyData("", "", a1.id, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
@@ -154,6 +164,29 @@ class AspectServiceDeletingTest {
         val found2 = database.getVertexById(a1.id)?.toAspectVertex()
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
+    }
+
+    @Test
+    fun testDeleteHasValue() {
+        val ad2 = AspectData("", "leaf2", Second.name, null, BaseType.Decimal.name, emptyList())
+        val leafAspect = aspectService.save(ad2, username).toAspectData()
+        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+        val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+        val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
+        val aspectWithObjectProperty = aspectService.save(ad3, username).toAspectData()
+
+        val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
+        val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
+        objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
+
+
+        thrown.expect(AspectHasLinkedEntitiesException::class.java)
+        aspectService.remove(aspectWithObjectProperty.copy(version = aspectWithObjectProperty.version + 1), username)
+
+        aspectService.remove(aspectWithObjectProperty, username, true)
+
+        val deleted = aspectService.findById(aspectWithObjectProperty.id!!)
+        assertTrue("Found aspect must be deleted", deleted.deleted)
     }
 
     @Test

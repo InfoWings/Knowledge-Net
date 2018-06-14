@@ -6,6 +6,7 @@ import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.aspects.filter.aspectExcludeFilterComponent
 import com.infowings.catalog.aspects.filter.aspectSubjectFilterComponent
 import com.infowings.catalog.aspects.model.AspectsModel
+import com.infowings.catalog.aspects.search.aspectSearchComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
@@ -20,26 +21,36 @@ import react.RBuilder
 import react.dom.div
 
 fun RBuilder.aspectPageHeader(
-    onFetchAspects: (List<AspectOrderBy>) -> Unit,
+    onOrderByChanged: (List<AspectOrderBy>) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
     setFilterAspects: (List<AspectData>) -> Unit
-) = div(classes = "aspect-tree-view__header") {
-    aspectSort {
-        attrs {
-            onFetchAspect = onFetchAspects
+) = div(classes = "aspect-tree-view__header aspect-header") {
+    div(classes = "aspect-header__sort-search") {
+        aspectSort {
+            attrs {
+                this.onOrderByChanged = onOrderByChanged
+            }
+        }
+        aspectSearchComponent {
+            attrs {
+                onConfirmSearch = onSearchQueryChanged
+            }
         }
     }
-    aspectSubjectFilterComponent {
-        attrs {
-            subjectsFilter = filter.subjects
-            onChange = setFilterSubjects
+    div(classes = "aspect-header__text-filters") {
+        aspectSubjectFilterComponent {
+            attrs {
+                subjectsFilter = filter.subjects
+                onChange = setFilterSubjects
+            }
         }
-    }
-    aspectExcludeFilterComponent {
-        attrs {
-            selectedAspects = filter.excludedAspects
-            onChange = setFilterAspects
+        aspectExcludeFilterComponent {
+            attrs {
+                selectedAspects = filter.excludedAspects
+                onChange = setFilterAspects
+            }
         }
     }
 }

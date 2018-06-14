@@ -138,19 +138,12 @@ class AspectService(
 
             val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
 
-            //TODO: checking if children items linked by Objects and set correct linkedRefBookItems!
-            val linkedRefBookItems: List<ReferenceBookItem> = emptyList()
-            val hasLinkedRefBookItem = linkedRefBookItems.isNotEmpty()
+            val linked = aspectVertex.isLinkedBy()
 
-            val linked = aspectVertex.isLinkedBy() || hasLinkedRefBookItem
             when {
-                aspectVertex.isLinkedBy() && force -> {
-                    historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
-                    aspectDaoService.fakeRemove(aspectVertex)
-                }
                 linked && force -> {
-                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex, force)
                     historyService.storeFact(aspectVertex.toSoftDeleteFact(context))
+                    if (refBook != null) referenceBookService.removeReferenceBook(refBook, context.userVertex, force)
                     aspectDaoService.fakeRemove(aspectVertex)
                 }
                 linked -> {
@@ -177,9 +170,12 @@ class AspectService(
                 AspectSortField.NAME,
                 Direction.ASC
             )
-        )
-    ): List<Aspect> =
-        aspectDaoService.getAspects().map { it.toAspect() }.toList().sort(orderBy)
+        ),
+        query: String? = null
+    ): List<Aspect> = when {
+        query == null || query.isBlank() -> aspectDaoService.getAspects()
+        else -> aspectDaoService.findTransitiveByNameQuery(query)
+    }.map { it.toAspect() }.sort(orderBy)
 
     private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
@@ -229,7 +225,7 @@ class AspectService(
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
-        return@transaction aspectDaoService.remove(vertex)
+        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(vertex)
     }
 
     /**
@@ -363,7 +359,6 @@ class AspectCyclicDependencyException(cyclicIds: List<String>) :
 
 class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
-
 class AspectInconsistentStateException(message: String) : AspectException(message)
 
 class AspectEmptyChangeException : AspectException()

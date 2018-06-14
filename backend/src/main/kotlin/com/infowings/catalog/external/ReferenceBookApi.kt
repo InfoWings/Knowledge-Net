@@ -1,10 +1,11 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.*
-import com.infowings.catalog.common.BadRequestCode.NEED_CONFIRMATION
+import com.infowings.catalog.common.ReferenceBook
+import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.ReferenceBookItemData
+import com.infowings.catalog.common.ReferenceBooksList
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.reference.book.*
-import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -94,14 +95,7 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
             is AspectDoesNotExist -> ResponseEntity.badRequest().body("Aspect doesn't exist")
             is RefBookItemMoveImpossible -> ResponseEntity.badRequest().body("Cannot move Reference Book Item")
             is RefBookItemIllegalArgumentException -> ResponseEntity.badRequest().body(e.message)
-            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body(
-                JSON.stringify(
-                    BadRequest(
-                        NEED_CONFIRMATION,
-                        "These Reference Book Items has linked entities: ${e.itemsWithLinkedObjects.map { it.value }}"
-                    )
-                )
-            )
+            is RefBookItemHasLinkedEntitiesException -> ResponseEntity.badRequest().body("Item is linked by object property value")
             is RefBookConcurrentModificationException ->
                 ResponseEntity.badRequest().body("Attempt to modify old version of Reference Book. Please refresh page.")
             is RefBookEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)

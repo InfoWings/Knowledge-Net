@@ -133,9 +133,10 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
             val createdProperty = prop.copy(id = createdPropertyId)
 
             createdProperty.values.forEach {
-                val valueText = it.scalarValue ?: throw IllegalStateException("scalar value is not specified: $it")
-                val valueData = convertValue(createdProperty, createdProperty.aspect, valueText)
-                        ?: throw IllegalStateException("could not create value data")
+                val valueData = it.scalarValue?.let { value ->
+                    convertValue(createdProperty, createdProperty.aspect, value)
+                            ?: throw IllegalStateException("could not create value data")
+                } ?: ObjectValueData.NullValue
 
                 val createRequest = ValueCreateRequest(value = valueData, objectPropertyId = createdPropertyId)
 

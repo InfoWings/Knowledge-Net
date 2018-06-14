@@ -27,7 +27,7 @@ data class ObjectViewModel(
 data class ObjectPropertyViewModel(
     val id: String? = null,
     var name: String? = null,
-    var cardinality: Cardinality? = null,
+    var cardinality: PropertyCardinality? = null,
     var aspect: AspectData? = null,
     var values: MutableList<ObjectPropertyValueViewModel>? = null,
     var expanded: Boolean = true
@@ -35,7 +35,7 @@ data class ObjectPropertyViewModel(
     constructor(objectPropertyData: ObjectPropertyData) : this(
         objectPropertyData.id,
         objectPropertyData.name,
-        Cardinality.valueOf(objectPropertyData.cardinality),
+        PropertyCardinality.valueOf(objectPropertyData.cardinality),
         objectPropertyData.aspect,
         objectPropertyData.values.map(::ObjectPropertyValueViewModel).toMutableList()
     )
@@ -111,7 +111,7 @@ data class AspectPropertyValueViewModel(
 data class AspectPropertyViewModel(
     val propertyId: String,
     val aspectId: String,
-    val cardinality: Cardinality,
+    val cardinality: PropertyCardinality,
     val roleName: String?,
     val aspectName: String,
     val measure: String?,
@@ -122,7 +122,7 @@ data class AspectPropertyViewModel(
     constructor(aspectPropertyData: AspectPropertyDataExtended) : this(
         aspectPropertyData.id,
         aspectPropertyData.aspectId,
-        Cardinality.valueOf(aspectPropertyData.cardinality),
+        PropertyCardinality.valueOf(aspectPropertyData.cardinality),
         aspectPropertyData.name,
         aspectPropertyData.aspectName,
         aspectPropertyData.aspectMeasure,
@@ -142,10 +142,6 @@ data class AspectPropertyViewModel(
         aspectBaseType = baseType,
         refBookName = refBookName
     )
-}
-
-enum class Cardinality {
-    ZERO, ONE, INFINITY
 }
 
 fun MutableList<AspectPropertyValueGroupViewModel>.toAspectPropertyValueData(): List<AspectPropertyValueData> =

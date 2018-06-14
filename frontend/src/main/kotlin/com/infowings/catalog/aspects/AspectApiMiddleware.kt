@@ -25,7 +25,8 @@ interface AspectApiReceiverProps : RProps {
     var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
-    var onFetchAspects: (List<AspectOrderBy>) -> Unit
+    var onOrderByChanged: (List<AspectOrderBy>) -> Unit
+    var onSearchQueryChanged: (String) -> Unit
 }
 
 /**
@@ -37,19 +38,21 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         data = emptyList()
         loading = true
         serverError = false
+        orderBy = emptyList()
+        searchQuery = ""
     }
 
     override fun componentDidMount() {
-        fetchAspects()
+        fetchAllAspects()
     }
 
-    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
+    private fun fetchAllAspects() {
         launch {
             try {
-                val response = getAllAspects(orderBy)
+                val response = getAllAspects()
                 setState {
                     data = response.aspects
-                    context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()
+                    context = response.aspects.associateBy { it.id!! }.toMutableMap()
                     loading = false
                 }
             } catch (exception: ServerException) {
@@ -61,6 +64,38 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 }
             }
         }
+    }
+
+    private fun fetchAspects() {
+        launch {
+            try {
+                val response = getAllAspects(state.orderBy, state.searchQuery)
+                setState {
+                    data = response.aspects
+                }
+            } catch (exception: ServerException) {
+                setState {
+                    data = emptyList()
+                    context = mutableMapOf()
+                    loading = false
+                    serverError = true
+                }
+            }
+        }
+    }
+
+    private fun setAspectsOrderBy(orderBy: List<AspectOrderBy>) {
+        setState {
+            this.orderBy = orderBy
+        }
+        fetchAspects()
+    }
+
+    private fun setAspectsSearchQuery(query: String) {
+        setState {
+            this.searchQuery = query
+        }
+        fetchAspects()
     }
 
     private suspend fun handleCreateNewAspect(aspectData: AspectData): AspectData {
@@ -159,7 +194,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     onAspectUpdate = { handleUpdateAspect(it) }
                     refreshAspect = ::refreshAspect
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
-                    onFetchAspects = ::fetchAspects
+                    onOrderByChanged = this@AspectApiMiddleware::setAspectsOrderBy
+                    onSearchQueryChanged = this@AspectApiMiddleware::setAspectsSearchQuery
                 }
             }
         } else {
@@ -210,6 +246,14 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
          * Server error happened
          */
         var serverError: Boolean
+        /**
+         * Ordering of returned aspects
+         */
+        var orderBy: List<AspectOrderBy>
+        /**
+         * Aspect search query
+         */
+        var searchQuery: String
     }
 }
 
