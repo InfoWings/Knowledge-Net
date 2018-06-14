@@ -1,22 +1,35 @@
 package com.infowings.catalog.objects.treeview.inputs.dialog
 
-import com.infowings.catalog.objects.treeview.inputs.values.RefBookNodeDescriptor
-import com.infowings.catalog.objects.treeview.inputs.values.RefBookValue
+import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
+import com.infowings.catalog.objects.treeview.inputs.RefBookValue
 import com.infowings.catalog.reference.book.getReferenceBook
+import com.infowings.catalog.reference.book.getReferenceBookItemPath
 import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.Callout
 import com.infowings.catalog.wrappers.blueprint.Dialog
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinext.js.require
 import kotlinx.coroutines.experimental.launch
 import react.*
 import react.dom.div
 
-class SelectReferenceBookValueDialog : RComponent<SelectReferenceBookValueDialog.Props, SelectReferenceBookValueDialog.State>() {
+class SelectReferenceBookValueDialog(props: Props) : RComponent<SelectReferenceBookValueDialog.Props, SelectReferenceBookValueDialog.State>(props) {
+
+    companion object {
+        init {
+            require("styles/reference-book-dialog.scss")
+        }
+    }
+
+    override fun State.init(props: Props) {
+        selectedValue = props.initialValue
+    }
 
     override fun componentDidUpdate(prevProps: Props, prevState: State) {
         if (!prevProps.isOpen && props.isOpen) {
             launch {
-                val referenceBook = getReferenceBook(props.initialValue.refBookId)
+                val referenceBook = getReferenceBook(props.initialValue.aspectId)
                 setState {
                     referenceBookViewModel = referenceBook.toSelectViewModel().expandPath(props.initialValue.refBookTreePath)
                 }
@@ -24,8 +37,13 @@ class SelectReferenceBookValueDialog : RComponent<SelectReferenceBookValueDialog
         }
     }
 
-    private fun selectPath(path: List<RefBookNodeDescriptor>) = setState {
-        selectedPath = path
+    private fun selectItem(itemId: String) {
+        launch {
+            val selectedPath = getReferenceBookItemPath(itemId).path
+            setState {
+                selectedValue = RefBookValue(state.selectedValue.aspectId, selectedPath.map { RefBookNodeDescriptor(it.id, it.value) })
+            }
+        }
     }
 
     private fun handleUpdateModel(index: Int, block: ReferenceBookItemViewModel.() -> Unit) = setState {
@@ -33,20 +51,27 @@ class SelectReferenceBookValueDialog : RComponent<SelectReferenceBookValueDialog
         model.items[index].block()
     }
 
+    private fun handleConfirmSelect() = props.onSelect(state.selectedValue)
+
     override fun RBuilder.render() {
         Dialog {
             attrs {
                 isOpen = props.isOpen
-                onClose = { }
+                onClose = { props.onCancel() }
                 title = "Select value from reference book${state.referenceBookViewModel?.let { " ${it.name}" }}".asReactElement()
             }
             div(classes = "pt-dialog-body") {
-                referenceBookListView {
-                    attrs {
-                        referenceBookItemList = state.referenceBookViewModel?.items ?: TODO("SOMETHININGIDJIFDII")
-                        selectedPath = props.initialValue.refBookTreePath
-                        onSelect = this@SelectReferenceBookValueDialog::selectPath
-                        onUpdate = this@SelectReferenceBookValueDialog::handleUpdateModel
+                if (state.selectedValue.refBookTreePath.isNotEmpty()) {
+                    referenceBookPathView(path = state.selectedValue.refBookTreePath)
+                }
+                state.referenceBookViewModel?.let {
+                    referenceBookListView {
+                        attrs {
+                            referenceBookItemList = it.items
+                            selectedPath = state.selectedValue.refBookTreePath
+                            onSelect = this@SelectReferenceBookValueDialog::selectItem
+                            onUpdate = this@SelectReferenceBookValueDialog::handleUpdateModel
+                        }
                     }
                 }
             }
@@ -56,7 +81,7 @@ class SelectReferenceBookValueDialog : RComponent<SelectReferenceBookValueDialog
                         attrs {
                             intent = Intent.PRIMARY
                             text = "Apply value".asReactElement()
-                            onClick = { }
+                            onClick = { handleConfirmSelect() }
                         }
                     }
                 }
@@ -72,9 +97,13 @@ class SelectReferenceBookValueDialog : RComponent<SelectReferenceBookValueDialog
     }
 
     interface State : RState {
-        var selectedPath: List<RefBookNodeDescriptor>
+        var selectedValue: RefBookValue
         var referenceBookViewModel: ReferenceBookViewModel?
     }
+}
+
+fun RBuilder.referenceBookPathView(path: List<RefBookNodeDescriptor>) = Callout {
+    +path.joinToString(" → ") { it.name }
 }
 
 fun RBuilder.selectReferenceBookValueDialog(

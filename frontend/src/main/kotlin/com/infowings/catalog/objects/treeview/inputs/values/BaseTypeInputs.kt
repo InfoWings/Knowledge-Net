@@ -1,5 +1,6 @@
 package com.infowings.catalog.objects.treeview.inputs.values
 
+import com.infowings.catalog.objects.treeview.inputs.referenceBookInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.NumericInput
 import com.infowings.catalog.wrappers.blueprint.Switch
@@ -45,8 +46,10 @@ fun RBuilder.booleanInput(value: String?, onUpdate: (String) -> Unit) = Switch {
     }
 }
 
-class RefBookValue(val refBookId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
-
-class RefBookNodeDescriptor(val id: String, val name: String)
-
-//fun RBuilder.refBookInput(value: RefBookValue, onUpdate: (RefBookValue) -> Unit) =
+fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefBookId: String) = referenceBookInput {
+    attrs {
+        this.itemId = value
+        this.aspectId = aspectRefBookId
+        this.onUpdate = onUpdate
+    }
+}

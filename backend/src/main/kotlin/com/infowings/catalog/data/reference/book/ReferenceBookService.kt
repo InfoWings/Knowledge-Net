@@ -40,8 +40,6 @@ class ReferenceBookService(
 
     fun getReferenceBookNameById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBookItem()?.value
 
-    fun getReferenceBookById(id: String) = dao.getReferenceBookVertexById(id)?.toReferenceBook()
-
     /**
      * Return ReferenceBook instance by [aspectId] or null if not found
      */
@@ -91,6 +89,12 @@ class ReferenceBookService(
 
             return@transaction savedRootVertex
         }.toReferenceBook(aspectId)
+    }
+
+    fun getPath(itemId: String): List<ReferenceBookItem> {
+        return transaction(db) {
+            return@transaction dao.getRefBookItemVertexParents(itemId).dropLast(1).map { it.toReferenceBookItem() }.asReversed()
+        }
     }
 
     /**

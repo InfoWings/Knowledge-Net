@@ -7,11 +7,11 @@ import react.*
 
 
 interface ObjectTreeViewModel {
-    fun selectObjTree(objTreeView: ObjectViewModel)
-    fun updateSelectedObjTree(updater: ObjectViewModel.() -> Unit)
-    fun updateObjTree(index: Int, updater: ObjectViewModel.() -> Unit)
-    fun addNewObjTree()
-    fun saveObjTree()
+    fun selectObject(objTreeView: ObjectViewModel /* ObjectViewModel | ObjectProperty | ObjectValue */)
+    fun updateSelectedObject(updater: ObjectViewModel.() -> Unit)
+    fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit)
+    fun addObject()
+    fun saveObject()
 }
 
 interface ObjectTreeViewModelConsumerProps : RProps {
@@ -25,63 +25,63 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
     ObjectTreeViewModel {
 
     override fun State.init() {
-        objForest = ArrayList()
-        editedObjTree = null
+        objects = ArrayList()
+        editedObject = null
     }
 
     override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) = setState {
         // TODO: Smart merging of the incoming data into view state
-        objForest = nextProps.objList.map(::ObjectViewModel).toMutableList()
+        objects = nextProps.objList.map(::ObjectViewModel).toMutableList()
     }
 
 
-    override fun updateSelectedObjTree(updater: ObjectViewModel.() -> Unit) = setState {
-        editedObjTree?.updater() ?: error("Inconsistent state")
+    override fun updateSelectedObject(updater: ObjectViewModel.() -> Unit) = setState {
+        editedObject?.updater() ?: error("Inconsistent state")
     }
 
-    override fun updateObjTree(index: Int, updater: ObjectViewModel.() -> Unit) = setState {
-        objForest[index].updater()
+    override fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit) = setState {
+        objects[index].updater()
     }
 
-    override fun saveObjTree() = setState {
-        val savedObjData = editedObjTree?.toObjectData() ?: error("Inconsistent state")
+    override fun saveObject() = setState {
+        val savedObjData = editedObject?.toObjectData() ?: error("Inconsistent state")
         launch {
             props.objectApiModel.submitObj(savedObjData)
         }
-        editedObjTree = null
+        editedObject = null
     }
 
-    override fun selectObjTree(objTreeView: ObjectViewModel) = setState {
-        if (objTreeView != editedObjTree) {
-            editedObjTree?.let { objTree ->
+    override fun selectObject(objTreeView: ObjectViewModel) = setState {
+        if (objTreeView != editedObject) {
+            editedObject?.let { objTree ->
                 objTree.id?.let {
                     val objData = props.objMap[it] ?: error("Inconsistent State")
                     objTree.name = objData.name
                     objTree.subject = objData.subject
-                } ?: objForest.removeAt(objForest.lastIndex)
+                } ?: objects.removeAt(objects.lastIndex)
             }
-            editedObjTree = objTreeView
+            editedObject = objTreeView
         }
     }
 
-    override fun addNewObjTree() = setState {
+    override fun addObject() = setState {
         // TODO: Probably different interfaces for creating an editing
-        editedObjTree?.let { objTree ->
+        editedObject?.let { objTree ->
             objTree.id?.let {
                 val objData = props.objMap[it] ?: error("Inconsistent State")
                 objTree.name = objData.name
                 objTree.subject = objData.subject
             } ?: error("Inconsistent State")
         }
-        objForest.add(ObjectViewModel(null, null, null, ArrayList()))
-        editedObjTree = objForest.last()
+        objects.add(ObjectViewModel(null, null, null, ArrayList()))
+        editedObject = objects.last()
     }
 
     override fun RBuilder.render() {
         objectTreeView {
             attrs {
-                objectForest = state.objForest
-                editedObject = state.editedObjTree
+                objectForest = state.objects
+                editedObject = state.editedObject
                 objectTreeViewModel = this@ObjectTreeViewModelComponent
                 aspectsMap = props.aspectMap
             }
@@ -89,8 +89,8 @@ class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
     }
 
     interface State : RState {
-        var objForest: MutableList<ObjectViewModel>
-        var editedObjTree: ObjectViewModel?
+        var objects: MutableList<ObjectViewModel>
+        var editedObject: ObjectViewModel?
     }
 }
 

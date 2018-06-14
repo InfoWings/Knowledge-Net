@@ -53,7 +53,8 @@ fun AspectPropertyValueViewModel.constructAspectTree(
                         aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
                         measure = associatedAspect.measure,
                         baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
-                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
+                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain"),
+                        refBookName = associatedAspect.refBookName
                     )
                 ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
             )
@@ -110,7 +111,8 @@ fun ObjectPropertyValueViewModel.constructAspectTree(
                         aspectName = associatedAspect.name ?: error("Valid aspect should have non-null name"),
                         measure = associatedAspect.measure,
                         baseType = associatedAspect.baseType ?: error("Valid aspect should have non-null base type"),
-                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain")
+                        domain = associatedAspect.domain ?: error("Valid aspect should have non-null domain"),
+                        refBookName = associatedAspect.refBookName
                     )
                 ).apply { constructSubtreeIfCardinalityGroup(aspectsMap) }
             )

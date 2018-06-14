@@ -30,4 +30,9 @@ data class ReferenceBookItemData(
 )
 
 @Serializable
+data class ReferenceBookItemPath(
+    val path: List<ReferenceBookItem>
+)
+
+@Serializable
 data class ReferenceBooksList(val books: List<ReferenceBook>)

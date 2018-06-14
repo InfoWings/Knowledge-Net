@@ -1,8 +1,10 @@
 package com.infowings.catalog.objects.treeview.inputs.dialog
 
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.treeview.inputs.values.RefBookNodeDescriptor
+import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
+import kotlinx.html.js.onClickFunction
 import react.*
+import react.dom.span
 
 class ReferenceBookItemListView : RComponent<ReferenceBookItemListView.Props, RState>() {
     override fun RBuilder.render() {
@@ -10,7 +12,7 @@ class ReferenceBookItemListView : RComponent<ReferenceBookItemListView.Props, RS
             child(ReferenceBookTreeView::class) {
                 attrs {
                     referenceBookTreeViewModel = referenceBookItem
-                    selectedPath = props.selectedPath?.let { if (it.first().id == referenceBookItem.id) it else null }
+                    selectedPath = props.selectedPath?.let { if (it.firstOrNull()?.id == referenceBookItem.id) it else null }
                     onUpdate = { block ->
                         props.onUpdate(index, block)
                     }
@@ -24,7 +26,7 @@ class ReferenceBookItemListView : RComponent<ReferenceBookItemListView.Props, RS
         var referenceBookItemList: List<ReferenceBookItemViewModel>
         var selectedPath: List<RefBookNodeDescriptor>?
         var onUpdate: (Int, ReferenceBookItemViewModel.() -> Unit) -> Unit
-        var onSelect: (List<RefBookNodeDescriptor>) -> Unit
+        var onSelect: (itemId: String) -> Unit
     }
 }
 
@@ -35,9 +37,6 @@ class ReferenceBookTreeView : RComponent<ReferenceBookTreeView.Props, RState>() 
     private fun handleUpdateAtIndex(index: Int, updater: ReferenceBookItemViewModel.() -> Unit) = props.onUpdate {
         children[index].updater()
     }
-
-    private fun handleSelectPath(childPath: List<RefBookNodeDescriptor>) =
-        props.onSelect(childPath + RefBookNodeDescriptor(props.referenceBookTreeViewModel.id, props.referenceBookTreeViewModel.value))
 
     override fun RBuilder.render() {
         controlledTreeNode {
@@ -50,15 +49,21 @@ class ReferenceBookTreeView : RComponent<ReferenceBookTreeView.Props, RState>() 
                     }
                 }
                 treeNodeContent = buildElement {
-
+                    referenceBookNode(
+                        name = props.referenceBookTreeViewModel.value,
+                        selected = props.selectedPath != null,
+                        onClick = { props.onSelect(props.referenceBookTreeViewModel.id) }
+                    )
                 }!!
             }
-            child(ReferenceBookItemListView::class) {
-                attrs {
-                    referenceBookItemList = props.referenceBookTreeViewModel.children
-                    selectedPath = props.selectedPath?.drop(1)
-                    onUpdate = this@ReferenceBookTreeView::handleUpdateAtIndex
-                    onSelect = this@ReferenceBookTreeView::handleSelectPath
+            if (props.referenceBookTreeViewModel.children.isNotEmpty()) {
+                child(ReferenceBookItemListView::class) {
+                    attrs {
+                        referenceBookItemList = props.referenceBookTreeViewModel.children
+                        selectedPath = props.selectedPath?.drop(1)
+                        onUpdate = this@ReferenceBookTreeView::handleUpdateAtIndex
+                        onSelect = props.onSelect
+                    }
                 }
             }
         }
@@ -68,8 +73,14 @@ class ReferenceBookTreeView : RComponent<ReferenceBookTreeView.Props, RState>() 
         var referenceBookTreeViewModel: ReferenceBookItemViewModel
         var selectedPath: List<RefBookNodeDescriptor>?
         var onUpdate: (ReferenceBookItemViewModel.() -> Unit) -> Unit
-        var onSelect: (List<RefBookNodeDescriptor>) -> Unit
+        var onSelect: (itemId: String) -> Unit
     }
 }
 
-fun RBuilder.referenceBookTreeView(handler: RHandler<ReferenceBookTreeView.Props>) = child(ReferenceBookTreeView::class, handler)
+fun RBuilder.referenceBookNode(name: String, selected: Boolean, onClick: () -> Unit) =
+    span(classes = "refbook-dialog-node${if (selected) "__selected" else ""}") {
+        attrs {
+            onClickFunction = { onClick() }
+        }
+        +name
+    }

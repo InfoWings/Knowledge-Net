@@ -2,7 +2,7 @@ package com.infowings.catalog.objects.treeview.inputs.dialog
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.objects.treeview.inputs.values.RefBookNodeDescriptor
+import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
 
 class ReferenceBookViewModel(
     val name: String,
@@ -26,7 +26,7 @@ class ReferenceBookItemViewModel(
 fun List<ReferenceBookItemViewModel>.expandPath(path: List<RefBookNodeDescriptor>) {
     if (path.isNotEmpty()) {
         val first = path.first()
-        val item = this.find { first.id == it.id } ?: TODO("Do something")
+        val item = this.find { first.id == it.id } ?: error("")
         item.isExpanded = true
         item.children.expandPath(path.drop(1))
     }
