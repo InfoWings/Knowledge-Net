@@ -60,16 +60,22 @@ class ObjectService(
 
     fun create(request: PropertyCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
         val propertyVertex = transaction(db) {
             val propertyInfo = validator.checkedForCreation(request)
 
             //validator.checkBusinessKey(objectProperty)
 
+            val objectBefore = propertyInfo.objekt.currentSnapshot()
+
             val newVertex = dao.newObjectPropertyVertex()
 
-            val p: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
 
-            return@transaction dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+            historyService.storeFact(propertyVertex.toCreateFact(context))
+            historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
+
+            return@transaction propertyVertex
         }
 
         return propertyVertex.id
@@ -77,14 +83,19 @@ class ObjectService(
 
     fun create(request: ValueCreateRequest, username: String): ObjectPropertyValue {
         val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
         return transaction(db) {
             val valueInfo: ValueWriteInfo = validator.checkedForCreation(request)
 
-            //validator.checkBusinessKey(objectProperty)
+            val toTrack = listOfNotNull(valueInfo.objectProperty, valueInfo.parentValue)
 
-            val newVertex = dao.newObjectValueVertex()
+            val valueVertex = historyService.trackUpdates(toTrack, context) {
+                val newVertex = dao.newObjectValueVertex()
+                dao.saveObjectValue(newVertex, valueInfo)
+            }
+            historyService.storeFact(valueVertex.toCreateFact(context))
 
-            dao.saveObjectValue(newVertex, valueInfo).toObjectPropertyValue()
+            return@transaction valueVertex.toObjectPropertyValue()
         }
     }
 

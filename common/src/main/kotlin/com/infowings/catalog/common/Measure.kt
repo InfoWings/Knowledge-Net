@@ -408,3 +408,4 @@ val MeasureGroupMap = setOf<MeasureGroup<*>>(
 
 val GlobalMeasureMap = MeasureGroupMap.values.flatMap { it.measureList.map { it.name to it } }.toMap()
 
+val MeasureMeasureGroupMap = MeasureGroupMap.values.flatMap { group -> group.measureList.map { it.name to group } }.toMap()

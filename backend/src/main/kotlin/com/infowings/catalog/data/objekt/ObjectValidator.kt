@@ -67,7 +67,7 @@ class ObjectValidator(
     fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
-        val aspectVertex = request.aspectPropertyId?.let {
+        val aspectPropertyVertex = request.aspectPropertyId?.let {
             aspectDao.getAspectPropertyVertex(it)
                     ?: throw AspectPropertyDoesNotExist(it)
         }
@@ -110,7 +110,7 @@ class ObjectValidator(
         return ValueWriteInfo(
             value,
             objectPropertyVertex,
-            aspectVertex,
+            aspectPropertyVertex,
             parentValueVertex,
             measureVertex
         )

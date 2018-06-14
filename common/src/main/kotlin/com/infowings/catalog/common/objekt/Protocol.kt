@@ -1,6 +1,9 @@
 package com.infowings.catalog.common.objekt
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.ValueDTO
+import com.infowings.catalog.common.toDTO
+import com.infowings.catalog.common.toData
 import kotlinx.serialization.Serializable
 
 
@@ -29,6 +32,14 @@ data class ValueCreateRequest(
 ) {
     constructor(value: ObjectValueData, objectPropertyId: String) : this(value, objectPropertyId, null, null, null)
 
+    constructor(value: ObjectValueData, objectPropertyId: String, measureId: String) : this(
+        value,
+        objectPropertyId,
+        measureId,
+        null,
+        null
+    )
+
     fun toDTO() = ValueCreateRequestDTO(value.toDTO(), objectPropertyId, measureId, aspectPropertyId, parentValueId)
 }
 
@@ -40,7 +51,13 @@ data class ValueCreateRequestDTO(
     val aspectPropertyId: String?,
     val parentValueId: String?
 ) {
-    fun toRequest() = ValueCreateRequest(value.toData(), objectPropertyId, aspectPropertyId, parentValueId, measureId)
+    fun toRequest() = ValueCreateRequest(
+        value = value.toData(),
+        objectPropertyId = objectPropertyId,
+        aspectPropertyId = aspectPropertyId,
+        parentValueId = parentValueId,
+        measureId = measureId
+    )
 }
 
 @Serializable

@@ -3,6 +3,8 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.objekt.ObjectValue
+import com.infowings.catalog.data.objekt.toObjectPropertyVertex
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
@@ -52,7 +54,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             measureName,
             baseTypeObj?.let { OpenDomain(it).toString() },
             baseType,
-            properties.map { it.toAspectPropertyVertex().toAspectPropertyData() },
+            properties.map { it.toAspectPropertyData() },
             version,
             subject?.toSubjectData(),
             deleted,
@@ -62,8 +64,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         )
     }
 
-    val properties: List<OVertex>
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).toList()
+    val properties: List<AspectPropertyVertex>
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map { it.toAspectPropertyVertex() }.toList()
 
     val referenceBookRootVertex: ReferenceBookItemVertex?
         get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
@@ -131,7 +133,26 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             vertex[ATTR_DESC] = value
         }
 
-    fun isLinkedBy() = hasIncomingEdges()
+    fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE)
+
+    fun existsAspectImplementation(): Boolean {
+        val inPropertyWithValue = lazy {
+            getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any {
+                it.toAspectPropertyVertex().existsAspectPropertyImplementation()
+            }
+        }
+
+        val hasObjectPropertyWithValue = lazy {
+            getVertices(ODirection.IN, ASPECT_OBJECT_PROPERTY_EDGE).any {
+                it.toObjectPropertyVertex().values.any {
+                    val objPropertyValue = it.toObjectPropertyValue()
+                    objPropertyValue.aspectProperty == null && objPropertyValue.value != ObjectValue.NullValue
+                }
+            }
+        }
+
+        return inPropertyWithValue.value || hasObjectPropertyWithValue.value
+    }
 
     override fun equals(other: Any?): Boolean {
         return vertex == other
@@ -193,6 +214,10 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         set(value) {
             vertex[ATTR_DESC] = value
         }
+
+    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
+
+    fun existsAspectPropertyImplementation(): Boolean = isLinkedBy()
 
     override fun equals(other: Any?): Boolean {
         return vertex == other
