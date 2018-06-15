@@ -18,7 +18,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "value" to asStringOrEmpty(name),
+            "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description)
         ),
         links = mapOf(

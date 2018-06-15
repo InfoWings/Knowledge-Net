@@ -6,7 +6,6 @@ import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
 import com.infowings.catalog.measures.MeasuresPage
 import com.infowings.catalog.objects.ObjectsPage
-import com.infowings.catalog.subjects.SubjectsPage
 import com.infowings.catalog.reference.book.ReferenceBookPage
 import com.infowings.catalog.subjects.SubjectRouter
 import com.infowings.catalog.wrappers.RouteSuppliedProps

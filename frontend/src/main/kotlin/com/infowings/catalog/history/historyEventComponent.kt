@@ -3,6 +3,7 @@ package com.infowings.catalog.history
 import com.infowings.catalog.common.AspectDataView
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.HistoryData
+import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.userIcon
 import com.infowings.catalog.wrappers.blueprint.Collapse
@@ -22,33 +23,33 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
     override fun RBuilder.render() {
         div("history-item") {
             userIcon("history-item--icon") { }
-            span("history-item--field") {
-                +props.historyData.username
+            span("history-item--fieldName") {
+                +props.historyData.event.username
             }
-            span(classes = "history-item--field history-item--field__${props.historyData.eventType.color}") {
-                +props.historyData.eventType.name
+            span(classes = "history-item--fieldName history-item--field__${props.historyData.event.type.color}") {
+                +props.historyData.event.type.name
             }
 
-            span(classes = "history-item--field") {
-                +props.historyData.entityName
+            span(classes = "history-item--fieldName") {
+                +props.historyData.event.entityClass
             }
-            span(classes = "history-item--field history-item--field__cursive") {
+            span(classes = "history-item--fieldName history-item--field__cursive") {
                 +(props.historyData.info ?: "")
             }
             if (props.historyData.deleted) {
-                ripIcon("history-item--field aspect-tree-view--rip-icon") {}
+                ripIcon("history-item--fieldName aspect-tree-view--rip-icon") {}
             }
-            span(classes = "history-item--field") {
-                +Date(props.historyData.timestamp).toDateString()
+            span(classes = "history-item--fieldName") {
+                +Date(props.historyData.event.timestamp).toDateString()
             }
-            span(classes = "history-item--field history-item--field__pointer") {
+            span(classes = "history-item--fieldName history-item--field__pointer") {
                 a {
                     attrs.onClickFunction = {
                         setState {
                             showFullVersion = !showFullVersion
                         }
                     }
-                    +"ver. ${props.historyData.version}"
+                    +"ver. ${props.historyData.event.version}"
                 }
             }
         }
@@ -62,6 +63,19 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                     aspectFullContainer {
                         attrs {
                             view = props.historyData.fullData as AspectDataView
+                            onExit = { setState { showFullVersion = false } }
+                        }
+                    }
+                }
+            is SnapshotData ->
+                Collapse {
+                    attrs {
+                        className = "history-subject-view--wrapper"
+                        isOpen = state.showFullVersion
+                    }
+                    subjectFullContainer {
+                        attrs {
+                            view = props.historyData.fullData as SnapshotData
                             onExit = { setState { showFullVersion = false } }
                         }
                     }

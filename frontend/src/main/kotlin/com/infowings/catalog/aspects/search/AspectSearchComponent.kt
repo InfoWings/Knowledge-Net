@@ -75,5 +75,6 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
     }
 }
 
-fun RBuilder.aspectSearchComponent(block: RHandler<AspectSearchComponent.Props>) = child(AspectSearchComponent::class, block)
+fun RBuilder.aspectSearchComponent(block: RHandler<AspectSearchComponent.Props>) =
+    child(AspectSearchComponent::class, block)
 

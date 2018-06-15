@@ -41,7 +41,8 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                                 getSuggestedAspects(input, null, null)
                             }
                             callback(null, jsObject {
-                                options = suggestedAspects?.aspects?.map { aspectOption(it) }?.toTypedArray() ?: emptyArray()
+                                options = suggestedAspects?.aspects?.map { aspectOption(it) }?.toTypedArray() ?:
+                                        emptyArray()
                             })
                         }
                     } else {

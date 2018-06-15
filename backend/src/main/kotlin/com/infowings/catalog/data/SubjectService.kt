@@ -9,7 +9,6 @@ import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.VertexNotFound
 import com.infowings.catalog.storage.transaction
 
 class SubjectService(

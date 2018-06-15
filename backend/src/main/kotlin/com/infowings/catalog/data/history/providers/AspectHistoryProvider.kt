@@ -7,18 +7,18 @@ import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 
 class AspectHistoryProvider(
-    private val aspectHistoryService: HistoryService,
+    private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val aspectConstructor: AspectConstructor
 ) {
 
     fun getAllHistory(): List<AspectHistory> {
 
-        val allHistory = aspectHistoryService.getAll()
+        val allHistory = historyService.getAll()
 
         val aspectEventGroups = allHistory.idEventMap(classname = ASPECT_CLASS)
         val sessionAspectPropertyMap = allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
-            .groupBy { it.sessionId }
+            .groupBy { it.event.sessionId }
             .toMap()
 
         return aspectEventGroups.values.flatMap { entityEvents ->
@@ -27,7 +27,7 @@ class AspectHistoryProvider(
 
             val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
 
-                val relatedFacts = sessionAspectPropertyMap[fact.sessionId] ?: emptyList()
+                val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
 
                 aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
 
@@ -37,6 +37,6 @@ class AspectHistoryProvider(
             return@flatMap versionList.zipWithNext().zip(entityEvents)
                 .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
 
-        }.sortedByDescending { it.timestamp }
+        }.sortedByDescending { it.event.timestamp }
     }
 }
