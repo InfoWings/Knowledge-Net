@@ -5,6 +5,7 @@ import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.orientechnologies.orient.core.id.ORID
 
 data class DiffPayload(
@@ -137,6 +138,49 @@ class RefBookHistoryInfo {
 
         data class BriefState(val header: Header, val item: Item?) {
             fun toData() = RefBookHistoryData.Companion.BriefState(header.toData(), item?.toData())
+        }
+    }
+}
+
+class ObjectHistoryInfo {
+    companion object {
+        data class Objekt(
+            val id: String,
+            val snapshot: MutableSnapshot,
+            val subjectName: String
+        ) {
+            fun toData() = ObjectHistoryData.Companion.Objekt(
+                id = id,
+                name = snapshot.data.getValue("name"),
+                description = snapshot.data["description"],
+                subjectId = snapshot.links.getValue("subject").first().toString(),
+                subjectName = subjectName
+            )
+
+        }
+
+        data class Property(val id: String, val snapshot: MutableSnapshot, val aspectName: String) {
+            fun toData() = ObjectHistoryData.Companion.Property(
+                id = id,
+                name = snapshot.data.getValue("name"),
+                aspectId = snapshot.links.getValue("aspect").first().toString(),
+                aspectName = aspectName
+            )
+        }
+
+        data class Value(val id: String, val snapshot: MutableSnapshot, val aspectPropertyName: String?) {
+            fun toData(): ObjectHistoryData.Companion.Value {
+                val name = snapshot.data["name"]
+                return ObjectHistoryData.Companion.Value(
+                    id = id,
+                    aspectPropertyId = snapshot.links["aspectProperty"]?.first()?.toString(),
+                    aspectPropertyName = aspectPropertyName
+                )
+            }
+        }
+
+        data class BriefState(val objekt: Objekt, val property: Property?, val value: Value?) {
+            fun toData() = ObjectHistoryData.Companion.BriefState(objekt.toData(), property?.toData(), value?.toData())
         }
     }
 }

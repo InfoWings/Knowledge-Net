@@ -186,6 +186,8 @@ class AspectService(
      */
     fun findById(id: String): Aspect = findVertexById(id).toAspect()
 
+    fun findPropertyById(id: String): AspectProperty = findPropertyVertexById(id).toAspectProperty()
+
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
 
@@ -225,7 +227,9 @@ class AspectService(
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
-        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(vertex)
+        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
+            vertex
+        )
     }
 
     /**

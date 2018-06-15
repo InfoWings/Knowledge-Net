@@ -13,6 +13,8 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFactDto
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.asString
+import com.infowings.catalog.data.history.providers.HISTORY_ENTITY_OBJECT
+import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import java.lang.Long
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
@@ -46,6 +49,8 @@ class ObjectHistoryTest {
     private lateinit var refBookService: ReferenceBookService
     @Autowired
     private lateinit var historyService: HistoryService
+    @Autowired
+    private lateinit var historyProvider: ObjectHistoryProvider
 
     private lateinit var subject: Subject
 
@@ -80,48 +85,96 @@ class ObjectHistoryTest {
         val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
         val objectFactsBefore = objectEvents(factsBefore)
         val subjectFactsBefore = subjectEvents(factsBefore)
+        val statesBefore = historyProvider.getAllHistory()
 
-        val request = ObjectCreateRequest(testName, "object descr", subject.id, subject.version)
-        val created = objectService.create(request, "user")
+        val objectName = testName
+        val objectDescription = "object description"
+
+        val request = ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val created = objectService.create(request, username)
 
         val factsAfter = historyService.getAll().toSet()
         val objectFactsAfter = objectEvents(factsAfter)
         val subjectFactsAfter = subjectEvents(factsAfter)
+        val statesAfter = historyProvider.getAllHistory()
 
         val objectFactsAdded = objectFactsAfter - objectFactsBefore
         val subjectFactsAdded = subjectFactsAfter - subjectFactsBefore
 
         assertEquals(1, objectFactsAdded.size, "exactly one object fact must appear")
-        val objectEvent = objectFactsAdded.firstOrNull()?.event
-        assertEquals(OBJECT_CLASS, objectEvent?.entityClass, "class must be correct")
-        assertEquals(EventType.CREATE, objectEvent?.type, "event type must be correct")
+        val objectEvent = objectFactsAdded.first().event
+        assertEquals(OBJECT_CLASS, objectEvent.entityClass, "class must be correct")
+        assertEquals(EventType.CREATE, objectEvent.type, "event type must be correct")
 
         assertEquals(1, subjectFactsAdded.size, "exactly one subject event must appear")
         val subjectEvent = subjectFactsAdded.firstOrNull()?.event
         assertEquals(SUBJECT_CLASS, subjectEvent?.entityClass, "class must be correct")
         assertEquals(EventType.UPDATE, subjectEvent?.type, "event type must be correct")
+
+        // теперь проверяем историю на уровне справочников
+
+        val states = statesAfter.dropLast(statesBefore.size)
+
+        // добавляется одно состояние
+        assertEquals(1, states.size, "History must contain 1 element about ref book")
+        val state = states[0]
+
+        // проверяем мета-данные о состоянии
+        assertEquals(username, state.username)
+        assertEquals(objectEvent.timestamp, state.timestamp)
+        assertEquals(EventType.CREATE, state.eventType)
+        assertEquals(HISTORY_ENTITY_OBJECT, state.entityName)
+        assertEquals(false, state.deleted)
+        assertEquals(objectEvent.version, state.version)
+        assertEquals(testName, state.info)
+
+        // проверяем заголовочную часть
+        assertEquals(created, state.fullData.objekt.id)
+        assertEquals(objectName, state.fullData.objekt.name)
+        assertEquals(objectDescription, state.fullData.objekt.description)
+        assertEquals(subject.id, state.fullData.objekt.subjectId)
+        assertEquals(subject.name, state.fullData.objekt.subjectName)
+
+
+        // property и value отсутствует
+        assertEquals(null, state.fullData.property)
+        assertEquals(null, state.fullData.value)
+
+        /*
+        // проверяем changes
+        assertEquals(2, state.changes.size)
+        val byField = state.changes.groupBy { it.field }
+        assertEquals(setOf("Name", "Aspect"), byField.keys)
+        assertEquals(testName, byField.getValue("Name")[0].after)
+//        assertEquals(aspect.id, byField.getValue("link_aspect")[0].after)
+        assertEquals(aspect.name, byField.getValue("Aspect")[0].after)
+        assertEquals(listOf("", ""), state.changes.map { it.before })
+        */
     }
 
     @Test
     fun createPropertyHistoryTest() {
         val testName = "createPropertyHistoryTest"
 
-        val createdObjectId = createObject(testName)
+        val objectName = testName
+        val objectDescription = "object description"
+        val createdObjectId = createObject(objectName, objectDescription)
 
         val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
         val objectFactsBefore = objectEvents(factsBefore)
         val propertyFactsBefore = propertyEvents(factsBefore)
+        val statesBefore = historyProvider.getAllHistory()
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
             name = "prop_$testName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.id
         )
-        val createdPropertyId = objectService.create(propertyRequest, "user")
+        val createdPropertyId = objectService.create(propertyRequest, username)
 
         val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
         val objectFactsAfter = objectEvents(factsAfter)
         val propertyFactsAfter = propertyEvents(factsAfter)
-
+        val statesAfter = historyProvider.getAllHistory()
 
         val objectFactsAdded = objectFactsAfter - objectFactsBefore
         val propertyFactsAdded = propertyFactsAfter - propertyFactsBefore
@@ -160,11 +213,53 @@ class ObjectHistoryTest {
         val propertiesLinks = objectPayload.addedLinks["properties"] ?: fail("unexpected absence of properties links")
         assertEquals(1, propertiesLinks.size, "only 1 property must be here")
         assertEquals(createdPropertyId, propertiesLinks.first().toString(), "property id must be correct")
+
+        // теперь проверяем историю на уровне справочников
+
+        val states = statesAfter.dropLast(statesBefore.size)
+
+        // ровно одно новое состояние
+        assertEquals(1, states.size, "History must contain 1 element about ref book")
+        val state = states[0]
+
+        // проверяем мета-данные
+        assertEquals(username, state.username)
+        assertEquals(Long.max(propertyEvent.timestamp, objectEvent.timestamp), state.timestamp)
+        assertEquals(EventType.UPDATE, state.eventType)
+        assertEquals(HISTORY_ENTITY_OBJECT, state.entityName)
+        assertEquals(false, state.deleted)
+        assertEquals(objectName, state.info)
+
+        // проверяем заголовок
+        assertEquals(createdObjectId, state.fullData.objekt.id)
+        assertEquals(objectName, state.fullData.objekt.name)
+        assertEquals(objectDescription, state.fullData.objekt.description)
+        assertEquals(subject.id, state.fullData.objekt.subjectId)
+        assertEquals(subject.name, state.fullData.objekt.subjectName)
+
+        /*
+        // проверяем элемент
+        assertNotNull(state.fullData.item)
+        val item = state.fullData.item ?: throw IllegalStateException("item is null")
+        assertEquals(itemId, item.id)
+        assertEquals(itemValue, item.name)
+        assertEquals(itemDescription, item.description)
+
+        // проверяем изменения
+        assertEquals(2, state.changes.size)
+        val byField = state.changes.groupBy { it.field }
+        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(itemValue, byField.getValue("Name")[0].after)
+        assertEquals(itemDescription, byField.getValue("description")[0].after)
+        assertEquals(listOf("", ""), state.changes.map { it.before })
+        */
     }
 
     private data class PreparedValueInfo(
         val value: ObjectPropertyValue, val propertyId: String,
-        val propertyFacts: List<HistoryFactDto>, val valueFacts: List<HistoryFactDto>
+        val propertyFacts: List<HistoryFactDto>,
+        val valueFacts: List<HistoryFactDto>,
+        val states: List<ObjectHistory>
     )
 
     private fun prepareValue(
@@ -189,17 +284,21 @@ class ObjectHistoryTest {
         )
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
+        val statesBefore = historyProvider.getAllHistory()
 
         val createdValue = objectService.create(valueRequest, "user")
 
         val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
+        val statesAfter = historyProvider.getAllHistory()
 
         val propertyFactsAdded = propertyFactsAfter - propertyFactsBefore
         val valueFactsAdded = valueFactsAfter - valueFactsBefore
 
-        return PreparedValueInfo(createdValue, createdPropertyId, propertyFactsAdded, valueFactsAdded)
+        val states = statesAfter.dropLast(statesBefore.size)
+
+        return PreparedValueInfo(createdValue, createdPropertyId, propertyFactsAdded, valueFactsAdded, states)
     }
 
     private fun prepareAnotherValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
@@ -208,17 +307,20 @@ class ObjectHistoryTest {
         val valueRequest = ValueCreateRequest(value = value, objectPropertyId = prepared.propertyId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
+        val statesBefore = historyProvider.getAllHistory()
 
         val createdValue = objectService.create(valueRequest, "user")
 
         val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
+        val statesAfter = historyProvider.getAllHistory()
 
         val propertyFactsAdded = propertyFactsAfter - propertyFactsBefore
         val valueFactsAdded = valueFactsAfter - valueFactsBefore
+        val states = statesAfter.dropLast(statesBefore.size)
 
-        return PreparedValueInfo(createdValue, prepared.propertyId, propertyFactsAdded, valueFactsAdded)
+        return PreparedValueInfo(createdValue, prepared.propertyId, propertyFactsAdded, valueFactsAdded, states)
     }
 
     private fun prepareChildValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
@@ -231,18 +333,21 @@ class ObjectHistoryTest {
 
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
+        val statesBefore = historyProvider.getAllHistory()
 
         val createdValue = objectService.create(valueRequest, "user")
 
         val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val statesAfter = historyProvider.getAllHistory()
 
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
 
         val propertyFactsAdded = propertyFactsAfter - propertyFactsBefore
         val valueFactsAdded = valueFactsAfter - valueFactsBefore
+        val states = statesAfter.dropLast(statesBefore.size)
 
-        return PreparedValueInfo(createdValue, prepared.propertyId, propertyFactsAdded, valueFactsAdded)
+        return PreparedValueInfo(createdValue, prepared.propertyId, propertyFactsAdded, valueFactsAdded, states)
     }
 
     private fun checkPropertyFacts(propertyFacts: List<HistoryFactDto>, propertyId: String, valueId: ORID) {
@@ -323,6 +428,10 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, propertyLinks.first().toString(), "property id must be correct")
 
         checkPropertyFacts(prepared)
+
+        // ровно одно новое состояние
+        assertEquals(1, prepared.states.size, "History must contain 1 element about ref book")
+        val state = prepared.states[0]
     }
 
     @Test
@@ -769,8 +878,8 @@ class ObjectHistoryTest {
 
     private fun subjectEvents(events: Set<HistoryFactDto>) = eventsByClass(events, SUBJECT_CLASS)
 
-    private fun createObject(name: String): String {
-        val request = ObjectCreateRequest(name, "object descr", subject.id, subject.version)
+    private fun createObject(name: String, description: String = "obj descr"): String {
+        val request = ObjectCreateRequest(name, description, subject.id, subject.version)
         return objectService.create(request, "user")
     }
 }

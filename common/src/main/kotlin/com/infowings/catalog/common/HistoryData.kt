@@ -1,5 +1,6 @@
 package com.infowings.catalog.common
 
+import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import kotlinx.serialization.Serializable
 
@@ -38,6 +39,7 @@ typealias AspectHistory = HistoryData<AspectDataView>
 
 typealias RefBookHistory = HistoryData<RefBookHistoryData.Companion.BriefState>
 
+typealias ObjectHistory = HistoryData<ObjectHistoryData.Companion.BriefState>
 
 @Serializable
 data class AspectDataView(val aspectData: AspectData, val related: List<AspectData>)
@@ -78,3 +80,6 @@ class AspectHistoryList(val history: List<AspectHistory>)
 
 @Serializable
 class RefBookHistoryList(val history: List<RefBookHistory>)
+
+@Serializable
+class ObjectHistoryList(val history: List<ObjectHistory>)
