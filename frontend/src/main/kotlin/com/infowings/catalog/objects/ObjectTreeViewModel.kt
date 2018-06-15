@@ -7,7 +7,7 @@ import react.*
 
 
 interface ObjectTreeViewModel {
-    fun selectObject(objTreeView: ObjectViewModel /* ObjectViewModel | ObjectProperty | ObjectValue */)
+    fun selectObject(objTreeView: ObjectViewModel)
     fun updateSelectedObject(updater: ObjectViewModel.() -> Unit)
     fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit)
     fun addObject()
