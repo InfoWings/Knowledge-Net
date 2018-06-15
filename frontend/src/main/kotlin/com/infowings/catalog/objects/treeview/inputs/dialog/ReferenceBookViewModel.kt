@@ -1,8 +1,8 @@
 package com.infowings.catalog.objects.treeview.inputs.dialog
 
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
 
 class ReferenceBookViewModel(
     val name: String,

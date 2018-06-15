@@ -3,6 +3,7 @@ package com.infowings.catalog.data.reference.book
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
@@ -91,9 +92,9 @@ class ReferenceBookService(
         }.toReferenceBook(aspectId)
     }
 
-    fun getPath(itemId: String): List<ReferenceBookItem> {
+    fun getPath(itemId: String): List<RefBookNodeDescriptor> {
         return transaction(db) {
-            return@transaction dao.getRefBookItemVertexParents(itemId).dropLast(1).map { it.toReferenceBookItem() }.asReversed()
+            return@transaction dao.getRefBookItemVertexParents(itemId).dropLast(1).map { it.toNodeDescriptor() }.asReversed()
         }
     }
 

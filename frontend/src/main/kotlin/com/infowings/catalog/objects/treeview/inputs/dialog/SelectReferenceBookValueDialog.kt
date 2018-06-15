@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.treeview.inputs.dialog
 
-import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.objects.treeview.inputs.RefBookValue
 import com.infowings.catalog.reference.book.getReferenceBook
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
@@ -41,7 +41,7 @@ class SelectReferenceBookValueDialog(props: Props) : RComponent<SelectReferenceB
         launch {
             val selectedPath = getReferenceBookItemPath(itemId).path
             setState {
-                selectedValue = RefBookValue(state.selectedValue.aspectId, selectedPath.map { RefBookNodeDescriptor(it.id, it.value) })
+                selectedValue = RefBookValue(state.selectedValue.aspectId, selectedPath)
             }
         }
     }
@@ -103,7 +103,7 @@ class SelectReferenceBookValueDialog(props: Props) : RComponent<SelectReferenceB
 }
 
 fun RBuilder.referenceBookPathView(path: List<RefBookNodeDescriptor>) = Callout {
-    +path.joinToString(" → ") { it.name }
+    +path.joinToString(" → ") { it.value }
 }
 
 fun RBuilder.selectReferenceBookValueDialog(

@@ -1,7 +1,7 @@
 package com.infowings.catalog.objects.treeview.inputs.dialog
 
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.treeview.inputs.RefBookNodeDescriptor
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.span

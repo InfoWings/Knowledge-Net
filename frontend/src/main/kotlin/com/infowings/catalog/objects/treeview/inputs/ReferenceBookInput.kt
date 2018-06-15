@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.treeview.inputs
 
-import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.objects.treeview.inputs.dialog.selectReferenceBookValueDialog
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -10,8 +10,6 @@ import kotlinx.coroutines.experimental.launch
 import react.*
 
 class RefBookValue(val aspectId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
-
-class RefBookNodeDescriptor(val id: String, val name: String)
 
 class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props) {
 
@@ -24,9 +22,9 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
         props.itemId?.let { itemId ->
             if (itemId.isNotBlank()) {
                 launch {
-                    val itemPath: List<ReferenceBookItem> = getReferenceBookItemPath(itemId).path
+                    val itemPath: List<RefBookNodeDescriptor> = getReferenceBookItemPath(itemId).path
                     setState {
-                        value = RefBookValue(value.aspectId, itemPath.map { RefBookNodeDescriptor(it.id, it.value) })
+                        value = RefBookValue(value.aspectId, itemPath)
                     }
                 }
             }
@@ -90,7 +88,7 @@ fun RBuilder.emptyReferenceBookInput(onClick: () -> Unit) = Button {
 
 fun RBuilder.valueReferenceBookInput(renderedPath: List<RefBookNodeDescriptor>, onClick: () -> Unit) = Button {
     attrs {
-        text = renderedPath.joinToString(" → ") { it.name }.asReactElement()
+        text = renderedPath.joinToString(" → ") { it.value }.asReactElement()
         intent = Intent.NONE
         this.onClick = { onClick() }
     }
