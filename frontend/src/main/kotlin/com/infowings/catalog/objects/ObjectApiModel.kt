@@ -74,18 +74,12 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
 
     private suspend fun processChild(current: AspectPropertyValueData, parentId: String, property: ObjectPropertyData) {
         val scalarText = current.scalarValue
-        val propertyId = property.id
+        val propertyId = property.id ?: throw IllegalStateException("property id is not defined")
 
-        if (scalarText == null) {
-            throw IllegalStateException("scalar value is not defined")
-        }
-
-        if (propertyId == null) {
-            throw IllegalStateException("property id is not defined")
-        }
-
-        val scalarValue = convertValue(current.aspectProperty, scalarText)
-                ?: throw IllegalStateException("cound not process scala value")
+        val scalarValue = if (scalarText == null)
+            ObjectValueData.NullValue
+        else
+            convertValue(current.aspectProperty, scalarText) ?: throw IllegalStateException("cound not process scala value")
 
         val vcr = ValueCreateRequest(
             value = scalarValue, objectPropertyId = propertyId, parentValueId = parentId,
