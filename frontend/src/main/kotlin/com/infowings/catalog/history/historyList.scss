@@ -21,6 +21,11 @@ $color-yellow: #ffa500;
   align-items: center;
   margin: 3rem auto 3rem;
 
+  &--fieldName {
+    margin: 0.1rem 1rem 0.1rem 0;
+    cursor: default;
+  }
+
   &--field {
 
     margin: 0.1rem 1rem 0.1rem 0;
@@ -76,6 +81,18 @@ $color-yellow: #ffa500;
 }
 
 .history-refbook-view {
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &--wrapper {
+    margin-top: -2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.history-subject-view {
 
   display: inline-block;
   position: relative;
@@ -138,7 +155,55 @@ $color-yellow: #ffa500;
   }
 }
 
+.subject-view {
+  max-width: 120rem;
+  margin: 3rem auto;
+  padding-bottom: 20rem;
 
+  &--description-icon {
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: .2rem;
+  }
+
+  &--expand-all-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    margin-left: .2rem;
+  }
+
+  &--rip-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    margin-left: .5rem;
+  }
+
+  &--label {
+    display: inline-block;
+    cursor: pointer;
+    padding: .7rem .2rem;
+
+    &__property-selected {
+      border-radius: 2px;
+    }
+
+    &__selected {
+      border-radius: 2px;
+    }
+
+    & > span:first-child {
+      padding-right: .5rem;
+    }
+
+    & > span:not(:first-child) {
+      padding: 0 .5rem;
+    }
+
+    &:hover > span {
+      text-decoration: underline;
+    }
+  }
+}
 
 .history-diff {
   margin-left: 20%;

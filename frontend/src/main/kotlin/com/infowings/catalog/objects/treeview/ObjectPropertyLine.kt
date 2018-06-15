@@ -53,13 +53,14 @@ fun RBuilder.objectPropertyLine(
                 }
             }
         )
-        if (property.aspect != null) {
+        val aspect = property.aspect
+        if (aspect != null) {
             when {
                 property.cardinality == PropertyCardinality.ONE -> {
-                    propertyAspectTypePrompt(property.aspect ?: error("Memory Model inconsistency"))
+                    propertyAspectTypePrompt(aspect)
                     propertyValue(
                         value = property.values?.firstOrNull()?.value ?: "",
-                        baseType = property.aspect?.baseType ?: error("Memory Model inconsistency"),
+                        baseType = aspect.baseType ?: error("Aspect must have base type"),
                         onEdit = onEdit,
                         onChange = {
                             onUpdate {
@@ -71,7 +72,8 @@ fun RBuilder.objectPropertyLine(
                                     values[0].value = it
                                 }
                             }
-                        }
+                        },
+                        aspectRefBookId = if (aspect.refBookName == null) null else aspect.id
                     )
                 }
                 property.cardinality == PropertyCardinality.INFINITY ->

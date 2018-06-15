@@ -4,6 +4,7 @@ import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.auth.user.toUserVertex
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
@@ -74,13 +75,14 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["sessionUUID"] = value.toString()
         }
 
-    private fun toEvent() = HistoryEvent(
+    private fun toEvent() = HistoryEventData(
         userVertex.username,
         timestamp.toEpochMilli(),
         entityVersion,
         EventType.valueOf(eventType),
-        entityRID,
-        entityClass
+        entityRID.toString(),
+        entityClass,
+        sessionId.toString()
     )
 
     private fun dataMap() = getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE).map { vertex ->
@@ -99,13 +101,13 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         .mapValues { (_, peers) -> peers.map { it.peerId } }
 
 
-    fun toFact(): HistoryFactDto {
+    fun toFact(): HistoryFact {
         val event = toEvent()
         val data = dataMap()
         val addedLinks = addedLinks()
         val removedLinks = removedLinks()
         val payload = DiffPayload(data, addedLinks, removedLinks)
 
-        return HistoryFactDto(event, sessionId, payload)
+        return HistoryFact(event, payload)
     }
 }

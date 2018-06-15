@@ -1,19 +1,43 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.UserVertex
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.Range
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
+import java.util.*
 
 data class DiffPayload(
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
     val removedLinks: Map<String, List<ORID>>
 ) {
-    fun addedFor(vertexClass: String): List<ORID> = addedLinks[vertexClass] ?: emptyList()
-    fun removedFor(vertexClass: String): List<ORID> = removedLinks[vertexClass] ?: emptyList()
+    private fun <T> valueOrEmptyList(map: Map<String, List<T>>, key: String): List<T> = map[key] ?: emptyList()
+
+    private fun <T> singleOf(map: Map<String, List<T>>, key: String): T? {
+        val links = valueOrEmptyList(map, key)
+        if (links.size > 1) {
+            throw IllegalStateException("too many elements for key $key: $links")
+        }
+
+        return links.firstOrNull()
+    }
+
+    fun addedFor(target: String): List<ORID> = valueOrEmptyList(addedLinks, target)
+    fun removedFor(target: String): List<ORID> = valueOrEmptyList(removedLinks, target)
+
+    fun addedSingleFor(target: String): ORID? = singleOf(addedLinks, target)
+    fun removedSingleFor(target: String): ORID? = singleOf(removedLinks, target)
+
+    constructor() : this(emptyMap(), emptyMap(), emptyMap())
+
+    fun toData(): DiffPayloadData = DiffPayloadData(data = data,
+        addedLinks = addedLinks.mapValues { it.value.map { it.toString() } },
+        removedLinks = removedLinks.mapValues { it.value.map { it.toString() } }
+    )
 }
 
 data class MutableSnapshot(val data: MutableMap<String, String>, val links: MutableMap<String, MutableSet<ORID>>) {
@@ -28,10 +52,13 @@ data class MutableSnapshot(val data: MutableMap<String, String>, val links: Muta
     }
 
     fun addLink(target: String, link: ORID) {
+        links.computeIfAbsent(target) { mutableSetOf() }.add(link)
+    }
+
+    fun removeLink(target: String, link: ORID) {
         if (target in links) {
-            links[target]?.add(link)
-        } else {
-            links[target] = mutableSetOf(link)
+            links[target]?.remove(link)
+            if (links[target]?.size == 0) links.remove(target)
         }
     }
 
@@ -60,25 +87,69 @@ data class Snapshot(
     fun toSnapshotData() = SnapshotData(data, links.mapValues { it.value.map { it.toString() } })
 }
 
+/* Метаданные о событии в жизни сущности. Ккаждый экземпляр соответствует одной высокоуровневой операции
+ на уровне сервиса
+  Вариант для записи события - некоторые поля представлены как vertex
+  */
+data class HistoryEventWrite(
+    val userVertex: UserVertex,
+    val timestamp: Long,
+    val version: Int,
+    val type: EventType,
+    val entityVertex: OVertex,
+    val entityClass: String,
+    val sessionId: UUID
+)
 
+/*
+Структура для представления прочитанного события - вместе vertex - данные, извелеченные оттуда
+ */
+/*
 data class HistoryEvent(
     val username: String,
     val timestamp: Long,
     val version: Int,
     val type: EventType,
     val entityId: ORID,
-    val entityClass: String
+    val entityClass: String,
+    val sessionId: UUID
+) {
+    fun toHistoryEventData() = HistoryEventData(
+        username = username, timestamp = timestamp, version = version, type = type,
+        entityId = entityId.toString(), entityClass = entityClass, sessionId = sessionId.toString()
+    )
+}
+*/
+
+/* Исторический факт. Состоит из метаданных (event) и данных о внесенных изменениях (payload)
+ */
+data class HistoryFactWrite(
+    val event: HistoryEventWrite,
+    val payload: DiffPayload
 )
 
 data class HistoryFact(
-    val userVertex: UserVertex,
-    val event: HistoryEvent,
-    val payload: DiffPayload,
-    val subject: HistoryAware
+    val event: HistoryEventData,
+    val payload: DiffPayload
 )
 
-fun toHistoryFact(userVertex: UserVertex, event: HistoryEvent, subject: HistoryAware, base: Snapshot, other: Snapshot) =
-    HistoryFact(userVertex, event, diffSnapshots(base, other), subject)
+
+data class HistorySnapshot(
+    val event: HistoryEventData,
+    val before: Snapshot,
+    val after: Snapshot,
+    val diff: DiffPayload
+) {
+    fun toData(): HistorySnapshotData = HistorySnapshotData(
+        event = event,
+        before = before.toSnapshotData(),
+        after = after.toSnapshotData(),
+        diff = diff.toData()
+    )
+}
+
+fun toHistoryFact(event: HistoryEventWrite, base: Snapshot, other: Snapshot) =
+    HistoryFactWrite(event, diffSnapshots(base, other))
 
 fun diffSnapshots(base: Snapshot, other: Snapshot): DiffPayload {
     // Предполагаем, что поля не выкидываются, но могут добавляться

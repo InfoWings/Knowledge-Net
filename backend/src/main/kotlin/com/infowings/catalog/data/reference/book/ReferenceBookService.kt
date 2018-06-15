@@ -3,14 +3,12 @@ package com.infowings.catalog.data.reference.book
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.history.HistoryContext
-import com.infowings.catalog.data.history.HistoryFact
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -95,8 +93,19 @@ class ReferenceBookService(
     }
 
     fun editRoot(request: RootEditRequest, username: String) {
-        updateReferenceBook(ReferenceBook(aspectId = request.aspectId, id = "", name = request.value,
-            description = request.description, version = request.version, children = emptyList(), deleted = false), username)
+        updateReferenceBook(
+            ReferenceBook(
+                aspectId = request.aspectId, id = "", name = request.value,
+                description = request.description, version = request.version, children = emptyList(), deleted = false
+            ), username
+        )
+    }
+
+    fun getPath(itemId: String): List<RefBookNodeDescriptor> {
+        return transaction(db) {
+            return@transaction dao.getRefBookItemVertexParents(itemId).dropLast(1).map { it.toNodeDescriptor() }
+                .asReversed()
+        }
     }
 
     /**
@@ -224,7 +233,7 @@ class ReferenceBookService(
 
             val savedItemVertex: ReferenceBookItemVertex
             val parentBefore: Snapshot
-            val updateFact: HistoryFact
+            val updateFact: HistoryFactWrite
             val context = HistoryContext(userVertex)
 
             val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)

@@ -42,7 +42,8 @@ fun RBuilder.objectPropertyValues(
                             }
                         },
                         onEdit = onEdit,
-                        baseType = aspect.baseType ?: error("Aspect must have base type")
+                        baseType = aspect.baseType ?: error("Aspect must have base type"),
+                        aspectRefBookId = if (aspect.refBookName == null) null else aspect.id
                     )
                 }!!
             }

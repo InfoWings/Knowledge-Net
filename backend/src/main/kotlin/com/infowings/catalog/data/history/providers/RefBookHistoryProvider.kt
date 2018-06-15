@@ -1,12 +1,12 @@
 package com.infowings.catalog.data.history.providers
 
-
-import com.infowings.catalog.common.Delta
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.FieldDelta
+import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.history.HistoryFactDto
+import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.RefBookHistoryInfo
@@ -35,14 +35,14 @@ class RefBookHistoryProvider(
      * Если какую-то дельту отдавать не хочется, можно преобразовать в пустой список.
      * Если к существующей дельте хочется добавить новую, можно вернуть ее как часть списка
      * Если надо вернуть как есть, упаковываем в одноэлементный список */
-    private fun transformDelta(delta: Delta): List<Delta> = when {
-        delta.field == "value" -> listOf(delta.copy(field = "Name"))
-        delta.field == "link_aspect" -> {
+    private fun transformDelta(delta: FieldDelta): List<FieldDelta> = when {
+        delta.fieldName == "value" -> listOf(delta.copy(fieldName = "Name"))
+        delta.fieldName == "link_aspect" -> {
             val after = delta.after
             if (after != null) {
                 listOf(
                     delta.copy(
-                        field = "Aspect",
+                        fieldName = "Aspect",
                         after = aspectDao.getVertex(after)?.toAspectVertex()?.name ?: "???"
                     )
                 )
@@ -53,8 +53,8 @@ class RefBookHistoryProvider(
         else -> listOf(delta)
     }
 
-    private fun refBookCreation(createFact: HistoryFactDto, state: RefBookState): RefBookHistory {
-        val refBookId = createFact.event.entityId.toString()
+    private fun refBookCreation(createFact: HistoryFact, state: RefBookState): RefBookHistory {
+        val refBookId = createFact.event.entityId
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
         val aspectName = aspectDao.getAspectVertex(aspectId)?.name ?: "???"
@@ -69,30 +69,36 @@ class RefBookHistoryProvider(
         state.headers[refBookId] = header
         state.versions[refBookId] = createFact.event.version
 
-        val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
+        val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = createFact.payload.addedLinks.map { (key, ids) ->
-            Delta(
+            FieldDelta(
                 "link_$key", "",
                 ids.joinToString(separator = ":") { it.toString() }
             )
         }
 
-        return RefBookHistory(
+        val event = HistoryEventData(
             username = "",
-            eventType = EventType.CREATE,
-            entityName = HISTORY_ENTITY_REFBOOK,
+            timestamp = -1,
+            version = createFact.event.version,
+            type = EventType.CREATE,
+            entityId = createFact.event.entityId,
+            entityClass = HISTORY_ENTITY_REFBOOK,
+            sessionId = ""
+        )
+
+        return RefBookHistory(
+            event = event,
             info = header.snapshot.data.getValue("value"),
             deleted = false,
-            timestamp = createFact.event.timestamp,
-            version = createFact.event.version,
             fullData = RefBookHistoryInfo.Companion.BriefState(header, null).toData(),
             changes = (dataDeltas + linkDeltas).flatMap { transformDelta(it) }
         )
 
     }
 
-    private fun refBookItemInsertion(createFact: HistoryFactDto, state: RefBookState): RefBookHistory {
-        val itemId = createFact.event.entityId.toString()
+    private fun refBookItemInsertion(createFact: HistoryFact, state: RefBookState): RefBookHistory {
+        val itemId = createFact.event.entityId
         val rootId = createFact.payload.addedLinks.getValue("root")[0].toString()
         val header = state.headers.getValue(rootId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
@@ -103,26 +109,32 @@ class RefBookHistoryProvider(
             id = itemId, snapshot = initial
         )
 
-        val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
+        val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
 
         state.rootIds[itemId] = rootId
         state.items[itemId] = newItem
 
-        return RefBookHistory(
+        val event = HistoryEventData(
             username = "",
-            eventType = EventType.UPDATE,
-            entityName = HISTORY_ENTITY_REFBOOK,
-            info = header.snapshot.data.getValue("value"),
-            deleted = false,
             timestamp = -1,
             version = state.versions.getValue(rootId),
+            type = EventType.UPDATE,
+            entityId = createFact.event.entityId,
+            entityClass = HISTORY_ENTITY_REFBOOK,
+            sessionId = ""
+        )
+
+        return RefBookHistory(
+            event = event,
+            info = header.snapshot.data.getValue("value"),
+            deleted = false,
             fullData = RefBookHistoryInfo.Companion.BriefState(header, newItem).toData(),
             changes = dataDeltas
         )
     }
 
-    private fun refBookItemEdit(updateFact: HistoryFactDto, state: RefBookState): RefBookHistory {
-        val itemId = updateFact.event.entityId.toString()
+    private fun refBookItemEdit(updateFact: HistoryFact, state: RefBookState): RefBookHistory {
+        val itemId = updateFact.event.entityId
         val rootId = state.rootIds.getValue(itemId)
         val header = state.headers.getValue(rootId)
 
@@ -132,44 +144,56 @@ class RefBookHistoryProvider(
 
         item.snapshot.apply(updateFact.payload)
 
-        val dataDeltas = updateFact.payload.data.map { (key, value) -> Delta(key, prev.data[key], value) }
+        val dataDeltas = updateFact.payload.data.map { (key, value) -> FieldDelta(key, prev.data[key], value) }
 
-        return RefBookHistory(
+        val event = HistoryEventData(
             username = "",
-            eventType = EventType.UPDATE,
-            entityName = HISTORY_ENTITY_REFBOOK,
-            info = header.snapshot.data.getValue("value"),
-            deleted = false,
             timestamp = -1,
             version = state.versions.getValue(rootId),
+            type = EventType.UPDATE,
+            entityId = updateFact.event.entityId,
+            entityClass = HISTORY_ENTITY_REFBOOK,
+            sessionId = ""
+        )
+
+        return RefBookHistory(
+            event = event,
+            info = header.snapshot.data.getValue("value"),
+            deleted = false,
             fullData = RefBookHistoryInfo.Companion.BriefState(header, item).toData(),
             changes = dataDeltas
         )
     }
 
-    private fun refBookRootEdit(updateFact: HistoryFactDto, state: RefBookState): RefBookHistory {
-        val itemId = updateFact.event.entityId.toString()
+    private fun refBookRootEdit(updateFact: HistoryFact, state: RefBookState): RefBookHistory {
+        val itemId = updateFact.event.entityId
         val header = state.headers.getValue(itemId)
         val prev = header.snapshot.toSnapshot()
 
         header.snapshot.apply(updateFact.payload)
 
-        val dataDeltas = updateFact.payload.data.map { (key, value) -> Delta(key, prev.data[key], value) }
+        val dataDeltas = updateFact.payload.data.map { (key, value) -> FieldDelta(key, prev.data[key], value) }
 
-        return RefBookHistory(
+        val event = HistoryEventData(
             username = "",
-            eventType = EventType.UPDATE,
-            entityName = HISTORY_ENTITY_REFBOOK,
-            info = header.snapshot.data.getValue("value"),
-            deleted = false,
             timestamp = -1,
             version = state.versions.getValue(itemId),
+            type = EventType.UPDATE,
+            entityId = updateFact.event.entityId,
+            entityClass = HISTORY_ENTITY_REFBOOK,
+            sessionId = ""
+        )
+
+        return RefBookHistory(
+            event = event,
+            info = header.snapshot.data.getValue("value"),
+            deleted = false,
             fullData = RefBookHistoryInfo.Companion.BriefState(header, null).toData(),
             changes = dataDeltas
         )
     }
 
-    private fun sessionToChange(sessionFacts: List<HistoryFactDto>, state: RefBookState): RefBookHistory {
+    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: RefBookState): RefBookHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
         val updateFacts = byType[EventType.UPDATE]
@@ -185,7 +209,7 @@ class RefBookHistoryProvider(
             }
             updateFacts != null && sessionFacts.size == 1 -> {
                 val updateFact = updateFacts.first()
-                val itemId = updateFact.event.entityId.toString()
+                val itemId = updateFact.event.entityId
 
                 if (!state.rootIds.contains(itemId)) {
                     refBookRootEdit(updateFact, state)
@@ -202,16 +226,19 @@ class RefBookHistoryProvider(
 
         val rbFacts = allHistory.filter { it.event.entityClass == REFERENCE_BOOK_ITEM_VERTEX }
 
-        val factsBySession = rbFacts.groupBy { it.sessionId }
+        val factsBySession = rbFacts.groupBy { it.event.sessionId }
 
         val historyState = RefBookState()
 
-        return factsBySession.values.map { sessionFacts ->
+        return factsBySession.map { (sessionId, sessionFacts) ->
             val ch = sessionToChange(sessionFacts, historyState)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
-            ch.copy(username = sessionFacts.first().event.username,
-                timestamp = sessionTimestamp,
+            val newEvent = ch.event.copy(
+                username = sessionFacts.first().event.username,
+                timestamp = sessionTimestamp, sessionId = sessionId
+            )
+            ch.copy(event = newEvent,
                 changes = ch.changes.flatMap { transformDelta(it) })
         }.reversed()
     }

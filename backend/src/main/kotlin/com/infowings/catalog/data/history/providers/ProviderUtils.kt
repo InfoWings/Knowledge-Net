@@ -1,19 +1,18 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.common.Delta
 import com.infowings.catalog.common.EventType
-import com.infowings.catalog.data.history.HistoryFactDto
-import com.orientechnologies.orient.core.id.ORID
+import com.infowings.catalog.common.FieldDelta
+import com.infowings.catalog.data.history.HistoryFact
 
 
-fun Set<HistoryFactDto>.idEventMap(classname: String): Map<ORID, List<HistoryFactDto>> = this
+fun Set<HistoryFact>.idEventMap(classname: String): Map<String, List<HistoryFact>> = this
     .filter { it.event.entityClass == classname }
     .groupBy { it.event.entityId }
     .mapValues { (_, events) -> events.sortedBy { it.event.timestamp } }
 
 
-fun createAspectFieldDelta(event: EventType, field: String, before: String?, after: String?): Delta =
+fun createAspectFieldDelta(event: EventType, field: String, before: String?, after: String?): FieldDelta =
     when (event) {
-        EventType.CREATE, EventType.UPDATE -> Delta(field, before, after)
-        EventType.DELETE, EventType.SOFT_DELETE -> Delta(field, before, null)
+        EventType.CREATE, EventType.UPDATE -> FieldDelta(field, before, after)
+        EventType.DELETE, EventType.SOFT_DELETE -> FieldDelta(field, before, null)
     }

@@ -10,7 +10,7 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryFactDto
+import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.asString
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -77,7 +77,11 @@ class ObjectHistoryTest {
     fun createObjectHistoryTest() {
         val testName = "createObjectHistoryTest"
 
-        val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val eventsBefore: Set<HistoryFact> = historyService.getAll().toSet()
+        val objectEventsBefore = objectEvents(eventsBefore)
+        val subjectEventsBefore = subjectEvents(eventsBefore)
+
+        val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
         val objectFactsBefore = objectEvents(factsBefore)
         val subjectFactsBefore = subjectEvents(factsBefore)
 
@@ -108,7 +112,7 @@ class ObjectHistoryTest {
 
         val createdObjectId = createObject(testName)
 
-        val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
         val objectFactsBefore = objectEvents(factsBefore)
         val propertyFactsBefore = propertyEvents(factsBefore)
 
@@ -118,7 +122,7 @@ class ObjectHistoryTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
-        val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
         val objectFactsAfter = objectEvents(factsAfter)
         val propertyFactsAfter = propertyEvents(factsAfter)
 
@@ -164,7 +168,7 @@ class ObjectHistoryTest {
 
     private data class PreparedValueInfo(
         val value: ObjectPropertyValue, val propertyId: String,
-        val propertyFacts: List<HistoryFactDto>, val valueFacts: List<HistoryFactDto>
+        val propertyFacts: List<HistoryFact>, val valueFacts: List<HistoryFact>
     )
 
     private fun prepareValue(
@@ -181,7 +185,7 @@ class ObjectHistoryTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
-        val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
         val valueRequest = ValueCreateRequest(
             value = value, objectPropertyId = createdPropertyId,
@@ -192,7 +196,7 @@ class ObjectHistoryTest {
 
         val createdValue = objectService.create(valueRequest, "user")
 
-        val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
 
@@ -203,7 +207,7 @@ class ObjectHistoryTest {
     }
 
     private fun prepareAnotherValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
-        val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
         val valueRequest = ValueCreateRequest(value = value, objectPropertyId = prepared.propertyId)
         val propertyFactsBefore = propertyEvents(factsBefore)
@@ -211,7 +215,7 @@ class ObjectHistoryTest {
 
         val createdValue = objectService.create(valueRequest, "user")
 
-        val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
 
@@ -222,7 +226,7 @@ class ObjectHistoryTest {
     }
 
     private fun prepareChildValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
-        val factsBefore: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
         val valueRequest = ValueCreateRequest(
             value = value, objectPropertyId = prepared.propertyId,
@@ -234,7 +238,7 @@ class ObjectHistoryTest {
 
         val createdValue = objectService.create(valueRequest, "user")
 
-        val factsAfter: Set<HistoryFactDto> = historyService.getAll().toSet()
+        val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
 
         val propertyFactsAfter = propertyEvents(factsAfter)
         val valueFactsAfter = valueEvents(factsAfter)
@@ -245,7 +249,7 @@ class ObjectHistoryTest {
         return PreparedValueInfo(createdValue, prepared.propertyId, propertyFactsAdded, valueFactsAdded)
     }
 
-    private fun checkPropertyFacts(propertyFacts: List<HistoryFactDto>, propertyId: String, valueId: ORID) {
+    private fun checkPropertyFacts(propertyFacts: List<HistoryFact>, propertyId: String, valueId: ORID) {
         assertEquals(1, propertyFacts.size, "one property event is expected")
         val propertyEvent = propertyFacts.first().event
         val propertyPayload = propertyFacts.first().payload
@@ -489,15 +493,15 @@ class ObjectHistoryTest {
         val byEntity = valueFacts.groupBy { it.event.entityId }
 
         assertEquals(
-            setOf(prepared1.value.id, prepared2.value.id),
+            setOf(prepared1.value.id.toString(), prepared2.value.id.toString()),
             byEntity.keys,
             "value facts must be for proper entities"
         )
 
         val childFact =
-            byEntity[prepared2.value.id]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
+            byEntity[prepared2.value.id.toString()]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
         val parentFact =
-            byEntity[prepared1.value.id]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
+            byEntity[prepared1.value.id.toString()]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
 
         val childEvent = childFact.event
         val childPayload = childFact.payload
@@ -758,16 +762,16 @@ class ObjectHistoryTest {
         checkPropertyFacts(prepared)
     }
 
-    private fun eventsByClass(events: Set<HistoryFactDto>, entityClass: String) =
-        events.filter { it.event.entityClass == entityClass }
+    private fun eventsByClass(events: Set<HistoryFact>, entityClass: String) =
+      events.filter { it.event.entityClass == entityClass }
 
-    private fun objectEvents(events: Set<HistoryFactDto>) = eventsByClass(events, OBJECT_CLASS)
+    private fun objectEvents(events: Set<HistoryFact>) = eventsByClass(events, OBJECT_CLASS)
 
-    private fun propertyEvents(events: Set<HistoryFactDto>) = eventsByClass(events, OBJECT_PROPERTY_CLASS)
+    private fun subjectEvents(events: Set<HistoryFact>) = eventsByClass(events, SUBJECT_CLASS)
 
-    private fun valueEvents(events: Set<HistoryFactDto>) = eventsByClass(events, OBJECT_PROPERTY_VALUE_CLASS)
+    private fun propertyEvents(events: Set<HistoryFact>) = eventsByClass(events, OBJECT_PROPERTY_CLASS)
 
-    private fun subjectEvents(events: Set<HistoryFactDto>) = eventsByClass(events, SUBJECT_CLASS)
+    private fun valueEvents(events: Set<HistoryFact>) = eventsByClass(events, OBJECT_PROPERTY_VALUE_CLASS)
 
     private fun createObject(name: String): String {
         val request = ObjectCreateRequest(name, "object descr", subject.id, subject.version)

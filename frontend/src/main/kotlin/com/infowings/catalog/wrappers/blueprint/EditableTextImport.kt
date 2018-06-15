@@ -86,7 +86,7 @@ external interface EditableTextProps : BlueprintComponentProps {
     var placeholder: String
 
     /**
-     * Whether the entire text field should be selected on focus. If false, the cursor is placed at the end of the
+     * Whether the entire text fieldName should be selected on focus. If false, the cursor is placed at the end of the
      * text.
      */
     var selectAllOnFocus: Boolean

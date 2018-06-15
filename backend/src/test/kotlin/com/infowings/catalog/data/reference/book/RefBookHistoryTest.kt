@@ -4,10 +4,11 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryFactDto
+import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.HISTORY_ENTITY_REFBOOK
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
@@ -66,7 +67,7 @@ class RefBookHistoryTest {
         val historyAfter = historyService.getAll()
         val statesAfter = historyProvider.getAllHistory()
 
-        val states = statesAfter.dropLast(statesBefore.size)
+        val states: List<RefBookHistory> = statesAfter.dropLast(statesBefore.size)
 
         val facts = historyAfter - historyBefore
         val refBookFacts = facts.refBookFacts()
@@ -96,12 +97,12 @@ class RefBookHistoryTest {
         val state = states[0]
 
         // проверяем мета-данные о состоянии
-        assertEquals(userName, state.username)
-        assertEquals(refBookEvent.timestamp, state.timestamp)
-        assertEquals(EventType.CREATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(refBookEvent.timestamp, state.event.timestamp)
+        assertEquals(EventType.CREATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
-        assertEquals(refBookEvent.version, state.version)
+        assertEquals(refBookEvent.version, state.event.version)
         assertEquals(refBook.name, state.info)
 
         // проверяем заголовочную часть
@@ -116,7 +117,7 @@ class RefBookHistoryTest {
 
         // проверяем changes
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "Aspect"), byField.keys)
         assertEquals(testName, byField.getValue("Name")[0].after)
 //        assertEquals(aspect.id, byField.getValue("link_aspect")[0].after)
@@ -194,10 +195,10 @@ class RefBookHistoryTest {
         val state = states[0]
 
         // проверяем мета-данные
-        assertEquals(userName, state.username)
-        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.timestamp)
-        assertEquals(EventType.UPDATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.event.timestamp)
+        assertEquals(EventType.UPDATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
         assertEquals(refBook.name, state.info)
 
@@ -217,7 +218,7 @@ class RefBookHistoryTest {
 
         // проверяем изменения
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "description"), byField.keys)
         assertEquals(itemValue, byField.getValue("Name")[0].after)
         assertEquals(itemDescription, byField.getValue("description")[0].after)
@@ -298,10 +299,10 @@ class RefBookHistoryTest {
         val state = states[0]
 
         // проверяем мета-данные
-        assertEquals(userName, state.username)
-        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.timestamp)
-        assertEquals(EventType.UPDATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.event.timestamp)
+        assertEquals(EventType.UPDATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
         assertEquals(refBook.name, state.info)
 
@@ -320,7 +321,7 @@ class RefBookHistoryTest {
 
         // проверяем изменения
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "description"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
@@ -400,10 +401,10 @@ class RefBookHistoryTest {
         val state = states[0]
 
         // проверяем мета-данные
-        assertEquals(userName, state.username)
-        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.timestamp)
-        assertEquals(EventType.UPDATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(max(updateEvent.timestamp, createEvent.timestamp), state.event.timestamp)
+        assertEquals(EventType.UPDATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
         assertEquals(refBook.name, state.info)
 
@@ -422,7 +423,7 @@ class RefBookHistoryTest {
 
         // проверяем изменения
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "description"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
@@ -486,10 +487,10 @@ class RefBookHistoryTest {
 
 
         // проверяем мета-данные
-        assertEquals(userName, state.username)
-        assertEquals(event.timestamp, state.timestamp)
-        assertEquals(EventType.UPDATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(event.timestamp, state.event.timestamp)
+        assertEquals(EventType.UPDATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
         assertEquals(refBook.name, state.info)
 
@@ -510,7 +511,7 @@ class RefBookHistoryTest {
 
         // проверяем изменения
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "description"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
@@ -570,10 +571,10 @@ class RefBookHistoryTest {
 
 
         // проверяем мета-данные
-        assertEquals(userName, state.username)
-        assertEquals(event.timestamp, state.timestamp)
-        assertEquals(EventType.UPDATE, state.eventType)
-        assertEquals(HISTORY_ENTITY_REFBOOK, state.entityName)
+        assertEquals(userName, state.event.username)
+        assertEquals(event.timestamp, state.event.timestamp)
+        assertEquals(EventType.UPDATE, state.event.type)
+        assertEquals(HISTORY_ENTITY_REFBOOK, state.event.entityClass)
         assertEquals(false, state.deleted)
         assertEquals(rbName2, state.info)
 
@@ -589,7 +590,7 @@ class RefBookHistoryTest {
 
         // проверяем изменения
         assertEquals(2, state.changes.size)
-        val byField = state.changes.groupBy { it.field }
+        val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "description"), byField.keys)
         assertEquals(rbName2, byField.getValue("Name")[0].after)
         assertEquals(rbDescription2, byField.getValue("description")[0].after)
@@ -597,7 +598,7 @@ class RefBookHistoryTest {
         assertEquals(null, byField.getValue("description")[0].before)
     }
 
-    private fun Set<HistoryFactDto>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
+    private fun Set<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
 
-    private fun Set<HistoryFactDto>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
+    private fun Set<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
 }

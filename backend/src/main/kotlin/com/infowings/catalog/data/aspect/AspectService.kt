@@ -3,7 +3,7 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryContext
-import com.infowings.catalog.data.history.HistoryFact
+import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.loggerFor
@@ -225,7 +225,9 @@ class AspectService(
         val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
-        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(vertex)
+        return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
+            vertex
+        )
     }
 
     /**
@@ -314,7 +316,7 @@ class AspectService(
         vertex: AspectPropertyVertex,
         data: AspectPropertyData,
         context: HistoryContext
-    ): HistoryFact {
+    ): HistoryFactWrite {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
             vertex.toCreateFact(context)

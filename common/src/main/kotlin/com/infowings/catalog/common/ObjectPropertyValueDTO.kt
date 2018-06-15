@@ -33,6 +33,7 @@ import kotlinx.serialization.Serializable
 
  */
 enum class ValueDTOTags {
+    NULL,
     INTEGER,
     BOOLEAN,
     STRING,
@@ -57,6 +58,8 @@ data class ValueDTO(
 
 /* заполнители */
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, null, null, null, null, null)
+
+fun nullValueDto() = ValueDTO(ValueDTOTags.NULL.name, null, null, null, null, null, null)
 
 fun booleanValueDto(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, null, null, null, null, null, value)
 
@@ -88,8 +91,8 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
             is LinkValueData.Object -> objectValueDto(this.value.id)
             is LinkValueData.DomainElement -> domainElementValueDto(this.value.id)
         }
-    else ->
-        throw IllegalStateException("no scalar value")
+    is ObjectValueData.NullValue ->
+        nullValueDto()
 }
 
 fun ValueDTO.idStrict(): String = vertexId ?: throw IllegalStateException("id is absent")
@@ -97,7 +100,8 @@ fun ValueDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int val
 fun ValueDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
 fun ValueDTO.rangeStrict(): Range = range ?: throw IllegalStateException("range value is absent")
 fun ValueDTO.booleanStrict(): Boolean = booleanValue ?: throw IllegalStateException("boolean value is absent")
-fun ValueDTO.decimalStrict(): String = stringValue ?: throw IllegalStateException("decimal value representation is absent")
+fun ValueDTO.decimalStrict(): String =
+    stringValue ?: throw IllegalStateException("decimal value representation is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.INTEGER -> {
@@ -121,6 +125,8 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
         ObjectValueData.Link(LinkValueData.Subject(idStrict()))
     ValueDTOTags.DOMAIN_ELEMENT ->
         ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
+    ValueDTOTags.NULL ->
+        ObjectValueData.NullValue
 }
 
 data class ObjectPropertyValueDTO(
