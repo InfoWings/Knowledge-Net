@@ -4,6 +4,7 @@ import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.FieldDelta
 import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.common.RefBookHistory
+import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryFact
@@ -217,7 +218,21 @@ class RefBookHistoryProvider(
                     refBookItemEdit(updateFact, state)
                 }
             }
-            else -> throw IllegalStateException("Unexpected set of session facts: $sessionFacts")
+            else ->
+                RefBookHistory(
+                    event = HistoryEventData(username = "",             timestamp = -1,
+                        version = 0,
+                        type = EventType.UPDATE,
+                        entityId = "???",
+                        entityClass = HISTORY_ENTITY_REFBOOK,
+                        sessionId = ""
+                    ),
+                    info = "???",
+                    deleted = false,
+                    fullData = RefBookHistoryData.Companion.BriefState(RefBookHistoryData.Companion.Header(id = "???", name = "???",
+                        aspectName = "???", aspectId = "", description = ""), null),
+                    changes = emptyList()
+                )
         }
     }
 
