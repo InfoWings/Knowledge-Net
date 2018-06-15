@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.reference.book
 
+import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
@@ -66,6 +67,10 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         val children = children.map { it.toReferenceBookItem() }
         return ReferenceBookItem(id, value, description, children, deleted, version)
     }
+
+    fun toNodeDescriptor(): RefBookNodeDescriptor =
+        RefBookNodeDescriptor(id, value, description)
+
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_REFBOOK_ITEM_EDGE)
 

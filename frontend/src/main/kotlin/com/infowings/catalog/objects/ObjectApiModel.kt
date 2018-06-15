@@ -99,6 +99,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
     private fun convertValue(objectProperty: ObjectPropertyData, aspect: AspectData, value: String?): ObjectValueData? =
         when {
             value == null -> if (objectProperty.cardinality == PropertyCardinality.ZERO.name) ObjectValueData.NullValue else null
+            aspect.baseType == BaseType.Text.name && aspect.refBookName != null -> ObjectValueData.Link(LinkValueData.DomainElement(value))
             aspect.baseType == BaseType.Text.name -> ObjectValueData.StringValue(value)
             aspect.baseType == BaseType.Integer.name ->
                 ObjectValueData.IntegerValue(value.toInt(), 0)
@@ -112,6 +113,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
 
     private fun convertValue(property: AspectPropertyDataExtended, value: String): ObjectValueData? {
         return when {
+            property.aspectBaseType == BaseType.Text.name && property.refBookName != null -> ObjectValueData.Link(LinkValueData.DomainElement(value))
             property.aspectBaseType == BaseType.Text.name -> ObjectValueData.StringValue(value)
             property.aspectBaseType == BaseType.Integer.name -> ObjectValueData.IntegerValue(value.toInt(), 0)
             property.aspectBaseType == BaseType.Decimal.name -> ObjectValueData.DecimalValue(value)

@@ -37,7 +37,7 @@ class ObjectTreeView : RComponent<ObjectTreeViewModelConsumerProps, RState>() {
                         icon = "add"
                         intent = Intent.PRIMARY
                         className = "pt-minimal"
-                        this.onClick = { props.objectTreeViewModel.addNewObjTree() }
+                        this.onClick = { props.objectTreeViewModel.addObject() }
                     }
                     +"Add Object"
                 }

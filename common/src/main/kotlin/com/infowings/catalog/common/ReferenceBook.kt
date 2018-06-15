@@ -30,4 +30,16 @@ data class ReferenceBookItemData(
 )
 
 @Serializable
+data class ReferenceBookItemPath(
+    val path: List<RefBookNodeDescriptor>
+)
+
+@Serializable
+data class RefBookNodeDescriptor(
+    val id: String,
+    val value: String,
+    val description: String?
+)
+
+@Serializable
 data class ReferenceBooksList(val books: List<ReferenceBook>)

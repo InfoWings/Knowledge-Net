@@ -60,7 +60,8 @@ data class AspectPropertyDataExtended(
     val aspectName: String,
     val aspectMeasure: String?,
     val aspectDomain: String,
-    val aspectBaseType: String
+    val aspectBaseType: String,
+    val refBookName: String?
 )
 
 /** Helpful extensions */
