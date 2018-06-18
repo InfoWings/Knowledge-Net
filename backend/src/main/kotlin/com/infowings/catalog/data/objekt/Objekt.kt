@@ -28,7 +28,7 @@ data class ObjectTruncated(
     val subjectName: String,
     val subjectDescription: String?
 ) {
-    fun toResponse() = ObjectGetResponse(id.toString(), name, description, subjectName, subjectDescription)
+    fun toResponse() = ObjectGetResponse(id.toString(), name, description, subjectId.toString(), subjectName, subjectDescription)
 }
 
 data class ObjectCreateInfo(val name: String, val description: String?, val subject: SubjectVertex)

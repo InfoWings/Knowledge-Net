@@ -25,8 +25,20 @@ data class ObjectGetResponse(
     val id: String,
     val name: String,
     val description: String?,
+    val subjectId: String,
     val subjectName: String,
     val subjectDescription: String?
+)
+
+@Serializable
+data class DetailedObjectResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val subjectName: String,
+    val subjectDescription: String?,
+    val objectProperties: List<ObjectPropertyData>
 )
 
 @Serializable

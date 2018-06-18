@@ -2,40 +2,10 @@ package com.infowings.catalog.objects
 
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.*
-import com.infowings.catalog.utils.get
-import com.infowings.catalog.utils.post
+import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateResponse
 import kotlinx.coroutines.experimental.launch
-import kotlinx.serialization.json.JSON
 import react.*
-
-suspend fun getAllObjects(): List<ObjectData> = JSON.parse(get("/api/objects/all"))
-
-suspend fun saveObject(objData: ObjectData): ObjectData = JSON.parse(post("/api/object/save", JSON.stringify(objData)))
-
-suspend fun createObject(request: ObjectCreateRequest): ObjectCreateResponse =
-    JSON.parse(post("/api/objects/create", JSON.stringify(request)))
-
-suspend fun createObject(data: ObjectData): ObjectCreateResponse {
-    val name = data.name ?: throw IllegalStateException("name is not defined")
-    val subjectId = data.subject.id ?: throw IllegalStateException("subject id is not defined")
-
-    return createObject(ObjectCreateRequest(name, data.description, subjectId, data.subject.version))
-}
-
-
-suspend fun createProperty(request: PropertyCreateRequest): PropertyCreateResponse =
-    JSON.parse(post("/api/objects/createProperty", JSON.stringify(request)))
-
-suspend fun createProperty(objectId: String, data: ObjectPropertyData): PropertyCreateResponse {
-    val name = data.name ?: throw IllegalStateException("name is not defined")
-    val aspectId = data.aspect.id ?: throw IllegalStateException("aspect id is not defined")
-
-    return createProperty(PropertyCreateRequest(objectId, name, data.cardinality, aspectId))
-}
-
-suspend fun createValue(request: ValueCreateRequest): ValueCreateResponse =
-    JSON.parse(post("/api/objects/createValue", JSON.stringify(request.toDTO())))
 
 
 interface ObjectApiModel {
@@ -156,7 +126,7 @@ class ObjectApiModelComponent : RComponent<RProps, ObjectApiModelComponent.State
     }
 
     override fun RBuilder.render() {
-        objectTreeViewModel {
+        objectTreeEditModel {
             attrs {
                 objList = state.objList
                 objMap = state.objMap

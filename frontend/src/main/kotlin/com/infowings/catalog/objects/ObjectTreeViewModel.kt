@@ -1,98 +1,47 @@
 package com.infowings.catalog.objects
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.objects.treeview.objectTreeView
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.objects.treeview.objectLazyTreeView
 import react.*
 
-
-interface ObjectTreeViewModel {
-    fun selectObject(objTreeView: ObjectViewModel)
-    fun updateSelectedObject(updater: ObjectViewModel.() -> Unit)
-    fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit)
-    fun addObject()
-    fun saveObject()
+interface ObjectsLazyModel {
+    fun expandObject(id: String)
+    fun updateObject(index: Int, block: ObjectLazyViewModel.() -> Unit)
 }
 
-interface ObjectTreeViewModelConsumerProps : RProps {
-    var objectForest: List<ObjectViewModel>
-    var editedObject: ObjectViewModel?
-    var objectTreeViewModel: ObjectTreeViewModel
-    var aspectsMap: Map<String, AspectData>
-}
+class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RComponent<ObjectsViewApiConsumerProps, ObjectTreeViewModelComponent.State>(props),
+    ObjectsLazyModel {
 
-class ObjectTreeViewModelComponent : RComponent<ObjectApiConsumerProps, ObjectTreeViewModelComponent.State>(),
-    ObjectTreeViewModel {
-
-    override fun State.init() {
-        objects = ArrayList()
-        editedObject = null
+    override fun State.init(props: ObjectsViewApiConsumerProps) {
+        objects = props.objects.toLazyView()
     }
 
-    override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) = setState {
-        // TODO: Smart merging of the incoming data into view state
-        objects = nextProps.objList.map(::ObjectViewModel).toMutableList()
-    }
-
-
-    override fun updateSelectedObject(updater: ObjectViewModel.() -> Unit) = setState {
-        editedObject?.updater() ?: error("Inconsistent state")
-    }
-
-    override fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit) = setState {
-        objects[index].updater()
-    }
-
-    override fun saveObject() = setState {
-        val savedObjData = editedObject?.toObjectData() ?: error("Inconsistent state")
-        launch {
-            props.objectApiModel.submitObj(savedObjData)
-        }
-        editedObject = null
-    }
-
-    override fun selectObject(objTreeView: ObjectViewModel) = setState {
-        if (objTreeView != editedObject) {
-            editedObject?.let { objTree ->
-                objTree.id?.let {
-                    val objData = props.objMap[it] ?: error("Inconsistent State")
-                    objTree.name = objData.name
-                    objTree.subject = objData.subject
-                } ?: objects.removeAt(objects.lastIndex)
-            }
-            editedObject = objTreeView
+    override fun componentWillReceiveProps(nextProps: ObjectsViewApiConsumerProps) {
+        setState {
+            objects = nextProps.objects.toLazyView()
         }
     }
 
-    override fun addObject() = setState {
-        // TODO: Probably different interfaces for creating an editing
-        editedObject?.let { objTree ->
-            objTree.id?.let {
-                val objData = props.objMap[it] ?: error("Inconsistent State")
-                objTree.name = objData.name
-                objTree.subject = objData.subject
-            } ?: error("Inconsistent State")
-        }
-        objects.add(ObjectViewModel(null, null, null, ArrayList()))
-        editedObject = objects.last()
+    override fun expandObject(id: String) {
+        props.objectApiModel.fetchDetailedObject(id)
+    }
+
+    override fun updateObject(index: Int, block: ObjectLazyViewModel.() -> Unit) = setState {
+        objects[index].block()
     }
 
     override fun RBuilder.render() {
-        objectTreeView {
+        objectLazyTreeView {
             attrs {
-                objectForest = state.objects
-                editedObject = state.editedObject
+                objects = state.objects
                 objectTreeViewModel = this@ObjectTreeViewModelComponent
-                aspectsMap = props.aspectMap
             }
         }
     }
 
     interface State : RState {
-        var objects: MutableList<ObjectViewModel>
-        var editedObject: ObjectViewModel?
+        var objects: List<ObjectLazyViewModel>
     }
 }
 
-fun RBuilder.objectTreeViewModel(block: RHandler<ObjectApiConsumerProps>) =
+fun RBuilder.objectsViewModel(block: RHandler<ObjectsViewApiConsumerProps>) =
     child(ObjectTreeViewModelComponent::class, block)

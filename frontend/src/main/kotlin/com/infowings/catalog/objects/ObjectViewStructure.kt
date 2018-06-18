@@ -160,3 +160,18 @@ fun MutableList<AspectPropertyValueGroupViewModel>.toAspectPropertyValueData(): 
         }
     }
 
+// -----------------
+
+data class ObjectLazyViewModel(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val subjectName: String,
+    val subjectDescription: String?,
+    val objectProperties: List<ObjectPropertyViewModel>? = null,
+    var expanded: Boolean = false
+)
+
+fun List<ObjectGetResponse>.toLazyView() = this.map { ObjectLazyViewModel(it.id, it.name, it.description, it.subjectId, it.subjectName, it.subjectDescription) }
+
