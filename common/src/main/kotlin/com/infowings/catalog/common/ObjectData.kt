@@ -15,6 +15,19 @@ data class ObjectData2(
     val propertyIds: List<String>
 )
 
+@Serializable
+data class ObjectsResponse(
+    val objects: List<ObjectGetResponse>
+)
+
+@Serializable
+data class ObjectGetResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectName: String,
+    val subjectDescription: String?
+)
 
 @Serializable
 data class ObjectData(

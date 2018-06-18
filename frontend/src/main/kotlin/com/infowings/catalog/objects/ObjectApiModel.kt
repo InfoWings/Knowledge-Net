@@ -14,7 +14,7 @@ suspend fun getAllObjects(): List<ObjectData> = JSON.parse(get("/api/objects/all
 suspend fun saveObject(objData: ObjectData): ObjectData = JSON.parse(post("/api/object/save", JSON.stringify(objData)))
 
 suspend fun createObject(request: ObjectCreateRequest): ObjectCreateResponse =
-    JSON.parse(post("/api/object/create", JSON.stringify(request)))
+    JSON.parse(post("/api/objects/create", JSON.stringify(request)))
 
 suspend fun createObject(data: ObjectData): ObjectCreateResponse {
     val name = data.name ?: throw IllegalStateException("name is not defined")
@@ -25,7 +25,7 @@ suspend fun createObject(data: ObjectData): ObjectCreateResponse {
 
 
 suspend fun createProperty(request: PropertyCreateRequest): PropertyCreateResponse =
-    JSON.parse(post("/api/object/createProperty", JSON.stringify(request)))
+    JSON.parse(post("/api/objects/createProperty", JSON.stringify(request)))
 
 suspend fun createProperty(objectId: String, data: ObjectPropertyData): PropertyCreateResponse {
     val name = data.name ?: throw IllegalStateException("name is not defined")
@@ -35,7 +35,7 @@ suspend fun createProperty(objectId: String, data: ObjectPropertyData): Property
 }
 
 suspend fun createValue(request: ValueCreateRequest): ValueCreateResponse =
-    JSON.parse(post("/api/object/createValue", JSON.stringify(request.toDTO())))
+    JSON.parse(post("/api/objects/createValue", JSON.stringify(request.toDTO())))
 
 
 interface ObjectApiModel {

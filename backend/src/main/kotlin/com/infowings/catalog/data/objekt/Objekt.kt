@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.orientechnologies.orient.core.id.ORID
 
@@ -18,5 +19,16 @@ data class Objekt(
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>
 )
+
+data class ObjectTruncated(
+    val id: ORID,
+    val name: String,
+    val description: String?,
+    val subjectId: ORID,
+    val subjectName: String,
+    val subjectDescription: String?
+) {
+    fun toResponse() = ObjectGetResponse(id.toString(), name, description, subjectName, subjectDescription)
+}
 
 data class ObjectCreateInfo(val name: String, val description: String?, val subject: SubjectVertex)

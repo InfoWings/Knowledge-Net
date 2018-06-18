@@ -1,19 +1,25 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.loggerFor
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
 @RestController
-@RequestMapping("/api/object")
+@RequestMapping("/api/objects")
 class ObjectApi(val objectService: ObjectService) {
     private val logger = loggerFor<ObjectApi>()
+
+    @GetMapping
+    fun getAllObjects(principal: Principal): ObjectsResponse {
+        val username = principal.name
+        logger.debug("Get objects request by $username")
+        return ObjectsResponse(objectService.fetch().map { it.toResponse() })
+    }
+
 
     @PostMapping("create")
     fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectCreateResponse {

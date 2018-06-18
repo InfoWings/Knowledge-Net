@@ -26,6 +26,8 @@ class ObjectService(
 ) {
     private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectDao)
 
+    fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
+
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
