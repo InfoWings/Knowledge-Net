@@ -4,10 +4,15 @@ import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import notDeletedSql
 import java.math.BigDecimal
+
+const val selectObjectWithName =
+    "SELECT from $OBJECT_CLASS WHERE name = :name and $notDeletedSql"
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -153,11 +158,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun getObjectVertex(id: String) = db.getVertexById(id)?.toObjectVertex()
     fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
     fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
+
+    fun getObjectVertexByNameAndSubject(name: String, subjectId: String): ObjectVertex? {
+        val query = "$selectObjectWithName and (@rid in (select out.@rid from $OBJECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
+
+        return db.query(query, mapOf("name" to name, "subjectId" to ORecordId(subjectId))) { rs ->
+            rs.map { it.toVertex().toObjectVertex() }.firstOrNull()
+        }
+    }
 }
 
-abstract class ObjectException(message: String) : Exception(message)
+sealed class ObjectException(message: String) : Exception(message)
 class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
 class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectException("object name is empty: $data")
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
+class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")

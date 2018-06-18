@@ -14,6 +14,7 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
+import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.transaction
 import junit.framework.Assert.assertTrue
 import org.junit.Before
@@ -234,6 +235,31 @@ class ObjectDaoTest {
         assertNotNull(createdValue.strValue, "str value must be non-null")
         assertTrue("int value must be null", createdValue.intValue == null)
         assertEquals("some value", createdValue.strValue, "str value must be correct")
+    }
+
+    @Test(expected = ObjectAlreadyExists::class)
+    fun checkSaveObjectSameNameSameSubjectTest() {
+        val objectRequest =
+            ObjectCreateRequest("obj", "some descr", subject.id, subject.version)
+        objectService.create(objectRequest, username)
+        objectService.create(objectRequest, username)
+    }
+
+    @Test
+    fun checkSaveObjectSameNameDiffSubjectTest() {
+        val objectRequest1 = ObjectCreateRequest("obj", "some descr", subject.id, subject.version)
+        val objId1 = objectService.create(objectRequest1, username)
+        val obj1 = objectService.findById(objId1)
+        val subj1 = session(db) { obj1.subject!! }
+
+        val subject2 = subjectService.createSubject(SubjectData(name = "sub2", description = null), username)
+        val objectRequest2 = ObjectCreateRequest("obj", "some descr", subject2.id, subject2.version)
+        val objId2 = objectService.create(objectRequest2, username)
+        val obj2 = objectService.findById(objId2)
+        val subj2 = session(db) { obj2.subject!! }
+
+        assertTrue("There are two objects with same name", obj1.name == obj2.name)
+        assertTrue("Objects have different subjects", subj1.id != subj2.id)
     }
 
 

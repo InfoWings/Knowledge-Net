@@ -12,6 +12,7 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.storage.id
 import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -39,6 +40,8 @@ class ObjectValidator(
         if (trimmedName.isEmpty()) {
             throw EmptyObjectNameException(request)
         }
+
+        objectService.findByNameAndSubject(trimmedName, subjectVertex.id)?.let { throw ObjectAlreadyExists(trimmedName) }
 
         return ObjectCreateInfo(
             name = trimmedName,
