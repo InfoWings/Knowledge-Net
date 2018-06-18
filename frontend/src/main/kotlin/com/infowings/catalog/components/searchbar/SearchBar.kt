@@ -1,5 +1,6 @@
 package com.infowings.catalog.components.searchbar
 
+import com.infowings.catalog.wrappers.blueprint.Button
 import kotlinext.js.require
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
@@ -25,6 +26,11 @@ class SearchBar : RComponent<SearchBar.Props, RState>() {
                     placeholder = "Search ..."
                     value = props.filterText
                     onChangeFunction = { props.onFilterTextChange((it.target as HTMLInputElement).value) }
+                }
+            }
+            Button {
+                attrs {
+                    icon = "refresh"
                 }
             }
         }

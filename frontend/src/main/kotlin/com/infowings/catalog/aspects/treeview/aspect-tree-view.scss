@@ -103,6 +103,8 @@
 
 .aspect-header {
 
+  position: relative;
+
   &__sort-search {
     display: flex;
     align-items: center;
@@ -114,4 +116,9 @@
     align-items: start
   }
 
+  &__refresh {
+    position: absolute;
+    top: 0;
+    right: -5rem;
+  }
 }

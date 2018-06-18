@@ -12,10 +12,7 @@ import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.wrappers.blueprint.Intent
-import com.infowings.catalog.wrappers.blueprint.Position
-import com.infowings.catalog.wrappers.blueprint.Toast
-import com.infowings.catalog.wrappers.blueprint.Toaster
+import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.dom.div
@@ -26,30 +23,39 @@ fun RBuilder.aspectPageHeader(
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
     setFilterAspects: (List<AspectData>) -> Unit
-) = div(classes = "aspect-tree-view__header aspect-header") {
-    div(classes = "aspect-header__sort-search") {
-        aspectSort {
-            attrs {
-                this.onOrderByChanged = onOrderByChanged
+) {
+    div(classes = "aspect-tree-view__header aspect-header") {
+        div(classes = "aspect-header__sort-search") {
+            aspectSort {
+                attrs {
+                    this.onOrderByChanged = onOrderByChanged
+                }
+            }
+            aspectSearchComponent {
+                attrs {
+                    onConfirmSearch = onSearchQueryChanged
+                }
             }
         }
-        aspectSearchComponent {
-            attrs {
-                onConfirmSearch = onSearchQueryChanged
+        div(classes = "aspect-header__text-filters") {
+            aspectSubjectFilterComponent {
+                attrs {
+                    subjectsFilter = filter.subjects
+                    onChange = setFilterSubjects
+                }
+            }
+            aspectExcludeFilterComponent {
+                attrs {
+                    selectedAspects = filter.excludedAspects
+                    onChange = setFilterAspects
+                }
             }
         }
-    }
-    div(classes = "aspect-header__text-filters") {
-        aspectSubjectFilterComponent {
-            attrs {
-                subjectsFilter = filter.subjects
-                onChange = setFilterSubjects
-            }
-        }
-        aspectExcludeFilterComponent {
-            attrs {
-                selectedAspects = filter.excludedAspects
-                onChange = setFilterAspects
+        div("aspect-header__refresh") {
+            Button {
+                attrs {
+                    icon = "refresh"
+                }
             }
         }
     }
