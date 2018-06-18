@@ -59,6 +59,11 @@ class ObjectValidator(
             throw EmptyObjectPropertyNameException(request)
         }
 
+        val sameAspectProps = objectService.findPropertyByObjectAndAspect(objectVertex.id, aspectVertex.id).map { it.name }
+        if (sameAspectProps.contains(trimmedName)) {
+            throw ObjectPropertyAlreadyExistException(trimmedName, objectVertex.id, aspectVertex.id)
+        }
+
         return PropertyWriteInfo(
             request.name,
             PropertyCardinality.valueOf(request.cardinality),
@@ -76,7 +81,6 @@ class ObjectValidator(
         }
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
-
 
         val dataValue = request.value
 

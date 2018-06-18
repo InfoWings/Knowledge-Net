@@ -174,4 +174,6 @@ class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectExce
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
+class ObjectPropertyAlreadyExistException(name: String, objectId: String, aspectId: String) :
+    ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")

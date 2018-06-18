@@ -101,6 +101,11 @@ class ObjectService(
 
     fun findByNameAndSubject(name: String, subjectId: String): ObjectVertex? = dao.getObjectVertexByNameAndSubject(name, subjectId)
 
+    // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
+    fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {
+        return@transaction dao.getObjectVertex(objectId)?.properties?.filter { it.aspect?.id == aspectId } ?: emptyList()
+    }
+
     fun findById(id: String): ObjectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
     fun findPropertyById(id: String): ObjectPropertyVertex =
         dao.getObjectPropertyVertex(id) ?: throw ObjectPropertyNotFoundException(id)

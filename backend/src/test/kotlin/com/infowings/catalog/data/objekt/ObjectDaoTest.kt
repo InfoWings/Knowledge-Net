@@ -262,12 +262,74 @@ class ObjectDaoTest {
         assertTrue("Objects have different subjects", subj1.id != subj2.id)
     }
 
+    @Test(expected = ObjectPropertyAlreadyExistException::class)
+    fun checkSavePropertySameNameSameAspectTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val propertyRequest = PropertyCreateRequest(
+            objectId = objVertex.id,
+            name = "prop",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
+        )
+        objectService.create(propertyRequest, username)
+        objectService.create(propertyRequest, username)
+    }
+
+    @Test
+    fun checkSavePropertySameNameDiffAspectTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val propertyRequest = PropertyCreateRequest(
+            objectId = objVertex.id,
+            name = "prop",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
+        )
+        val objPropId1 = objectService.create(propertyRequest, username)
+        val objProp1 = objectService.findPropertyById(objPropId1)
+
+        val anotherAspect = aspectService.save(AspectData(name = "another aspect", baseType = BaseType.Text.name), username)
+        val propertyRequest2 = PropertyCreateRequest(
+            objectId = objVertex.id,
+            name = "prop",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = anotherAspect.id
+        )
+        val objPropId2 = objectService.create(propertyRequest2, username)
+        val objProp2 = objectService.findPropertyById(objPropId2)
+
+        assertTrue("There are two props with same name", objProp1.name == objProp2.name)
+    }
+
+    @Test
+    fun checkSavePropertyDiffNamesSameAspectTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val propertyRequest = PropertyCreateRequest(
+            objectId = objVertex.id,
+            name = "prop",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
+        )
+        val objPropId1 = objectService.create(propertyRequest, username)
+        val objProp1 = objectService.findPropertyById(objPropId1)
+        val aspectId1 = session(db) { objProp1.aspect?.id }
+
+        val propertyRequest2 = PropertyCreateRequest(
+            objectId = objVertex.id,
+            name = "prop2",
+            cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspect.id
+        )
+        val objPropId2 = objectService.create(propertyRequest2, username)
+        val objProp2 = objectService.findPropertyById(objPropId2)
+        val aspectId2 = session(db) { objProp2.aspect?.id }
+
+        assertTrue("There are two props with same aspectId", aspectId1 == aspectId2)
+    }
 
     private fun createObject(objekt: ObjectCreateInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
         return@transaction dao.saveObject(newVertex, objekt, emptyList())
     }
-
 
     private fun createObject(request: ObjectCreateRequest): ObjectVertex {
         val objekt = validator.checkedForCreation(request)
