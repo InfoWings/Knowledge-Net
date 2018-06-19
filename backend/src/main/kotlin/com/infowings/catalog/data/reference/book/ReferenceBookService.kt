@@ -8,7 +8,10 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.history.HistoryContext
+import com.infowings.catalog.data.history.HistoryFactWrite
+import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -65,7 +68,8 @@ class ReferenceBookService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         return transaction(db) {
-            logger.debug("Creating ReferenceBook name: $name aspectId: $aspectId by $username")
+            val trimmedName = name.trim()
+            logger.debug("Creating ReferenceBook name: $trimmedName aspectId: $aspectId by $username")
             val context = HistoryContext(userVertex)
 
             // TODO: get aspect vertex via AspectService
@@ -79,7 +83,7 @@ class ReferenceBookService(
             aspectVertex.referenceBookRootVertex?.let { throw RefBookAlreadyExist(aspectId) }
 
             val rootVertex = dao.createReferenceBookItemVertex()
-            rootVertex.value = name
+            rootVertex.value = trimmedName
 
             aspectVertex.addEdge(rootVertex, ASPECT_REFERENCE_BOOK_EDGE).save<OEdge>()
             aspectVertex.save<OVertex>()
@@ -118,7 +122,7 @@ class ReferenceBookService(
 
         transaction(db) {
             val aspectId = book.aspectId
-            val newName: String = book.name
+            val newName: String = book.name.trim()
             val newDescription: String? = book.description
 
             val rootVertex = dao.getRootVertex(aspectId) ?: throw RefBookNotExist(aspectId)
@@ -226,7 +230,7 @@ class ReferenceBookService(
         val userVertex = userService.findUserVertexByUsername(username)
 
         return transaction(db) {
-            val value = bookItem.value
+            val value = bookItem.value.trim()
             val description = bookItem.description
 
             logger.debug("Adding ReferenceBookItem parentId: $parentId, value: $value by $username")
@@ -300,11 +304,12 @@ class ReferenceBookService(
                     validateLinkedByObjects(bookItem)
                 }
             }
-            if (itemVertex.value != bookItem.value) {
-                parentVertex.validateValue(bookItem.value, bookItem.id)
+            val trimmedValue = bookItem.value.trim()
+            if (itemVertex.value != trimmedValue) {
+                parentVertex.validateValue(trimmedValue, bookItem.id)
             }
 
-            itemVertex.value = bookItem.value
+            itemVertex.value = trimmedValue
             itemVertex.description = bookItem.description
             dao.saveBookItemVertex(parentVertex, itemVertex)
 

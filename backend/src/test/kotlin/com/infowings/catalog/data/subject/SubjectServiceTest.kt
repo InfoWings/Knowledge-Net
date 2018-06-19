@@ -229,9 +229,16 @@ class SubjectServiceTest {
     }
 
     @Test(expected = SubjectWithNameAlreadyExist::class)
-    fun createSubjectWithSpaces() {
+    fun testCreateSubjectWithSpaces() {
         createTestSubject("testSubject")
         createTestSubject("testSubject ")
+    }
+
+    @Test(expected = SubjectWithNameAlreadyExist::class)
+    fun testUpdateSubjectWithSameName() {
+        createTestSubject("testSubject")
+        val res = createTestSubject("testSubject2")
+        subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject"), username)
     }
 
     private fun createTestSubject(

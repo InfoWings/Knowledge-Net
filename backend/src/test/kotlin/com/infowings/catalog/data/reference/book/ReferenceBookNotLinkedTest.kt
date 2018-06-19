@@ -304,6 +304,31 @@ class ReferenceBookNotLinkedTest {
         Assert.assertEquals("Same data shouldn't be rewritten", child.version, savedChild.version)
     }
 
+    @Test(expected = RefBookAlreadyExist::class)
+    fun testCreateRefBookSameNameSpaces() {
+        referenceBookService.createReferenceBook(referenceBook.name + " ", aspect.id, username)
+    }
+
+    @Test(expected = RefBookAlreadyExist::class)
+    fun testChangeRefBookSameNameSpaces() {
+        val referenceBook2 = referenceBookService.createReferenceBook("ex", aspect.id, username)
+        referenceBookService.updateReferenceBook(referenceBook2.copy(name = referenceBook.name), username)
+    }
+
+    @Test(expected = RefBookChildAlreadyExist::class)
+    fun testCreateRefBookItemSameNameSpaces() {
+        addReferenceBookItem(referenceBook.id, "value")
+        addReferenceBookItem(referenceBook.id, "value ")
+    }
+
+    @Test(expected = RefBookChildAlreadyExist::class)
+    fun testUpdateRefBookItemSameNameSpaces() {
+        addReferenceBookItem(referenceBook.id, "value")
+        val resId = addReferenceBookItem(referenceBook.id, "value2")
+        val res = referenceBookService.getReferenceBookItem(resId)
+        referenceBookService.updateReferenceBookItem(res.copy(value = "value"), username)
+    }
+
     private fun addReferenceBookItem(parentId: String, value: String): String =
         referenceBookService.addReferenceBookItem(parentId, createReferenceBookItem(value), username)
 
