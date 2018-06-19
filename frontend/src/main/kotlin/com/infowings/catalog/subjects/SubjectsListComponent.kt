@@ -10,6 +10,7 @@ import com.infowings.catalog.components.reference.referenceButtonComponent
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinext.js.require
@@ -32,11 +33,20 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
 
     override fun State.init() {
         errorMessages = emptyList()
+        data = emptyList()
+    }
+
+    override fun componentWillReceiveProps(nextProps: SubjectApiReceiverProps) {
+        setState {
+            data = nextProps.data.toList()
+        }
     }
 
     private var timer: Int = 0
 
     private fun updateSubjectName(newName: String, subjectData: SubjectData) {
+        console.log(newName)
+        console.log(subjectData)
         if (subjectData.name != newName && newName.isNotBlank()) {
             submitSubject(subjectData.copy(name = newName))
         }
@@ -107,7 +117,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             }
 
-            props.data.forEach { subjectData ->
+            state.data.forEach { subjectData ->
                 div(classes = "subjects-list--subject-item") {
                     attrs {
                         key = subjectData.id ?: error("Server sent Subject with id == null")
@@ -115,8 +125,18 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                     EditableText {
                         attrs {
                             className = "subjects-list--name"
-                            defaultValue = subjectData.name
-                            onConfirm = { updateSubjectName(it, subjectData) }
+                            value = subjectData.name
+                            onConfirm = {
+                                updateSubjectName(it, props.data.find { it.id == subjectData.id }!!)
+                            }
+                            onChange = {
+                                setState {
+                                    data = data.replaceBy(subjectData.copy(name = it)) {
+                                        it.id == subjectData.id
+                                    }
+                                }
+                            }
+                            confirmOnEnterKey = true
                         }
                     }
                     descriptionComponent(
@@ -135,7 +155,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
 
             div(classes = "subjects-list--subject-item") {
                 attrs {
-                    key = props.data.size.toString()
+                    key = state.data.size.toString()
                 }
                 EditableText {
                     attrs {
@@ -182,6 +202,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     interface State : RState {
         var filterText: String
         var linkedEntitiesSubject: SubjectData?
+        var data: List<SubjectData>
         var errorMessages: List<String>
     }
 }
