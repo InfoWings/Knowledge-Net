@@ -13,6 +13,7 @@ class AspectsPage : RComponent<RouteSuppliedProps, RState>() {
             attrs.location = props.location.pathname
             attrs.history = props.history
         }
+        console.log("ping")
         aspectApiMiddleware(DefaultAspectsModelComponent::class)
     }
 }
