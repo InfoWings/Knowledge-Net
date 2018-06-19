@@ -227,7 +227,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 onSearchQueryChanged = props.onSearchQueryChanged,
                 filter = state.aspectsFilter,
                 setFilterSubjects = ::setSubjectsFilter,
-                setFilterAspects = ::setExcludedAspectsToFilter
+                setFilterAspects = ::setExcludedAspectsToFilter,
+                refreshAspects = props.refreshAspects
             )
             aspectPageContent(
                 filteredAspects = state.aspectsFilter.applyToAspects(props.data),

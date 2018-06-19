@@ -22,7 +22,8 @@ fun RBuilder.aspectPageHeader(
     onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
-    setFilterAspects: (List<AspectData>) -> Unit
+    setFilterAspects: (List<AspectData>) -> Unit,
+    refreshAspects: () -> Unit
 ) {
     div(classes = "aspect-tree-view__header aspect-header") {
         div(classes = "aspect-header__sort-search") {
@@ -55,6 +56,7 @@ fun RBuilder.aspectPageHeader(
             Button {
                 attrs {
                     icon = "refresh"
+                    onClick = { refreshAspects() }
                 }
             }
         }

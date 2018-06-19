@@ -27,6 +27,7 @@ interface AspectApiReceiverProps : RProps {
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
     var onOrderByChanged: (List<AspectOrderBy>) -> Unit
     var onSearchQueryChanged: (String) -> Unit
+    var refreshAspects: () -> Unit
 }
 
 /**
@@ -196,6 +197,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onOrderByChanged = this@AspectApiMiddleware::setAspectsOrderBy
                     onSearchQueryChanged = this@AspectApiMiddleware::setAspectsSearchQuery
+                    refreshAspects = this@AspectApiMiddleware::fetchAspects
                 }
             }
         } else {
