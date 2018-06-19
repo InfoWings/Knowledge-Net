@@ -231,7 +231,7 @@ class SubjectServiceTest {
     @Test(expected = SubjectWithNameAlreadyExist::class)
     fun testCreateSubjectWithSpaces() {
         createTestSubject("testSubject")
-        createTestSubject("testSubject ")
+        subjectService.createSubject(SubjectData(name = "testSubject ", description = ""), username)
     }
 
     @Test(expected = SubjectWithNameAlreadyExist::class)
