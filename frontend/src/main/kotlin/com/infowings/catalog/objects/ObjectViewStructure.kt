@@ -102,9 +102,9 @@ data class ObjectPropertyValueViewModel(
                 is ObjectValueData.StringValue -> it.value
                 is ObjectValueData.Link -> when (it.value) {
                     is LinkValueData.DomainElement -> it.value.id
-                    else -> TODO("Other link elements are not yet supported")
+                    else -> TODO("Link type $it is not yet supported")
                 }
-                else -> TODO("Other link elements are not yet supported")
+                else -> TODO("Object value type $it is not yet supported")
             }
         },
         valueGroups = objectPropertyValue.children.groupBy { it.associatedAspect }.toList().map {
@@ -150,9 +150,9 @@ data class AspectPropertyValueViewModel(
                 is ObjectValueData.StringValue -> it.value
                 is ObjectValueData.Link -> when (it.value) {
                     is LinkValueData.DomainElement -> it.value.id
-                    else -> TODO("Other link elements are not yet supported")
+                    else -> TODO("Link type $it is not yet supported")
                 }
-                else -> TODO("Other link elements are not yet supported")
+                else -> TODO("Object value type $it is not yet supported")
             }
         },
         children = propertyValue.children.groupBy { it.associatedAspect }.toList().map {

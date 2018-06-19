@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.data.aspect.AspectWithoutBaseTypeException
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -27,7 +28,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun getTruncatedObjects() =
         transaction(db) {
             val query =
-                "SELECT @rid, name, description, FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription, IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount FROM $OBJECT_CLASS"
+                "SELECT @rid, name, description, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription, " +
+                        "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
+                        "FROM $OBJECT_CLASS"
             return@transaction db.query(query) {
                 it.map {
                     ObjectTruncated(
@@ -56,7 +62,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
 
     private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedAspectPropertyValueResponse {
-        val aspectProperty = this.aspectProperty!!
+        val aspectProperty = this.aspectProperty ?: throw ObjectPropertyValueWithoutAspectException(this.id)
         val aspect = aspectProperty.associatedAspect
         return DetailedAspectPropertyValueResponse(
             this.id,
@@ -69,7 +75,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 aspect.name,
                 aspect.measure?.name,
                 OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
-                aspect.baseType ?: TODO(),
+                aspect.baseType ?: throw AspectWithoutBaseTypeException(aspect.id),
                 aspect.referenceBookRootVertex?.name
             ),
             this.children.map { it.toDetailedAspectPropertyValueResponse() }
@@ -214,3 +220,4 @@ class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectExce
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
+class ObjectPropertyValueWithoutAspectException(id: String) : ObjectException("Object value with id $id does not have associated aspect property")

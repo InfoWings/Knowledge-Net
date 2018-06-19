@@ -14,7 +14,7 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
                 expanded = props.objectView.expanded
                 onExpanded = {
                     if (props.objectView.objectProperties == null) {
-                        props.objectTreeModel.expandObject(props.objectView.id)
+                        props.objectTreeModel.requestDetailed(props.objectView.id)
                     }
                     props.objectTreeModel.updateObject(props.objectIndex) {
                         expanded = it
@@ -39,7 +39,8 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
                         onUpdate = {},
                         onUpdateWithoutSelect = { block ->
                             props.objectTreeModel.updateObject(props.objectIndex) {
-                                this.objectProperties!![index].block()
+                                val properties = this.objectProperties ?: error("Properties should be available on update")
+                                properties[index].block()
                             }
                         }
                     )

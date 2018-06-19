@@ -358,6 +358,8 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
 
+class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
+
 
 class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")

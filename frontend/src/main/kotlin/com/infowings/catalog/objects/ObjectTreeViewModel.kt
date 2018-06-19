@@ -4,7 +4,7 @@ import com.infowings.catalog.objects.treeview.objectLazyTreeView
 import react.*
 
 interface ObjectsLazyModel {
-    fun expandObject(id: String)
+    fun requestDetailed(id: String)
     fun updateObject(index: Int, block: ObjectLazyViewModel.() -> Unit)
 }
 
@@ -27,7 +27,7 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
         }
     }
 
-    override fun expandObject(id: String) {
+    override fun requestDetailed(id: String) {
         props.objectApiModel.fetchDetailedObject(id)
     }
 

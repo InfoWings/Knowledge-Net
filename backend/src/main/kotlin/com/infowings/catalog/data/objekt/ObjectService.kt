@@ -33,8 +33,8 @@ class ObjectService(
 
     fun getDetailedObject(id: String) =
         transaction(db) {
-            val objectVertex = dao.getObjectVertex(id) ?: TODO("Whut to do here???")
-            val subjectVertex = objectVertex.subject ?: TODO("NO subject inconsistent state, panic")
+            val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
+            val subjectVertex = objectVertex.subject ?: throw ObjectWithoutSubjectException(objectVertex)
             val objectPropertyVertexes = objectVertex.properties
 
             return@transaction DetailedObjectResponse(
@@ -55,7 +55,7 @@ class ObjectService(
             propertyVertex.id,
             propertyVertex.name,
             propertyVertex.description,
-            propertyVertex.aspect?.toAspectData() ?: TODO(),
+            propertyVertex.aspect?.toAspectData() ?: throw ObjectPropertyWithoutAspectException(propertyVertex.id),
             propertyVertex.cardinality.name,
             values
         )
@@ -141,3 +141,5 @@ class ObjectService(
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
+
+class ObjectPropertyWithoutAspectException(id: String) : ObjectPropertyException("Object property with id $id does not have associated aspect")
