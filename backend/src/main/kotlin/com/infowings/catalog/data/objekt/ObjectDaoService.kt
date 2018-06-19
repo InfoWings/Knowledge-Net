@@ -1,8 +1,9 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -40,6 +41,39 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 }
             }.toList()
         }
+
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<DetailedObjectPropertyValueResponse> =
+        transaction(db) {
+            val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
+            return@transaction rootPropertyValues.map { rootValue ->
+                DetailedObjectPropertyValueResponse(
+                    rootValue.id,
+                    rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
+                )
+            }
+        }
+
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedAspectPropertyValueResponse {
+        val aspectProperty = this.aspectProperty!!
+        val aspect = aspectProperty.associatedAspect
+        return DetailedAspectPropertyValueResponse(
+            this.id,
+            this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            AspectPropertyDataExtended(
+                aspectProperty.id,
+                aspectProperty.name,
+                aspect.id,
+                aspectProperty.cardinality,
+                aspect.name,
+                aspect.measure?.name,
+                OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
+                aspect.baseType ?: TODO(),
+                aspect.referenceBookRootVertex?.name
+            ),
+            this.children.map { it.toDetailedAspectPropertyValueResponse() }
+        )
+    }
 
     fun saveObject(vertex: ObjectVertex, info: ObjectCreateInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
         transaction(db) {

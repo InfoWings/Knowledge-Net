@@ -1,6 +1,8 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
+import com.infowings.catalog.common.DetailedObjectPropertyResponse
+import com.infowings.catalog.common.DetailedObjectResponse
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
@@ -11,6 +13,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 
@@ -27,6 +30,35 @@ class ObjectService(
     private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectDao)
 
     fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
+
+    fun getDetailedObject(id: String) =
+        transaction(db) {
+            val objectVertex = dao.getObjectVertex(id) ?: TODO("Whut to do here???")
+            val subjectVertex = objectVertex.subject ?: TODO("NO subject inconsistent state, panic")
+            val objectPropertyVertexes = objectVertex.properties
+
+            return@transaction DetailedObjectResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                subjectVertex.id,
+                subjectVertex.name,
+                subjectVertex.description,
+                objectPropertyVertexes.map(this::fetchPropertyValues)
+            )
+        }
+
+    private fun fetchPropertyValues(propertyVertex: ObjectPropertyVertex): DetailedObjectPropertyResponse {
+        val values = dao.getPropertyValues(propertyVertex)
+        return DetailedObjectPropertyResponse(
+            propertyVertex.id,
+            propertyVertex.name,
+            propertyVertex.description,
+            propertyVertex.aspect?.toAspectData() ?: TODO(),
+            propertyVertex.cardinality.name,
+            values
+        )
+    }
 
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
