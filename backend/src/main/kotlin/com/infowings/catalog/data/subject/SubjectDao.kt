@@ -58,7 +58,10 @@ class SubjectDao(private val db: OrientDatabase) {
 
     fun updateSubjectVertex(vertex: SubjectVertex, sd: SubjectData): SubjectVertex =
         transaction(db) {
-            findByName(sd.name.trim())?.let { throw SubjectWithNameAlreadyExist(it.toSubject()) }
+            val trimmedName = sd.name.trim()
+            if (trimmedName != vertex.name) {
+                findByName(sd.name.trim())?.let { throw SubjectWithNameAlreadyExist(it.toSubject()) }
+            }
             vertex.name = sd.name
             vertex.description = sd.description
             vertex.save<SubjectVertex>().toSubjectVertex()

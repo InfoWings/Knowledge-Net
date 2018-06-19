@@ -366,11 +366,11 @@ class AspectServiceSavingTest {
 
     @Test(expected = AspectAlreadyExist::class)
     fun testUpdateAspectSameNameWithSpaces() {
-        val aspectData1 = aspectDataWithSubject("test")
+        val aspectData1 = aspectDataWithSubject("test ")
         val aspectData2 = aspectDataWithSubject("test2")
         aspectService.save(aspectData1, username)
         val ans = aspectService.save(aspectData2, username)
-        aspectService.save(ans.toAspectData().copy(name = "test"), username)
+        aspectService.save(ans.toAspectData().copy(name = "test   "), username)
     }
 
     private fun prepareAspect(): Aspect {

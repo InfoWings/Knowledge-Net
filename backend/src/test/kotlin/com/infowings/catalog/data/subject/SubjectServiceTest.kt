@@ -238,7 +238,7 @@ class SubjectServiceTest {
     fun testUpdateSubjectWithSameName() {
         createTestSubject("testSubject")
         val res = createTestSubject("testSubject2")
-        subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject"), username)
+        subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject   "), username)
     }
 
     private fun createTestSubject(
