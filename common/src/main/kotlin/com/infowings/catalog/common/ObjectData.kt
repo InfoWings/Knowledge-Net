@@ -14,7 +14,8 @@ data class ObjectGetResponse(
     val description: String?,
     val subjectId: String,
     val subjectName: String,
-    val subjectDescription: String?
+    val subjectDescription: String?,
+    val propertiesCount: Int
 )
 
 @Serializable
@@ -25,6 +26,7 @@ data class DetailedObjectResponse(
     val subjectId: String,
     val subjectName: String,
     val subjectDescription: String?,
+    val propertiesCount: Int,
     val objectProperties: List<DetailedObjectPropertyResponse>
 )
 

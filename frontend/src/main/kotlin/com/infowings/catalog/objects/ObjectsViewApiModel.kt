@@ -1,5 +1,6 @@
 package com.infowings.catalog.objects
 
+import com.infowings.catalog.common.DetailedObjectResponse
 import com.infowings.catalog.common.ObjectGetResponse
 import kotlinx.coroutines.experimental.launch
 import react.*
@@ -11,6 +12,7 @@ interface ObjectsViewApiModel {
 
 interface ObjectsViewApiConsumerProps : RProps {
     var objects: List<ObjectGetResponse>
+    var detailedObjects: Map<String, DetailedObjectResponse>
     var objectApiModel: ObjectsViewApiModel
 }
 
@@ -18,6 +20,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
 
     override fun State.init() {
         objects = emptyList()
+        detailedObjects = emptyMap()
     }
 
     override fun componentDidMount() = fetchAll()
@@ -27,6 +30,10 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
     override fun fetchDetailedObject(id: String) {
         launch {
             val detailedObjectResponse = getDetailedObject(id)
+            console.log(detailedObjectResponse)
+            setState {
+                detailedObjects += id to detailedObjectResponse
+            }
         }
     }
 
@@ -43,6 +50,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
         objectsViewModel {
             attrs {
                 objects = state.objects
+                detailedObjects = state.detailedObjects
                 objectApiModel = this@ObjectsViewApiModelComponent
             }
         }
@@ -50,6 +58,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
 
     interface State : RState {
         var objects: List<ObjectGetResponse>
+        var detailedObjects: Map<String, DetailedObjectResponse>
     }
 }
 

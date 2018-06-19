@@ -27,7 +27,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun getTruncatedObjects() =
         transaction(db) {
             val query =
-                "SELECT @rid, name, description, FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription FROM $OBJECT_CLASS"
+                "SELECT @rid, name, description, FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription, IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount FROM $OBJECT_CLASS"
             return@transaction db.query(query) {
                 it.map {
                     ObjectTruncated(
@@ -36,7 +36,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         it.getProperty("description"),
                         it.getProperty("subjectRid"),
                         it.getProperty("subjectName"),
-                        it.getProperty("subjectDescription")
+                        it.getProperty("subjectDescription"),
+                        it.getProperty("objectPropertiesCount")
                     )
                 }
             }.toList()

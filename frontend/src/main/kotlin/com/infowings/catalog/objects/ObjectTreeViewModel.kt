@@ -12,12 +12,18 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     ObjectsLazyModel {
 
     override fun State.init(props: ObjectsViewApiConsumerProps) {
-        objects = props.objects.toLazyView()
+        objects = props.objects.toLazyView(props.detailedObjects)
     }
 
     override fun componentWillReceiveProps(nextProps: ObjectsViewApiConsumerProps) {
-        setState {
-            objects = nextProps.objects.toLazyView()
+        if (props.objects != nextProps.objects) {
+            setState {
+                objects = nextProps.objects.toLazyView(nextProps.detailedObjects)
+            }
+        } else {
+            setState {
+                objects = objects.mergeDetails(nextProps.detailedObjects)
+            }
         }
     }
 

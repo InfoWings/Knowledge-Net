@@ -40,6 +40,14 @@ data class ObjectPropertyViewModel(
         objectPropertyData.values.map(::ObjectPropertyValueViewModel).toMutableList()
     )
 
+    constructor(objectProperty: DetailedObjectPropertyResponse) : this(
+        objectProperty.id,
+        objectProperty.name,
+        PropertyCardinality.valueOf(objectProperty.cardinality),
+        objectProperty.aspect,
+        objectProperty.values.map(::ObjectPropertyValueViewModel).toMutableList()
+    )
+
     fun toObjectPropertyData() = ObjectPropertyData(
         id,
         name,
@@ -83,6 +91,30 @@ data class ObjectPropertyValueViewModel(
         }.toMutableList()
     )
 
+    constructor(objectPropertyValue: DetailedObjectPropertyValueResponse) : this(
+        id = objectPropertyValue.id,
+        value = objectPropertyValue.objectDto.toData().let {
+            when (it) {
+                is ObjectValueData.IntegerValue -> it.value.toString()
+                is ObjectValueData.NullValue -> null
+                is ObjectValueData.DecimalValue -> it.valueRepr
+                is ObjectValueData.BooleanValue -> it.value.toString()
+                is ObjectValueData.StringValue -> it.value
+                is ObjectValueData.Link -> when (it.value) {
+                    is LinkValueData.DomainElement -> it.value.id
+                    else -> TODO("Other link elements are not yet supported")
+                }
+                else -> TODO("Other link elements are not yet supported")
+            }
+        },
+        valueGroups = objectPropertyValue.children.groupBy { it.associatedAspect }.toList().map {
+            AspectPropertyValueGroupViewModel(
+                AspectPropertyViewModel(it.first),
+                it.second.map(::AspectPropertyValueViewModel).toMutableList()
+            )
+        }.toMutableList()
+    )
+
 }
 
 data class AspectPropertyValueGroupViewModel(
@@ -100,6 +132,30 @@ data class AspectPropertyValueViewModel(
         id = propertyValue.id,
         value = propertyValue.scalarValue,
         children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
+            AspectPropertyValueGroupViewModel(
+                AspectPropertyViewModel(it.first),
+                it.second.map(::AspectPropertyValueViewModel).toMutableList()
+            )
+        }.toMutableList()
+    )
+
+    constructor(propertyValue: DetailedAspectPropertyValueResponse) : this(
+        id = propertyValue.id,
+        value = propertyValue.objectDto.toData().let {
+            when (it) {
+                is ObjectValueData.IntegerValue -> it.value.toString()
+                is ObjectValueData.NullValue -> null
+                is ObjectValueData.DecimalValue -> it.valueRepr
+                is ObjectValueData.BooleanValue -> it.value.toString()
+                is ObjectValueData.StringValue -> it.value
+                is ObjectValueData.Link -> when (it.value) {
+                    is LinkValueData.DomainElement -> it.value.id
+                    else -> TODO("Other link elements are not yet supported")
+                }
+                else -> TODO("Other link elements are not yet supported")
+            }
+        },
+        children = propertyValue.children.groupBy { it.associatedAspect }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
                 it.second.map(::AspectPropertyValueViewModel).toMutableList()
@@ -169,9 +225,51 @@ data class ObjectLazyViewModel(
     val subjectId: String,
     val subjectName: String,
     val subjectDescription: String?,
+    val objectPropertiesCount: Int,
     val objectProperties: List<ObjectPropertyViewModel>? = null,
     var expanded: Boolean = false
 )
 
-fun List<ObjectGetResponse>.toLazyView() = this.map { ObjectLazyViewModel(it.id, it.name, it.description, it.subjectId, it.subjectName, it.subjectDescription) }
+fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObjectResponse>) =
+    this.map {
+        ObjectLazyViewModel(
+            it.id,
+            it.name,
+            it.description,
+            it.subjectId,
+            it.subjectName,
+            it.subjectDescription,
+            it.propertiesCount,
+            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel(it) } }
+        )
+    }
+
+fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, DetailedObjectResponse>) =
+    this.map {
+        if (detailedObjects[it.id] == null) {
+            ObjectLazyViewModel(
+                it.id,
+                it.name,
+                it.description,
+                it.subjectId,
+                it.subjectName,
+                it.subjectDescription,
+                it.objectPropertiesCount,
+                expanded = it.expanded
+            )
+        } else {
+            val detailedObject = detailedObjects[it.id] ?: error("Should never happened")
+            ObjectLazyViewModel(
+                detailedObject.id,
+                detailedObject.name,
+                detailedObject.description,
+                detailedObject.subjectId,
+                detailedObject.subjectName,
+                detailedObject.subjectDescription,
+                detailedObject.propertiesCount,
+                detailedObject.objectProperties.map { ObjectPropertyViewModel(it) },
+                it.expanded
+            )
+        }
+    }
 

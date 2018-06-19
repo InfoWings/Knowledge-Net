@@ -28,7 +28,23 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
                     }
                 }!!
             }
-            +"Loading..."
+            val objectProperties = props.objectView.objectProperties
+            when {
+                objectProperties == null && props.objectView.objectPropertiesCount > 0 -> +"Loading"
+                objectProperties != null -> objectProperties.forEachIndexed { index, property ->
+                    objectPropertyNode(
+                        property = property,
+                        aspectsMap = emptyMap(),
+                        onEdit = {},
+                        onUpdate = {},
+                        onUpdateWithoutSelect = { block ->
+                            props.objectTreeModel.updateObject(props.objectIndex) {
+                                this.objectProperties!![index].block()
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 
