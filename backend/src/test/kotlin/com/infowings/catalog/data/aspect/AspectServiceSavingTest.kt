@@ -356,6 +356,23 @@ class AspectServiceSavingTest {
         Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
     }
 
+    @Test(expected = AspectAlreadyExist::class)
+    fun testCreateAspectSameNameWithSpaces() {
+        val aspectData1 = aspectDataWithSubject("test")
+        val aspectData2 = aspectDataWithSubject("test  ")
+        aspectService.save(aspectData1, username)
+        aspectService.save(aspectData2, username)
+    }
+
+    @Test(expected = AspectAlreadyExist::class)
+    fun testUpdateAspectSameNameWithSpaces() {
+        val aspectData1 = aspectDataWithSubject("test")
+        val aspectData2 = aspectDataWithSubject("test2")
+        aspectService.save(aspectData1, username)
+        val ans = aspectService.save(aspectData2, username)
+        aspectService.save(ans.toAspectData().copy(name = "test"), username)
+    }
+
     private fun prepareAspect(): Aspect {
         /*
          *  aspect

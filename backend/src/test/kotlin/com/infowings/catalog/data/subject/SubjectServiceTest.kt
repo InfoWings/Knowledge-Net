@@ -228,6 +228,12 @@ class SubjectServiceTest {
         Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
     }
 
+    @Test(expected = SubjectWithNameAlreadyExist::class)
+    fun createSubjectWithSpaces() {
+        createTestSubject("testSubject")
+        createTestSubject("testSubject ")
+    }
+
     private fun createTestSubject(
         name: String,
         aspectNames: List<String> = listOf("TestSubjectAspect"),
