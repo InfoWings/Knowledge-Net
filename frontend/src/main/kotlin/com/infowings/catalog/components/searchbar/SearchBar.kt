@@ -31,6 +31,7 @@ class SearchBar : RComponent<SearchBar.Props, RState>() {
             Button {
                 attrs {
                     icon = "refresh"
+                    onClick = { props.refreshSubjects() }
                 }
             }
         }
@@ -40,6 +41,7 @@ class SearchBar : RComponent<SearchBar.Props, RState>() {
         var className: String?
         var filterText: String
         var onFilterTextChange: (filterText: String) -> Unit
+        var refreshSubjects: () -> Unit
     }
 }
 

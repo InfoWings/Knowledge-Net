@@ -103,6 +103,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         window.clearTimeout(timer)
                         timer = window.setTimeout({ props.onFetchData(mapOf("name" to text)) }, 200)
                     }
+                    refreshSubjects = props.refreshSubjects
                 }
             }
 
