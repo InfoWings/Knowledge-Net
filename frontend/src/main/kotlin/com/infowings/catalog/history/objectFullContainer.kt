@@ -3,6 +3,8 @@ package com.infowings.catalog.history
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.history.objekt.objectLabel
+import com.infowings.catalog.history.objekt.objectPropertyLabel
+import com.infowings.catalog.history.objekt.objectValueLabel
 import react.*
 import react.dom.div
 
@@ -21,24 +23,36 @@ class ObjectFullContainer : RComponent<ObjectFullContainer.Props, RState>() {
                     expanded = true
                     treeNodeContent = buildElement {
                         val property = props.view.property
-                        if (property == null)
-                            objectLabel(
-                                className = null,
-                                name = props.view.objekt.name,
-                                description = props.view.objekt.description ?: "---",
-                                subjectName = props.view.objekt.subjectName,
-                                onClick = { }
-                            )
-                        else {
-                            /*
-                            refBookItemLabel(
-                                className = null,
-                                name = item.name,
-                                description = item.description ?: "---",
-                                onClick = { }
-                            )*/
-                            TODO("")
+                        val propertyValue = props.view.value
+                        when {
+                            (property == null) ->
+                                objectLabel(
+                                    className = null,
+                                    name = props.view.objekt.name,
+                                    description = props.view.objekt.description ?: "---",
+                                    subjectName = props.view.objekt.subjectName,
+                                    onClick = { }
+                                )
+                            (propertyValue == null) ->
+                                objectPropertyLabel(
+                                    className = null,
+                                    name = property.name,
+                                    description = property.cardinality,
+                                    aspectName = property.aspectName,
+                                    onClick = { }
+                                )
+
+                            else ->
+                                objectValueLabel(
+                                    className = null,
+                                    repr = propertyValue.repr,
+                                    typeTag = propertyValue.typeTag,
+                                    aspectPropertyName = propertyValue.aspectPropertyName ?: "NONE",
+                                    measureName = propertyValue.measureName ?: "NONE",
+                                    onClick = { }
+                                )
                         }
+
                     }!!
                 }
             }

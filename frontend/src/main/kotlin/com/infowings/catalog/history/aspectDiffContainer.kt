@@ -1,6 +1,6 @@
 package com.infowings.catalog.history
 
-import com.infowings.catalog.common.Delta
+import com.infowings.catalog.common.FieldDelta
 import react.*
 import react.dom.div
 import react.dom.span
@@ -12,7 +12,7 @@ class AspectDiffContainer : RComponent<AspectDiffContainer.Props, RState>() {
             props.changes.forEach {
                 div("history-diff--item history-diff--item__${it.color}") {
                     span {
-                        +it.field
+                        +it.fieldName
                     }
                     span {
                         +it.line
@@ -23,21 +23,21 @@ class AspectDiffContainer : RComponent<AspectDiffContainer.Props, RState>() {
     }
 
     interface Props : RProps {
-        var changes: List<Delta>
+        var changes: List<FieldDelta>
     }
 }
 
 fun RBuilder.aspectDiffContainer(handler: RHandler<AspectDiffContainer.Props>) =
     child(AspectDiffContainer::class, handler)
 
-private val Delta.color
+private val FieldDelta.color
     get() = when {
         before.isNullOrEmpty() -> "green"
         after.isNullOrEmpty() -> "red"
         else -> ""
     }
 
-private val Delta.line: String
+private val FieldDelta.line: String
     get() = when {
         before.isNullOrEmpty() -> after!!
         after.isNullOrEmpty() -> before!!

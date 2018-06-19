@@ -1,14 +1,18 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.common.Delta
 import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.FieldDelta
+import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.common.ObjectHistory
+import com.infowings.catalog.common.history.objekt.ObjectHistoryData
+import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryFactDto
+import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.ObjectHistoryInfo
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OBJECT_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
@@ -36,33 +40,47 @@ private data class ObjectState(
 class ObjectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectService: AspectService,
-    private val subjectService: SubjectService
+    private val subjectService: SubjectService,
+    private val refBookService: ReferenceBookService,
+    private val measureService: MeasureService
 ) {
     /* Метод для трансформации дельты для фронта.
      * Если какую-то дельту отдавать не хочется, можно преобразовать в пустой список.
      * Если к существующей дельте хочется добавить новую, можно вернуть ее как часть списка
      * Если надо вернуть как есть, упаковываем в одноэлементный список */
-    private fun transformDelta(delta: Delta): List<Delta> = when {
-        delta.field == "value" -> listOf(delta.copy(field = "Name"))
-        delta.field == "link_subject" -> {
-            val after = delta.after
-            if (after != null) {
+    private fun transformDelta(delta: FieldDelta, state: ObjectHistoryData.Companion.BriefState): List<FieldDelta> {
+        fun id2name(source: FieldDelta, name: String, value: String?): List<FieldDelta> {
+            val after = source.after
+            return if (after != null) {
                 listOf(
-                    delta.copy(
-                        field = "Subject",
-                        after = subjectService.findById(after)?.name ?: "???"
+                    source.copy(
+                        fieldName = name,
+                        after = value ?: "???"
                     )
                 )
             } else {
-                listOf(delta)
+                listOf(source)
             }
         }
-        else -> listOf(delta)
+
+        val fieldSuffix = delta.fieldName.dropPrefix("link_")
+
+        val linksProcessed = if (fieldSuffix != null) {
+            if (idReprExtractors.containsKey(fieldSuffix)) {
+                id2name(delta, fieldSuffix, idReprExtractors.getValue(fieldSuffix)(state))
+            } else {
+                emptyList()
+            }
+        } else {
+            listOf(delta)
+        }
+
+        return if (state.value == null) linksProcessed else linksProcessed.map { it.copy(fieldName = state.property?.name + ":" + it.fieldName) }
     }
 
 
-    private fun objectCreate(createFact: HistoryFactDto, state: ObjectState): ObjectHistory {
-        val objectId = createFact.event.entityId.toString()
+    private fun objectCreate(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+        val objectId = createFact.event.entityId
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val subjectId = createFact.payload.addedLinks.getValue("subject")[0].toString()
         val subjectName = subjectService.findById(subjectId)?.name ?: "???"
@@ -76,30 +94,30 @@ class ObjectHistoryProvider(
         state.objects[objectId] = objekt
         state.versions[objectId] = createFact.event.version
 
-        val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
+        val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = createFact.payload.addedLinks.map { (key, ids) ->
-            Delta(
+            FieldDelta(
                 "link_$key", "",
                 ids.joinToString(separator = ":") { it.toString() }
             )
         }
 
+        val event = HistoryEventData(
+            username = "", type = EventType.CREATE, entityClass = "", timestamp = createFact.event.timestamp,
+            version = createFact.event.version, entityId = createFact.event.entityId, sessionId = ""
+        )
+
         return ObjectHistory(
-            username = "",
-            eventType = EventType.CREATE,
-            entityName = "",
+            event = event,
             info = objekt.snapshot.data.getValue("name"),
             deleted = false,
-            timestamp = createFact.event.timestamp,
-            version = createFact.event.version,
             fullData = ObjectHistoryInfo.Companion.BriefState(objekt, null, null).toData(),
             changes = dataDeltas + linkDeltas
         )
-
     }
 
-    private fun propertyAdd(createFact: HistoryFactDto, state: ObjectState): ObjectHistory {
-        val propertyId = createFact.event.entityId.toString()
+    private fun propertyAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+        val propertyId = createFact.event.entityId
         val objectId = createFact.payload.addedLinks.getValue("object")[0].toString()
         val objekt = state.objects.getValue(objectId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
@@ -112,9 +130,9 @@ class ObjectHistoryProvider(
             id = propertyId, snapshot = initial, aspectName = aspectName
         )
 
-        val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
-        val linkDeltas = createFact.payload.addedLinks.map { (key, ids) ->
-            Delta(
+        val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
+        val linkDeltas = createFact.payload.addedLinks.filter { it.key != "object" }.map { (key, ids) ->
+            FieldDelta(
                 "link_$key", "",
                 ids.joinToString(separator = ":") { it.toString() }
             )
@@ -123,42 +141,65 @@ class ObjectHistoryProvider(
         state.objectIds[propertyId] = objectId
         state.properties[propertyId] = newProperty
 
+        val event = HistoryEventData(
+            username = "", type = EventType.UPDATE, entityClass = "", timestamp = -1,
+            version = state.versions.getValue(objectId), entityId = createFact.event.entityId, sessionId = ""
+        )
+
         return ObjectHistory(
-            username = "",
-            eventType = EventType.UPDATE,
-            entityName = "",
+            event = event,
             info = objekt.snapshot.data.getValue("name"),
             deleted = false,
-            timestamp = -1,
-            version = state.versions.getValue(objectId),
             fullData = ObjectHistoryInfo.Companion.BriefState(objekt, newProperty, null).toData(),
             changes = dataDeltas + linkDeltas
         )
     }
 
-    private fun valueAdd(createFact: HistoryFactDto, state: ObjectState): ObjectHistory {
-        val valueId = createFact.event.entityId.toString()
+    private fun valueAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+        val valueId = createFact.event.entityId
         val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
         val objectId = state.objectIds.getValue(propertyId)
         val objekt = state.objects.getValue(objectId)
         val property = state.properties.getValue(propertyId)
-        val (aspectPropertyId, aspectPropertyName) = if (createFact.payload.addedLinks.contains("aspectProperty")) {
-            val id = createFact.payload.addedLinks.getValue("aspectProperty").first().toString()
-            val name = aspectService.findPropertyById(id)?.name ?: "???"
-            Pair(id, name)
-        } else Pair(null, null)
+
+        fun nameById(key: String, getter: (String) -> String?): String? =
+            if (createFact.payload.addedLinks.contains(key)) {
+                val id = createFact.payload.addedLinks.getValue(key).first().toString()
+                getter(id) ?: "???"
+            } else null
+
+        val aspectPropertyName = nameById("aspectProperty") {
+            aspectService.findPropertyById(it)?.name
+        }
+        val subjectName = nameById("refValueSubject") {
+            subjectService.findById(it)?.name
+        }
+        val objectName = nameById("refValueObject") {
+            state.objects[it]?.snapshot?.data?.get("name")
+        }
+        val domainElement = nameById("refValueDomainElement") {
+            refBookService.itemName(it)
+        }
+        val measureName = nameById("measure") {
+            measureService.name(it)
+        }
 
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
 
         initial.apply(createFact.payload)
 
         val newValue = ObjectHistoryInfo.Companion.Value(
-            id = propertyId, snapshot = initial, aspectPropertyName = aspectPropertyName
+            id = valueId, snapshot = initial,
+            subjectName = subjectName,
+            objectName = objectName,
+            domainElement = domainElement,
+            measureName = measureName,
+            aspectPropertyName = aspectPropertyName
         )
 
-        val dataDeltas = createFact.payload.data.map { (key, value) -> Delta(key, "", value) }
-        val linkDeltas = createFact.payload.addedLinks.map { (key, ids) ->
-            Delta(
+        val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
+        val linkDeltas = createFact.payload.addedLinks.filter { it.key != "objectProperty" }.map { (key, ids) ->
+            FieldDelta(
                 "link_$key", "",
                 ids.joinToString(separator = ":") { it.toString() }
             )
@@ -167,20 +208,21 @@ class ObjectHistoryProvider(
         state.propertyIds[valueId] = propertyId
         state.values[valueId] = newValue
 
+        val event = HistoryEventData(
+            username = "", type = EventType.UPDATE, entityClass = "", timestamp = -1,
+            version = state.versions.getValue(objectId), entityId = createFact.event.entityId, sessionId = ""
+        )
+
         return ObjectHistory(
-            username = "",
-            eventType = EventType.UPDATE,
-            entityName = "",
+            event = event,
             info = objekt.snapshot.data.getValue("name"),
             deleted = false,
-            timestamp = -1,
-            version = state.versions.getValue(objectId),
             fullData = ObjectHistoryInfo.Companion.BriefState(objekt, property, newValue).toData(),
             changes = dataDeltas + linkDeltas
         )
     }
 
-    private fun sessionToChange(sessionFacts: List<HistoryFactDto>, state: ObjectState): ObjectHistory {
+    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
 
@@ -211,18 +253,35 @@ class ObjectHistoryProvider(
 
         val objectFacts = allHistory.filter { objectVertices.contains(it.event.entityClass) }
 
-        val factsBySession = objectFacts.groupBy { it.sessionId }
+        val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
         val historyState = ObjectState()
 
-        return factsBySession.values.map { sessionFacts ->
-            val ch = sessionToChange(sessionFacts, historyState)
+        return factsBySession.map { (sessionId, sessionFacts) ->
+            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
-            ch.copy(username = sessionFacts.first().event.username,
+            val newEvent = ch.event.copy(
+                username = sessionFacts.first().event.username,
                 timestamp = sessionTimestamp,
-                entityName = HISTORY_ENTITY_OBJECT,
-                changes = ch.changes.flatMap { transformDelta(it) })
+                entityClass = HISTORY_ENTITY_OBJECT, sessionId = sessionId
+            )
+            ch.copy(event = newEvent,
+                changes = ch.changes.flatMap { transformDelta(it, ch.fullData) })
         }.reversed()
     }
+}
+
+private val idReprExtractors: Map<String, (ObjectHistoryData.Companion.BriefState) -> String?> = mapOf(
+    "subject" to { currentState -> currentState.objekt.subjectName },
+    "refValueSubject" to { currentState -> currentState.value?.repr },
+    "refValueObject" to { currentState -> currentState.value?.repr },
+    "refValueDomainElement" to { currentState -> currentState.value?.repr },
+    "aspect" to { currentState -> currentState.property?.aspectName },
+    "aspectProperty" to { currentState -> currentState.value?.aspectPropertyName },
+    "measure" to { currentState -> currentState.value?.measureName }
+)
+
+private fun String.dropPrefix(p: String): String? {
+    return if (startsWith(p)) drop(p.length) else null
 }

@@ -6,7 +6,11 @@ import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.buildElements
 
-fun RBuilder.privateRoute(path: String, exact: Boolean = true, renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit) {
+fun RBuilder.privateRoute(
+    path: String,
+    exact: Boolean = true,
+    renderFunction: RBuilder.(props: RouteSuppliedProps) -> Unit
+) {
     reactRouter.Route {
         attrs {
             this.path = path

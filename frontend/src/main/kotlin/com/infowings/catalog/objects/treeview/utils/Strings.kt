@@ -7,7 +7,10 @@ import react.dom.span
 fun RBuilder.propertyAspectTypePrompt(aspect: AspectData) = with(aspect) {
     span(classes = "property-aspect-type") {
         +buildString {
-            domain?.let { append(it) } ?: error("Aspect must have non-null domain")
+            if (aspect.refBookName == null)
+                domain?.let { append(it) } ?: error("Aspect must have non-null domain")
+            else
+                append("Reference book ${aspect.refBookName}")
             measure?.let { append(" ($it)") }
             append(" :")
         }
@@ -17,7 +20,10 @@ fun RBuilder.propertyAspectTypePrompt(aspect: AspectData) = with(aspect) {
 fun RBuilder.propertyAspectTypeInfo(aspect: AspectData) = with(aspect) {
     span(classes = "property-aspect-type") {
         +buildString {
-            domain?.let { append(it) } ?: error("Aspect must have non-null domain")
+            if (aspect.refBookName == null)
+                domain?.let { append(it) } ?: error("Aspect must have non-null domain")
+            else
+                append("Reference book ${aspect.refBookName}")
             measure?.let { append(" ($it)") }
         }
     }

@@ -51,7 +51,7 @@ data class Versioned<out T>(val entity: T, val version: Int)
 /**
  * Main class for work with database
  * */
-class  OrientDatabase(
+class OrientDatabase(
     url: String,
     val database: String,
     username: String,

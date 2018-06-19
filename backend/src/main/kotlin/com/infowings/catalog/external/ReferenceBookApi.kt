@@ -1,9 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
-import com.infowings.catalog.common.ReferenceBooksList
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.reference.book.*
 import org.springframework.http.HttpStatus
@@ -25,6 +22,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
     fun get(@RequestParam(value = "aspectId", required = true) encodedAspectId: String): ReferenceBook {
         val aspectId = URLDecoder.decode(encodedAspectId, "UTF-8")
         return referenceBookService.getReferenceBook(aspectId)
+    }
+
+    @GetMapping("item/path")
+    fun getPath(@RequestParam(value = "itemId", required = true) itemId: String): ReferenceBookItemPath {
+        return ReferenceBookItemPath(referenceBookService.getPath(itemId))
     }
 
     @PostMapping("create")

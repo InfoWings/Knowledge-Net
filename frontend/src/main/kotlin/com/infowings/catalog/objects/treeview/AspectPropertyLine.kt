@@ -25,6 +25,6 @@ fun RBuilder.aspectPropertyValueLine(
             }
         }
         if (aspectProperty.cardinality != PropertyCardinality.ZERO) {
-            propertyValue(value, aspectProperty.baseType, onEdit, onUpdate)
+            propertyValue(value, aspectProperty.baseType, onEdit, onUpdate, aspectProperty.refBookName)
         }
     }

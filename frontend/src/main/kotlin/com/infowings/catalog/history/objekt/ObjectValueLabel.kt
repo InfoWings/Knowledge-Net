@@ -5,11 +5,12 @@ import react.RBuilder
 import react.dom.div
 import react.dom.span
 
-fun RBuilder.objectLabel(
+fun RBuilder.objectValueLabel(
     className: String?,
-    name: String,
-    description: String,
-    subjectName: String,
+    repr: String,
+    typeTag: String,
+    aspectPropertyName: String,
+    measureName: String,
     onClick: () -> Unit
 ) = div(classes = "object-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
@@ -20,15 +21,19 @@ fun RBuilder.objectLabel(
         }
     }
     span(classes = "text-bold") {
-        +name
+        +repr
     }
-    +"["
+    +"[["
     span(classes = "text-grey") {
-        +description
+        +typeTag
     }
-    +"]"
-    +" Subject name: "
+    +"]]"
+    +", Aspect Property:"
     span(classes = "text-grey") {
-        +subjectName
+        +aspectPropertyName
+    }
+    +", Measure: "
+    span(classes = "text-grey") {
+        +measureName
     }
 }

@@ -1,17 +1,16 @@
-package com.infowings.catalog.history.objekt
+package com.infowings.catalog.history.subject
 
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
 import react.dom.span
 
-fun RBuilder.objectLabel(
+fun RBuilder.subjectLabel(
     className: String?,
     name: String,
     description: String,
-    subjectName: String,
     onClick: () -> Unit
-) = div(classes = "object-view--label${className?.let { " $it" } ?: ""}") {
+) = div(classes = "subject-view--label${className?.let { " $it" } ?: ""}") {
     attrs {
         onClickFunction = {
             it.stopPropagation()
@@ -27,8 +26,4 @@ fun RBuilder.objectLabel(
         +description
     }
     +"]"
-    +" Subject name: "
-    span(classes = "text-grey") {
-        +subjectName
-    }
 }

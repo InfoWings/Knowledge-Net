@@ -32,6 +32,13 @@ fun OVertex.toMeasure() = GlobalMeasureMap[this["name"]]
 class MeasureService(val database: OrientDatabase) {
     fun findById(id: String) = database.getVertexById(id) ?: throw MeasureNotFoundException(id)
 
+    fun name(id: String): String? {
+        val vertex = database.getVertexById(id)
+        return if (vertex != null) {
+            vertex["name"]
+        } else null
+    }
+
     /** Возвращает вершину типа {MeasureGroupVertex}, описывающую запрашиваемую группу измерений.
      *  Если группа измерений с указанным именем не найдена, возвращает null. */
     fun findMeasureGroup(groupName: String): OVertex? {

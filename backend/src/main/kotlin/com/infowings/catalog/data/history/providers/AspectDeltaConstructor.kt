@@ -3,15 +3,13 @@ package com.infowings.catalog.data.history.providers
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryEvent
-import com.infowings.catalog.data.history.HistoryFactDto
-import com.infowings.catalog.storage.ASPECT_CLASS
+import com.infowings.catalog.data.history.HistoryFact
 
 class AspectDeltaConstructor(val aspectService: AspectService) {
 
-    fun createDiff(before: AspectData, after: AspectData, mainFact: HistoryFactDto): AspectHistory {
+    fun createDiff(before: AspectData, after: AspectData, mainFact: HistoryFact): AspectHistory {
 
-        var diffs = mutableListOf<Delta>()
+        var diffs = mutableListOf<FieldDelta>()
 
         diffs.addAll(fieldsDiff(mainFact, before, after))
 
@@ -44,75 +42,115 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
         return createHistoryElement(mainFact.event, diffs, after, after.properties.map { getAspect(it.aspectId) })
     }
 
-    private fun fieldsDiff(mainFact: HistoryFactDto, before: AspectData, after: AspectData): List<Delta> = mainFact.payload.data.mapNotNull { (fieldName, _) ->
+    private fun fieldsDiff(mainFact: HistoryFact, before: AspectData, after: AspectData): List<FieldDelta> =
+        mainFact.payload.data.mapNotNull { (fieldName, _) ->
 
-        when (AspectField.valueOf(fieldName)) {
-            AspectField.MEASURE -> createAspectFieldDelta(
-                mainFact.event.type,
-                AspectField.MEASURE.view,
-                before.measure,
-                after.measure
-            )
-            AspectField.BASE_TYPE -> createAspectFieldDelta(
-                mainFact.event.type,
-                AspectField.BASE_TYPE.view,
-                before.baseType,
-                after.baseType
-            )
-            AspectField.NAME -> createAspectFieldDelta(
-                mainFact.event.type,
-                AspectField.NAME.view,
-                before.name,
-                after.name
-            )
-            AspectField.DESCRIPTION -> createAspectFieldDelta(
-                mainFact.event.type,
-                AspectField.DESCRIPTION.view,
-                before.description,
-                after.description
-            )
+            when (AspectField.valueOf(fieldName)) {
+                AspectField.MEASURE -> createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.MEASURE.view,
+                    before.measure,
+                    after.measure
+                )
+                AspectField.BASE_TYPE -> createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.BASE_TYPE.view,
+                    before.baseType,
+                    after.baseType
+                )
+                AspectField.NAME -> createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.NAME.view,
+                    before.name,
+                    after.name
+                )
+                AspectField.DESCRIPTION -> createAspectFieldDelta(
+                    mainFact.event.type,
+                    AspectField.DESCRIPTION.view,
+                    before.name,
+                    after.name
+                )
+            }
         }
-    }
 
-    private fun propertiesDiff(before: AspectData, after: AspectData): List<Delta> {
+    private fun propertiesDiff(before: AspectData, after: AspectData): List<FieldDelta> {
 
-        val diffs = mutableListOf<Delta>()
+        val diffs = mutableListOf<FieldDelta>()
 
         val beforePropertyIdSet = before.properties.map { it.id }.toSet()
         val afterPropertyIdSet = after.properties.map { it.id }.toSet()
 
-        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).flatMap { id -> propertyDiff(id, EventType.UPDATE, before, after) })
-        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).flatMap { id -> propertyDiff(id, EventType.DELETE, before, after) })
-        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).flatMap { id -> propertyDiff(id, EventType.CREATE, before, after) })
+        /* TODO:
+         * по идее сервис типа AspectDeltaConstructor должен выдавать структуру отличий,
+         * а метод propertyDiff выдает вариант внешнего представления отличий.
+         * В частности, если в при нынешнем дизайне захочется нописать внешний скрипт, который
+         * бы запрашивал историю аспектов через rest api и выдал отчет о добавленных пропертях,
+         * придется парсить поле after, делалая предположения о его структуре
+         */
+
+        diffs.addAll(beforePropertyIdSet.intersect(afterPropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
+                EventType.UPDATE,
+                before,
+                after
+            )
+        })
+        diffs.addAll(beforePropertyIdSet.subtract(afterPropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
+                EventType.DELETE,
+                before,
+                after
+            )
+        })
+        diffs.addAll(afterPropertyIdSet.subtract(beforePropertyIdSet).flatMap { id ->
+            propertyDiff(
+                id,
+                EventType.CREATE,
+                before,
+                after
+            )
+        })
 
         return diffs
     }
 
-    private fun propertyDiff(id: String, eventType: EventType, before: AspectData, after: AspectData): List<Delta> {
+    private fun propertyDiff(
+        id: String,
+        eventType: EventType,
+        before: AspectData,
+        after: AspectData
+    ): List<FieldDelta> {
         val propertyDiff = createAspectFieldDelta(eventType, after[id].deltaName, before[id]?.view, after[id]?.view)
 
         if (before[id]?.description != after[id]?.description) {
 
             val descriptionDiff =
-                createAspectFieldDelta(eventType, after[id].deltaName + "(Description)", before[id]?.description, after[id]?.description)
+                createAspectFieldDelta(
+                    eventType,
+                    after[id].deltaName + "(Description)",
+                    before[id]?.description,
+                    after[id]?.description
+                )
 
             return listOf(propertyDiff, descriptionDiff)
         }
         return listOf(propertyDiff)
     }
 
-    private fun createHistoryElement(event: HistoryEvent, changes: List<Delta>, data: AspectData, related: List<AspectData>) =
-        AspectHistory(
-            event.username,
-            event.type,
-            ASPECT_CLASS,
-            data.name,
-            data.deleted,
-            event.timestamp,
-            event.version,
-            AspectDataView(data, related),
-            changes
-        )
+    private fun createHistoryElement(
+        event: HistoryEventData,
+        changes: List<FieldDelta>,
+        data: AspectData,
+        related: List<AspectData>
+    ) = AspectHistory(
+        event,
+        data.name,
+        data.deleted,
+        AspectDataView(data, related),
+        changes
+    )
 
     private val AspectPropertyData?.deltaName
         get() = "${AspectField.PROPERTY} ${this?.name ?: " "}"

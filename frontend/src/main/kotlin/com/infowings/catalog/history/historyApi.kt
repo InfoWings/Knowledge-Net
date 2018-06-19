@@ -8,8 +8,13 @@ suspend fun getAllEvents(): List<HistoryData<*>> {
     val aspectEvents = getAllAspectEvents()
     val refBookEvents = getAllRefBookEvents()
     val objectEvents = getAllObjectEvents()
+    val subjectEvents = getAllSubjectEvents()
 
-    return (aspectEvents + refBookEvents + objectEvents).sortedByDescending { it.timestamp }
+
+    /* Здесь нам надо смреджить два сортированных списка. Полагаемся на то, что используется реализация merge sort,
+     * умеющая распознавать отсортированные подсписки. Кажется в JDK так и есть, а котлиновские коллекции - обертки
+      * над JDK. Если это вдруг не так, поменяем */
+    return (aspectEvents + refBookEvents + objectEvents + subjectEvents).sortedByDescending { it.event.timestamp }
 }
 
 suspend fun getAllAspectEvents(): List<AspectHistory> =
@@ -20,3 +25,6 @@ suspend fun getAllRefBookEvents(): List<RefBookHistory> =
 
 suspend fun getAllObjectEvents(): List<ObjectHistory> =
     JSON.nonstrict.parse<ObjectHistoryList>(get("/api/history/objects")).history
+
+suspend fun getAllSubjectEvents(): List<SubjectHistory> =
+    JSON.nonstrict.parse<SubjectHistoryList>(get("/api/history/subjects")).history

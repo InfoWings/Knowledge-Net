@@ -14,10 +14,24 @@ class ObjectHistoryData {
         )
 
         @Serializable
-        data class Property(val id: String, val name: String, val aspectId: String, val aspectName: String)
+        data class Property(
+            val id: String,
+            val name: String,
+            val cardinality: String,
+            val aspectId: String,
+            val aspectName: String
+        )
 
         @Serializable
-        data class Value(val id: String, val aspectPropertyId: String?, val aspectPropertyName: String?)
+        data class Value(
+            val id: String,
+            val typeTag: String,
+            val repr: String,
+            val precision: String?,
+            val aspectPropertyId: String?,
+            val aspectPropertyName: String?,
+            val measureName: String?
+        )
 
         @Serializable
         data class BriefState(val objekt: Objekt, val property: Property?, val value: Value?)

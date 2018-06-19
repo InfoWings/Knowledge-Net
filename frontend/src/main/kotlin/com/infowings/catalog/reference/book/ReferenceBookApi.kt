@@ -1,9 +1,6 @@
 package com.infowings.catalog.reference.book
 
-import com.infowings.catalog.common.ReferenceBook
-import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.ReferenceBookItemData
-import com.infowings.catalog.common.ReferenceBooksList
+import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
@@ -50,3 +47,6 @@ internal suspend fun deleteReferenceBookItem(bookItem: ReferenceBookItem) {
 internal suspend fun forceDeleteReferenceBookItem(bookItem: ReferenceBookItem) {
     post("/api/book/item/forceRemove", JSON.stringify(bookItem))
 }
+
+internal suspend fun getReferenceBookItemPath(itemId: String): ReferenceBookItemPath =
+    JSON.parse(get("/api/book/item/path?itemId=${encodeURIComponent(itemId)}"))
