@@ -28,24 +28,28 @@ class AspectHistoryProvider(
             .groupBy { it.event.sessionId }
         }
 
-        logger.info("found aspect event groups: $aspectEventGroups")
+        logger.info("found aspect event groups: ${aspectEventGroups.size}")
 
-        return aspectEventGroups.values.flatMap { entityEvents ->
+        val events = logTime(logger, "processing action event groups") {
+            aspectEventGroups.values.flatMap { entityEvents ->
 
-            var aspectDataAccumulator = AspectData()
+                var aspectDataAccumulator = AspectData()
 
-            val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
+                val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
 
-                val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
+                    val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
 
-                aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
+                    aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
 
-                return@map aspectDataAccumulator
-            })
+                    return@map aspectDataAccumulator
+                })
 
-            return@flatMap versionList.zipWithNext().zip(entityEvents)
-                .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
+                return@flatMap versionList.zipWithNext().zip(entityEvents)
+                    .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
 
-        }.sortedByDescending { it.event.timestamp }
+            }
+        }
+
+        return events.sortedByDescending { it.event.timestamp }
     }
 }

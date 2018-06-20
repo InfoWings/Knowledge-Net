@@ -19,9 +19,9 @@ class HistoryService(
 
     fun getAll(): Set<HistoryFact> = logTime(logger, "all history facts collection") {
         transaction(db) {
-            return@transaction historyDao.getAllHistoryEvents()
-                .map { it.toFact() }
-                .toSet()
+            val events = logTime(logger, "basic collecting of events") {historyDao.getAllHistoryEvents()}
+            logger.info("${events.size} history events")
+            return@transaction events.map { it.toFact() }.toSet()
         }
     }
 

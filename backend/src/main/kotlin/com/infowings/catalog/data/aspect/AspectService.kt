@@ -6,6 +6,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
@@ -177,15 +178,22 @@ class AspectService(
 
         logger.info("query: " + query)
 
-        val result = when {
+        val vertices = when {
             query == null || query.isBlank() -> aspectDaoService.getAspects()
             else -> aspectDaoService.findTransitiveByNameQuery(query)
-        }.map { it.toAspect() }.sort(orderBy)
+        }
         val afterMS = System.currentTimeMillis()
 
-        logger.info("getAspects took ${afterMS - beforeMS}ms. ${result.size}" )
+        logger.info("getting aspect vertices took ${afterMS - beforeMS}ms. ${vertices.size}" )
 
-        return result
+        val aspects = logTime(logger, "extracting aspects") {
+            vertices.map { it.toAspect() }
+        }
+        val sorted = logTime(logger, "sorting aspects") {
+            aspects.sort(orderBy)
+        }
+
+        return sorted
     }
 
     private fun findVertexById(id: String): AspectVertex =
