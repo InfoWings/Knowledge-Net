@@ -93,7 +93,7 @@ data class ObjectPropertyValueViewModel(
 
     constructor(objectPropertyValue: DetailedObjectPropertyValueResponse) : this(
         id = objectPropertyValue.id,
-        value = objectPropertyValue.objectDto.toData().let {
+        value = objectPropertyValue.value.toData().let {
             when (it) {
                 is ObjectValueData.IntegerValue -> it.value.toString()
                 is ObjectValueData.NullValue -> null
@@ -141,7 +141,7 @@ data class AspectPropertyValueViewModel(
 
     constructor(propertyValue: DetailedAspectPropertyValueResponse) : this(
         id = propertyValue.id,
-        value = propertyValue.objectDto.toData().let {
+        value = propertyValue.value.toData().let {
             when (it) {
                 is ObjectValueData.IntegerValue -> it.value.toString()
                 is ObjectValueData.NullValue -> null
