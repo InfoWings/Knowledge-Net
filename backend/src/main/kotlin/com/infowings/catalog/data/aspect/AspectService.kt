@@ -175,6 +175,8 @@ class AspectService(
     ): List<Aspect> {
         val beforeMS = System.currentTimeMillis()
 
+        logger.info("query: " + query)
+
         val result = when {
             query == null || query.isBlank() -> aspectDaoService.getAspects()
             else -> aspectDaoService.findTransitiveByNameQuery(query)
