@@ -25,9 +25,11 @@ class HistoryService(
         }
     }
 
-    fun allTimeline(): List<HistoryFact> = transaction(db) {
-        return@transaction historyDao.getAllHistoryEventsByTime()
-            .map { it.toFact() }
+    fun allTimeline(): List<HistoryFact> = logTime(logger, "history timeline collection") {
+        transaction(db) {
+            return@transaction historyDao.getAllHistoryEventsByTime()
+                .map { it.toFact() }
+        }
     }
 
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {

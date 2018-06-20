@@ -46,9 +46,10 @@ class AspectHistoryProvider(
                     })
                 }
 
-                return@flatMap versionList.zipWithNext().zip(entityEvents)
-                    .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
-
+                return@flatMap logTime(logger, "aspect diffs creation") {
+                    versionList.zipWithNext().zip(entityEvents)
+                        .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
+                }
             }
         }
 
