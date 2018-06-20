@@ -1,11 +1,13 @@
 back_local=backend/build/libs/backend.jar
 bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads"
-ts=`date +'%F-%H_%M_%S'`
+ts=`date +'%F-%H-%M-%S'`
 
-ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //'` 
-gb=`git rev-parse --abbrev-ref HEAD`
+ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //' | sed 's|_|-|g'` 
+gb=`git rev-parse --abbrev-ref HEAD | sed 's|/|-|g' | sed 's|/|-|g'`
 
-back_jar=backend-$ts-${ver}_$gb.jar
+version=${ts}_${ver}_${gb}
+
+back_jar=backend_${version}.jar
 
 ls -l $back_local
 cp $back_local $back_jar
