@@ -35,14 +35,16 @@ class AspectHistoryProvider(
 
                 var aspectDataAccumulator = AspectData()
 
-                val versionList = listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
+                val versionList = logTime(logger, "reconstruct aspect versions") {
+                    listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
 
-                    val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
+                        val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
 
-                    aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
+                        aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
 
-                    return@map aspectDataAccumulator
-                })
+                        return@map aspectDataAccumulator
+                    })
+                }
 
                 return@flatMap versionList.zipWithNext().zip(entityEvents)
                     .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }

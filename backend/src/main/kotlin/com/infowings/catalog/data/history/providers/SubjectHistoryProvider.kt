@@ -4,7 +4,11 @@ import com.infowings.catalog.data.history.DiffPayload
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.external.logTime
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.SUBJECT_CLASS
+
+private val logger = loggerFor<SubjectHistoryProvider>()
 
 class SubjectHistoryProvider(
     private val historyService: HistoryService
@@ -13,40 +17,44 @@ class SubjectHistoryProvider(
         val allFacts = historyService.getAll()
         val factGroups = allFacts.idEventMap(classname = SUBJECT_CLASS)
 
-        val snapshots = factGroups.values.flatMap { entityFacts ->
-            var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
-            val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
-                val payload = fact.payload
+        logger.info("found ${factGroups.size} subject fact groups")
 
-                val current = accumulator.first.toMutable()
+        val snapshots = logTime(logger, "restore subject snapshots") {
+            factGroups.values.flatMap { entityFacts ->
+                var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
+                val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
+                    val payload = fact.payload
 
-                payload.data.forEach { name, value ->
-                    current.updateField(name, value)
-                }
+                    val current = accumulator.first.toMutable()
 
-                payload.addedLinks.forEach { target, ids ->
-                    ids.forEach { current.addLink(target, it) }
-                }
+                    payload.data.forEach { name, value ->
+                        current.updateField(name, value)
+                    }
 
-                payload.removedLinks.forEach { target, ids ->
-                    ids.forEach { current.removeLink(target, it) }
-                }
+                    payload.addedLinks.forEach { target, ids ->
+                        ids.forEach { current.addLink(target, it) }
+                    }
 
-                accumulator = Pair(current.toSnapshot(), fact.payload)
+                    payload.removedLinks.forEach { target, ids ->
+                        ids.forEach { current.removeLink(target, it) }
+                    }
 
-                return@map accumulator
-            })
+                    accumulator = Pair(current.toSnapshot(), fact.payload)
 
-            return@flatMap versionList.zipWithNext().zip(entityFacts.map { it.event })
-                .map {
-                    val event = it.second
-                    val (before, after) = it.first
-                    val snapshotBefore = before.first
-                    val snapshotAfter = after.first
-                    val payload = after.second
-                    HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
-                }
+                    return@map accumulator
+                })
 
+                return@flatMap versionList.zipWithNext().zip(entityFacts.map { it.event })
+                    .map {
+                        val event = it.second
+                        val (before, after) = it.first
+                        val snapshotBefore = before.first
+                        val snapshotAfter = after.first
+                        val payload = after.second
+                        HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
+                    }
+
+            }
         }
 
         return snapshots.sortedByDescending { it.event.timestamp }

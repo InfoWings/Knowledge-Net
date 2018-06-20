@@ -258,7 +258,8 @@ class AspectService(
                 ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
-        aspectVertex.properties.map { loadAspectProperty(it.id) }
+        val id = aspectVertex.id
+        logTime(logger, "loading properties for aspect $id") {aspectVertex.properties.map { loadAspectProperty(it.id) }}
     }
 
     /**
@@ -291,7 +292,6 @@ class AspectService(
 
         if (propertyId.isEmpty())
             return aspectDaoService.createNewAspectPropertyVertex()
-
 
         return aspectDaoService.getAspectPropertyVertex(propertyId)
             ?.validateExistingAspectProperty(this)
