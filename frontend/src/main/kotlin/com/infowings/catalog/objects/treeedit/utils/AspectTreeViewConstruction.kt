@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.utils
+package com.infowings.catalog.objects.treeedit.utils
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality

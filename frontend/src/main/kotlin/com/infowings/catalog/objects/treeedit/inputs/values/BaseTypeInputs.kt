@@ -1,6 +1,6 @@
-package com.infowings.catalog.objects.treeview.inputs.values
+package com.infowings.catalog.objects.treeedit.inputs.values
 
-import com.infowings.catalog.objects.treeview.inputs.referenceBookInput
+import com.infowings.catalog.objects.treeedit.inputs.referenceBookInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.NumericInput
 import com.infowings.catalog.wrappers.blueprint.Switch

@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality
@@ -17,7 +17,7 @@ fun RBuilder.objectPropertyNode(
 ) =
     controlledTreeNode {
         attrs {
-            className = "object-tree-view__property"
+            className = "object-tree-edit__property"
             expanded = property.expanded
             onExpanded = {
                 onUpdateWithoutSelect {

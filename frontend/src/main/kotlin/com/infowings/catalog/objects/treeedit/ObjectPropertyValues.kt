@@ -1,10 +1,10 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
-import com.infowings.catalog.objects.treeview.inputs.propertyValue
-import com.infowings.catalog.objects.treeview.utils.constructAspectTree
+import com.infowings.catalog.objects.treeedit.inputs.propertyValue
+import com.infowings.catalog.objects.treeedit.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -23,7 +23,7 @@ fun RBuilder.objectPropertyValues(
     values.forEachIndexed { valueIndex, value ->
         controlledTreeNode {
             attrs {
-                className = "object-tree-view__object-property-value"
+                className = "object-tree-edit__object-property-value"
                 expanded = value.expanded
                 onExpanded = {
                     onNonSelectedUpdate(valueIndex) {

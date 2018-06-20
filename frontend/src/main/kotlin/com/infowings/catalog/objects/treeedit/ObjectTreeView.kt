@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.objects.ObjectTreeEditModelConsumerProps
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -14,12 +14,12 @@ class ObjectTreeView : RComponent<ObjectTreeEditModelConsumerProps, RState>() {
 
     companion object {
         init {
-            require("styles/object-tree-view.scss")
+            require("styles/object-tree-edit.scss")
         }
     }
 
     override fun RBuilder.render() {
-        div(classes = "object-tree-view") {
+        div(classes = "object-tree-edit") {
             props.objectForest.forEachIndexed { index, objView ->
                 objectTreeRootNode {
                     attrs {

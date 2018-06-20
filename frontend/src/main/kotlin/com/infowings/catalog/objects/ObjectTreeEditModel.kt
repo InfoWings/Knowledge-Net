@@ -1,7 +1,7 @@
 package com.infowings.catalog.objects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.objects.treeview.objectTreeView
+import com.infowings.catalog.objects.treeedit.objectTreeView
 import kotlinx.coroutines.experimental.launch
 import react.*
 

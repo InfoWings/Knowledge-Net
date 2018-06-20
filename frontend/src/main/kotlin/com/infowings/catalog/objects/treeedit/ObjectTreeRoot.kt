@@ -1,18 +1,18 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.components.additem.addPropertyButton
 import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.ObjectViewModel
-import com.infowings.catalog.objects.treeview.inputs.name
-import com.infowings.catalog.objects.treeview.inputs.objectSubject
+import com.infowings.catalog.objects.treeedit.inputs.name
+import com.infowings.catalog.objects.treeedit.inputs.objectSubject
 import react.*
 import react.dom.div
 
 class ObjectTreeRoot : RComponent<ObjectTreeRoot.Props, RState>() {
 
     override fun RBuilder.render() {
-        div(classes = "object-tree-view__object") {
+        div(classes = "object-tree-edit__object") {
             name(
                 value = props.objectTreeView.name ?: "",
                 onEdit = props.onStartEdit,

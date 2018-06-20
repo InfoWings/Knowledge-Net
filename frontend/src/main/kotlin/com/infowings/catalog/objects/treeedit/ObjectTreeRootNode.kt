@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
@@ -12,7 +12,7 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
     override fun RBuilder.render() {
         controlledTreeNode {
             attrs {
-                className = "object-tree-view__root"
+                className = "object-tree-edit__root"
                 expanded = props.objTreeView.expanded
                 onExpanded = {
                     props.objectTreeViewModel.updateObject(props.objectIndex) {
