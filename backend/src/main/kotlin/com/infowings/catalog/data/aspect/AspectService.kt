@@ -172,10 +172,19 @@ class AspectService(
             )
         ),
         query: String? = null
-    ): List<Aspect> = when {
-        query == null || query.isBlank() -> aspectDaoService.getAspects()
-        else -> aspectDaoService.findTransitiveByNameQuery(query)
-    }.map { it.toAspect() }.sort(orderBy)
+    ): List<Aspect> {
+        val beforeMS = System.currentTimeMillis()
+
+        val result = when {
+            query == null || query.isBlank() -> aspectDaoService.getAspects()
+            else -> aspectDaoService.findTransitiveByNameQuery(query)
+        }.map { it.toAspect() }.sort(orderBy)
+        val afterMS = System.currentTimeMillis()
+
+        logger.info("getAspects took ${afterMS - beforeMS}ms. ${result.size}" )
+
+        return result
+    }
 
     private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)

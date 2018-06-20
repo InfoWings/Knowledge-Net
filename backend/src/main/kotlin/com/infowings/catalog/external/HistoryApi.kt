@@ -8,9 +8,18 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.loggerFor
+import org.slf4j.Logger
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+
+fun <T> logTime(logger: Logger, comment :String, action: () -> T): T {
+    val beforeMS = System.currentTimeMillis()
+    val result = action()
+    val afterMS = System.currentTimeMillis()
+    logger.info("${comment} took ${afterMS - beforeMS}ms")
+    return result
+}
 
 @RestController
 @RequestMapping("api/history")
@@ -20,12 +29,9 @@ class HistoryApi(
 ) {
     @GetMapping("aspects")
     fun getAspects(): AspectHistoryList {
-        val beforeMS = System.currentTimeMillis()
-        val result = AspectHistoryList(aspectHistoryProvider.getAllHistory())
-        val afterMS = System.currentTimeMillis()
-        logger.info("all aspects history took ${afterMS - beforeMS}")        
-
-        return result
+        return logTime(logger, "all aspects history") {
+            AspectHistoryList(aspectHistoryProvider.getAllHistory())
+        }
     }
 
     @GetMapping("refbook")

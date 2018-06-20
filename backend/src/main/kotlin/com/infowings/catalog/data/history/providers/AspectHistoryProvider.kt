@@ -2,7 +2,9 @@ package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectHistory
+import com.infowings.catalog.common.AspectHistoryList
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 
