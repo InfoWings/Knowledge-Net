@@ -37,22 +37,22 @@ data class DetailedObjectPropertyResponse(
     val description: String?,
     val aspect: AspectData,
     val cardinality: String,
-    val values: List<DetailedObjectPropertyValueResponse>
+    val values: List<RootValueResponse>
 )
 
 @Serializable
-data class DetailedObjectPropertyValueResponse(
+data class RootValueResponse(
     val id: String,
     val value: ValueDTO,
-    val children: List<DetailedAspectPropertyValueResponse>
+    val children: List<ValueResponse>
 )
 
 @Serializable
-data class DetailedAspectPropertyValueResponse(
+data class ValueResponse(
     val id: String,
     val value: ValueDTO,
-    val associatedAspect: AspectPropertyDataExtended,
-    val children: List<DetailedAspectPropertyValueResponse>
+    val aspectProperty: AspectPropertyDataExtended,
+    val children: List<ValueResponse>
 )
 
 @Serializable

@@ -49,11 +49,11 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }.toList()
         }
 
-    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<DetailedObjectPropertyValueResponse> =
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
         transaction(db) {
             val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
             return@transaction rootPropertyValues.map { rootValue ->
-                DetailedObjectPropertyValueResponse(
+                RootValueResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
@@ -61,10 +61,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedAspectPropertyValueResponse {
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
         val aspectProperty = this.aspectProperty ?: throw ObjectPropertyValueWithoutAspectException(this.id)
         val aspect = aspectProperty.associatedAspect
-        return DetailedAspectPropertyValueResponse(
+        return ValueResponse(
             this.id,
             this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
             AspectPropertyDataExtended(

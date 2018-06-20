@@ -91,7 +91,7 @@ data class ObjectPropertyValueViewModel(
         }.toMutableList()
     )
 
-    constructor(objectPropertyValue: DetailedObjectPropertyValueResponse) : this(
+    constructor(objectPropertyValue: RootValueResponse) : this(
         id = objectPropertyValue.id,
         value = objectPropertyValue.value.toData().let {
             when (it) {
@@ -107,7 +107,7 @@ data class ObjectPropertyValueViewModel(
                 else -> TODO("Object value type $it is not yet supported")
             }
         },
-        valueGroups = objectPropertyValue.children.groupBy { it.associatedAspect }.toList().map {
+        valueGroups = objectPropertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
                 it.second.map(::AspectPropertyValueViewModel).toMutableList()
@@ -139,7 +139,7 @@ data class AspectPropertyValueViewModel(
         }.toMutableList()
     )
 
-    constructor(propertyValue: DetailedAspectPropertyValueResponse) : this(
+    constructor(propertyValue: ValueResponse) : this(
         id = propertyValue.id,
         value = propertyValue.value.toData().let {
             when (it) {
@@ -155,7 +155,7 @@ data class AspectPropertyValueViewModel(
                 else -> TODO("Object value type $it is not yet supported")
             }
         },
-        children = propertyValue.children.groupBy { it.associatedAspect }.toList().map {
+        children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
                 it.second.map(::AspectPropertyValueViewModel).toMutableList()
