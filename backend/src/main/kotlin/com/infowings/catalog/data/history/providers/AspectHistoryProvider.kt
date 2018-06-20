@@ -31,7 +31,7 @@ class AspectHistoryProvider(
         logger.info("found aspect event groups: ${aspectEventGroups.size}")
 
         val events = logTime(logger, "processing action event groups") {
-            aspectEventGroups.values.flatMap { entityEvents ->
+            aspectEventGroups.values.flatMap {  entityEvents ->
 
                 var aspectDataAccumulator = AspectData()
 
@@ -46,7 +46,7 @@ class AspectHistoryProvider(
                     })
                 }
 
-                return@flatMap logTime(logger, "aspect diffs creation") {
+                return@flatMap logTime(logger, "aspect diffs creation for aspect ${entityEvents.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(entityEvents)
                         .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
                 }

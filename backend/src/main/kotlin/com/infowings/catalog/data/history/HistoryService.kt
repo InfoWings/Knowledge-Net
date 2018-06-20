@@ -27,8 +27,9 @@ class HistoryService(
 
     fun allTimeline(): List<HistoryFact> = logTime(logger, "history timeline collection") {
         transaction(db) {
-            return@transaction historyDao.getAllHistoryEventsByTime()
-                .map { it.toFact() }
+            val events = logTime(logger, "basic collecting of timed events") { historyDao.getAllHistoryEventsByTime() }
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
         }
     }
 

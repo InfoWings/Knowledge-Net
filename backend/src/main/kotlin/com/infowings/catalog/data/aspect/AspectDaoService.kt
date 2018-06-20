@@ -28,7 +28,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
-    fun getAspectVertex(aspectId: String) = logTime(logger, "get aspect vertex") {db.getVertexById(aspectId)?.toAspectVertex()}
+    fun getAspectVertex(aspectId: String) = logTime(logger, "get aspect vertex $aspectId") {db.getVertexById(aspectId)?.toAspectVertex()}
 
     fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
