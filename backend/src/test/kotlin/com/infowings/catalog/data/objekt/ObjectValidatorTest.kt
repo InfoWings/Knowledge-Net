@@ -204,32 +204,6 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectValidatorEmptyObjectPropertyNameTest() {
-        val objectRequest =
-            ObjectCreateRequest(
-                "objectValidatorEmptyObjectPropertyNameTestName",
-                "object descr",
-                subject.id,
-                subject.version
-            )
-        val objectVertex = createObject(objectRequest)
-
-        val propertyRequest = PropertyCreateRequest(
-            name = "", cardinality = PropertyCardinality.INFINITY.name,
-            objectId = objectVertex.id, aspectId = aspect.id
-        )
-
-        try {
-            validator.checkedForCreation(propertyRequest)
-            Assert.fail("Nothing thrown")
-        } catch (e: EmptyObjectPropertyNameException) {
-        } catch (e: Exception) {
-            Assert.fail("Unexpected exception: $e")
-        }
-    }
-
-
-    @Test
     fun objectValueValidatorSimpleIntTest() {
         val objectRequest =
             ObjectCreateRequest("objectValueValidatorTestSimpleIntName", "object descr", subject.id, subject.version)
