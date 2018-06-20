@@ -93,23 +93,24 @@ class AspectService(
      */
     fun save(aspectData: AspectData, username: String): Aspect {
         val userVertex = userService.findUserVertexByUsername(username)
+        val normalizedAspectData = aspectData.normalize()
 
         val save: AspectVertex = transaction(db) {
-            val aspectVertex = aspectData
+            val aspectVertex = normalizedAspectData
                 .checkAspectDataConsistent()
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            if (aspectVertex.toAspectData() == aspectData) {
+            if (aspectVertex.toAspectData() == normalizedAspectData) {
                 throw AspectEmptyChangeException()
             }
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
+            return@transaction finishMethod(aspectVertex, normalizedAspectData, HistoryContext(userVertex))
         }
 
-        logger.debug("Aspect ${aspectData.name} saved/updated with id: ${save.id}")
+        logger.debug("Aspect ${normalizedAspectData.name} saved/updated with id: ${save.id}")
 
         return if (save.identity.clusterPosition < 0) {
             // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
@@ -125,16 +126,17 @@ class AspectService(
 
     fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
         val userVertex = userService.findUserVertexByUsername(username)
+        val normalizedAspectData = aspectData.normalize()
 
         transaction(db) {
             val context = HistoryContext(userVertex)
 
-            val aspectId = aspectData.id ?: "null"
+            val aspectId = normalizedAspectData.id ?: "null"
 
             val aspectVertex =
                 aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
 
-            aspectVertex.checkAspectVersion(aspectData)
+            aspectVertex.checkAspectVersion(normalizedAspectData)
 
             val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
 
@@ -334,6 +336,11 @@ class AspectService(
         }
     }
 }
+
+private fun AspectData.normalize(): AspectData = copy(
+    name = this.name?.trim(),
+    description = this.description?.trim(),
+    properties = this.properties.map { it.copy(name = it.name.trim(), description = it.description?.trim()) })
 
 sealed class AspectException(message: String? = null) : Exception(message)
 

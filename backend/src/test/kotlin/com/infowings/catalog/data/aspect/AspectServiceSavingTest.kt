@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import kotlin.test.assertEquals
 
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -371,6 +372,20 @@ class AspectServiceSavingTest {
         aspectService.save(aspectData1, username)
         val ans = aspectService.save(aspectData2, username)
         aspectService.save(ans.toAspectData().copy(name = "test   "), username)
+    }
+
+    @Test
+    fun testSaveWithAroundSpaces() {
+        val leafAspect = aspectService.save(AspectData(name = "leaf", baseType = BaseType.Text.name), username)
+        val aspectPropertyData =
+            AspectPropertyData(id = "", name = "   p1   ", aspectId = leafAspect.id, cardinality = PropertyCardinality.ONE.name, description = "  d1   ")
+        val complexAspect =
+            AspectData(name = "     test ", description = " description    ", baseType = BaseType.Text.name, properties = listOf(aspectPropertyData))
+        val res = aspectService.save(complexAspect, username)
+        assertEquals(res.name, "test", "Aspect should save with trimmed name")
+        assertEquals(res.description, "description", "Aspect should save with trimmed description")
+        assertEquals(res.properties[0].name, "p1", "Aspect property should save with trimmed name")
+        assertEquals(res.properties[0].description, "d1", "Aspect property should save with trimmed description")
     }
 
     private fun prepareAspect(): Aspect {

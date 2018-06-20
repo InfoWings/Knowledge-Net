@@ -26,10 +26,12 @@ class SubjectService(
     fun findByName(name: String): SubjectData? = dao.findByName(name)?.toSubject()?.toSubjectData()
 
     fun createSubject(sd: SubjectData, username: String): Subject {
+        val normalizedSubjectData = sd.normalize()
+
         val userVertex = userService.findUserVertexByUsername(username)
 
         val vertex = transaction(db) {
-            val vertex = dao.createSubject(sd)
+            val vertex = dao.createSubject(normalizedSubjectData)
             history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
@@ -39,22 +41,23 @@ class SubjectService(
 
     fun updateSubject(subjectData: SubjectData, username: String): Subject {
         val id = subjectData.id ?: throw SubjectIdIsNull
+        val normalizedSubjectData = subjectData.normalize()
 
         val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
             val vertex: SubjectVertex = dao.findByIdStrict(id)
-            if (subjectData == vertex.toSubject().toSubjectData()) {
+            if (normalizedSubjectData == vertex.toSubject().toSubjectData()) {
                 throw SubjectEmptyChangeException()
             }
 
             // временно отключим до гарантированной поддержки на фронте
-            //if (subjectData.isModified(vertex.version)) {
-            //    throw SubjectConcurrentModificationException(expected =  sd.version, real = vertex.version)
+            //if (normalizedSubjectData.isModified(vertex.version)) {
+            //    throw SubjectConcurrentModificationException(expected =  normalizedSubjectData.version, real = vertex.version)
             //}
 
             val before = vertex.currentSnapshot()
-            val res = dao.updateSubjectVertex(vertex, subjectData)
+            val res = dao.updateSubjectVertex(vertex, normalizedSubjectData)
             history.storeFact(vertex.toUpdateFact(HistoryContext(userVertex), before))
 
             return@transaction res
@@ -65,6 +68,7 @@ class SubjectService(
 
     fun remove(subjectData: SubjectData, username: String, force: Boolean = false) {
         val id = subjectData.id ?: throw SubjectIdIsNull
+        val normalizedSubjectData = subjectData.normalize()
 
         val userVertex = userService.findUserVertexByUsername(username)
 
@@ -72,7 +76,7 @@ class SubjectService(
             val vertex = dao.findByIdStrict(id)
 
             // временно отключим до гарантированной поддержки на фронте
-            //if (subjectData.isModified(vertex.version)) {
+            //if (normalizedSubjectData.isModified(vertex.version)) {
             //    throw SubjectConcurrentModificationException(expected =  sd.version, real = vertex.version)
             //}
 
@@ -84,7 +88,7 @@ class SubjectService(
                     dao.softRemove(vertex)
                 }
                 linkedByAspects.isNotEmpty() -> {
-                    throw SubjectIsLinkedByAspect(subjectData, linkedByAspects.first().toAspectData())
+                    throw SubjectIsLinkedByAspect(normalizedSubjectData, linkedByAspects.first().toAspectData())
                 }
 
                 else -> {
@@ -94,8 +98,9 @@ class SubjectService(
             }
         }
     }
-
 }
+
+private fun SubjectData.normalize(): SubjectData = copy(name = this.name.trim(), description = this.description?.trim())
 
 sealed class SubjectException(override val message: String? = null) : Exception(message)
 

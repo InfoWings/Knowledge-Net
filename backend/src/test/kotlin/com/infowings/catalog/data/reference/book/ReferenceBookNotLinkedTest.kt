@@ -329,6 +329,39 @@ class ReferenceBookNotLinkedTest {
         referenceBookService.updateReferenceBookItem(res.copy(value = "value   "), username)
     }
 
+    @Test
+    fun saveWithSpacesAround() {
+        val aspect2 = aspectService.save(AspectData(name = "testAspect", baseType = BaseType.Text.name), username)
+        var refBook = referenceBookService.createReferenceBook("  name  ", aspectId = aspect2.id, username = username)
+        assertEquals("Reference book should have trimmed name", "name", refBook.name)
+
+        referenceBookService.updateReferenceBook(refBook.copy(description = "   description   "), username)
+        refBook = referenceBookService.getReferenceBook(refBook.aspectId)
+        assertEquals("Reference book should have trimmed description", "description", refBook.description)
+
+        val itemId = referenceBookService.addReferenceBookItem(
+            refBook.id,
+            ReferenceBookItem(id = "", version = 0, value = " val  ", description = " d   ", deleted = false, children = emptyList()),
+            username
+        )
+
+        var bookItem = referenceBookService.getReferenceBookItem(itemId)
+
+        assertEquals("Reference book item should have trimmed value", "val", bookItem.value)
+        assertEquals("Reference book should have trimmed description", "d", bookItem.description)
+
+        refBook = referenceBookService.getReferenceBook(refBook.aspectId)
+        referenceBookService.updateReferenceBook(refBook.copy(name = "  newName ", description = " newDesc"), username)
+        refBook = referenceBookService.getReferenceBook(refBook.aspectId)
+        assertEquals("Reference book should have trimmed name", "newName", refBook.name)
+        assertEquals("Reference book should have trimmed description", "newDesc", refBook.description)
+
+        referenceBookService.updateReferenceBookItem(bookItem.copy(value = " newVal  ", description = " newD "), username)
+        bookItem = referenceBookService.getReferenceBookItem(itemId)
+        assertEquals("Reference book item should have trimmed value", "newVal", bookItem.value)
+        assertEquals("Reference book should have trimmed description", "newD", bookItem.description)
+    }
+
     private fun addReferenceBookItem(parentId: String, value: String): String =
         referenceBookService.addReferenceBookItem(parentId, createReferenceBookItem(value), username)
 

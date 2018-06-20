@@ -100,7 +100,7 @@ class AspectValidator(
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
-        val name = this.name?.trim() ?: throw AspectNameCannotBeNull()
+        val name = this.name ?: throw AspectNameCannotBeNull()
         if (name.isBlank()) throw AspectNameCannotBeNull()
         id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this, name)
     }
