@@ -3,7 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.data.aspect.AspectWithoutBaseTypeException
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -62,7 +61,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
 
     private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
-        val aspectProperty = this.aspectProperty ?: throw ObjectPropertyValueWithoutAspectException(this.id)
+        val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
         val aspect = aspectProperty.associatedAspect
         return ValueResponse(
             this.id,
@@ -75,7 +74,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 aspect.name,
                 aspect.measure?.name,
                 OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
-                aspect.baseType ?: throw AspectWithoutBaseTypeException(aspect.id),
+                aspect.baseType ?: throw IllegalStateException("Aspect with id ${aspect.id} has no associated base type"),
                 aspect.referenceBookRootVertex?.name
             ),
             this.children.map { it.toDetailedAspectPropertyValueResponse() }
@@ -220,4 +219,3 @@ class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectExce
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
-class ObjectPropertyValueWithoutAspectException(id: String) : ObjectException("Object value with id $id does not have associated aspect property")
