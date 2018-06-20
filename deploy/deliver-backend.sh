@@ -7,7 +7,7 @@ gb=`git rev-parse --abbrev-ref HEAD | sed 's|/|-|g' | sed 's|/|-|g'`
 
 version=$ts_$ver_$gb
 
-back_jar=backend_version.jar
+back_jar=backend_$version.jar
 
 ls -l $back_local
 cp $back_local $back_jar
