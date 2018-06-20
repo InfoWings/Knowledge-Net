@@ -4,9 +4,9 @@ ts=`date +'%F-%H-%M-%S'`
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //' | sed 's|_|-|g'` 
 gb=`git rev-parse --abbrev-ref HEAD | sed 's|/|-|g' | sed 's|_|-|g'`
 
-version=$ts_$ver_$gb
+version=${ts}_${ver}_${gb}
 
-front_jar=frontend_$version.jar
+front_jar=frontend_${version}.jar
 
 echo $version > frontend/build/web/version.txt
 echo $version > frontend/build/web/version_${version}.txt
@@ -16,7 +16,7 @@ jar cf ../$front_jar web
 cd ..
 
 echo "timestamp: $ts"
-echo "Going to deliver $back_jar and $front_jar"
+echo "Going to deliver $front_jar"
 ls -l $front_jar
 
 scp -i ~/.ssh/config $front_jar bitbucket@catalog.reflexia.com:$front_jar
