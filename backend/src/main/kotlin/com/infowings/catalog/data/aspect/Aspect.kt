@@ -49,7 +49,7 @@ data class Aspect(
         )
 }
 
-fun List<Aspect>.toAspectData(): List<AspectData> = map { it.toAspectData() }
+fun List<AspectReadData>.toAspectData(): List<AspectData> = map { it.toAspectData() }
 fun List<AspectProperty>.toAspectPropertyData(): List<AspectPropertyData> = map { it.toAspectPropertyData() }
 
 data class AspectProperty(

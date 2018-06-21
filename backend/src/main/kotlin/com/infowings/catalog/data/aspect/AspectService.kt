@@ -173,27 +173,22 @@ class AspectService(
             )
         ),
         query: String? = null
-    ): List<Aspect> {
-        val beforeMS = System.currentTimeMillis()
-
-        logger.info("query: " + query)
-
-        val vertices = when {
-            query == null || query.isBlank() -> aspectDaoService.getAspects()
-            else -> aspectDaoService.findTransitiveByNameQuery(query)
+    ): List<AspectReadData> {
+        val aspects = transaction(db) {
+            val vertices = logTime(logger, "getting aspect vertices") {
+                when {
+                    query == null || query.isBlank() -> aspectDaoService.getAspects()
+                    else -> aspectDaoService.findTransitiveByNameQuery(query)
+                }
+            }
+            logTime(logger, "extracting aspects") {
+                vertices.map { it.toAspectReadData() }
+            }
         }
-        val afterMS = System.currentTimeMillis()
 
-        logger.info("getting aspect vertices took ${afterMS - beforeMS}ms. ${vertices.size}" )
-
-        val aspects = logTime(logger, "extracting aspects") {
-            vertices.map { it.toAspect() }
-        }
-        val sorted = logTime(logger, "sorting aspects") {
+        return logTime(logger, "sorting aspects") {
             aspects.sort(orderBy)
         }
-
-        return sorted
     }
 
     private fun findVertexById(id: String): AspectVertex =
@@ -214,19 +209,20 @@ class AspectService(
             direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
     }
 
-    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+    private fun List<AspectReadData>.sort(orderBy: List<AspectOrderBy>): List<AspectReadData> {
         if (orderBy.isEmpty()) {
             return this
         }
-        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
-        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
-        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+
+        fun aspectNameAsc(aspect: AspectReadData): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: AspectReadData): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: AspectReadData): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.ASC)
 
-        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+        fun aspectSubjectNameDesc(aspect: AspectReadData): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.DESC)
 
-        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+        val m = mapOf<AspectSortField, Map<Direction, (AspectReadData) -> Comparable<*>>>(
             AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
             AspectSortField.SUBJECT to mapOf(
                 Direction.ASC to ::aspectSubjectNameAsc,
@@ -258,7 +254,6 @@ class AspectService(
                 ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
-        val id = aspectVertex.id
         aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 

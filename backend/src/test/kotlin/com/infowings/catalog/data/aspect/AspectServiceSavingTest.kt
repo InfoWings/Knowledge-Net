@@ -148,7 +148,7 @@ class AspectServiceSavingTest {
 
         assertThat(
             "should return two aspects with same measure",
-            aspectService.getAspects().filter { it.measure == Kilometre }.size,
+            aspectService.getAspects().filter { it.measure == Kilometre.name }.size,
             Is.`is`(2)
         )
     }

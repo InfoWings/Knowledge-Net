@@ -64,6 +64,24 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         )
     }
 
+    fun toAspectReadData(): AspectReadData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return AspectReadData(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            properties = properties.map { it.toAspectPropertyData() },
+            version = version,
+            subject = subject?.toSubjectData(),
+            deleted = deleted,
+            description = description,
+            lastChangeTimestamp = lastChange?.epochSecond,
+            refBookName = referenceBookRootVertex?.value
+        )
+    }
+
     val properties: List<AspectPropertyVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map { it.toAspectPropertyVertex() }.toList()
 
