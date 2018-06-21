@@ -67,12 +67,17 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
-    private fun fetchAspects() {
+    private fun fetchAspects(updateContext: Boolean = false) {
         launch {
             try {
                 val response = getAllAspects(state.orderBy, state.searchQuery)
                 setState {
                     data = response.aspects
+                    if (updateContext) {
+                        val updatedContext = context + response.aspects.associateBy { it.id!! }
+                        context = updatedContext.toMutableMap()
+                        loading = false
+                    }
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -197,7 +202,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onOrderByChanged = this@AspectApiMiddleware::setAspectsOrderBy
                     onSearchQueryChanged = this@AspectApiMiddleware::setAspectsSearchQuery
-                    refreshAspects = this@AspectApiMiddleware::fetchAspects
+                    refreshAspects = { fetchAspects(updateContext = true) }
                 }
             }
         } else {

@@ -27,8 +27,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             setState {
                 val selectedAspectOnServer =
                     nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
-                selectedAspect =
-                        selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
+                selectedAspect = selectedAspectOnServer
             }
         }
     }
@@ -193,13 +192,11 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         }
     }
 
-    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
-        return when {
-            entityIsAlreadySelected(aspectId, index) -> false
-            isEmptyPropertySelected() -> false
-            isSelectedAspectHasChanges() -> true
-            else -> false
-        }
+    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean = when {
+        entityIsAlreadySelected(aspectId, index) -> false
+        isEmptyPropertySelected() -> false
+        isSelectedAspectHasChanges() -> true
+        else -> false
     }
 
     private fun State.isSelectedAspectHasChanges() =
