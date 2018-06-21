@@ -259,7 +259,7 @@ class AspectService(
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
         val id = aspectVertex.id
-        logTime(logger, "loading properties for aspect $id") {aspectVertex.properties.map { loadAspectProperty(it.id) }}
+        aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 
     /**
