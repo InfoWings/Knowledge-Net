@@ -4,6 +4,7 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
@@ -27,7 +28,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
-    fun getAspectVertex(aspectId: String) = db.getVertexById(aspectId)?.toAspectVertex()
+    fun getAspectVertex(aspectId: String) = logTime(logger, "get aspect vertex $aspectId") {db.getVertexById(aspectId)?.toAspectVertex()}
 
     fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
@@ -41,8 +42,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
         val traverseQuery = "TRAVERSE IN(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM ($selectQuery)"
         val filterQuery = "SELECT FROM ($traverseQuery) WHERE @class = \"$ASPECT_CLASS\" AND $notDeletedSql"
-        return db.query(filterQuery, mapOf("nameQuery" to "($nameFragment~) ($nameFragment*) (*$nameFragment*)")) {
-            it.map { it.toVertex().toAspectVertex() }.toSet()
+        return logTime(logger, "transitive request by name") {
+            db.query(filterQuery, mapOf("nameQuery" to "($nameFragment~) ($nameFragment*) (*$nameFragment*)")) {
+                it.map { it.toVertex().toAspectVertex() }.toSet()
+            }
         }
     }
 
@@ -81,8 +84,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
 
-    fun getAspects(): Set<AspectVertex> = db.query(selectFromAspectWithDeleted) { rs ->
-        rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
+    fun getAspects(): Set<AspectVertex> = logTime(logger, "all aspects extraction at dao level") {
+        db.query(selectFromAspectWithDeleted) { rs ->
+            rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
+        }
     }
 
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {

@@ -9,9 +9,19 @@ import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
+import com.infowings.catalog.loggerFor
+import org.slf4j.Logger
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+
+fun <T> logTime(logger: Logger, comment :String, action: () -> T): T {
+    val beforeMS = System.currentTimeMillis()
+    val result = action()
+    val afterMS = System.currentTimeMillis()
+    logger.info("${comment} took ${afterMS - beforeMS}ms")
+    return result
+}
 
 @RestController
 @RequestMapping("api/history")
@@ -22,16 +32,28 @@ class HistoryApi(
     val subjectHistoryProvider: SubjectHistoryProvider
 ) {
     @GetMapping("aspects")
-    fun getAspects(): AspectHistoryList = AspectHistoryList(aspectHistoryProvider.getAllHistory())
+    fun getAspects(): AspectHistoryList {
+        return logTime(logger, "all aspects history") {
+            AspectHistoryList(aspectHistoryProvider.getAllHistory())
+        }
+    }
 
     @GetMapping("refbook")
-    fun getRefBooks() = RefBookHistoryList(refBookHistoryProvider.getAllHistory())
+    fun getRefBooks(): RefBookHistoryList {
+        val beforeMS = System.currentTimeMillis()
+        val result = RefBookHistoryList(refBookHistoryProvider.getAllHistory())
+        val afterMS = System.currentTimeMillis()
+        logger.info("all ref book history took ${afterMS - beforeMS}")        
+        return result
+    }
 
     @GetMapping("objects")
     fun getObjects() = ObjectHistoryList(objectHistoryProvider.getAllHistory())
 
     @GetMapping("subjects")
     fun getSubjects(): SubjectHistoryList {
+        val beforeMS = System.currentTimeMillis()
+
         val history: List<HistorySnapshot> = subjectHistoryProvider.getAllHistory()
 
         val deleteVersions: Map<String, Int> = history.filter {
@@ -40,7 +62,7 @@ class HistoryApi(
             it.event.entityId to it.event.version
         }.toMap()
 
-        return SubjectHistoryList(history.map {
+        val result = SubjectHistoryList(history.map {
             val snapshot = it.toData()
             val deletedAt = deleteVersions[snapshot.event.entityId]
             val isDeleted =
@@ -53,5 +75,12 @@ class HistoryApi(
                 fullData = if (isDeleted) snapshot.before else snapshot.after,
                 changes = snapshot.diff.data.map { FieldDelta(it.key, snapshot.before.data[it.key], it.value) })
         })
+
+        val afterMS = System.currentTimeMillis()
+        logger.info("all subjects history took ${afterMS - beforeMS}")        
+
+        return result
     }
 }
+
+private val logger = loggerFor<HistoryApi>()
