@@ -36,14 +36,17 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
             val objectProperties = props.objectView.objectProperties
             when {
                 objectProperties == null && props.objectView.objectPropertiesCount > 0 -> loadingStub {}
-                objectProperties != null -> objectProperties.forEachIndexed { index, property ->
-                    objectPropertyViewNode {
-                        attrs {
-                            this.property = property
-                            onUpdate = { block ->
-                                props.objectTreeModel.updateObject(props.objectIndex) {
-                                    val properties = this.objectProperties ?: error("Properties should be available on update")
-                                    properties[index].block()
+                objectProperties != null -> objectProperties.forEachIndexed { propertyIndex, property ->
+                    property.values.forEachIndexed { valueIndex, value ->
+                        objectPropertyValueViewNode {
+                            attrs {
+                                this.property = property
+                                this.value = value
+                                onUpdate = { block ->
+                                    props.objectTreeModel.updateObject(props.objectIndex) {
+                                        val properties = this.objectProperties ?: error("Properties should be available on update")
+                                        properties[propertyIndex].values[valueIndex].block()
+                                    }
                                 }
                             }
                         }
