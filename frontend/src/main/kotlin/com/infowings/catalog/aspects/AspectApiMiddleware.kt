@@ -151,8 +151,10 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             try {
                 val response = getAspectById(id)
                 setState {
-                    data = data.replaceBy(response) { it.id == response.id }
-                    context[response.id ?: error("Server returned Aspect with aspectId == null")] = response
+                    val currentAspect = context[id]
+                    val updatedByVersion = currentAspect!!.copy(version = response.version, deleted = response.deleted)
+                    data = data.replaceBy(updatedByVersion) { it.id == response.id }
+                    context[id] = updatedByVersion
                 }
             } catch (exception: ServerException) {
                 setState {

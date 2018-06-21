@@ -27,7 +27,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             setState {
                 val selectedAspectOnServer =
                     nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
-                selectedAspect = selectedAspectOnServer
+
+                selectedAspect = selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
             }
         }
     }
