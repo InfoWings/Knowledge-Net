@@ -226,9 +226,26 @@ data class ObjectLazyViewModel(
     val subjectName: String,
     val subjectDescription: String?,
     val objectPropertiesCount: Int,
-    val objectProperties: List<ObjectPropertyViewModel>? = null,
+    val objectProperties: List<ObjectPropertyViewModel2>? = null,
     var expanded: Boolean = false
 )
+
+data class ObjectPropertyViewModel2(
+    val id: String,
+    val name: String?,
+    val cardinality: PropertyCardinality,
+    val aspect: AspectData,
+    val values: List<ObjectPropertyValueViewModel>,
+    var expanded: Boolean = true
+) {
+    constructor(objectProperty: DetailedObjectPropertyResponse) : this(
+        objectProperty.id,
+        objectProperty.name,
+        PropertyCardinality.valueOf(objectProperty.cardinality),
+        objectProperty.aspect,
+        objectProperty.values.map(::ObjectPropertyValueViewModel)
+    )
+}
 
 fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObjectResponse>) =
     this.map {
@@ -240,7 +257,7 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObje
             it.subjectName,
             it.subjectDescription,
             it.propertiesCount,
-            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel(it) } }
+            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel2(it) } }
         )
     }
 
@@ -267,7 +284,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 detailedObject.subjectName,
                 detailedObject.subjectDescription,
                 detailedObject.propertiesCount,
-                detailedObject.objectProperties.map { ObjectPropertyViewModel(it) },
+                detailedObject.objectProperties.map { ObjectPropertyViewModel2(it) },
                 it.expanded
             )
         }

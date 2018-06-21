@@ -3,7 +3,6 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectLazyViewModel
 import com.infowings.catalog.objects.ObjectsLazyModel
-import com.infowings.catalog.objects.treeedit.objectPropertyNode
 import com.infowings.catalog.objects.treeview.format.loadingStub
 import com.infowings.catalog.objects.treeview.format.objectLineFormat
 import react.*
@@ -38,18 +37,17 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
             when {
                 objectProperties == null && props.objectView.objectPropertiesCount > 0 -> loadingStub {}
                 objectProperties != null -> objectProperties.forEachIndexed { index, property ->
-                    objectPropertyNode(
-                        property = property,
-                        aspectsMap = emptyMap(),
-                        onEdit = {},
-                        onUpdate = {},
-                        onUpdateWithoutSelect = { block ->
-                            props.objectTreeModel.updateObject(props.objectIndex) {
-                                val properties = this.objectProperties ?: error("Properties should be available on update")
-                                properties[index].block()
+                    objectPropertyViewNode {
+                        attrs {
+                            this.property = property
+                            onUpdate = { block ->
+                                props.objectTreeModel.updateObject(props.objectIndex) {
+                                    val properties = this.objectProperties ?: error("Properties should be available on update")
+                                    properties[index].block()
+                                }
                             }
                         }
-                    )
+                    }
                 }
             }
         }

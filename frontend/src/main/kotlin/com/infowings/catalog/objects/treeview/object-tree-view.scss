@@ -1,3 +1,5 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+
 .object-tree-view {
   max-width: 120rem;
   margin: 3rem auto;
@@ -24,5 +26,23 @@
   &__subject-description {
     height: 1.6rem;
     margin-right: 1rem;
+  }
+}
+
+.object-property-line {
+
+  display: flex;
+  align-items: center;
+
+  &__role-name {
+    margin-right: 1rem;
+  }
+
+  &__aspect-name {
+    margin-right: 1rem;
+  }
+
+  &__cardinality {
+    color: $gray1;
   }
 }
