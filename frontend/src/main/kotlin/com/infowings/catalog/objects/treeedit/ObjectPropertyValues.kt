@@ -2,7 +2,7 @@ package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.ObjectPropertyValueViewModel
+import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.treeedit.inputs.propertyValue
 import com.infowings.catalog.objects.treeedit.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -12,12 +12,12 @@ import react.RBuilder
 import react.buildElement
 
 fun RBuilder.objectPropertyValues(
-    values: MutableList<ObjectPropertyValueViewModel>,
+    values: MutableList<ObjectPropertyValueEditModel>,
     aspect: AspectData,
     aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
-    onUpdate: (Int, ObjectPropertyValueViewModel.() -> Unit) -> Unit,
-    onNonSelectedUpdate: (Int, ObjectPropertyValueViewModel.() -> Unit) -> Unit,
+    onUpdate: (Int, ObjectPropertyValueEditModel.() -> Unit) -> Unit,
+    onNonSelectedUpdate: (Int, ObjectPropertyValueEditModel.() -> Unit) -> Unit,
     onAddValue: () -> Unit
 ) {
     values.forEachIndexed { valueIndex, value ->

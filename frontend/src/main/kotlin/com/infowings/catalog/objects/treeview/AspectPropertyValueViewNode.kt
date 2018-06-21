@@ -23,7 +23,7 @@ val aspectPropertyValueViewNode = rFunction<AspectPropertyValueViewNodeProps>("A
                     attrs {
                         propertyName = props.aspectProperty.roleName
                         aspectName = props.aspectProperty.aspectName
-                        valueRepresentation = props.value.value
+                        value = props.value.value
                         measure = props.aspectProperty.measure
                     }
                 }
@@ -34,11 +34,11 @@ val aspectPropertyValueViewNode = rFunction<AspectPropertyValueViewNodeProps>("A
 }
 
 private fun RBuilder.childrenValues(aspectPropertyValue: AspectPropertyValueViewModel, onUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit) {
-    aspectPropertyValue.children.forEachIndexed { valueGroupIndex, valueGroup ->
-        valueGroup.values.forEachIndexed { valueIndex, value ->
+    aspectPropertyValue.children.forEachIndexed { valueGroupIndex, (aspectProperty, groupValues) ->
+        groupValues.forEachIndexed { valueIndex, value ->
             aspectPropertyValueViewNode {
                 attrs {
-                    this.aspectProperty = valueGroup.property
+                    this.aspectProperty = aspectProperty
                     this.value = value
                     this.onUpdate = { block ->
                         onUpdate {

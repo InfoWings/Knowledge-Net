@@ -2,7 +2,7 @@ package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality
-import com.infowings.catalog.objects.ObjectPropertyViewModel
+import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.treeedit.inputs.propertyAspect
 import com.infowings.catalog.objects.treeedit.inputs.propertyCardinality
 import com.infowings.catalog.objects.treeedit.inputs.propertyName
@@ -14,10 +14,10 @@ import react.RBuilder
 import react.dom.div
 
 fun RBuilder.objectPropertyLine(
-    property: ObjectPropertyViewModel,
+    property: ObjectPropertyEditModel,
     aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
-    onUpdate: (ObjectPropertyViewModel.() -> Unit) -> Unit
+    onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
 ) =
     div(classes = "object-tree-edit__object-property") {
         propertyName(
@@ -82,7 +82,7 @@ fun RBuilder.objectPropertyLine(
         }
     }
 
-fun ObjectPropertyViewModel.updateValuesIfPossible(aspectsMap: Map<String, AspectData>) {
+fun ObjectPropertyEditModel.updateValuesIfPossible(aspectsMap: Map<String, AspectData>) {
     when {
         aspect != null && cardinality == PropertyCardinality.ZERO && values == null -> {
             values = ArrayList()

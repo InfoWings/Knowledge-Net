@@ -7,16 +7,16 @@ import react.*
 
 
 interface ObjectTreeEditModel {
-    fun selectObject(objTreeView: ObjectViewModel)
-    fun updateSelectedObject(updater: ObjectViewModel.() -> Unit)
-    fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit)
+    fun selectObject(objTreeEdit: ObjectEditModel)
+    fun updateSelectedObject(updater: ObjectEditModel.() -> Unit)
+    fun updateObject(index: Int, updater: ObjectEditModel.() -> Unit)
     fun addObject()
     fun saveObject()
 }
 
 interface ObjectTreeEditModelConsumerProps : RProps {
-    var objectForest: List<ObjectViewModel>
-    var editedObject: ObjectViewModel?
+    var objectForest: List<ObjectEditModel>
+    var editedObject: ObjectEditModel?
     var objectTreeViewModel: ObjectTreeEditModel
     var aspectsMap: Map<String, AspectData>
 }
@@ -31,15 +31,15 @@ class ObjectTreeEditModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
 
     override fun componentWillReceiveProps(nextProps: ObjectApiConsumerProps) = setState {
         // TODO: Smart merging of the incoming data into view state
-        objects = nextProps.objList.map(::ObjectViewModel).toMutableList()
+        objects = nextProps.objList.map(::ObjectEditModel).toMutableList()
     }
 
 
-    override fun updateSelectedObject(updater: ObjectViewModel.() -> Unit) = setState {
+    override fun updateSelectedObject(updater: ObjectEditModel.() -> Unit) = setState {
         editedObject?.updater() ?: error("Inconsistent state")
     }
 
-    override fun updateObject(index: Int, updater: ObjectViewModel.() -> Unit) = setState {
+    override fun updateObject(index: Int, updater: ObjectEditModel.() -> Unit) = setState {
         objects[index].updater()
     }
 
@@ -51,8 +51,8 @@ class ObjectTreeEditModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
         editedObject = null
     }
 
-    override fun selectObject(objTreeView: ObjectViewModel) = setState {
-        if (objTreeView != editedObject) {
+    override fun selectObject(objTreeEdit: ObjectEditModel) = setState {
+        if (objTreeEdit != editedObject) {
             editedObject?.let { objTree ->
                 objTree.id?.let {
                     val objData = props.objMap[it] ?: error("Inconsistent State")
@@ -60,7 +60,7 @@ class ObjectTreeEditModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                     objTree.subject = objData.subject
                 } ?: objects.removeAt(objects.lastIndex)
             }
-            editedObject = objTreeView
+            editedObject = objTreeEdit
         }
     }
 
@@ -73,7 +73,7 @@ class ObjectTreeEditModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
                 objTree.subject = objData.subject
             } ?: error("Inconsistent State")
         }
-        objects.add(ObjectViewModel(null, null, null, ArrayList()))
+        objects.add(ObjectEditModel(null, null, null, ArrayList()))
         editedObject = objects.last()
     }
 
@@ -89,8 +89,8 @@ class ObjectTreeEditModelComponent : RComponent<ObjectApiConsumerProps, ObjectTr
     }
 
     interface State : RState {
-        var objects: MutableList<ObjectViewModel>
-        var editedObject: ObjectViewModel?
+        var objects: MutableList<ObjectEditModel>
+        var editedObject: ObjectEditModel?
     }
 }
 

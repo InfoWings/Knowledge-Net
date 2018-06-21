@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.treeview.format
 
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.ObjectValueData
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -16,15 +17,10 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
         span(classes = "text-bold object-property-value-line__aspect-name") {
             +props.aspectName
         }
-        props.valueRepresentation?.let {
-            +": "
-            span(classes = "object-property-value-line__value") {
-                +it
-            }
-            props.measure?.let {
-                span(classes = "object-property-value-line__value-measure") {
-                    +(GlobalMeasureMap[it]?.symbol ?: error("No such measure")) // TODO: Fetch from server
-                }
+        valueFormat(props.value)
+        props.measure?.let {
+            span(classes = "object-property-value-line__value-measure") {
+                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure")) // TODO: Fetch from server
             }
         }
     }
@@ -33,6 +29,6 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
 interface ObjectPropertyValueLineFormatProps : RProps {
     var propertyName: String?
     var aspectName: String
-    var valueRepresentation: String?
+    var value: ObjectValueData
     var measure: String?
 }

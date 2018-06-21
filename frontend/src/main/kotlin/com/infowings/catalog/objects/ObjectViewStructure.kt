@@ -2,18 +2,18 @@ package com.infowings.catalog.objects
 
 import com.infowings.catalog.common.*
 
-data class ObjectViewModel(
+data class ObjectEditModel(
     val id: String?,
     var name: String?,
     var subject: SubjectData?,
-    var properties: MutableList<ObjectPropertyViewModel>,
+    var properties: MutableList<ObjectPropertyEditModel>,
     var expanded: Boolean = false
 ) {
     constructor(objectData: ObjectData) : this(
         objectData.id,
         objectData.name,
         objectData.subject,
-        objectData.properties.map(::ObjectPropertyViewModel).toMutableList()
+        objectData.properties.map(::ObjectPropertyEditModel).toMutableList()
     )
 
     fun toObjectData() =
@@ -24,12 +24,12 @@ data class ObjectViewModel(
         )
 }
 
-data class ObjectPropertyViewModel(
+data class ObjectPropertyEditModel(
     val id: String? = null,
     var name: String? = null,
     var cardinality: PropertyCardinality? = null,
     var aspect: AspectData? = null,
-    var values: MutableList<ObjectPropertyValueViewModel>? = null,
+    var values: MutableList<ObjectPropertyValueEditModel>? = null,
     var expanded: Boolean = true
 ) {
     constructor(objectPropertyData: ObjectPropertyData) : this(
@@ -37,15 +37,7 @@ data class ObjectPropertyViewModel(
         objectPropertyData.name,
         PropertyCardinality.valueOf(objectPropertyData.cardinality),
         objectPropertyData.aspect,
-        objectPropertyData.values.map(::ObjectPropertyValueViewModel).toMutableList()
-    )
-
-    constructor(objectProperty: DetailedObjectPropertyResponse) : this(
-        objectProperty.id,
-        objectProperty.name,
-        PropertyCardinality.valueOf(objectProperty.cardinality),
-        objectProperty.aspect,
-        objectProperty.values.map(::ObjectPropertyValueViewModel).toMutableList()
+        objectPropertyData.values.map(::ObjectPropertyValueEditModel).toMutableList()
     )
 
     fun toObjectPropertyData() = ObjectPropertyData(
@@ -73,95 +65,48 @@ data class ObjectPropertyViewModel(
 
 }
 
-data class ObjectPropertyValueViewModel(
+data class ObjectPropertyValueEditModel(
     val id: String? = null,
     var value: String? = null,
     var expanded: Boolean = false,
-    var valueGroups: MutableList<AspectPropertyValueGroupViewModel> = ArrayList()
+    var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
 
     constructor(objectPropertyValueData: ObjectPropertyValueData) : this(
         id = objectPropertyValueData.id,
         value = objectPropertyValueData.scalarValue,
         valueGroups = objectPropertyValueData.children.groupBy { it.aspectProperty }.toList().map {
-            AspectPropertyValueGroupViewModel(
+            AspectPropertyValueGroupEditModel(
                 AspectPropertyViewModel(it.first),
-                it.second.map(::AspectPropertyValueViewModel).toMutableList()
-            )
-        }.toMutableList()
-    )
-
-    constructor(objectPropertyValue: RootValueResponse) : this(
-        id = objectPropertyValue.id,
-        value = objectPropertyValue.value.toData().let {
-            when (it) {
-                is ObjectValueData.IntegerValue -> it.value.toString()
-                is ObjectValueData.NullValue -> null
-                is ObjectValueData.DecimalValue -> it.valueRepr
-                is ObjectValueData.BooleanValue -> it.value.toString()
-                is ObjectValueData.StringValue -> it.value
-                is ObjectValueData.Link -> when (it.value) {
-                    is LinkValueData.DomainElement -> it.value.id
-                    else -> TODO("Link type $it is not yet supported")
-                }
-                else -> TODO("Object value type $it is not yet supported")
-            }
-        },
-        valueGroups = objectPropertyValue.children.groupBy { it.aspectProperty }.toList().map {
-            AspectPropertyValueGroupViewModel(
-                AspectPropertyViewModel(it.first),
-                it.second.map(::AspectPropertyValueViewModel).toMutableList()
+                it.second.map(::AspectPropertyValueEditModel).toMutableList()
             )
         }.toMutableList()
     )
 
 }
 
-data class AspectPropertyValueGroupViewModel(
+data class AspectPropertyValueGroupEditModel(
     val property: AspectPropertyViewModel,
-    var values: MutableList<AspectPropertyValueViewModel> = ArrayList()
+    var values: MutableList<AspectPropertyValueEditModel> = ArrayList()
 )
 
-data class AspectPropertyValueViewModel(
+data class AspectPropertyValueEditModel(
     val id: String? = null,
     var value: String? = null,
     var expanded: Boolean = false,
-    var children: MutableList<AspectPropertyValueGroupViewModel> = ArrayList()
+    var children: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
     constructor(propertyValue: AspectPropertyValueData) : this(
         id = propertyValue.id,
         value = propertyValue.scalarValue,
         children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
-            AspectPropertyValueGroupViewModel(
+            AspectPropertyValueGroupEditModel(
                 AspectPropertyViewModel(it.first),
-                it.second.map(::AspectPropertyValueViewModel).toMutableList()
+                it.second.map(::AspectPropertyValueEditModel).toMutableList()
             )
         }.toMutableList()
     )
 
-    constructor(propertyValue: ValueResponse) : this(
-        id = propertyValue.id,
-        value = propertyValue.value.toData().let {
-            when (it) {
-                is ObjectValueData.IntegerValue -> it.value.toString()
-                is ObjectValueData.NullValue -> null
-                is ObjectValueData.DecimalValue -> it.valueRepr
-                is ObjectValueData.BooleanValue -> it.value.toString()
-                is ObjectValueData.StringValue -> it.value
-                is ObjectValueData.Link -> when (it.value) {
-                    is LinkValueData.DomainElement -> it.value.id
-                    else -> TODO("Link type $it is not yet supported")
-                }
-                else -> TODO("Object value type $it is not yet supported")
-            }
-        },
-        children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
-            AspectPropertyValueGroupViewModel(
-                AspectPropertyViewModel(it.first),
-                it.second.map(::AspectPropertyValueViewModel).toMutableList()
-            )
-        }.toMutableList()
-    )
 }
 
 data class AspectPropertyViewModel(
@@ -200,7 +145,7 @@ data class AspectPropertyViewModel(
     )
 }
 
-fun MutableList<AspectPropertyValueGroupViewModel>.toAspectPropertyValueData(): List<AspectPropertyValueData> =
+fun MutableList<AspectPropertyValueGroupEditModel>.toAspectPropertyValueData(): List<AspectPropertyValueData> =
     if (isEmpty()) {
         emptyList()
     } else {
@@ -216,8 +161,6 @@ fun MutableList<AspectPropertyValueGroupViewModel>.toAspectPropertyValueData(): 
         }
     }
 
-// -----------------
-
 data class ObjectLazyViewModel(
     val id: String,
     val name: String,
@@ -226,17 +169,16 @@ data class ObjectLazyViewModel(
     val subjectName: String,
     val subjectDescription: String?,
     val objectPropertiesCount: Int,
-    val objectProperties: List<ObjectPropertyViewModel2>? = null,
+    val objectProperties: List<ObjectPropertyViewModel>? = null,
     var expanded: Boolean = false
 )
 
-data class ObjectPropertyViewModel2(
+data class ObjectPropertyViewModel(
     val id: String,
     val name: String?,
     val cardinality: PropertyCardinality,
     val aspect: AspectData,
-    val values: List<ObjectPropertyValueViewModel>,
-    var expanded: Boolean = true
+    val values: List<ObjectPropertyValueViewModel>
 ) {
     constructor(objectProperty: DetailedObjectPropertyResponse) : this(
         objectProperty.id,
@@ -244,6 +186,50 @@ data class ObjectPropertyViewModel2(
         PropertyCardinality.valueOf(objectProperty.cardinality),
         objectProperty.aspect,
         objectProperty.values.map(::ObjectPropertyValueViewModel)
+    )
+}
+
+data class ObjectPropertyValueViewModel(
+    val id: String,
+    val value: ObjectValueData,
+    val valueGroups: List<AspectPropertyValueGroupViewModel>,
+    var expanded: Boolean = false
+) {
+
+    constructor(objectPropertyValue: RootValueResponse) : this(
+        id = objectPropertyValue.id,
+        value = objectPropertyValue.value.toData(),
+        valueGroups = objectPropertyValue.children.groupBy { it.aspectProperty }.toList().map {
+            AspectPropertyValueGroupViewModel(
+                AspectPropertyViewModel(it.first),
+                it.second.map(::AspectPropertyValueViewModel)
+            )
+        }
+    )
+
+}
+
+data class AspectPropertyValueGroupViewModel(
+    val property: AspectPropertyViewModel,
+    val values: List<AspectPropertyValueViewModel>
+)
+
+data class AspectPropertyValueViewModel(
+    val id: String,
+    val value: ObjectValueData,
+    val children: List<AspectPropertyValueGroupViewModel>,
+    var expanded: Boolean = false
+) {
+
+    constructor(propertyValue: ValueResponse) : this(
+        id = propertyValue.id,
+        value = propertyValue.value.toData(),
+        children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
+            AspectPropertyValueGroupViewModel(
+                AspectPropertyViewModel(it.first),
+                it.second.map(::AspectPropertyValueViewModel)
+            )
+        }
     )
 }
 
@@ -257,7 +243,7 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObje
             it.subjectName,
             it.subjectDescription,
             it.propertiesCount,
-            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel2(it) } }
+            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel(it) } }
         )
     }
 
@@ -284,7 +270,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 detailedObject.subjectName,
                 detailedObject.subjectDescription,
                 detailedObject.propertiesCount,
-                detailedObject.objectProperties.map { ObjectPropertyViewModel2(it) },
+                detailedObject.objectProperties.map { ObjectPropertyViewModel(it) },
                 it.expanded
             )
         }

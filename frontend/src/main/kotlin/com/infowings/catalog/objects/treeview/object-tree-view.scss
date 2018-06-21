@@ -51,3 +51,18 @@
 
   }
 }
+
+.object-value {
+
+  &__boolean {
+
+    &--true {
+      color: $red4;
+    }
+
+    &--false {
+      color: $green4;
+    }
+
+  }
+}

@@ -2,7 +2,7 @@ package com.infowings.catalog.objects.treeview
 
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
-import com.infowings.catalog.objects.ObjectPropertyViewModel2
+import com.infowings.catalog.objects.ObjectPropertyViewModel
 import com.infowings.catalog.objects.treeview.format.objectPropertyValueLineFormat
 import react.RProps
 import react.buildElement
@@ -22,7 +22,7 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
                     attrs {
                         propertyName = props.property.name
                         aspectName = props.property.aspect.name ?: error("Aspect must have name")
-                        valueRepresentation = props.value.value
+                        value = props.value.value
                         measure = props.property.aspect.measure
                     }
                 }
@@ -47,7 +47,7 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
 }
 
 interface ObjectPropertyValueViewNodeProps : RProps {
-    var property: ObjectPropertyViewModel2
+    var property: ObjectPropertyViewModel
     var value: ObjectPropertyValueViewModel
     var onUpdate: (ObjectPropertyValueViewModel.() -> Unit) -> Unit
 }

@@ -4,27 +4,27 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.objects.*
 
-fun AspectPropertyValueGroupViewModel.addValue(aspectsMap: Map<String, AspectData>, value: String? = null) {
+fun AspectPropertyValueGroupEditModel.addValue(aspectsMap: Map<String, AspectData>, value: String? = null) {
     val values = this.values
     val property = this.property
 
     when (property.cardinality) {
         PropertyCardinality.ZERO -> if (values.isEmpty() && value == null) {
             values.add(
-                AspectPropertyValueViewModel().apply { constructAspectTree(property, aspectsMap) }
+                AspectPropertyValueEditModel().apply { constructAspectTree(property, aspectsMap) }
             )
-        } else error("Preconditions are not satisfied: ObjectPropertyViewModel.values is not empty with cardinality.ZERO")
+        } else error("Preconditions are not satisfied: ObjectPropertyEditModel.values is not empty with cardinality.ZERO")
 
         PropertyCardinality.ONE -> if (values.isEmpty()) {
             values.add(
-                AspectPropertyValueViewModel(
+                AspectPropertyValueEditModel(
                     value = value // TODO: What if value == null?
                 ).apply { constructAspectTree(property, aspectsMap) }
             )
-        } else error("Preconditions are not satisfied: ObjectPropertyViewModel.values is not empty with cardinality.ONE")
+        } else error("Preconditions are not satisfied: ObjectPropertyEditModel.values is not empty with cardinality.ONE")
 
         PropertyCardinality.INFINITY -> values.add(
-            AspectPropertyValueViewModel(
+            AspectPropertyValueEditModel(
                 value = value ?: error("When cardinality == Cardinality.INFINITY, value should not be null"),
                 expanded = true
             ).apply { constructAspectTree(property, aspectsMap) }
@@ -32,7 +32,7 @@ fun AspectPropertyValueGroupViewModel.addValue(aspectsMap: Map<String, AspectDat
     }
 }
 
-fun AspectPropertyValueViewModel.constructAspectTree(
+fun AspectPropertyValueEditModel.constructAspectTree(
     property: AspectPropertyViewModel,
     aspectsMap: Map<String, AspectData>
 ) {
@@ -45,7 +45,7 @@ fun AspectPropertyValueViewModel.constructAspectTree(
                     ?: TODO("Property ${propertyData.id} (${propertyData.name}) references aspect that does not exist in context")
 
             this.children.add(
-                AspectPropertyValueGroupViewModel(
+                AspectPropertyValueGroupEditModel(
                     property = AspectPropertyViewModel(
                         propertyId = propertyData.id,
                         aspectId = propertyData.aspectId,
@@ -63,29 +63,29 @@ fun AspectPropertyValueViewModel.constructAspectTree(
     }
 }
 
-fun ObjectPropertyViewModel.addValue(aspectsMap: Map<String, AspectData>, value: String? = null) {
-    val values = this.values ?: error("Preconditions are not satisfied: ObjectPropertyViewModel.values == null")
-    val aspect = this.aspect ?: error("Preconditions are not satisfied: ObjectPropertyViewModel.aspect == null")
+fun ObjectPropertyEditModel.addValue(aspectsMap: Map<String, AspectData>, value: String? = null) {
+    val values = this.values ?: error("Preconditions are not satisfied: ObjectPropertyEditModel.values == null")
+    val aspect = this.aspect ?: error("Preconditions are not satisfied: ObjectPropertyEditModel.aspect == null")
     val cardinality =
-        this.cardinality ?: error("Preconditions are not satisfied: ObjectPropertyViewModel.cardinality == null")
+        this.cardinality ?: error("Preconditions are not satisfied: ObjectPropertyEditModel.cardinality == null")
 
     when (cardinality) {
         PropertyCardinality.ZERO -> if (values.isEmpty() && value == null) {
             values.add(
-                ObjectPropertyValueViewModel().apply { constructAspectTree(aspect, aspectsMap) }
+                ObjectPropertyValueEditModel().apply { constructAspectTree(aspect, aspectsMap) }
             )
-        } else error("Preconditions are not satisfied: ObjectPropertyViewModel.values is not empty with cardinality.ZERO")
+        } else error("Preconditions are not satisfied: ObjectPropertyEditModel.values is not empty with cardinality.ZERO")
 
         PropertyCardinality.ONE -> if (values.isEmpty()) {
             values.add(
-                ObjectPropertyValueViewModel(
+                ObjectPropertyValueEditModel(
                     value = value // TODO: What if value == null?
                 ).apply { constructAspectTree(aspect, aspectsMap) }
             )
-        } else error("Preconditions are not satisfied: ObjectPropertyViewModel.values is not empty with cardinality.ONE")
+        } else error("Preconditions are not satisfied: ObjectPropertyEditModel.values is not empty with cardinality.ONE")
 
         PropertyCardinality.INFINITY -> values.add(
-            ObjectPropertyValueViewModel(
+            ObjectPropertyValueEditModel(
                 value = value ?: error("When cardinality == Cardinality.INFINITY, value should not be null"),
                 expanded = true
             ).apply { constructAspectTree(aspect, aspectsMap) }
@@ -93,7 +93,7 @@ fun ObjectPropertyViewModel.addValue(aspectsMap: Map<String, AspectData>, value:
     }
 }
 
-fun ObjectPropertyValueViewModel.constructAspectTree(
+fun ObjectPropertyValueEditModel.constructAspectTree(
     aspectData: AspectData,
     aspectsMap: Map<String, AspectData>
 ) {
@@ -103,7 +103,7 @@ fun ObjectPropertyValueViewModel.constructAspectTree(
                     ?: TODO("property ${property.id} (${property.name}) references aspect that does not exist in context")
 
             this.valueGroups.add(
-                AspectPropertyValueGroupViewModel(
+                AspectPropertyValueGroupEditModel(
                     property = AspectPropertyViewModel(
                         propertyId = property.id,
                         aspectId = property.aspectId,
@@ -121,7 +121,7 @@ fun ObjectPropertyValueViewModel.constructAspectTree(
     }
 }
 
-fun AspectPropertyValueGroupViewModel.constructSubtreeIfCardinalityGroup(aspectsMap: Map<String, AspectData>) {
+fun AspectPropertyValueGroupEditModel.constructSubtreeIfCardinalityGroup(aspectsMap: Map<String, AspectData>) {
     if (property.cardinality == PropertyCardinality.ZERO) {
         addValue(aspectsMap)
     }

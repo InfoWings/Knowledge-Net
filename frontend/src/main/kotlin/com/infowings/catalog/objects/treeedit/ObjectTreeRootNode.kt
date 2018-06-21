@@ -2,9 +2,9 @@ package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.ObjectPropertyViewModel
+import com.infowings.catalog.objects.ObjectEditModel
+import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectTreeEditModel
-import com.infowings.catalog.objects.ObjectViewModel
 import react.*
 
 class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
@@ -13,7 +13,7 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
         controlledTreeNode {
             attrs {
                 className = "object-tree-edit__root"
-                expanded = props.objTreeView.expanded
+                expanded = props.objTreeEdit.expanded
                 onExpanded = {
                     props.objectTreeViewModel.updateObject(props.objectIndex) {
                         expanded = it
@@ -22,29 +22,29 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
                 treeNodeContent = buildElement {
                     objectTreeRoot {
                         attrs {
-                            objectTreeView = props.objTreeView
+                            objectTreeEdit = props.objTreeEdit
                             onUpdate = props.objectTreeViewModel::updateSelectedObject
-                            onStartEdit = { props.objectTreeViewModel.selectObject(props.objTreeView) }
+                            onStartEdit = { props.objectTreeViewModel.selectObject(props.objTreeEdit) }
                             onAddProperty = {
                                 // TODO: Handle situation when there is already empty property
                                 props.objectTreeViewModel.updateSelectedObject {
-                                    properties.add(ObjectPropertyViewModel())
+                                    properties.add(ObjectPropertyEditModel())
                                     expanded = true
                                 }
                             }
-                            isSelected = props.objTreeView === props.editedObject
-                            onSubmit = if (props.objTreeView === props.editedObject) {
+                            isSelected = props.objTreeEdit === props.editedObject
+                            onSubmit = if (props.objTreeEdit === props.editedObject) {
                                 { props.objectTreeViewModel.saveObject() }
                             } else null
                         }
                     }
                 }!!
             }
-            props.objTreeView.properties.forEachIndexed { index, property ->
+            props.objTreeEdit.properties.forEachIndexed { index, property ->
                 objectPropertyNode(
                     property = property,
                     aspectsMap = props.aspectsMap,
-                    onEdit = { props.objectTreeViewModel.selectObject(props.objTreeView) },
+                    onEdit = { props.objectTreeViewModel.selectObject(props.objTreeEdit) },
                     onUpdate = { block ->
                         props.objectTreeViewModel.updateSelectedObject {
                             properties[index].block()
@@ -62,8 +62,8 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
 
     interface Props : RProps {
         var objectIndex: Int
-        var objTreeView: ObjectViewModel
-        var editedObject: ObjectViewModel?
+        var objTreeEdit: ObjectEditModel
+        var editedObject: ObjectEditModel?
         var objectTreeViewModel: ObjectTreeEditModel
         var aspectsMap: Map<String, AspectData>
     }
