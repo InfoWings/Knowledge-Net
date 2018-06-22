@@ -30,6 +30,7 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 value = props.selectedAspects.map { aspectOption(it) }.toTypedArray()
                 labelKey = "aspectLabel"
                 valueKey = "aspectLabel"
+                cache = false
                 onChange = {
                     props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData }) // TODO: KS-143
                 }
