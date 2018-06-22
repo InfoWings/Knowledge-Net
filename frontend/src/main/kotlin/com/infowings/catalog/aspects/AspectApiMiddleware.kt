@@ -28,6 +28,7 @@ interface AspectApiReceiverProps : RProps {
     var onOrderByChanged: (List<AspectOrderBy>) -> Unit
     var onSearchQueryChanged: (String) -> Unit
     var refreshAspects: () -> Unit
+    var refreshOperation: Boolean
 }
 
 /**
@@ -55,6 +56,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     data = response.aspects
                     context = response.aspects.associateBy { it.id!! }.toMutableMap()
                     loading = false
+                    refreshOperation = false
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -62,12 +64,13 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     context = mutableMapOf()
                     loading = false
                     serverError = true
+                    refreshOperation = false
                 }
             }
         }
     }
 
-    private fun fetchAspects(updateContext: Boolean = false) {
+    private fun fetchAspects(updateContext: Boolean = false, refreshOperation: Boolean = false) {
         launch {
             try {
                 val response = getAllAspects(state.orderBy, state.searchQuery)
@@ -78,6 +81,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                         context = updatedContext.toMutableMap()
                         loading = false
                     }
+                    this@setState.refreshOperation = refreshOperation
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -85,6 +89,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     context = mutableMapOf()
                     loading = false
                     serverError = true
+                    this@setState.refreshOperation = false
                 }
             }
         }
@@ -93,6 +98,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private fun setAspectsOrderBy(orderBy: List<AspectOrderBy>) {
         setState {
             this.orderBy = orderBy
+            refreshOperation = false
         }
         fetchAspects()
     }
@@ -100,6 +106,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private fun setAspectsSearchQuery(query: String) {
         setState {
             this.searchQuery = query
+            refreshOperation = false
         }
         fetchAspects()
     }
@@ -117,6 +124,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         setState {
             data += newAspect
             context[newAspectId] = newAspect
+            refreshOperation = false
         }
 
         return newAspect
@@ -141,6 +149,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 if (updatedAspect.id == it.id) updatedAspect else it
             }
             context[updatedAspectId] = updatedAspect
+            refreshOperation = false
         }
 
         return updatedAspect
@@ -155,6 +164,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     val updatedByVersion = currentAspect!!.copy(version = response.version, deleted = response.deleted)
                     data = data.replaceBy(updatedByVersion) { it.id == response.id }
                     context[id] = updatedByVersion
+                    refreshOperation = false
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -162,6 +172,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     context = mutableMapOf()
                     loading = false
                     serverError = true
+                    refreshOperation = false
                 }
             }
         }
@@ -186,6 +197,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             if (!aspectData.id.isNullOrEmpty()) {
                 context[aspectData.id!!] = deletedAspect
             }
+            refreshOperation = false
         }
 
         return deletedAspect.id ?: error("Aspect delete request returned AspectData with id == null")
@@ -204,7 +216,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onOrderByChanged = this@AspectApiMiddleware::setAspectsOrderBy
                     onSearchQueryChanged = this@AspectApiMiddleware::setAspectsSearchQuery
-                    refreshAspects = { fetchAspects(updateContext = true) }
+                    refreshAspects = { fetchAspects(updateContext = true, refreshOperation = true) }
+                    refreshOperation = state.refreshOperation
                 }
             }
         } else {
@@ -263,6 +276,10 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
          * Aspect search query
          */
         var searchQuery: String
+        /**
+         * Current action is refresh operation.
+         */
+        var refreshOperation: Boolean
     }
 }
 
