@@ -7,7 +7,7 @@ image: java:8
 
 options:
   max-time: 20
-  size: 2x 
+  size: 2x
   
 pipelines:
     default:
