@@ -181,30 +181,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val q = "select from (traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :aspectRecord) WHERE @class = \"$ASPECT_CLASS\""
         return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
             it.mapNotNull {
-                it.toVertexOrNull()?.toAspectVertex()?.let {toAspectData(it)}
+                it.toVertexOrNull()?.toAspectVertex()?.let { it.toAspectData()}
             }.toList()
         }
     }
-
-    fun toAspectData(vertex: AspectVertex): AspectData = transaction(db) {
-        val baseTypeObj = vertex.baseType?.let { BaseType.restoreBaseType(it) }
-        return@transaction AspectData(
-            id = vertex.id,
-            name = vertex.name,
-            measure = vertex.measureName,
-            domain = baseTypeObj?.let { OpenDomain(it).toString() },
-            baseType = vertex.baseType,
-            properties = vertex.properties.map { it.toAspectPropertyData() },
-            version = vertex.version,
-            subject = vertex.subject?.toSubjectData(),
-            deleted = vertex.deleted,
-            description = vertex.description,
-            lastChangeTimestamp = vertex.lastChange?.epochSecond,
-            refBookName = vertex.referenceBookRootVertex?.value
-        )
-    }
-
-
 }
 
 private val logger = loggerFor<AspectDaoService>()
