@@ -11,21 +11,21 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
         span(classes = "text-bold object-line__name") {
             +props.objectName
         }
-        descriptionComponent(
-            className = "object-line__description",
-            description = props.objectDescription
-        )
         +"("
         +"Subject"
         +":"
         span(classes = "object-line__subject") {
             +props.subjectName
         }
-        descriptionComponent(
-            className = "object-line__subject-description",
-            description = props.subjectDescription
-        )
         +")"
+        props.objectDescription?.let {
+            if (it.isNotBlank()) {
+                descriptionComponent(
+                    className = "object-line__description",
+                    description = it
+                )
+            }
+        }
     }
 }
 
@@ -33,5 +33,4 @@ interface ObjectLineFormatProps : RProps {
     var objectName: String
     var objectDescription: String?
     var subjectName: String
-    var subjectDescription: String?
 }

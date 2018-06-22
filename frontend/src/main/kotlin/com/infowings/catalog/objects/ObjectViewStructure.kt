@@ -165,9 +165,7 @@ data class ObjectLazyViewModel(
     val id: String,
     val name: String,
     val description: String?,
-    val subjectId: String,
     val subjectName: String,
-    val subjectDescription: String?,
     val objectPropertiesCount: Int,
     val objectProperties: List<ObjectPropertyViewModel>? = null,
     var expanded: Boolean = false
@@ -177,6 +175,7 @@ data class ObjectPropertyViewModel(
     val id: String,
     val name: String?,
     val cardinality: PropertyCardinality,
+    val description: String?,
     val aspect: AspectData,
     val values: List<ObjectPropertyValueViewModel>
 ) {
@@ -184,6 +183,7 @@ data class ObjectPropertyViewModel(
         objectProperty.id,
         objectProperty.name,
         PropertyCardinality.valueOf(objectProperty.cardinality),
+        objectProperty.description,
         objectProperty.aspect,
         objectProperty.values.map(::ObjectPropertyValueViewModel)
     )
@@ -192,6 +192,7 @@ data class ObjectPropertyViewModel(
 data class ObjectPropertyValueViewModel(
     val id: String,
     val value: ObjectValueData,
+    val description: String?,
     val valueGroups: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
 ) {
@@ -199,6 +200,7 @@ data class ObjectPropertyValueViewModel(
     constructor(objectPropertyValue: RootValueResponse) : this(
         id = objectPropertyValue.id,
         value = objectPropertyValue.value.toData(),
+        description = objectPropertyValue.description,
         valueGroups = objectPropertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
@@ -217,6 +219,7 @@ data class AspectPropertyValueGroupViewModel(
 data class AspectPropertyValueViewModel(
     val id: String,
     val value: ObjectValueData,
+    val description: String?,
     val children: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
 ) {
@@ -224,6 +227,7 @@ data class AspectPropertyValueViewModel(
     constructor(propertyValue: ValueResponse) : this(
         id = propertyValue.id,
         value = propertyValue.value.toData(),
+        description = propertyValue.description,
         children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
@@ -239,9 +243,7 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObje
             it.id,
             it.name,
             it.description,
-            it.subjectId,
             it.subjectName,
-            it.subjectDescription,
             it.propertiesCount,
             detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel(it) } }
         )
@@ -254,9 +256,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 it.id,
                 it.name,
                 it.description,
-                it.subjectId,
                 it.subjectName,
-                it.subjectDescription,
                 it.objectPropertiesCount,
                 expanded = it.expanded
             )
@@ -266,9 +266,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 detailedObject.id,
                 detailedObject.name,
                 detailedObject.description,
-                detailedObject.subjectId,
                 detailedObject.subjectName,
-                detailedObject.subjectDescription,
                 detailedObject.propertiesCount,
                 detailedObject.objectProperties.map { ObjectPropertyViewModel(it) },
                 it.expanded

@@ -22,7 +22,9 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
                     attrs {
                         propertyName = props.property.name
                         aspectName = props.property.aspect.name ?: error("Aspect must have name")
+                        propertyDescription = props.property.description
                         value = props.value.value
+                        valueDescription = props.value.description
                         measure = props.property.aspect.measure
                     }
                 }

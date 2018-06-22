@@ -16,16 +16,11 @@
 
   &__description {
     height: 1.6rem;
-    margin-right: 1rem;
+    margin-left: 1rem;
   }
 
   &__subject {
     margin: 0 1rem;
-  }
-
-  &__subject-description {
-    height: 1.6rem;
-    margin-right: 1rem;
   }
 }
 
@@ -42,13 +37,21 @@
     margin-right: 1rem;
   }
 
+  &__property-description {
+    height: 1.6rem;
+    margin-right: 1rem;
+  }
+
   &__value {
-    margin-left: 1rem;
     margin-right: 1rem;
   }
 
   &__value-measure {
+    margin-right: 1rem;
+  }
 
+  &__value-description {
+    height: 1.6rem;
   }
 }
 

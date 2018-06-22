@@ -28,7 +28,6 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
                             objectName = props.objectView.name
                             objectDescription = props.objectView.description
                             subjectName = props.objectView.subjectName
-                            subjectDescription = props.objectView.subjectDescription
                         }
                     }
                 }!!

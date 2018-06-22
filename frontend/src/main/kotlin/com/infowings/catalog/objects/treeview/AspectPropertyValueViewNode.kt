@@ -3,7 +3,7 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueViewModel
 import com.infowings.catalog.objects.AspectPropertyViewModel
-import com.infowings.catalog.objects.treeview.format.objectPropertyValueLineFormat
+import com.infowings.catalog.objects.treeview.format.aspectPropertyValueLineFormat
 import react.RBuilder
 import react.RProps
 import react.buildElement
@@ -19,11 +19,12 @@ val aspectPropertyValueViewNode = rFunction<AspectPropertyValueViewNodeProps>("A
                 }
             }
             treeNodeContent = buildElement {
-                objectPropertyValueLineFormat {
+                aspectPropertyValueLineFormat {
                     attrs {
                         propertyName = props.aspectProperty.roleName
                         aspectName = props.aspectProperty.aspectName
                         value = props.value.value
+                        valueDescription = props.value.description
                         measure = props.aspectProperty.measure
                     }
                 }
