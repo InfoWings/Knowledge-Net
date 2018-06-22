@@ -10,18 +10,33 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
+
+interface AspectService {
+    fun save(aspectData: AspectData, username: String): Aspect
+    fun remove(aspectData: AspectData, username: String, force: Boolean = false)
+    fun findByName(name: String): Set<Aspect>
+    fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<Aspect>
+    fun findById(id: String): Aspect
+}
+
+class NormalizedAspectService(private val innerService: AspectService) : AspectService by innerService {
+    override fun save(aspectData: AspectData, username: String): Aspect = innerService.save(aspectData.normalize(), username)
+    override fun remove(aspectData: AspectData, username: String, force: Boolean) = innerService.remove(aspectData.normalize(), username, force)
+}
+
 /**
  * Data layer for Aspect & Aspect properties
  * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECT_PROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
-class AspectService(
+class DefaultAspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
     private val referenceBookService: ReferenceBookService,
     private val userService: UserService
-) {
+) : AspectService {
+
     private val aspectValidator = AspectValidator(aspectDaoService)
 
     private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
@@ -91,26 +106,25 @@ class AspectService(
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      * @throws AspectEmptyChangeException if new data is the same that old data
      */
-    fun save(aspectData: AspectData, username: String): Aspect {
+    override fun save(aspectData: AspectData, username: String): Aspect {
         val userVertex = userService.findUserVertexByUsername(username)
-        val normalizedAspectData = aspectData.normalize()
 
         val save: AspectVertex = transaction(db) {
-            val aspectVertex = normalizedAspectData
+            val aspectVertex = aspectData
                 .checkAspectDataConsistent()
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
-            if (aspectVertex.toAspectData() == normalizedAspectData) {
+            if (aspectVertex.toAspectData() == aspectData) {
                 throw AspectEmptyChangeException()
             }
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
 
-            return@transaction finishMethod(aspectVertex, normalizedAspectData, HistoryContext(userVertex))
+            return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
         }
 
-        logger.debug("Aspect ${normalizedAspectData.name} saved/updated with id: ${save.id}")
+        logger.debug("Aspect ${aspectData.name} saved/updated with id: ${save.id}")
 
         return if (save.identity.clusterPosition < 0) {
             // Кажется, что такого быть не должно. Но есть ощущение, что так бывало.
@@ -124,19 +138,18 @@ class AspectService(
         } else save.toAspect()
     }
 
-    fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
+    override fun remove(aspectData: AspectData, username: String, force: Boolean) {
         val userVertex = userService.findUserVertexByUsername(username)
-        val normalizedAspectData = aspectData.normalize()
 
         transaction(db) {
             val context = HistoryContext(userVertex)
 
-            val aspectId = normalizedAspectData.id ?: "null"
+            val aspectId = aspectData.id ?: throw IllegalStateException("Id is null")
 
             val aspectVertex =
                 aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
 
-            aspectVertex.checkAspectVersion(normalizedAspectData)
+            aspectVertex.checkAspectVersion(aspectData)
 
             val refBook = referenceBookService.getReferenceBookOrNull(aspectId)
 
@@ -164,17 +177,9 @@ class AspectService(
      * Search [Aspect] by it's name
      * @return List of [Aspect] with name [name]
      */
-    fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
+    override fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
 
-    fun getAspects(
-        orderBy: List<AspectOrderBy> = listOf(
-            AspectOrderBy(
-                AspectSortField.NAME,
-                Direction.ASC
-            )
-        ),
-        query: String? = null
-    ): List<Aspect> = when {
+    override fun getAspects(orderBy: List<AspectOrderBy>, query: String?): List<Aspect> = when {
         query == null || query.isBlank() -> aspectDaoService.getAspects()
         else -> aspectDaoService.findTransitiveByNameQuery(query)
     }.map { it.toAspect() }.sort(orderBy)
@@ -186,7 +191,7 @@ class AspectService(
      * Search [Aspect] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = findVertexById(id).toAspect()
+    override fun findById(id: String): Aspect = findVertexById(id).toAspect()
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
