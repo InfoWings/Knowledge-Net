@@ -245,7 +245,7 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObje
             it.description,
             it.subjectName,
             it.propertiesCount,
-            detailedObjects[it.id]?.let { it.objectProperties.map { ObjectPropertyViewModel(it) } }
+            detailedObjects[it.id]?.objectProperties?.map(::ObjectPropertyViewModel)
         )
     }
 
@@ -268,7 +268,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 detailedObject.description,
                 detailedObject.subjectName,
                 detailedObject.propertiesCount,
-                detailedObject.objectProperties.map { ObjectPropertyViewModel(it) },
+                it.objectProperties ?: detailedObject.objectProperties.map(::ObjectPropertyViewModel),
                 it.expanded
             )
         }
