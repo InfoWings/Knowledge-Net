@@ -2,25 +2,35 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
+import com.infowings.catalog.external.HistoryApi
+import com.infowings.catalog.external.logTime
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import java.time.Instant
+
+private val logger = loggerFor<HistoryService>()
 
 class HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao
 ) {
 
-    fun getAll(): Set<HistoryFact> = transaction(db) {
-        return@transaction historyDao.getAllHistoryEvents()
-            .map { it.toFact() }
-            .toSet()
+    fun getAll(): Set<HistoryFact> = logTime(logger, "all history facts collection") {
+        transaction(db) {
+            val events = logTime(logger, "basic collecting of events") {historyDao.getAllHistoryEvents()}
+            logger.info("${events.size} history events")
+            return@transaction events.map { it.toFact() }.toSet()
+        }
     }
 
-    fun allTimeline(): List<HistoryFact> = transaction(db) {
-        return@transaction historyDao.getAllHistoryEventsByTime()
-            .map { it.toFact() }
+    fun allTimeline(): List<HistoryFact> = logTime(logger, "history timeline collection") {
+        transaction(db) {
+            val events = logTime(logger, "basic collecting of timed events") { historyDao.getAllHistoryEventsByTime() }
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
+        }
     }
 
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {

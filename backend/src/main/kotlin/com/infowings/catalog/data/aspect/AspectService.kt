@@ -6,6 +6,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
@@ -172,10 +173,28 @@ class AspectService(
             )
         ),
         query: String? = null
-    ): List<Aspect> = when {
-        query == null || query.isBlank() -> aspectDaoService.getAspects()
-        else -> aspectDaoService.findTransitiveByNameQuery(query)
-    }.map { it.toAspect() }.sort(orderBy)
+    ): List<Aspect> {
+        val beforeMS = System.currentTimeMillis()
+
+        logger.info("query: " + query)
+
+        val vertices = when {
+            query == null || query.isBlank() -> aspectDaoService.getAspects()
+            else -> aspectDaoService.findTransitiveByNameQuery(query)
+        }
+        val afterMS = System.currentTimeMillis()
+
+        logger.info("getting aspect vertices took ${afterMS - beforeMS}ms. ${vertices.size}" )
+
+        val aspects = logTime(logger, "extracting aspects") {
+            vertices.map { it.toAspect() }
+        }
+        val sorted = logTime(logger, "sorting aspects") {
+            aspects.sort(orderBy)
+        }
+
+        return sorted
+    }
 
     private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
@@ -239,6 +258,7 @@ class AspectService(
                 ?: throw AspectPropertyDoesNotExist(propertyId)
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
+        val id = aspectVertex.id
         aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 
@@ -272,7 +292,6 @@ class AspectService(
 
         if (propertyId.isEmpty())
             return aspectDaoService.createNewAspectPropertyVertex()
-
 
         return aspectDaoService.getAspectPropertyVertex(propertyId)
             ?.validateExistingAspectProperty(this)
