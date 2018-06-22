@@ -45,8 +45,6 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     private var timer: Int = 0
 
     private fun updateSubjectName(newName: String, subjectData: SubjectData) {
-        console.log(newName)
-        console.log(subjectData)
         if (subjectData.name != newName && newName.isNotBlank()) {
             submitSubject(subjectData.copy(name = newName))
         }
