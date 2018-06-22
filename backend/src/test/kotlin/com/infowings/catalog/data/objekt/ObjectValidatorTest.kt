@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
@@ -10,7 +9,6 @@ import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
@@ -56,9 +54,9 @@ class ObjectValidatorTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -73,7 +71,7 @@ class ObjectValidatorTest {
                 baseType = BaseType.Text.name
             ), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -139,7 +137,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.id
+            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
         val propertyInfo = validator.checkedForCreation(propertyRequest)
 
@@ -164,7 +162,7 @@ class ObjectValidatorTest {
             name = "prop_objectPropertyValidatorTestName",
             cardinality = PropertyCardinality.INFINITY.name,
             objectId = createNonExistentObjectKey(),
-            aspectId = aspect.id
+            aspectId = aspect.idStrict()
         )
 
         try {
@@ -216,7 +214,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "", cardinality = PropertyCardinality.INFINITY.name,
-            objectId = objectVertex.id, aspectId = aspect.id
+            objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
 
         try {
@@ -237,7 +235,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.id
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
@@ -271,7 +269,7 @@ class ObjectValidatorTest {
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntWithRangeTestName",
             cardinality = PropertyCardinality.INFINITY.name,
-            objectId = createdObject.id, aspectId = aspect.id
+            objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val createdProperty = createObjectProperty(propertyRequest)
 
@@ -299,7 +297,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleStrTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.id
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val createdProperty = createObjectProperty(propertyRequest)
 
@@ -326,13 +324,13 @@ class ObjectValidatorTest {
 
         val propertyRequest1 = PropertyCreateRequest(
             name = "1:prop_objectSecondPropertyValidatorTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.id
+            cardinality = PropertyCardinality.INFINITY.name, objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
         val propertyVertex = createObjectProperty(propertyRequest1)
 
         val propertyRequest2 = PropertyCreateRequest(
             name = "2:prop_objectSecondPropertyValidatorTestName",
-            cardinality = PropertyCardinality.ONE.name, objectId = objectVertex.id, aspectId = complexAspect.id
+            cardinality = PropertyCardinality.ONE.name, objectId = objectVertex.id, aspectId = complexAspect.idStrict()
         )
 
         val propertyInfo = validator.checkedForCreation(propertyRequest2)

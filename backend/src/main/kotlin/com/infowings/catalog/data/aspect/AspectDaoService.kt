@@ -2,8 +2,10 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -176,11 +178,32 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
      * @return list of the current aspect and all its parents
      */
     fun findParentAspects(aspectId: String): List<AspectData> = session(db) {
-        val q = "traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :aspectRecord"
+        val q = "select from (traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :aspectRecord) WHERE @class = \"$ASPECT_CLASS\""
         return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
-            it.mapNotNull { it.toVertexOrNull()?.toAspectVertex()?.toAspectData() }.toList()
+            it.mapNotNull {
+                it.toVertexOrNull()?.toAspectVertex()?.let {toAspectData(it)}
+            }.toList()
         }
     }
+
+    fun toAspectData(vertex: AspectVertex): AspectData = transaction(db) {
+        val baseTypeObj = vertex.baseType?.let { BaseType.restoreBaseType(it) }
+        return@transaction AspectData(
+            id = vertex.id,
+            name = vertex.name,
+            measure = vertex.measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = vertex.baseType,
+            properties = vertex.properties.map { it.toAspectPropertyData() },
+            version = vertex.version,
+            subject = vertex.subject?.toSubjectData(),
+            deleted = vertex.deleted,
+            description = vertex.description,
+            lastChangeTimestamp = vertex.lastChange?.epochSecond,
+            refBookName = vertex.referenceBookRootVertex?.value
+        )
+    }
+
 
 }
 

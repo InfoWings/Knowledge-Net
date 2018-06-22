@@ -20,20 +20,20 @@ class AspectApi(val aspectService: AspectService) {
     fun createAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
         val username = principal.name
         logger.debug("New aspect create request: $aspectData by $username")
-        return aspectService.save(aspectData, username).toAspectData()
+        return aspectService.save(aspectData, username)
     }
 
     @PostMapping("update")
     fun updateAspect(@RequestBody aspectData: AspectData, principal: Principal): AspectData {
         val username = principal.name
         logger.debug("Update aspect request: $aspectData by $username")
-        return aspectService.save(aspectData, username).toAspectData()
+        return aspectService.save(aspectData, username)
     }
 
     @GetMapping("/id/{id}")
     fun getAspectById(@PathVariable id: String): AspectData {
         logger.debug("Get aspect by id: $id")
-        return aspectService.findById(id).toAspectData()
+        return aspectService.findById(id)
     }
 
     @GetMapping("all")
@@ -47,7 +47,7 @@ class AspectApi(val aspectService: AspectService) {
         val orderBy = direct.zip(orderFields).map { (direction, order) ->
             AspectOrderBy(AspectSortField.valueOf(order), Direction.valueOf(direction))
         }
-        val result = AspectsList(aspectService.getAspects(orderBy, query).toAspectData())
+        val result = AspectsList(aspectService.getAspects(orderBy, query))
         val afterMS = System.currentTimeMillis()
         logger.info("all aspects took ${afterMS - beforeMS}")        
         return result

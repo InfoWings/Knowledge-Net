@@ -8,7 +8,6 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
@@ -49,9 +48,9 @@ class ObjectHistoryTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -61,7 +60,7 @@ class ObjectHistoryTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -118,7 +117,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = "prop_$testName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.id
+            name = "prop_$testName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
@@ -181,7 +180,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = "prop_$testName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.id
+            name = "prop_$testName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
@@ -253,7 +252,7 @@ class ObjectHistoryTest {
         assertEquals(1, propertyFacts.size, "one property event is expected")
         val propertyEvent = propertyFacts.first().event
         val propertyPayload = propertyFacts.first().payload
-        assertEquals(propertyId, propertyEvent.entityId.toString(), "id must be correct")
+        assertEquals(propertyId, propertyEvent.entityId, "id must be correct")
         assertEquals(EventType.UPDATE, propertyEvent.type, "type must be correct")
         assertEquals(emptySet(), propertyPayload.data.keys, "there must be no data keys")
         assertEquals(emptySet(), propertyPayload.removedLinks.keys, "there must be no removed links")
@@ -622,7 +621,7 @@ class ObjectHistoryTest {
     fun createValueRefBookHistoryTest() {
         val testName = "createValueObjectHistoryTest"
 
-        val refBook = refBookService.createReferenceBook("rb_$testName", aspect.id, "admin")
+        val refBook = refBookService.createReferenceBook("rb_$testName", aspect.idStrict(), "admin")
         val rbiId = refBookService.addReferenceBookItem(
             refBook.id,
             ReferenceBookItem(
@@ -763,7 +762,7 @@ class ObjectHistoryTest {
     }
 
     private fun eventsByClass(events: Set<HistoryFact>, entityClass: String) =
-      events.filter { it.event.entityClass == entityClass }
+        events.filter { it.event.entityClass == entityClass }
 
     private fun objectEvents(events: Set<HistoryFact>) = eventsByClass(events, OBJECT_CLASS)
 

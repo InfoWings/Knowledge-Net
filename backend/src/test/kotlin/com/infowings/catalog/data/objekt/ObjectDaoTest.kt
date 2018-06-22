@@ -8,7 +8,6 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -53,9 +52,9 @@ class ObjectDaoTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -70,7 +69,7 @@ class ObjectDaoTest {
                 baseType = BaseType.Text.name
             ), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -116,7 +115,7 @@ class ObjectDaoTest {
             name = "savePropertyTestObjectPropertyName",
             cardinality = PropertyCardinality.ONE.name,
             objectId = createdObject.id,
-            aspectId = aspect.id
+            aspectId = aspect.idStrict()
         )
 
 
@@ -159,7 +158,7 @@ class ObjectDaoTest {
             objectId = createdObject.id,
             name = "savePropertySimpleIntValueTest",
             cardinality = PropertyCardinality.ONE.name,
-            aspectId = aspect.id
+            aspectId = aspect.idStrict()
         )
 
         val propertyInfo = validator.checkedForCreation(propertyRequest)
@@ -214,7 +213,7 @@ class ObjectDaoTest {
             objectId = createdObject.id,
             name = "savePropertySimpleStrValueTest",
             cardinality = PropertyCardinality.ONE.name,
-            aspectId = aspect.id
+            aspectId = aspect.idStrict()
         )
 
         val propertyInfo = validator.checkedForCreation(propertyRequest)

@@ -26,14 +26,14 @@ class FreeAspectUpdateTest {
     @Before
     fun init() {
         val ad = AspectData("", "aspect", null, null, BaseType.Text.name, emptyList())
-        aspect = aspectService.save(ad, username).toAspectData().copy(measure = Litre.name)
+        aspect = aspectService.save(ad, username).copy(measure = Litre.name)
     }
 
     @Test
     fun testChangeBaseType() {
         val newAspect = aspectService.save(aspect.copy(baseType = BaseType.Decimal.name), username)
 
-        Assert.assertEquals("aspect should have new base type", newAspect.baseType, BaseType.Decimal)
+        Assert.assertEquals("aspect should have new base type", newAspect.baseType, BaseType.Decimal.name)
     }
 
     @Test
@@ -41,21 +41,21 @@ class FreeAspectUpdateTest {
 
         val newAspect = aspectService.save(aspect.copy(measure = Litre.name, baseType = null), username)
 
-        Assert.assertTrue("aspect should have new measure", newAspect.measure == Litre)
+        Assert.assertTrue("aspect should have new measure", newAspect.measure == Litre.name)
 
-        Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
+        Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal.name)
     }
 
     @Test
     fun testEditProperty() {
         val pd = AspectPropertyData(name = "prop", aspectId = aspect.id!!, cardinality = PropertyCardinality.ONE.name, description = null, id = "")
         val ad2 = AspectData("", "complex", Metre.name, null, BaseType.Decimal.name, listOf(pd))
-        val complex = aspectService.save(ad2, username).toAspectData()
+        val complex = aspectService.save(ad2, username)
 
         val otherAspect = aspectService.save(AspectData(name = "other", measure = Metre.name), username)
-        val newProperty = complex.properties[0].copy(aspectId = otherAspect.id)
+        val newProperty = complex.properties[0].copy(aspectId = otherAspect.idStrict())
         val edited = aspectService.save(complex.copy(properties = listOf(newProperty)), username)
 
-        Assert.assertEquals("aspect property should change aspectId", edited.properties[0].aspect.id, otherAspect.id)
+        Assert.assertEquals("aspect property should change aspectId", edited.properties[0].aspectId, otherAspect.id)
     }
 }

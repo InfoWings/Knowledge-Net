@@ -33,19 +33,19 @@ class AspectUpdateTest {
         val newAspect = aspectService.save(ad2, username)
 
         Assert.assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
-        Assert.assertThat("aspect should have new measure", newAspect.measure?.name, Is.`is`(Metre.name))
+        Assert.assertThat("aspect should have new measure", newAspect.measure, Is.`is`(Metre.name))
     }
 
     @Test
     fun testChangeAspectMeasureSameGroup() {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        val aspect = aspectService.save(ad, username).toAspectData().copy(measure = Metre.name)
+        val aspect = aspectService.save(ad, username).copy(measure = Metre.name)
 
         val newAspect = aspectService.save(aspect, username)
 
-        Assert.assertTrue("aspect should have new measure", newAspect.measure == Metre)
+        Assert.assertTrue("aspect should have new measure", newAspect.measure == Metre.name)
 
-        Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal)
+        Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal.name)
     }
 
     @Test
@@ -53,13 +53,13 @@ class AspectUpdateTest {
         val ad = AspectData("", "aspect", Litre.name, null, null, emptyList())
         val aspect = aspectService.save(ad, username)
 
-        Assert.assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal)
-        Assert.assertTrue("measure should be litre", aspect.measure == Litre)
+        Assert.assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal.name)
+        Assert.assertTrue("measure should be litre", aspect.measure == Litre.name)
 
         val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
         val aspect2 = aspectService.save(ad2, username)
 
-        Assert.assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean)
+        Assert.assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean.name)
         Assert.assertTrue("measure should be null", aspect2.measure == null)
 
         val ad3 = AspectData(
@@ -73,8 +73,8 @@ class AspectUpdateTest {
         )
         val aspect3 = aspectService.save(ad3, username)
 
-        Assert.assertTrue("base type should be decimal", aspect3.baseType == BaseType.Decimal)
-        Assert.assertTrue("measure should be metre", aspect3.measure == Metre)
+        Assert.assertTrue("base type should be decimal", aspect3.baseType == BaseType.Decimal.name)
+        Assert.assertTrue("measure should be metre", aspect3.measure == Metre.name)
     }
 
     @Test
@@ -88,11 +88,11 @@ class AspectUpdateTest {
         field.set(Gram, BaseType.Boolean)
 
         val newAspect =
-            aspectService.save(aspect.toAspectData().copy(measure = Gram.name, baseType = Gram.baseType.name), username)
+            aspectService.save(aspect.copy(measure = Gram.name, baseType = Gram.baseType.name), username)
 
-        Assert.assertTrue("aspect should have new measure", newAspect.measure == Gram)
+        Assert.assertTrue("aspect should have new measure", newAspect.measure == Gram.name)
 
-        Assert.assertTrue("aspect should have correct base type", newAspect.measure?.baseType == BaseType.Boolean)
+        Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Boolean.name)
 
         field.set(Gram, BaseType.Decimal)
     }
@@ -102,7 +102,7 @@ class AspectUpdateTest {
         val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad, username)
 
-        val ad2 = aspectService.getAspects().first().toAspectData()
+        val ad2 = aspectService.getAspects().first()
         try {
             aspectService.save(ad2, username)
         } catch (e: AspectEmptyChangeException) {

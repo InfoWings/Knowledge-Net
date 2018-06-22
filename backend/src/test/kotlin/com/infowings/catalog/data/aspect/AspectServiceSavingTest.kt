@@ -34,13 +34,13 @@ class AspectServiceSavingTest {
         val ad = AspectData("", "newAspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad, username)
 
-        assertThat("Ids are not virtual", aspectService.getAspects().all { !it.id.contains("-") }, Is.`is`(true))
+        assertThat("Ids are not virtual", aspectService.getAspects().all { !it.idStrict().contains("-") }, Is.`is`(true))
     }
 
     @Test
     fun testAddAspect() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.save(ad, username)
+        val createAspect: AspectData = aspectService.save(ad, username)
 
         assertThat(
             "aspect should be saved and restored",
@@ -53,9 +53,9 @@ class AspectServiceSavingTest {
     fun testAddAspectTrim() {
         val aspectBase =
             aspectService.save(AspectData("", "AspectBase", Kilometre.name, null, Decimal.name, emptyList()), username)
-        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.id, PropertyCardinality.INFINITY.name, null)
+        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.idStrict(), PropertyCardinality.INFINITY.name, null)
         val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
-        val createAspect: Aspect = aspectService.save(ad, username)
+        val createAspect: AspectData = aspectService.save(ad, username)
 
         val aspect = aspectService.findByName("newAspectTrim").firstOrNull()
         assertThat("aspect should be saved and restored with trim name", aspect, Is.`is`(createAspect))
@@ -69,7 +69,7 @@ class AspectServiceSavingTest {
     @Test
     fun testAddAspectWithEmptyParams() {
         val ad = AspectData("", "newAspect", null, null, Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.save(ad, username)
+        val createAspect: AspectData = aspectService.save(ad, username)
 
         assertThat(
             "aspect should be saved and restored event when some params are missing",
@@ -87,7 +87,7 @@ class AspectServiceSavingTest {
     @Test
     fun testAddAspectWithEmptyParams3() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
-        val createAspect: Aspect = aspectService.save(ad, username)
+        val createAspect: AspectData = aspectService.save(ad, username)
 
         assertThat(
             "aspect should be saved and restored event when some params are missing",
@@ -173,15 +173,15 @@ class AspectServiceSavingTest {
     @Test(expected = AspectCyclicDependencyException::class)
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect()
-        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.id, PropertyCardinality.INFINITY.name, null)
-        val aspect1 = aspect.properties.first().aspect
+        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val aspect1 = aspectService.findById(aspect.properties.first().aspectId)
         val editedAspectData1 = AspectData(
             aspect1.id,
             "aspect1",
             Metre.name,
             null,
             Decimal.name,
-            aspect1.properties.toAspectPropertyData().plus(editedPropertyData1),
+            aspect1.properties.plus(editedPropertyData1),
             aspect1.version
         )
 
@@ -229,7 +229,7 @@ class AspectServiceSavingTest {
         Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
         Assert.assertEquals(
             "second subject is incorrect", aspectData2.subject?.copy(version = 2),
-            aspect2.subject?.toSubjectData()
+            aspect2.subject
         )
     }
 
@@ -246,7 +246,7 @@ class AspectServiceSavingTest {
 
         Assert.assertEquals(
             "first subject is incorrect",
-            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+            aspectData1.subject?.copy(version = 2), aspect1.subject
         )
         Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
     }
@@ -267,11 +267,11 @@ class AspectServiceSavingTest {
 
         Assert.assertEquals(
             "first subject is incorrect",
-            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+            aspectData1.subject?.copy(version = 2), aspect1.subject
         )
         Assert.assertEquals(
             "second subject is incorrect",
-            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+            aspectData2.subject?.copy(version = 2), aspect2.subject
         )
     }
 
@@ -294,11 +294,11 @@ class AspectServiceSavingTest {
         Assert.assertEquals("first subject is incorrect", null, aspect1.subject)
         Assert.assertEquals(
             "second subject is incorrect",
-            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+            aspectData2.subject?.copy(version = 2), aspect2.subject
         )
         Assert.assertEquals(
             "third subject is incorrect",
-            aspectData3.subject?.copy(version = 2), aspect3.subject?.toSubjectData()
+            aspectData3.subject?.copy(version = 2), aspect3.subject
         )
     }
 
@@ -320,12 +320,12 @@ class AspectServiceSavingTest {
 
         Assert.assertEquals(
             "first subject is incorrect", aspectData1.subject?.copy(version = 2),
-            aspect1.subject?.toSubjectData()
+            aspect1.subject
         )
         Assert.assertEquals("second subject is incorrect", null, aspect2.subject)
         Assert.assertEquals(
             "third subject is incorrect", aspectData3.subject?.copy(version = 2),
-            aspect3.subject?.toSubjectData()
+            aspect3.subject
         )
     }
 
@@ -347,16 +347,16 @@ class AspectServiceSavingTest {
 
         Assert.assertEquals(
             "first subject is incorrect",
-            aspectData1.subject?.copy(version = 2), aspect1.subject?.toSubjectData()
+            aspectData1.subject?.copy(version = 2), aspect1.subject
         )
         Assert.assertEquals(
             "second subject is incorrect",
-            aspectData2.subject?.copy(version = 2), aspect2.subject?.toSubjectData()
+            aspectData2.subject?.copy(version = 2), aspect2.subject
         )
         Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
     }
 
-    private fun prepareAspect(): Aspect {
+    private fun prepareAspect(): AspectData {
         /*
          *  aspect
          *    aspectProperty
@@ -366,13 +366,13 @@ class AspectServiceSavingTest {
          */
 
         val aspectData2 = AspectData(null, "aspect2", Kilogram.name, null, Decimal.name, emptyList())
-        val aspect2: Aspect = aspectService.save(aspectData2, username)
+        val aspect2: AspectData = aspectService.save(aspectData2, username)
 
-        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.id, PropertyCardinality.INFINITY.name, null)
+        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.idStrict(), PropertyCardinality.INFINITY.name, null)
         val aspectData1 = AspectData(null, "aspect1", Metre.name, null, Decimal.name, listOf(aspectPropertyData1))
-        val aspect1: Aspect = aspectService.save(aspectData1, username)
+        val aspect1: AspectData = aspectService.save(aspectData1, username)
 
-        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.id, PropertyCardinality.INFINITY.name, null)
+        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
         val aspectData = AspectData(null, "aspect", Metre.name, null, Decimal.name, listOf(aspectPropertyData))
         return aspectService.save(aspectData, username)
     }
