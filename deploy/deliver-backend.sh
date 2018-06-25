@@ -3,7 +3,7 @@ bbd_url="https://${BB_AUTH_STRING}@api.bitbucket.org/2.0/repositories/${BITBUCKE
 ts=`date +'%F-%H-%M-%S'`
 
 ver=`./gradlew properties | grep '^version: ' | sed 's/^version: //' | sed 's|_|-|g'`
-gb=`git rev-parse --abbrev-ref HEAD | sed 's|/|-|g' | sed 's|/|-|g'`
+gb=`git rev-parse --abbrev-ref HEAD | sed 's|/|-|g' | sed 's|_|-|g'`
 
 version=${ts}_${ver}_${gb}
 
