@@ -204,13 +204,21 @@ class AspectService(
             logger.info("props size: " + props.size)
             logger.info("props: " + props)
 
-            val byId = props.groupBy { it.id }
+            val byId = props.groupBy { it.id }.mapValues { it.value.first() }
 
             logger.info("byId: $byId")
 
-            logTime(logger, "extracting aspects") {
+            val resNew = logTime(logger, "extracting aspects new") {
+                vertices.map { it.toAspectData(byId) }
+            }
+
+            val res = logTime(logger, "extracting aspects") {
                 vertices.map { it.toAspectData() }
             }
+
+            logger.info("res == resNew: ${res == resNew}")
+
+            res
         }
 
         return logTime(logger, "sorting aspects") {

@@ -13,6 +13,7 @@ import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -157,6 +158,24 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             domain = baseTypeObj?.let { OpenDomain(it).toString() },
             baseType = baseType,
             properties = properties.map { it.toAspectPropertyData() },
+            version = version,
+            subject = subject?.toSubjectData(),
+            deleted = deleted,
+            description = description,
+            lastChangeTimestamp = lastChange?.epochSecond,
+            refBookName = referenceBookRootVertex?.value
+        )
+    }
+
+    fun toAspectData(props: Map<String, AspectPropertyData>): AspectData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return AspectData(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            properties = properties.map { props[it.id] } . filterNotNull(),
             version = version,
             subject = subject?.toSubjectData(),
             deleted = deleted,
