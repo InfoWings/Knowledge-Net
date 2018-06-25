@@ -10,6 +10,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.id.ORID
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -190,14 +191,22 @@ class AspectService(
                 }
             }
 
-
-            val ids = vertices.flatMap { it.properties.map{it.identity} }
+            val ids = vertices.map { it.identity }
             logger.info("ids: " + ids)
-            
+
             val props = logTime(logger, "extracting properties") {
-                aspectDaoService.getProperties(ids)
+                aspectDaoService.getProperties(ids).map {
+                    logger.info("schema: ${it.schemaType}")
+                    logger.info("prop names: ${it.propertyNames}")
+                    it.toAspectPropertyData()
+                }
             }
             logger.info("props size: " + props.size)
+            logger.info("props: " + props)
+
+            val byId = props.groupBy { it.id }
+
+            logger.info("byId: $byId")
 
             logTime(logger, "extracting aspects") {
                 vertices.map { it.toAspectData() }

@@ -94,7 +94,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
     fun getProperties(ids: List<ORID>): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
-        db.query("select from  (traverse out('AspectPropertyEdge') from :ids  maxdepth 1) where \$depth==1", mapOf("ids" to ids)) { rs ->
+        db.query("select from  (traverse out(\"$ASPECT_ASPECT_PROPERTY_EDGE\") from :ids  maxdepth 1) where \$depth==1", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectPropertyVertex() }.toSet()
         }
     }
