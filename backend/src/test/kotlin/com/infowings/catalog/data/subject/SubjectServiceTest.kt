@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import kotlin.test.assertEquals
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
@@ -226,6 +227,26 @@ class SubjectServiceTest {
         }
         val updated = subjectService.findByIdStrict(created.id)
         Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
+    }
+
+    @Test(expected = SubjectWithNameAlreadyExist::class)
+    fun testCreateSubjectWithSpaces() {
+        subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
+        subjectService.createSubject(SubjectData(name = "testSubject ", description = ""), username)
+    }
+
+    @Test(expected = SubjectWithNameAlreadyExist::class)
+    fun testUpdateSubjectWithSameName() {
+        subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
+        val res = subjectService.createSubject(SubjectData(name = "testSubject2", description = ""), username)
+        subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject   "), username)
+    }
+
+    @Test
+    fun testSaveAroundWithSpaces() {
+        val res = subjectService.createSubject(SubjectData(name = "    test ", description = "  description   "), username)
+        assertEquals("test", res.name, "Name should be saved without around spaces")
+        assertEquals("description", res.description, "Description should be saved without around spaces")
     }
 
     private fun createTestSubject(
