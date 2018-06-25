@@ -16,7 +16,7 @@ class Header : RComponent<Header.Props, RState>() {
                     +"Knowledge Net"
                 }
                 NavbarDivider {}
-                Button {
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/objects"
@@ -24,7 +24,15 @@ class Header : RComponent<Header.Props, RState>() {
                         text = "Objects".asReactElement()
                     }
                 }
-                Button {
+                AnchorButton {
+                    attrs {
+                        className = "pt-minimal"
+                        active = props.location == "/objectsedit"
+                        onClick = { props.history.push("/objectsedit") }
+                        text = "Objects Edit".asReactElement()
+                    }
+                }
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/aspects"
@@ -32,7 +40,7 @@ class Header : RComponent<Header.Props, RState>() {
                         text = "Aspects".asReactElement()
                     }
                 }
-                Button {
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/measures"
@@ -40,7 +48,7 @@ class Header : RComponent<Header.Props, RState>() {
                         text = "Measures".asReactElement()
                     }
                 }
-                Button {
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/subjects"
@@ -48,7 +56,7 @@ class Header : RComponent<Header.Props, RState>() {
                         text = "Subjects".asReactElement()
                     }
                 }
-                Button {
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/reference"
@@ -56,7 +64,7 @@ class Header : RComponent<Header.Props, RState>() {
                         text = "Reference Books".asReactElement()
                     }
                 }
-                Button {
+                AnchorButton {
                     attrs {
                         className = "pt-minimal"
                         active = props.location == "/history"

@@ -187,6 +187,9 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
+    val children: List<ObjectPropertyValueVertex>
+        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE).map { it.toObjectPropertyValueVertex() }
+
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentAspectProperty = aspectProperty

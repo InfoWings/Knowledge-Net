@@ -6,6 +6,7 @@ import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
 import com.infowings.catalog.measures.MeasuresPage
 import com.infowings.catalog.objects.ObjectsPage
+import com.infowings.catalog.objects.ObjectsViewPage
 import com.infowings.catalog.reference.book.ReferenceBookPage
 import com.infowings.catalog.subjects.SubjectRouter
 import com.infowings.catalog.wrappers.RouteSuppliedProps
@@ -27,7 +28,8 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
             }
 
             privateRoute("/aspects", true, renderFunction<AspectsPage>())
-            privateRoute("/objects", true, renderFunction<ObjectsPage>())
+            privateRoute("/objects", true, renderFunction<ObjectsViewPage>())
+            privateRoute("/objectsedit", true, renderFunction<ObjectsPage>())
             privateRoute("/measures", true, renderFunction<MeasuresPage>())
             privateRoute("/reference", true, renderFunction<ReferenceBookPage>())
             privateRoute("/subjects", false, renderFunction<SubjectRouter>())

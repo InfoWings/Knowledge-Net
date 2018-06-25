@@ -1,8 +1,9 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
@@ -26,6 +27,63 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 vertex.addEdge(it, edgeClass).save<OEdge>()
             }
         }
+    }
+
+    fun getTruncatedObjects() =
+        transaction(db) {
+            val query =
+                "SELECT @rid, name, description, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription, " +
+                        "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
+                        "FROM $OBJECT_CLASS"
+            return@transaction db.query(query) {
+                it.map {
+                    ObjectTruncated(
+                        it.getProperty("@rid"),
+                        it.getProperty("name"),
+                        it.getProperty("description"),
+                        it.getProperty("subjectRid"),
+                        it.getProperty("subjectName"),
+                        it.getProperty("subjectDescription"),
+                        it.getProperty("objectPropertiesCount")
+                    )
+                }
+            }.toList()
+        }
+
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
+        transaction(db) {
+            val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
+            return@transaction rootPropertyValues.map { rootValue ->
+                RootValueResponse(
+                    rootValue.id,
+                    rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
+                )
+            }
+        }
+
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
+        val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
+        val aspect = aspectProperty.associatedAspect
+        return ValueResponse(
+            this.id,
+            this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            AspectPropertyDataExtended(
+                aspectProperty.id,
+                aspectProperty.name,
+                aspect.id,
+                aspectProperty.cardinality,
+                aspect.name,
+                aspect.measure?.name,
+                OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
+                aspect.baseType ?: throw IllegalStateException("Aspect with id ${aspect.id} has no associated base type"),
+                aspect.referenceBookRootVertex?.name
+            ),
+            this.children.map { it.toDetailedAspectPropertyValueResponse() }
+        )
     }
 
     fun saveObject(vertex: ObjectVertex, info: ObjectCreateInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =

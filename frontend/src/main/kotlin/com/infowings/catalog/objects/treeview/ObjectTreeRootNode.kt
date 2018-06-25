@@ -3,7 +3,7 @@ package com.infowings.catalog.objects.treeview
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyViewModel
-import com.infowings.catalog.objects.ObjectTreeViewModel
+import com.infowings.catalog.objects.ObjectTreeEditModel
 import com.infowings.catalog.objects.ObjectViewModel
 import react.*
 
@@ -64,7 +64,7 @@ class ObjectTreeRootNode : RComponent<ObjectTreeRootNode.Props, RState>() {
         var objectIndex: Int
         var objTreeView: ObjectViewModel
         var editedObject: ObjectViewModel?
-        var objectTreeViewModel: ObjectTreeViewModel
+        var objectTreeViewModel: ObjectTreeEditModel
         var aspectsMap: Map<String, AspectData>
     }
 }
