@@ -12,6 +12,7 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.storage.id
 import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -40,6 +41,8 @@ class ObjectValidator(
             throw EmptyObjectNameException(request)
         }
 
+        objectService.findByNameAndSubject(trimmedName, subjectVertex.id)?.let { throw ObjectAlreadyExists(trimmedName) }
+
         return ObjectCreateInfo(
             name = trimmedName,
             description = request.description,
@@ -50,6 +53,13 @@ class ObjectValidator(
     fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
         val objectVertex = objectService.findById(request.objectId)
         val aspectVertex = aspectDao.getAspectVertex(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
+
+        val trimmedName = request.name.trim()
+
+        val sameAspectProps = objectService.findPropertyByObjectAndAspect(objectVertex.id, aspectVertex.id).map { it.name }
+        if (sameAspectProps.contains(trimmedName)) {
+            throw ObjectPropertyAlreadyExistException(trimmedName, objectVertex.id, aspectVertex.id)
+        }
 
         return PropertyWriteInfo(
             request.name,
@@ -68,7 +78,6 @@ class ObjectValidator(
         }
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
-
 
         val dataValue = request.value
 
