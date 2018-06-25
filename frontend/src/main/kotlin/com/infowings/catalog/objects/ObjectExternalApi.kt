@@ -31,7 +31,7 @@ suspend fun createProperty(request: PropertyCreateRequest): PropertyCreateRespon
     JSON.parse(post("/api/objects/createProperty", JSON.stringify(request)))
 
 suspend fun createProperty(objectId: String, data: ObjectPropertyData): PropertyCreateResponse {
-    val name = data.name ?: throw IllegalStateException("name is not defined")
+    val name = data.name
     val aspectId = data.aspect.id ?: throw IllegalStateException("aspect id is not defined")
 
     return createProperty(PropertyCreateRequest(objectId, name, data.cardinality, aspectId))
