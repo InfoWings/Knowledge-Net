@@ -23,6 +23,14 @@ class ObjectApi(val objectService: ObjectService) {
         return ObjectCreateResponse(result)
     }
 
+    @PostMapping("update")
+    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
+        val username = principal.name
+        logger.debug("Object ${request.id} update request: $request by $username")
+        val result = objectService.create(request, username)
+        return ObjectUpdateResponse(result)
+    }
+
     @PostMapping("createProperty")
     fun createObjectProperty(@RequestBody request: PropertyCreateRequest, principal: Principal): PropertyCreateResponse {
         val username = principal.name

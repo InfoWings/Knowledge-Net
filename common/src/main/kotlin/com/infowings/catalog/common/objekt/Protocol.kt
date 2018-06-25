@@ -16,6 +16,14 @@ data class ObjectCreateRequest(
 )
 
 @Serializable
+data class ObjectUpdateRequest(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String
+)
+
+@Serializable
 data class PropertyCreateRequest(
     val objectId: String,
     val name: String,
@@ -62,6 +70,9 @@ data class ValueCreateRequestDTO(
 
 @Serializable
 data class ObjectCreateResponse(val id: String)
+
+@Serializable
+data class ObjectUpdateResponse(val id: String)
 
 @Serializable
 data class PropertyCreateResponse(val id: String)
