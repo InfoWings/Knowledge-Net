@@ -89,6 +89,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
     private suspend fun handleUpdateSubject(subjectData: SubjectData) {
         setState {
             loading = true
+            data[subjectData.id] = subjectData
         }
 
         val res = try {
