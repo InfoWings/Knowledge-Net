@@ -181,7 +181,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val q = "select from (traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :aspectRecord) WHERE @class = \"$ASPECT_CLASS\""
         return@session db.query(q, mapOf("aspectRecord" to ORecordId(aspectId))) {
             it.mapNotNull {
-                it.toVertexOrNull()?.toAspectVertex()?.let { it.toAspectData()}
+                it.toVertexOrNull()?.toAspectVertex()?.toAspectData()
             }.toList()
         }
     }
