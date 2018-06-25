@@ -9,6 +9,7 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -92,8 +93,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getProperties(): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
-        db.query("select from  (traverse out('AspectPropertyEdge') from Aspect  maxdepth 1) where \$depth==1") { rs ->
+    fun getProperties(ids: List<ORID>): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
+        db.query("select from  (traverse out('AspectPropertyEdge') from :ids  maxdepth 1) where \$depth==1", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectPropertyVertex() }.toSet()
         }
     }

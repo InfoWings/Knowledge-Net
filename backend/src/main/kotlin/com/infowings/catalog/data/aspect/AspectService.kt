@@ -190,9 +190,14 @@ class AspectService(
                 }
             }
 
-            logTime(logger, "extracting properties") {
-                aspectDaoService.getProperties()
+
+            val ids = vertices.flatMap { it.properties.map{it.identity} }
+            logger.info("ids: " + ids)
+            
+            val props = logTime(logger, "extracting properties") {
+                aspectDaoService.getProperties(ids)
             }
+            logger.info("props size: " + props.size)
 
             logTime(logger, "extracting aspects") {
                 vertices.map { it.toAspectData() }
