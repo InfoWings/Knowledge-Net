@@ -92,6 +92,12 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun getProperties(): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
+        db.query("select from  (traverse out('AspectPropertyEdge') from Aspect  maxdepth 1) where \$depth==1") { rs ->
+            rs.mapNotNull { it.toVertexOrNull()?.toAspectPropertyVertex() }.toSet()
+        }
+    }
+
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 

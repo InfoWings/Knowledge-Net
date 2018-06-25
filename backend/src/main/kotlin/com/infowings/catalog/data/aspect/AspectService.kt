@@ -189,6 +189,11 @@ class AspectService(
                     else -> aspectDaoService.findTransitiveByNameQuery(query)
                 }
             }
+
+            logTime(logger, "extracting properties") {
+                aspectDaoService.getProperties()
+            }
+
             logTime(logger, "extracting aspects") {
                 vertices.map { it.toAspectData() }
             }
