@@ -37,11 +37,10 @@ class ObjectFullContainer : RComponent<ObjectFullContainer.Props, RState>() {
                                 objectPropertyLabel(
                                     className = null,
                                     name = property.name,
-                                    description = property.cardinality,
+                                    cardinality = property.cardinality,
                                     aspectName = property.aspectName,
                                     onClick = { }
                                 )
-
                             else ->
                                 objectValueLabel(
                                     className = null,

@@ -20,11 +20,17 @@ import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
 const val HISTORY_ENTITY_OBJECT = "Object"
 
 private data class ObjectState(
+    // известные объекты по id
     val objects: MutableMap<String, ObjectHistoryInfo.Companion.Objekt>,
+    // версии объектов по id
     val versions: MutableMap<String, Int>,
+    // id объектов по id пропертей
     val objectIds: MutableMap<String, String>,
+    // id пропертей по id значений
     val propertyIds: MutableMap<String, String>,
+    // известные проперти по id
     val properties: MutableMap<String, ObjectHistoryInfo.Companion.Property>,
+    // известные значения по id
     val values: MutableMap<String, ObjectHistoryInfo.Companion.Value>
 ) {
     constructor() : this(
@@ -49,17 +55,15 @@ class ObjectHistoryProvider(
      * Если к существующей дельте хочется добавить новую, можно вернуть ее как часть списка
      * Если надо вернуть как есть, упаковываем в одноэлементный список */
     private fun transformDelta(delta: FieldDelta, state: ObjectHistoryData.Companion.BriefState): List<FieldDelta> {
-        fun id2name(source: FieldDelta, name: String, value: String?): List<FieldDelta> {
+
+        fun substAfter(source: FieldDelta, name: String, value: String?): FieldDelta {
+            /* Вспомогательная функция, подставляющая новые значения вместо fieldName/after в тех случаях,
+             * когда в исходной дельте after - не null (для создания/редактирования) */
             val after = source.after
             return if (after != null) {
-                listOf(
-                    source.copy(
-                        fieldName = name,
-                        after = value ?: "???"
-                    )
-                )
+                source.copy(fieldName = name, after = value ?: "???")
             } else {
-                listOf(source)
+                source
             }
         }
 
@@ -67,7 +71,7 @@ class ObjectHistoryProvider(
 
         val linksProcessed = if (fieldSuffix != null) {
             if (idReprExtractors.containsKey(fieldSuffix)) {
-                id2name(delta, fieldSuffix, idReprExtractors.getValue(fieldSuffix)(state))
+                listOf(substAfter(delta, fieldSuffix, idReprExtractors.getValue(fieldSuffix)(state)))
             } else {
                 emptyList()
             }
@@ -75,7 +79,9 @@ class ObjectHistoryProvider(
             listOf(delta)
         }
 
-        return if (state.value == null) linksProcessed else linksProcessed.map { it.copy(fieldName = state.property?.name + ":" + it.fieldName) }
+        return if (state.value == null) linksProcessed else linksProcessed.map {
+            it.copy(fieldName = (state.property?.name ?: "<UNDEFINED>") + ":" + it.fieldName)
+        }
     }
 
 
@@ -96,10 +102,7 @@ class ObjectHistoryProvider(
 
         val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = createFact.payload.addedLinks.map { (key, ids) ->
-            FieldDelta(
-                "link_$key", "",
-                ids.joinToString(separator = ":") { it.toString() }
-            )
+            FieldDelta("link_$key", "", ids.joinToString(separator = ":") { it.toString() })
         }
 
         val event = HistoryEventData(
@@ -122,7 +125,7 @@ class ObjectHistoryProvider(
         val objekt = state.objects.getValue(objectId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
-        val aspectName = subjectService.findById(aspectId)?.name ?: "???"
+        val aspectName = aspectService.findById(aspectId)?.name ?: "???"
 
         initial.apply(createFact.payload)
 
@@ -163,10 +166,7 @@ class ObjectHistoryProvider(
         val property = state.properties.getValue(propertyId)
 
         fun nameById(key: String, getter: (String) -> String?): String? =
-            if (createFact.payload.addedLinks.contains(key)) {
-                val id = createFact.payload.addedLinks.getValue(key).first().toString()
-                getter(id) ?: "???"
-            } else null
+            createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
         val aspectPropertyName = nameById("aspectProperty") {
             aspectService.findPropertyById(it)?.name
@@ -222,14 +222,19 @@ class ObjectHistoryProvider(
         )
     }
 
+    private fun placeHolder(fact: HistoryFact) =
+        ObjectHistory(event = fact.event, info = "<UNSUPPORTED>", deleted = false,
+            fullData = ObjectHistoryData.Companion.BriefState(
+                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""), null, null), changes = emptyList())
+
     private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
 
-        if (createFacts != null) {
+        return if (createFacts != null) {
             val createFact = createFacts.first()
 
-            return when (createFact.event.entityClass) {
+            when (createFact.event.entityClass) {
                 OBJECT_CLASS -> {
                     objectCreate(createFact, state)
                 }
@@ -239,10 +244,13 @@ class ObjectHistoryProvider(
                 OBJECT_PROPERTY_VALUE_CLASS -> {
                     valueAdd(createFact, state)
                 }
-                else -> throw IllegalStateException("Unexpected set of session facts: $sessionFacts")
+                else ->
+                    placeHolder(createFact)
             }
         } else {
-            throw IllegalStateException("Unexpected set of session facts: $sessionFacts")
+            val fact = sessionFacts.first()
+
+            placeHolder(fact)
         }
     }
 
