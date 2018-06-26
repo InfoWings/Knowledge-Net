@@ -11,6 +11,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import notDeletedSql
 
 /** Should be used externally for query building. */
@@ -101,10 +102,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         db.query("select" +
                 " @rid as aspectId," +
                 " out('AspectPropertyEdge').@rid as propertyIds," +
-                " out('AspectSubjectEdge').@rid as subjectIds," +
-                " out('AspectSubjectEdge').name as subjectNames," +
-                " out('AspectSubjectEdge').description as subjectDescrs," +
-                "  out('AspectReferenceBookEdge').value as refBookName," +
+                " out('AspectSubjectEdge'):{@rid as id, name, description, @version as version} as subjects," +
+                " out('AspectReferenceBookEdge').value as refBookName," +
                 " max(out('HistoryEdge').timestamp)," +
                 " max(out('AspectPropertyEdge').out('HistoryEdge').timestamp)" +
                 "  from  :ids GROUP BY aspectId ;", mapOf("ids" to ids)) { rs ->
@@ -115,14 +114,17 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 logger.info("aspect id: $aspectId")
 
                 val propertyIds = it.getProperty<List<ORID>>("propertyIds")
-                val subjectNames = it.getProperty<List<String>>("subjectNames")
-                val subjectDescrs = it.getProperty<List<String>>("subjectDescrs")
+                val subjects: List<*> = it.getProperty<List<*>>("subjects")
 
                 logger.info("property ids: $propertyIds")
-                logger.info("subject names: $subjectNames")
-                logger.info("subject descrs: $subjectDescrs")
+                logger.info("subjects: $subjects")
+                logger.info("subject class: ${subjects.firstOrNull()?.javaClass}")
 
-                aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = SubjectData(id = "", name = "", version = 0, description = "", deleted = false))
+                //val subjectId = subjectIds.firstOrNull()
+                val subject = SubjectData(id = "" /*subjectIds.first().toString()*/, name = "subjectNames.first()",
+                    description = "subjectDescrs.firstOrNull()", version = /*subjectVersions.first()*/ 0, deleted = false)
+
+                aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = subject)
             }.toMap()
         }
     }
