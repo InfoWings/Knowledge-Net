@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
@@ -24,6 +21,7 @@ const val selectWithName =
 const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
+data class AspectDaoDetails(val subject: SubjectData, val propertyIds: List<ORID>)
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
@@ -99,17 +97,32 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getPropertiesIds(ids: List<ORID>): Map<ORID, List<ORID>> = logTime(logger, "all properties ids extraction at dao level") {
-        db.query("select @rid as aspectId, out('AspectPropertyEdge').@rid as propertyIds from :ids", mapOf("ids" to ids)) { rs ->
+    fun getDetails(ids: List<ORID>): Map<ORID, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
+        db.query("select" +
+                " @rid as aspectId," +
+                " out('AspectPropertyEdge').@rid as propertyIds," +
+                " out('AspectSubjectEdge').@rid as subjectIds," +
+                " out('AspectSubjectEdge').name as subjectNames," +
+                " out('AspectSubjectEdge').description as subjectDescrs," +
+                "  out('AspectReferenceBookEdge').value as refBookName," +
+                " max(out('HistoryEdge').timestamp)," +
+                " max(out('AspectPropertyEdge').out('HistoryEdge').timestamp)" +
+                "  from  :ids GROUP BY aspectId ;", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull {
                 it.toVertexOrNull()
                 logger.info("it: ${it.propertyNames}")
                 val aspectId = it.getProperty<ORID>("aspectId")
                 logger.info("aspect id: $aspectId")
-                val propertyIds = it.getProperty<List<ORID>>("propertyIds")
-                logger.info("property ids: $propertyIds")
 
-                aspectId to propertyIds
+                val propertyIds = it.getProperty<List<ORID>>("propertyIds")
+                val subjectNames = it.getProperty<List<String>>("subjectNames")
+                val subjectDescrs = it.getProperty<List<String>>("subjectDescrs")
+
+                logger.info("property ids: $propertyIds")
+                logger.info("subject names: $subjectNames")
+                logger.info("subject descrs: $subjectDescrs")
+
+                aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = SubjectData(id = "", name = "", version = 0, description = "", deleted = false))
             }.toMap()
         }
     }
