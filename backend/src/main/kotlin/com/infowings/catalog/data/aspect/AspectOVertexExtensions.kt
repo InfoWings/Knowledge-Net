@@ -154,12 +154,11 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         "AspectVertex[id=${this.id}, name=${this.name}]"
 
     private fun toAspectOnlyData(): AspectData {
-        val baseType = logTime(logger, "extracting measure name") { baseType }
+        val baseType = logTime(logger, "extracting base type") { baseType }
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         val subjectData = logTime(logger, "extracting subject data") { subject?.toSubjectData() }
         val refBookVertex = logTime(logger, "extracting refBook vertex") {vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)}
         val refBookValue = logTime(logger, "extracting refBook value") { referenceBookRootVertex?.value }
-        val measureName = logTime(logger, "extracting measure name") {measureName}
         val version = logTime(logger, "extracting version") {version}
         val deleted = logTime(logger, "extracting deleted flag") {deleted}
         val description = logTime(logger, "extracting description") {description}
