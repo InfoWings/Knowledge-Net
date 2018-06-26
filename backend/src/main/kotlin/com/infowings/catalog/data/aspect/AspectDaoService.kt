@@ -124,7 +124,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
                         logger.info("sr prop names: " + subjectResult.propertyNames)
                         SubjectData(
-                            id = subjectResult.getProperty("id"), name = "subjectNames.first()",
+                            id = subjectResult.getProperty("id").toString(), name = "subjectNames.first()",
                             description = "subjectDescrs.firstOrNull()", version = /*subjectVersions.first()*/ 0, deleted = false
                         )
                     }
