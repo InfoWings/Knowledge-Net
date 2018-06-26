@@ -204,7 +204,7 @@ class AspectService(
             logger.info("propsIdsByAspectIds: " + propsIdsByAspectIds)
 
             logTime(logger, "filling aspects") {
-                vertices.map { it.toAspectData(propsById) }
+                vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById) } }
             }
         }
 
