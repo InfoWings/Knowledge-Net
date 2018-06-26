@@ -199,6 +199,10 @@ class AspectService(
 
             val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
+            val propsIdsByAspectIds = aspectDaoService.getPropertiesIds(ids)
+
+            logger.info("propsIdsByAspectIds: " + propsIdsByAspectIds)
+
             logTime(logger, "filling aspects") {
                 vertices.map { it.toAspectData(propsById) }
             }

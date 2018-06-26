@@ -99,6 +99,15 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun getPropertiesIds(ids: List<ORID>): Map<String, List<String>> = logTime(logger, "all properties ids extraction at dao level") {
+        db.query("select @rid as aspectId, out('AspectPropertyEdge').@rid as propertyIds from :ids", mapOf("ids" to ids)) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()
+                "" to emptyList<String>()
+            }.toMap()
+        }
+    }
+
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 

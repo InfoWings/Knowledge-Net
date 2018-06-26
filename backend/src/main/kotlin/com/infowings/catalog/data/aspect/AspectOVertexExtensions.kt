@@ -12,6 +12,7 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -172,12 +173,14 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
-    fun toAspectData(props: Map<String, AspectPropertyData>): AspectData =
-        toAspectOnlyData().copy(properties = properties.map {
-            val propData: AspectPropertyData?  = props[it.id]
+    fun toAspectData(props: Map<String, AspectPropertyData>): AspectData {
+        val propsList = logTime(logger, "get aspect properties ids") { properties.toList() }
+        return toAspectOnlyData().copy(properties = propsList.map {
+            val propData: AspectPropertyData? = props[it.id]
             propData ?: logger.warn("Not found aspect property with id ${it.id}. Aspect id: $id")
             propData
         } . filterNotNull())
+    }
 }
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
