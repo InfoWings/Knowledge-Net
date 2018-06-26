@@ -103,6 +103,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         db.query("select @rid as aspectId, out('AspectPropertyEdge').@rid as propertyIds from :ids", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull {
                 it.toVertexOrNull()
+                logger.info("it: ${it.propertyNames}")
                 "" to emptyList<String>()
             }.toMap()
         }
