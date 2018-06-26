@@ -192,33 +192,17 @@ class AspectService(
             }
 
             val ids = vertices.map { it.identity }
-            logger.info("ids: " + ids)
 
             val props = logTime(logger, "extracting properties") {
                 aspectDaoService.getProperties(ids).map {
-                    logger.info("schema: ${it.schemaType}")
-                    logger.info("prop names: ${it.propertyNames}")
                     it.toAspectPropertyData()
                 }
             }
-            logger.info("props size: " + props.size)
-            logger.info("props: " + props)
-
             val byId = props.groupBy { it.id }.mapValues { it.value.first() }
 
-            logger.info("byId: $byId")
-
-            val resNew = logTime(logger, "extracting aspects new") {
+            logTime(logger, "extracting aspects new") {
                 vertices.map { it.toAspectData(byId) }
             }
-
-            val res = logTime(logger, "extracting aspects") {
-                vertices.map { it.toAspectData() }
-            }
-
-            logger.info("res == resNew: ${res == resNew}")
-
-            res
         }
 
         return logTime(logger, "sorting aspects") {
