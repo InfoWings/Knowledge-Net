@@ -219,6 +219,8 @@ class AspectService(
                 vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById) } }
             }
 
+            logger.info("res: $res")
+            logger.info("res2: $res2")
             logger.info("res == res2: ${res == res2}")
 
             res

@@ -113,6 +113,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aliasName = "name"
         val aliasDescription = "description"
         val aliasAspectTime = "aspectTime"
+        val aliasPropertiesTime = "propTime"
 
         db.query("select" +
                 " @rid as $aliasId," +
@@ -120,7 +121,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, $aliasName, $aliasDescription, @version as version} as $aliasSubjects," +
                 " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames," +
                 " max(out('$HISTORY_EDGE').timestamp) as $aliasAspectTime," +
-                " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as propertiesTS" +
+                " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as $aliasPropertiesTime" +
                 "  from  :ids GROUP BY $aliasId ;", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull {
                     it.toVertexOrNull()
@@ -130,7 +131,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val subjects: List<OResult> = it.getProperty(aliasSubjects)
                     val refBookNames: List<String> = it.getProperty(aliasRefBookNames)
                     val aspectTS: Instant = it.getProperty(aliasAspectTime)
-                    val propertiesTS: Instant = it.getProperty("propertiesTS") ?: Instant.MIN
+                    val propertiesTS: Instant = it.getProperty(aliasPropertiesTime) ?: Instant.MIN
 
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
                         SubjectData(

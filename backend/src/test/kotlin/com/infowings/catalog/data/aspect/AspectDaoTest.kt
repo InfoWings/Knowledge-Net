@@ -6,6 +6,7 @@ import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.common.BaseType.Text
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
 import com.orientechnologies.orient.core.id.ORID
@@ -13,6 +14,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +44,35 @@ class AspectDaoTest {
     @Autowired
     lateinit var refBookService: ReferenceBookService
 
+    @Autowired
+    lateinit var historyService: HistoryService
+
+    lateinit var complexAspect: AspectData
+    lateinit var baseAspect: AspectData
+
+    /**
+     * complexAspect
+     *     -> property
+     *             -> baseAspect
+     */
+    @Before
+    fun initialize() {
+        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        baseAspect = aspectService.save(ad, username)
+
+        val property = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+
+        val ad2 = AspectData(
+            "",
+            "complex",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
+        complexAspect = aspectService.save(ad2, username)
+    }
+
     @Test
     fun testGetDetailsPlain() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
@@ -54,9 +85,12 @@ class AspectDaoTest {
 
         val aspectDetails = details.getValue(aspectId)
 
+        val aspectEvents = historyService.allTimeline().filter { it.event.entityId == aspectId }
+
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
-        assertEquals(emptyList<ORID>(), aspectDetails.propertyIds)
+        assertEquals(emptyList(), aspectDetails.propertyIds)
+        assertEquals(aspectEvents.first().event.timestamp, aspectDetails.lastChange.toEpochMilli())
     }
 
     @Test
@@ -79,6 +113,8 @@ class AspectDaoTest {
         assertEquals(null, details2.subject)
         assertEquals(null, details1.refBookName)
         assertEquals(null, details2.refBookName)
+        assertEquals(emptyList(), details1.propertyIds)
+        assertEquals(emptyList(), details2.propertyIds)
     }
 
     @Test
@@ -96,6 +132,7 @@ class AspectDaoTest {
 
         val details1 = details.getValue(aspectId1)
         assertEquals(null, details1.subject)
+        assertEquals(null, details1.refBookName)
     }
 
     @Test
@@ -113,8 +150,8 @@ class AspectDaoTest {
 
         val aspectDetails = details.getValue(aspectId)
 
-/*        assertEquals(null, aspectDetails.subject)
-        assertEquals(null, aspectDetails.refBookName)
+        assertEquals(subject.id, aspectDetails.subject?.id)
+        /*assertEquals(null, aspectDetails.refBookName)
         */
     }
 
@@ -131,8 +168,22 @@ class AspectDaoTest {
 
         val aspectDetails = details.getValue(aspectId)
 
-/*        assertEquals(null, aspectDetails.subject)
-        assertEquals(null, aspectDetails.refBookName)
+        assertEquals(null, aspectDetails.subject)
+/*        assertEquals(null, aspectDetails.refBookName)
+        */
+    }
+
+    @Test
+    fun testGetDetailsWithProperty() {
+        val baseId = baseAspect.id
+        val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(baseId)))
+
+        assertEquals(setOf(baseId), details.keys)
+
+//        val aspectDetails = details.getValue(aspectId)
+
+//        assertEquals(null, aspectDetails.subject)
+/*        assertEquals(null, aspectDetails.refBookName)
         */
     }
 }
