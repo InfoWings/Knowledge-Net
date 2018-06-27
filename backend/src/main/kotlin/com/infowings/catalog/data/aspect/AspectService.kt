@@ -10,7 +10,6 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
-import com.orientechnologies.orient.core.id.ORID
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -370,8 +369,6 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
-
-class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
 
 
 class AspectNameCannotBeNull : AspectException()

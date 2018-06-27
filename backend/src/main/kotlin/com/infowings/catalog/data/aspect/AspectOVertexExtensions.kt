@@ -15,7 +15,6 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -95,8 +94,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-    val lastChange: Instant?
+    private val lastChange: Instant?
         get() {
+            // это все работает медленно. Чем больше история, тем медленнее
             val maybeLastAspectUpdate: Instant? = vertex.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
             val maybeLastPropertyUpdates: List<Instant?> = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map {
                 it.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
@@ -106,7 +106,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             }.max()
         }
 
-    val subjectVertex: SubjectVertex?
+    private val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
             if (subjects.size > 1) {
@@ -157,7 +157,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         val subjectData = subject?.toSubjectData()
         val refBookValue = referenceBookRootVertex?.value
-        val lastChange = logTime(logger, "extracting last change") {lastChange}
+        val lastChange = logTime(logger, "extracting last change") { lastChange }
 
         return AspectData(
             id = id,
@@ -206,8 +206,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             data
         }
         val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
-        return data.copy(properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
-            lastChangeTimestamp = details.lastChange.epochSecond)
+        return data.copy(
+            properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
+            lastChangeTimestamp = details.lastChange.epochSecond
+        )
     }
 }
 
