@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -105,11 +106,12 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getDetails(ids: List<ORID>): Map<ORID, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
+        val aliasSubjects = "propertyIds"
         db.query("select" +
                 " @rid as aspectId," +
                 " out('$ASPECT_ASPECT_PROPERTY_EDGE').@rid as $aliasPropIds," +
-                " out('$ASPECT_SUBJECT_EDGE'):{@rid as id, name, description, @version as version} as subjects," +
-                " out('AspectReferenceBookEdge').value as refBookNames," +
+                " out('$ASPECT_SUBJECT_EDGE'):{@rid as id, name, description, @version as version} as $aliasSubjects," +
+                " out('$ASPECT_REFERENCE_BOOK_EDGE').value as refBookNames," +
                 " max(out('HistoryEdge').timestamp) as aspectTS," +
                 " max(out('AspectPropertyEdge').out('HistoryEdge').timestamp) as propertiesTS" +
                 "  from  :ids GROUP BY aspectId ;", mapOf("ids" to ids)) { rs ->
@@ -119,7 +121,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val aspectId = it.getProperty<ORID>("aspectId")
 
                     val propertyIds: List<ORID> = it.getProperty(aliasPropIds)
-                    val subjects: List<OResult> = it.getProperty("subjects")
+                    val subjects: List<OResult> = it.getProperty(aliasSubjects)
                     val refBookNames: List<String> = it.getProperty("refBookNames")
                     val aspectTS: Instant = it.getProperty("aspectTS")
                     val propertiesTS: Instant = it.getProperty<Instant?>("aspectTS") ?: Instant.MIN
@@ -130,7 +132,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                         logger.info("sr prop names: " + subjectResult.propertyNames)
                         SubjectData(
                             id = subjectResult.getProperty<ORID>("id").toString(), name = subjectResult.getProperty("name"),
-                            description = subjectResult.getProperty("description"), version = /*subjectVersions.first()*/ 0, deleted = false
+                            description = subjectResult.getProperty("description"), version = subjectResult.getProperty("version"),
+                            deleted = false
                         )
                     }
 
