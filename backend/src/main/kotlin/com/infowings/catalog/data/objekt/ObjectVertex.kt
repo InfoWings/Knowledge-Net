@@ -51,6 +51,3 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         return Objekt(identity, name, description, currentSubject, properties)
     }
 }
-
-class ObjectWithoutSubjectException(vertex: ObjectVertex) :
-    ObjectPropertyException("Object vertex not linked for ${vertex.id} ")

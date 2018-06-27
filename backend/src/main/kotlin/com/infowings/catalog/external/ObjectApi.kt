@@ -27,15 +27,22 @@ class ObjectApi(val objectService: ObjectService) {
     fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
         val username = principal.name
         logger.debug("Object ${request.id} update request: $request by $username")
-        val result = objectService.create(request, username)
+        val result = objectService.update(request, username)
         return ObjectUpdateResponse(result)
     }
 
     @PostMapping("createProperty")
     fun createObjectProperty(@RequestBody request: PropertyCreateRequest, principal: Principal): PropertyCreateResponse {
         val username = principal.name
-        logger.debug("New object property create request: $request by $username")
+        logger.debug("Object property update request: $request by $username")
         return PropertyCreateResponse(objectService.create(request, username))
+    }
+
+    @PostMapping("updateProperty")
+    fun createObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
+        val username = principal.name
+        logger.debug("Object property update request: $request by $username")
+        return PropertyUpdateResponse(objectService.update(request, username))
     }
 
     @PostMapping("createValue")
@@ -45,5 +52,14 @@ class ObjectApi(val objectService: ObjectService) {
         logger.debug("New object property value create request: $requestDTO by $username")
         val result: ObjectPropertyValue = objectService.create(request, username)
         return ValueCreateResponse(result.id.toString())
+    }
+
+    @PostMapping("updateValue")
+    fun createObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
+        val username = principal.name
+        val request = requestDTO.toRequest()
+        logger.debug("Object property value update request: $requestDTO by $username")
+        val result: ObjectPropertyValue = objectService.update(request, username)
+        return ValueUpdateResponse(result.id.toString())
     }
 }

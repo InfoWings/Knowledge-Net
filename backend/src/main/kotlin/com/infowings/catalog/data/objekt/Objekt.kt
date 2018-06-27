@@ -19,4 +19,4 @@ data class Objekt(
     val properties: List<ObjectPropertyVertex>
 )
 
-data class ObjectCreateInfo(val name: String, val description: String?, val subject: SubjectVertex)
+data class ObjectWriteInfo(val name: String, val description: String?, val subject: SubjectVertex)

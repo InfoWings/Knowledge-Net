@@ -1,9 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
@@ -24,14 +22,14 @@ class ObjectService(
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
-    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, aspectDao)
+    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao)
 
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
 
         val createdVertex = transaction(db) {
-            val objectInfo: ObjectCreateInfo = validator.checkedForCreation(request)
+            val objectInfo: ObjectWriteInfo = validator.checkedForCreation(request)
 
             /* В свете такого описания бизнес ключа не совсем понятно, как простым и эффективным образом обеспечивать
              * его уникальность при каждлом изменении:
@@ -58,6 +56,21 @@ class ObjectService(
         return createdVertex.id
     }
 
+    fun update(request: ObjectUpdateRequest, username: String): String {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+
+        val updatedVertex = transaction(db) {
+            var objectVertex = findById(request.id)
+            val objectInfo = validator.checkedForUpdating(objectVertex, request)
+            val objectBefore = objectVertex.currentSnapshot()
+            objectVertex = dao.updateObject(objectVertex, objectInfo)
+            historyService.storeFact(objectVertex.toUpdateFact(context, objectBefore))
+        }
+
+        return updatedVertex.id
+    }
+
     fun create(request: PropertyCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
@@ -74,6 +87,30 @@ class ObjectService(
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
+
+            return@transaction propertyVertex
+        }
+
+        return propertyVertex.id
+    }
+
+    fun update(request: PropertyUpdateRequest, username: String): String {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        val propertyVertex = transaction(db) {
+            val objectPropertyVertex = findPropertyById(request.objectPropertyId)
+            val propertyInfo = validator.checkForUpdating(objectPropertyVertex, request)
+
+            //validator.checkBusinessKey(objectProperty)
+
+            val objectBefore = propertyInfo.objekt.currentSnapshot()
+
+            val newVertex = dao.newObjectPropertyVertex()
+
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+
+            historyService.storeFact(propertyVertex.toCreateFact(context))
+            historyService.storeFact(objectPropertyVertex.toUpdateFact(context, objectBefore))
 
             return@transaction propertyVertex
         }
@@ -99,7 +136,22 @@ class ObjectService(
         }
     }
 
-    fun findByNameAndSubject(name: String, subjectId: String): ObjectVertex? = dao.getObjectVertexByNameAndSubject(name, subjectId)
+    fun update(request: ValueUpdateRequest, username: String): ObjectPropertyValue {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        return transaction(db) {
+            var objectPropertyValue = findPropertyValueById(request.valueId)
+            val valueInfo: ValueWriteInfo = validator.checkedForUpdating(objectPropertyValue, request)
+            val before = objectPropertyValue.currentSnapshot()
+            objectPropertyValue = dao.saveObjectValue(objectPropertyValue, valueInfo)
+            historyService.storeFact(objectPropertyValue.toUpdateFact(context, before))
+
+            return@transaction objectPropertyValue.toObjectPropertyValue()
+        }
+    }
+
+    fun findByNameAndSubject(name: String, subjectId: String) = dao.getObjectVertexesByNameAndSubject(name, subjectId)
+    fun findPropertiesByNameAndAspect(name: String, aspectId: String) = dao.getPropertyVertexesByNameAndAspect(name, aspectId)
 
     // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
     fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {

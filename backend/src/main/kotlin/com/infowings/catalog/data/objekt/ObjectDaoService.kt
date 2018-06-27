@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -13,6 +14,18 @@ import java.math.BigDecimal
 
 const val selectObjectWithName =
     "SELECT from $OBJECT_CLASS WHERE name = :name and $notDeletedSql"
+
+const val selectPropertiesWithName =
+    "SELECT from $OBJECT_PROPERTY_CLASS WHERE name = :name and $notDeletedSql"
+
+const val neighborsSql = "TRAVERSE OUT($OBJECT_VALUE_OBJECT_PROPERTY_EDGE) FROM :objPropertyId"
+
+const val selectObjPropValuesWithLink = "TRAVERSE OUT(:edge) FROM ($neighborsSql) WHERE OUT(:edge)."
+
+const val selectObjPropValuesWithScalar =
+    "SELECT from ($neighborsSql) WHERE :name = :value and $notDeletedSql"
+
+const val selectObjPropValuesWithNull = "SELECT from ($neighborsSql) WHERE typeTag is NULL and $notDeletedSql"
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -28,7 +41,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun saveObject(vertex: ObjectVertex, info: ObjectCreateInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
+    fun saveObject(vertex: ObjectVertex, info: ObjectWriteInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
         transaction(db) {
             vertex.name = info.name
             vertex.description = info.description
@@ -47,6 +60,13 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
 
+            return@transaction vertex.save<OVertex>().toObjectVertex()
+        }
+
+    fun updateObject(vertex: ObjectVertex, info: ObjectWriteInfo): ObjectVertex =
+        transaction(db) {
+            vertex.name = info.name
+            vertex.description = info.description
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
@@ -159,14 +179,90 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
     fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
 
-    fun getObjectVertexByNameAndSubject(name: String, subjectId: String): ObjectVertex? {
+    fun getObjectVertexesByNameAndSubject(name: String, subjectId: String): List<ObjectVertex> {
         val query = "$selectObjectWithName and (@rid in (select out.@rid from $OBJECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
 
         return db.query(query, mapOf("name" to name, "subjectId" to ORecordId(subjectId))) { rs ->
-            rs.map { it.toVertex().toObjectVertex() }.firstOrNull()
+            rs.map { it.toVertex().toObjectVertex() }.toList()
         }
     }
+
+    fun getPropertyVertexesByNameAndAspect(name: String, aspectId: String): List<ObjectPropertyVertex> {
+        val query = "$selectPropertiesWithName and (@rid in (select in.@rid from $ASPECT_OBJECT_PROPERTY_EDGE WHERE out.@rid = :aspectId))"
+
+        return db.query(query, mapOf("name" to name, "aspectId" to ORecordId(aspectId))) { rs ->
+            rs.map { it.toVertex().toObjectPropertyVertex() }.toList()
+        }
+    }
+
+    fun getValuesByObjectPropertyAndValue(objPropertyId: String, objectValue: ObjectValue) = when (objectValue) {
+        is ObjectValue.IntegerValue -> {
+            db.query(
+                selectObjPropValuesWithScalar,
+                mapOf("name" to "intValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
+            ) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+        is ObjectValue.DecimalValue -> {
+            db.query(
+                selectObjPropValuesWithScalar,
+                mapOf("name" to "decimalValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
+            ) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+        is ObjectValue.StringValue -> {
+            db.query(
+                selectObjPropValuesWithScalar,
+                mapOf("name" to "strValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
+            ) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+        is ObjectValue.RangeValue -> {
+            db.query(
+                selectObjPropValuesWithScalar,
+                mapOf("name" to "range", "objectValue" to objectValue.range, "objPropertyId" to ORecordId(objPropertyId))
+            ) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+        is ObjectValue.BooleanValue -> {
+            db.query(
+                selectObjPropValuesWithScalar,
+                mapOf("name" to "booleanValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
+            ) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+
+        is ObjectValue.Link -> {
+            val linkValue = objectValue.value
+            when (linkValue) {
+                is LinkValueVertex.ObjectValue ->
+                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_OBJECT_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
+                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueObject?.id == linkValue.vertex.id }.toList()
+                    }
+                is LinkValueVertex.SubjectValue ->
+                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_SUBJECT_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
+                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueSubject?.id == linkValue.vertex.id }.toList()
+                    }
+                is LinkValueVertex.DomainElementValue ->
+                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_REFBOOK_ITEM_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
+                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueDomainElement?.id == linkValue.vertex.id }.toList()
+                    }
+            }
+        }
+        ObjectValue.NullValue -> {
+            db.query(selectObjPropValuesWithNull, mapOf("objPropertyId" to ORecordId(objPropertyId))) { rs ->
+                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+            }
+        }
+    }
+
 }
+
 
 sealed class ObjectException(message: String) : Exception(message)
 class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
@@ -177,3 +273,5 @@ class ObjectPropertyNotFoundException(id: String) : ObjectException("object prop
 class ObjectPropertyAlreadyExistException(name: String, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
+class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
+class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")

@@ -52,4 +52,3 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         ).map { it.toObjectPropertyValueVertex() }
 }
 
-abstract class ObjectPropertyException(message: String) : Exception(message)

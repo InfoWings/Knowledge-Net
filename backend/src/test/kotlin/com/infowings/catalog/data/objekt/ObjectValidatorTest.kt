@@ -344,7 +344,7 @@ class ObjectValidatorTest {
     }
 
 
-    private fun createObject(info: ObjectCreateInfo): ObjectVertex = transaction(db) {
+    private fun createObject(info: ObjectWriteInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
         return@transaction dao.saveObject(newVertex, info, emptyList())
     }

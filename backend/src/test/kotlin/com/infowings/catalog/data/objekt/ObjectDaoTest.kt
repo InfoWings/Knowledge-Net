@@ -326,7 +326,7 @@ class ObjectDaoTest {
         assertTrue("There are two props with same aspectId", aspectId1 == aspectId2)
     }
 
-    private fun createObject(objekt: ObjectCreateInfo): ObjectVertex = transaction(db) {
+    private fun createObject(objekt: ObjectWriteInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
         return@transaction dao.saveObject(newVertex, objekt, emptyList())
     }
