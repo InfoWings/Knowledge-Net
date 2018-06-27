@@ -32,6 +32,8 @@ external interface NavbarDividerProps : BlueprintComponentProps
 
 external val Button: RClass<ButtonProps>
 
+external val AnchorButton: RClass<ButtonProps>
+
 external interface ButtonProps : BlueprintComponentProps {
     var active: Boolean
     var alignText: Alignment

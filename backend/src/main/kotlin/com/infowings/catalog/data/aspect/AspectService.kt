@@ -208,6 +208,8 @@ class AspectService(
      */
     fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
 
+    fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
+
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
 
@@ -346,6 +348,8 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
 
 
 class AspectNameCannotBeNull : AspectException()

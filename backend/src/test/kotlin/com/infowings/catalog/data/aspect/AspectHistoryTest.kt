@@ -330,9 +330,16 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
-            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
         )
         val aspect2 = aspectService.save(aspect1.copy(subject = null), username)
 
@@ -352,7 +359,9 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject2() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
             AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username
         )

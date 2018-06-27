@@ -220,7 +220,8 @@ class RefBookHistoryProvider(
             }
             else ->
                 RefBookHistory(
-                    event = HistoryEventData(username = "",             timestamp = -1,
+                    event = HistoryEventData(
+                        username = "", timestamp = -1,
                         version = 0,
                         type = EventType.UPDATE,
                         entityId = "???",
@@ -229,8 +230,12 @@ class RefBookHistoryProvider(
                     ),
                     info = "???",
                     deleted = false,
-                    fullData = RefBookHistoryData.Companion.BriefState(RefBookHistoryData.Companion.Header(id = "???", name = "???",
-                        aspectName = "???", aspectId = "", description = ""), null),
+                    fullData = RefBookHistoryData.Companion.BriefState(
+                        RefBookHistoryData.Companion.Header(
+                            id = "???", name = "???",
+                            aspectName = "???", aspectId = "", description = ""
+                        ), null
+                    ),
                     changes = emptyList()
                 )
         }

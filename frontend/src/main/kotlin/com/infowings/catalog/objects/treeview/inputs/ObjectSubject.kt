@@ -20,7 +20,7 @@ private fun subjectOption(subjectData: SubjectData) = jsObject<SubjectOption> {
     this.subjectData = subjectData
 }
 
-fun RBuilder.objectSubject(value: SubjectData?, onSelect: (SubjectData) -> Unit, onOpen: () -> Unit) =
+fun RBuilder.objectSubject(value: SubjectData?, onSelect: (SubjectData) -> Unit, onOpen: () -> Unit, disabled: Boolean = false) =
     asyncSelect<SubjectOption> {
         attrs {
             className = "object-input-subject"
@@ -33,6 +33,7 @@ fun RBuilder.objectSubject(value: SubjectData?, onSelect: (SubjectData) -> Unit,
             clearable = false
             options = value?.let { arrayOf(subjectOption(it)) } ?: emptyArray()
             this.onOpen = onOpen
+            this.disabled = disabled
             loadOptions = { input, callback ->
                 if (input.isNotEmpty()) {
                     launch {

@@ -129,11 +129,3 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
         ObjectValueData.NullValue
 }
 
-data class ObjectPropertyValueDTO(
-    val id: String?,
-    val valueDto: ValueDTO,
-    val objectPropertyId: String,
-    val aspectPropertyId: String,
-    val parentValueId: String?,
-    val measureId: String?
-)

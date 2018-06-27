@@ -1,8 +1,10 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.common.AspectHistoryList
+import com.infowings.catalog.common.ObjectHistoryList
 import com.infowings.catalog.common.RefBookHistoryList
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistorySnapshot
@@ -24,7 +26,9 @@ fun <T> logTime(logger: Logger, comment :String, action: () -> T): T {
 @RestController
 @RequestMapping("api/history")
 class HistoryApi(
-    val aspectHistoryProvider: AspectHistoryProvider, val refBookHistoryProvider: RefBookHistoryProvider,
+    val aspectHistoryProvider: AspectHistoryProvider,
+    val refBookHistoryProvider: RefBookHistoryProvider,
+    val objectHistoryProvider: ObjectHistoryProvider,
     val subjectHistoryProvider: SubjectHistoryProvider
 ) {
     @GetMapping("aspects")
@@ -42,6 +46,9 @@ class HistoryApi(
         logger.info("all ref book history took ${afterMS - beforeMS}")        
         return result
     }
+
+    @GetMapping("objects")
+    fun getObjects() = ObjectHistoryList(objectHistoryProvider.getAllHistory())
 
     @GetMapping("subjects")
     fun getSubjects(): SubjectHistoryList {

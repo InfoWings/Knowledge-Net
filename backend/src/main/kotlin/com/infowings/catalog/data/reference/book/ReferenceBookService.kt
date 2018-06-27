@@ -203,6 +203,10 @@ class ReferenceBookService(
         getReferenceBookItemVertex(id).toReferenceBookItem()
     }
 
+    fun itemName(id: String): String = transaction(db) {
+        getReferenceBookItemVertex(id).value
+    }
+
     fun addReferenceBookItem(request: ItemCreateRequest, username: String): String = addReferenceBookItem(
         request.parentId,
         ReferenceBookItem(
