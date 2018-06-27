@@ -175,6 +175,27 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         )
     }
 
+    private fun toAspectLocalData(): AspectData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+
+        return AspectData(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            properties = emptyList(),
+            version = version,
+            subject = null,
+            deleted = deleted,
+            description = description,
+            lastChangeTimestamp = null,
+            refBookName = null
+        )
+    }
+
+    // медленный вызов, в первую очередь за счет lastChange, во вторую -  за счет ссылок на субъект и имя справочника
+    // может быть приемлемым при работе с одним аспектом
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
     fun toAspectData(props: Map<String, AspectPropertyData>): AspectData {
@@ -195,7 +216,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             data ?: logger.warn("Not found aspect property with id $propertyId. Aspect id: $id")
             data
         }
-        val data = logTime(logger, "get aspect only data-2") { toAspectOnlyData() }
+        val data = logTime(logger, "get aspect only data-2") { toAspectLocalData() }
         return data.copy(properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
             lastChangeTimestamp = details.lastChange.epochSecond)
     }

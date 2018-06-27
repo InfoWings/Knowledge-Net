@@ -115,6 +115,13 @@ class AspectDaoTest {
         assertEquals(null, details2.refBookName)
         assertEquals(emptyList(), details1.propertyIds)
         assertEquals(emptyList(), details2.propertyIds)
+
+        val allEvents = historyService.allTimeline()
+        val events1 = allEvents.filter { it.event.entityId == aspectId1 }
+        val events2 = allEvents.filter { it.event.entityId == aspectId2 }
+
+        assertEquals(events1.first().event.timestamp, details1.lastChange.toEpochMilli())
+        assertEquals(events2.first().event.timestamp, details2.lastChange.toEpochMilli())
     }
 
     @Test
@@ -133,6 +140,7 @@ class AspectDaoTest {
         val details1 = details.getValue(aspectId1)
         assertEquals(null, details1.subject)
         assertEquals(null, details1.refBookName)
+        assertEquals(emptyList(), details1.propertyIds)
     }
 
     @Test
@@ -151,6 +159,7 @@ class AspectDaoTest {
         val aspectDetails = details.getValue(aspectId)
 
         assertEquals(subject.id, aspectDetails.subject?.id)
+        assertEquals(subject.name, aspectDetails.subject?.name)
         /*assertEquals(null, aspectDetails.refBookName)
         */
     }
@@ -169,20 +178,19 @@ class AspectDaoTest {
         val aspectDetails = details.getValue(aspectId)
 
         assertEquals(null, aspectDetails.subject)
-/*        assertEquals(null, aspectDetails.refBookName)
-        */
+        assertEquals(refBook.name, aspectDetails.refBookName)
     }
 
     @Test
     fun testGetDetailsWithProperty() {
-        val baseId = baseAspect.id
+        val baseId = baseAspect.id ?: throw IllegalStateException("base aspect has no id")
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(baseId)))
 
         assertEquals(setOf(baseId), details.keys)
 
-//        val aspectDetails = details.getValue(aspectId)
+        val aspectDetails = details.getValue(baseId)
 
-//        assertEquals(null, aspectDetails.subject)
+        assertEquals(null, aspectDetails.subject)
 /*        assertEquals(null, aspectDetails.refBookName)
         */
     }
