@@ -199,13 +199,21 @@ class AspectService(
 
             val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
-            val propsIdsByAspectIds = aspectDaoService.getDetails(ids)
+            val details = aspectDaoService.getDetails(ids)
 
-            logger.info("propsIdsByAspectIds: " + propsIdsByAspectIds)
+            logger.info("details: " + details)
 
-            logTime(logger, "filling aspects") {
+            val res2 = logTime(logger, "filling aspects using details") {
+                vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById, details) } }
+            }
+
+            val res = logTime(logger, "filling aspects") {
                 vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById) } }
             }
+
+            logger.info("res == res2: ${res == res2}")
+
+            res
         }
 
         return logTime(logger, "sorting aspects") {

@@ -105,41 +105,42 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
 
-    fun getDetails(ids: List<ORID>): Map<ORID, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
+    fun getDetails(ids: List<ORID>): Map<String, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
         val aliasSubjects = "subjectIds"
         val aliasRefBookNames = "refBookNames"
+        val aliasId = "id"
+
         db.query("select" +
-                " @rid as aspectId," +
+                " @rid as $aliasId," +
                 " out('$ASPECT_ASPECT_PROPERTY_EDGE').@rid as $aliasPropIds," +
-                " out('$ASPECT_SUBJECT_EDGE'):{@rid as id, name, description, @version as version} as $aliasSubjects," +
+                " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, name, description, @version as version} as $aliasSubjects," +
                 " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames," +
                 " max(out('$HISTORY_EDGE').timestamp) as aspectTS," +
-                " max(out('AspectPropertyEdge').out('HistoryEdge').timestamp) as propertiesTS" +
-                "  from  :ids GROUP BY aspectId ;", mapOf("ids" to ids)) { rs ->
+                " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as propertiesTS" +
+                "  from  :ids GROUP BY $aliasId ;", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull {
                 logTime(logger, "aspect data element processing") {
                     it.toVertexOrNull()
-                    val aspectId = it.getProperty<ORID>("aspectId")
+                    val aspectId = it.getProperty<ORID>(aliasId)
 
                     val propertyIds: List<ORID> = it.getProperty(aliasPropIds)
                     val subjects: List<OResult> = it.getProperty(aliasSubjects)
                     val refBookNames: List<String> = it.getProperty(aliasRefBookNames)
                     val aspectTS: Instant = it.getProperty("aspectTS")
-                    val propertiesTS: Instant = it.getProperty<Instant?>("propertiesTS") ?: Instant.MIN
+                    val propertiesTS: Instant = it.getProperty("propertiesTS") ?: Instant.MIN
 
                     logger.info("property ids: $propertyIds")
 
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
-                        logger.info("sr prop names: " + subjectResult.propertyNames)
                         SubjectData(
-                            id = subjectResult.getProperty<ORID>("id").toString(), name = subjectResult.getProperty("name"),
+                            id = subjectResult.getProperty<ORID>(aliasId).toString(), name = subjectResult.getProperty("name"),
                             description = subjectResult.getProperty("description"), version = subjectResult.getProperty("version"),
                             deleted = false
                         )
                     }
 
-                    aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = subject,
+                    aspectId.toString() to AspectDaoDetails(propertyIds = propertyIds, subject = subject,
                         refBookName = refBookNames.firstOrNull(), lastChange = aspectTS.latest(propertiesTS))
                 }
             }.toMap()
