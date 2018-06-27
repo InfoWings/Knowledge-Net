@@ -25,7 +25,7 @@ const val selectWithName =
 const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
-data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?, val propertyIds: List<ORID>)
+data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?, val propertyIds: List<ORID>, val lastChange: Instant)
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
@@ -101,6 +101,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
+
     fun getDetails(ids: List<ORID>): Map<ORID, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
         db.query("select" +
@@ -120,21 +122,20 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val subjects: List<OResult> = it.getProperty("subjects")
                     val refBookNames: List<String> = it.getProperty("refBookNames")
                     val aspectTS: Instant = it.getProperty("aspectTS")
-                    val propertiesTS: Instant = it.getProperty("aspectTS")
+                    val propertiesTS: Instant = it.getProperty<Instant?>("aspectTS") ?: Instant.MIN
 
                     logger.info("property ids: $propertyIds")
-                    logger.info("aspectTS: $aspectTS")
-                    logger.info("propertiesTS: $propertiesTS")
 
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
                         logger.info("sr prop names: " + subjectResult.propertyNames)
                         SubjectData(
                             id = subjectResult.getProperty<ORID>("id").toString(), name = subjectResult.getProperty("name"),
-                            description = "subjectDescrs.firstOrNull()", version = /*subjectVersions.first()*/ 0, deleted = false
+                            description = subjectResult.getProperty("description"), version = /*subjectVersions.first()*/ 0, deleted = false
                         )
                     }
 
-                    aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = subject, refBookName = refBookNames.firstOrNull())
+                    aspectId to AspectDaoDetails(propertyIds = propertyIds, subject = subject,
+                        refBookName = refBookNames.firstOrNull(), lastChange = aspectTS.latest(propertiesTS))
                 }
             }.toMap()
         }
