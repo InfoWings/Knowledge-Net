@@ -199,12 +199,22 @@ class AspectService(
 
             val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
-            val details = aspectDaoService.getDetails(ids)
+            val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
 
-            logger.info("details: " + details)
+            logger.info("detailsById: " + detailsById)
 
-            val res2 = logTime(logger, "filling aspects using details") {
-                vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById, details) } }
+            val res2: List<AspectData> = logTime(logger, "filling aspects using details") {
+                vertices.mapNotNull { aspectVertex ->
+                    logTime(logger, "convert to aspect data") {
+                        val id = aspectVertex.id
+                        val details = detailsById[id]
+                        val data = details?.let {
+                            aspectVertex.toAspectData(propsById, details)
+                        }
+                        data ?: logger.warn("nothing found for aspect id $id")
+                        data
+                    }
+                }
             }
 
             val res = logTime(logger, "filling aspects") {
