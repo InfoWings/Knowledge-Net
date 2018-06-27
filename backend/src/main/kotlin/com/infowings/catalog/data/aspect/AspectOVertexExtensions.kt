@@ -198,17 +198,6 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     // может быть приемлемым при работе с одним аспектом
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
-    fun toAspectData(props: Map<String, AspectPropertyData>): AspectData {
-        val propsList = properties.toList()
-        val data = toAspectOnlyData()
-        return data.copy(properties = propsList.map {
-                val propData: AspectPropertyData? = props[it.id]
-                propData ?: logger.warn("Not found aspect property with id ${it.id}. Aspect id: $id")
-                propData
-            }.filterNotNull())
-
-    }
-
     fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
             val propertyId = it.toString()
@@ -216,7 +205,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             data ?: logger.warn("Not found aspect property with id $propertyId. Aspect id: $id")
             data
         }
-        val data = logTime(logger, "get aspect only data-2") { toAspectLocalData() }
+        val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
         return data.copy(properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
             lastChangeTimestamp = details.lastChange.epochSecond)
     }

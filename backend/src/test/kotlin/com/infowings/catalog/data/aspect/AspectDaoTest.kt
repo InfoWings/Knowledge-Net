@@ -141,6 +141,10 @@ class AspectDaoTest {
         assertEquals(null, details1.subject)
         assertEquals(null, details1.refBookName)
         assertEquals(emptyList(), details1.propertyIds)
+
+        val allEvents = historyService.allTimeline()
+        val events1 = allEvents.filter { it.event.entityId == aspectId1 }
+        assertEquals(events1.first().event.timestamp, details1.lastChange.toEpochMilli())
     }
 
     @Test
@@ -160,8 +164,7 @@ class AspectDaoTest {
 
         assertEquals(subject.id, aspectDetails.subject?.id)
         assertEquals(subject.name, aspectDetails.subject?.name)
-        /*assertEquals(null, aspectDetails.refBookName)
-        */
+        assertEquals(null, aspectDetails.refBookName)
     }
 
     @Test
@@ -179,6 +182,7 @@ class AspectDaoTest {
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(refBook.name, aspectDetails.refBookName)
+        assertEquals(emptyList(), aspectDetails.propertyIds)
     }
 
     @Test
@@ -191,7 +195,6 @@ class AspectDaoTest {
         val aspectDetails = details.getValue(baseId)
 
         assertEquals(null, aspectDetails.subject)
-/*        assertEquals(null, aspectDetails.refBookName)
-        */
+        assertEquals(null, aspectDetails.refBookName)
     }
 }

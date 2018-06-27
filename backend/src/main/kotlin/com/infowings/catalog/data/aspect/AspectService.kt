@@ -201,7 +201,7 @@ class AspectService(
 
             val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
 
-            val res2: List<AspectData> = logTime(logger, "filling aspects using details") {
+            logTime(logger, "filling aspects using details") {
                 vertices.mapNotNull { aspectVertex ->
                     logTime(logger, "convert to aspect data") {
                         val id = aspectVertex.id
@@ -214,16 +214,6 @@ class AspectService(
                     }
                 }
             }
-
-            val res = logTime(logger, "filling aspects") {
-                vertices.map { logTime(logger, "convert to aspect data") {it.toAspectData(propsById) } }
-            }
-
-            logger.info("res: $res")
-            logger.info("res2: $res2")
-            logger.info("res == res2: ${res == res2}")
-
-            res
         }
 
         return logTime(logger, "sorting aspects") {
