@@ -42,13 +42,13 @@ class AspectDaoTest {
         val createdAspect: AspectData = aspectService.save(ad, username)
 
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(createdAspect.id)))
-
-        assertEquals(
-            setOf(createdAspect.id), details.keys
-        )
-
         val aspectId = createdAspect.id ?: throw IllegalStateException("aspect id is null")
+
+        assertEquals(setOf(aspectId), details.keys)
+
         val aspectDetails = details.getValue(aspectId)
+
+        assertEquals(null, aspectDetails.subject)
     }
 
     @Test
@@ -59,9 +59,29 @@ class AspectDaoTest {
         val created2: AspectData = aspectService.save(ad2, username)
 
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(created1, created2).map { ORecordId(it.id) })
+        val aspectId1 = created1.id ?: throw IllegalStateException("aspect id is null")
+        val aspectId2 = created2.id ?: throw IllegalStateException("aspect id is null")
 
-        assertEquals(
-            setOf(created1.id, created2.id), details.keys
-        )
+        assertEquals(setOf(aspectId1, aspectId2), details.keys)
+
+        val details1 = details.getValue(aspectId1)
+        val details2 = details.getValue(aspectId2)
+    }
+
+    @Test
+    fun testGetDetailsPlainOneOfTwo() {
+        val ad1 = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad2 = AspectData("", "newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
+        val created1: AspectData = aspectService.save(ad1, username)
+        val created2: AspectData = aspectService.save(ad2, username)
+
+        val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(created1).map { ORecordId(it.id) })
+        val aspectId1 = created1.id ?: throw IllegalStateException("aspect id is null")
+        val aspectId2 = created2.id ?: throw IllegalStateException("aspect id is null")
+
+        assertEquals(setOf(aspectId1), details.keys)
+
+//        val details1 = details.getValue(aspectId1)
+//        val details2 = details.getValue(aspectId2)
     }
 }
