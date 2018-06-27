@@ -8,7 +8,6 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
@@ -55,9 +54,9 @@ class ObjectHistoryTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -67,7 +66,7 @@ class ObjectHistoryTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -173,7 +172,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = propertyName, cardinality = propertyCardinality, aspectId = aspect.id
+            name = propertyName, cardinality = propertyCardinality, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
@@ -286,7 +285,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = "prop_$objectName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.id
+            name = "prop_$objectName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
@@ -1249,7 +1248,7 @@ class ObjectHistoryTest {
 
         val rbiValue = "rbi_$testName"
 
-        val refBook = refBookService.createReferenceBook("rb_$testName", aspect.id, "admin")
+        val refBook = refBookService.createReferenceBook("rb_$testName", aspect.idStrict(), "admin")
         val rbiId = refBookService.addReferenceBookItem(
             refBook.id,
             ReferenceBookItem(

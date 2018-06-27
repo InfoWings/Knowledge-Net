@@ -54,8 +54,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(
@@ -87,8 +87,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(
@@ -102,8 +102,13 @@ class AspectServiceRestTest {
 
         val saved = aspectService.save(testData, username)
 
-        val newProperty = AspectPropertyData("", "p3", baseAspect.id, PropertyCardinality.INFINITY.name, null)
+        val newProperty = AspectPropertyData("", "p3", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val updatedProperty = testProperty2.copy(name = "p4", cardinality = PropertyCardinality.ZERO.name)
+
+        val propertyByName = saved.properties.groupBy { it.name }
+
+        val savedP1 = propertyByName["p1"]?.get(0) ?: throw IllegalStateException("p1 not saved")
+        val savedP2 = propertyByName["p2"]?.get(0) ?: throw IllegalStateException("p2 not saved")
 
         val updateData = AspectData(
             saved.id,
@@ -112,9 +117,9 @@ class AspectServiceRestTest {
             null,
             BaseType.Decimal.name,
             listOf(
-                saved["p1"][0].toAspectPropertyData(),
+                savedP1,
                 newProperty,
-                updatedProperty.copy(id = saved["p2"][0].id, version = saved["p2"][0].version)
+                updatedProperty.copy(id = savedP2.id, version = savedP2.version)
             ),
             saved.version
         )
@@ -147,8 +152,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.id, PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.id, PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(

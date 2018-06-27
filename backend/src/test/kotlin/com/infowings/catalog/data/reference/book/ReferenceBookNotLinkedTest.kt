@@ -2,7 +2,6 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import org.junit.Assert
 import org.junit.Assert.*
@@ -24,7 +23,7 @@ class ReferenceBookNotLinkedTest {
     @Autowired
     private lateinit var aspectService: AspectService
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
     private lateinit var referenceBook: ReferenceBook
 
     private val username = "admin"
@@ -32,12 +31,12 @@ class ReferenceBookNotLinkedTest {
     @Before
     fun initTestData() {
         aspect = aspectService.save(AspectData("", "aspect", null, null, BaseType.Text.name), username)
-        referenceBook = referenceBookService.createReferenceBook("Example", aspect.id, username)
+        referenceBook = referenceBookService.createReferenceBook("Example", aspect.idStrict(), username)
     }
 
     @Test(expected = RefBookAlreadyExist::class)
     fun saveAlreadyExistBookTest() {
-        referenceBookService.createReferenceBook("some", aspect.id, username)
+        referenceBookService.createReferenceBook("some", aspect.idStrict(), username)
     }
 
     @Test
@@ -49,11 +48,11 @@ class ReferenceBookNotLinkedTest {
     fun getAllReferenceBooksTest() {
         val anotherAspect =
             aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name), username)
-        val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.id, username)
+        val anotherBook = referenceBookService.createReferenceBook("Example2", anotherAspect.idStrict(), username)
         val itemId = referenceBookService.addReferenceBookItem(anotherBook.id, createReferenceBookItem("v1"), username)
         val anotherBookChild = referenceBookService.getReferenceBookItem(itemId)
         val thirdAspect = aspectService.save(AspectData("", "third", null, null, BaseType.Text.name), username)
-        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.id, username)
+        val forDeletingBook = referenceBookService.createReferenceBook("forDeleting", thirdAspect.idStrict(), username)
         referenceBookService.removeReferenceBook(forDeletingBook, username, force = true)
         assertEquals(
             setOf(
@@ -66,15 +65,15 @@ class ReferenceBookNotLinkedTest {
 
     @Test
     fun findReferenceBookTest() {
-        assertEquals(referenceBookService.getReferenceBook(aspect.id), referenceBook)
+        assertEquals(referenceBookService.getReferenceBook(aspect.idStrict()), referenceBook)
     }
 
     @Test
     fun getReferenceBookOrNullTest() {
         val anotherAspect = aspectService.save(AspectData("", "anotherAspect", Metre.name, null, null), username)
-        assertEquals(referenceBookService.getReferenceBookOrNull(aspect.id), referenceBook)
+        assertEquals(referenceBookService.getReferenceBookOrNull(aspect.idStrict()), referenceBook)
         assertNull(referenceBookService.getReferenceBookOrNull(aspect.id + "1"))
-        assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.id))
+        assertNull(referenceBookService.getReferenceBookOrNull(anotherAspect.idStrict()))
     }
 
     @Test(expected = RefBookNotExist::class)
@@ -86,7 +85,7 @@ class ReferenceBookNotLinkedTest {
     fun updateReferenceBookTest() {
         val newName = "newName"
         referenceBookService.updateReferenceBook(referenceBook.copy(name = newName), username)
-        val updatedReferenceBook = referenceBookService.getReferenceBook(aspect.id)
+        val updatedReferenceBook = referenceBookService.getReferenceBook(aspect.idStrict())
         assertEquals(referenceBook.copy(name = newName, version = updatedReferenceBook.version), updatedReferenceBook)
     }
 
@@ -251,7 +250,7 @@ class ReferenceBookNotLinkedTest {
     fun removeBookTest() {
         val anotherAspect =
             aspectService.save(AspectData("", "anotherAspect", null, null, BaseType.Text.name), username)
-        val anotherAspectId = anotherAspect.id
+        val anotherAspectId = anotherAspect.idStrict()
         var bookForRemoving = referenceBookService.createReferenceBook("forRemovingBook", anotherAspectId, username)
         addReferenceBookItem(bookForRemoving.id, "itemValue")
         bookForRemoving = referenceBookService.getReferenceBook(anotherAspectId)

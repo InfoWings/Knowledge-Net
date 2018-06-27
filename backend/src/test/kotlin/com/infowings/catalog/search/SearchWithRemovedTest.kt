@@ -2,7 +2,6 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.toAspectVertex
@@ -37,21 +36,21 @@ class SearchWithRemovedTest {
     @Autowired
     lateinit var database: OrientDatabase
 
-    private lateinit var initialAspect: Aspect
+    private lateinit var initialAspect: AspectData
 
-    private lateinit var parentAspect: Aspect
+    private lateinit var parentAspect: AspectData
 
     @Before
     fun saveAspectAndRemoveIt() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
 
-        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name, null)
+        val p1 = AspectPropertyData("", "", initialAspect.idStrict(), PropertyCardinality.ONE.name, null)
         val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2, username)
 
         session(database) {
-            val aspectVertex = database.getVertexById(initialAspect.id)!!.toAspectVertex()
+            val aspectVertex = database.getVertexById(initialAspect.idStrict())!!.toAspectVertex()
             aspectVertex.deleted = true
             return@session aspectVertex.save<OVertex>()
         }
@@ -90,7 +89,7 @@ class SearchWithRemovedTest {
     @Test
     fun testFindAsParent() {
 
-        val searched = aspectDaoService.findParentAspects(initialAspect.id)
+        val searched = aspectDaoService.findParentAspects(initialAspect.idStrict())
 
         assertThat(
             "Search parents must contain aspect and his parent",

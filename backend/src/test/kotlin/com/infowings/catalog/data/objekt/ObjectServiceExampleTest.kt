@@ -8,7 +8,6 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
@@ -46,9 +45,9 @@ class ObjectServiceExampleTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -58,7 +57,7 @@ class ObjectServiceExampleTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -87,11 +86,11 @@ class ObjectServiceExampleTest {
         )
 
         val propertyStage1 =
-            AspectPropertyData("", "1-й ступени ток", aspectStage1.id, PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "1-й ступени ток", aspectStage1.idStrict(), PropertyCardinality.ONE.name, null)
         val propertyStage2 =
-            AspectPropertyData("", "2-й ступени ток", aspectStage2.id, PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "2-й ступени ток", aspectStage2.idStrict(), PropertyCardinality.ONE.name, null)
         val propertyMaxTempr =
-            AspectPropertyData("", "Max температура", aspectMaxTempr.id, PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "Max температура", aspectMaxTempr.idStrict(), PropertyCardinality.ONE.name, null)
 
         val aspectChargeMode = aspectService.save(
             AspectData(
@@ -102,7 +101,7 @@ class ObjectServiceExampleTest {
         )
 
 
-        val chargeModePropertyByAspectId = aspectChargeMode.properties.map { it.aspect.id to it }.toMap()
+        val chargeModePropertyByAspectId = aspectChargeMode.properties.map { it.aspectId to it }.toMap()
 
         fun chargeModeProperty(aspectId: String): String =
             chargeModePropertyByAspectId[aspectId]?.id
@@ -110,7 +109,7 @@ class ObjectServiceExampleTest {
 
 
         val propertyChargeMode =
-            AspectPropertyData("", "Режим заряда", aspectChargeMode.id, PropertyCardinality.INFINITY.name, null)
+            AspectPropertyData("", "Режим заряда", aspectChargeMode.idStrict(), PropertyCardinality.INFINITY.name, null)
         val aspectChargeCharacteristic = aspectService.save(
             AspectData(
                 name = "сharge-characteristic",
@@ -119,12 +118,12 @@ class ObjectServiceExampleTest {
             ), username
         )
 
-        val refBook = refBookService.createReferenceBook("rb-charge", aspectChargeMode.id, username)
+        val refBook = refBookService.createReferenceBook("rb-charge", aspectChargeMode.idStrict(), username)
         val refBookItemIds = listOf("Ускоренный", "Номинальный", "Глубокий").map {
-            val item = ReferenceBookItem(aspectChargeMode.id, it, "descr of $it", emptyList(), false, 0)
+            val item = ReferenceBookItem(aspectChargeMode.idStrict(), it, "descr of $it", emptyList(), false, 0)
             refBookService.addReferenceBookItem(refBook.id, item, "admin")
         }
-        refBookService.getReferenceBook(aspectChargeMode.id)
+        refBookService.getReferenceBook(aspectChargeMode.idStrict())
 
         val subjectData = SubjectData(
             null, name = "ПАО \"Сатурн\"", description = "С 2005 года в ПАО \"Сатурн\"" +
@@ -139,7 +138,7 @@ class ObjectServiceExampleTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId, name = "name", cardinality = PropertyCardinality.ZERO.name,
-            aspectId = aspectChargeCharacteristic.id
+            aspectId = aspectChargeCharacteristic.idStrict()
         )
         val createdPropertyId: String = objectService.create(propertyRequest, username)
 
@@ -179,7 +178,7 @@ class ObjectServiceExampleTest {
         val value111Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(3, null),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = chargeModeProperty(aspectStage1.id),
+            aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue11.id.toString(),
             measureId = null
         )
@@ -188,7 +187,7 @@ class ObjectServiceExampleTest {
         val value112Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(75, null),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = chargeModeProperty(aspectMaxTempr.id),
+            aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
             parentValueId = createdValue11.id.toString(),
             measureId = null
         )
@@ -199,7 +198,7 @@ class ObjectServiceExampleTest {
         val value121Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.8"),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = chargeModeProperty(aspectStage1.id),
+            aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue12.id.toString(),
             measureId = ampereMeasure?.id
         )
@@ -217,7 +216,7 @@ class ObjectServiceExampleTest {
         val value132Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.3"),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = chargeModeProperty(aspectStage2.id),
+            aspectPropertyId = chargeModeProperty(aspectStage2.idStrict()),
             parentValueId = createdValue13.id.toString(),
             measureId = ampereMeasure?.id
         )
@@ -226,7 +225,7 @@ class ObjectServiceExampleTest {
         val value133Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(45, null),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = chargeModeProperty(aspectMaxTempr.id),
+            aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
             parentValueId = createdValue13.id.toString(),
             measureId = null
         )

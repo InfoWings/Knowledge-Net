@@ -1,12 +1,8 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.EventType
-import com.infowings.catalog.common.RefBookHistory
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
@@ -44,7 +40,7 @@ class RefBookHistoryTest {
     @Autowired
     private lateinit var historyProvider: RefBookHistoryProvider
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
     private lateinit var userName: String
 
@@ -62,7 +58,7 @@ class RefBookHistoryTest {
         val historyBefore = historyService.getAll()
         val statesBefore = historyProvider.getAllHistory()
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = userName)
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = userName)
 
         val historyAfter = historyService.getAll()
         val statesAfter = historyProvider.getAllHistory()
@@ -129,7 +125,7 @@ class RefBookHistoryTest {
     fun testRefBookItemCreateHistory() {
         val testName = "testRefBookItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemValue = "rbi-1"
         val itemDescription = "rbi-1 description"
@@ -229,7 +225,7 @@ class RefBookHistoryTest {
     fun testRefBookSecondItemCreateHistory() {
         val testName = "testRefBookSecondItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val item1 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = "rbi-1", description = "rbi-1 description"), "admin"
@@ -332,7 +328,7 @@ class RefBookHistoryTest {
     fun testRefBookChildItemCreateHistory() {
         val testName = "testRefBookChildItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemId1 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = "rbi-1", description = "rbi-1 description"), "admin"
@@ -434,7 +430,7 @@ class RefBookHistoryTest {
     fun testRefBookItemUpdateHistory() {
         val testName = "testRefBookItemUpdateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemValue1 = "rbi-1"
         val itemDescription1 = "rbi-1 description"
@@ -524,7 +520,7 @@ class RefBookHistoryTest {
     fun testRefBookUpdateHistory() {
         val testName = "testRefBookIUpdateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val rbName2 = "SomeName"
         val rbDescription2 = "Some description"
@@ -533,7 +529,7 @@ class RefBookHistoryTest {
         val statesBefore = historyProvider.getAllHistory()
 
         val itemId2 = refBookService.editRoot(
-            RootEditRequest(aspectId = aspect.id, value = rbName2, description = rbDescription2, version = 1), "admin"
+            RootEditRequest(aspectId = aspect.idStrict(), value = rbName2, description = rbDescription2, version = 1), "admin"
         )
 
         val historyAfter = historyService.getAll()

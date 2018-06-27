@@ -162,7 +162,7 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
         }
 
     private fun getAspect(aspectId: String): AspectData = try {
-        aspectService.findById(aspectId).toAspectData()
+        aspectService.findById(aspectId)
     } catch (e: AspectDoesNotExist) {
         AspectData(id = aspectId, name = "'Aspect removed'")
     }

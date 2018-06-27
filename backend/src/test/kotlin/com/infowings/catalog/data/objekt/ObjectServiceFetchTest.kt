@@ -46,9 +46,9 @@ class ObjectServiceFetchTest {
                 name = "Dimensions",
                 baseType = BaseType.Text.name,
                 properties = listOf(
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = heightAspect.id),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = widthAspect.id),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = depthAspect.id)
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = heightAspect.idStrict()),
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = widthAspect.idStrict()),
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = depthAspect.idStrict())
                 )
             ), username
         )
@@ -57,7 +57,7 @@ class ObjectServiceFetchTest {
             ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version),
             username
         )
-        val boxDimensionPropertyId = objectService.create(PropertyCreateRequest(boxV1Id, "", PropertyCardinality.ZERO.name, dimensionsAspect.id), username)
+        val boxDimensionPropertyId = objectService.create(PropertyCreateRequest(boxV1Id, "", PropertyCardinality.ZERO.name, dimensionsAspect.idStrict()), username)
         val boxDimensionValue = objectService.create(ValueCreateRequest(ObjectValueData.NullValue, boxDimensionPropertyId), username)
         objectService.create(
             ValueCreateRequest(
