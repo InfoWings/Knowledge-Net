@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.treeview
 
-import com.infowings.catalog.objects.ObjectTreeViewModelConsumerProps
+import com.infowings.catalog.objects.ObjectTreeEditModelConsumerProps
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
 import kotlinext.js.require
@@ -10,7 +10,7 @@ import react.RHandler
 import react.RState
 import react.dom.div
 
-class ObjectTreeView : RComponent<ObjectTreeViewModelConsumerProps, RState>() {
+class ObjectTreeView : RComponent<ObjectTreeEditModelConsumerProps, RState>() {
 
     companion object {
         init {
@@ -46,5 +46,5 @@ class ObjectTreeView : RComponent<ObjectTreeViewModelConsumerProps, RState>() {
     }
 }
 
-fun RBuilder.objectTreeView(block: RHandler<ObjectTreeViewModelConsumerProps>) = child(ObjectTreeView::class, block)
+fun RBuilder.objectTreeView(block: RHandler<ObjectTreeEditModelConsumerProps>) = child(ObjectTreeView::class, block)
 

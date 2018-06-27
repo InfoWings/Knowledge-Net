@@ -261,7 +261,7 @@ class AspectService(
 
     private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
         val id = aspectVertex.id
-        logTime(logger, "loading properties for aspect $id") {aspectVertex.properties.map { loadAspectProperty(it.id) }}
+        aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 
     /**
@@ -378,6 +378,8 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
 
 
 class AspectNameCannotBeNull : AspectException()
