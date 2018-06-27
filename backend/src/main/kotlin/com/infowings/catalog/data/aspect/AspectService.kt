@@ -205,6 +205,8 @@ class AspectService(
      */
     fun findById(id: String): Aspect = findVertexById(id).toAspect()
 
+    fun findPropertyById(id: String): AspectProperty = findPropertyVertexById(id).toAspectProperty()
+
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
 

@@ -105,6 +105,19 @@ $color-yellow: #ffa500;
   }
 }
 
+.history-object-view {
+
+  display: inline-block;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &--wrapper {
+    margin-top: -2rem;
+    margin-bottom: 2rem;
+  }
+}
+
 .refbook-view {
   max-width: 120rem;
   margin: 3rem auto;

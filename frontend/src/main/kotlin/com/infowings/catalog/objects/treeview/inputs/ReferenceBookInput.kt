@@ -11,7 +11,8 @@ import react.*
 
 class RefBookValue(val aspectId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
 
-class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props) {
+class ReferenceBookInput(props: ReferenceBookInput.Props) :
+    RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props) {
 
     override fun State.init(props: Props) {
         isDialogOpen = false

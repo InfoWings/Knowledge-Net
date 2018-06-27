@@ -76,7 +76,7 @@ class RefBookHistoryTest {
         assertEquals(1, refBookFacts.size, "History must contain 1 element about ref book")
         val refBookEvent = refBookFacts.first().event
         assertEquals(EventType.CREATE, refBookEvent.type)
-        assertEquals(refBook.id, refBookEvent.entityId.toString())
+        assertEquals(refBook.id, refBookEvent.entityId)
 
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
@@ -161,9 +161,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(refBook.id, updateEvent.entityId.toString())
+        assertEquals(refBook.id, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(itemId, createEvent.entityId.toString())
+        assertEquals(itemId, createEvent.entityId)
 
         // проверяем содержание факта обновления родителя
         val updatePayload = updateFact.payload
@@ -263,9 +263,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(refBook.id, updateEvent.entityId.toString())
+        assertEquals(refBook.id, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(item2, createEvent.entityId.toString())
+        assertEquals(item2, createEvent.entityId)
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
@@ -364,9 +364,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(itemId1, updateEvent.entityId.toString())
+        assertEquals(itemId1, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(itemId2, createEvent.entityId.toString())
+        assertEquals(itemId2, createEvent.entityId)
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
@@ -468,7 +468,7 @@ class RefBookHistoryTest {
         // извлекаем факт и проверяем id сущности
         val fact = refBookFacts[0]
         val event = fact.event
-        assertEquals(itemId, event.entityId.toString())
+        assertEquals(itemId, event.entityId)
 
         // проверяем содержание факта
         val payload = fact.payload
@@ -544,15 +544,13 @@ class RefBookHistoryTest {
 
         val states = statesAfter.dropLast(statesBefore.size)
 
-        println(refBookFacts)
-
         // должен быть один элементарный факт
         assertEquals(1, refBookFacts.size)
 
         // извлекаем факт и проверяем id сущности
         val fact = refBookFacts[0]
         val event = fact.event
-        assertEquals(refBook.id, event.entityId.toString())
+        assertEquals(refBook.id, event.entityId)
 
         // проверяем содержание факта
         val payload = fact.payload

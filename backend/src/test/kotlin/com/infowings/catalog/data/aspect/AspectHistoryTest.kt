@@ -217,7 +217,7 @@ class AspectHistoryTest {
         val propertyFact = propertyFacts[0]
 
         assertEquals(EventType.CREATE, propertyFact.event.type)
-        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId.toString())
+        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId)
         assertEquals(updateFact.event.sessionId, propertyFact.event.sessionId, "session ids must match")
 
         assertEquals(
@@ -320,8 +320,8 @@ class AspectHistoryTest {
         val propertyFact = propertyFacts[0]
         val aspectProviderFact = aspectHistoryAdded[0]
 
-        assertEquals(aspect3.id, aspectFact.event.entityId.toString())
-        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId.toString())
+        assertEquals(aspect3.id, aspectFact.event.entityId)
+        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId)
 
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
@@ -330,9 +330,17 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
-            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
+        )
         val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
 
         val subjectId = subject.id
@@ -351,9 +359,17 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject2() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
-            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
+        )
         val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
 
         val subjectId = subject.id
