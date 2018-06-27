@@ -4,8 +4,11 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
+import com.infowings.catalog.common.BaseType.Text
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import org.hamcrest.core.Is
 import org.junit.Assert
@@ -36,6 +39,9 @@ class AspectDaoTest {
     @Autowired
     lateinit var subjectService: SubjectService
 
+    @Autowired
+    lateinit var refBookService: ReferenceBookService
+
     @Test
     fun testGetDetailsPlain() {
         val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
@@ -50,6 +56,7 @@ class AspectDaoTest {
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
+        assertEquals(emptyList<ORID>(), aspectDetails.propertyIds)
     }
 
     @Test
@@ -70,6 +77,8 @@ class AspectDaoTest {
 
         assertEquals(null, details1.subject)
         assertEquals(null, details2.subject)
+        assertEquals(null, details1.refBookName)
+        assertEquals(null, details2.refBookName)
     }
 
     @Test
@@ -86,7 +95,7 @@ class AspectDaoTest {
         assertEquals(setOf(aspectId1), details.keys)
 
         val details1 = details.getValue(aspectId1)
-//        val details2 = details.getValue(aspectId2)
+        assertEquals(null, details1.subject)
     }
 
     @Test
@@ -101,10 +110,28 @@ class AspectDaoTest {
         val aspectId = createdAspect.id ?: throw IllegalStateException("aspect id is null")
 
         assertEquals(setOf(aspectId), details.keys)
-/*
+
         val aspectDetails = details.getValue(aspectId)
 
-        assertEquals(null, aspectDetails.subject)
+/*        assertEquals(null, aspectDetails.subject)
+        assertEquals(null, aspectDetails.refBookName)
+        */
+    }
+
+    @Test
+    fun testGetDetailsWithRefBook() {
+        val ad = AspectData("", "newAspect", null, null, Text.name, emptyList())
+        val createdAspect: AspectData = aspectService.save(ad, username)
+        val aspectId = createdAspect.id ?: throw IllegalStateException("aspect without id")
+        val refBook = refBookService.createReferenceBook("rb", aspectId, username)
+
+        val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(createdAspect.id)))
+
+        assertEquals(setOf(aspectId), details.keys)
+
+        val aspectDetails = details.getValue(aspectId)
+
+/*        assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
         */
     }

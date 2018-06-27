@@ -156,7 +156,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     private fun toAspectOnlyData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         val subjectData = subject?.toSubjectData()
-        val refBookValue = logTime(logger, "extracting refBook value") { referenceBookRootVertex?.value }
+        val refBookValue = referenceBookRootVertex?.value
         val lastChange = logTime(logger, "extracting last change") {lastChange}
 
         return AspectData(
@@ -196,7 +196,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             data
         }
         val data = logTime(logger, "get aspect only data-2") { toAspectOnlyData() }
-        return data.copy(properties = propertiesData, subject = details.subject)
+        return data.copy(properties = propertiesData, subject = details.subject, refBookName = details.refBookName)
     }
 }
 

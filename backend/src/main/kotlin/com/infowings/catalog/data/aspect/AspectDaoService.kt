@@ -112,24 +112,24 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aliasId = "id"
         val aliasName = "name"
         val aliasDescription = "description"
+        val aliasAspectTime = "aspectTime"
 
         db.query("select" +
                 " @rid as $aliasId," +
                 " out('$ASPECT_ASPECT_PROPERTY_EDGE').@rid as $aliasPropIds," +
                 " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, $aliasName, $aliasDescription, @version as version} as $aliasSubjects," +
                 " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames," +
-                " max(out('$HISTORY_EDGE').timestamp) as aspectTS," +
+                " max(out('$HISTORY_EDGE').timestamp) as $aliasAspectTime," +
                 " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as propertiesTS" +
                 "  from  :ids GROUP BY $aliasId ;", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull {
-                logTime(logger, "aspect data element processing") {
                     it.toVertexOrNull()
                     val aspectId = it.getProperty<ORID>(aliasId)
 
                     val propertyIds: List<ORID> = it.getProperty(aliasPropIds)
                     val subjects: List<OResult> = it.getProperty(aliasSubjects)
                     val refBookNames: List<String> = it.getProperty(aliasRefBookNames)
-                    val aspectTS: Instant = it.getProperty("aspectTS")
+                    val aspectTS: Instant = it.getProperty(aliasAspectTime)
                     val propertiesTS: Instant = it.getProperty("propertiesTS") ?: Instant.MIN
 
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
@@ -142,7 +142,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
                     aspectId.toString() to AspectDaoDetails(propertyIds = propertyIds, subject = subject,
                         refBookName = refBookNames.firstOrNull(), lastChange = aspectTS.latest(propertiesTS))
-                }
             }.toMap()
         }
     }

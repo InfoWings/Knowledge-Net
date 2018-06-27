@@ -201,8 +201,6 @@ class AspectService(
 
             val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
 
-            logger.info("detailsById: " + detailsById)
-
             val res2: List<AspectData> = logTime(logger, "filling aspects using details") {
                 vertices.mapNotNull { aspectVertex ->
                     logTime(logger, "convert to aspect data") {
