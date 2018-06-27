@@ -6,6 +6,8 @@ import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.history.objekt.ObjectHistoryData
+import com.infowings.catalog.data.objekt.ScalarTypeTag
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
@@ -208,6 +210,78 @@ class RefBookHistoryInfo {
 
         data class BriefState(val header: Header, val item: Item?) {
             fun toData() = RefBookHistoryData.Companion.BriefState(header.toData(), item?.toData())
+        }
+    }
+}
+
+class ObjectHistoryInfo {
+    companion object {
+        data class Objekt(
+            val id: String,
+            val snapshot: MutableSnapshot,
+            val subjectName: String
+        ) {
+            fun toData() = ObjectHistoryData.Companion.Objekt(
+                id = id,
+                name = snapshot.data.getValue("name"),
+                description = snapshot.data["description"],
+                subjectId = snapshot.links.getValue("subject").first().toString(),
+                subjectName = subjectName
+            )
+
+        }
+
+        data class Property(val id: String, val snapshot: MutableSnapshot, val aspectName: String) {
+            fun toData() = ObjectHistoryData.Companion.Property(
+                id = id,
+                name = snapshot.data.getValue("name"),
+                cardinality = snapshot.data.getValue("cardinality"),
+                aspectId = snapshot.links.getValue("aspect").first().toString(),
+                aspectName = aspectName
+            )
+        }
+
+        data class Value(
+            val id: String,
+            val snapshot: MutableSnapshot,
+            val subjectName: String?,
+            val objectName: String?,
+            val domainElement: String?,
+            val measureName: String?,
+            val aspectPropertyName: String?
+        ) {
+            fun toData(): ObjectHistoryData.Companion.Value {
+                val typeTag: String? = snapshot.data["typeTag"]
+                val repr = when (typeTag) {
+                    ScalarTypeTag.STRING.name -> snapshot.data.getValue("strValue")
+                    ScalarTypeTag.DECIMAL.name -> snapshot.data.getValue("decimalValue")
+                    ScalarTypeTag.RANGE.name -> snapshot.data.getValue("range")
+                    ScalarTypeTag.INTEGER.name -> snapshot.data.getValue("intValue")
+                    ScalarTypeTag.SUBJECT.name -> {
+                        subjectName ?: throw IllegalStateException("subject name is unknown")
+                    }
+                    ScalarTypeTag.OBJECT.name -> {
+                        objectName ?: throw IllegalStateException("object name is unknown")
+                    }
+                    ScalarTypeTag.DOMAIN_ELEMENT.name -> {
+                        domainElement ?: throw IllegalStateException("domain element is unknown")
+                    }
+                    else -> "???"
+                }
+                return ObjectHistoryData.Companion.Value(
+                    id = id,
+                    typeTag = snapshot.data.getValue("typeTag"),
+                    repr = repr,
+                    precision = snapshot.data["precision"],
+                    measureName = measureName,
+                    aspectPropertyId = snapshot.links["aspectProperty"]?.first()?.toString(),
+                    aspectPropertyName = aspectPropertyName
+                )
+            }
+        }
+
+        data class BriefState(val objekt: Objekt, val property: Property?, val value: Value?) {
+            fun toData() = ObjectHistoryData.Companion.BriefState(objekt.toData(), property?.toData(), value?.toData())
         }
     }
 }

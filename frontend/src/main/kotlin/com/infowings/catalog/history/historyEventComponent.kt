@@ -5,6 +5,7 @@ import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.HistoryData
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.SnapshotData
+import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.utils.ripIcon
 import com.infowings.catalog.utils.userIcon
 import com.infowings.catalog.wrappers.blueprint.Collapse
@@ -88,6 +89,17 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                     attrs {
                         view = props.historyData.fullData as SnapshotData
                         onExit = { setState { showFullVersion = false } }
+                    }
+                }
+            }
+            is ObjectHistoryData.Companion.BriefState -> Collapse {
+                attrs {
+                    className = "history-object-view--wrapper"
+                    isOpen = state.showFullVersion
+                }
+                objectFullContainer {
+                    attrs {
+                        view = props.historyData.fullData as ObjectHistoryData.Companion.BriefState
                     }
                 }
             }

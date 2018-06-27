@@ -540,8 +540,6 @@ class RefBookHistoryTest {
 
         val states = statesAfter.dropLast(statesBefore.size)
 
-        println(refBookFacts)
-
         // должен быть один элементарный факт
         assertEquals(1, refBookFacts.size)
 

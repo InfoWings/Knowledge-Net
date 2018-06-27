@@ -27,8 +27,12 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             setState {
                 val selectedAspectOnServer =
                     nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
-                selectedAspect =
-                        selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
+
+                selectedAspect = if (nextProps.refreshOperation) {
+                    selectedAspectOnServer
+                } else {
+                    selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
+                }
             }
         }
     }
@@ -193,13 +197,11 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         }
     }
 
-    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean {
-        return when {
-            entityIsAlreadySelected(aspectId, index) -> false
-            isEmptyPropertySelected() -> false
-            isSelectedAspectHasChanges() -> true
-            else -> false
-        }
+    private fun State.unsavedDataSelection(aspectId: String?, index: Int?): Boolean = when {
+        entityIsAlreadySelected(aspectId, index) -> false
+        isEmptyPropertySelected() -> false
+        isSelectedAspectHasChanges() -> true
+        else -> false
     }
 
     private fun State.isSelectedAspectHasChanges() =
@@ -227,7 +229,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 onSearchQueryChanged = props.onSearchQueryChanged,
                 filter = state.aspectsFilter,
                 setFilterSubjects = ::setSubjectsFilter,
-                setFilterAspects = ::setExcludedAspectsToFilter
+                setFilterAspects = ::setExcludedAspectsToFilter,
+                refreshAspects = props.refreshAspects
             )
             aspectPageContent(
                 filteredAspects = state.aspectsFilter.applyToAspects(props.data),

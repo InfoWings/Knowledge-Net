@@ -201,6 +201,7 @@ class ObjectValidatorTest {
         }
     }
 
+    /*
     @Test
     fun objectValidatorEmptyObjectPropertyNameTest() {
         val objectRequest =
@@ -225,7 +226,7 @@ class ObjectValidatorTest {
             Assert.fail("Unexpected exception: $e")
         }
     }
-
+    */
 
     @Test
     fun objectValueValidatorSimpleIntTest() {
