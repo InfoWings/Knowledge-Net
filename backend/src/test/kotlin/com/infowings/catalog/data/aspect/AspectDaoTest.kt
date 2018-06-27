@@ -49,6 +49,7 @@ class AspectDaoTest {
         val aspectDetails = details.getValue(aspectId)
 
         assertEquals(null, aspectDetails.subject)
+        assertEquals(null, aspectDetails.refBookName)
     }
 
     @Test
@@ -66,6 +67,9 @@ class AspectDaoTest {
 
         val details1 = details.getValue(aspectId1)
         val details2 = details.getValue(aspectId2)
+
+        assertEquals(null, details1.subject)
+        assertEquals(null, details2.subject)
     }
 
     @Test
@@ -81,7 +85,27 @@ class AspectDaoTest {
 
         assertEquals(setOf(aspectId1), details.keys)
 
-//        val details1 = details.getValue(aspectId1)
+        val details1 = details.getValue(aspectId1)
 //        val details2 = details.getValue(aspectId2)
+    }
+
+    @Test
+    fun testGetDetailsWithSubject() {
+        val sd = SubjectData(id = "", name = "subject", description = "subject description", deleted = false, version = 0)
+        val subject = subjectService.createSubject(sd, "admin")
+
+        val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList(), 0, subject.toSubjectData())
+        val createdAspect: AspectData = aspectService.save(ad, username)
+
+        val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(createdAspect.id)))
+        val aspectId = createdAspect.id ?: throw IllegalStateException("aspect id is null")
+
+        assertEquals(setOf(aspectId), details.keys)
+/*
+        val aspectDetails = details.getValue(aspectId)
+
+        assertEquals(null, aspectDetails.subject)
+        assertEquals(null, aspectDetails.refBookName)
+        */
     }
 }

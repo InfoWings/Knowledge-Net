@@ -178,7 +178,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
     fun toAspectData(props: Map<String, AspectPropertyData>): AspectData {
-        val propsList = logTime(logger, "get aspect properties ids") { properties.toList() }
+        val propsList = properties.toList()
         val data = logTime(logger, "get aspect only data") { toAspectOnlyData() }
         return data.copy(properties = propsList.map {
                 val propData: AspectPropertyData? = props[it.id]
@@ -196,7 +196,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             data
         }
         val data = logTime(logger, "get aspect only data-2") { toAspectOnlyData() }
-        return data.copy(properties = propertiesData)
+        return data.copy(properties = propertiesData, subject = details.subject)
     }
 }
 

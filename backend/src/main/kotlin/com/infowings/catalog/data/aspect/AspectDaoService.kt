@@ -111,11 +111,12 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aliasRefBookNames = "refBookNames"
         val aliasId = "id"
         val aliasName = "name"
+        val aliasDescription = "description"
 
         db.query("select" +
                 " @rid as $aliasId," +
                 " out('$ASPECT_ASPECT_PROPERTY_EDGE').@rid as $aliasPropIds," +
-                " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, $aliasName, description, @version as version} as $aliasSubjects," +
+                " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, $aliasName, $aliasDescription, @version as version} as $aliasSubjects," +
                 " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames," +
                 " max(out('$HISTORY_EDGE').timestamp) as aspectTS," +
                 " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as propertiesTS" +
@@ -134,7 +135,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
                         SubjectData(
                             id = subjectResult.getProperty<ORID>(aliasId).toString(), name = subjectResult.getProperty(aliasName),
-                            description = subjectResult.getProperty("description"), version = subjectResult.getProperty("version"),
+                            description = subjectResult.getProperty(aliasDescription), version = subjectResult.getProperty("version"),
                             deleted = false
                         )
                     }
