@@ -130,8 +130,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     val aspectTS: Instant = it.getProperty("aspectTS")
                     val propertiesTS: Instant = it.getProperty("propertiesTS") ?: Instant.MIN
 
-                    logger.info("property ids: $propertyIds")
-
                     val subject = subjects.firstOrNull() ?.let { subjectResult ->
                         SubjectData(
                             id = subjectResult.getProperty<ORID>(aliasId).toString(), name = subjectResult.getProperty("name"),

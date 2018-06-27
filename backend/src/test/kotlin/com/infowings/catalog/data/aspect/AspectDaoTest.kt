@@ -46,5 +46,22 @@ class AspectDaoTest {
         assertEquals(
             setOf(createdAspect.id), details.keys
         )
+
+        val aspectId = createdAspect.id ?: throw IllegalStateException("aspect id is null")
+        val aspectDetails = details.getValue(aspectId)
+    }
+
+    @Test
+    fun testGetDetailsPlainTwo() {
+        val ad1 = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad2 = AspectData("", "newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
+        val created1: AspectData = aspectService.save(ad1, username)
+        val created2: AspectData = aspectService.save(ad2, username)
+
+        val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(created1, created2).map { ORecordId(it.id) })
+
+        assertEquals(
+            setOf(created1.id, created2.id), details.keys
+        )
     }
 }

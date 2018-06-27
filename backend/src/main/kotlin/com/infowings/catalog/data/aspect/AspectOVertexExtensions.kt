@@ -157,7 +157,6 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
         val subjectData = logTime(logger, "extracting subject data") { subject?.toSubjectData() }
         val refBookValue = logTime(logger, "extracting refBook value") { referenceBookRootVertex?.value }
-        val description = logTime(logger, "extracting description") {description}
         val lastChange = logTime(logger, "extracting last change") {lastChange}
 
         return AspectData(
@@ -191,12 +190,12 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     }
 
     fun toAspectData(props: Map<String, AspectPropertyData>, details: Map<String, AspectDaoDetails>): AspectData {
-        val propsList = logTime(logger, "get aspect properties ids-2") { properties.toList() }
+        val propsList = details.getValue(id).propertyIds.map { it.toString() } //logTime(logger, "get aspect properties ids-2") { properties.toList() }
         val data = logTime(logger, "get aspect only data-2") { toAspectOnlyData() }
         return logTime(logger, "enriching aspect only data-2") {
-            data.copy(properties = propsList.map {
-                val propData: AspectPropertyData? = props[it.id]
-                propData ?: logger.warn("Not found aspect property with id ${it.id}. Aspect id: $id")
+            data.copy(properties = propsList.map { propertyId ->
+                val propData: AspectPropertyData? = props[propertyId]
+                propData ?: logger.warn("Not found aspect property with id $propertyId. Aspect id: $id")
                 propData
             }.filterNotNull())
         }
