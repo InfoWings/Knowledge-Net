@@ -1,23 +1,23 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.ObjectPropertyValueViewModel
-import com.infowings.catalog.objects.ObjectPropertyViewModel
+import com.infowings.catalog.objects.ObjectPropertyEditModel
+import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import react.RBuilder
 import react.buildElement
 
 fun RBuilder.objectPropertyNode(
-    property: ObjectPropertyViewModel,
+    property: ObjectPropertyEditModel,
     aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
-    onUpdate: (ObjectPropertyViewModel.() -> Unit) -> Unit,
-    onUpdateWithoutSelect: (ObjectPropertyViewModel.() -> Unit) -> Unit
+    onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit,
+    onUpdateWithoutSelect: (ObjectPropertyEditModel.() -> Unit) -> Unit
 ) =
     controlledTreeNode {
         attrs {
-            className = "object-tree-view__property"
+            className = "object-tree-edit__property"
             expanded = property.expanded
             onExpanded = {
                 onUpdateWithoutSelect {
@@ -85,7 +85,7 @@ fun RBuilder.objectPropertyNode(
                 onAddValue = {
                     onEdit()
                     onUpdate {
-                        values?.add(ObjectPropertyValueViewModel())
+                        values?.add(ObjectPropertyValueEditModel())
                     }
                 }
             )

@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.inputs
+package com.infowings.catalog.objects.treeedit.inputs
 
 import com.infowings.catalog.common.PropertyCardinality
 import kotlinx.html.js.onChangeFunction

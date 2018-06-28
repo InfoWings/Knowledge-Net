@@ -41,9 +41,7 @@ class ObjectService(
                 objectVertex.id,
                 objectVertex.name,
                 objectVertex.description,
-                subjectVertex.id,
                 subjectVertex.name,
-                subjectVertex.description,
                 objectPropertyVertexes.size,
                 objectPropertyVertexes.map(this::fetchPropertyValues)
             )

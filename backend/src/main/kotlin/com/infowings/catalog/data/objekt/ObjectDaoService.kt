@@ -33,9 +33,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         transaction(db) {
             val query =
                 "SELECT @rid, name, description, " +
-                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).@rid as subjectRid, " +
                         "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
-                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).description as subjectDescription, " +
                         "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS"
             return@transaction db.query(query) {
@@ -44,9 +42,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         it.getProperty("@rid"),
                         it.getProperty("name"),
                         it.getProperty("description"),
-                        it.getProperty("subjectRid"),
                         it.getProperty("subjectName"),
-                        it.getProperty("subjectDescription"),
                         it.getProperty("objectPropertiesCount")
                     )
                 }
@@ -60,6 +56,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 RootValueResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
                 )
             }
@@ -71,6 +68,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return ValueResponse(
             this.id,
             this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            this.description,
             AspectPropertyDataExtended(
                 aspectProperty.id,
                 aspectProperty.name,
@@ -232,6 +230,6 @@ class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectExce
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
-class ObjectPropertyAlreadyExistException(name: String, objectId: String, aspectId: String) :
+class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")

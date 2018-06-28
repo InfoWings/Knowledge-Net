@@ -1,7 +1,7 @@
-package com.infowings.catalog.objects.treeview.inputs
+package com.infowings.catalog.objects.treeedit.inputs
 
 import com.infowings.catalog.common.RefBookNodeDescriptor
-import com.infowings.catalog.objects.treeview.inputs.dialog.selectReferenceBookValueDialog
+import com.infowings.catalog.objects.treeedit.inputs.dialog.selectReferenceBookValueDialog
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent

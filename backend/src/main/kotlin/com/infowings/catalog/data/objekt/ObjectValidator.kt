@@ -54,7 +54,7 @@ class ObjectValidator(
         val objectVertex = objectService.findById(request.objectId)
         val aspectVertex = aspectDao.getAspectVertex(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
 
-        val trimmedName = request.name.trim()
+        val trimmedName = request.name?.trim()
 
         val sameAspectProps = objectService.findPropertyByObjectAndAspect(objectVertex.id, aspectVertex.id).map { it.name }
         if (sameAspectProps.contains(trimmedName)) {

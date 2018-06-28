@@ -30,7 +30,6 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
     override fun fetchDetailedObject(id: String) {
         launch {
             val detailedObjectResponse = getDetailedObject(id)
-            console.log(detailedObjectResponse)
             setState {
                 detailedObjects += id to detailedObjectResponse
             }
