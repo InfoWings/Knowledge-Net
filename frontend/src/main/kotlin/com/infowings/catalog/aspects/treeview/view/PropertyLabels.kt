@@ -49,7 +49,7 @@ fun RBuilder.propertyLabel(
     }
     +":"
     span(classes = "text-grey") {
-        +if (aspectRefBookName.isEmpty()) aspectRefBookName else aspectDomain
+        +if (aspectRefBookName.isEmpty()) aspectDomain else aspectRefBookName
     }
     +":"
     span(classes = "text-grey") {
