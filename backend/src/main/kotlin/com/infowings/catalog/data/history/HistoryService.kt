@@ -6,6 +6,7 @@ import com.infowings.catalog.external.HistoryApi
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import java.time.Instant
@@ -40,9 +41,19 @@ class HistoryService(
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime(entityClass) }
             logger.info("${events.size} timeline events")
+            logger.info("event ids: ${events.map {it.id}}")
             return@transaction events.map { it.toFact() }
         }
     }
+
+    fun allTimeline(entityClasses: List<String>): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClasses") {
+        transaction(db) {
+            val events = logTime(logger, "basic collecting of timed events for $entityClasses") { historyDao.getAllHistoryEventsByTime(entityClasses) }
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
+        }
+    }
+
 
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()

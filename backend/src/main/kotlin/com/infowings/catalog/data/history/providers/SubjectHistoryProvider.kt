@@ -14,15 +14,10 @@ class SubjectHistoryProvider(
     private val historyService: HistoryService
 ) {
     fun getAllHistory(): List<HistorySnapshot> {
-        val allFacts = historyService.getAll()
-        val factGroups = allFacts.idEventMap(classname = SUBJECT_CLASS)
+        val facts = historyService.allTimeline(SUBJECT_CLASS)
+        val factGroups = facts.groupBy { it.event.entityId }
 
-        val factGroups2 = historyService.allTimeline(SUBJECT_CLASS).groupBy { it.event.entityId }
-
-        logger.info("${factGroups.size}, ${factGroups2.size}")
-        logger.info("fg == fg2: ${factGroups == factGroups2}")
-
-        logger.info("found ${factGroups.size} subject fact groups")
+        logger.info("found ${facts.size} history events about ${factGroups.size} subjects")
 
         val snapshots = logTime(logger, "restore subject snapshots") {
             factGroups.values.flatMap { entityFacts ->

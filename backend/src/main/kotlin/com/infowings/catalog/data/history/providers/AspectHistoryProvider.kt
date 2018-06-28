@@ -10,6 +10,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.SUBJECT_CLASS
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
@@ -36,6 +37,12 @@ class AspectHistoryProvider(
         }
 
         logger.info("found aspect event groups: ${aspectEventGroups.size}")
+
+        val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
+        val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
+
+        logger.info("${propertyFactsBySession.size} ${sessionAspectPropertyMap.size}")
+        logger.info("propertyFactsBySession == sessionAspectPropertyMap: ${propertyFactsBySession == sessionAspectPropertyMap}")
 
         val events = logTime(logger, "processing action event groups") {
             aspectEventGroups.values.flatMap {  entityEvents ->
