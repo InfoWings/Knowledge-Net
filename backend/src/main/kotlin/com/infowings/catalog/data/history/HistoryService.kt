@@ -9,6 +9,7 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<HistoryService>()
 
@@ -16,6 +17,8 @@ class HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao
 ) {
+    // пока такой наивный кеш. Словим OOME - переделаем
+    private val cache = ConcurrentHashMap<String, HistoryFact>()
 
     fun getAll(): Set<HistoryFact> = logTime(logger, "all history facts collection") {
         transaction(db) {
@@ -28,6 +31,14 @@ class HistoryService(
     fun allTimeline(): List<HistoryFact> = logTime(logger, "history timeline collection") {
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events") { historyDao.getAllHistoryEventsByTime() }
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
+        }
+    }
+
+    fun allTimeline(entityClass: String): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClass") {
+        transaction(db) {
+            val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime() }
             logger.info("${events.size} timeline events")
             return@transaction events.map { it.toFact() }
         }

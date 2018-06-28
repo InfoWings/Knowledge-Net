@@ -12,6 +12,7 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.RefBookHistoryInfo
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.loggerFor
 
 const val HISTORY_ENTITY_REFBOOK = "Reference Book"
 
@@ -27,6 +28,8 @@ private data class RefBookState(
         items = mutableMapOf<String, RefBookHistoryInfo.Companion.Item>()
     )
 }
+
+private val logger = loggerFor<RefBookHistoryProvider>()
 
 class RefBookHistoryProvider(
     private val historyService: HistoryService,
@@ -244,7 +247,12 @@ class RefBookHistoryProvider(
     fun getAllHistory(): List<RefBookHistory> {
         val allHistory = historyService.allTimeline()
 
-        val rbFacts = allHistory.filter { it.event.entityClass == REFERENCE_BOOK_ITEM_VERTEX }
+        val rbFacts = allHistory .filter { it.event.entityClass == REFERENCE_BOOK_ITEM_VERTEX }
+
+        val rbFacts2 = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
+
+        logger.info("${rbFacts.size}, ${rbFacts2.size}")
+        logger.info("rbFacts == rbFacts2: ${rbFacts == rbFacts2}")
 
         val factsBySession = rbFacts.groupBy { it.event.sessionId }
 

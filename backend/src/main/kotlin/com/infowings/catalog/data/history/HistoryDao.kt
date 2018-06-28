@@ -23,4 +23,9 @@ class HistoryDao(private val db: OrientDatabase) {
     fun getAllHistoryEventsByTime() = db.query(selectFromHistoryTS) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
+
+    fun getAllHistoryEventsByTime(entityClass: String) = db.query("SELECT FROM $HISTORY_EVENT_CLASS where entityClass = :cls ORDER BY timestamp",
+        mapOf("cls" to entityClass)) { rs ->
+        rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
+    }
 }
