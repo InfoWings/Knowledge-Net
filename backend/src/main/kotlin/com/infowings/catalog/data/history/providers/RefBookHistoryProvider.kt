@@ -245,14 +245,9 @@ class RefBookHistoryProvider(
     }
 
     fun getAllHistory(): List<RefBookHistory> {
-        val allHistory = historyService.allTimeline()
+        val rbFacts = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
 
-        val rbFacts = allHistory .filter { it.event.entityClass == REFERENCE_BOOK_ITEM_VERTEX }
-
-        val rbFacts2 = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
-
-        logger.info("${rbFacts.size}, ${rbFacts2.size}")
-        logger.info("rbFacts == rbFacts2: ${rbFacts == rbFacts2}")
+        logger.info("found ${rbFacts.size} reference book facts")
 
         val factsBySession = rbFacts.groupBy { it.event.sessionId }
 

@@ -9,6 +9,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
+import com.infowings.catalog.storage.SUBJECT_CLASS
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
@@ -23,6 +24,12 @@ class AspectHistoryProvider(
         val allHistory = historyService.getAll()
 
         val aspectEventGroups: Map<String, List<HistoryFact>> = logTime(logger, "grouping aspect event") {allHistory.idEventMap(classname = ASPECT_CLASS) }
+
+        val aspectEventGroups2 = historyService.allTimeline(ASPECT_CLASS).groupBy { it.event.entityId }
+
+        logger.info("${aspectEventGroups.size} ${aspectEventGroups2.size}")
+        logger.info("aspectEventGroups == aspectEventGroups2: ${aspectEventGroups == aspectEventGroups2}")
+
         val sessionAspectPropertyMap = logTime(logger, "grouping aspect properties") {
             allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
             .groupBy { it.event.sessionId }
