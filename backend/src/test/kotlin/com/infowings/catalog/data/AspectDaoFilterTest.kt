@@ -30,9 +30,9 @@ class AspectDaoFilterTest {
     @Before
     fun saveAspectTree() {
         var heightAspectData = AspectData(null, "Height", Metre.name, null, null)
-        heightAspectData = aspectService.save(heightAspectData, username).toAspectData()
+        heightAspectData = aspectService.save(heightAspectData, username)
         var widthAspectData = AspectData(null, "Width", Metre.name, null, null)
-        widthAspectData = aspectService.save(widthAspectData, username).toAspectData()
+        widthAspectData = aspectService.save(widthAspectData, username)
         val dimensionAspectData = AspectData(
             null, "Dimensions", null, null, BaseType.Text.name, properties = listOf(
                 AspectPropertyData("", "", heightAspectData.id!!, PropertyCardinality.ONE.name, ""),

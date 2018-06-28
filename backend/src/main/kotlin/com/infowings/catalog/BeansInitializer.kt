@@ -9,6 +9,7 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.providers.*
 import com.infowings.catalog.data.history.providers.AspectConstructor
 import com.infowings.catalog.data.history.providers.AspectDeltaConstructor
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
@@ -79,6 +80,12 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         }
         bean {
             RefBookHistoryProvider(historyService = ref(), aspectDao = ref())
+        }
+        bean {
+            ObjectHistoryProvider(
+                historyService = ref(), aspectService = ref(), subjectService = ref(),
+                refBookService = ref(), measureService = ref()
+            )
         }
         bean { SubjectHistoryProvider(historyService = ref()) }
         bean { ObjectDaoService(db = ref()) }

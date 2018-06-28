@@ -134,7 +134,7 @@ class AspectHistoryTest {
                 description = "some description-1"
             ), username
         )
-        val aspect2 = aspectService.save(aspect1.toAspectData().copy(description = "other"), username = "admin")
+        val aspect2 = aspectService.save(aspect1.copy(description = "other"), username = "admin")
 
         val aspectHistory: List<AspectHistory> = historyProvider.getAllHistory()
 
@@ -165,10 +165,10 @@ class AspectHistoryTest {
             ), username
         )
         val aspect3 = aspectService.save(
-            aspect1.toAspectData().copy(
+            aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2.id,
+                        id = "", name = "prop", aspectId = aspect2.id ?: throw IllegalStateException("aspect2 id is null"),
                         cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
@@ -217,7 +217,7 @@ class AspectHistoryTest {
         val propertyFact = propertyFacts[0]
 
         assertEquals(EventType.CREATE, propertyFact.event.type)
-        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId.toString())
+        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId)
         assertEquals(updateFact.event.sessionId, propertyFact.event.sessionId, "session ids must match")
 
         assertEquals(
@@ -226,11 +226,11 @@ class AspectHistoryTest {
         )
 
         assertEquals(
-            aspect3.properties[0].cardinality.toString(),
+            aspect3.properties[0].cardinality,
             propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
         )
         assertEquals(aspect3.properties[0].name, propertyFact.payload.data[AspectPropertyField.NAME.name])
-        assertEquals(aspect3.properties[0].aspect.id, propertyFact.payload.data[AspectPropertyField.ASPECT.name])
+        assertEquals(aspect3.properties[0].aspectId, propertyFact.payload.data[AspectPropertyField.ASPECT.name])
 
         assertEquals(emptySet(), propertyFact.payload.removedLinks.keys, "no removed links in property fact")
         assertEquals(emptySet(), propertyFact.payload.addedLinks.keys, "no added links in property fact")
@@ -282,10 +282,10 @@ class AspectHistoryTest {
             ), username
         )
         val aspect3 = aspectService.save(
-            aspect1.toAspectData().copy(
+            aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2.id,
+                        id = "", name = "prop", aspectId = aspect2?.id ?: throw IllegalStateException("aspect2 id is null"),
                         cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
@@ -296,7 +296,7 @@ class AspectHistoryTest {
         val aspectHistoryBefore: List<AspectHistory> = historyProvider.getAllHistory()
 
         aspectService.save(
-            aspect3.copy(properties = aspect3.properties.map { it.copy(description = "descr") }).toAspectData(),
+            aspect3.copy(properties = aspect3.properties.map { it.copy(description = "descr") }),
             "admin"
         )
 
@@ -320,8 +320,8 @@ class AspectHistoryTest {
         val propertyFact = propertyFacts[0]
         val aspectProviderFact = aspectHistoryAdded[0]
 
-        assertEquals(aspect3.id, aspectFact.event.entityId.toString())
-        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId.toString())
+        assertEquals(aspect3.id, aspectFact.event.entityId)
+        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId)
 
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
@@ -330,10 +330,18 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
-            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
-        val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
+        )
+        val aspect2 = aspectService.save(aspect1.copy(subject = null), username)
 
         val subjectId = subject.id
         if (subjectId == null) {
@@ -351,10 +359,13 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryRemovedSubject2() {
-        val subject = subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username).toSubjectData()
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
         val aspect1 = aspectService.save(
-            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username)
-        val aspect2 = aspectService.save(aspect1.toAspectData().copy(subject = null), username)
+            AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username
+        )
+        val aspect2 = aspectService.save(aspect1.copy(subject = null), username)
 
         val subjectId = subject.id
         if (subjectId == null) {

@@ -1,9 +1,10 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
@@ -39,6 +40,61 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 vertex.addEdge(it, edgeClass).save<OEdge>()
             }
         }
+    }
+
+    fun getTruncatedObjects() =
+        transaction(db) {
+            val query =
+                "SELECT @rid, name, description, " +
+                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
+                        "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
+                        "FROM $OBJECT_CLASS"
+            return@transaction db.query(query) {
+                it.map {
+                    ObjectTruncated(
+                        it.getProperty("@rid"),
+                        it.getProperty("name"),
+                        it.getProperty("description"),
+                        it.getProperty("subjectName"),
+                        it.getProperty("objectPropertiesCount")
+                    )
+                }
+            }.toList()
+        }
+
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
+        transaction(db) {
+            val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
+            return@transaction rootPropertyValues.map { rootValue ->
+                RootValueResponse(
+                    rootValue.id,
+                    rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.description,
+                    rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
+                )
+            }
+        }
+
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
+        val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
+        val aspect = aspectProperty.associatedAspect
+        return ValueResponse(
+            this.id,
+            this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            this.description,
+            AspectPropertyDataExtended(
+                aspectProperty.id,
+                aspectProperty.name,
+                aspect.id,
+                aspectProperty.cardinality,
+                aspect.name,
+                aspect.measure?.name,
+                OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
+                aspect.baseType ?: throw IllegalStateException("Aspect with id ${aspect.id} has no associated base type"),
+                aspect.referenceBookRootVertex?.name
+            ),
+            this.children.map { it.toDetailedAspectPropertyValueResponse() }
+        )
     }
 
     fun saveObject(vertex: ObjectVertex, info: ObjectWriteInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
@@ -270,7 +326,7 @@ class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectExce
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
-class ObjectPropertyAlreadyExistException(name: String, objectId: String, aspectId: String) :
+class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")

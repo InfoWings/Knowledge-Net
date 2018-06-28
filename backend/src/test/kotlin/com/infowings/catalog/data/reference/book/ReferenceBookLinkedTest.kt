@@ -41,7 +41,7 @@ class ReferenceBookLinkedTest {
     @Before
     fun initTestData() {
         val ad2 = AspectData("", "leaf2", null, null, BaseType.Text.name, emptyList())
-        val leafAspect = aspectService.save(ad2, username).toAspectData()
+        val leafAspect = aspectService.save(ad2, username)
         refBook = referenceBookService.createReferenceBook("Example", leafAspect.id!!, username)
     }
 
@@ -146,7 +146,7 @@ class ReferenceBookLinkedTest {
         val leafAspect = aspectService.findById(refBook.aspectId)
         val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
         val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2))
-        val aspectWithObjectProperty = aspectService.save(ad3, username).toAspectData()
+        val aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)

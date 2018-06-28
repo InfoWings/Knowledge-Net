@@ -27,7 +27,7 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         )
     )
 
-    var name: String
+    var name: String?
         get() = vertex[ATTR_NAME]
         set(value) {
             vertex[ATTR_NAME] = value

@@ -1,6 +1,11 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
+import com.infowings.catalog.common.DetailedObjectPropertyResponse
+import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
@@ -9,6 +14,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 
@@ -23,6 +29,36 @@ class ObjectService(
     private val historyService: HistoryService
 ) {
     private val validator = ObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao)
+
+    fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
+
+    fun getDetailedObject(id: String) =
+        transaction(db) {
+            val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
+            val subjectVertex = objectVertex.subject ?: throw ObjectWithoutSubjectException(objectVertex)
+            val objectPropertyVertexes = objectVertex.properties
+
+            return@transaction DetailedObjectResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                subjectVertex.name,
+                objectPropertyVertexes.size,
+                objectPropertyVertexes.map(this::fetchPropertyValues)
+            )
+        }
+
+    private fun fetchPropertyValues(propertyVertex: ObjectPropertyVertex): DetailedObjectPropertyResponse {
+        val values = dao.getPropertyValues(propertyVertex)
+        return DetailedObjectPropertyResponse(
+            propertyVertex.id,
+            propertyVertex.name,
+            propertyVertex.description,
+            propertyVertex.aspect?.toAspectData() ?: throw ObjectPropertyWithoutAspectException(propertyVertex.id),
+            propertyVertex.cardinality.name,
+            values
+        )
+    }
 
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -165,3 +201,5 @@ class ObjectService(
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
+
+class ObjectPropertyWithoutAspectException(id: String) : ObjectPropertyException("Object property with id $id does not have associated aspect")

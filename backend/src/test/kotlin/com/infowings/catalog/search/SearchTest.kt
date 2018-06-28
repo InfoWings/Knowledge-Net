@@ -3,7 +3,6 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
@@ -138,7 +137,7 @@ class SearchTest {
     @Test
     fun aspectSuggestion() {
         val aspectName = "aspectSuggestionTst"
-        val aspect: Aspect = createTestAspect(aspectName)
+        val aspect: AspectData = createTestAspect(aspectName)
 
         val res = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = aspectName), null)
 
@@ -148,13 +147,13 @@ class SearchTest {
         logger.debug("find result: $res")
 
         assertEquals(aspectName, res.first().name)
-        assertEquals(aspect.toAspectData(), res.first())
+        assertEquals(aspect, res.first())
     }
 
     @Test
     fun aspectDescSuggestion() {
         val aspectName = "descAspect"
-        val aspect: Aspect = createTestAspect(
+        val aspect: AspectData = createTestAspect(
             aspectName,
             "Aspect is a grammatical category that expresses how an action, event, or state, denoted by a verb, extends over time. Perfective aspect is used in referring to an event conceived as bounded and unitary, without reference to any flow of time during (\"I helped him\"). Imperfective aspect is used for situations conceived as existing continuously or repetitively as time flows "
         )
@@ -171,32 +170,32 @@ class SearchTest {
         logger.debug("find result: $res")
 
         assertEquals(aspectName, res.first().name)
-        assertEquals(aspect.toAspectData(), res.first())
+        assertEquals(aspect, res.first())
     }
 
 
     @Test
     fun findCycle() {
         val child = createTestAspectTree()
-        var res = suggestionService.findAspectNoCycle(child.id, "level")
+        var res = suggestionService.findAspectNoCycle(child.idStrict(), "level")
         assertEquals(1, res.size)
         assertEquals("level1_1", res[0].name)
-        assertEquals(0, suggestionService.findAspectNoCycle(child.id, "level2").size)
+        assertEquals(0, suggestionService.findAspectNoCycle(child.idStrict(), "level2").size)
 
-        res = aspectDaoService.findParentAspects(child.id)
+        res = aspectDaoService.findParentAspects(child.idStrict())
         assertEquals(3, res.size)
         assertEquals("level2", res[0].name)
         assertEquals("level1", res[1].name)
         assertEquals("root", res[2].name)
     }
 
-    private fun createTestAspect(aspectName: String, desc: String? = null): Aspect {
+    private fun createTestAspect(aspectName: String, desc: String? = null): AspectData {
         val ad = AspectData("", aspectName, Metre.name, null, null, emptyList(), description = desc)
         return aspectService.findByName(aspectName).firstOrNull() ?: aspectService.save(ad, username)
     }
 
 
-    private fun createTestAspectTree(): Aspect {
+    private fun createTestAspectTree(): AspectData {
 
         /*
          *  root
@@ -216,8 +215,8 @@ class SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level2: Aspect = aspectService.save(level2Data, username)
-        val level2Property = AspectPropertyData("", "p_level2", level2.id, PropertyCardinality.INFINITY.name, null)
+        val level2: AspectData = aspectService.save(level2Data, username)
+        val level2Property = AspectPropertyData("", "p_level2", level2.idStrict(), PropertyCardinality.INFINITY.name, null)
 
 
         val level11Data = AspectData(
@@ -228,9 +227,9 @@ class SearchTest {
             BaseType.Decimal.name,
             emptyList()
         )
-        val level11: Aspect = aspectService.save(level11Data, username)
+        val level11: AspectData = aspectService.save(level11Data, username)
         val level11Property =
-            AspectPropertyData("", "p_level1_1", level11.id, PropertyCardinality.INFINITY.name, null)
+            AspectPropertyData("", "p_level1_1", level11.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val level1Data = AspectData(
             "",
@@ -240,8 +239,8 @@ class SearchTest {
             BaseType.Decimal.name,
             listOf(level2Property)
         )
-        val level1: Aspect = aspectService.save(level1Data, username)
-        val level1Property = AspectPropertyData("", "p_level1", level1.id, PropertyCardinality.INFINITY.name, null)
+        val level1: AspectData = aspectService.save(level1Data, username)
+        val level1Property = AspectPropertyData("", "p_level1", level1.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad = AspectData(
             "",
@@ -254,7 +253,7 @@ class SearchTest {
         aspectService.save(ad, username)
 
 
-        return aspectService.findById(level2.id)
+        return aspectService.findById(level2.idStrict())
     }
 
     @Test
@@ -268,7 +267,7 @@ class SearchTest {
 
     @Test
     fun aspectSuggestionController() {
-        val aspect: Aspect = createTestAspect("newAspectSuggestion")
+        val aspect: AspectData = createTestAspect("newAspectSuggestion")
         mockMvc.perform(
             get("/api/search/aspect/suggestion").with(authorities)
                 .param("text", aspect.name)

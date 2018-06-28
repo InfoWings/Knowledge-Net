@@ -2,7 +2,6 @@ package com.infowings.catalog
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
 import org.junit.Before
@@ -47,7 +46,7 @@ fun createTestAspect(
     aspectName: String,
     aspectService: AspectService,
     subject: Subject? = null
-): Aspect {
+): AspectData {
     // Если есть аспект с заданным aspectName и subject.id - возвращаем его.
     // Если нет - создаем
 

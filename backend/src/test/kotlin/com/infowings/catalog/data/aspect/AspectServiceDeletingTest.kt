@@ -49,14 +49,16 @@ class AspectServiceDeletingTest {
     @Autowired
     lateinit var objectService: ObjectService
 
-    private lateinit var initialAspect: Aspect
+    private lateinit var initialAspect: AspectData
+    private lateinit var initialAspectId: String
 
     @Before
     fun saveAspectAndRemoveIt() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
+        initialAspectId = initialAspect?.id ?: throw IllegalStateException("initial aspect hash no id")
         session(database) {
-            val aspectVertex = database.getVertexById(initialAspect.id)!!.toAspectVertex()
+            val aspectVertex = database.getVertexById(initialAspectId)!!.toAspectVertex()
             aspectVertex.deleted = true
             return@session aspectVertex.save<OVertex>()
         }
@@ -65,19 +67,19 @@ class AspectServiceDeletingTest {
     @Test
     fun testAddSameNameAfterRemoving() {
         val ad = AspectData(null, "aspect1", Metre.name, null, null)
-        aspectService.remove(aspectService.findById(initialAspect.id).toAspectData(), username, true)
+        aspectService.remove(aspectService.findById(initialAspectId), username, true)
         val aspect = aspectService.save(ad, username)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
     }
 
     @Test(expected = AspectModificationException::class)
     fun testEditingAfterRemoving() {
-        aspectService.save(initialAspect.toAspectData(), username)
+        aspectService.save(initialAspect, username)
     }
 
     @Test(expected = AspectDoesNotExist::class)
     fun testCreatePropertyLinksToRemoved() {
-        val p1 = AspectPropertyData("", "", initialAspect.id, PropertyCardinality.ONE.name, null)
+        val p1 = AspectPropertyData("", "", initialAspectId, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspect1", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
     }
@@ -102,9 +104,9 @@ class AspectServiceDeletingTest {
         val aspectData = initialAspectData("SOME_ASPECT")
         val aspect = aspectService.save(aspectData, username)
 
-        aspectService.remove(aspect.toAspectData(), username)
+        aspectService.remove(aspect, username)
         thrown.expect(AspectDoesNotExist::class.java)
-        aspectService.remove(aspect.toAspectData(), username)
+        aspectService.remove(aspect, username)
     }
 
     @Test
@@ -112,13 +114,14 @@ class AspectServiceDeletingTest {
         val aspectData = initialAspectData("ASPECT_DWP")
         val aspect = aspectService.save(aspectData, username)
 
+        val aspectId = aspect?.id ?: throw IllegalStateException("no id for aspect")
 
-        val aspectProperty = AspectPropertyData("", "prop1", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val aspectProperty = AspectPropertyData("", "prop1", aspectId, PropertyCardinality.INFINITY.name, null)
         val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP", listOf(aspectProperty))
         aspectService.save(aspectData2, username)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect.id).toAspectData(), username)
+        aspectService.remove(aspectService.findById(aspectId), username)
     }
 
     @Test
@@ -127,18 +130,20 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5).toAspectData(), username)
+        aspectService.remove(aspect.copy(version = 5), username)
     }
 
     @Test
     fun testDeleteSimpleAspect() {
         val aspect = initialAspectData("A1")
         val saved = aspectService.save(aspect, username)
-        aspectService.remove(saved.toAspectData(), username)
+        aspectService.remove(saved, username)
+
+        val savedId = saved?.id ?: throw IllegalStateException("no id of saved aspect")
 
         assertThat(
             "There are no aspect instance in db",
-            database.getVertexById(saved.id),
+            database.getVertexById(savedId),
             Is.`is`(Matchers.nullValue())
         )
     }
@@ -146,22 +151,26 @@ class AspectServiceDeletingTest {
     @Test
     fun testDeleteLinkedByAspect() {
         var a1 = aspectService.save(initialAspectData("a1"), username)
-        val p1 = AspectPropertyData("", "", a1.id, PropertyCardinality.ONE.name, null)
+        var a1Id = a1?.id ?: throw IllegalStateException("No id for aspect a1")
+        val p1 = AspectPropertyData("", "", a1Id, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
-        a1 = aspectService.findById(a1.id)
+        a1 = aspectService.findById(a1Id)
+        a1Id = a1?.id ?: throw IllegalStateException("No id for aspect a1")
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(a1.toAspectData(), username)
+        aspectService.remove(a1, username)
 
-        val found = database.getVertexById(a1.id)
+        val found = database.getVertexById(a1Id)
         assertNotNull("Aspect exists in db", found)
         assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
-        a1 = aspectService.findById(a1.id)
-        aspectService.remove(a1.toAspectData(), username, true)
-        val found2 = database.getVertexById(a1.id)?.toAspectVertex()
+        a1 = aspectService.findById(a1Id)
+        a1Id = a1?.id ?: throw IllegalStateException("No id for aspect a1")
+
+        aspectService.remove(a1, username, true)
+        val found2 = database.getVertexById(a1Id)?.toAspectVertex()
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
     }
@@ -169,11 +178,11 @@ class AspectServiceDeletingTest {
     @Test
     fun testDeleteHasValue() {
         val ad2 = AspectData("", "leaf2", Second.name, null, BaseType.Decimal.name, emptyList())
-        val leafAspect = aspectService.save(ad2, username).toAspectData()
+        val leafAspect = aspectService.save(ad2, username)
         val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
         val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
         val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
-        val aspectWithObjectProperty = aspectService.save(ad3, username).toAspectData()
+        val aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
@@ -192,15 +201,19 @@ class AspectServiceDeletingTest {
     @Test
     fun testDeleteAspectWithRefBook() {
         var aspect = aspectService.save(initialAspectDataForRefBook("aspect"), username)
-        referenceBookService.createReferenceBook("book", aspect.id, username)
+        var aspectId = aspect?.id ?: throw IllegalStateException("No id for aspect id")
 
-        aspect = aspectService.findById(aspect.id)
-        aspectService.remove(aspect.toAspectData(), username)
+        referenceBookService.createReferenceBook("book", aspectId, username)
 
-        val foundAspectVertex = database.getVertexById(aspect.id)?.toAspectVertex()
+        aspect = aspectService.findById(aspectId)
+        aspectId = aspect?.id ?: throw IllegalStateException("No id for aspect id")
+
+        aspectService.remove(aspect, username)
+
+        val foundAspectVertex = database.getVertexById(aspectId)?.toAspectVertex()
         assertNull("Aspect not exists in db", foundAspectVertex)
 
-        val foundBookVertex = referenceBookDao.getRootVertex(aspect.id)
+        val foundBookVertex = referenceBookDao.getRootVertex(aspectId)
         assertNull("RefBook not exists in db", foundBookVertex)
     }
 
@@ -208,10 +221,12 @@ class AspectServiceDeletingTest {
     fun testDeleteAspectProperty() {
         val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"), username)
         val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"), username)
-        val property1 = AspectPropertyData("", "", simpleAspect1.id, PropertyCardinality.ONE.name, null)
-        val property2 = AspectPropertyData("", "", simpleAspect2.id, PropertyCardinality.ONE.name, null)
+        val id1 = simpleAspect1?.id ?: throw IllegalArgumentException("no id for aspect 1")
+        val id2 = simpleAspect2?.id ?: throw IllegalArgumentException("no id for aspect 2")
+        val property1 = AspectPropertyData("", "", id1, PropertyCardinality.ONE.name, null)
+        val property2 = AspectPropertyData("", "", id2, PropertyCardinality.ONE.name, null)
         val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)), username)
-        val initialAspectData = initial.toAspectData()
+        val initialAspectData = initial
 
         val propertyRemoved = aspectService.save(
             initialAspectData.copy(

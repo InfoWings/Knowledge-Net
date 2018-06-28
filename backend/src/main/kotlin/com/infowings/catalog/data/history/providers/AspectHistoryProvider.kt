@@ -33,7 +33,7 @@ class AspectHistoryProvider(
         val events = logTime(logger, "processing action event groups") {
             aspectEventGroups.values.flatMap {  entityEvents ->
 
-                var aspectDataAccumulator = AspectData()
+                var aspectDataAccumulator = AspectData(name = "")
 
                 val versionList = logTime(logger, "reconstruct aspect versions") {
                     listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->

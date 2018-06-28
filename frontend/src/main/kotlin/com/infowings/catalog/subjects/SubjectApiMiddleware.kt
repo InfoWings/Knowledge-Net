@@ -45,6 +45,7 @@ interface SubjectApiReceiverProps : RouteSuppliedProps {
     var onSubjectsCreate: suspend (SubjectData) -> Unit
     var onSubjectDelete: suspend (SubjectData, force: Boolean) -> Unit
     var onFetchData: (filterParam: Map<String, String>) -> Unit
+    var refreshSubjects: () -> Unit
 }
 
 class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware.State>() {
@@ -88,6 +89,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
     private suspend fun handleUpdateSubject(subjectData: SubjectData) {
         setState {
             loading = true
+            data[subjectData.id] = subjectData
         }
 
         val res = try {
@@ -140,6 +142,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
                 onSubjectsCreate = { handleCreateSubject(it) }
                 onSubjectDelete = { subjectData, force -> handleDeleteSubject(subjectData, force) }
                 onFetchData = ::handleFetchData
+                refreshSubjects = ::loadAllData
             }
         }
     }

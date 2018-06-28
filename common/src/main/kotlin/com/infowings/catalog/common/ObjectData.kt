@@ -2,19 +2,56 @@ package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 
-/**
- * Object data for passing to frontend
- * It must have no OrientDB data structure as well as no data types
- * that has no sense outside of backend
- */
-data class ObjectData2(
-    val id: String?,
-    val name: String,
-    val description: String?,
-    val subjectId: String,
-    val propertyIds: List<String>
+@Serializable
+data class ObjectsResponse(
+    val objects: List<ObjectGetResponse>
 )
 
+@Serializable
+data class ObjectGetResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectName: String,
+    val propertiesCount: Int
+)
+
+@Serializable
+data class DetailedObjectResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectName: String,
+    val propertiesCount: Int,
+    val objectProperties: List<DetailedObjectPropertyResponse>
+)
+
+@Serializable
+data class DetailedObjectPropertyResponse(
+    val id: String,
+    val name: String?,
+    val description: String?,
+    val aspect: AspectData,
+    val cardinality: String,
+    val values: List<RootValueResponse>
+)
+
+@Serializable
+data class RootValueResponse(
+    val id: String,
+    val value: ValueDTO,
+    val description: String?,
+    val children: List<ValueResponse>
+)
+
+@Serializable
+data class ValueResponse(
+    val id: String,
+    val value: ValueDTO,
+    val description: String?,
+    val aspectProperty: AspectPropertyDataExtended,
+    val children: List<ValueResponse>
+)
 
 @Serializable
 data class ObjectData(

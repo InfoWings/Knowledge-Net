@@ -24,6 +24,7 @@ fun OVertex.toAspectVertex() = AspectVertex(this)
 fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
 fun OVertex.isJustCreated() = this.identity.isNew
 
+
 /**
  * Kotlin does not provide package-level declarations.
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
@@ -45,24 +46,6 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             AspectField.REFERENCE_BOOK to (referenceBookRootVertex?.let { listOf(it.identity) } ?: emptyList())
         )
     )
-
-    fun toAspectData(): AspectData {
-        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        return AspectData(
-            id,
-            name,
-            measureName,
-            baseTypeObj?.let { OpenDomain(it).toString() },
-            baseType,
-            properties.map { it.toAspectPropertyData() },
-            version,
-            subject?.toSubjectData(),
-            deleted,
-            description,
-            lastChange?.epochSecond,
-            referenceBookRootVertex?.value
-        )
-    }
 
     val properties: List<AspectPropertyVertex>
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map { it.toAspectPropertyVertex() }.toList()
@@ -165,6 +148,23 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     override fun toString(): String =
         "AspectVertex[id=${this.id}, name=${this.name}]"
 
+    fun toAspectData(): AspectData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return AspectData(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            properties = properties.map { it.toAspectPropertyData() },
+            version = version,
+            subject = subject?.toSubjectData(),
+            deleted = deleted,
+            description = description,
+            lastChangeTimestamp = lastChange?.epochSecond,
+            refBookName = referenceBookRootVertex?.value
+        )
+    }
 }
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
@@ -214,6 +214,9 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         set(value) {
             vertex[ATTR_DESC] = value
         }
+
+    val associatedAspect: AspectVertex
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
 

@@ -23,7 +23,7 @@ data class ObjectProperty(
 )
 
 data class PropertyWriteInfo(
-    val name: String,
+    val name: String?,
     val cardinality: PropertyCardinality,
     val objekt: ObjectVertex,
     val aspect: AspectVertex

@@ -1,12 +1,8 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.EventType
-import com.infowings.catalog.common.RefBookHistory
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
@@ -44,7 +40,7 @@ class RefBookHistoryTest {
     @Autowired
     private lateinit var historyProvider: RefBookHistoryProvider
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
     private lateinit var userName: String
 
@@ -62,7 +58,7 @@ class RefBookHistoryTest {
         val historyBefore = historyService.getAll()
         val statesBefore = historyProvider.getAllHistory()
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = userName)
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = userName)
 
         val historyAfter = historyService.getAll()
         val statesAfter = historyProvider.getAllHistory()
@@ -76,7 +72,7 @@ class RefBookHistoryTest {
         assertEquals(1, refBookFacts.size, "History must contain 1 element about ref book")
         val refBookEvent = refBookFacts.first().event
         assertEquals(EventType.CREATE, refBookEvent.type)
-        assertEquals(refBook.id, refBookEvent.entityId.toString())
+        assertEquals(refBook.id, refBookEvent.entityId)
 
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
@@ -129,7 +125,7 @@ class RefBookHistoryTest {
     fun testRefBookItemCreateHistory() {
         val testName = "testRefBookItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemValue = "rbi-1"
         val itemDescription = "rbi-1 description"
@@ -161,9 +157,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(refBook.id, updateEvent.entityId.toString())
+        assertEquals(refBook.id, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(itemId, createEvent.entityId.toString())
+        assertEquals(itemId, createEvent.entityId)
 
         // проверяем содержание факта обновления родителя
         val updatePayload = updateFact.payload
@@ -229,7 +225,7 @@ class RefBookHistoryTest {
     fun testRefBookSecondItemCreateHistory() {
         val testName = "testRefBookSecondItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val item1 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = "rbi-1", description = "rbi-1 description"), "admin"
@@ -263,9 +259,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(refBook.id, updateEvent.entityId.toString())
+        assertEquals(refBook.id, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(item2, createEvent.entityId.toString())
+        assertEquals(item2, createEvent.entityId)
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
@@ -332,7 +328,7 @@ class RefBookHistoryTest {
     fun testRefBookChildItemCreateHistory() {
         val testName = "testRefBookChildItemCreateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemId1 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = "rbi-1", description = "rbi-1 description"), "admin"
@@ -364,9 +360,9 @@ class RefBookHistoryTest {
         val updateFact = byType.getValue(EventType.UPDATE)[0]
         val createFact = byType.getValue(EventType.CREATE)[0]
         val updateEvent = updateFact.event
-        assertEquals(itemId1, updateEvent.entityId.toString())
+        assertEquals(itemId1, updateEvent.entityId)
         val createEvent = createFact.event
-        assertEquals(itemId2, createEvent.entityId.toString())
+        assertEquals(itemId2, createEvent.entityId)
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
@@ -434,7 +430,7 @@ class RefBookHistoryTest {
     fun testRefBookItemUpdateHistory() {
         val testName = "testRefBookItemUpdateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val itemValue1 = "rbi-1"
         val itemDescription1 = "rbi-1 description"
@@ -468,7 +464,7 @@ class RefBookHistoryTest {
         // извлекаем факт и проверяем id сущности
         val fact = refBookFacts[0]
         val event = fact.event
-        assertEquals(itemId, event.entityId.toString())
+        assertEquals(itemId, event.entityId)
 
         // проверяем содержание факта
         val payload = fact.payload
@@ -524,7 +520,7 @@ class RefBookHistoryTest {
     fun testRefBookUpdateHistory() {
         val testName = "testRefBookIUpdateHistory"
 
-        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.id, username = "admin")
+        val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
         val rbName2 = "SomeName"
         val rbDescription2 = "Some description"
@@ -533,7 +529,7 @@ class RefBookHistoryTest {
         val statesBefore = historyProvider.getAllHistory()
 
         val itemId2 = refBookService.editRoot(
-            RootEditRequest(aspectId = aspect.id, value = rbName2, description = rbDescription2, version = 1), "admin"
+            RootEditRequest(aspectId = aspect.idStrict(), value = rbName2, description = rbDescription2, version = 1), "admin"
         )
 
         val historyAfter = historyService.getAll()
@@ -544,15 +540,13 @@ class RefBookHistoryTest {
 
         val states = statesAfter.dropLast(statesBefore.size)
 
-        println(refBookFacts)
-
         // должен быть один элементарный факт
         assertEquals(1, refBookFacts.size)
 
         // извлекаем факт и проверяем id сущности
         val fact = refBookFacts[0]
         val event = fact.event
-        assertEquals(refBook.id, event.entityId.toString())
+        assertEquals(refBook.id, event.entityId)
 
         // проверяем содержание факта
         val payload = fact.payload

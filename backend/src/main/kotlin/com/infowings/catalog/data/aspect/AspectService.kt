@@ -92,7 +92,7 @@ class AspectService(
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      * @throws AspectEmptyChangeException if new data is the same that old data
      */
-    fun save(aspectData: AspectData, username: String): Aspect {
+    fun save(aspectData: AspectData, username: String): AspectData {
         val userVertex = userService.findUserVertexByUsername(username)
 
         val save: AspectVertex = transaction(db) {
@@ -101,11 +101,17 @@ class AspectService(
                 .checkBusinessKey()
                 .getOrCreateAspectVertex()
 
+            /*
             if (aspectVertex.toAspectData() == aspectData) {
                 throw AspectEmptyChangeException()
-            }
+            }*/
 
-            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else this::updateFinish
+            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else {
+                if (aspectVertex.toAspectData() == aspectData) {
+                    throw AspectEmptyChangeException()
+                }
+                this::updateFinish
+            }
 
             return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
         }
@@ -118,10 +124,10 @@ class AspectService(
             // Оставим эту веточку. Последим за логами
             val res = findById(save.id)
 
-            logger.warn("Cluster position is negative: ${save.identity}. Aspect: ${save.toAspect()}. Recovered: $res")
+            logger.warn("Cluster position is negative: ${save.id}. Aspect: $save. Recovered: $res")
 
             res
-        } else save.toAspect()
+        } else transaction(db) { save.toAspectData() }
     }
 
     fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
@@ -160,10 +166,12 @@ class AspectService(
     }
 
     /**
-     * Search [Aspect] by it's name
-     * @return List of [Aspect] with name [name]
+     * Search [AspectData] by it's name
+     * @return List of [AspectData] with name [name]
      */
-    fun findByName(name: String): Set<Aspect> = aspectDaoService.findByName(name).map { it.toAspect() }.toSet()
+    fun findByName(name: String): Set<AspectData> = transaction(db) {
+        aspectDaoService.findByName(name).map { it.toAspectData() }.toSet()
+    }
 
     fun getAspects(
         orderBy: List<AspectOrderBy> = listOf(
@@ -173,37 +181,34 @@ class AspectService(
             )
         ),
         query: String? = null
-    ): List<Aspect> {
-        val beforeMS = System.currentTimeMillis()
-
-        logger.info("query: " + query)
-
-        val vertices = when {
-            query == null || query.isBlank() -> aspectDaoService.getAspects()
-            else -> aspectDaoService.findTransitiveByNameQuery(query)
+    ): List<AspectData> {
+        val aspects = transaction(db) {
+            val vertices = logTime(logger, "getting aspect vertices") {
+                when {
+                    query == null || query.isBlank() -> aspectDaoService.getAspects()
+                    else -> aspectDaoService.findTransitiveByNameQuery(query)
+                }
+            }
+            logTime(logger, "extracting aspects") {
+                vertices.map { it.toAspectData() }
+            }
         }
-        val afterMS = System.currentTimeMillis()
 
-        logger.info("getting aspect vertices took ${afterMS - beforeMS}ms. ${vertices.size}" )
-
-        val aspects = logTime(logger, "extracting aspects") {
-            vertices.map { it.toAspect() }
-        }
-        val sorted = logTime(logger, "sorting aspects") {
+        return logTime(logger, "sorting aspects") {
             aspects.sort(orderBy)
         }
-
-        return sorted
     }
 
     private fun findVertexById(id: String): AspectVertex =
         aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
 
     /**
-     * Search [Aspect] by it's id
+     * Search [AspectData] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): Aspect = findVertexById(id).toAspect()
+    fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
+
+    fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
@@ -214,19 +219,20 @@ class AspectService(
             direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
     }
 
-    private fun List<Aspect>.sort(orderBy: List<AspectOrderBy>): List<Aspect> {
+    private fun List<AspectData>.sort(orderBy: List<AspectOrderBy>): List<AspectData> {
         if (orderBy.isEmpty()) {
             return this
         }
-        fun aspectNameAsc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.ASC)
-        fun aspectNameDesc(aspect: Aspect): Comparable<*> = CompareString(aspect.name, Direction.DESC)
-        fun aspectSubjectNameAsc(aspect: Aspect): Comparable<*> =
+
+        fun aspectNameAsc(aspect: AspectData): Comparable<*> = CompareString(aspect.name, Direction.ASC)
+        fun aspectNameDesc(aspect: AspectData): Comparable<*> = CompareString(aspect.name, Direction.DESC)
+        fun aspectSubjectNameAsc(aspect: AspectData): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.ASC)
 
-        fun aspectSubjectNameDesc(aspect: Aspect): Comparable<*> =
+        fun aspectSubjectNameDesc(aspect: AspectData): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.DESC)
 
-        val m = mapOf<AspectSortField, Map<Direction, (Aspect) -> Comparable<*>>>(
+        val m = mapOf<AspectSortField, Map<Direction, (AspectData) -> Comparable<*>>>(
             AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
             AspectSortField.SUBJECT to mapOf(
                 Direction.ASC to ::aspectSubjectNameAsc,
@@ -247,19 +253,6 @@ class AspectService(
         return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
             vertex
         )
-    }
-
-    /**
-     * Load property by id
-     * @throws AspectPropertyDoesNotExist
-     */
-    private fun loadAspectProperty(propertyId: String): AspectProperty =
-        aspectDaoService.getAspectPropertyVertex(propertyId)?.toAspectProperty()
-                ?: throw AspectPropertyDoesNotExist(propertyId)
-
-    private fun loadProperties(aspectVertex: AspectVertex): List<AspectProperty> = transaction(db) {
-        val id = aspectVertex.id
-        aspectVertex.properties.map { loadAspectProperty(it.id) }
     }
 
     /**
@@ -298,27 +291,6 @@ class AspectService(
                 ?: throw IllegalArgumentException("Incorrect property id")
 
     }
-
-    private fun AspectVertex.toAspect(): Aspect = transaction(db) {
-        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        Aspect(
-            id,
-            name,
-            measure,
-            baseTypeObj?.let { OpenDomain(it) },
-            baseTypeObj,
-            loadProperties(this),
-            version,
-            subject,
-            deleted,
-            description,
-            lastChange,
-            referenceBookRootVertex?.value
-        )
-    }
-
-    private fun AspectPropertyVertex.toAspectProperty(): AspectProperty =
-        AspectProperty(id, name, findById(aspect), description, PropertyCardinality.valueOf(cardinality), version)
 
     private fun AspectPropertyVertex.validateExistingAspectProperty(aspectPropertyData: AspectPropertyData): AspectPropertyVertex =
         this.also { aspectValidator.validateExistingAspectProperty(this, aspectPropertyData) }
@@ -376,6 +348,8 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
+
+class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
 
 
 class AspectNameCannotBeNull : AspectException()

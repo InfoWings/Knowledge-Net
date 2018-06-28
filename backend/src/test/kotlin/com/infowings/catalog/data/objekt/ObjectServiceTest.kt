@@ -8,7 +8,6 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.Aspect
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
@@ -44,9 +43,9 @@ class ObjectServiceTest {
 
     private lateinit var subject: Subject
 
-    private lateinit var aspect: Aspect
+    private lateinit var aspect: AspectData
 
-    private lateinit var complexAspect: Aspect
+    private lateinit var complexAspect: AspectData
 
     private val username = "admin"
 
@@ -56,7 +55,7 @@ class ObjectServiceTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.id, PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "complex",
@@ -91,7 +90,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithPropertyTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObjectId, aspectId = aspect.id
+            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObjectId, aspectId = aspect.idStrict()
         )
 
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -136,7 +135,7 @@ class ObjectServiceTest {
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithValueTestName",
             cardinality = PropertyCardinality.INFINITY.name,
-            objectId = createdObjectId, aspectId = aspect.id
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
