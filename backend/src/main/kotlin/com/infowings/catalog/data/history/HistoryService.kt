@@ -42,6 +42,9 @@ class HistoryService(
             val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime(entityClass) }
             logger.info("${events.size} timeline events")
             logger.info("event ids: ${events.map {it.id}}")
+
+            val payloads = historyDao.getPayloads(events.map {it.identity})
+
             return@transaction events.map { it.toFact() }
         }
     }

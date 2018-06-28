@@ -32,7 +32,7 @@ class AspectHistoryProvider(
         logger.info("aspectEventGroups == aspectEventGroups2: ${aspectEventGroups == aspectEventGroups2}")
 
         val sessionAspectPropertyMap = logTime(logger, "grouping aspect properties") {
-            allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }
+            allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }.sortedBy { it.event.timestamp }
             .groupBy { it.event.sessionId }
         }
 
@@ -43,6 +43,8 @@ class AspectHistoryProvider(
 
         logger.info("${propertyFactsBySession.size} ${sessionAspectPropertyMap.size}")
         logger.info("propertyFactsBySession == sessionAspectPropertyMap: ${propertyFactsBySession == sessionAspectPropertyMap}")
+        logger.info("propertyFactsBySession: $propertyFactsBySession")
+        logger.info("sessionAspectPropertyMap: $sessionAspectPropertyMap")
 
         val events = logTime(logger, "processing action event groups") {
             aspectEventGroups.values.flatMap {  entityEvents ->
