@@ -5,6 +5,9 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -39,6 +42,17 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun findByName(name: String): Set<AspectVertex> = db.query(selectWithName, mapOf("name" to name)) { rs ->
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
+
+    fun findAspectsByIds(ids: List<String>): List<AspectVertex> {
+        return db.query(
+            "select from $ASPECT_CLASS where @rid in :ids ", mapOf("ids" to ids.map { ORecordId(it) })
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toAspectVertex()
+            }.toList()
+        }
+    }
+
 
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"

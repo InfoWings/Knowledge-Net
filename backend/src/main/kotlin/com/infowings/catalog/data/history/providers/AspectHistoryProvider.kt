@@ -41,7 +41,9 @@ class AspectHistoryProvider(
                 entityFacts.forEach {
                     snapshot.apply(it.payload)
                     val propertyFacts = propertyFactsBySession[it.event.sessionId]
-                    logger.info("property facts: " + propertyFacts)
+                    propertyFacts?.forEach {
+                        propertySnapshots[it.event.entityId]?.apply(it.payload)
+                    }
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {

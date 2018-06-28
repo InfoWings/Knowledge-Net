@@ -14,6 +14,7 @@ import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.SUBJECT_CLASS
+import com.infowings.catalog.storage.id
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,5 +58,24 @@ class RefBookDaoTest {
         val refBookVertices = refBookDao.find(listOf(refBook.id))
 
         assertEquals(1, refBookVertices.size)
+
+        val vertex = refBookVertices[0]
+        assertEquals(refBook.id, vertex.id)
+    }
+
+    @Test
+    fun testRefBookFindCorrectClass() {
+        val aspectName = "aspect"
+        val aspectDescr = "aspect description"
+        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr,
+            version = 0, deleted = false, baseType = BaseType.Text.name), username)
+        val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
+
+        val rbName = "rb"
+        val refBook = refBookService.createReferenceBook(rbName, aspectId, username)
+
+        val refBookVertices = refBookDao.find(listOf(aspectId))
+
+        assertEquals(0, refBookVertices.size)
     }
 }

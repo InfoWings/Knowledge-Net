@@ -51,7 +51,7 @@ class HistoryDao(private val db: OrientDatabase) {
             val aliasId = "id"
             val aliasFields = "fields"
             val aliasAdded = "addedLinks"
-            val aliasAspectTime = "aspectTime"
+            val aliasDropped = "droppedLinks"
             val aliasPropertiesTime = "propTime"
             val aliasVersion = "version"
 
@@ -60,23 +60,29 @@ class HistoryDao(private val db: OrientDatabase) {
                         " @rid as $aliasId," +
                         " out('$HISTORY_ELEMENT_EDGE'):{key, value} as $aliasFields," +
                         " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as $aliasAdded, " +
-                        " out('$HISTORY_DROP_LINK_EDGE'):{key, peerId} as dropedLinks " +
+                        " out('$HISTORY_DROP_LINK_EDGE'):{key, peerId} as $aliasDropped " +
                         "  from  :ids ", mapOf("ids" to ids)
             ) { rs ->
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
-                    val fields = it.getProperty<List<OResultInternal>>(aliasFields)
                     val addedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
-                    val dropedLinks = it.getProperty<List<OResultInternal>>("dropedLinks")
+                    val droppedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
 
-                    val data: Map<String, String> = fields.map {
-                        logger.info("field class: ${it.javaClass}")
-                        logger.info("prop names: ${it.propertyNames}")
+                    val data: Map<String, String> = it.getProperty<List<OResultInternal>>(aliasFields).map {
                         it.getProperty<String>("key") to it.getProperty<String>("value")
                     }.toMap()
-                    logger.info("data: " + data)
-                    logger.info("added links: " + addedLinks)
+
+                    val added = it.getProperty<List<OResultInternal>>(aliasAdded).map { link ->
+                        logger.info("added: ${link.propertyNames}")
+                        link.propertyNames.forEach {
+                            val v = link.getProperty<Any>(it)
+                            logger.info("prop name: $it")
+                            logger.info("prop value: $v")
+                            logger.info("prop value class: ${v?.javaClass}")
+                        }
+                        "it.getProperty<String>(\"key\")" to "it.getProperty<String>(\"value\")"
+                    }.toMap()
 
                     eventId.toString() to DiffPayload(data = data, addedLinks = emptyMap(), removedLinks = emptyMap())
                 }.toMap()

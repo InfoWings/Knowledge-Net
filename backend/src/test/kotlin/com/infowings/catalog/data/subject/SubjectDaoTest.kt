@@ -67,4 +67,16 @@ class SubjectDaoTest {
 
         assertEquals(0, subjectVertices.size)
     }
+
+    @Test
+    fun testSubjectsByIdsTwo() {
+        val subject1 =
+            subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
+        val subject2 =
+            subjectService.createSubject(SubjectData(name = "subj2", description = null), username)
+
+        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(subject1.id, subject2.id))
+
+        assertEquals(2, subjectVertices.size)
+    }
 }
