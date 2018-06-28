@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.format
+package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.components.description.descriptionComponent
 import react.RProps

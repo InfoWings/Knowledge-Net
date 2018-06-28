@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.DetailedObjectPropertyResponse
 import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
@@ -31,6 +32,7 @@ class ObjectService(
 
     fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
 
+    // TODO: KS-168 - possible bottleneck
     fun getDetailedObject(id: String) =
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
@@ -58,6 +60,21 @@ class ObjectService(
             values
         )
     }
+
+    fun getDetailedObjectForEdit(id: String) =
+        transaction(db) {
+            val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
+            val objectSubject = objectVertex.subject ?: throw IllegalStateException("Object in database does not have a subject")
+            val objectTreeResponse = ObjectEditDetailsResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                objectSubject.name,
+                objectSubject.id,
+                emptyList()
+            )
+            return@transaction objectTreeResponse
+        }
 
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)

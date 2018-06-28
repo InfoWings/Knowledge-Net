@@ -1,9 +1,9 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.view.tree
 
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.objects.ObjectPropertyViewModel
-import com.infowings.catalog.objects.treeview.format.objectPropertyValueLineFormat
+import com.infowings.catalog.objects.view.tree.format.objectPropertyValueLineFormat
 import react.RProps
 import react.buildElement
 import react.rFunction

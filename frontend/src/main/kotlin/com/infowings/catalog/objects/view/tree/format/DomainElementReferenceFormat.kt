@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.format
+package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.ReferenceBookItemPath
 import com.infowings.catalog.reference.book.getReferenceBookItemPath

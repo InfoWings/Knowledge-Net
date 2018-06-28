@@ -1,7 +1,7 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.view.tree
 
 import com.infowings.catalog.objects.ObjectLazyViewModel
-import com.infowings.catalog.objects.ObjectsLazyModel
+import com.infowings.catalog.objects.view.ObjectsLazyModel
 import react.*
 import react.dom.div
 

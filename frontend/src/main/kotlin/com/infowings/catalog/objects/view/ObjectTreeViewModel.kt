@@ -1,6 +1,9 @@
-package com.infowings.catalog.objects
+package com.infowings.catalog.objects.view
 
-import com.infowings.catalog.objects.treeview.objectLazyTreeView
+import com.infowings.catalog.objects.ObjectLazyViewModel
+import com.infowings.catalog.objects.mergeDetails
+import com.infowings.catalog.objects.toLazyView
+import com.infowings.catalog.objects.view.tree.objectLazyTreeView
 import react.*
 
 interface ObjectsLazyModel {

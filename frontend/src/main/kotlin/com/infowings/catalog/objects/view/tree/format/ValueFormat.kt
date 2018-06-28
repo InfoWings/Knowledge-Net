@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.format
+package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData

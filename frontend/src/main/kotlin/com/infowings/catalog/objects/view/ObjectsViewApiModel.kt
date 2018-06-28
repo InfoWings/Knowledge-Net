@@ -1,7 +1,9 @@
-package com.infowings.catalog.objects
+package com.infowings.catalog.objects.view
 
 import com.infowings.catalog.common.DetailedObjectResponse
 import com.infowings.catalog.common.ObjectGetResponse
+import com.infowings.catalog.objects.getAllObjects
+import com.infowings.catalog.objects.getDetailedObject
 import kotlinx.coroutines.experimental.launch
 import react.*
 
@@ -16,7 +18,8 @@ interface ObjectsViewApiConsumerProps : RProps {
     var objectApiModel: ObjectsViewApiModel
 }
 
-class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelComponent.State>(), ObjectsViewApiModel {
+class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelComponent.State>(),
+    ObjectsViewApiModel {
 
     override fun State.init() {
         objects = emptyList()

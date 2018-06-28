@@ -1,10 +1,10 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.view.tree
 
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectLazyViewModel
-import com.infowings.catalog.objects.ObjectsLazyModel
-import com.infowings.catalog.objects.treeview.format.loadingStub
-import com.infowings.catalog.objects.treeview.format.objectLineFormat
+import com.infowings.catalog.objects.view.ObjectsLazyModel
+import com.infowings.catalog.objects.view.tree.format.loadingStub
+import com.infowings.catalog.objects.view.tree.format.objectLineFormat
 import react.*
 
 class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>() {

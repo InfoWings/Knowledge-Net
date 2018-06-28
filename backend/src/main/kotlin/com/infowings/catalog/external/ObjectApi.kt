@@ -1,6 +1,7 @@
 package com.infowings.catalog.external
 
 import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.objekt.ObjectPropertyValue
@@ -21,11 +22,18 @@ class ObjectApi(val objectService: ObjectService) {
         return ObjectsResponse(objectService.fetch().map { it.toResponse() })
     }
 
-    @GetMapping("{id}")
+    @GetMapping("{id}/viewdetails")
     fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectResponse {
         val username = principal.name
         logger.debug("Get objects request by $username")
         return objectService.getDetailedObject(id)
+    }
+
+    @GetMapping("{id}/editdetails")
+    fun getDetailedObjectForEdit(@PathVariable("id", required = true) id: String, principal: Principal): ObjectEditDetailsResponse {
+        val username = principal.name
+        logger.debug("Get object for edit request by $username")
+        return objectService.getDetailedObjectForEdit(id)
     }
 
     @PostMapping("create")

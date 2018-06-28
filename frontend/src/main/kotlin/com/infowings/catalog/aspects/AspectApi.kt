@@ -1,9 +1,6 @@
 package com.infowings.catalog.aspects
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectOrderBy
-import com.infowings.catalog.common.AspectsList
-import com.infowings.catalog.common.SuggestedMeasureData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
@@ -18,6 +15,8 @@ suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery:
         )
     )
 }
+
+suspend fun getAspectTree(id: String): TreeAspectResponse = JSON.parse(get("/api/aspect/tree/${encodeURIComponent(id)}"))
 
 suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))
 

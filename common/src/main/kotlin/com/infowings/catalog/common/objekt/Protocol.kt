@@ -19,6 +19,7 @@ data class ObjectCreateRequest(
 data class PropertyCreateRequest(
     val objectId: String,
     val name: String?,
+    val description: String?,
     val cardinality: String,
     val aspectId: String
 )
