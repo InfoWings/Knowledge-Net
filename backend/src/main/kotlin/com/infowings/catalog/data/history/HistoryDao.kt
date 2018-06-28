@@ -48,7 +48,7 @@ class HistoryDao(private val db: OrientDatabase) {
             val aliasSubjects = "subjectIds"
             val aliasRefBookNames = "refBookNames"
             val aliasId = "id"
-            val aliasName = "name"
+            val aliasFields = "fields"
             val aliasDescription = "description"
             val aliasAspectTime = "aspectTime"
             val aliasPropertiesTime = "propTime"
@@ -57,14 +57,18 @@ class HistoryDao(private val db: OrientDatabase) {
             db.query(
                 "select" +
                         " @rid as $aliasId," +
-                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as fields," +
-                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as addedLinks" +
+                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as ${aliasFields}," +
+                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as addedLinks, " +
+                        " out('$HISTORY_DROP_LINK_EDGE'):{key, peerId} as dropedLinks " +
                         "  from  :ids ", mapOf("ids" to ids)
             ) { rs ->
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
-                    val fields = it.getProperty<List<ODocument>>("fields")
+                    val fields = it.getProperty<List<ODocument>>(aliasFields)
+                    val addedLinks = it.getProperty<List<ODocument>>("addedLinks")
+
+                    logger.info("fields: " + fields)
 
                     eventId.toString() to DiffPayload()
                 }.toMap()

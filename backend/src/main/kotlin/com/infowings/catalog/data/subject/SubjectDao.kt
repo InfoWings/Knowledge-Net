@@ -4,8 +4,15 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
+import com.infowings.catalog.data.history.DiffPayload
+import com.infowings.catalog.data.history.HISTORY_ADD_LINK_EDGE
+import com.infowings.catalog.data.history.HISTORY_DROP_LINK_EDGE
+import com.infowings.catalog.data.history.HISTORY_ELEMENT_EDGE
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import notDeletedSql
 
 private const val SelectSubjectsQuery = "SELECT FROM $SUBJECT_CLASS where $notDeletedSql"
@@ -34,6 +41,17 @@ class SubjectDao(private val db: OrientDatabase) {
     } catch (e: VertexNotFound) {
         null
     }
+
+    fun findByIds(ids: List<String>): List<SubjectVertex> {
+        return db.query(
+            "select from :ids ", mapOf("ids" to ids.map {ORecordId(it)})
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toSubjectVertex()
+            }.toList()
+        }
+    }
+
 
     fun findByIdStrict(id: String): SubjectVertex = try {
         db[id].toSubjectVertex()

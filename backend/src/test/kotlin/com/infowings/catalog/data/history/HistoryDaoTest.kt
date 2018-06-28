@@ -11,6 +11,7 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
+import com.infowings.catalog.storage.SUBJECT_CLASS
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,10 +54,25 @@ class HistoryDaoTest {
     fun testHistoryDaoSubject() {
         val subjectName = "subject"
         val subjectDescr = "subject description"
-        val created = subjectService.createSubject(SubjectData(id = "", name = "subjectName", description = subjectDescr, version = 0, deleted = false), username)
+        val created = subjectService.createSubject(SubjectData(id = "", name = subjectName, description = subjectDescr, version = 0, deleted = false), username)
 
         val events = historyDao.getAllHistoryEventsByTime()
+        val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
 
         assertEquals(1, events.size)
+        assertEquals(1, subjectEvents.size)
+    }
+
+    @Test
+    fun testHistoryDaoAspect() {
+        val aspectName = "aspect"
+        val aspectDescr = "aspect description"
+        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
+
+        val events = historyDao.getAllHistoryEventsByTime()
+//        val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+
+        assertEquals(1, events.size)
+  //      assertEquals(1, subjectEvents.size)
     }
 }

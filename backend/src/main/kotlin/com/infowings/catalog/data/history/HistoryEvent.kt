@@ -76,6 +76,8 @@ data class MutableSnapshot(val data: MutableMap<String, String>, val links: Muta
     }
 
     fun toSnapshot() = Snapshot(data.toMap(), links.mapValues { it.value.toList() }.toMap())
+
+    constructor() : this(mutableMapOf<String, String>(), mutableMapOf<String, MutableSet<ORID>>())
 }
 
 data class Snapshot(
