@@ -8,6 +8,7 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.toVertexOrNull
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.impl.ODocument
+import com.orientechnologies.orient.core.sql.executor.OResultInternal
 import javax.validation.Payload
 
 const val HISTORY_CLASS = "History"
@@ -38,7 +39,7 @@ class HistoryDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
 
-    fun getAllHistoryEventsByTime(entityClasses: List<String>) = db.query("SELECT FROM $HISTORY_EVENT_CLASS where entityClasses in [:cls] ORDER BY timestamp",
+    fun getAllHistoryEventsByTime(entityClasses: List<String>) = db.query("SELECT FROM $HISTORY_EVENT_CLASS where entityClass in :classes ORDER BY timestamp",
         mapOf("classes" to entityClasses)) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
@@ -49,7 +50,7 @@ class HistoryDao(private val db: OrientDatabase) {
             val aliasRefBookNames = "refBookNames"
             val aliasId = "id"
             val aliasFields = "fields"
-            val aliasDescription = "description"
+            val aliasAdded = "addedLinks"
             val aliasAspectTime = "aspectTime"
             val aliasPropertiesTime = "propTime"
             val aliasVersion = "version"
@@ -57,20 +58,27 @@ class HistoryDao(private val db: OrientDatabase) {
             db.query(
                 "select" +
                         " @rid as $aliasId," +
-                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as ${aliasFields}," +
-                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as addedLinks, " +
+                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as $aliasFields," +
+                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as $aliasAdded, " +
                         " out('$HISTORY_DROP_LINK_EDGE'):{key, peerId} as dropedLinks " +
                         "  from  :ids ", mapOf("ids" to ids)
             ) { rs ->
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
-                    val fields = it.getProperty<List<ODocument>>(aliasFields)
-                    val addedLinks = it.getProperty<List<ODocument>>("addedLinks")
+                    val fields = it.getProperty<List<OResultInternal>>(aliasFields)
+                    val addedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
+                    val dropedLinks = it.getProperty<List<OResultInternal>>("dropedLinks")
 
-                    logger.info("fields: " + fields)
+                    val data: Map<String, String> = fields.map {
+                        logger.info("field class: ${it.javaClass}")
+                        logger.info("prop names: ${it.propertyNames}")
+                        it.getProperty<String>("key") to it.getProperty<String>("value")
+                    }.toMap()
+                    logger.info("data: " + data)
+                    logger.info("added links: " + addedLinks)
 
-                    eventId.toString() to DiffPayload()
+                    eventId.toString() to DiffPayload(data = data, addedLinks = emptyMap(), removedLinks = emptyMap())
                 }.toMap()
             }
     }

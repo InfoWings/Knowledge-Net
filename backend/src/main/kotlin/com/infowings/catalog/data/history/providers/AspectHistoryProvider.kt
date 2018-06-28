@@ -29,6 +29,8 @@ class AspectHistoryProvider(
         val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
 
+        val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
+
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  entityFacts ->
 
@@ -38,6 +40,8 @@ class AspectHistoryProvider(
 
                 entityFacts.forEach {
                     snapshot.apply(it.payload)
+                    val propertyFacts = propertyFactsBySession[it.event.sessionId]
+                    logger.info("property facts: " + propertyFacts)
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {

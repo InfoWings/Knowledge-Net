@@ -1,4 +1,4 @@
-package com.infowings.catalog.data.subject
+package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
@@ -26,14 +26,14 @@ import kotlin.test.assertEquals
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class SubjectDaoTest {
+class RefBookDaoTest {
     private val username = "admin"
 
     @Autowired
-    lateinit var subjectDao: SubjectDao
+    lateinit var refBookDao: ReferenceBookDao
 
     @Autowired
-    lateinit var subjectService: SubjectService
+    lateinit var refBookService: ReferenceBookService
 
     @Autowired
     lateinit var aspectService: AspectService
@@ -44,27 +44,18 @@ class SubjectDaoTest {
     }
 
     @Test
-    fun testSubjectsByIdsOne() {
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
-
-        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(subject.id))
-
-        assertEquals(1, subjectVertices.size)
-    }
-
-    @Test
-    fun testSubjectsByIdsEmptyResult() {
+    fun testRefBookFindOne() {
         val aspectName = "aspect"
         val aspectDescr = "aspect description"
-        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
+        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr,
+            version = 0, deleted = false, baseType = BaseType.Text.name), username)
         val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
 
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
+        val rbName = "rb"
+        val refBook = refBookService.createReferenceBook(rbName, aspectId, username)
 
-        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(aspectId))
+        val refBookVertices = refBookDao.find(listOf(refBook.id))
 
-        assertEquals(0, subjectVertices.size)
+        assertEquals(1, refBookVertices.size)
     }
 }

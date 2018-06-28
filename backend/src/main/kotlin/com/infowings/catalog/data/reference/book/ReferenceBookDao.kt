@@ -2,6 +2,7 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
@@ -38,8 +39,18 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
 
-    fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex? =
+    fun find(id: String): ReferenceBookItemVertex? =
         db.getVertexById(id)?.toReferenceBookItemVertex()
+
+    fun find(ids: List<String>): List<ReferenceBookItemVertex> {
+        return db.query(
+            "select from $REFERENCE_BOOK_ITEM_VERTEX where @rid in :ids ", mapOf("ids" to ids.map { ORecordId(it) })
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toReferenceBookItemVertex()
+            }.toList()
+        }
+    }
 
     fun saveBookItemVertex(
         parentVertex: ReferenceBookItemVertex,

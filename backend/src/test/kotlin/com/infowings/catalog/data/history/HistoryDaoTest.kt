@@ -6,6 +6,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
@@ -37,6 +38,9 @@ class HistoryDaoTest {
     private lateinit var aspectService: AspectService
 
     @Autowired
+    private lateinit var refBookService: ReferenceBookService
+
+    @Autowired
     private lateinit var historyDao: HistoryDao
 
     @Before
@@ -58,9 +62,11 @@ class HistoryDaoTest {
 
         val events = historyDao.getAllHistoryEventsByTime()
         val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+        val subjectEventsL = historyDao.getAllHistoryEventsByTime(listOf(SUBJECT_CLASS))
 
         assertEquals(1, events.size)
         assertEquals(1, subjectEvents.size)
+        assertEquals(1, subjectEventsL.size)
     }
 
     @Test
@@ -70,9 +76,27 @@ class HistoryDaoTest {
         val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
 
         val events = historyDao.getAllHistoryEventsByTime()
-//        val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+        val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
 
         assertEquals(1, events.size)
-  //      assertEquals(1, subjectEvents.size)
+        assertEquals(0, subjectEvents.size)
+    }
+
+    @Test
+    fun testHistoryDaoRefBook() {
+        val aspectName = "aspect"
+        val aspectDescr = "aspect description"
+        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr,
+            version = 0, deleted = false, baseType = BaseType.Text.name), username)
+        val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
+
+        val rbName = "rb"
+        val refBook = refBookService.createReferenceBook(name = rbName, aspectId = aspectId, username = username)
+
+        val events = historyDao.getAllHistoryEventsByTime()
+        //val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+
+        assertEquals(3, events.size)
+        //assertEquals(0, subjectEvents.size)
     }
 }
