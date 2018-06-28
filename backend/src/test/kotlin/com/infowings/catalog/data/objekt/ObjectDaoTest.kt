@@ -114,6 +114,7 @@ class ObjectDaoTest {
         val createdObject = createObject(objectRequest)
         val propertyData = PropertyCreateRequest(
             name = "savePropertyTestObjectPropertyName",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             objectId = createdObject.id,
             aspectId = aspect.idStrict()
@@ -158,6 +159,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleIntValueTest",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
@@ -213,6 +215,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleStrValueTest",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
@@ -267,6 +270,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
@@ -280,6 +284,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
@@ -290,6 +295,7 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = anotherAspect.idStrict()
         )
@@ -305,6 +311,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
@@ -315,6 +322,7 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop2",
+            description = null,
             cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )

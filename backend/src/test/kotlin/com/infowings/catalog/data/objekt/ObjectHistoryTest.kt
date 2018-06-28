@@ -172,7 +172,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = propertyName, cardinality = propertyCardinality, aspectId = aspect.idStrict()
+            name = propertyName, description = null, cardinality = propertyCardinality, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
@@ -285,7 +285,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = "prop_$objectName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
+            name = "prop_$objectName", description = null, cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
