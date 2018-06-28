@@ -43,9 +43,20 @@ class HistoryDaoTest {
     }
 
     @Test
-    fun testAspectHistoryEmpty() {
+    fun testHistoryDaoEmpty() {
         val events = historyDao.getAllHistoryEventsByTime()
 
         assertEquals(0, events.size, "History must contain no elements")
+    }
+
+    @Test
+    fun testHistoryDaoSubject() {
+        val subjectName = "subject"
+        val subjectDescr = "subject description"
+        val created = subjectService.createSubject(SubjectData(id = "", name = "subjectName", description = subjectDescr, version = 0, deleted = false), username)
+
+        val events = historyDao.getAllHistoryEventsByTime()
+
+        assertEquals(1, events.size)
     }
 }

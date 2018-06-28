@@ -22,39 +22,26 @@ class AspectHistoryProvider(
 
     fun getAllHistory(): List<AspectHistory> {
 
-        val allHistory = historyService.getAll()
+        //val allHistory = historyService.getAll()
 
-        val aspectEventGroups: Map<String, List<HistoryFact>> = logTime(logger, "grouping aspect event") {allHistory.idEventMap(classname = ASPECT_CLASS) }
+        //val aspectEventGroups: Map<String, List<HistoryFact>> = logTime(logger, "grouping aspect event") {allHistory.idEventMap(classname = ASPECT_CLASS) }
 
-        val aspectEventGroups2 = historyService.allTimeline(ASPECT_CLASS).groupBy { it.event.entityId }
+        val aspectFactsByEntity = historyService.allTimeline(ASPECT_CLASS).groupBy { it.event.entityId }
 
-        logger.info("${aspectEventGroups.size} ${aspectEventGroups2.size}")
-        logger.info("aspectEventGroups == aspectEventGroups2: ${aspectEventGroups == aspectEventGroups2}")
-
-        val sessionAspectPropertyMap = logTime(logger, "grouping aspect properties") {
-            allHistory.filter { it.event.entityClass == ASPECT_PROPERTY_CLASS }.sortedBy { it.event.timestamp }
-            .groupBy { it.event.sessionId }
-        }
-
-        logger.info("found aspect event groups: ${aspectEventGroups.size}")
+        logger.info("found aspect event groups: ${aspectFactsByEntity.size}")
 
         val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
 
-        logger.info("${propertyFactsBySession.size} ${sessionAspectPropertyMap.size}")
-        logger.info("propertyFactsBySession == sessionAspectPropertyMap: ${propertyFactsBySession == sessionAspectPropertyMap}")
-        logger.info("propertyFactsBySession: $propertyFactsBySession")
-        logger.info("sessionAspectPropertyMap: $sessionAspectPropertyMap")
-
-        val events = logTime(logger, "processing action event groups") {
-            aspectEventGroups.values.flatMap {  entityEvents ->
+        val events = logTime(logger, "processing aspect event groups") {
+            aspectFactsByEntity.values.flatMap {  entityFacts ->
 
                 var aspectDataAccumulator = AspectData(name = "")
 
                 val versionList = logTime(logger, "reconstruct aspect versions") {
-                    listOf(aspectDataAccumulator).plus(entityEvents.map { fact ->
+                    listOf(aspectDataAccumulator).plus(entityFacts.map { fact ->
 
-                        val relatedFacts = sessionAspectPropertyMap[fact.event.sessionId] ?: emptyList()
+                        val relatedFacts = propertyFactsBySession[fact.event.sessionId] ?: emptyList()
 
                         aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
 
@@ -62,8 +49,8 @@ class AspectHistoryProvider(
                     })
                 }
 
-                return@flatMap logTime(logger, "aspect diffs creation for aspect ${entityEvents.firstOrNull()?.event?.entityId}") {
-                    versionList.zipWithNext().zip(entityEvents)
+                return@flatMap logTime(logger, "aspect diffs creation for aspect ${entityFacts.firstOrNull()?.event?.entityId}") {
+                    versionList.zipWithNext().zip(entityFacts)
                         .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
                 }
             }

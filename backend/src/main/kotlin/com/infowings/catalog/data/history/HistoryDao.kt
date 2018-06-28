@@ -7,6 +7,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.toVertexOrNull
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.impl.ODocument
 import javax.validation.Payload
 
 const val HISTORY_CLASS = "History"
@@ -56,12 +57,14 @@ class HistoryDao(private val db: OrientDatabase) {
             db.query(
                 "select" +
                         " @rid as $aliasId," +
-                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as fields" +
+                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as fields," +
+                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as addedLinks" +
                         "  from  :ids ", mapOf("ids" to ids)
             ) { rs ->
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
+                    val fields = it.getProperty<List<ODocument>>("fields")
 
                     eventId.toString() to DiffPayload()
                 }.toMap()

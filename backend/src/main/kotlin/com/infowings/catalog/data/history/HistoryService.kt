@@ -45,6 +45,8 @@ class HistoryService(
 
             val payloads = historyDao.getPayloads(events.map {it.identity})
 
+            logger.info("payloads: $payloads")
+
             return@transaction events.map { it.toFact() }
         }
     }
