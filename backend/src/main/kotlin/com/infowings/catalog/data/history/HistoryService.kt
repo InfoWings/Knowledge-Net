@@ -43,15 +43,15 @@ class HistoryService(
             logger.info("${events.size} timeline events")
             logger.info("event ids: ${events.map {it.id}}")
 
-            val payloads = historyDao.getPayloads(events.map {it.identity})
+            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
 
-            logger.info("payloads: $payloads")
+            logger.info("payloads: $payloadsAndUsers")
 
-            val eventData = logTime(logger, "event data extraction") { events.map { it.toEvent() } }
+            val eventData = logTime(logger, "event data extraction") { events.map { it.toEventFast() } }
 
             val facts = logTime(logger, "old style facts extraction") { events.map { it.toFact() } }
 
-            logger.info("found ${payloads.size} payloads, # of facts: ${facts.size}")
+            logger.info("found ${payloadsAndUsers.size} payloads, # of facts: ${facts.size}")
 
             logger.info("same events: ${eventData == facts.map {it.event}}")
 

@@ -85,6 +85,16 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         sessionId.toString()
     )
 
+    fun toEventFast() = HistoryEventData(
+        "",
+        timestamp.toEpochMilli(),
+        entityVersion,
+        EventType.valueOf(eventType),
+        entityRID.toString(),
+        entityClass,
+        sessionId.toString()
+    )
+
     private fun dataMap() = getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE).map { vertex ->
         val heVertex = vertex.toHistoryElementVertex()
         heVertex.key to heVertex.stringValue

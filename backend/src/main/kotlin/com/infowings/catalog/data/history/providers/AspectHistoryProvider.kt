@@ -42,17 +42,16 @@ class AspectHistoryProvider(
                 val versionList2 = aspectFacts.map { aspectFact ->
                     logger.info("event type: " + aspectFact.event.type)
 
-                    if (aspectFact.event.type.isDelete()) {
-                        AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name))
-                    } else {
+                    if (!aspectFact.event.type.isDelete()) {
                         snapshot.apply(aspectFact.payload)
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
                         propertyFacts?.forEach { propertyFact ->
                             propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
                         }
 
-                        AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name))
                     }
+                    AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name),
+                        description = snapshot.data[AspectField.DESCRIPTION.name])
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {
@@ -69,6 +68,9 @@ class AspectHistoryProvider(
                 logger.info("snapshot: ${snapshot.toSnapshot()}")
                 logger.info("latest: ${versionList.lastOrNull()}")
                 logger.info("latest2: ${versionList2.lastOrNull()}")
+
+                logger.info("versions: ${versionList}")
+                logger.info("versions2: ${versionList2}")
 
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)

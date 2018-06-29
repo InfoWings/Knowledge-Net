@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.external.logTime
@@ -44,7 +45,7 @@ class HistoryDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
 
-    fun getPayloads(ids: List<ORID>): Map<String, DiffPayload> = logTime(logger, "facts extraction at dao level") {
+    fun getPayloadsAndUsers(ids: List<ORID>): Map<String, Pair<String, DiffPayload>> = logTime(logger, "facts extraction at dao level") {
             val aliasKey = "key"
             val aliasValue = "value"
             val aliasPeer = "peerId"
@@ -56,6 +57,7 @@ class HistoryDao(private val db: OrientDatabase) {
             db.query(
                 "select" +
                         " @rid as $aliasId," +
+                        " in('$HISTORY_USER_EDGE').username as username," +
                         " out('$HISTORY_ELEMENT_EDGE'):{$aliasKey, $aliasValue} as $aliasFields," +
                         " out('$HISTORY_ADD_LINK_EDGE'):{$aliasKey, $aliasPeer} as $aliasAdded, " +
                         " out('$HISTORY_DROP_LINK_EDGE'):{$aliasKey, $aliasPeer} as $aliasDropped " +
@@ -77,7 +79,7 @@ class HistoryDao(private val db: OrientDatabase) {
                         link.getProperty<String>(aliasKey) to link.getProperty<ORID>(aliasPeer)
                     }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
-                    eventId.toString() to DiffPayload(data = data, addedLinks = added, removedLinks = dropped)
+                    eventId.toString() to Pair(it.getProperty<String>("username"), DiffPayload(data = data, addedLinks = added, removedLinks = dropped))
                 }.toMap()
             }
     }

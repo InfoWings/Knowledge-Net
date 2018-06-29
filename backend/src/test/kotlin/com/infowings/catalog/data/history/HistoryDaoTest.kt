@@ -79,6 +79,11 @@ class HistoryDaoTest {
             assertEquals(0, classEvents.size, "class: $it")
             assertEquals(0, classEventsL.size, "class: $it")
         }
+
+        classes.minus(SUBJECT_CLASS).forEach {
+            val classEvents = historyDao.getAllHistoryEventsByTime(listOf(it, SUBJECT_CLASS))
+            assertEquals(1, classEvents.size, "class: $it")
+        }
     }
 
     @Test
@@ -89,9 +94,11 @@ class HistoryDaoTest {
 
         val events = historyDao.getAllHistoryEventsByTime()
         val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
+        val aspectEventsL = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS))
 
         assertEquals(1, events.size)
         assertEquals(1, aspectEvents.size)
+        assertEquals(1, aspectEventsL.size)
     }
 
     @Test
@@ -106,9 +113,9 @@ class HistoryDaoTest {
         val refBook = refBookService.createReferenceBook(name = rbName, aspectId = aspectId, username = username)
 
         val events = historyDao.getAllHistoryEventsByTime()
-        //val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
 
         assertEquals(3, events.size)
-        //assertEquals(0, subjectEvents.size)
+        assertEquals(2, aspectEvents.size)
     }
 }
