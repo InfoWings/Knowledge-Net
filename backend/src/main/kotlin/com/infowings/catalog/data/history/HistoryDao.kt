@@ -53,11 +53,12 @@ class HistoryDao(private val db: OrientDatabase) {
             val aliasFields = "fields"
             val aliasAdded = "addedLinks"
             val aliasDropped = "droppedLinks"
+            val aliasUser = "user"
 
             db.query(
                 "select" +
                         " @rid as $aliasId," +
-                        " in('$HISTORY_USER_EDGE').username as username," +
+                        " in('$HISTORY_USER_EDGE').username as $aliasUser," +
                         " out('$HISTORY_ELEMENT_EDGE'):{$aliasKey, $aliasValue} as $aliasFields," +
                         " out('$HISTORY_ADD_LINK_EDGE'):{$aliasKey, $aliasPeer} as $aliasAdded, " +
                         " out('$HISTORY_DROP_LINK_EDGE'):{$aliasKey, $aliasPeer} as $aliasDropped " +
@@ -79,7 +80,7 @@ class HistoryDao(private val db: OrientDatabase) {
                         link.getProperty<String>(aliasKey) to link.getProperty<ORID>(aliasPeer)
                     }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
-                    eventId.toString() to Pair(it.getProperty<List<String>>("username").firstOrNull() ?: "", DiffPayload(data = data, addedLinks = added, removedLinks = dropped))
+                    eventId.toString() to Pair(it.getProperty<List<String>>(aliasUser).firstOrNull() ?: "", DiffPayload(data = data, addedLinks = added, removedLinks = dropped))
                 }.toMap()
             }
     }

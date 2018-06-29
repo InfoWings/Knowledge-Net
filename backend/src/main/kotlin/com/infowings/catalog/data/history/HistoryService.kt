@@ -47,17 +47,21 @@ class HistoryService(
 
             logger.info("payloads: $payloadsAndUsers")
 
-            val eventData = logTime(logger, "event data extraction") { events.map { event ->
-                logTime(logger, "single event data extraction") {
+            val facts2 = logTime(logger, "event data extraction") { events.map { event ->
+                val eventData = logTime(logger, "single event data extraction") {
                     event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
                 }
+
+                val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
+
+                HistoryFact(eventData, payload)
             } }
 
             val facts = logTime(logger, "old style facts extraction") { events.map { it.toFact() } }
 
             logger.info("found ${payloadsAndUsers.size} payloads, # of facts: ${facts.size}")
 
-            logger.info("same events: ${eventData == facts.map {it.event}}")
+            logger.info("same facts: ${facts2 == facts}")
 
             return@transaction facts
         }

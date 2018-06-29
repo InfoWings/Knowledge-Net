@@ -106,6 +106,11 @@ class HistoryDaoTest {
             assertEquals(0, classEvents.size, "class: $it")
             assertEquals(0, classEventsL.size, "class: $it")
         }
+
+        classes.minus(ASPECT_CLASS).forEach {
+            val classEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, it))
+            assertEquals(1, classEvents.size, "class: $it")
+        }
     }
 
     @Test
@@ -126,5 +131,8 @@ class HistoryDaoTest {
         assertEquals(3, events.size)
         assertEquals(2, aspectEvents.size)
         assertEquals(1, refBookEvents.size)
+
+        val aspectAndRefBookEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, REFERENCE_BOOK_ITEM_VERTEX))
+        assertEquals(3, aspectAndRefBookEvents.size)
     }
 }

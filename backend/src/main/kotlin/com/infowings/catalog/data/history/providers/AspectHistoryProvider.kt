@@ -1,9 +1,7 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectField
-import com.infowings.catalog.common.AspectHistory
-import com.infowings.catalog.common.AspectHistoryList
+import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
@@ -50,9 +48,13 @@ class AspectHistoryProvider(
                         }
 
                     }
+
+                    val baseType = snapshot.data[AspectField.BASE_TYPE.name]
+
                     AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
-                        baseType = snapshot.data[AspectField.BASE_TYPE.name]
+                        baseType = snapshot.data[AspectField.BASE_TYPE.name],
+                        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() }
                     )
                 }
 
@@ -71,6 +73,8 @@ class AspectHistoryProvider(
 
                 logger.info("versions: ${versionList}")
                 logger.info("versions2: ${versionList2}")
+
+                logger.info("same versions sizes: ${versionList2.size == versionList.size}")
 
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
