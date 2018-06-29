@@ -1,26 +1,31 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.data.history.DiffPayload
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.HistorySnapshot
-import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.common.HistoryEventData
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.SUBJECT_CLASS
+import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<SubjectHistoryProvider>()
+
+data class SubjectHistoryStep(val snapshot: Snapshot, val event: HistoryEventData)
+
 
 class SubjectHistoryProvider(
     private val historyService: HistoryService
 ) {
+    // пока такой наивный кеш. Словим OOME - переделаем
+    private val cache = ConcurrentHashMap<String, List<SubjectHistoryStep>>()
+
     fun getAllHistory(): List<HistorySnapshot> {
         val facts = historyService.allTimeline(SUBJECT_CLASS)
-        val factGroups = facts.groupBy { it.event.entityId }
+        val factsBySubject = facts.groupBy { it.event.entityId }
 
-        logger.info("found ${facts.size} history events about ${factGroups.size} subjects")
+        logger.info("found ${facts.size} history events about ${factsBySubject.size} subjects")
 
         val snapshots = logTime(logger, "restore subject snapshots") {
-            factGroups.values.flatMap { entityFacts ->
+            factsBySubject.values.flatMap { entityFacts ->
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload

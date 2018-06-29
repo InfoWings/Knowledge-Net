@@ -21,20 +21,13 @@ class AspectHistoryProvider(
 ) {
 
     fun getAllHistory(): List<AspectHistory> {
-        val aspectFacts = historyService.allTimeline(ASPECT_CLASS)
-        val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
-
-        val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
-        val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
-
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
 
         val factsByClass = bothFacts.groupBy { it.event.entityClass }
-        val aspectFacts2 = factsByClass[ASPECT_CLASS] ?: emptyList()
-        val propertyFacts2 = factsByClass[ASPECT_PROPERTY_CLASS] ?: emptyList()
-
-        logger.info("same aspect facts: ${aspectFacts.toSet() == aspectFacts2.toSet()}")
-        logger.info("same property facts: ${propertyFacts.toSet() == propertyFacts2.toSet()}")
+        val aspectFacts = factsByClass[ASPECT_CLASS] ?: emptyList()
+        val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
+        val propertyFacts = factsByClass[ASPECT_PROPERTY_CLASS] ?: emptyList()
+        val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
 
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
@@ -46,8 +39,6 @@ class AspectHistoryProvider(
                 var aspectDataAccumulator = AspectData(name = "")
 
                 val versionList2 = listOf(AspectData(id = null, name = "")) + aspectFacts.map { aspectFact ->
-                    logger.info("event type: " + aspectFact.event.type)
-
                     if (!aspectFact.event.type.isDelete()) {
                         snapshot.apply(aspectFact.payload)
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
@@ -59,10 +50,8 @@ class AspectHistoryProvider(
 
                     val baseType = snapshot.data[AspectField.BASE_TYPE.name]
 
-                    logger.info("snapshot: $snapshot")
-
                     val properties = (snapshot.links[AspectField.PROPERTY]?.toSet() ?: emptySet()).map {
-                        AspectPropertyData(id = "", name = "", aspectId = "", cardinality = "", description = "", version = 0)
+                        AspectPropertyData(id = it.toString(), name = "", aspectId = "", cardinality = "", description = "", version = 1)
                     }
 
                     AspectData(id = null,
