@@ -44,14 +44,11 @@ class HistoryService(
             val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
 
             val facts = logTime(logger, "event data extraction") { events.map { event ->
-                val eventData = logTime(logger, "single event data extraction: ${event.id}") {
-                    event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
+                    val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
+                    val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
+                    HistoryFact(eventData, payload)
                 }
-
-                val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
-
-                HistoryFact(eventData, payload)
-            } }
+            }
 
             return@transaction facts
         }

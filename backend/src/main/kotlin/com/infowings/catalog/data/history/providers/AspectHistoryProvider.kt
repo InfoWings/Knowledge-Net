@@ -73,7 +73,7 @@ class AspectHistoryProvider(
                 logger.info("versions:")
                 versionList.forEach { logger.info(it.toString()) }
                 logger.info("versions-2:")
-                versionList.forEach { logger.info(it.toString()) }
+                versionList2.forEach { logger.info(it.toString()) }
 
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
