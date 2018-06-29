@@ -75,7 +75,9 @@ class HistoryDaoTest {
 
         classes.minus(SUBJECT_CLASS).forEach {
             val classEvents = historyDao.getAllHistoryEventsByTime(it)
+            val classEventsL = historyDao.getAllHistoryEventsByTime(listOf(it))
             assertEquals(0, classEvents.size, "class: $it")
+            assertEquals(0, classEventsL.size, "class: $it")
         }
     }
 
@@ -86,10 +88,10 @@ class HistoryDaoTest {
         val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
 
         val events = historyDao.getAllHistoryEventsByTime()
-        val subjectEvents = historyDao.getAllHistoryEventsByTime(SUBJECT_CLASS)
+        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
 
         assertEquals(1, events.size)
-        assertEquals(0, subjectEvents.size)
+        assertEquals(1, aspectEvents.size)
     }
 
     @Test

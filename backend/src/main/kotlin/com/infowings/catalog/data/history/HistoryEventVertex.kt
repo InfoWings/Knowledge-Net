@@ -75,7 +75,7 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["sessionUUID"] = value.toString()
         }
 
-    private fun toEvent() = HistoryEventData(
+    fun toEvent() = HistoryEventData(
         userVertex.username,
         timestamp.toEpochMilli(),
         entityVersion,
