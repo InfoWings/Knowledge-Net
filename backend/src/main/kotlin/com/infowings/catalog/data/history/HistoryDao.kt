@@ -66,7 +66,6 @@ class HistoryDao(private val db: OrientDatabase) {
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
-                    val addedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
                     val droppedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
 
                     val data: Map<String, String> = it.getProperty<List<OResultInternal>>(aliasFields).map {
@@ -74,17 +73,10 @@ class HistoryDao(private val db: OrientDatabase) {
                     }.toMap()
 
                     val added = it.getProperty<List<OResultInternal>>(aliasAdded).map { link ->
-                        logger.info("added: ${link.propertyNames}")
-                        link.propertyNames.forEach {
-                            val v = link.getProperty<Any>(it)
-                            logger.info("prop name: $it")
-                            logger.info("prop value: $v")
-                            logger.info("prop value class: ${v?.javaClass}")
-                        }
-                        "it.getProperty<String>(\"key\")" to "it.getProperty<String>(\"value\")"
-                    }.toMap()
+                        it.getProperty<String>("key") to it.getProperty<ORID>("peerId")
+                    }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
-                    eventId.toString() to DiffPayload(data = data, addedLinks = emptyMap(), removedLinks = emptyMap())
+                    eventId.toString() to DiffPayload(data = data, addedLinks = added, removedLinks = emptyMap())
                 }.toMap()
             }
     }
