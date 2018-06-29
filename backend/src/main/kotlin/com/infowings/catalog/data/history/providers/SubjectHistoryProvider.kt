@@ -25,7 +25,7 @@ class SubjectHistoryProvider(
         logger.info("found ${facts.size} history events about ${factsBySubject.size} subjects")
 
         val snapshots = logTime(logger, "restore subject snapshots") {
-            factsBySubject.values.flatMap { entityFacts ->
+            factsBySubject.flatMap { (id, entityFacts) ->
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload
@@ -49,7 +49,12 @@ class SubjectHistoryProvider(
                     return@map accumulator
                 })
 
-                return@flatMap versionList.zipWithNext().zip(entityFacts.map { it.event })
+
+                val events = entityFacts.map { it.event }
+
+                cache.putIfAbsent(id, versionList.drop(1).zip(events).map { SubjectHistoryStep(it.first.first, it.second)})
+
+                return@flatMap versionList.zipWithNext().zip(events)
                     .map {
                         val event = it.second
                         val (before, after) = it.first

@@ -7,10 +7,7 @@ import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.history.HistoryFact
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.MutableSnapshot
-import com.infowings.catalog.data.history.RefBookHistoryInfo
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -33,10 +30,14 @@ private data class RefBookState(
 
 private val logger = loggerFor<RefBookHistoryProvider>()
 
+private data class ItemHistoryStep(val snapshot: Snapshot, val event: HistoryEventData)
+
 class RefBookHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDao: AspectDaoService
 ) {
+    private val itemsCache = HistoryProviderCache<ItemHistoryStep>()
+
     /* Метод для трансформации дельты для фронта.
      * Если какую-то дельту отдавать не хочется, можно преобразовать в пустой список.
      * Если к существующей дельте хочется добавить новую, можно вернуть ее как часть списка
@@ -248,9 +249,6 @@ class RefBookHistoryProvider(
 
     fun getAllHistory(): List<RefBookHistory> {
         val rbFacts = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
-
-        logger.info("found ${rbFacts.size} reference book item facts")
-
         val factsBySession = rbFacts.groupBy { it.event.sessionId }
 
         val aspectIds = rbFacts.flatMap { fact ->

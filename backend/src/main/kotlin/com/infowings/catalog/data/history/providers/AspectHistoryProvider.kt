@@ -5,6 +5,7 @@ import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
+import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
@@ -51,7 +52,14 @@ class AspectHistoryProvider(
                     val baseType = snapshot.data[AspectField.BASE_TYPE.name]
 
                     val properties = (snapshot.links[AspectField.PROPERTY]?.toSet() ?: emptySet()).map {
-                        AspectPropertyData(id = it.toString(), name = "", aspectId = "", cardinality = "", description = "", version = 1)
+                        val propId = it.toString()
+                        val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
+                        AspectPropertyData(id = propId,
+                            name = propSnapshot.data[AspectField.NAME.name] ?: "",
+                            aspectId = "",
+                            cardinality = "",
+                            description = "",
+                            version = 1)
                     }
 
                     AspectData(id = null,
