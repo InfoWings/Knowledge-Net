@@ -73,7 +73,7 @@ class HistoryDao(private val db: OrientDatabase) {
                     }.toMap()
 
                     val added = it.getProperty<List<OResultInternal>>(aliasAdded).map { link ->
-                        it.getProperty<String>("key") to it.getProperty<ORID>("peerId")
+                        link.getProperty<String>("key") to link.getProperty<ORID>("peerId")
                     }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
                     eventId.toString() to DiffPayload(data = data, addedLinks = added, removedLinks = emptyMap())

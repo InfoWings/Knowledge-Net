@@ -32,22 +32,24 @@ class AspectHistoryProvider(
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
         val events = logTime(logger, "processing aspect event groups") {
-            aspectFactsByEntity.values.flatMap {  entityFacts ->
+            aspectFactsByEntity.values.flatMap {  aspectFacts ->
 
                 val snapshot = MutableSnapshot()
 
                 var aspectDataAccumulator = AspectData(name = "")
 
-                entityFacts.forEach {
-                    snapshot.apply(it.payload)
-                    val propertyFacts = propertyFactsBySession[it.event.sessionId]
-                    propertyFacts?.forEach {
-                        propertySnapshots[it.event.entityId]?.apply(it.payload)
+                val versionList2 = aspectFacts.map { aspectFact ->
+                    snapshot.apply(aspectFact.payload)
+                    val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
+                    propertyFacts?.forEach { propertyFact ->
+                        propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
                     }
+
+                    AspectData(id = aspectFact.event.entityId, name = "")
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {
-                    listOf(aspectDataAccumulator).plus(entityFacts.map { fact ->
+                    listOf(aspectDataAccumulator).plus(aspectFacts.map { fact ->
 
                         val relatedFacts = propertyFactsBySession[fact.event.sessionId] ?: emptyList()
 
@@ -59,9 +61,10 @@ class AspectHistoryProvider(
 
                 logger.info("snapshot: ${snapshot.toSnapshot()}")
                 logger.info("latest: ${versionList.lastOrNull()}")
+                logger.info("latest2: ${versionList2.lastOrNull()}")
 
-                return@flatMap logTime(logger, "aspect diffs creation for aspect ${entityFacts.firstOrNull()?.event?.entityId}") {
-                    versionList.zipWithNext().zip(entityFacts)
+                return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
+                    versionList.zipWithNext().zip(aspectFacts)
                         .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
                 }
             }
