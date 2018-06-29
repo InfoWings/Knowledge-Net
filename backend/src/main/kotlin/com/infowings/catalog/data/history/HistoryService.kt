@@ -57,8 +57,17 @@ class HistoryService(
     fun allTimeline(entityClasses: List<String>): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClasses") {
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClasses") { historyDao.getAllHistoryEventsByTime(entityClasses) }
-            logger.info("${events.size} timeline events")
-            return@transaction events.map { it.toFact() }
+
+            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
+
+            val facts = logTime(logger, "event data extraction") { events.map { event ->
+                val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
+                val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
+                HistoryFact(eventData, payload)
+            }
+            }
+
+            return@transaction facts
         }
     }
 

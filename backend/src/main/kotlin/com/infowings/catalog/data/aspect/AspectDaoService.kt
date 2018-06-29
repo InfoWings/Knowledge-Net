@@ -12,6 +12,7 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -43,9 +44,9 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
-    fun findAspectsByIds(ids: List<String>): List<AspectVertex> {
+    fun findAspectsByIds(ids: List<ORID>): List<AspectVertex> {
         return db.query(
-            "select from $ASPECT_CLASS where @rid in :ids ", mapOf("ids" to ids.map { ORecordId(it) })
+            "select from $ASPECT_CLASS where @rid in :ids ", mapOf("ids" to ids)
         ) { rs ->
             rs.mapNotNull {
                 it.toVertexOrNull()?.toAspectVertex()
@@ -53,6 +54,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun findAspectsByIdsStr(ids: List<String>): List<AspectVertex> = findAspectsByIds(ids.map {ORecordId(it)})
 
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"

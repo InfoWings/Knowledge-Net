@@ -21,12 +21,20 @@ class AspectHistoryProvider(
 ) {
 
     fun getAllHistory(): List<AspectHistory> {
-        val aspectFactsByEntity = historyService.allTimeline(ASPECT_CLASS).groupBy { it.event.entityId }
+        val aspectFacts = historyService.allTimeline(ASPECT_CLASS)
+        val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
 
         logger.info("found aspect event groups: ${aspectFactsByEntity.size}")
 
         val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
+
+        val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
+
+        logger.info("# of aspect facts: ${aspectFacts.size}")
+        logger.info("# of property facts: ${propertyFacts.size}")
+        logger.info("# of both facts: ${bothFacts.size}")
+        logger.info("same aspect facts: ${(aspectFacts + propertyFacts).toSet() == bothFacts.toSet()}")
 
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
@@ -51,11 +59,18 @@ class AspectHistoryProvider(
 
                     val baseType = snapshot.data[AspectField.BASE_TYPE.name]
 
-                    AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name),
+                    val properties = (snapshot.links["property"]?.toSet() ?: emptySet()).map {
+                        AspectPropertyData(id = "", name = "", aspectId = "", cardinality = "", description = "", version = 0)
+                    }
+
+                    AspectData(id = null,
+                        name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
                         domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
-                        measure = snapshot.data[AspectField.BASE_TYPE.name])
+                        measure = snapshot.data[AspectField.BASE_TYPE.name],
+                        properties = properties
+                    )
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {

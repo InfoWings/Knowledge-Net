@@ -266,6 +266,7 @@ class ObjectHistoryProvider(
         val historyState = ObjectState()
 
         return factsBySession.map { (sessionId, sessionFacts) ->
+            println("session facts: ")
             val ch: ObjectHistory = sessionToChange(sessionFacts, historyState)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")

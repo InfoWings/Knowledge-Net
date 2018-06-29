@@ -49,7 +49,7 @@ class AspectDaoTest {
             aspectService.save(AspectData(name = "aspect", description = "some description", baseType = BaseType.Text.name), username)
         val aspectId = aspect.id ?: throw IllegalStateException("")
 
-        val aspectVertices = aspectDao.findAspectsByIds(listOf(aspectId))
+        val aspectVertices = aspectDao.findAspectsByIdsStr(listOf(aspectId))
 
         assertEquals(1, aspectVertices.size)
     }
