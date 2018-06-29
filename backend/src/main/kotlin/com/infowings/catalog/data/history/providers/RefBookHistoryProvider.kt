@@ -12,6 +12,7 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.RefBookHistoryInfo
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 
@@ -258,11 +259,9 @@ class RefBookHistoryProvider(
             addedAspects + removedAspects
         }.toSet()
 
-        logger.info("aspectIds: " + aspectIds)
-
-        val aspectNames = aspectDao.findAspectsByIds(aspectIds.toList()).groupBy {it.id}.mapValues { it.value.first().name }
-
-        logger.info("aspect names: " + aspectNames)
+        val aspectNames = logTime(logger, "extract aspect names") {
+            aspectDao.findAspectsByIds(aspectIds.toList()).groupBy {it.id}.mapValues { it.value.first().name }
+        }
 
         val historyState = RefBookState()
 

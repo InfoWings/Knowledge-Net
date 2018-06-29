@@ -24,17 +24,17 @@ class AspectHistoryProvider(
         val aspectFacts = historyService.allTimeline(ASPECT_CLASS)
         val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
 
-        logger.info("found aspect event groups: ${aspectFactsByEntity.size}")
-
         val propertyFacts = historyService.allTimeline(ASPECT_PROPERTY_CLASS)
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
 
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
 
-        logger.info("# of aspect facts: ${aspectFacts.size}")
-        logger.info("# of property facts: ${propertyFacts.size}")
-        logger.info("# of both facts: ${bothFacts.size}")
-        logger.info("same aspect facts: ${(aspectFacts + propertyFacts).toSet() == bothFacts.toSet()}")
+        val factsByClass = bothFacts.groupBy { it.event.entityClass }
+        val aspectFacts2 = factsByClass[ASPECT_CLASS] ?: emptyList()
+        val propertyFacts2 = factsByClass[ASPECT_PROPERTY_CLASS] ?: emptyList()
+
+        logger.info("same aspect facts: ${aspectFacts.toSet() == aspectFacts2.toSet()}")
+        logger.info("same property facts: ${propertyFacts.toSet() == propertyFacts2.toSet()}")
 
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
@@ -59,7 +59,9 @@ class AspectHistoryProvider(
 
                     val baseType = snapshot.data[AspectField.BASE_TYPE.name]
 
-                    val properties = (snapshot.links["property"]?.toSet() ?: emptySet()).map {
+                    logger.info("snapshot: $snapshot")
+
+                    val properties = (snapshot.links[AspectField.PROPERTY]?.toSet() ?: emptySet()).map {
                         AspectPropertyData(id = "", name = "", aspectId = "", cardinality = "", description = "", version = 0)
                     }
 
@@ -73,7 +75,7 @@ class AspectHistoryProvider(
                     )
                 }
 
-                val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {
+                val versionList: List<AspectData> =
                     listOf(aspectDataAccumulator).plus(aspectFacts.map { fact ->
 
                         val relatedFacts = propertyFactsBySession[fact.event.sessionId] ?: emptyList()
@@ -82,7 +84,6 @@ class AspectHistoryProvider(
 
                         return@map aspectDataAccumulator
                     })
-                }
 
 
                 logger.info("versions:")
