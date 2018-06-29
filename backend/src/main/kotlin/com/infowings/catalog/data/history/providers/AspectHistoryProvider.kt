@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectField
 import com.infowings.catalog.common.AspectHistory
 import com.infowings.catalog.common.AspectHistoryList
 import com.infowings.catalog.data.history.HistoryFact
@@ -39,13 +40,15 @@ class AspectHistoryProvider(
                 var aspectDataAccumulator = AspectData(name = "")
 
                 val versionList2 = aspectFacts.map { aspectFact ->
+                    logger.info("event type: " + aspectFact.event.type)
+
                     snapshot.apply(aspectFact.payload)
                     val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
                     propertyFacts?.forEach { propertyFact ->
                         propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
                     }
 
-                    AspectData(id = aspectFact.event.entityId, name = "")
+                    AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name))
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {

@@ -47,7 +47,11 @@ class HistoryService(
 
             logger.info("payloads: $payloads")
 
-            return@transaction events.map { it.toFact() }
+            val facts = logTime(logger, "old style facts extraction") { events.map { it.toFact() } }
+
+            logger.info("found ${payloads.size} payloads, # of facts: ${facts.size}")
+
+            return@transaction facts
         }
     }
 

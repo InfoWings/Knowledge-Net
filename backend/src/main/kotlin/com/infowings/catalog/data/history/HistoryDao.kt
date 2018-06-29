@@ -45,8 +45,8 @@ class HistoryDao(private val db: OrientDatabase) {
     }
 
     fun getPayloads(ids: List<ORID>): Map<String, DiffPayload> = logTime(logger, "facts extraction at dao level") {
-            val aliasPropIds = "propertyIds"
-            val aliasSubjects = "subjectIds"
+            val aliasKey = "key"
+            val aliasValue = "value"
             val aliasRefBookNames = "refBookNames"
             val aliasId = "id"
             val aliasFields = "fields"
@@ -58,25 +58,28 @@ class HistoryDao(private val db: OrientDatabase) {
             db.query(
                 "select" +
                         " @rid as $aliasId," +
-                        " out('$HISTORY_ELEMENT_EDGE'):{key, value} as $aliasFields," +
-                        " out('$HISTORY_ADD_LINK_EDGE'):{key, peerId} as $aliasAdded, " +
-                        " out('$HISTORY_DROP_LINK_EDGE'):{key, peerId} as $aliasDropped " +
+                        " out('$HISTORY_ELEMENT_EDGE'):{$aliasKey, $aliasValue} as $aliasFields," +
+                        " out('$HISTORY_ADD_LINK_EDGE'):{$aliasKey, peerId} as $aliasAdded, " +
+                        " out('$HISTORY_DROP_LINK_EDGE'):{$aliasKey, peerId} as $aliasDropped " +
                         "  from  :ids ", mapOf("ids" to ids)
             ) { rs ->
                 rs.mapNotNull {
                     it.toVertexOrNull()
                     val eventId = it.getProperty<ORID>(aliasId)
-                    val droppedLinks = it.getProperty<List<OResultInternal>>(aliasAdded)
 
                     val data: Map<String, String> = it.getProperty<List<OResultInternal>>(aliasFields).map {
-                        it.getProperty<String>("key") to it.getProperty<String>("value")
+                        it.getProperty<String>(aliasKey) to it.getProperty<String>(aliasValue)
                     }.toMap()
 
                     val added = it.getProperty<List<OResultInternal>>(aliasAdded).map { link ->
-                        link.getProperty<String>("key") to link.getProperty<ORID>("peerId")
+                        link.getProperty<String>(aliasKey) to link.getProperty<ORID>("peerId")
                     }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
-                    eventId.toString() to DiffPayload(data = data, addedLinks = added, removedLinks = emptyMap())
+                    val dropped = it.getProperty<List<OResultInternal>>(aliasDropped).map { link ->
+                        link.getProperty<String>(aliasKey) to link.getProperty<ORID>("peerId")
+                    }.groupBy { it.first } .mapValues { it.value.map { it.second } }
+
+                    eventId.toString() to DiffPayload(data = data, addedLinks = added, removedLinks = dropped)
                 }.toMap()
             }
     }

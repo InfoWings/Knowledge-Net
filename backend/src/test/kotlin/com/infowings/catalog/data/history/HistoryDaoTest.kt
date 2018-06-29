@@ -6,13 +6,12 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
-import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
-import com.infowings.catalog.storage.SUBJECT_CLASS
+import com.infowings.catalog.storage.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,6 +42,8 @@ class HistoryDaoTest {
     @Autowired
     private lateinit var historyDao: HistoryDao
 
+    val classes = listOf(SUBJECT_CLASS, ASPECT_CLASS, ASPECT_PROPERTY_CLASS, REFERENCE_BOOK_ITEM_VERTEX, OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
+
     @Before
     fun initTestData() {
     }
@@ -50,8 +51,12 @@ class HistoryDaoTest {
     @Test
     fun testHistoryDaoEmpty() {
         val events = historyDao.getAllHistoryEventsByTime()
-
         assertEquals(0, events.size, "History must contain no elements")
+
+        classes.forEach {
+            val classEvents = historyDao.getAllHistoryEventsByTime(it)
+            assertEquals(0, classEvents.size, "class: $it")
+        }
     }
 
     @Test
@@ -67,6 +72,11 @@ class HistoryDaoTest {
         assertEquals(1, events.size)
         assertEquals(1, subjectEvents.size)
         assertEquals(1, subjectEventsL.size)
+
+        classes.minus(SUBJECT_CLASS).forEach {
+            val classEvents = historyDao.getAllHistoryEventsByTime(it)
+            assertEquals(0, classEvents.size, "class: $it")
+        }
     }
 
     @Test
