@@ -3,9 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.DetailedObjectPropertyResponse
 import com.infowings.catalog.common.DetailedObjectResponse
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
@@ -35,7 +32,7 @@ class ObjectService(
     fun getDetailedObject(id: String) =
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
-            val subjectVertex = objectVertex.subject ?: throw ObjectWithoutSubjectException(objectVertex)
+            val subjectVertex = objectVertex.subject ?: throw IllegalStateException("Object ${objectVertex.id} without subject")
             val objectPropertyVertexes = objectVertex.properties
 
             return@transaction DetailedObjectResponse(
@@ -54,7 +51,7 @@ class ObjectService(
             propertyVertex.id,
             propertyVertex.name,
             propertyVertex.description,
-            propertyVertex.aspect?.toAspectData() ?: throw ObjectPropertyWithoutAspectException(propertyVertex.id),
+            propertyVertex.aspect?.toAspectData() ?: throw IllegalStateException("Object property ${propertyVertex.id} without aspect"),
             propertyVertex.cardinality.name,
             values
         )
@@ -137,13 +134,8 @@ class ObjectService(
             val objectPropertyVertex = findPropertyById(request.objectPropertyId)
             val propertyInfo = validator.checkForUpdating(objectPropertyVertex, request)
 
-            //validator.checkBusinessKey(objectProperty)
-
             val objectBefore = propertyInfo.objekt.currentSnapshot()
-
-            val newVertex = dao.newObjectPropertyVertex()
-
-            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, emptyList())
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(objectPropertyVertex.toUpdateFact(context, objectBefore))
@@ -186,9 +178,6 @@ class ObjectService(
         }
     }
 
-    fun findByNameAndSubject(name: String, subjectId: String) = dao.getObjectVertexesByNameAndSubject(name, subjectId)
-    fun findPropertiesByNameAndAspect(name: String, aspectId: String) = dao.getPropertyVertexesByNameAndAspect(name, aspectId)
-
     // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
     fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {
         return@transaction dao.getObjectVertex(objectId)?.properties?.filter { it.aspect?.id == aspectId } ?: emptyList()
@@ -201,5 +190,3 @@ class ObjectService(
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
-
-class ObjectPropertyWithoutAspectException(id: String) : ObjectPropertyException("Object property with id $id does not have associated aspect")

@@ -46,7 +46,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
 
     fun toObjekt(): Objekt {
-        val currentSubject = subject ?: throw ObjectWithoutSubjectException(this)
+        val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
 
         return Objekt(identity, name, description, currentSubject, properties)
     }

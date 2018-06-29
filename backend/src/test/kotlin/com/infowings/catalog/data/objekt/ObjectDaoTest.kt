@@ -2,9 +2,7 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -16,6 +14,7 @@ import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.session
 import com.infowings.catalog.storage.transaction
 import junit.framework.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,7 +60,7 @@ class ObjectDaoTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectDao)
+        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(
             AspectData(
@@ -323,6 +322,96 @@ class ObjectDaoTest {
         val aspectId2 = session(db) { objProp2.aspect?.id }
 
         assertTrue("There are two props with same aspectId", aspectId1 == aspectId2)
+    }
+
+    @Test
+    fun objectUpdateTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        objectService.update(ObjectUpdateRequest(objVertex.id, "new name", "new description"), username)
+        val updatedObject = objectService.findById(objVertex.id)
+        Assert.assertEquals("Object must have new name", "new name", updatedObject.name)
+        Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
+    }
+
+    @Test(expected = ObjectAlreadyExists::class)
+    fun objectUpdateWrongBkTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        createObject(ObjectCreateRequest("obj2", "another descr", subject.id, subject.version))
+        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description"), username)
+    }
+
+    @Test
+    fun objectUpdateDiffBaseSubjectTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val sbj2 = subjectService.createSubject(SubjectData(name = "name2", description = "descr"), username)
+        createObject(ObjectCreateRequest("obj2", "descr", sbj2.id, 1))
+        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description"), username)
+        val updatedObject = objectService.findById(objVertex.id)
+        Assert.assertEquals("Object must have new name", "obj2", updatedObject.name)
+        Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
+    }
+
+    @Test
+    fun objectPropertyUpdateTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val aspectVertex = aspectDao.getAspectVertex(aspect.id!!)
+        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "new name"), username)
+        val objProperty = objectService.findPropertyById(objectPropertyVertex.id)
+        Assert.assertEquals("Property must have new name", "new name", objProperty.name)
+    }
+
+    @Test(expected = ObjectPropertyAlreadyExistException::class)
+    fun objectPropertyUpdateWrongBkTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val aspectVertex = aspectDao.getAspectVertex(aspect.id!!)
+        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        createObjectProperty(PropertyWriteInfo("propName2", PropertyCardinality.ONE, objVertex, aspectVertex))
+        objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "propName2"), username)
+    }
+
+    @Test
+    fun objPropertyValueUpdateTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val aspectVertex = aspectDao.getAspectVertex(complexAspect.id!!)
+        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = objPropertyVertex.id,
+            aspectPropertyId = complexAspect.properties[0].id,
+            measureId = null,
+            parentValueId = null
+        )
+        val objPropValue = objectService.create(valueRequest1, username)
+        val updatedValue =
+            objectService.update(ValueUpdateRequest(objPropValue.id.toString(), ObjectValueData.StringValue("hello")), username)
+
+        Assert.assertEquals("PropertyValue must have new value", "hello", updatedValue.value.toObjectValueData().toDTO().stringValue)
+    }
+
+    @Test(expected = ObjectPropertyValueAlreadyExists::class)
+    fun objPropertyValueUpdateWrongBkTest() {
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val aspectVertex = aspectDao.getAspectVertex(complexAspect.id!!)
+        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = objPropertyVertex.id,
+            aspectPropertyId = complexAspect.properties[0].id,
+            measureId = null,
+            parentValueId = null
+        )
+        val objPropValue = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(124, null),
+            objectPropertyId = objPropertyVertex.id,
+            aspectPropertyId = complexAspect.properties[0].id,
+            measureId = null,
+            parentValueId = null
+        )
+        objectService.create(valueRequest2, username)
+        objectService.update(ValueUpdateRequest(objPropValue.id.toString(), ObjectValueData.IntegerValue(124, null)), username)
     }
 
     private fun createObject(objekt: ObjectWriteInfo): ObjectVertex = transaction(db) {

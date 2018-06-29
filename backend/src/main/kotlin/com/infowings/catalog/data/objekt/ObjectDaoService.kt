@@ -1,32 +1,15 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-import notDeletedSql
 import java.math.BigDecimal
-
-const val selectObjectWithName =
-    "SELECT from $OBJECT_CLASS WHERE name = :name and $notDeletedSql"
-
-const val selectPropertiesWithName =
-    "SELECT from $OBJECT_PROPERTY_CLASS WHERE name = :name and $notDeletedSql"
-
-const val neighborsSql = "TRAVERSE OUT($OBJECT_VALUE_OBJECT_PROPERTY_EDGE) FROM :objPropertyId"
-
-const val selectObjPropValuesWithLink = "TRAVERSE OUT(:edge) FROM ($neighborsSql) WHERE OUT(:edge)."
-
-const val selectObjPropValuesWithScalar =
-    "SELECT from ($neighborsSql) WHERE :name = :value and $notDeletedSql"
-
-const val selectObjPropValuesWithNull = "SELECT from ($neighborsSql) WHERE typeTag is NULL and $notDeletedSql"
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -235,88 +218,66 @@ class ObjectDaoService(private val db: OrientDatabase) {
     fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
     fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
 
-    fun getObjectVertexesByNameAndSubject(name: String, subjectId: String): List<ObjectVertex> {
-        val query = "$selectObjectWithName and (@rid in (select out.@rid from $OBJECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
-
-        return db.query(query, mapOf("name" to name, "subjectId" to ORecordId(subjectId))) { rs ->
+    fun getObjectVertexesByNameAndSubject(name: String, subjectId: ORID): List<ObjectVertex> {
+        val sqlBuilder = objectSqlBuilder {
+            allObjects {
+                withoutDeleted()
+                withName(name)
+                withSubjectLink(subjectId)
+            }
+        }
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
             rs.map { it.toVertex().toObjectVertex() }.toList()
         }
     }
 
-    fun getPropertyVertexesByNameAndAspect(name: String, aspectId: String): List<ObjectPropertyVertex> {
-        val query = "$selectPropertiesWithName and (@rid in (select in.@rid from $ASPECT_OBJECT_PROPERTY_EDGE WHERE out.@rid = :aspectId))"
+    fun getPropertyVertexesByNameAndAspect(name: String?, objectId: ORID, aspectId: ORID): List<ObjectPropertyVertex> {
 
-        return db.query(query, mapOf("name" to name, "aspectId" to ORecordId(aspectId))) { rs ->
+        val sqlBuilder = objectSqlBuilder {
+            fromObject(objectId) {
+                toObjProps {
+                    withName(name)
+                    withoutDeleted()
+                    withAspect(aspectId)
+                }
+            }
+        }
+
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
             rs.map { it.toVertex().toObjectPropertyVertex() }.toList()
         }
     }
 
-    fun getValuesByObjectPropertyAndValue(objPropertyId: String, objectValue: ObjectValue) = when (objectValue) {
-        is ObjectValue.IntegerValue -> {
-            db.query(
-                selectObjPropValuesWithScalar,
-                mapOf("name" to "intValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
-            ) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-        is ObjectValue.DecimalValue -> {
-            db.query(
-                selectObjPropValuesWithScalar,
-                mapOf("name" to "decimalValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
-            ) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-        is ObjectValue.StringValue -> {
-            db.query(
-                selectObjPropValuesWithScalar,
-                mapOf("name" to "strValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
-            ) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-        is ObjectValue.RangeValue -> {
-            db.query(
-                selectObjPropValuesWithScalar,
-                mapOf("name" to "range", "objectValue" to objectValue.range, "objPropertyId" to ORecordId(objPropertyId))
-            ) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-        is ObjectValue.BooleanValue -> {
-            db.query(
-                selectObjPropValuesWithScalar,
-                mapOf("name" to "booleanValue", "objectValue" to objectValue.value, "objPropertyId" to ORecordId(objPropertyId))
-            ) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
+    fun getValuesByObjectPropertyAndValue(objPropertyId: ORID, objectValue: ObjectValue): List<ObjectPropertyValueVertex> {
+
+        val sqlBuilder = objectSqlBuilder {
+            fromObjProp(objPropertyId) {
+                toObjValues {
+                    withoutDeleted()
+                    when (objectValue) {
+                        is ObjectValue.IntegerValue -> withIntValue(objectValue.value)
+                        is ObjectValue.DecimalValue -> withDecimalValue(objectValue.value)
+                        is ObjectValue.StringValue -> withStrValue(objectValue.value)
+                        is ObjectValue.RangeValue -> withRange(objectValue.range)
+                        is ObjectValue.BooleanValue -> withBooleanValue(objectValue.value)
+                        is ObjectValue.Link -> {
+                            val linkValue = objectValue.value
+                            when (linkValue) {
+                                is LinkValueVertex.ObjectValue -> withObjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.SubjectValue -> withSubjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.DomainElementValue -> withDomainElementLink(linkValue.vertex.identity)
+                            }
+                        }
+                        ObjectValue.NullValue -> withNullValue()
+                    }
+                }
             }
         }
 
-        is ObjectValue.Link -> {
-            val linkValue = objectValue.value
-            when (linkValue) {
-                is LinkValueVertex.ObjectValue ->
-                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_OBJECT_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
-                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueObject?.id == linkValue.vertex.id }.toList()
-                    }
-                is LinkValueVertex.SubjectValue ->
-                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_SUBJECT_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
-                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueSubject?.id == linkValue.vertex.id }.toList()
-                    }
-                is LinkValueVertex.DomainElementValue ->
-                    db.query(selectObjPropValuesWithLink, mapOf("edge" to OBJECT_VALUE_REFBOOK_ITEM_EDGE, "objPropertyId" to ORecordId(objPropertyId))) { rs ->
-                        rs.map { it.toVertex().toObjectPropertyValueVertex() }.filter { it.refValueDomainElement?.id == linkValue.vertex.id }.toList()
-                    }
-            }
-        }
-        ObjectValue.NullValue -> {
-            db.query(selectObjPropValuesWithNull, mapOf("objPropertyId" to ORecordId(objPropertyId))) { rs ->
-                rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
+            rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
         }
     }
-
 }
 
 
@@ -328,6 +289,7 @@ class ObjectAlreadyExists(name: String) : ObjectException("object with name $nam
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
+
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
 class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")

@@ -62,7 +62,7 @@ class ObjectValidatorTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, aspectDao)
+        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(
             AspectData(

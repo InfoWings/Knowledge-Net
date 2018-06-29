@@ -11,6 +11,7 @@ import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.id
+import com.orientechnologies.orient.core.id.ORecordId
 import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -35,15 +36,20 @@ class ObjectValidator(
     fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
         val subjectVertex = subjectService.findByIdStrict(request.subjectId)
 
-//        val trimmedName: String = request.name.trim()
-//        if (trimmedName.isEmpty()) {
-//            throw EmptyObjectNameException(request)
-//        }
+        val trimmedName: String = request.name.trim()
+        if (trimmedName.isEmpty()) {
+            throw EmptyObjectNameException(request)
+        }
 
-        objectService.findByNameAndSubject(request.name, subjectVertex.id).let {
+        objectDaoService.getObjectVertexesByNameAndSubject(request.name, subjectVertex.identity).let {
             if (it.isNotEmpty()) {
                 throw ObjectAlreadyExists(request.name)
             }
+        }
+
+        //check business key
+        if (objectDaoService.getObjectVertexesByNameAndSubject(request.name, ORecordId(request.subjectId)).isNotEmpty()) {
+            throw ObjectAlreadyExists(request.name)
         }
 
         return ObjectWriteInfo(
@@ -55,8 +61,10 @@ class ObjectValidator(
 
     fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
         val subjectVertex = objectVertex.subject
-        val subjectId = subjectVertex?.id ?: throw ObjectWithoutSubjectException(objectVertex.id)
-        val existsAnotherObjectSameName = objectService.findByNameAndSubject(request.name, subjectId).any {
+        val subjectId = subjectVertex?.identity ?: throw ObjectWithoutSubjectException(objectVertex.id)
+
+        //check business key
+        val existsAnotherObjectSameName = objectDaoService.getObjectVertexesByNameAndSubject(request.name, subjectId).any {
             it.id != request.id
         }
         if (existsAnotherObjectSameName) {
@@ -76,6 +84,11 @@ class ObjectValidator(
             throw ObjectPropertyAlreadyExistException(trimmedName, objectVertex.id, aspectVertex.id)
         }
 
+        //check business key
+        if (objectDaoService.getPropertyVertexesByNameAndAspect(request.name, objectVertex.identity, ORecordId(request.aspectId)).isNotEmpty()) {
+            throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, request.aspectId)
+        }
+
         return PropertyWriteInfo(
             request.name,
             PropertyCardinality.valueOf(request.cardinality),
@@ -87,12 +100,14 @@ class ObjectValidator(
     fun checkForUpdating(property: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
         val objectVertex = property.objekt ?: throw IllegalStateException("Object property must be linked with object")
         val aspectVertex = property.aspect ?: throw IllegalStateException("Object property must be linked with aspect")
-        val aspectId = aspectVertex.id
-        val existsAnotherPropertySameName = objectService.findPropertiesByNameAndAspect(request.name, aspectId).any {
+        val aspectId = aspectVertex.identity
+
+        // check business key
+        val existsAnotherPropertySameName = objectDaoService.getPropertyVertexesByNameAndAspect(request.name, objectVertex.identity, aspectId).any {
             it.id != property.id
         }
         if (existsAnotherPropertySameName) {
-            throw IllegalStateException("Property ${property.id} has no aspect")
+            throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, aspectId.toString())
         }
 
         return PropertyWriteInfo(request.name, property.cardinality, objectVertex, aspectVertex)
@@ -111,6 +126,11 @@ class ObjectValidator(
         val dataValue = request.value
 
         val value = getObjectValueFromData(dataValue)
+
+        // check business key
+        if (objectDaoService.getValuesByObjectPropertyAndValue(objectPropertyVertex.identity, value).isNotEmpty()) {
+            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
+        }
 
         val measureVertex = request.measureId?.let { measureService.findById(it) }
 
@@ -137,10 +157,10 @@ class ObjectValidator(
 
         val value = getObjectValueFromData(dataValue)
 
-        val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.id, value).any {
+        // check business key
+        val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.identity, value).any {
             it.id != valueVertex.id
         }
-
         if (existsSameValue) {
             throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
         }
@@ -181,7 +201,4 @@ class ObjectValidator(
         is ObjectValueData.NullValue ->
             ObjectValue.NullValue
     }
-
-    //fun checkBusinessKey(property: ObjectProperty) {
-    //}
 }
