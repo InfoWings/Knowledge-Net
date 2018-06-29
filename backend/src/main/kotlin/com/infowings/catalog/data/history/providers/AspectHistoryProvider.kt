@@ -54,8 +54,8 @@ class AspectHistoryProvider(
                     AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
-                        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() }
-                    )
+                        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
+                        measure = snapshot.data[AspectField.BASE_TYPE.name])
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {
@@ -69,12 +69,11 @@ class AspectHistoryProvider(
                     })
                 }
 
-                logger.info("snapshot: ${snapshot.toSnapshot()}")
 
-                logger.info("versions: ${versionList}")
-                logger.info("versions2: ${versionList2}")
-
-                logger.info("same versions sizes: ${versionList2.size == versionList.size}")
+                logger.info("versions:")
+                versionList.forEach { logger.info(it.toString()) }
+                logger.info("versions-2:")
+                versionList.forEach { logger.info(it.toString()) }
 
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)

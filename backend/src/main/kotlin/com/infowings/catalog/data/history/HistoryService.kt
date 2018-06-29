@@ -40,15 +40,11 @@ class HistoryService(
     fun allTimeline(entityClass: String): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClass") {
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime(entityClass) }
-            logger.info("${events.size} timeline events")
-            logger.info("event ids: ${events.map {it.id}}")
 
             val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
 
-            logger.info("payloads: $payloadsAndUsers")
-
-            val facts2 = logTime(logger, "event data extraction") { events.map { event ->
-                val eventData = logTime(logger, "single event data extraction") {
+            val facts = logTime(logger, "event data extraction") { events.map { event ->
+                val eventData = logTime(logger, "single event data extraction: ${event.id}") {
                     event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
                 }
 
@@ -56,12 +52,6 @@ class HistoryService(
 
                 HistoryFact(eventData, payload)
             } }
-
-            val facts = logTime(logger, "old style facts extraction") { events.map { it.toFact() } }
-
-            logger.info("found ${payloadsAndUsers.size} payloads, # of facts: ${facts.size}")
-
-            logger.info("same facts: ${facts2 == facts}")
 
             return@transaction facts
         }

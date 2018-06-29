@@ -73,6 +73,8 @@ class HistoryDaoTest {
         assertEquals(1, subjectEvents.size)
         assertEquals(1, subjectEventsL.size)
 
+        assertEquals(events, subjectEvents)
+
         classes.minus(SUBJECT_CLASS).forEach {
             val classEvents = historyDao.getAllHistoryEventsByTime(it)
             val classEventsL = historyDao.getAllHistoryEventsByTime(listOf(it))
