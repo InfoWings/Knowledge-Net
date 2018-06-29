@@ -110,7 +110,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         /** Add initial measures to database */
         val localMeasureService = MeasureService(database)
-        session(database) {
+        transaction(database) {
             MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it) }
             localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup)
             localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup)
