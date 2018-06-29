@@ -39,7 +39,7 @@ class AspectHistoryProvider(
 
                 var aspectDataAccumulator = AspectData(name = "")
 
-                val versionList2 = aspectFacts.map { aspectFact ->
+                val versionList2 = listOf(AspectData(id = null, name = "")) + aspectFacts.map { aspectFact ->
                     logger.info("event type: " + aspectFact.event.type)
 
                     if (!aspectFact.event.type.isDelete()) {
@@ -51,7 +51,9 @@ class AspectHistoryProvider(
 
                     }
                     AspectData(id = null, name = snapshot.data.getValue(AspectField.NAME.name),
-                        description = snapshot.data[AspectField.DESCRIPTION.name])
+                        description = snapshot.data[AspectField.DESCRIPTION.name],
+                        baseType = snapshot.data[AspectField.BASE_TYPE.name]
+                    )
                 }
 
                 val versionList: List<AspectData> = logTime(logger, "reconstruct aspect versions") {
@@ -66,8 +68,6 @@ class AspectHistoryProvider(
                 }
 
                 logger.info("snapshot: ${snapshot.toSnapshot()}")
-                logger.info("latest: ${versionList.lastOrNull()}")
-                logger.info("latest2: ${versionList2.lastOrNull()}")
 
                 logger.info("versions: ${versionList}")
                 logger.info("versions2: ${versionList2}")

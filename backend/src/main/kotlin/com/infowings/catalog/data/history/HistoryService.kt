@@ -47,7 +47,11 @@ class HistoryService(
 
             logger.info("payloads: $payloadsAndUsers")
 
-            val eventData = logTime(logger, "event data extraction") { events.map { it.toEventFast() } }
+            val eventData = logTime(logger, "event data extraction") { events.map { event ->
+                logTime(logger, "single event data extraction") {
+                    event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
+                }
+            } }
 
             val facts = logTime(logger, "old style facts extraction") { events.map { it.toFact() } }
 

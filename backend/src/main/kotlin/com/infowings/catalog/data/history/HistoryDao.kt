@@ -79,7 +79,7 @@ class HistoryDao(private val db: OrientDatabase) {
                         link.getProperty<String>(aliasKey) to link.getProperty<ORID>(aliasPeer)
                     }.groupBy { it.first } .mapValues { it.value.map { it.second } }
 
-                    eventId.toString() to Pair(it.getProperty<String>("username"), DiffPayload(data = data, addedLinks = added, removedLinks = dropped))
+                    eventId.toString() to Pair(it.getProperty<List<String>>("username").firstOrNull() ?: "", DiffPayload(data = data, addedLinks = added, removedLinks = dropped))
                 }.toMap()
             }
     }
