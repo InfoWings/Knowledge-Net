@@ -35,8 +35,6 @@ class RefBookHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDao: AspectDaoService
 ) {
-    private val itemsCache = HistoryProviderCache<ItemHistoryStep>()
-
     /* Метод для трансформации дельты для фронта.
      * Если какую-то дельту отдавать не хочется, можно преобразовать в пустой список.
      * Если к существующей дельте хочется добавить новую, можно вернуть ее как часть списка

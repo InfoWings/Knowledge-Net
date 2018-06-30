@@ -15,7 +15,7 @@ data class SubjectHistoryStep(val snapshot: Snapshot, val event: HistoryEventDat
 class SubjectHistoryProvider(
     private val historyService: HistoryService
 ) {
-    private val cache = HistoryProviderCache<SubjectHistoryStep>()
+    private val cache: HistoryProviderCache<SubjectHistoryStep> = CHMHistoryProviderCache()
 
     fun getAllHistory(): List<HistorySnapshot> {
         val facts = historyService.allTimeline(SUBJECT_CLASS)
