@@ -4,6 +4,7 @@ import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -42,9 +43,11 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     fun find(id: String): ReferenceBookItemVertex? =
         db.getVertexById(id)?.toReferenceBookItemVertex()
 
-    fun find(ids: List<String>): List<ReferenceBookItemVertex> {
+    fun findStr(ids: List<String>): List<ReferenceBookItemVertex> = find(ids.map { ORecordId(it) })
+
+    fun find(ids: List<ORID>): List<ReferenceBookItemVertex> {
         return db.query(
-            "select from $REFERENCE_BOOK_ITEM_VERTEX where @rid in :ids ", mapOf("ids" to ids.map { ORecordId(it) })
+            "select from $REFERENCE_BOOK_ITEM_VERTEX where @rid in :ids ", mapOf("ids" to ids)
         ) { rs ->
             rs.mapNotNull {
                 it.toVertexOrNull()?.toReferenceBookItemVertex()

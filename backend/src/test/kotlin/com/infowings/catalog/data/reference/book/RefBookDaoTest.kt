@@ -55,7 +55,7 @@ class RefBookDaoTest {
         val rbName = "rb"
         val refBook = refBookService.createReferenceBook(rbName, aspectId, username)
 
-        val refBookVertices = refBookDao.find(listOf(refBook.id))
+        val refBookVertices = refBookDao.findStr(listOf(refBook.id))
 
         assertEquals(1, refBookVertices.size)
 
@@ -74,7 +74,7 @@ class RefBookDaoTest {
         val rbName = "rb"
         val refBook = refBookService.createReferenceBook(rbName, aspectId, username)
 
-        val refBookVertices = refBookDao.find(listOf(aspectId))
+        val refBookVertices = refBookDao.findStr(listOf(aspectId))
 
         assertEquals(0, refBookVertices.size)
     }

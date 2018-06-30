@@ -6,11 +6,13 @@ import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.SUBJECT_CLASS
+import com.infowings.catalog.storage.id
 import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
@@ -18,7 +20,8 @@ private val logger = loggerFor<AspectHistoryProvider>()
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
-    private val aspectConstructor: AspectConstructor
+    private val aspectConstructor: AspectConstructor,
+    private val refBookDao: ReferenceBookDao
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
@@ -32,12 +35,14 @@ class AspectHistoryProvider(
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
         val refBookIds = aspectFacts.flatMap { fact ->
-            logger.info("${fact.event.entityId} fact added links: " + fact.payload.addedLinks)
-            logger.info("${fact.event.entityId} fact removed links: " + fact.payload.removedLinks)
             fact.payload.mentionedLinks(AspectField.REFERENCE_BOOK)
         }.toSet()
 
-        logger.info("ref book ids: " + refBookIds)
+        val refBookNames = logTime(logger, "extract aref book names") {
+            refBookDao.find(refBookIds.toList()).groupBy {it.id}.mapValues { it.value.first().value }
+        }
+
+        logger.info("ref book names: $refBookNames")
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->

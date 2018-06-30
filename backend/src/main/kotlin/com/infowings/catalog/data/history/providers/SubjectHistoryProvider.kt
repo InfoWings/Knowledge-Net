@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<SubjectHistoryProvider>()
 
-data class SubjectHistoryStep(val snapshot: Snapshot, val event: HistoryEventData)
+data class SubjectHistoryStep(val snapshot: Snapshot, val fact: HistoryFact)
 
 
 class SubjectHistoryProvider(
@@ -30,32 +30,28 @@ class SubjectHistoryProvider(
                 val cachedSteps = cache.get(id)
 
                 logger.info("cached steps for id $id: ${cachedSteps}")
-                val head = Pair(Snapshot(), DiffPayload())
+                val head = SubjectHistoryStep(Snapshot(), HistoryFact.empty)
 
-
-                var accumulator: Pair<Snapshot, DiffPayload> = head
-                val current = accumulator.first.toMutable()
+                var accumulator = head.snapshot
+                val current = accumulator.toMutable()
 
                 val tail = entityFacts.map { fact ->
                     val payload = fact.payload
                     current.apply(payload)
-                    accumulator = Pair(current.toSnapshot(), payload)
-                    return@map accumulator
+                    accumulator = current.toSnapshot()
+                    return@map SubjectHistoryStep(accumulator, fact)
                 }
 
                 val versionList = listOf(head).plus(tail)
 
-                val events = entityFacts.map { it.event }
+                cache.putIfAbsent(id, tail)
 
-                cache.putIfAbsent(id, tail.zip(events).map { SubjectHistoryStep(it.first.first, it.second)})
-
-                return@flatMap versionList.zipWithNext().zip(events)
-                    .map {
-                        val event = it.second
-                        val (before, after) = it.first
-                        val snapshotBefore = before.first
-                        val snapshotAfter = after.first
-                        val payload = after.second
+                return@flatMap versionList.zipWithNext()
+                    .map { (before, after) ->
+                        val event = after.fact.event
+                        val snapshotBefore = before.snapshot
+                        val snapshotAfter = after.snapshot
+                        val payload = after.fact.payload
                         HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
                     }
             }

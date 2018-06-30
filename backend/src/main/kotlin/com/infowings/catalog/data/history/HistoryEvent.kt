@@ -142,7 +142,11 @@ data class HistoryFactWrite(
 data class HistoryFact(
     val event: HistoryEventData,
     val payload: DiffPayload
-)
+) {
+    companion object {
+        val empty = HistoryFact(HistoryEventData.empty, DiffPayload())
+    }
+}
 
 
 data class HistorySnapshot(
