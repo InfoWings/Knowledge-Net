@@ -31,35 +31,17 @@ class SubjectHistoryProvider(
 
                 logger.info("cached steps for id $id: ${cachedSteps}")
 
-
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload
 
                     val current = accumulator.first.toMutable()
-                    val current2 = accumulator.first.toMutable()
+                    current.apply(payload)
 
-                    current2.apply(payload)
-
-                    payload.data.forEach { name, value ->
-                        current.updateField(name, value)
-                    }
-
-                    payload.addedLinks.forEach { target, ids ->
-                        ids.forEach { current.addLink(target, it) }
-                    }
-
-                    payload.removedLinks.forEach { target, ids ->
-                        ids.forEach { current.removeLink(target, it) }
-                    }
-
-                    logger.info("same accumulators: ${current == current2}")
-
-                    accumulator = Pair(current.toSnapshot(), fact.payload)
+                    accumulator = Pair(current.toSnapshot(), payload)
 
                     return@map accumulator
                 })
-
 
                 val events = entityFacts.map { it.event }
 
@@ -74,7 +56,6 @@ class SubjectHistoryProvider(
                         val payload = after.second
                         HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
                     }
-
             }
         }
 

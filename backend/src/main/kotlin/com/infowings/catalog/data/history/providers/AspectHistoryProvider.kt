@@ -59,7 +59,7 @@ class AspectHistoryProvider(
                             aspectId = propSnapshot.data[AspectPropertyField.ASPECT.name] ?: "",
                             cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
                             description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
-                            version = 1)
+                            version = aspectFact.event.version)
                     }
 
                     AspectData(id = null,
@@ -67,7 +67,7 @@ class AspectHistoryProvider(
                         description = snapshot.data[AspectField.DESCRIPTION.name],
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
                         domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
-                        measure = snapshot.data[AspectField.BASE_TYPE.name],
+                        measure = snapshot.data[AspectField.MEASURE.name],
                         properties = properties
                     )
                 }
