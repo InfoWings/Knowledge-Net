@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.history.providers
 
-import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -49,11 +48,7 @@ class SubjectHistoryProvider(
                 return@flatMap versionList.zipWithNext()
                     .map { (before, after) ->
                         val event = after.fact.event
-                        val snapshotBefore = before.snapshot
-                        val snapshotAfter = after.snapshot
-                        val payload = after.fact.payload
-                        logger.info("same payloads: ${payload == diffSnapshots(before.snapshot, after.snapshot)}")
-                        HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
+                        HistorySnapshot(event, before.snapshot, after.snapshot, diffSnapshots(before.snapshot, after.snapshot))
                     }
             }
         }

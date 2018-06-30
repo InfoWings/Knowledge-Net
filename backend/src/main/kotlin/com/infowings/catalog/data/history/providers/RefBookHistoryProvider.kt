@@ -6,7 +6,6 @@ import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.data.aspect.AspectDaoService
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.external.logTime

@@ -38,11 +38,15 @@ class AspectHistoryProvider(
             fact.payload.mentionedLinks(AspectField.REFERENCE_BOOK)
         }.toSet()
 
-        val refBookNames = logTime(logger, "extract aref book names") {
+        val refBookNames = logTime(logger, "extracting ref book names") {
             refBookDao.find(refBookIds.toList()).groupBy {it.id}.mapValues { it.value.first().value }
         }
 
-        logger.info("ref book names: $refBookNames")
+        val subjectIds = aspectFacts.flatMap { fact ->
+            fact.payload.mentionedLinks(AspectField.SUBJECT)
+        }.toSet()
+
+        logger.info("subject ids: $refBookNames")
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
@@ -77,6 +81,10 @@ class AspectHistoryProvider(
 
                     val refBookName = snapshot.links[AspectField.REFERENCE_BOOK]?.firstOrNull()?.let { refBookNames[it.toString()] }
 
+                    val subject = snapshot.links[AspectField.SUBJECT]?.firstOrNull()?.let {
+                        SubjectData(id = it.toString(), name = "", description = null)
+                    }
+
                     AspectData(id = null,
                         name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
@@ -86,7 +94,8 @@ class AspectHistoryProvider(
                         properties = properties,
                         version = aspectFact.event.version,
                         deleted = aspectFact.event.type.isDelete(),
-                        refBookName = refBookName
+                        refBookName = refBookName,
+                        subject = subject
                     )
                 }
 
