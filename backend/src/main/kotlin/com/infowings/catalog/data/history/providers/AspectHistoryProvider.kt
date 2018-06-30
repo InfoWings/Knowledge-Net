@@ -7,6 +7,7 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
+import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
@@ -21,7 +22,8 @@ class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val aspectConstructor: AspectConstructor,
-    private val refBookDao: ReferenceBookDao
+    private val refBookDao: ReferenceBookDao,
+    private val subjectDao: SubjectDao
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
@@ -46,7 +48,14 @@ class AspectHistoryProvider(
             fact.payload.mentionedLinks(AspectField.SUBJECT)
         }.toSet()
 
+        val subjectById = logTime(logger, "extracting subjects") {
+            subjectDao.find(subjectIds.toList()).groupBy {it.id}.mapValues { (id, elems) ->
+                val subjectVertex = elems.first()
+                SubjectData(id = subjectVertex.id, name ="", description = "")
+            }
+        }
         logger.info("subject ids: $subjectIds")
+        logger.info("subject by id: $subjectById")
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->

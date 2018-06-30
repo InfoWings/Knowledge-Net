@@ -27,24 +27,31 @@ class SubjectHistoryProvider(
         val snapshots = logTime(logger, "restore subject snapshots") {
             factsBySubject.flatMap { (id, entityFacts) ->
 
-                val cachedSteps = cache.get(id)
+                val cachedSteps = cache[id]
 
-                logger.info("cached steps for id $id: ${cachedSteps}")
+                logger.info("cached steps for id $id: $cachedSteps")
                 val head = SubjectHistoryStep(Snapshot(), HistoryEventData.empty)
 
-                var accumulator = head.snapshot
-                val current = accumulator.toMutable()
 
-                val tail = entityFacts.map { fact ->
-                    val payload = fact.payload
-                    current.apply(payload)
-                    accumulator = current.toSnapshot()
-                    return@map SubjectHistoryStep(accumulator, fact.event)
+                val tail = if (cachedSteps?.lastOrNull()?.event == entityFacts.last().event) {
+                    cachedSteps
+                } else {
+                    var accumulator = head.snapshot
+                    val current = accumulator.toMutable()
+
+                    val tailNew = entityFacts.map { fact ->
+                        val payload = fact.payload
+                        current.apply(payload)
+                        accumulator = current.toSnapshot()
+                        return@map SubjectHistoryStep(accumulator, fact.event)
+                    }
+
+                    cache.putIfAbsent(id, tailNew)
+
+                    tailNew
                 }
 
                 val versionList = listOf(head).plus(tail)
-
-                cache.putIfAbsent(id, tail)
 
                 return@flatMap versionList.zipWithNext()
                     .map { (before, after) ->

@@ -76,7 +76,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 historyService = ref(),
                 aspectConstructor = ref(),
                 aspectDeltaConstructor = ref(),
-                refBookDao = ref()
+                refBookDao = ref(), subjectDao = ref()
             )
         }
         bean {

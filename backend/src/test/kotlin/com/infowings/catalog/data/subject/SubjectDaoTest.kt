@@ -48,7 +48,7 @@ class SubjectDaoTest {
         val subject =
             subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
 
-        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(subject.id))
+        val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(subject.id))
 
         assertEquals(1, subjectVertices.size)
     }
@@ -63,7 +63,7 @@ class SubjectDaoTest {
         val subject =
             subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
 
-        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(aspectId))
+        val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(aspectId))
 
         assertEquals(0, subjectVertices.size)
     }
@@ -75,7 +75,7 @@ class SubjectDaoTest {
         val subject2 =
             subjectService.createSubject(SubjectData(name = "subj2", description = null), username)
 
-        val subjectVertices: List<SubjectVertex> = subjectDao.findByIds(listOf(subject1.id, subject2.id))
+        val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(subject1.id, subject2.id))
 
         assertEquals(2, subjectVertices.size)
     }

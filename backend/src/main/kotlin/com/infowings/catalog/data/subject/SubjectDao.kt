@@ -42,9 +42,9 @@ class SubjectDao(private val db: OrientDatabase) {
         null
     }
 
-    fun findByIds(ids: List<String>): List<SubjectVertex> {
+    fun find(ids: List<ORID>): List<SubjectVertex> {
         return db.query(
-            "select from $SUBJECT_CLASS where @rid in :ids ", mapOf("ids" to ids.map {ORecordId(it)})
+            "select from $SUBJECT_CLASS where @rid in :ids ", mapOf("ids" to ids)
         ) { rs ->
             rs.mapNotNull {
                 it.toVertexOrNull()?.toSubjectVertex()
@@ -52,6 +52,7 @@ class SubjectDao(private val db: OrientDatabase) {
         }
     }
 
+    fun findStr(ids: List<String>): List<SubjectVertex> = find(ids.map {ORecordId(it)})
 
     fun findByIdStrict(id: String): SubjectVertex = try {
         db[id].toSubjectVertex()
