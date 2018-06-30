@@ -47,7 +47,7 @@ class SubjectHistoryProvider(
 
                 val events = entityFacts.map { it.event }
 
-                cache.putIfAbsent(id, versionList.drop(1).zip(events).map { SubjectHistoryStep(it.first.first, it.second) })
+                cache.putIfAbsent(id, tail.zip(events).map { SubjectHistoryStep(it.first.first, it.second)})
 
                 return@flatMap versionList.zipWithNext().zip(events)
                     .map {

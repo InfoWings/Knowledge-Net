@@ -42,8 +42,8 @@ data class DiffPayload(
     )
 
     fun mentionedLinks(type: String): Set<ORID> {
-        val added = addedLinks["aspect"] ?: emptyList()
-        val removed = removedLinks["aspect"] ?: emptyList()
+        val added = addedLinks[type] ?: emptyList()
+        val removed = removedLinks[type] ?: emptyList()
 
         return (added + removed).toSet()
     }
