@@ -26,6 +26,11 @@ class SubjectHistoryProvider(
 
         val snapshots = logTime(logger, "restore subject snapshots") {
             factsBySubject.flatMap { (id, entityFacts) ->
+
+                val cachedSteps = cache.get(id)
+                
+                logger.info("cached steps for id $id: ${cachedSteps}")
+
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload

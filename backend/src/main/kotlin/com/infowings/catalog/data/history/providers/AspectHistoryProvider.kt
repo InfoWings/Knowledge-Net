@@ -57,8 +57,8 @@ class AspectHistoryProvider(
                         AspectPropertyData(id = propId,
                             name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
                             aspectId = "",
-                            cardinality = "",
-                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name] ?: "",
+                            cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
+                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
                             version = 1)
                     }
 
