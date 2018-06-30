@@ -75,6 +75,8 @@ class AspectHistoryProvider(
                             version = propSnapshot.data["_version"]?.toInt()?:-1)
                     }
 
+                    val refBookName = snapshot.links[AspectField.REFERENCE_BOOK]?.firstOrNull()?.let { refBookNames[it.toString()] }
+
                     AspectData(id = null,
                         name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
@@ -83,7 +85,8 @@ class AspectHistoryProvider(
                         measure = snapshot.data[AspectField.MEASURE.name],
                         properties = properties,
                         version = aspectFact.event.version,
-                        deleted = aspectFact.event.type.isDelete()
+                        deleted = aspectFact.event.type.isDelete(),
+                        refBookName = refBookName
                     )
                 }
 
@@ -102,7 +105,7 @@ class AspectHistoryProvider(
                 versionList.zip(versionList2).forEach {
                     logger.info("1: " + it.first)
                     logger.info("2: " + it.second)
-                    logger.info("2 1 == 2: {${it.first == it.second}}")
+                    logger.info("3 1==2: {${it.first == it.second}}")
                 }
 
 

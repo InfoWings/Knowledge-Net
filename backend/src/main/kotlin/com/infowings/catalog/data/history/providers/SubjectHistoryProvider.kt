@@ -52,6 +52,7 @@ class SubjectHistoryProvider(
                         val snapshotBefore = before.snapshot
                         val snapshotAfter = after.snapshot
                         val payload = after.fact.payload
+                        logger.info("same payloads: ${payload == diffSnapshots(before.snapshot, after.snapshot)}")
                         HistorySnapshot(event, snapshotBefore, snapshotAfter, payload)
                     }
             }
