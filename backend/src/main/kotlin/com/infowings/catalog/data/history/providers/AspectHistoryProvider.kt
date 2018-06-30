@@ -20,7 +20,6 @@ class AspectHistoryProvider(
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val aspectConstructor: AspectConstructor
 ) {
-
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
 
@@ -33,6 +32,8 @@ class AspectHistoryProvider(
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
         val refBookIds = aspectFacts.flatMap { fact ->
+            logger.info("${fact.event.entityId} fact added links: " + fact.payload.addedLinks)
+            logger.info("${fact.event.entityId} fact removed links: " + fact.payload.removedLinks)
             fact.payload.mentionedLinks(AspectField.REFERENCE_BOOK)
         }.toSet()
 
@@ -51,6 +52,7 @@ class AspectHistoryProvider(
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
                         propertyFacts?.forEach { propertyFact ->
                             propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
+                            propertySnapshots[propertyFact.event.entityId]?.data?.set("_version", propertyFact.event.version.toString())
                         }
 
                     }
@@ -64,7 +66,8 @@ class AspectHistoryProvider(
                             name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
                             aspectId = propSnapshot.data[AspectPropertyField.ASPECT.name] ?: "",
                             cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
-                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name])
+                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
+                            version = propSnapshot.data["_version"]?.toInt()?:-1)
                     }
 
                     AspectData(id = null,
@@ -93,7 +96,7 @@ class AspectHistoryProvider(
                 versionList.zip(versionList2).forEach {
                     logger.info("1: " + it.first)
                     logger.info("2: " + it.second)
-                    logger.info("1 == 2: {${it.first == it.second}}")
+                    logger.info("1 1 == 2: {${it.first == it.second}}")
                 }
 
 

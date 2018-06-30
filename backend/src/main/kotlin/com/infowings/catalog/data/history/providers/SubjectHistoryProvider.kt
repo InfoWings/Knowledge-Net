@@ -30,19 +30,24 @@ class SubjectHistoryProvider(
                 val cachedSteps = cache.get(id)
 
                 logger.info("cached steps for id $id: ${cachedSteps}")
+                val head = Pair(Snapshot(), DiffPayload())
 
-                var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
+
+                var accumulator: Pair<Snapshot, DiffPayload> = head
                 val current = accumulator.first.toMutable()
-                val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
+
+                val tail = entityFacts.map { fact ->
                     val payload = fact.payload
                     current.apply(payload)
                     accumulator = Pair(current.toSnapshot(), payload)
                     return@map accumulator
-                })
+                }
+
+                val versionList = listOf(head).plus(tail)
 
                 val events = entityFacts.map { it.event }
 
-                cache.putIfAbsent(id, versionList.drop(1).zip(events).map { SubjectHistoryStep(it.first.first, it.second)})
+                cache.putIfAbsent(id, versionList.drop(1).zip(events).map { SubjectHistoryStep(it.first.first, it.second) })
 
                 return@flatMap versionList.zipWithNext().zip(events)
                     .map {
