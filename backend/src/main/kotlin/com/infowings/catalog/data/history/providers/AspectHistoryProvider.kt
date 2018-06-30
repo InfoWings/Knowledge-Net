@@ -55,10 +55,10 @@ class AspectHistoryProvider(
                         val propId = it.toString()
                         val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
                         AspectPropertyData(id = propId,
-                            name = propSnapshot.data[AspectField.NAME.name] ?: "",
+                            name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
                             aspectId = "",
                             cardinality = "",
-                            description = "",
+                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name] ?: "",
                             version = 1)
                     }
 
