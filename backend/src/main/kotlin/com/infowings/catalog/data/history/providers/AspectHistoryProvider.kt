@@ -49,12 +49,12 @@ class AspectHistoryProvider(
         }.toSet()
 
         val subjectById = logTime(logger, "extracting subjects") {
-            subjectDao.find(subjectIds.toList()).groupBy {it.id}.mapValues { (id, elems) ->
+                subjectDao.find(subjectIds.toList()).groupBy {it.id}.mapValues { (id, elems) ->
                 val subjectVertex = elems.first()
-                SubjectData(id = subjectVertex.id, name ="", description = "")
+                SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = "")
             }
         }
-        logger.info("subject ids: $subjectIds")
+
         logger.info("subject by id: $subjectById")
 
         val events = logTime(logger, "processing aspect event groups") {
@@ -91,7 +91,7 @@ class AspectHistoryProvider(
                     val refBookName = snapshot.links[AspectField.REFERENCE_BOOK]?.firstOrNull()?.let { refBookNames[it.toString()] }
 
                     val subject = snapshot.links[AspectField.SUBJECT]?.firstOrNull()?.let {
-                        SubjectData(id = it.toString(), name = "", description = null)
+                        subjectById[it.toString()]
                     }
 
                     AspectData(id = null,
@@ -119,11 +119,11 @@ class AspectHistoryProvider(
                     })
 
 
-                logger.info("versions cmp:")
+                logger.info("versions cmp: ${versionList == versionList2}")
                 versionList.zip(versionList2).forEach {
                     logger.info("1: " + it.first)
                     logger.info("2: " + it.second)
-                    logger.info("3 1==2: {${it.first == it.second}}")
+                    logger.info("4 1==2: {${it.first == it.second}}")
                 }
 
 

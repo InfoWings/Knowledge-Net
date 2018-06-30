@@ -15,8 +15,7 @@ data class SubjectHistoryStep(val snapshot: Snapshot, val event: HistoryEventDat
 class SubjectHistoryProvider(
     private val historyService: HistoryService
 ) {
-    // пока такой наивный кеш. Словим OOME - переделаем
-    private val cache = ConcurrentHashMap<String, List<SubjectHistoryStep>>()
+    private val cache = HistoryProviderCache<SubjectHistoryStep>()
 
     fun getAllHistory(): List<HistorySnapshot> {
         val facts = historyService.allTimeline(SUBJECT_CLASS)
@@ -27,7 +26,7 @@ class SubjectHistoryProvider(
         val snapshots = logTime(logger, "restore subject snapshots") {
             factsBySubject.flatMap { (id, entityFacts) ->
 
-                val cachedSteps = cache[id]
+                val cachedSteps = cache.get(id)
 
                 logger.info("cached steps for id $id: $cachedSteps")
                 val head = SubjectHistoryStep(Snapshot(), HistoryEventData.empty)
@@ -46,7 +45,7 @@ class SubjectHistoryProvider(
                         return@map SubjectHistoryStep(accumulator, fact.event)
                     }
 
-                    cache.putIfAbsent(id, tailNew)
+                    cache.set(id, tailNew)
 
                     tailNew
                 }
