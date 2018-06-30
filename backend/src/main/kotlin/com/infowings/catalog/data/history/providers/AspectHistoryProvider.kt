@@ -46,7 +46,7 @@ class AspectHistoryProvider(
             fact.payload.mentionedLinks(AspectField.SUBJECT)
         }.toSet()
 
-        logger.info("subject ids: $refBookNames")
+        logger.info("subject ids: $subjectIds")
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->

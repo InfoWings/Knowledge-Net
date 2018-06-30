@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.history.providers
 
+import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -8,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<SubjectHistoryProvider>()
 
-data class SubjectHistoryStep(val snapshot: Snapshot, val fact: HistoryFact)
+data class SubjectHistoryStep(val snapshot: Snapshot, val event: HistoryEventData)
 
 
 class SubjectHistoryProvider(
@@ -29,7 +30,7 @@ class SubjectHistoryProvider(
                 val cachedSteps = cache.get(id)
 
                 logger.info("cached steps for id $id: ${cachedSteps}")
-                val head = SubjectHistoryStep(Snapshot(), HistoryFact.empty)
+                val head = SubjectHistoryStep(Snapshot(), HistoryEventData.empty)
 
                 var accumulator = head.snapshot
                 val current = accumulator.toMutable()
@@ -38,7 +39,7 @@ class SubjectHistoryProvider(
                     val payload = fact.payload
                     current.apply(payload)
                     accumulator = current.toSnapshot()
-                    return@map SubjectHistoryStep(accumulator, fact)
+                    return@map SubjectHistoryStep(accumulator, fact.event)
                 }
 
                 val versionList = listOf(head).plus(tail)
@@ -47,8 +48,7 @@ class SubjectHistoryProvider(
 
                 return@flatMap versionList.zipWithNext()
                     .map { (before, after) ->
-                        val event = after.fact.event
-                        HistorySnapshot(event, before.snapshot, after.snapshot, diffSnapshots(before.snapshot, after.snapshot))
+                        HistorySnapshot(after.event, before.snapshot, after.snapshot, diffSnapshots(before.snapshot, after.snapshot))
                     }
             }
         }
