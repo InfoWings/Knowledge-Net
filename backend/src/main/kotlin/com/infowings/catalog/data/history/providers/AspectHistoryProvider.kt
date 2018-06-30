@@ -56,7 +56,7 @@ class AspectHistoryProvider(
                         val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
                         AspectPropertyData(id = propId,
                             name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
-                            aspectId = "",
+                            aspectId = propSnapshot.data[AspectPropertyField.ASPECT.name] ?: "",
                             cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
                             description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
                             version = 1)
@@ -83,10 +83,13 @@ class AspectHistoryProvider(
                     })
 
 
-                logger.info("versions:")
-                versionList.forEach { logger.info(it.toString()) }
-                logger.info("versions-2:")
-                versionList2.forEach { logger.info(it.toString()) }
+                logger.info("versions cmp:")
+                versionList.zip(versionList2).forEach {
+                    logger.info("1: " + it.first)
+                    logger.info("2: " + it.second)
+                    logger.info("1 == 2: {${it.first == it.second}}")
+                }
+
 
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)

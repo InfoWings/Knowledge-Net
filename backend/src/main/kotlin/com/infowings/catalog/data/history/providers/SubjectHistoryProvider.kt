@@ -28,14 +28,18 @@ class SubjectHistoryProvider(
             factsBySubject.flatMap { (id, entityFacts) ->
 
                 val cachedSteps = cache.get(id)
-                
+
                 logger.info("cached steps for id $id: ${cachedSteps}")
+
 
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload
 
                     val current = accumulator.first.toMutable()
+                    val current2 = accumulator.first.toMutable()
+
+                    current2.apply(payload)
 
                     payload.data.forEach { name, value ->
                         current.updateField(name, value)
@@ -48,6 +52,8 @@ class SubjectHistoryProvider(
                     payload.removedLinks.forEach { target, ids ->
                         ids.forEach { current.removeLink(target, it) }
                     }
+
+                    logger.info("same accumulators: ${current == current2}")
 
                     accumulator = Pair(current.toSnapshot(), fact.payload)
 
