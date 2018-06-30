@@ -40,6 +40,13 @@ data class DiffPayload(
         addedLinks = addedLinks.mapValues { it.value.map { it.toString() } },
         removedLinks = removedLinks.mapValues { it.value.map { it.toString() } }
     )
+
+    fun mentionedLinks(type: String): Set<ORID> {
+        val added = addedLinks["aspect"] ?: emptyList()
+        val removed = removedLinks["aspect"] ?: emptyList()
+
+        return (added + removed).toSet()
+    }
 }
 
 data class MutableSnapshot(val data: MutableMap<String, String>, val links: MutableMap<String, MutableSet<ORID>>) {

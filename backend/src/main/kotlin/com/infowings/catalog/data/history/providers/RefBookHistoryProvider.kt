@@ -252,9 +252,7 @@ class RefBookHistoryProvider(
         val factsBySession = rbFacts.groupBy { it.event.sessionId }
 
         val aspectIds = rbFacts.flatMap { fact ->
-            val addedAspects = fact.payload.addedLinks["aspect"] ?: emptyList()
-            val removedAspects = fact.payload.removedLinks["aspect"] ?: emptyList()
-            addedAspects + removedAspects
+            fact.payload.mentionedLinks("aspect")
         }.toSet()
 
         val aspectNames = logTime(logger, "extract aspect names") {

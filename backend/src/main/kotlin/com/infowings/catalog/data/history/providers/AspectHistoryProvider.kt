@@ -32,6 +32,12 @@ class AspectHistoryProvider(
 
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
+        val refBookIds = aspectFacts.flatMap { fact ->
+            fact.payload.mentionedLinks(AspectField.REFERENCE_BOOK)
+        }.toSet()
+
+        logger.info("ref book ids: " + refBookIds)
+
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
 
@@ -58,8 +64,7 @@ class AspectHistoryProvider(
                             name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
                             aspectId = propSnapshot.data[AspectPropertyField.ASPECT.name] ?: "",
                             cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
-                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
-                            version = aspectFact.event.version)
+                            description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name])
                     }
 
                     AspectData(id = null,
@@ -68,7 +73,8 @@ class AspectHistoryProvider(
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
                         domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                         measure = snapshot.data[AspectField.MEASURE.name],
-                        properties = properties
+                        properties = properties,
+                        version = aspectFact.event.version
                     )
                 }
 

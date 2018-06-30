@@ -32,14 +32,11 @@ class SubjectHistoryProvider(
                 logger.info("cached steps for id $id: ${cachedSteps}")
 
                 var accumulator: Pair<Snapshot, DiffPayload> = Pair(Snapshot(), DiffPayload())
+                val current = accumulator.first.toMutable()
                 val versionList = listOf(accumulator).plus(entityFacts.map { fact ->
                     val payload = fact.payload
-
-                    val current = accumulator.first.toMutable()
                     current.apply(payload)
-
                     accumulator = Pair(current.toSnapshot(), payload)
-
                     return@map accumulator
                 })
 
