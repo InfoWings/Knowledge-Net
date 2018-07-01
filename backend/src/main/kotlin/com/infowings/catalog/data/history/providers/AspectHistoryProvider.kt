@@ -51,7 +51,7 @@ class AspectHistoryProvider(
         val subjectById = logTime(logger, "extracting subjects") {
                 subjectDao.find(subjectIds.toList()).groupBy {it.id}.mapValues { (id, elems) ->
                 val subjectVertex = elems.first()
-                SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = "", version = subjectVertex.version)
+                SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = subjectVertex.description, version = subjectVertex.version)
             }
         }
 
