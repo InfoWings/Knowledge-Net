@@ -15,6 +15,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
+private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot)
+
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
@@ -51,16 +53,18 @@ class AspectHistoryProvider(
             }
         }
 
-        logger.info("subject by id: $subjectById")
+        val aspectIds = propertyFacts.map { fact ->
+            fact.payload.data[AspectPropertyField.ASPECT.name]
+        }.filterNotNull().toSet()
+
+        logger.info("mentioned aspectIds: " + aspectIds)
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
 
                 val snapshot = MutableSnapshot()
 
-                var aspectDataAccumulator = AspectData(name = "")
-
-                val versionList = listOf(AspectData(id = null, name = "")) + aspectFacts.map { aspectFact ->
+                val versionList = listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.toSnapshot())) + aspectFacts.map { aspectFact ->
                     if (!aspectFact.event.type.isDelete()) {
                         snapshot.apply(aspectFact.payload)
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
@@ -90,7 +94,7 @@ class AspectHistoryProvider(
                         subjectById[it.toString()]
                     }
 
-                    AspectData(id = null,
+                    DataWithSnapshot(AspectData(id = null,
                         name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
@@ -101,23 +105,30 @@ class AspectHistoryProvider(
                         deleted = aspectFact.event.type.isDelete(),
                         refBookName = refBookName,
                         subject = subject
-                    )
+                    ), snapshot.toSnapshot())
                 }
 
                 val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
                         .map {
-                            val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second)
+                            val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first.data, it.first.second.data, it.second)
                             logger.info("diff res: $res")
 
-                            val fact = it.second
+                            val aspectFact = it.second
                             val before = it.first.first
                             val after = it.first.second
 
-                            val res2 = AspectHistory(fact.event, after.name, after.deleted, AspectDataView(after, emptyList()), emptyList())
+                            val deltas = aspectFact.payload.data.map {
+                                FieldDelta(it.key, before.snapshot.data[it.key], after.snapshot.data[it.key])
+                            }
 
-                            logger.info("res.full1 == res2.full1: ${res.fullData.aspectData == res2.fullData.aspectData}")
-                            logger.info("4 res == res2: ${res==res2}")
+                            val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
+                                AspectDataView(after.data, emptyList()), deltas)
+
+                            logger.info("res.changes: ${res.changes}")
+                            logger.info("res2.changes: ${res2.changes}")
+                            logger.info("res.changes == res2.changes: ${res.changes == res2.changes}")
+                            logger.info("5 res == res2: ${res==res2}")
 
                             res
                         }
