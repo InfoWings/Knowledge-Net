@@ -2,10 +2,7 @@ package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.OpenDomain
-import com.infowings.catalog.data.history.HistoryFact
-import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.MutableSnapshot
-import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.external.logTime
@@ -117,10 +114,10 @@ class AspectHistoryProvider(
                             val before = it.first.first
                             val after = it.first.second
 
-                            val res2 = AspectHistory(fact.event, after.name, after.deleted, AspectDataView(AspectData(null, ""), emptyList()), emptyList())
+                            val res2 = AspectHistory(fact.event, after.name, after.deleted, AspectDataView(after, emptyList()), emptyList())
 
-                            logger.info("res.deleted == res2.deleted: ${res.deleted == res2.deleted}")
-                            logger.info("3 res == res2: ${res==res2}")
+                            logger.info("res.full1 == res2.full1: ${res.fullData.aspectData == res2.fullData.aspectData}")
+                            logger.info("4 res == res2: ${res==res2}")
 
                             res
                         }
