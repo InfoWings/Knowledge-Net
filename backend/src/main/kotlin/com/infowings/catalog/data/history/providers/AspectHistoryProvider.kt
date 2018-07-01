@@ -107,14 +107,24 @@ class AspectHistoryProvider(
                     )
                 }
 
-                return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
+                val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
                         .map {
-                            val res = aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second)
+                            val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second)
                             logger.info("diff res: $res")
+
+                            val res2 = AspectHistory(it.second.event, null, false, AspectDataView(AspectData(null, ""), emptyList()), emptyList())
+
+                            logger.info("res.event: ${res.event}")
+                            logger.info("res2.event: ${res2.event}")
+                            logger.info("res.event == res2.event: ${res.event == res2.event}")
+                            logger.info("res == res2: ${res==res2}")
+
                             res
                         }
                 }
+
+                return@flatMap res
             }
         }
 
