@@ -8,19 +8,22 @@ import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
 
 class AspectConstructor(
     private val subjectService: SubjectService,
-    private val referenceBookService: ReferenceBookService
+    private val referenceBookService: ReferenceBookService,
+    private val db: OrientDatabase
 ) {
 
-    fun toNextVersion(aspect: AspectData, fact: HistoryFact, relatedFacts: List<HistoryFact>): AspectData {
+    fun toNextVersion(aspect: AspectData, fact: HistoryFact, relatedFacts: List<HistoryFact>): AspectData = session(db) {
 
         val newProps =
             fact.payload.addedFor(AspectField.PROPERTY).map { emptyAspectPropertyData.copy(id = it.toString()) }
         val updatedProps = aspect.properties.plus(newProps).submit(relatedFacts)
 
-        return aspect.submitFieldsEvents(fact).copy(properties = updatedProps)
+        return@session aspect.submitFieldsEvents(fact).copy(properties = updatedProps)
             .submitSubjectEvents(fact.payload)
             .submitReferenceBookEvents(fact.payload)
     }
