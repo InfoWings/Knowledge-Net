@@ -113,12 +113,14 @@ class AspectHistoryProvider(
                             val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second)
                             logger.info("diff res: $res")
 
-                            val res2 = AspectHistory(it.second.event, it.first.second.name, false, AspectDataView(AspectData(null, ""), emptyList()), emptyList())
+                            val fact = it.second
+                            val before = it.first.first
+                            val after = it.first.second
 
-                            logger.info("res.event: ${res.event}")
-                            logger.info("res2.event: ${res2.event}")
-                            logger.info("res.info == res2.info: ${res.info == res2.info}")
-                            logger.info("2 res == res2: ${res==res2}")
+                            val res2 = AspectHistory(fact.event, after.name, after.deleted, AspectDataView(AspectData(null, ""), emptyList()), emptyList())
+
+                            logger.info("res.deleted == res2.deleted: ${res.deleted == res2.deleted}")
+                            logger.info("3 res == res2: ${res==res2}")
 
                             res
                         }
