@@ -18,7 +18,9 @@ private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot
 
 private val changeNamesConvert = mapOf(
     AspectField.NAME.name to "Name",
-    AspectField.BASE_TYPE.name to "Base type")
+    AspectField.BASE_TYPE.name to "Base type",
+    AspectField.DESCRIPTION.name to "Description"
+    )
 
 class AspectHistoryProvider(
     private val historyService: HistoryService,
@@ -67,7 +69,8 @@ class AspectHistoryProvider(
         val aspectsById = logTime(logger, "obtaining aspects") {
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
             transaction(db) {
-                vertices.map { it.id to it.toAspectDataLazy() }
+                vertices.map { it.id to it.toAspectDataLazy()
+                    .toAspectData(emptyMap(), emptyMap()).copy(lastChangeTimestamp = aspectFactsByEntity[it.id]?.lastOrNull()?.event?.timestamp?:-1 ) }
             }
         }.toMap()
 
@@ -133,12 +136,12 @@ class AspectHistoryProvider(
                             val after = it.first.second
 
                             val deltas = aspectFact.payload.data.map {
-                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key), before.snapshot.data[it.key], after.snapshot.data[it.key])
+                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key), before.snapshot.data[it.key]?:"" , after.snapshot.data[it.key])
                             }
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull {
-                                    aspectsById[it.aspectId]?.toAspectData(emptyMap(), emptyMap())
+                                    aspectsById[it.aspectId]
                                 }), deltas)
 
                             logger.info("res.fdata: ${res.fullData}")
@@ -146,7 +149,7 @@ class AspectHistoryProvider(
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
                             logger.info("res.changes == res2.changes: ${res.changes == res2.changes}")
-                            logger.info("5 res == res2: ${res==res2}")
+                            logger.info("6 res == res2: ${res==res2}")
 
                             res
                         }
