@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
@@ -17,11 +18,14 @@ private val logger = loggerFor<AspectHistoryProvider>()
 
 private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot)
 
+private val changeNamesConvert = mapOf(AspectField.NAME.name to "Name")
+
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val refBookDao: ReferenceBookDao,
-    private val subjectDao: SubjectDao
+    private val subjectDao: SubjectDao,
+    private val aspectService: AspectService
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
@@ -58,6 +62,10 @@ class AspectHistoryProvider(
         }.filterNotNull().toSet()
 
         logger.info("mentioned aspectIds: " + aspectIds)
+
+        val aspectsById = logTime(logger, "obtaining aspects") { aspectIds.map { it to aspectService.findById(it) }.toMap() }
+
+        logger.info("aspects by Id: " + aspectsById)
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
@@ -119,7 +127,7 @@ class AspectHistoryProvider(
                             val after = it.first.second
 
                             val deltas = aspectFact.payload.data.map {
-                                FieldDelta(it.key, before.snapshot.data[it.key], after.snapshot.data[it.key])
+                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key), before.snapshot.data[it.key], after.snapshot.data[it.key])
                             }
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
