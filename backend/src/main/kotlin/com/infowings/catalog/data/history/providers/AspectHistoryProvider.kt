@@ -100,7 +100,7 @@ class AspectHistoryProvider(
                         domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                         measure = snapshot.data[AspectField.MEASURE.name],
                         properties = properties,
-                        version = aspectFact.event.version,
+                        version = aspectFact.event.version ,
                         deleted = aspectFact.event.type.isDelete(),
                         refBookName = refBookName,
                         subject = subject

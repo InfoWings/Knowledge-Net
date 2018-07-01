@@ -55,7 +55,7 @@ class SubjectDaoTest {
 
     @Test
     fun testSubjectsByIdsEmptyResult() {
-        val aspectName = "aspect"
+        val aspectName =  " aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
         val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
