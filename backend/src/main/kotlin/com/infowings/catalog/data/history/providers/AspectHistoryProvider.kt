@@ -19,7 +19,8 @@ private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot
 private val changeNamesConvert = mapOf(
     AspectField.NAME.name to "Name",
     AspectField.BASE_TYPE.name to "Base type",
-    AspectField.DESCRIPTION.name to "Description"
+    AspectField.DESCRIPTION.name to "Description",
+    AspectField.MEASURE.name to "Measure"
     )
 
 class AspectHistoryProvider(
@@ -70,7 +71,8 @@ class AspectHistoryProvider(
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
             transaction(db) {
                 vertices.map { it.id to it.toAspectDataLazy()
-                    .toAspectData(emptyMap(), emptyMap()).copy(lastChangeTimestamp = aspectFactsByEntity[it.id]?.lastOrNull()?.event?.timestamp?:-1 ) }
+                    .toAspectData(emptyMap(), emptyMap()).copy(lastChangeTimestamp =
+                    aspectFactsByEntity[it.id]?.lastOrNull()?.event?.timestamp?.let { it / 1000 }?:-1 ) }
             }
         }.toMap()
 
@@ -89,7 +91,6 @@ class AspectHistoryProvider(
                             propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
                             propertySnapshots[propertyFact.event.entityId]?.data?.set("_version", propertyFact.event.version.toString())
                         }
-
                     }
 
                     val baseType = snapshot.data[AspectField.BASE_TYPE.name]
@@ -136,7 +137,10 @@ class AspectHistoryProvider(
                             val after = it.first.second
 
                             val deltas = aspectFact.payload.data.map {
-                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key), before.snapshot.data[it.key]?:"" , after.snapshot.data[it.key])
+                                val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
+                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
+                                    before.snapshot.data[it.key]?:emptyPlaceholder,
+                                    after.snapshot.data[it.key])
                             }
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
