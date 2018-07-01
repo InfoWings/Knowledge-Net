@@ -21,7 +21,6 @@ private val logger = loggerFor<AspectHistoryProvider>()
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
-    private val aspectConstructor: AspectConstructor,
     private val refBookDao: ReferenceBookDao,
     private val subjectDao: SubjectDao
 ) {
@@ -64,7 +63,7 @@ class AspectHistoryProvider(
 
                 var aspectDataAccumulator = AspectData(name = "")
 
-                val versionList2 = listOf(AspectData(id = null, name = "")) + aspectFacts.map { aspectFact ->
+                val versionList = listOf(AspectData(id = null, name = "")) + aspectFacts.map { aspectFact ->
                     if (!aspectFact.event.type.isDelete()) {
                         snapshot.apply(aspectFact.payload)
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
@@ -108,28 +107,13 @@ class AspectHistoryProvider(
                     )
                 }
 
-                val versionList: List<AspectData> =
-                    listOf(aspectDataAccumulator).plus(aspectFacts.map { fact ->
-
-                        val relatedFacts = propertyFactsBySession[fact.event.sessionId] ?: emptyList()
-
-                        aspectDataAccumulator = aspectConstructor.toNextVersion(aspectDataAccumulator, fact, relatedFacts)
-
-                        return@map aspectDataAccumulator
-                    })
-
-
-                logger.info("versions cmp: ${versionList == versionList2}")
-                versionList.zip(versionList2).forEach {
-                    logger.info("1: " + it.first)
-                    logger.info("2: " + it.second)
-                    logger.info("5 1==2: {${it.first == it.second}}")
-                }
-
-
                 return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
-                        .map { aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second) }
+                        .map {
+                            val res = aspectDeltaConstructor.createDiff(it.first.first, it.first.second, it.second)
+                            logger.info("diff res: $res")
+                            res
+                        }
                 }
             }
         }
