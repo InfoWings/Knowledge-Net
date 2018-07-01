@@ -165,6 +165,22 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             refBookName = referenceBookRootVertex?.value
         )
     }
+
+    fun toAspectDataLazy(): AspectDataLazy {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        return AspectDataLazy(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            version = version,
+            subjectId = subject?.id,
+            deleted = deleted,
+            description = description,
+            refBookId = referenceBookRootVertex?.id
+        )
+    }
 }
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")

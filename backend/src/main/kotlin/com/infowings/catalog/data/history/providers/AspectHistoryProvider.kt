@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.*
@@ -8,24 +9,24 @@ import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.storage.ASPECT_CLASS
-import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
-import com.infowings.catalog.storage.SUBJECT_CLASS
-import com.infowings.catalog.storage.id
+import com.infowings.catalog.storage.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
 private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot)
 
-private val changeNamesConvert = mapOf(AspectField.NAME.name to "Name")
+private val changeNamesConvert = mapOf(
+    AspectField.NAME.name to "Name",
+    AspectField.BASE_TYPE.name to "Base type")
 
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val refBookDao: ReferenceBookDao,
     private val subjectDao: SubjectDao,
-    private val aspectService: AspectService
+    private val aspectDao: AspectDaoService,
+    private val db: OrientDatabase
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
@@ -63,7 +64,12 @@ class AspectHistoryProvider(
 
         logger.info("mentioned aspectIds: " + aspectIds)
 
-        val aspectsById = logTime(logger, "obtaining aspects") { aspectIds.map { it to aspectService.findById(it) }.toMap() }
+        val aspectsById = logTime(logger, "obtaining aspects") {
+            val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
+            transaction(db) {
+                vertices.map { it.id to it.toAspectDataLazy() }
+            }
+        }.toMap()
 
         logger.info("aspects by Id: " + aspectsById)
 
@@ -131,8 +137,12 @@ class AspectHistoryProvider(
                             }
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
-                                AspectDataView(after.data, emptyList()), deltas)
+                                AspectDataView(after.data, after.data.properties.mapNotNull {
+                                    aspectsById[it.aspectId]?.toAspectData(emptyMap(), emptyMap())
+                                }), deltas)
 
+                            logger.info("res.fdata: ${res.fullData}")
+                            logger.info("res2.fdata: ${res2.fullData}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
                             logger.info("res.changes == res2.changes: ${res.changes == res2.changes}")

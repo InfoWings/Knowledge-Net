@@ -41,6 +41,24 @@ data class AspectData(
     fun idStrict(): String = id ?: throw IllegalStateException("No id for aspect $this")
 }
 
+data class AspectDataLazy(
+    val id: String? = null,
+    val name: String,
+    val measure: String? = null,
+    val domain: String? = null,
+    val baseType: String? = null,
+    val version: Int = 0,
+    val subjectId: String? = null,
+    val deleted: Boolean = false,
+    val description: String? = null,
+    val refBookId: String? = null
+) {
+    fun toAspectData(subjectById: Map<String, SubjectData>, rbNameById: Map<String, String>) = AspectData(id = id, name = name, measure = measure, domain = domain, baseType = baseType,
+        properties = emptyList(), version = version, subject = subjectId?.let {subjectById[it]}, deleted = deleted,
+        description = description, lastChangeTimestamp = null,
+        refBookName = refBookId ?.let {rbNameById[it]})
+}
+
 @Serializable
 data class AspectPropertyData(
     val id: String,
