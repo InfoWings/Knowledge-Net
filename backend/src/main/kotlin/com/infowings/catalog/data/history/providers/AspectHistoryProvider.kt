@@ -71,7 +71,7 @@ class AspectHistoryProvider(
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
             transaction(db) {
                 vertices.map { it.id to it.toAspectDataLazy()
-                    .toAspectData(emptyMap(), emptyMap()).copy(lastChangeTimestamp =
+                    .toAspectData(subjectById, emptyMap()).copy(lastChangeTimestamp =
                     aspectFactsByEntity[it.id]?.lastOrNull()?.event?.timestamp?.let { it / 1000 }?:-1 ) }
             }
         }.toMap()
@@ -140,7 +140,7 @@ class AspectHistoryProvider(
                                 val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
                                 FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
-                                    after.snapshot.data[it.key])
+                                    if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
                             }
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
@@ -152,8 +152,8 @@ class AspectHistoryProvider(
                             logger.info("res2.fdata: ${res2.fullData}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("res.changes == res2.changes: ${res.changes == res2.changes}")
-                            logger.info("6 res == res2: ${res==res2}")
+                            logger.info("7 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("7 res==res2: ${res==res2}")
 
                             res
                         }
