@@ -22,7 +22,7 @@ private val changeNamesConvert = mapOf(
     AspectField.DESCRIPTION.name to "Description",
     AspectField.MEASURE.name to "Measure",
     AspectField.SUBJECT to "Subject",
-    AspectField.REFERENCE_BOOK to "Reference Book"
+    AspectField.REFERENCE_BOOK to "Reference book"
 )
 
 class AspectHistoryProvider(
@@ -55,17 +55,14 @@ class AspectHistoryProvider(
         val subjectIds = aspectFacts.flatMap { fact ->
             fact.payload.mentionedLinks(AspectField.SUBJECT)
         }.toSet()
-        logger.info("subject ids: " + subjectIds)
 
         val subjectById = logTime(logger, "extracting subjects") {
                 val found = subjectDao.find(subjectIds.toList())
-                logger.info("found subjects: $found")
                 found.groupBy {it.id}.mapValues { (id, elems) ->
                 val subjectVertex = elems.first()
                 SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = subjectVertex.description, version = subjectVertex.version)
             }
         }
-        logger.info("subjects by Id: " + subjectById)
 
         val aspectIds = propertyFacts.map { fact ->
             fact.payload.data[AspectPropertyField.ASPECT.name]
@@ -179,11 +176,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("8 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("9 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("8 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("8 res==res2: ${res==res2}")
+                            logger.info("9 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("9 res==res2: ${res==res2}")
 
                             res
                         }
