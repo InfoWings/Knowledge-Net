@@ -453,7 +453,11 @@ class AspectHistoryTest {
         val history = historyProvider.getAllHistory()
 
         assertEquals(2, history.size)
-        //val fact = history.first()
-        //assertEquals(4, fact.changes.size)
+
+        val latestFact = history.first()
+
+        println("latest fact:" + latestFact)
+
+        assertEquals(EventType.CREATE, latestFact.event.type)
     }
 }
