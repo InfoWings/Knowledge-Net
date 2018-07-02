@@ -137,6 +137,8 @@ class AspectHistoryProvider(
                             val before = it.first.first
                             val after = it.first.second
 
+                            logger.info("aspect fact: $res")
+
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
 

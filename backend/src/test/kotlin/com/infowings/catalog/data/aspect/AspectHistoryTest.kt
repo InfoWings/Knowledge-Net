@@ -459,7 +459,7 @@ class AspectHistoryTest {
         println("latest fact:" + latestFact)
 
         assertEquals(EventType.CREATE, latestFact.event.type)
-        println("full data: ${latestFact.fullData.aspectData.id}")
+        println("full data: ${latestFact.fullData.aspectData}")
         println("aspect1: $aspect1")
         println("complex aspect: $complexAspect")
         //assertEquals(complexAspect.properties[0].id, latestFact.fullData.aspectData.id)

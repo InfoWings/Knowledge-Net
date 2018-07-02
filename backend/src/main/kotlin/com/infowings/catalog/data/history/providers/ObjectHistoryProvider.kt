@@ -270,6 +270,12 @@ class ObjectHistoryProvider(
         }
         logger.info("same object facts: ${objectFacts.toSet() == objectFacts2.toSet()}")
 
+        val factsByEntity = objectFacts.groupBy { it.event.entityClass }
+        val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
+
+        val aspectLinks = propertyFacts.map { it.payload.mentionedLinks("aspect") }.flatten().toSet()
+        logger.info("aspect links: $aspectLinks")
+
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
         val historyState = ObjectState()
