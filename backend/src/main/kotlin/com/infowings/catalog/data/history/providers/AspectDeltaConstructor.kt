@@ -67,8 +67,8 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
                 AspectField.DESCRIPTION -> createAspectFieldDelta(
                     mainFact.event.type,
                     AspectField.DESCRIPTION.view,
-                    before.name,
-                    after.name
+                    before.description,
+                    after.description
                 )
             }
         }

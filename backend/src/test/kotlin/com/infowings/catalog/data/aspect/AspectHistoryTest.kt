@@ -7,6 +7,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
@@ -40,7 +41,7 @@ class AspectHistoryTest {
     private lateinit var aspectService: AspectService
 
     @Autowired
-    private lateinit var suggestionService: SuggestionService
+    private lateinit var refBookService: ReferenceBookService
 
     @Autowired
     private lateinit var historyService: HistoryService
@@ -326,6 +327,53 @@ class AspectHistoryTest {
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
+    }
+
+    @Test
+    fun testAspectHistoryWithSubject() {
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
+        )
+
+        val subjectId = subject.id
+        if (subjectId == null) {
+            fail("id must be non-null")
+        } else {
+            val subjectVertex = subjectService.findById(subjectId)
+
+            val history = historyProvider.getAllHistory()
+
+            assertEquals(1, history.size)
+            val fact = history.first()
+            assertEquals(4, fact.changes.size)
+        }
+    }
+
+    @Test
+    fun testAspectHistoryWithRefBook() {
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Text.name,
+                description = "some description-1"
+            ), username
+        )
+        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
+        val refBook = refBookService.createReferenceBook("ref book name", aspectId, username)
+
+        val history = historyProvider.getAllHistory()
+
+        assertEquals(2, history.size)
+        //val fact = history.first()
+        //assertEquals(4, fact.changes.size)
     }
 
     @Test
