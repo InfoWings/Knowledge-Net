@@ -1,8 +1,8 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.objects.AspectPropertyViewModel
-import com.infowings.catalog.objects.treeview.inputs.propertyValue
+import com.infowings.catalog.objects.treeedit.inputs.propertyValue
 import react.RBuilder
 import react.dom.div
 import react.dom.span
@@ -13,7 +13,7 @@ fun RBuilder.aspectPropertyValueLine(
     onEdit: () -> Unit,
     onUpdate: (String) -> Unit
 ) =
-    div(classes = "object-tree-view__aspect-value") {
+    div(classes = "object-tree-edit__aspect-value") {
         span(classes = "aspect-value__label") {
             +buildString {
                 append("${aspectProperty.roleName} ${aspectProperty.aspectName}")

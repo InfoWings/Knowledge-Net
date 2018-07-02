@@ -1,12 +1,12 @@
-package com.infowings.catalog.objects.treeview
+package com.infowings.catalog.objects.treeedit
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.AspectPropertyValueGroupViewModel
-import com.infowings.catalog.objects.AspectPropertyValueViewModel
+import com.infowings.catalog.objects.AspectPropertyValueEditModel
+import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
 import com.infowings.catalog.objects.AspectPropertyViewModel
-import com.infowings.catalog.objects.treeview.utils.constructAspectTree
+import com.infowings.catalog.objects.treeedit.utils.constructAspectTree
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -16,11 +16,11 @@ import react.dom.div
 
 
 fun RBuilder.aspectPropertyValues(
-    groups: MutableList<AspectPropertyValueGroupViewModel>,
+    groups: MutableList<AspectPropertyValueGroupEditModel>,
     aspectsMap: Map<String, AspectData>,
     onEdit: () -> Unit,
-    onUpdate: (index: Int, AspectPropertyValueGroupViewModel.() -> Unit) -> Unit,
-    onNonSelectedUpdate: (index: Int, AspectPropertyValueGroupViewModel.() -> Unit) -> Unit
+    onUpdate: (index: Int, AspectPropertyValueGroupEditModel.() -> Unit) -> Unit,
+    onNonSelectedUpdate: (index: Int, AspectPropertyValueGroupEditModel.() -> Unit) -> Unit
 ) {
     groups.forEachIndexed { groupIndex, (property, values) ->
         values.forEachIndexed { valueIndex, value ->
@@ -53,7 +53,7 @@ fun RBuilder.aspectPropertyValues(
                         onClick = {
                             onEdit()
                             onUpdate(groupIndex) {
-                                this.values.add(AspectPropertyValueViewModel())
+                                this.values.add(AspectPropertyValueEditModel())
                             }
                         }
                     }
@@ -66,14 +66,14 @@ fun RBuilder.aspectPropertyValues(
 fun RBuilder.aspectPropertyValue(
     aspectProperty: AspectPropertyViewModel,
     aspectsMap: Map<String, AspectData>,
-    value: AspectPropertyValueViewModel,
+    value: AspectPropertyValueEditModel,
     onEdit: () -> Unit,
-    onUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit,
-    onNonSelectedUpdate: (AspectPropertyValueViewModel.() -> Unit) -> Unit
+    onUpdate: (AspectPropertyValueEditModel.() -> Unit) -> Unit,
+    onNonSelectedUpdate: (AspectPropertyValueEditModel.() -> Unit) -> Unit
 ) =
     controlledTreeNode {
         attrs {
-            className = "object-tree-view__value"
+            className = "object-tree-edit__value"
             expanded = value.expanded
             onExpanded = {
                 onNonSelectedUpdate {

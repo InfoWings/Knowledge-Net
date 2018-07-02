@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.inputs.dialog
+package com.infowings.catalog.objects.treeedit.inputs.dialog
 
 import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBook

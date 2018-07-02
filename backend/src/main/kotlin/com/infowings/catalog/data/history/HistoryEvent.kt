@@ -247,7 +247,7 @@ class ObjectHistoryInfo {
         data class Property(val id: String, val snapshot: MutableSnapshot, val aspectName: String) {
             fun toData() = ObjectHistoryData.Companion.Property(
                 id = id,
-                name = snapshot.data.getValue("name"),
+                name = snapshot.data["name"] ?: "",
                 cardinality = snapshot.data.getValue("cardinality"),
                 aspectId = snapshot.links.getValue("aspect").first().toString(),
                 aspectName = aspectName

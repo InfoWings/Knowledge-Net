@@ -1,4 +1,4 @@
-package com.infowings.catalog.objects.treeview.inputs
+package com.infowings.catalog.objects.treeedit.inputs
 
 import com.infowings.catalog.aspects.getSuggestedAspects
 import com.infowings.catalog.common.AspectData
