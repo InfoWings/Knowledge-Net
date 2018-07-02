@@ -22,7 +22,7 @@ interface AspectService {
 }
 
 class NormalizedAspectService(private val innerService: AspectService) : AspectService by innerService {
-    override fun save(aspectData: AspectData, username: String): Aspect = innerService.save(aspectData.normalize(), username)
+    override fun save(aspectData: AspectData, username: String): AspectData = innerService.save(aspectData.normalize(), username)
     override fun remove(aspectData: AspectData, username: String, force: Boolean) = innerService.remove(aspectData.normalize(), username, force)
 }
 
@@ -189,15 +189,7 @@ class DefaultAspectService(
         aspectDaoService.findByName(name).map { it.toAspectData() }.toSet()
     }
 
-    override fun getAspects(
-        orderBy: List<AspectOrderBy> = listOf(
-            AspectOrderBy(
-                AspectSortField.NAME,
-                Direction.ASC
-            )
-        ),
-        query: String? = null
-    ): List<AspectData> {
+    override fun getAspects(orderBy: List<AspectOrderBy>, query: String?): List<AspectData> {
         val aspects = transaction(db) {
             val vertices = logTime(logger, "getting aspect vertices") {
                 when {
