@@ -7,6 +7,7 @@ import com.infowings.catalog.common.ObjectHistory
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
@@ -18,6 +19,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OBJECT_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
+import com.infowings.catalog.storage.id
 
 const val HISTORY_ENTITY_OBJECT = "Object"
 
@@ -48,6 +50,7 @@ private data class ObjectState(
 class ObjectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectService: AspectService,
+    private val aspectDao: AspectDaoService,
     private val subjectService: SubjectService,
     private val refBookService: ReferenceBookService,
     private val measureService: MeasureService
@@ -259,22 +262,18 @@ class ObjectHistoryProvider(
     private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
-        val allHistory = logTime(logger, "extracting timeline for object history") {
-            historyService.allTimeline()
-        }
-
-        val objectFacts = allHistory.filter { objectVertices.contains(it.event.entityClass) }
-
-        val objectFacts2 = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
+        val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
             historyService.allTimeline(objectVertices.toList())
         }
-        logger.info("same object facts: ${objectFacts.toSet() == objectFacts2.toSet()}")
 
         val factsByEntity = objectFacts.groupBy { it.event.entityClass }
         val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
 
         val aspectLinks = propertyFacts.map { it.payload.mentionedLinks("aspect") }.flatten().toSet()
         logger.info("aspect links: $aspectLinks")
+
+        val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
+        logger.info("aspect names: $aspectNames")
 
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 

@@ -87,7 +87,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         }
         bean {
             ObjectHistoryProvider(
-                historyService = ref(), aspectService = ref(), subjectService = ref(),
+                historyService = ref(), aspectService = ref(), aspectDao = ref(), subjectService = ref(),
                 refBookService = ref(), measureService = ref()
             )
         }
