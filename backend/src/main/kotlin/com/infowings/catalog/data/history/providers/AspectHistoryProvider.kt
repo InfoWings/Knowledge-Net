@@ -68,8 +68,6 @@ class AspectHistoryProvider(
             fact.payload.data[AspectPropertyField.ASPECT.name]
         }.filterNotNull().toSet()
 
-        logger.info("mentioned aspectIds: " + aspectIds)
-
         val aspectsById = logTime(logger, "obtaining aspects") {
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
             transaction(db) {
@@ -139,6 +137,13 @@ class AspectHistoryProvider(
                             val before = it.first.first
                             val after = it.first.second
 
+                            val createPropertyDeltas = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).map { propertyFact ->
+                                val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
+                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
+                                logger.info("property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
+                                FieldDelta("Property $name", null, "$name : $cardinality")
+                            }
+
                             val deltas = aspectFact.payload.data.map {
                                 val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
                                 FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
@@ -166,7 +171,7 @@ class AspectHistoryProvider(
                                         afterName
                                     )
                                 } else null
-                            }
+                            } + createPropertyDeltas
 
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
@@ -176,11 +181,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("9 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("10 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("9 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("9 res==res2: ${res==res2}")
+                            logger.info("10 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("10 res==res2: ${res==res2}")
 
                             res
                         }
