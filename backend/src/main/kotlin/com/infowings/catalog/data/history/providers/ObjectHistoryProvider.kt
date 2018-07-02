@@ -13,6 +13,8 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.ObjectHistoryInfo
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.external.logTime
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OBJECT_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
@@ -257,9 +259,16 @@ class ObjectHistoryProvider(
     private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
-        val allHistory = historyService.allTimeline()
+        val allHistory = logTime(logger, "extracting timeline for object history") {
+            historyService.allTimeline()
+        }
 
         val objectFacts = allHistory.filter { objectVertices.contains(it.event.entityClass) }
+
+        val objectFacts2 = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
+            historyService.allTimeline(objectVertices.toList())
+        }
+        logger.info("same object facts: ${objectFacts.toSet() == objectFacts2.toSet()}")
 
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
@@ -294,3 +303,5 @@ private val idReprExtractors: Map<String, (ObjectHistoryData.Companion.BriefStat
 private fun String.dropPrefix(p: String): String? {
     return if (startsWith(p)) drop(p.length) else null
 }
+
+private val logger = loggerFor<ObjectHistoryProvider>()
