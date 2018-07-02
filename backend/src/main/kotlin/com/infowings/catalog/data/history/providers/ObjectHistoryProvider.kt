@@ -273,7 +273,7 @@ class ObjectHistoryProvider(
         val aspectLinks = propertyFacts.map { it.payload.mentionedLinks("aspect") }.flatten().toSet()
         logger.info("aspect links: $aspectLinks")
 
-        val aspectPropertyLinks = propertyFacts.map { it.payload.mentionedLinks("aspectProperty") }.flatten().toSet()
+        val aspectPropertyLinks = valueFacts.map { it.payload.mentionedLinks("aspectProperty") }.flatten().toSet()
         logger.info("aspect property links: $aspectPropertyLinks")
 
         val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }

@@ -461,5 +461,7 @@ class AspectHistoryTest {
         assertEquals(EventType.CREATE, latestFact.event.type)
         assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
         assertEquals(complexAspect.baseType, latestFact.fullData.aspectData.baseType)
+
+        //assertEquals(complexAspect.measure, latestFact.fullData.aspectData.measure)
     }
 }

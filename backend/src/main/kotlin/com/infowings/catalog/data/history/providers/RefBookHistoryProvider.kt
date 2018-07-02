@@ -248,7 +248,7 @@ class RefBookHistoryProvider(
         val rbFacts = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
 
         logger.info("found ${rbFacts.size} reference book facts")
-        
+
         val factsBySession = rbFacts.groupBy { it.event.sessionId }
 
         val aspectIds = rbFacts.flatMap { fact ->
