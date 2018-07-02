@@ -95,8 +95,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun saveAspect(aspectVertex: AspectVertex, aspectData: AspectData): AspectVertex = transaction(db) {
         logger.debug("Saving aspect ${aspectData.name}, ${aspectData.measure}, ${aspectData.baseType}, ${aspectData.properties.size}")
 
-        aspectVertex.name = aspectData.name?.trim() ?: throw AspectNameCannotBeNull()
-        aspectVertex.description = aspectData.description?.trim()
+        aspectVertex.name = aspectData.name ?: throw AspectNameCannotBeNull()
+        aspectVertex.description = aspectData.description
 
         aspectVertex.baseType = when (aspectData.measure) {
             null -> aspectData.baseType
@@ -138,7 +138,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             throw AspectInconsistentStateException("Property has illegal cardinality value")
         }
 
-        aspectPropertyVertex.name = aspectPropertyData.name.trim()
+        aspectPropertyVertex.name = aspectPropertyData.name
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
         aspectPropertyVertex.description = aspectPropertyData.description

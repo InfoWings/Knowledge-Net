@@ -11,18 +11,34 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 
+
+interface AspectService {
+    fun save(aspectData: AspectData, username: String): AspectData
+    fun remove(aspectData: AspectData, username: String, force: Boolean = false)
+    fun findByName(name: String): Set<AspectData>
+    fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
+    fun findById(id: String): AspectData
+    fun findPropertyById(id: String): AspectPropertyData
+}
+
+class NormalizedAspectService(private val innerService: AspectService) : AspectService by innerService {
+    override fun save(aspectData: AspectData, username: String): Aspect = innerService.save(aspectData.normalize(), username)
+    override fun remove(aspectData: AspectData, username: String, force: Boolean) = innerService.remove(aspectData.normalize(), username, force)
+}
+
 /**
  * Data layer for Aspect & Aspect properties
  * Both stored as vertexes [ASPECT_CLASS] & [ASPECT_PROPERTY_CLASS] linked by [ASPECT_ASPECT_PROPERTY_EDGE]
  * [ASPECT_CLASS] can be linked with [Measure] by [ASPECT_MEASURE_CLASS]
  */
-class AspectService(
+class DefaultAspectService(
     private val db: OrientDatabase,
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
     private val referenceBookService: ReferenceBookService,
     private val userService: UserService
-) {
+) : AspectService {
+
     private val aspectValidator = AspectValidator(aspectDaoService)
 
     private fun savePlain(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
@@ -92,7 +108,7 @@ class AspectService(
      * @throws AspectCyclicDependencyException if one of AspectProperty of the aspect refers to parent Aspect
      * @throws AspectEmptyChangeException if new data is the same that old data
      */
-    fun save(aspectData: AspectData, username: String): AspectData {
+    override fun save(aspectData: AspectData, username: String): AspectData {
         val userVertex = userService.findUserVertexByUsername(username)
 
         val save: AspectVertex = transaction(db) {
@@ -130,13 +146,13 @@ class AspectService(
         } else transaction(db) { save.toAspectData() }
     }
 
-    fun remove(aspectData: AspectData, username: String, force: Boolean = false) {
+    override fun remove(aspectData: AspectData, username: String, force: Boolean) {
         val userVertex = userService.findUserVertexByUsername(username)
 
         transaction(db) {
             val context = HistoryContext(userVertex)
 
-            val aspectId = aspectData.id ?: "null"
+            val aspectId = aspectData.id ?: throw IllegalStateException("Id is null")
 
             val aspectVertex =
                 aspectDaoService.getVertex(aspectId)?.toAspectVertex() ?: throw AspectDoesNotExist(aspectId)
@@ -169,11 +185,11 @@ class AspectService(
      * Search [AspectData] by it's name
      * @return List of [AspectData] with name [name]
      */
-    fun findByName(name: String): Set<AspectData> = transaction(db) {
+    override fun findByName(name: String): Set<AspectData> = transaction(db) {
         aspectDaoService.findByName(name).map { it.toAspectData() }.toSet()
     }
 
-    fun getAspects(
+    override fun getAspects(
         orderBy: List<AspectOrderBy> = listOf(
             AspectOrderBy(
                 AspectSortField.NAME,
@@ -206,9 +222,9 @@ class AspectService(
      * Search [AspectData] by it's id
      * @throws AspectDoesNotExist
      */
-    fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
+    override fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
 
-    fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
+    override fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
             ?: throw AspectPropertyDoesNotExist(id)
@@ -325,6 +341,11 @@ class AspectService(
         }
     }
 }
+
+private fun AspectData.normalize(): AspectData = copy(
+    name = this.name?.trim(),
+    description = this.description?.trim(),
+    properties = this.properties.map { it.copy(name = it.name.trim(), description = it.description?.trim()) })
 
 sealed class AspectException(message: String? = null) : Exception(message)
 
