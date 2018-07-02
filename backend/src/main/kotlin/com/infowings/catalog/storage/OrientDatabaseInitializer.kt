@@ -150,7 +150,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         /** Add initial measures to database */
         val localMeasureService = MeasureService(database)
-        session(database) {
+        transaction(database) {
             MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it) }
             localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup)
             localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup)
@@ -171,12 +171,18 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     }
 
     /** Initializes measures search */
-    fun initSearch() {
-        initLuceneIndex(MEASURE_VERTEX)
+
+    fun initSearch(): OrientDatabaseInitializer  {
         initLuceneIndex(ASPECT_CLASS)
         initLuceneIndex(SUBJECT_CLASS)
+        return this
+    }
+
+    fun initSearchMeasure() {
+        initLuceneIndex(MEASURE_VERTEX)
         initLuceneIndex(MEASURE_GROUP_VERTEX)
     }
+
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")

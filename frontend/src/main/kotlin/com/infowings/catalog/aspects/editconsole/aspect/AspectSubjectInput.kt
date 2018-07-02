@@ -8,7 +8,6 @@ import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withTimeoutOrNull
 import react.*
 import react.dom.div
 
@@ -50,9 +49,7 @@ class AspectSubjectInput : RComponent<AspectSubjectInput.Props, RState>() {
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
-                                    val subjectsList: SubjectsList? = withTimeoutOrNull(500) {
-                                        getSuggestedSubject(input, "")
-                                    }
+                                    val subjectsList: SubjectsList? = getSuggestedSubject(input, "")
                                     callback(null, jsObject {
                                         options = subjectsList?.subject?.map {
                                             subjectOption(it)
