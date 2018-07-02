@@ -8,19 +8,15 @@ import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
-import kotlin.js.Date
 
 suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery: String = ""): AspectsList {
-    val before = Date()
-    val result: AspectsList = JSON.parse(get("/api/aspect/all" +
-            "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
-            "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
-            "&q=$nameQuery"
-        ))
-    val after = Date()
-    println("before: $before")
-    println("after: $after")
-    return result
+    return JSON.parse(
+        get("/api/aspect/all" +
+                "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
+                "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
+                "&q=$nameQuery"
+        )
+    )
 }
 
 suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))

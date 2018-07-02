@@ -12,9 +12,7 @@ data class ObjectGetResponse(
     val id: String,
     val name: String,
     val description: String?,
-    val subjectId: String,
     val subjectName: String,
-    val subjectDescription: String?,
     val propertiesCount: Int
 )
 
@@ -23,9 +21,7 @@ data class DetailedObjectResponse(
     val id: String,
     val name: String,
     val description: String?,
-    val subjectId: String,
     val subjectName: String,
-    val subjectDescription: String?,
     val propertiesCount: Int,
     val objectProperties: List<DetailedObjectPropertyResponse>
 )
@@ -44,6 +40,7 @@ data class DetailedObjectPropertyResponse(
 data class RootValueResponse(
     val id: String,
     val value: ValueDTO,
+    val description: String?,
     val children: List<ValueResponse>
 )
 
@@ -51,6 +48,7 @@ data class RootValueResponse(
 data class ValueResponse(
     val id: String,
     val value: ValueDTO,
+    val description: String?,
     val aspectProperty: AspectPropertyDataExtended,
     val children: List<ValueResponse>
 )

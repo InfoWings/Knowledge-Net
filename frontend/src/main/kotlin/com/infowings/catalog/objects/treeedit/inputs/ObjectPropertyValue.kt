@@ -1,7 +1,7 @@
-package com.infowings.catalog.objects.treeview.inputs
+package com.infowings.catalog.objects.treeedit.inputs
 
 import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.objects.treeview.inputs.values.*
+import com.infowings.catalog.objects.treeedit.inputs.values.*
 import react.RBuilder
 
 fun RBuilder.propertyValue(
