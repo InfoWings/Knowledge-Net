@@ -427,4 +427,33 @@ class AspectHistoryTest {
             assertEquals(2, history.size, "it must be 2 elements")
         }
     }
+
+    @Test
+    fun testAspectHistoryCreateProperty() {
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Text.name,
+                description = "some description-1"
+            ), username
+        )
+        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
+
+        val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val complexAspectData = AspectData(
+            "",
+            "complex",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
+        val complexAspect = aspectService.save(complexAspectData, username)
+
+        val history = historyProvider.getAllHistory()
+
+        assertEquals(2, history.size)
+        //val fact = history.first()
+        //assertEquals(4, fact.changes.size)
+    }
 }

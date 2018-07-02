@@ -137,7 +137,11 @@ class AspectHistoryProvider(
                             val before = it.first.first
                             val after = it.first.second
 
-                            val createPropertyDeltas = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).map { propertyFact ->
+                            val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
+
+
+                            val createPropertyDeltas = (propertyFactsByType[EventType.CREATE] ?: emptyList()).map { propertyFact ->
+                                logger.info("")
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
                                 val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
                                 logger.info("property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
@@ -181,11 +185,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("10 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("11 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("10 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("10 res==res2: ${res==res2}")
+                            logger.info("11 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("11 res==res2: ${res==res2}")
 
                             res
                         }
