@@ -305,12 +305,12 @@ class ReferenceBookNotLinkedTest {
 
     @Test(expected = RefBookAlreadyExist::class)
     fun testCreateRefBookSameNameSpaces() {
-        referenceBookService.createReferenceBook(referenceBook.name + " ", aspect.id, username)
+        referenceBookService.createReferenceBook(referenceBook.name + " ", aspect.id!!, username)
     }
 
     @Test(expected = RefBookAlreadyExist::class)
     fun testChangeRefBookSameNameSpaces() {
-        val referenceBook2 = referenceBookService.createReferenceBook("ex", aspect.id, username)
+        val referenceBook2 = referenceBookService.createReferenceBook("ex", aspect.id!!, username)
         referenceBookService.updateReferenceBook(referenceBook2.copy(name = " ${referenceBook.name}   "), username)
     }
 
@@ -331,7 +331,7 @@ class ReferenceBookNotLinkedTest {
     @Test
     fun saveWithSpacesAround() {
         val aspect2 = aspectService.save(AspectData(name = "testAspect", baseType = BaseType.Text.name), username)
-        var refBook = referenceBookService.createReferenceBook("  name  ", aspectId = aspect2.id, username = username)
+        var refBook = referenceBookService.createReferenceBook("  name  ", aspectId = aspect2.id!!, username = username)
         assertEquals("Reference book should have trimmed name", "name", refBook.name)
 
         referenceBookService.updateReferenceBook(refBook.copy(description = "   description   "), username)

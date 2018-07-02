@@ -371,14 +371,14 @@ class AspectServiceSavingTest {
         val aspectData2 = aspectDataWithSubject("test2")
         aspectService.save(aspectData1, username)
         val ans = aspectService.save(aspectData2, username)
-        aspectService.save(ans.toAspectData().copy(name = "test   "), username)
+        aspectService.save(ans.copy(name = "test   "), username)
     }
 
     @Test
     fun testSaveWithAroundSpaces() {
         val leafAspect = aspectService.save(AspectData(name = "leaf", baseType = BaseType.Text.name), username)
         val aspectPropertyData =
-            AspectPropertyData(id = "", name = "   p1   ", aspectId = leafAspect.id, cardinality = PropertyCardinality.ONE.name, description = "  d1   ")
+            AspectPropertyData(id = "", name = "   p1   ", aspectId = leafAspect.id!!, cardinality = PropertyCardinality.ONE.name, description = "  d1   ")
         val complexAspect =
             AspectData(name = "     test ", description = " description    ", baseType = BaseType.Text.name, properties = listOf(aspectPropertyData))
         val res = aspectService.save(complexAspect, username)
