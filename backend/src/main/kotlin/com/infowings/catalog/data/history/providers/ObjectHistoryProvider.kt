@@ -124,13 +124,13 @@ class ObjectHistoryProvider(
         )
     }
 
-    private fun propertyAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+    private fun propertyAdd(createFact: HistoryFact, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val propertyId = createFact.event.entityId
         val objectId = createFact.payload.addedLinks.getValue("object")[0].toString()
         val objekt = state.objects.getValue(objectId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
-        val aspectName = aspectService.findById(aspectId)?.name ?: "???"
+        val aspectName = aspectNameById[aspectId] ?: "???"
 
         initial.apply(createFact.payload)
 
@@ -232,7 +232,7 @@ class ObjectHistoryProvider(
             fullData = ObjectHistoryData.Companion.BriefState(
                 ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""), null, null), changes = emptyList())
 
-    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState): ObjectHistory {
+    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
 
@@ -244,7 +244,7 @@ class ObjectHistoryProvider(
                     objectCreate(createFact, state)
                 }
                 OBJECT_PROPERTY_CLASS -> {
-                    propertyAdd(createFact, state)
+                    propertyAdd(createFact, state, aspectNameById)
                 }
                 OBJECT_PROPERTY_VALUE_CLASS -> {
                     valueAdd(createFact, state)
@@ -281,7 +281,7 @@ class ObjectHistoryProvider(
 
         return factsBySession.map { (sessionId, sessionFacts) ->
             println("session facts: ")
-            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState)
+            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState, aspectNames)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
             val newEvent = ch.event.copy(

@@ -462,6 +462,6 @@ class AspectHistoryTest {
         println("full data: ${latestFact.fullData.aspectData}")
         println("aspect1: $aspect1")
         println("complex aspect: $complexAspect")
-        //assertEquals(complexAspect.properties[0].id, latestFact.fullData.aspectData.id)
+        assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
     }
 }

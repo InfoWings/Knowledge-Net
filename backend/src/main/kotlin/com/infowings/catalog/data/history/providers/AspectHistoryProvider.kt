@@ -137,7 +137,7 @@ class AspectHistoryProvider(
                             val before = it.first.first
                             val after = it.first.second
 
-                            logger.info("aspect fact: $res")
+                            logger.info("aspect fact: $aspectFact")
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
@@ -177,13 +177,13 @@ class AspectHistoryProvider(
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
                             } + aspectFact.payload.addedLinks.mapNotNull {
                                 if (it.key != AspectField.PROPERTY) {
+                                    logger.info("key: ${it.key}")
+                                    logger.info("before: " + before.snapshot.links)
                                     logger.info("after: " + after.snapshot.links)
                                     val afterId = after.snapshot.links[it.key]?.first()?.toString()
                                     val key = it.key
                                     logger.info("afterId: " + afterId)
                                     val afterName = afterId?.let {
-                                        logger.info("subject id: $it")
-                                        logger.info("subjectById: $subjectById")
                                         when (key) {
                                             AspectField.SUBJECT -> subjectById[afterId]?.name
                                             AspectField.REFERENCE_BOOK -> refBookNames[afterId]
@@ -207,11 +207,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("15 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("16 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("15 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("15 res==res2: ${res==res2}")
+                            logger.info("16 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("16 res==res2: ${res==res2}")
 
                             res
                         }
