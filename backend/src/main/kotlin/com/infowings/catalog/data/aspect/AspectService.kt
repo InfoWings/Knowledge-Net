@@ -205,8 +205,29 @@ class DefaultAspectService(
                     else -> aspectDaoService.findTransitiveByNameQuery(query)
                 }
             }
-            logTime(logger, "extracting aspects") {
-                vertices.map { it.toAspectData() }
+
+            val ids = vertices.map { it.identity }
+
+            val props = aspectDaoService.getProperties(ids).map {
+                it.toAspectPropertyData()
+            }
+
+            val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
+
+            val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
+
+            logTime(logger, "filling aspects using details") {
+                vertices.mapNotNull { aspectVertex ->
+                    logTime(logger, "convert to aspect data") {
+                        val id = aspectVertex.id
+                        val details = detailsById[id]
+                        val data = details?.let {
+                            aspectVertex.toAspectData(propsById, details)
+                        }
+                        data ?: logger.warn("nothing found for aspect id $id")
+                        data
+                    }
+                }
             }
         }
 
@@ -369,8 +390,6 @@ class AspectPropertyModificationException(val id: String, message: String?) :
 
 class AspectCyclicDependencyException(cyclicIds: List<String>) :
     AspectException("Cyclic dependencies on aspects with id: $cyclicIds")
-
-class AspectWithoutBaseTypeException(id: String) : AspectException("Aspect with id $id does not have base type")
 
 
 class AspectNameCannotBeNull : AspectException()
