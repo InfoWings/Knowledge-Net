@@ -4,6 +4,9 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
+import com.infowings.catalog.loggerFor
+
+private val logger = loggerFor<AspectDeltaConstructor>()
 
 class AspectDeltaConstructor(val aspectService: AspectService) {
 

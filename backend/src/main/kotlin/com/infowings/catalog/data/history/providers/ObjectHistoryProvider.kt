@@ -268,9 +268,13 @@ class ObjectHistoryProvider(
 
         val factsByEntity = objectFacts.groupBy { it.event.entityClass }
         val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
+        val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
 
         val aspectLinks = propertyFacts.map { it.payload.mentionedLinks("aspect") }.flatten().toSet()
         logger.info("aspect links: $aspectLinks")
+
+        val aspectPropertyLinks = propertyFacts.map { it.payload.mentionedLinks("aspectProperty") }.flatten().toSet()
+        logger.info("aspect property links: $aspectPropertyLinks")
 
         val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
         logger.info("aspect names: $aspectNames")
@@ -280,7 +284,6 @@ class ObjectHistoryProvider(
         val historyState = ObjectState()
 
         return factsBySession.map { (sessionId, sessionFacts) ->
-            println("session facts: ")
             val ch: ObjectHistory = sessionToChange(sessionFacts, historyState, aspectNames)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")

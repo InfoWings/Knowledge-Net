@@ -52,6 +52,8 @@ class AspectHistoryProvider(
             refBookDao.find(refBookIds.toList()).groupBy {it.id}.mapValues { it.value.first().value }
         }
 
+        logger.info("ref book names: $refBookNames")
+
         val subjectIds = aspectFacts.flatMap { fact ->
             fact.payload.mentionedLinks(AspectField.SUBJECT)
         }.toSet()
@@ -138,9 +140,10 @@ class AspectHistoryProvider(
                             val after = it.first.second
 
                             logger.info("aspect fact: $aspectFact")
+                            logger.info("before data: ${before.data}")
+                            logger.info("after data: ${after.data}")
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
-
 
                             val createPropertyDeltas = (propertyFactsByType[EventType.CREATE] ?: emptyList()).map { propertyFact ->
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
@@ -149,7 +152,7 @@ class AspectHistoryProvider(
                                 }
                                 val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
                                 logger.info("create property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                FieldDelta("Property $name", null, "$name ${aspectsById[aspectId]?.name} : [$cardinality]")
+                                FieldDelta("Property ${name ?: ""}", null, "$name ${aspectsById[aspectId]?.name} : [$cardinality]")
                             }
 
                             val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).filterNot {
@@ -178,8 +181,10 @@ class AspectHistoryProvider(
                             } + aspectFact.payload.addedLinks.mapNotNull {
                                 if (it.key != AspectField.PROPERTY) {
                                     logger.info("key: ${it.key}")
-                                    logger.info("before: " + before.snapshot.links)
-                                    logger.info("after: " + after.snapshot.links)
+                                    logger.info("before links: " + before.snapshot.links)
+                                    logger.info("after links: " + after.snapshot.links)
+                                    logger.info("before data: " + before.snapshot.data)
+                                    logger.info("after data: " + after.snapshot.data)
                                     val afterId = after.snapshot.links[it.key]?.first()?.toString()
                                     val key = it.key
                                     logger.info("afterId: " + afterId)
