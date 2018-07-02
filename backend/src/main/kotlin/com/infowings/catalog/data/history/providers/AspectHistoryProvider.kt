@@ -142,16 +142,28 @@ class AspectHistoryProvider(
 
                             val createPropertyDeltas = (propertyFactsByType[EventType.CREATE] ?: emptyList()).map { propertyFact ->
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
-                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
+                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]?.let {
+                                    PropertyCardinality.valueOf(it).label
+                                }
                                 val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
                                 logger.info("create property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                 FieldDelta("Property $name", null, "$name ${aspectsById[aspectId]?.name}: $cardinality")
                             }
 
-                            val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).forEach { propertyFact ->
+                            val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).filterNot {
+                                it.payload.data.isEmpty() && it.payload.addedLinks.isEmpty() && it.payload.removedLinks.isEmpty()
+                            }.forEach { propertyFact ->
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
                                 val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
                                 logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
+                                //FieldDelta("Property $name", null, "$name : $cardinality")
+                            }
+                            val deletePropertyDeltas = (propertyFactsByType[EventType.DELETE] ?: emptyList()) +
+                                    ((propertyFactsByType[EventType.SOFT_DELETE] ?: emptyList()))
+                                .forEach { propertyFact ->
+                                val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
+                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
+                                logger.info("delete property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                 //FieldDelta("Property $name", null, "$name : $cardinality")
                             }
 
@@ -193,11 +205,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("12 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("13 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("12 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("12 res==res2: ${res==res2}")
+                            logger.info("13 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("13 res==res2: ${res==res2}")
 
                             res
                         }
