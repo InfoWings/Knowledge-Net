@@ -83,7 +83,6 @@ class AspectHistoryProvider(
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
-
                 val snapshot = MutableSnapshot()
 
                 val versionList = listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.toSnapshot(), emptyMap())) + aspectFacts.map { aspectFact ->
@@ -112,7 +111,7 @@ class AspectHistoryProvider(
                     val refBookName = snapshot.links[AspectField.REFERENCE_BOOK]?.firstOrNull()?.let { refBookNames[it.toString()]?: "???" }
 
                     val subject = snapshot.links[AspectField.SUBJECT]?.firstOrNull()?.let {
-                        subjectById[it.toString()]
+                        subjectById[it.toString()] ?: SubjectData(id = "", name = "Subject removed", description = "")
                     }
 
                     DataWithSnapshot(AspectData(id = null,
@@ -194,7 +193,7 @@ class AspectHistoryProvider(
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
                             } + aspectFact.payload.addedLinks.mapNotNull {
-                                if (it.key != AspectField.PROPERTY           && it.key != AspectField.SUBJECT) {
+                                if (it.key != AspectField.PROPERTY) {
                                     logger.info("key: ${it.key}")
                                     logger.info("before links: " + before.snapshot.links)
                                     logger.info("after links: " + after.snapshot.links)
@@ -205,7 +204,7 @@ class AspectHistoryProvider(
                                     logger.info("afterId: " + afterId)
                                     val afterName = afterId?.let {
                                         when (key) {
-                                            AspectField.SUBJECT -> subjectById[afterId]?.name
+                                            AspectField.SUBJECT -> subjectById[afterId]?.name?:"Subject removed"
                                             AspectField.REFERENCE_BOOK -> refBookNames[afterId]
                                             else -> null
                                         }
@@ -260,11 +259,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("19 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("20 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("19 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("19 res==res2: ${res==res2}")
+                            logger.info("20 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("20 res==res2: ${res==res2}")
 
                             res
                         }

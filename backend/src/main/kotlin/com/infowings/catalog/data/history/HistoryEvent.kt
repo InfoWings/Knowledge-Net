@@ -8,6 +8,7 @@ import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.data.objekt.ScalarTypeTag
+import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
@@ -49,6 +50,8 @@ data class DiffPayload(
     }
 }
 
+private val logger = loggerFor<MutableSnapshot>()
+
 data class MutableSnapshot(val data: MutableMap<String, String>, val links: MutableMap<String, MutableSet<ORID>>) {
     fun apply(diff: DiffPayload) {
         diff.data.forEach { updateField(it.key, it.value) }
@@ -76,10 +79,12 @@ data class MutableSnapshot(val data: MutableMap<String, String>, val links: Muta
     }
 
     fun removeLinks(target: String, toRemove: List<ORID>) {
+        logger.info("remove links ${toRemove} from $target. links: $links")
         if (target in links) {
             links[target]?.removeAll(toRemove)
             if (links[target]?.size == 0) links.remove(target)
         }
+        logger.info("links after removal: $links")
     }
 
     fun toSnapshot() = Snapshot(data.toMap(), links.mapValues { it.value.toList() }.toMap())
