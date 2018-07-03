@@ -223,7 +223,7 @@ class AspectHistoryProvider(
                                 val key = it
                                 val beforeName = beforeId?.let {
                                     when (key) {
-                                        AspectField.SUBJECT -> subjectById[afterId]?.name?:"Subject removed"
+                                        AspectField.SUBJECT -> subjectById[beforeId]?.name?:"Subject removed"
                                         AspectField.REFERENCE_BOOK -> refBookNames[afterId]
                                         else -> null
                                     }
