@@ -74,24 +74,37 @@ class AspectHistoryProvider(
 
         logger.info("aspect ids from prop: $aspectIdsFromProps")
 
-        val validAspectIds = aspectDao.getAspectsWithDeleted(aspectIdsFromProps.map { ORecordId(it)}).map {it.identity}
+        val validAspectVerts = aspectDao.getAspectsWithDeleted(aspectIdsFromProps.map { ORecordId(it)})
+        val validAspectIds = validAspectVerts.map {it.identity}
 
         logger.info("valid aspect ids: $validAspectIds")
 
-        try {
-            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetails(validAspectIds)
+        val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetails(validAspectIds)
 
-            val props = aspectDao.getProperties(validAspectIds).map {
-                it.toAspectPropertyData()
-            }
-
-            val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
-
-            logger.info("details by id: $detailsById")
-            logger.info("props by id: $propsById")
-        } catch (e: Throwable) {
-            logger.info("thrown: $e")
+        val props = aspectDao.getProperties(validAspectIds).map {
+            it.toAspectPropertyData()
         }
+
+        val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
+
+        logger.info("details by id: $detailsById")
+        logger.info("props by id: $propsById")
+
+        val aspectsData = logTime(logger, "filling valid aspects using details") {
+            validAspectVerts.mapNotNull { aspectVertex ->
+                logTime(logger, "convert to aspect data") {
+                    val id = aspectVertex.id
+                    val details = detailsById[id]
+                    val data = details?.let {
+                        aspectVertex.toAspectData(propsById, details)
+                    }
+                    data ?: logger.warn("nothing found for aspect id $id")
+                    data
+                }
+            }
+        }
+
+        val aspectsById2: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
 
         val aspectIds = propertyFacts.map { fact ->
             fact.payload.data[AspectPropertyField.ASPECT.name]
@@ -106,7 +119,10 @@ class AspectHistoryProvider(
             }
         }.toMap()
 
+        logger.info("same aspects by Id keys: ${aspectsById.keys == aspectsById2.keys}")
+
         logger.info("aspects by Id: " + aspectsById)
+        logger.info("aspects by Id-2: " + aspectsById2)
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
@@ -330,7 +346,7 @@ class AspectHistoryProvider(
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
                             logger.info("28 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("28 res==res2: ${res==res2}")
+                            logger.info("29 res==res2: ${res==res2}")
 
                             res
                         }
