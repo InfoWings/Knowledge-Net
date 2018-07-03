@@ -33,7 +33,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val createPropertyResponse = createProperty(propertyCreateRequest)
         val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
         setState {
-            editedObject = editedObject.copy(
+            val editedObject = this.editedObject ?: error("Object is not yet loaded")
+            this.editedObject = editedObject.copy(
                 properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
                     createPropertyResponse.id,
                     propertyCreateRequest.name,
@@ -51,7 +52,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest) {
         val valueCreateResponse = createValue(valueCreateRequest)
         setState {
-            editedObject = editedObject.copy(
+            val editedObject = this.editedObject ?: error("Object is not yet loaded")
+            this.editedObject = editedObject.copy(
                 properties = editedObject.properties.map { property ->
                     if (property.id == valueCreateRequest.objectPropertyId) {
                         property.addValue(valueCreateRequest, valueCreateResponse)
@@ -83,11 +85,17 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override fun RBuilder.render() {
-        +props.objectId
+        state.editedObject?.let {
+            objectTreeEditModel {
+                attrs {
+                    serverView = it
+                }
+            }
+        }
     }
 
     interface State : RState {
-        var editedObject: ObjectEditDetailsResponse
+        var editedObject: ObjectEditDetailsResponse?
     }
 
     interface Props : RProps {

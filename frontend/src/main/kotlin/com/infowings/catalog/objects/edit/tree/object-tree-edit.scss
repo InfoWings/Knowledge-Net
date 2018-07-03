@@ -7,6 +7,14 @@
     display: flex;
     align-items: center;
     margin-top: .3rem;
+
+    & > * {
+      margin-right: 1rem;
+    }
+
+    & > .object-input-subject {
+      width: 25rem;
+    }
   }
 
   &__object-property {
@@ -19,6 +27,10 @@
     align-items: center;
   }
 
+}
+
+.object-input-description {
+  height: 1.6rem;
 }
 
 .aspect-value {

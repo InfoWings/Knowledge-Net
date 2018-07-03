@@ -2,10 +2,8 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -138,7 +136,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             throw AspectInconsistentStateException("Property has illegal cardinality value")
         }
 
-        aspectPropertyVertex.name = aspectPropertyData.name.trim()
+        aspectPropertyVertex.name = aspectPropertyData.name?.trim()
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
         aspectPropertyVertex.description = aspectPropertyData.description

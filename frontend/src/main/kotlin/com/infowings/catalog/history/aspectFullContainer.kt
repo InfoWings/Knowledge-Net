@@ -26,7 +26,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                         div("aspect-tree-history") {
                             aspectLabel(
                                 className = null,
-                                aspectName = props.view.aspectData.name ?: "",
+                                aspectName = props.view.aspectData.name,
                                 aspectMeasure = props.view.aspectData.measure ?: "",
                                 aspectDomain = props.view.aspectData.domain ?: "",
                                 aspectBaseType = props.view.aspectData.baseType ?: "",
@@ -51,7 +51,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                             div("aspect-tree-history") {
                                 propertyLabel(
                                     className = null,
-                                    aspectPropertyName = it.name,
+                                    aspectPropertyName = it.name ?: "",
                                     aspectPropertyCardinality = it.cardinality,
                                     aspectName = aspect?.name ?: "",
                                     aspectMeasure = aspect?.measure ?: "",

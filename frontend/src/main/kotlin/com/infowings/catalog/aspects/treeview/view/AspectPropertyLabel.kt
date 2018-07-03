@@ -18,7 +18,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
         if (props.aspectProperty.name != "" || props.aspectProperty.cardinality != "" || props.aspectProperty.aspectId != "") {
             propertyLabel(
                 className = selectedClass,
-                aspectPropertyName = props.aspectProperty.name,
+                aspectPropertyName = props.aspectProperty.name ?: "",
                 aspectPropertyCardinality = props.aspectProperty.cardinality,
                 aspectName = props.aspect?.name ?: "",
                 aspectMeasure = props.aspect?.measure ?: "",

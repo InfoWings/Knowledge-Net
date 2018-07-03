@@ -1,9 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.DetailedObjectPropertyResponse
-import com.infowings.catalog.common.DetailedObjectResponse
-import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
@@ -13,10 +11,8 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.description
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -65,15 +61,34 @@ class ObjectService(
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
             val objectSubject = objectVertex.subject ?: throw IllegalStateException("Object in database does not have a subject")
-            val objectTreeResponse = ObjectEditDetailsResponse(
+            val objectProperties = dao.getObjectProperties(objectVertex.identity)
+
+            return@transaction ObjectEditDetailsResponse(
                 objectVertex.id,
                 objectVertex.name,
                 objectVertex.description,
                 objectSubject.name,
                 objectSubject.id,
-                emptyList()
+                objectProperties.map {
+                    val values = dao.getPropertyValuesList(it.identity).map {
+                        ValueTruncated(
+                            it.id,
+                            it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                            it.get<ORID?>("propertyId")?.toString(),
+                            it.get<List<ORID>>("childrenIds").map { it.toString() }
+                        )
+                    }
+                    ObjectPropertyEditDetailsResponse(
+                        it.id,
+                        it.name,
+                        it.description,
+                        it.cardinality,
+                        values.filter { it.propertyId == null },
+                        values,
+                        dao.getAspectTreeForProperty(it.identity)
+                    )
+                }
             )
-            return@transaction objectTreeResponse
         }
 
     fun create(request: ObjectCreateRequest, username: String): String {

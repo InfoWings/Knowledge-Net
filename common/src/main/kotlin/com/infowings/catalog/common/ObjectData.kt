@@ -78,6 +78,6 @@ data class ObjectPropertyEditDetailsResponse(
 data class ValueTruncated(
     val id: String,
     val value: ValueDTO,
-    val propertyId: String,
+    val propertyId: String?,
     val childrenIds: List<String>
 )

@@ -44,7 +44,7 @@ data class AspectData(
 @Serializable
 data class AspectPropertyData(
     val id: String,
-    val name: String,
+    val name: String?,
     val aspectId: String,
     val cardinality: String,
     val description: String?,
@@ -56,7 +56,7 @@ data class AspectPropertyData(
 @Serializable
 data class AspectPropertyDataExtended(
     val id: String,
-    val name: String,
+    val name: String?,
     val aspectId: String,
     val cardinality: String,
     val aspectName: String,
@@ -70,10 +70,10 @@ data class AspectPropertyDataExtended(
 data class TreeAspectResponse(
     val id: String,
     val name: String,
-    val measure: String,
-    val baseType: String,
-    val domain: String,
-    val refBookName: String?,
+    val measure: String?,
+    val baseType: String?,
+    val domain: String?,
+    val refBookId: String?,
     val properties: List<TreeAspectPropertyResponse>
 )
 
@@ -82,7 +82,6 @@ data class TreeAspectPropertyResponse(
     val id: String,
     val cardinality: PropertyCardinality,
     val name: String?,
-    val description: String?,
     val aspect: TreeAspectResponse
 )
 
