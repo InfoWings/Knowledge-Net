@@ -68,14 +68,22 @@ class AspectHistoryProvider(
             }
         }
 
-        val aspectIds = propertyFacts.map { fact ->
-            fact.payload.data[AspectPropertyField.ASPECT.name]
-        }.filterNotNull().toSet()
+        val aspectIdsByProp = propertyFacts.map { fact ->
+            fact.event.entityId to fact.payload.data[AspectPropertyField.ASPECT.name]
+        }.toMap()
 
+        val aspectIds = aspectIdsByProp.values.filterNotNull().toSet() //  ...filterNotNull().toSet()
 
-        val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetailsStr(aspectIds.toList())
+        logger.info("aspect ids by prop: $aspectIdsByProp")
+        logger.info("aspect ids: $aspectIds")
 
-        logger.info("details by id: $detailsById")
+        try {
+            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetailsStr(aspectIds.toList())
+
+            logger.info("details by id: $detailsById")
+        } catch (e: Throwable) {
+            logger.info("thrown: $e")
+        }
 
         val aspectsById = logTime(logger, "obtaining aspects") {
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
