@@ -72,18 +72,22 @@ class AspectHistoryProvider(
             fact.event.entityId to fact.payload.data[AspectPropertyField.ASPECT.name]
         }.toMap()
 
-        val aspectIds = aspectIdsByProp.values.filterNotNull().toSet() //  ...filterNotNull().toSet()
+        val aspectIds2 = aspectIdsByProp.values.filterNotNull().filter{it.startsWith('#')}.toSet() //  ...filterNotNull().toSet()
 
         logger.info("aspect ids by prop: $aspectIdsByProp")
-        logger.info("aspect ids: $aspectIds")
+        logger.info("aspect ids: $aspectIds2")
 
         try {
-            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetailsStr(aspectIds.toList())
+            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetailsStr(aspectIds2.toList())
 
             logger.info("details by id: $detailsById")
         } catch (e: Throwable) {
             logger.info("thrown: $e")
         }
+
+        val aspectIds = propertyFacts.map { fact ->
+            fact.payload.data[AspectPropertyField.ASPECT.name]
+        }.filterNotNull().toSet()
 
         val aspectsById = logTime(logger, "obtaining aspects") {
             val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
@@ -232,8 +236,8 @@ class AspectHistoryProvider(
                                     }
                                 } ?: "???"
 
-                                logger.info("before: $beforeId, $beforeName")
-                                logger.info("after: $afterId, $afterName")
+                                logger.info("replaced before: $beforeId, $beforeName")
+                                logger.info("replaced after: $afterId, $afterName")
 
                                 FieldDelta(
                                     changeNamesConvert.getOrDefault(it, it),
@@ -247,7 +251,8 @@ class AspectHistoryProvider(
                                 FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
-                            } + aspectFact.payload.addedLinks.mapNotNull {
+                            } + replaceDeltas
+                            + aspectFact.payload.addedLinks.mapNotNull {
                                 if (it.key != AspectField.PROPERTY && !replacedLinks.contains(it.key) ) {
                                     logger.info("key: ${it.key}")
                                     logger.info("before links: " + before.snapshot.links)
@@ -314,11 +319,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("26 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("27 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("26 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("26 res==res2: ${res==res2}")
+                            logger.info("27 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("27 res==res2: ${res==res2}")
 
                             res
                         }
