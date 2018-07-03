@@ -12,6 +12,7 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.RefBookHistoryInfo
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.loggerFor
 
 const val HISTORY_ENTITY_REFBOOK = "Reference Book"
 
@@ -249,6 +250,10 @@ class RefBookHistoryProvider(
             val ch = try {
                 sessionToChange(sessionFacts, historyState)
             } catch (e: Exception) {
+                logger.warn("Failed to aggregate history for session ${sessionId}")
+                sessionFacts.forEach { logger.warn("fact: " + it) }
+                logger.warn("history state: $historyState")
+
                 RefBookHistory(sessionFacts.first().event, info = "", deleted = false,
                     fullData = RefBookHistoryData.Companion.BriefState(
                         RefBookHistoryData.Companion.Header("", "", null, "", ""),
@@ -267,3 +272,5 @@ class RefBookHistoryProvider(
         }.reversed()
     }
 }
+
+private val logger = loggerFor<RefBookHistoryProvider>()
