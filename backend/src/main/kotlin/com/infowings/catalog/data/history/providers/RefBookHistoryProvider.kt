@@ -246,7 +246,16 @@ class RefBookHistoryProvider(
         val historyState = RefBookState()
 
         return factsBySession.map { (sessionId, sessionFacts) ->
-            val ch = sessionToChange(sessionFacts, historyState)
+            val ch = try {
+                sessionToChange(sessionFacts, historyState)
+            } catch (e: Exception) {
+                RefBookHistory(sessionFacts.first().event, info = "", deleted = false,
+                    fullData = RefBookHistoryData.Companion.BriefState(
+                        RefBookHistoryData.Companion.Header("", "", null, "", ""),
+                        RefBookHistoryData.Companion.Item("", "", null)),
+                    changes = emptyList(),
+                    problem = "Thrown: $e")
+            }
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
             val newEvent = ch.event.copy(

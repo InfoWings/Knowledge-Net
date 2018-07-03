@@ -59,7 +59,8 @@ data class HistoryData<T>(
     var info: String?,
     var deleted: Boolean,
     var fullData: T,
-    var changes: List<FieldDelta>
+    var changes: List<FieldDelta>,
+    val problem: String? = null
 )
 
 typealias AspectHistory = HistoryData<AspectDataView>

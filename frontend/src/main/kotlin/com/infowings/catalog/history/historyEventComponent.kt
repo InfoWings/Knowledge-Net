@@ -100,6 +100,14 @@ class HistoryEventComponent : RComponent<HistoryEventComponent.Props, HistoryEve
                 this.changes = props.historyData.changes
             }
         }
+
+        props.historyData.problem?.let { message ->
+            div("history-event-problem") {
+                span("history-event-problem") {
+                        +message
+                }
+            }
+        }
     }
 
     interface Props : RProps {
