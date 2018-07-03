@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
-private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot)
+private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot, val propSnapshots: Map<String, Snapshot>)
 
 private val changeNamesConvert = mapOf(
     AspectField.NAME.name to "Name",
@@ -86,7 +86,7 @@ class AspectHistoryProvider(
 
                 val snapshot = MutableSnapshot()
 
-                val versionList = listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.toSnapshot())) + aspectFacts.map { aspectFact ->
+                val versionList = listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.toSnapshot(), emptyMap())) + aspectFacts.map { aspectFact ->
                     if (!aspectFact.event.type.isDelete()) {
                         snapshot.apply(aspectFact.payload)
                         val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
@@ -126,7 +126,11 @@ class AspectHistoryProvider(
                         deleted = aspectFact.event.type.isDelete(),
                         refBookName = refBookName,
                         subject = subject
-                    ), snapshot.toSnapshot())
+                    ), snapshot.toSnapshot(), properties.map {
+                        val propId = it.id
+                        val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
+                        propId to propSnapshot.toSnapshot()
+                    }.toMap())
                 }
 
                 val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
@@ -157,11 +161,20 @@ class AspectHistoryProvider(
 
                             val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).filterNot {
                                 it.payload.data.isEmpty() && it.payload.addedLinks.isEmpty() && it.payload.removedLinks.isEmpty()
-                            }.forEach { propertyFact ->
+                            }.map { propertyFact ->
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
                                 val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
+                                val prevSnapshot: Snapshot = before.propSnapshots[propertyFact.event.entityId] ?: Snapshot()
+                                logger.info("previous previous snapshot: $prevSnapshot")
+                                val prevName =  prevSnapshot?.data?.get(AspectPropertyField.NAME.name) ?: ""
+                                val prevCardinality =  prevSnapshot?.data?.get(AspectPropertyField.CARDINALITY.name)?.let {
+                                    PropertyCardinality.valueOf(it).label
+                                }
+                                val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
                                 logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                //FieldDelta("Property $name", null, "$name : $cardinality")
+                                FieldDelta("Property ${name ?: ""}",
+                                    "${prevName ?: ""} ${aspectsById[aspectId]?.name} : [$prevCardinality]",
+                                    "${name ?: ""} ${aspectsById[aspectId]?.name} : [$cardinality]")
                             }
                             val deletePropertyDeltas = (propertyFactsByType[EventType.DELETE] ?: emptyList()) +
                                     ((propertyFactsByType[EventType.SOFT_DELETE] ?: emptyList()))
@@ -235,7 +248,7 @@ class AspectHistoryProvider(
                                         null
                                     )
                                 } else null
-                            } + createPropertyDeltas
+                            } + updatePropertyDeltas + createPropertyDeltas
 
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
@@ -245,11 +258,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("18 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("19 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("18 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("18 res==res2: ${res==res2}")
+                            logger.info("19 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("19 res==res2: ${res==res2}")
 
                             res
                         }
