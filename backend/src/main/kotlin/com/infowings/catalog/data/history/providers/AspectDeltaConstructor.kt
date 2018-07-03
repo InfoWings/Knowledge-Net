@@ -127,6 +127,14 @@ class AspectDeltaConstructor(val aspectService: AspectService) {
     ): List<FieldDelta> {
         val propertyDiff = createAspectFieldDelta(eventType, after[id].deltaName, before[id]?.view, after[id]?.view)
 
+        logger.info("PROP DIFF. Event type: $eventType")
+        logger.info("PROP DIFF. ID: $id")
+        logger.info("PROP DIFF. before: $before")
+        logger.info("PROP DIFF. after: $after")
+        logger.info("PROP DIFF. before[id]: ${before[id]}")
+        logger.info("PROP DIFF. after[id]: ${after[id]}")
+        logger.info("PROP DIFF. after[id].deltaName: ${after[id].deltaName}")
+
         if (before[id]?.description != after[id]?.description) {
 
             val descriptionDiff =
