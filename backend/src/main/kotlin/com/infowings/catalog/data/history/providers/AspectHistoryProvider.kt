@@ -77,8 +77,12 @@ class AspectHistoryProvider(
         logger.info("aspect ids by prop: $aspectIdsByProp")
         logger.info("aspect ids: $aspectIds2")
 
+        val validAspectIds = aspectDao.getAspectsWithDeleted(aspectIds2.map { ORecordId(it)}).map {it.identity}
+
+        logger.info("valid aspect ids: $validAspectIds")
+
         try {
-            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetailsStr(aspectIds2.toList())
+            val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetails(validAspectIds)
 
             logger.info("details by id: $detailsById")
         } catch (e: Throwable) {
@@ -318,11 +322,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("27 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("28 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("27 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("27 res==res2: ${res==res2}")
+                            logger.info("28 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("28 res==res2: ${res==res2}")
 
                             res
                         }

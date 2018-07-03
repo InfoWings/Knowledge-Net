@@ -125,6 +125,13 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun getAspectsWithDeleted(ids: List<ORID>): Set<AspectVertex> = logTime(logger, "aspects extraction with deleted at dao level") {
+        db.query("SELECT FROM $ASPECT_CLASS WHERE @rid in :ids", mapOf("ids" to ids)) { rs ->
+            rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
+        }
+    }
+
+
     fun getProperties(ids: List<ORID>): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
         db.query("select from  (traverse out(\"$ASPECT_ASPECT_PROPERTY_EDGE\") from :ids  maxdepth 1) where \$depth==1", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectPropertyVertex() }.toSet()
