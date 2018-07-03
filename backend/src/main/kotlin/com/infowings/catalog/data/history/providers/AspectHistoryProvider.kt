@@ -344,19 +344,19 @@ class AspectHistoryProvider(
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull {
-                                    aspectsById2[it.aspectId]
+                                    aspectsById2[it.aspectId] ?: AspectData(it.aspectId, "Aspect removed", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
                             logger.info("res.fdata1: ${res.fullData.aspectData}")
                             logger.info("res2.fdata1: ${res2.fullData.aspectData}")
-                            logger.info("30 res.fdata1==res2.fdata1: ${res.fullData.aspectData == res2.fullData.aspectData}")
+                            logger.info("31 res.fdata1==res2.fdata1: ${res.fullData.aspectData == res2.fullData.aspectData}")
                             logger.info("res.fdata2: ${res.fullData.related}")
-                            logger.info("res2.fdat21: ${res2.fullData.related}")
-                            logger.info("30 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("res2.fdat2: ${res2.fullData.related}")
+                            logger.info("31 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("30 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("30 res==res2: ${res==res2}")
+                            logger.info("31 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("31 res==res2: ${res==res2}")
 
                             res
                         }
