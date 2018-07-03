@@ -163,14 +163,16 @@ class AspectHistoryProvider(
                                 it.payload.data.isEmpty() && it.payload.addedLinks.isEmpty() && it.payload.removedLinks.isEmpty()
                             }.map { propertyFact ->
                                 val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
-                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
                                 val prevSnapshot: Snapshot = before.propSnapshots[propertyFact.event.entityId] ?: Snapshot()
                                 logger.info("previous previous snapshot: $prevSnapshot")
-                                val prevName =  prevSnapshot?.data?.get(AspectPropertyField.NAME.name) ?: ""
-                                val prevCardinality =  prevSnapshot?.data?.get(AspectPropertyField.CARDINALITY.name)?.let {
+                                val prevName =  prevSnapshot.data.get(AspectPropertyField.NAME.name) ?: ""
+                                val prevCardinality =  prevSnapshot.data.get(AspectPropertyField.CARDINALITY.name)?.let {
                                     PropertyCardinality.valueOf(it).label
                                 }
-                                val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
+                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]?.let {
+                                    PropertyCardinality.valueOf(it).label
+                                }
+                                val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
                                 logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                 FieldDelta("Property ${name ?: ""}",
                                     "${prevName ?: ""} ${aspectsById[aspectId]?.name} : [$prevCardinality]",
@@ -192,7 +194,7 @@ class AspectHistoryProvider(
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
                             } + aspectFact.payload.addedLinks.mapNotNull {
-                                if (it.key != AspectField.PROPERTY) {
+                                if (it.key != AspectField.PROPERTY           && it.key != AspectField.SUBJECT) {
                                     logger.info("key: ${it.key}")
                                     logger.info("before links: " + before.snapshot.links)
                                     logger.info("after links: " + after.snapshot.links)
