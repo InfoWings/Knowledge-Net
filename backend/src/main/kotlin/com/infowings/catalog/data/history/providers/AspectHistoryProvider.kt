@@ -68,23 +68,27 @@ class AspectHistoryProvider(
             }
         }
 
-        val aspectIdsByProp = propertyFacts.map { fact ->
-            fact.event.entityId to fact.payload.data[AspectPropertyField.ASPECT.name]
-        }.toMap()
+        val aspectIdsFromProps = propertyFacts.map { fact ->
+            fact.payload.data[AspectPropertyField.ASPECT.name]
+        }.toSet()
 
-        val aspectIds2 = aspectIdsByProp.values.filterNotNull().filter{it.startsWith('#')}.toSet() //  ...filterNotNull().toSet()
+        logger.info("aspect ids from prop: $aspectIdsFromProps")
 
-        logger.info("aspect ids by prop: $aspectIdsByProp")
-        logger.info("aspect ids: $aspectIds2")
-
-        val validAspectIds = aspectDao.getAspectsWithDeleted(aspectIds2.map { ORecordId(it)}).map {it.identity}
+        val validAspectIds = aspectDao.getAspectsWithDeleted(aspectIdsFromProps.map { ORecordId(it)}).map {it.identity}
 
         logger.info("valid aspect ids: $validAspectIds")
 
         try {
             val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetails(validAspectIds)
 
+            val props = aspectDao.getProperties(validAspectIds).map {
+                it.toAspectPropertyData()
+            }
+
+            val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
+
             logger.info("details by id: $detailsById")
+            logger.info("props by id: $propsById")
         } catch (e: Throwable) {
             logger.info("thrown: $e")
         }
