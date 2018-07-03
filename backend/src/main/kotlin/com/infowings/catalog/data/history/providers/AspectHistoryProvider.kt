@@ -184,17 +184,22 @@ class AspectHistoryProvider(
                                     val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
                                     val prevSnapshot: Snapshot = before.propSnapshots[propertyFact.event.entityId] ?: Snapshot()
                                     logger.info("previous previous snapshot: $prevSnapshot")
-                                    val prevName =  prevSnapshot.data.get(AspectPropertyField.NAME.name) ?: " "
+                                    val prevName =  prevSnapshot.data.get(AspectPropertyField.NAME.name) ?: ""
                                     val prevCardinality =  prevSnapshot.data.get(AspectPropertyField.CARDINALITY.name)?.let {
                                         PropertyCardinality.valueOf(it).label
                                     }
                                     val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
                                     logger.info("delete property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                     FieldDelta("Property ${name ?: " "}",
-                                            "${prevName ?: ""} ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
+                                            "$prevName ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
                                             null)
                             }
 
+                            val replacedLinks = aspectFact.payload.addedLinks.keys.intersect(aspectFact.payload.removedLinks.keys)
+                            logger.info("replaced: $replacedLinks")
+                            replacedLinks.forEach {
+                                logger.info("$it: ${aspectFact.payload.removedLinks[it]} -> ${aspectFact.payload.addedLinks[it]}")
+                            }
 
                             val deltas = aspectFact.payload.data.map {
                                 val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
@@ -268,11 +273,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("24 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("25 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("24 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("24 res==res2: ${res==res2}")
+                            logger.info("25 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("25 res==res2: ${res==res2}")
 
                             res
                         }
