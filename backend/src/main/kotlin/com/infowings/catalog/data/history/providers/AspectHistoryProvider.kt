@@ -124,6 +124,13 @@ class AspectHistoryProvider(
         logger.info("aspects by Id: " + aspectsById)
         logger.info("aspects by Id-2: " + aspectsById2)
 
+        aspectsById.keys.forEach {
+            logger.info("id: $it")
+            logger.info("aspect-1: ${aspectsById[it]}")
+            logger.info("aspect-2: ${aspectsById2[it]}")
+            logger.info("same aspect: ${aspectsById[it] == aspectsById2[it]?.copy(properties = emptyList())}")
+        }
+
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
                 val snapshot = MutableSnapshot()
@@ -337,16 +344,19 @@ class AspectHistoryProvider(
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull {
-                                    aspectsById[it.aspectId]
+                                    aspectsById2[it.aspectId]
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("res.fdata: ${res.fullData.related}")
-                            logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("28 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("res.fdata1: ${res.fullData.aspectData}")
+                            logger.info("res2.fdata1: ${res2.fullData.aspectData}")
+                            logger.info("30 res.fdata1==res2.fdata1: ${res.fullData.aspectData == res2.fullData.aspectData}")
+                            logger.info("res.fdata2: ${res.fullData.related}")
+                            logger.info("res2.fdat21: ${res2.fullData.related}")
+                            logger.info("30 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("28 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("29 res==res2: ${res==res2}")
+                            logger.info("30 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("30 res==res2: ${res==res2}")
 
                             res
                         }
