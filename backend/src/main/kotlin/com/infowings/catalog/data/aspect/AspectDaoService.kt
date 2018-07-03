@@ -133,6 +133,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
 
+    fun getDetailsStr(ids: List<String>): Map<String, AspectDaoDetails> = getDetails(ids.map {ORecordId(it)})
+
     fun getDetails(ids: List<ORID>): Map<String, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
         val aliasSubjects = "subjectIds"
