@@ -173,7 +173,7 @@ class AspectHistoryProvider(
                                 }
                                 val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
                                 logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                FieldDelta("Property ${name ?: " "}",
+                                FieldDelta("Property ${name ?: ""}",
                                     "${prevName ?: ""} ${aspectsById[aspectId]?.name} : [$prevCardinality]",
                                     "${name ?: ""} ${aspectsById[aspectId]?.name} : [$cardinality]")
                             }
@@ -267,11 +267,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("22 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("23 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("22 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("22 res==res2: ${res==res2}")
+                            logger.info("23 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("23 res==res2: ${res==res2}")
 
                             res
                         }
