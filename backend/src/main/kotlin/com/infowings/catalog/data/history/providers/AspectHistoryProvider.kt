@@ -251,8 +251,7 @@ class AspectHistoryProvider(
                                 FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
-                            } + replaceDeltas
-                            + aspectFact.payload.addedLinks.mapNotNull {
+                            } + replaceDeltas + aspectFact.payload.addedLinks.mapNotNull {
                                 if (it.key != AspectField.PROPERTY && !replacedLinks.contains(it.key) ) {
                                     logger.info("key: ${it.key}")
                                     logger.info("before links: " + before.snapshot.links)
