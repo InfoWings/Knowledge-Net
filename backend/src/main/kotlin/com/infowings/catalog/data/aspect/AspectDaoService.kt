@@ -61,6 +61,18 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun findAspectsByIdsStr(ids: List<String>): List<AspectVertex> = findAspectsByIds(ids.map {ORecordId(it)})
 
+    fun findPropertiesByIds(ids: List<ORID>): List<AspectPropertyVertex> {
+        return db.query(
+            "select from $ASPECT_PROPERTY_CLASS where @rid in :ids ", mapOf("ids" to ids)
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toAspectPropertyVertex()
+            }.toList()
+        }
+    }
+
+    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map {ORecordId(it)})
+
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
         val traverseQuery = "TRAVERSE IN(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM ($selectQuery)"

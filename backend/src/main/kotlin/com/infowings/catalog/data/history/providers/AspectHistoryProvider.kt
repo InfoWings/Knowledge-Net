@@ -202,6 +202,39 @@ class AspectHistoryProvider(
                                         afterName
                                     )
                                 } else null
+                            } + aspectFact.payload.removedLinks.mapNotNull {
+                                if (it.key != AspectField.PROPERTY) {
+                                    logger.info("r key: ${it.key}")
+                                    logger.info("r before links: " + before.snapshot.links)
+                                    logger.info("r after links: " + after.snapshot.links)
+                                    logger.info("r before data: " + before.snapshot.data)
+                                    logger.info("r after data: " + after.snapshot.data)
+                                    val beforeId = before.snapshot.links[it.key]?.first()?.toString()
+                                    val key = it.key
+                                    logger.info("r beforeId: " + beforeId)
+                                    val beforeName = beforeId?.let {
+                                        when (key) {
+                                            AspectField.SUBJECT -> subjectById[beforeId]?.name
+                                            AspectField.REFERENCE_BOOK -> refBookNames[beforeId]
+                                            else -> null
+                                        }
+                                    } ?: "???"
+                                    val afterId = after.snapshot.links[it.key]?.first()?.toString()
+                                    logger.info("afterId: " + afterId)
+                                    val afterName = afterId?.let {
+                                        when (key) {
+                                            AspectField.SUBJECT -> subjectById[afterId]?.name
+                                            AspectField.REFERENCE_BOOK -> refBookNames[afterId]
+                                            else -> null
+                                        }
+                                    } ?: "???"
+
+                                    FieldDelta(
+                                        changeNamesConvert.getOrDefault(it.key, it.key),
+                                        beforeName,
+                                        null
+                                    )
+                                } else null
                             } + createPropertyDeltas
 
 
@@ -212,11 +245,11 @@ class AspectHistoryProvider(
 
                             logger.info("res.fdata: ${res.fullData.related}")
                             logger.info("res2.fdata: ${res2.fullData.related}")
-                            logger.info("17 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
+                            logger.info("18 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
                             logger.info("res.changes: ${res.changes}")
                             logger.info("res2.changes: ${res2.changes}")
-                            logger.info("17 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("17 res==res2: ${res==res2}")
+                            logger.info("18 res.changes==res2.changes: ${res.changes == res2.changes}")
+                            logger.info("18 res==res2: ${res==res2}")
 
                             res
                         }

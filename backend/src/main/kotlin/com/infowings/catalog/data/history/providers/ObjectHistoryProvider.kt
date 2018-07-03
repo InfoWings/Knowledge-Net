@@ -279,6 +279,9 @@ class ObjectHistoryProvider(
         val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
         logger.info("aspect names: $aspectNames")
 
+        val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
+        logger.info("aspect property names: $aspectPropertyNames")
+
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
         val historyState = ObjectState()
