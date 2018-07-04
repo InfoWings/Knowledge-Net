@@ -28,6 +28,8 @@ data class DiffPayload(
         return links.firstOrNull()
     }
 
+    fun isEmpty() = data.isEmpty() && addedLinks.isEmpty() && removedLinks.isEmpty()
+
     fun addedFor(target: String): List<ORID> = valueOrEmptyList(addedLinks, target)
     fun removedFor(target: String): List<ORID> = valueOrEmptyList(removedLinks, target)
 

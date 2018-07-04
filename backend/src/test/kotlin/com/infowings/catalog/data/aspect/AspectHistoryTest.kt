@@ -80,6 +80,8 @@ class AspectHistoryTest {
         assertEquals(aspect.id, aspectHistoryElement.event.entityId, "entity id is incorrect")
         assertNotNull(aspectHistoryElement.event.sessionId, "session id must be non-null")
         assertGreater(aspectHistoryElement.event.timestamp, 0)
+
+        assertEquals(3, aspectHistoryElement.changes.size)
     }
 
     @Test
