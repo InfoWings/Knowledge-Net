@@ -8,7 +8,6 @@ import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.data.objekt.ScalarTypeTag
-import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
@@ -50,41 +49,40 @@ data class DiffPayload(
     }
 }
 
-private val logger = loggerFor<MutableSnapshot>()
-
-data class MutableSnapshot(val data: MutableMap<String, String>, val links: MutableMap<String, MutableSet<ORID>>) {
+data class MutableSnapshot(val data: MutableMap<String, String>,
+                           val links: MutableMap<String, MutableSet<ORID>>) {
     fun apply(diff: DiffPayload) {
         diff.data.forEach { updateField(it.key, it.value) }
         diff.addedLinks.forEach { addLinks(it.key, it.value) }
         diff.removedLinks.forEach { removeLinks(it.key, it.value) }
     }
 
-    fun updateField(key: String, value: String) {
+    fun dataOrEmpty(key: String) = data[key] ?: ""
+
+    private fun updateField(key: String, value: String) {
         data[key] = value
     }
 
-    fun addLink(target: String, link: ORID) {
+    private fun addLink(target: String, link: ORID) {
         links.computeIfAbsent(target) { mutableSetOf() }.add(link)
     }
 
-    fun removeLink(target: String, link: ORID) {
+    private fun removeLink(target: String, link: ORID) {
         if (target in links) {
             links[target]?.remove(link)
             if (links[target]?.size == 0) links.remove(target)
         }
     }
 
-    fun addLinks(target: String, toAdd: List<ORID>) {
+    private fun addLinks(target: String, toAdd: List<ORID>) {
         links.computeIfAbsent(target, { mutableSetOf() }).addAll(toAdd)
     }
 
-    fun removeLinks(target: String, toRemove: List<ORID>) {
-        logger.info("remove links ${toRemove} from $target. links: $links")
+    private fun removeLinks(target: String, toRemove: List<ORID>) {
         if (target in links) {
             links[target]?.removeAll(toRemove)
             if (links[target]?.size == 0) links.remove(target)
         }
-        logger.info("links after removal: $links")
     }
 
     fun toSnapshot() = Snapshot(data.toMap(), links.mapValues { it.value.toList() }.toMap())
@@ -116,26 +114,6 @@ data class HistoryEventWrite(
     val entityClass: String,
     val sessionId: UUID
 )
-
-/*
-Структура для представления прочитанного события - вместе vertex - данные, извелеченные оттуда
- */
-/*
-data class HistoryEvent(
-    val username: String,
-    val timestamp: Long,
-    val version: Int,
-    val type: EventType,
-    val entityId: ORID,
-    val entityClass: String,
-    val sessionId: UUID
-) {
-    fun toHistoryEventData() = HistoryEventData(
-        username = username, timestamp = timestamp, version = version, type = type,
-        entityId = entityId.toString(), entityClass = entityClass, sessionId = sessionId.toString()
-    )
-}
-*/
 
 /* Исторический факт. Состоит из метаданных (event) и данных о внесенных изменениях (payload)
  */

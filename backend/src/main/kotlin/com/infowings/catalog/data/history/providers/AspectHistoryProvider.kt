@@ -1,17 +1,19 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.aspect.AspectDaoDetails
-import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.OpenDomain
-import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.MutableSnapshot
+import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.linksOfType
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.storage.*
-import com.orientechnologies.orient.core.id.ORecordId
+import com.infowings.catalog.storage.ASPECT_CLASS
+import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
+import com.infowings.catalog.storage.id
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
@@ -31,9 +33,7 @@ class AspectHistoryProvider(
     private val aspectDeltaConstructor: AspectDeltaConstructor,
     private val refBookDao: ReferenceBookDao,
     private val subjectDao: SubjectDao,
-    private val aspectDao: AspectDaoService,
-    private val aspectService: AspectService,
-    private val db: OrientDatabase
+    private val aspectService: AspectService
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
@@ -45,25 +45,13 @@ class AspectHistoryProvider(
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
-        val refBookIds = aspectFacts.flatMap { fact ->
-            fact.payload.linksOfType(AspectField.REFERENCE_BOOK)
-        }.toSet()
-
-        val refBookIds2 = aspectFacts.linksOfType(AspectField.REFERENCE_BOOK)
-
-        logger.info("same ref ids: ${refBookIds == refBookIds2}")
+        val refBookIds = aspectFacts.linksOfType(AspectField.REFERENCE_BOOK)
 
         val refBookNames = logTime(logger, "extracting ref book names") {
             refBookDao.find(refBookIds.toList()).groupBy {it.id}.mapValues { it.value.first().value }
         }
 
-        val subjectIds = aspectFacts.flatMap { fact ->
-            fact.payload.linksOfType(AspectField.SUBJECT)
-        }.toSet()
-
-        val subjectIds2 = aspectFacts.linksOfType(AspectField.SUBJECT)
-
-        logger.info("same subject ids: ${subjectIds == subjectIds2}")
+        val subjectIds = aspectFacts.linksOfType(AspectField.SUBJECT)
 
         val subjectById = logTime(logger, "extracting subjects") {
             val found = subjectDao.find(subjectIds.toList())
@@ -73,55 +61,12 @@ class AspectHistoryProvider(
             }
         }
 
-        val aspectIdsFromProps = propertyFacts.map { fact ->
+        val aspectIds = propertyFacts.mapNotNull { fact ->
             fact.payload.data[AspectPropertyField.ASPECT.name]
         }.toSet()
 
-        val aspectIdsFromProps2 = propertyFacts.mapNotNull { fact ->
-            fact.payload.data[AspectPropertyField.ASPECT.name]
-        }.toSet()
-
-        val aspects2 = aspectService.getAspectsWithDeleted(aspectIdsFromProps2.toList())
-
-        logger.info("aspect ids from prop: $aspectIdsFromProps")
-
-        val validAspectVerts = aspectDao.getAspectsWithDeleted(aspectIdsFromProps.map { ORecordId(it)})
-        val validAspectIds = validAspectVerts.map {it.identity}
-
-        logger.info("valid aspect ids: $validAspectIds")
-
-        val detailsById: Map<String, AspectDaoDetails> = aspectDao.getDetails(validAspectIds)
-
-        val props = aspectDao.getProperties(validAspectIds).map {
-            it.toAspectPropertyData()
-        }
-
-        val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
-
-        logger.info("details by id: $detailsById")
-        logger.info("props by id: $propsById")
-
-        val aspectsData = logTime(logger, "filling valid aspects using details") {
-            validAspectVerts.mapNotNull { aspectVertex ->
-                logTime(logger, "convert to aspect data") {
-                    val id = aspectVertex.id
-                    val details = detailsById[id]
-                    val data = details?.let {
-                        aspectVertex.toAspectData(propsById, details)
-                    }
-                    data ?: logger.warn("nothing found for aspect id $id")
-                    data
-                }
-            }
-        }
-
-        logger.info("same aspects: ${aspectsData.toSet() == aspects2.toSet()}")
-
+        val aspectsData = aspectService.getAspectsWithDeleted(aspectIds.toList())
         val aspectsById: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
-        val aspectsById2: Map<String, AspectData> = aspects2.map { it.id!! to it }.toMap()
-
-        logger.info("same aspects by id: ${aspectsById == aspectsById2}")
-
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
@@ -143,9 +88,9 @@ class AspectHistoryProvider(
                         val propId = it.toString()
                         val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
                         AspectPropertyData(id = propId,
-                            name = propSnapshot.data[AspectPropertyField.NAME.name] ?: "",
-                            aspectId = propSnapshot.data[AspectPropertyField.ASPECT.name] ?: "",
-                            cardinality = propSnapshot.data[AspectPropertyField.CARDINALITY.name] ?: "",
+                            name = propSnapshot.dataOrEmpty(AspectPropertyField.NAME.name),
+                            aspectId = propSnapshot.dataOrEmpty(AspectPropertyField.ASPECT.name),
+                            cardinality = propSnapshot.dataOrEmpty(AspectPropertyField.CARDINALITY.name),
                             description = propSnapshot.data[AspectPropertyField.DESCRIPTION.name],
                             version = propSnapshot.data["_version"]?.toInt()?:-1)
                     }
@@ -339,7 +284,7 @@ class AspectHistoryProvider(
                                     aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("33 res==res2: ${res==res2}")
+                            logger.info("34 res==res2: ${res==res2}")
 
                             res
                         }
