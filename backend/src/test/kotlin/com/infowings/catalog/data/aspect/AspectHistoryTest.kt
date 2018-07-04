@@ -83,14 +83,7 @@ class AspectHistoryTest {
 
         assertEquals(3, aspectHistoryElement.changes.size)
         val changedFields =  aspectHistoryElement.changes.groupBy { it.fieldName }
-        val expectedKeys = setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name)
-        println("keys: " + changedFields.keys)
-        println("expected keys: " + expectedKeys)
-        println("equals: ${changedFields.keys.equals(expectedKeys)}")
-        println("==: ${changedFields.keys == expectedKeys}")
-        println("===: ${changedFields.keys === expectedKeys}")
-
-        //assertEquals(setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name), changedFields.keys)
+        assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
     }
 
     @Test
@@ -130,11 +123,9 @@ class AspectHistoryTest {
                 "entity class is incorrect for $historyElement"
             )
             assertEquals(aspect.id, historyElement.event.entityId, "enity id must correspond with id of added aspect")
-        }
 
-        aspectHistory.forEach { element ->
-            assertEquals(3, element.changes.size, "history element: $element")
-            assertEquals(0, element.fullData.related.size, "history element: $element")
+            assertEquals(3, historyElement.changes.size, "history element: $historyElement")
+            assertEquals(0, historyElement.fullData.related.size, "history element: $historyElement")
         }
     }
 
@@ -165,6 +156,8 @@ class AspectHistoryTest {
         assertNotEquals(historyElement1.event.sessionId, historyElement2.event.sessionId)
 
         assertEquals(1, historyElement1.changes.size)
+        val delta =  historyElement1.changes[0]
+        assertEquals("Description", delta.fieldName)
     }
 
     @Test
@@ -279,6 +272,7 @@ class AspectHistoryTest {
 
         assertEquals(1, updateAspectFact.changes.size, "no data in update")
         val change = updateAspectFact.changes[0]
+        println("change: " + change)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
         assertEquals(true, change.after?.contains("aspect-2"))

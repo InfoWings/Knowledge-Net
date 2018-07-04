@@ -5,7 +5,6 @@ import com.infowings.catalog.data.history.*
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.SUBJECT_CLASS
-import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<SubjectHistoryProvider>()
 
@@ -41,7 +40,7 @@ class SubjectHistoryProvider(
                     val tailNew = entityFacts.map { fact ->
                         val payload = fact.payload
                         current.apply(payload)
-                        accumulator = current.toSnapshot()
+                        accumulator = current.immutable()
                         return@map SubjectHistoryStep(accumulator, fact.event)
                     }
 

@@ -144,7 +144,7 @@ class RefBookHistoryProvider(
 
         val item = state.items.getValue(itemId)
 
-        val prev = item.snapshot.toSnapshot()
+        val prev = item.snapshot.immutable()
 
         item.snapshot.apply(updateFact.payload)
 
@@ -172,7 +172,7 @@ class RefBookHistoryProvider(
     private fun refBookRootEdit(updateFact: HistoryFact, state: RefBookState): RefBookHistory {
         val itemId = updateFact.event.entityId
         val header = state.headers.getValue(itemId)
-        val prev = header.snapshot.toSnapshot()
+        val prev = header.snapshot.immutable()
 
         header.snapshot.apply(updateFact.payload)
 
