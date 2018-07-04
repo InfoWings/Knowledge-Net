@@ -28,6 +28,8 @@ private val changeNamesConvert = mapOf(
     AspectField.REFERENCE_BOOK to "Reference book"
 )
 
+private val removedSubject = SubjectData(id = "", name = "Subject removed", description = "")
+
 class AspectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDeltaConstructor: AspectDeltaConstructor,
@@ -95,10 +97,11 @@ class AspectHistoryProvider(
                             version = propSnapshot.data["_version"]?.toInt()?:-1)
                     }
 
-                    val refBookName = snapshot.links[AspectField.REFERENCE_BOOK]?.firstOrNull()?.let { refBookNames[it.toString()]?: "???" }
-
-                    val subject = snapshot.links[AspectField.SUBJECT]?.firstOrNull()?.let {
-                        subjectById[it.toString()] ?: SubjectData(id = "", name = "Subject removed", description = "")
+                    val refBookName = snapshot.resolvedLink(AspectField.REFERENCE_BOOK) {
+                        refBookNames[it]?: "???"
+                    }
+                    val subject = snapshot.resolvedLink(AspectField.SUBJECT) {
+                        subjectById[it] ?: removedSubject
                     }
 
                     DataWithSnapshot(AspectData(id = null,
@@ -123,15 +126,10 @@ class AspectHistoryProvider(
                     versionList.zipWithNext().zip(aspectFacts)
                         .map {
                             val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first.data, it.first.second.data, it.second)
-                            logger.info("diff res: $res")
 
                             val aspectFact = it.second
                             val before = it.first.first
                             val after = it.first.second
-
-                            logger.info("aspect fact: $aspectFact")
-                            logger.info("before data: ${before.data}")
-                            logger.info("after data: ${after.data}")
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
@@ -141,7 +139,6 @@ class AspectHistoryProvider(
                                     PropertyCardinality.valueOf(it).label
                                 }
                                 val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
-                                logger.info("create property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                 FieldDelta("Property ${name ?: ""}", null, "${name ?: ""} ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
                             }
 

@@ -57,6 +57,10 @@ data class MutableSnapshot(val data: MutableMap<String, String>,
         diff.removedLinks.forEach { removeLinks(it.key, it.value) }
     }
 
+    fun <T> resolvedLink(key: String, resolver: (String) -> T): T? {
+        return links[key]?.firstOrNull()?.let { resolver(it.toString()) }
+    }
+
     fun dataOrEmpty(key: String) = data[key] ?: ""
 
     private fun updateField(key: String, value: String) {
