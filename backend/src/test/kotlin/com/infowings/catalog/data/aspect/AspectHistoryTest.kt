@@ -86,6 +86,7 @@ class AspectHistoryTest {
         assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
         val nameChange = changedFields.getValue("Name")[0]
         assertEquals(aspect.name, nameChange.after)
+        assertEquals("", nameChange.before)
     }
 
     @Test
@@ -130,6 +131,8 @@ class AspectHistoryTest {
             assertEquals(0, historyElement.fullData.related.size, "history element: $historyElement")
             val changedFields = historyElement.changes.groupBy { it.fieldName }
             assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+            val nameChange = changedFields.getValue("Name")[0]
+            assertEquals(aspect.name, nameChange.after)
         }
     }
 
@@ -163,6 +166,7 @@ class AspectHistoryTest {
         val delta =  historyElement1.changes[0]
         assertEquals("Description", delta.fieldName)
         assertEquals(aspect1.description, delta.before)
+        assertEquals(aspect2.description, delta.after)
     }
 
     @Test
@@ -279,7 +283,7 @@ class AspectHistoryTest {
         val change = updateAspectFact.changes[0]
         println("change: " + change)
         println("aspect3: " + aspect3)
-        //assertEquals("Property" + aspect3.properties[0].name, change.fieldName)
+        assertEquals("Property " + aspect3.properties[0].name, change.fieldName)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
         assertEquals(true, change.after?.contains("aspect-2"))
@@ -315,7 +319,7 @@ class AspectHistoryTest {
         val factsBefore = historyService.getAll()
         val aspectHistoryBefore: List<AspectHistory> = historyProvider.getAllHistory()
 
-        aspectService.save(
+        val aspect4 = aspectService.save(
             aspect3.copy(properties = aspect3.properties.map { it.copy(description = "descr") }),
             "admin"
         )
@@ -348,6 +352,11 @@ class AspectHistoryTest {
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
 
         assertEquals(1, aspectProviderFact.changes.size)
+        val change = aspectProviderFact.changes[0]
+        println("change: " + change)
+        println("aspect4: " + aspect4)
+        //assertEquals("Property " + aspect4.properties[0].name, change.fieldName)
+
     }
 
     @Test
