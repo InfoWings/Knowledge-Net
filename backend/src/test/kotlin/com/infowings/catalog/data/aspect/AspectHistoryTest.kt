@@ -82,6 +82,9 @@ class AspectHistoryTest {
         assertGreater(aspectHistoryElement.event.timestamp, 0)
 
         assertEquals(3, aspectHistoryElement.changes.size)
+        val changedFields =  aspectHistoryElement.changes.groupBy { it.fieldName }
+        println("keys: " + changedFields.keys)
+        //assertEquals(setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name), changedFields.keys)
     }
 
     @Test
@@ -121,6 +124,10 @@ class AspectHistoryTest {
                 "entity class is incorrect for $historyElement"
             )
             assertEquals(aspect.id, historyElement.event.entityId, "enity id must correspond with id of added aspect")
+        }
+
+        aspectHistory.forEach { element ->
+            assertEquals(3, element.changes.size, "history element: $element")
         }
     }
 

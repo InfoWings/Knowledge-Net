@@ -14,7 +14,9 @@ import com.infowings.catalog.storage.id
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
-private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot, val propSnapshots: Map<String, Snapshot>)
+private data class DataWithSnapshot(val data: AspectData, val snapshot: Snapshot, val propSnapshots: Map<String, Snapshot>) {
+    fun propertySnapshot(id: String) = propSnapshots[id] ?: Snapshot()
+}
 
 private val changeNamesConvert = mapOf(
     AspectField.NAME.name to "Name",
@@ -27,15 +29,36 @@ private val changeNamesConvert = mapOf(
 
 private val removedSubject = SubjectData(id = "", name = "Subject removed", description = "")
 
-private data class AggregationContext(val aspectsById: Map<String, AspectData>)
+private data class AggregationContext(val aspectsById: Map<String, AspectData>, val before: DataWithSnapshot)
+
+private fun DataAware.cardinalityLabel() = this.dataItem(AspectPropertyField.CARDINALITY.name)?.let {
+    PropertyCardinality.valueOf(it).label
+}
 
 private fun createPropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta? {
-    val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
-    val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]?.let {
-        PropertyCardinality.valueOf(it).label
-    }
-    val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
+    val name = propertyFact.payload.dataItem(AspectPropertyField.NAME.name)
+    val cardinality = propertyFact.payload.cardinalityLabel()
+    val aspectId = propertyFact.payload.dataOrEmpty(AspectPropertyField.ASPECT.name)
     return FieldDelta("Property ${name ?: ""}", null, "${name ?: ""} ${context.aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
+}
+
+private fun updatePropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta?  = when (propertyFact.payload.isEmpty()) {
+    true -> null
+    false -> {
+        val name = propertyFact.payload.dataItem(AspectPropertyField.NAME.name)
+        val prevSnapshot: Snapshot = context.before.propertySnapshot(propertyFact.event.entityId)
+
+        val prevName = prevSnapshot.dataOrEmpty(AspectPropertyField.NAME.name)
+        val prevCardinality = prevSnapshot.cardinalityLabel()
+        val cardinality = propertyFact.payload.cardinalityLabel()
+        val aspectId = prevSnapshot.dataOrEmpty(AspectPropertyField.ASPECT.name)
+
+        FieldDelta(
+            "Property ${name ?: ""}",
+            "$prevName ${context.aspectsById[aspectId]?.name} : [$prevCardinality]",
+            "${name ?: ""} ${context.aspectsById[aspectId]?.name} : [$cardinality]"
+        )
+    }
 }
 
 class AspectHistoryProvider(
@@ -64,8 +87,7 @@ class AspectHistoryProvider(
         val subjectIds = aspectFacts.linksOfType(AspectField.SUBJECT)
 
         val subjectById = logTime(logger, "extracting subjects") {
-            val found = subjectDao.find(subjectIds.toList())
-            found.groupBy {it.id}.mapValues { (_, elems) ->
+            subjectDao.find(subjectIds.toList()).groupBy {it.id}.mapValues { (_, elems) ->
                 val subjectVertex = elems.first()
                 SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = subjectVertex.description, version = subjectVertex.version)
             }
@@ -143,27 +165,11 @@ class AspectHistoryProvider(
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
-                            val context = AggregationContext(aspectsById)
+                            val context = AggregationContext(aspectsById, before)
 
                             val createPropertyDeltas = (propertyFactsByType[EventType.CREATE].orEmpty()).mapNotNull { createPropertyDelta(it, context) }
 
-                            val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).filterNot { it.payload.isEmpty() }.map { propertyFact ->
-                                val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
-                                val prevSnapshot: Snapshot = before.propSnapshots[propertyFact.event.entityId] ?: Snapshot()
-                                logger.info("previous previous snapshot: $prevSnapshot")
-                                val prevName =  prevSnapshot.data.get(AspectPropertyField.NAME.name) ?: ""
-                                val prevCardinality =  prevSnapshot.data.get(AspectPropertyField.CARDINALITY.name)?.let {
-                                    PropertyCardinality.valueOf(it).label
-                                }
-                                val cardinality = propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]?.let {
-                                    PropertyCardinality.valueOf(it).label
-                                }
-                                val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
-                                logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                FieldDelta("Property ${name ?: ""}",
-                                    "${prevName ?: ""} ${aspectsById[aspectId]?.name} : [$prevCardinality]",
-                                    "${name ?: ""} ${aspectsById[aspectId]?.name} : [$cardinality]")
-                            }
+                            val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE].orEmpty()).mapNotNull { updatePropertyDelta(it, context) }
 
                             val deletePropertyDeltas = ((propertyFactsByType[EventType.DELETE] ?: emptyList()) +
                                     ((propertyFactsByType[EventType.SOFT_DELETE] ?: emptyList())))
@@ -284,7 +290,7 @@ class AspectHistoryProvider(
                                     aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("36 res==res2: ${res==res2}")
+                            logger.info("37 res==res2: ${res==res2}")
 
                             res
                         }

@@ -12,11 +12,11 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
-data class DiffPayload(
+data class DiffPayload (
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
     val removedLinks: Map<String, List<ORID>>
-) {
+) : DataAware {
     private fun <T> valueOrEmptyList(map: Map<String, List<T>>, key: String): List<T> = map[key] ?: emptyList()
 
     private fun <T> singleOf(map: Map<String, List<T>>, key: String): T? {
@@ -27,6 +27,8 @@ data class DiffPayload(
 
         return links.firstOrNull()
     }
+
+    override fun dataItem(key: String): String? = data[key]
 
     fun isEmpty() = data.isEmpty() && addedLinks.isEmpty() && removedLinks.isEmpty()
 
@@ -51,8 +53,14 @@ data class DiffPayload(
     }
 }
 
+interface DataAware {
+    fun dataItem(key: String): String?
+
+    fun dataOrEmpty(key: String) = dataItem(key) ?: ""
+}
+
 data class MutableSnapshot(val data: MutableMap<String, String>,
-                           val links: MutableMap<String, MutableSet<ORID>>) {
+                           val links: MutableMap<String, MutableSet<ORID>>) : DataAware {
     fun apply(diff: DiffPayload) {
         diff.data.forEach { updateField(it.key, it.value) }
         diff.addedLinks.forEach { addLinks(it.key, it.value) }
@@ -63,7 +71,7 @@ data class MutableSnapshot(val data: MutableMap<String, String>,
         return links[key]?.firstOrNull()?.let { resolver(it.toString()) }
     }
 
-    fun dataOrEmpty(key: String) = data[key] ?: ""
+    override fun dataItem(key: String): String? = data[key]
 
     private fun updateField(key: String, value: String) {
         data[key] = value
@@ -96,11 +104,13 @@ data class MutableSnapshot(val data: MutableMap<String, String>,
     constructor() : this(mutableMapOf<String, String>(), mutableMapOf<String, MutableSet<ORID>>())
 }
 
-data class Snapshot(
+data class Snapshot (
     val data: Map<String, String>,
     val links: Map<String, List<ORID>>
-) {
+) : DataAware {
     constructor() : this(emptyMap(), emptyMap())
+
+    override fun dataItem(key: String): String? = data[key]
 
     fun toMutable() = MutableSnapshot(data.toMutableMap(), links.mapValues { it.value.toMutableSet() }.toMutableMap())
 
