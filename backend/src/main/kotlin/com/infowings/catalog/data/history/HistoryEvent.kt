@@ -42,7 +42,7 @@ data class DiffPayload(
         removedLinks = removedLinks.mapValues { it.value.map { it.toString() } }
     )
 
-    fun mentionedLinks(type: String): Set<ORID> {
+    fun linksOfType(type: String): Set<ORID> {
         val added = addedLinks[type] ?: emptyList()
         val removed = removedLinks[type] ?: emptyList()
 
@@ -153,6 +153,11 @@ data class HistoryFact(
     }
 }
 
+fun List<HistoryFact>.linksOfType(type: String): Set<ORID> {
+    return this.flatMap { fact ->
+        fact.payload.linksOfType(type)
+    }.toSet()
+}
 
 data class HistorySnapshot(
     val event: HistoryEventData,

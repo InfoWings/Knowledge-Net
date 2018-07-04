@@ -10,6 +10,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.id.ORecordId
 
 
 interface AspectService {
@@ -19,6 +20,7 @@ interface AspectService {
     fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
     fun findById(id: String): AspectData
     fun findPropertyById(id: String): AspectPropertyData
+    fun getAspectsWithDeleted(ids: List<String>): List<AspectData>
 }
 
 class NormalizedAspectService(private val innerService: AspectService) : AspectService by innerService {
@@ -189,6 +191,37 @@ class DefaultAspectService(
         aspectDaoService.findByName(name).map { it.toAspectData() }.toSet()
     }
 
+    fun getData(vertices: Set<AspectVertex>): List<AspectData> {
+        val ids = vertices.map { it.identity }
+
+        val props = aspectDaoService.getProperties(ids).map {
+            it.toAspectPropertyData()
+        }
+
+        val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
+
+        val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
+
+        return logTime(logger, "filling aspects using details") {
+            vertices.mapNotNull { aspectVertex ->
+                logTime(logger, "convert to aspect data") {
+                    val id = aspectVertex.id
+                    val details = detailsById[id]
+                    val data = details?.let {
+                        aspectVertex.toAspectData(propsById, details)
+                    }
+                    data ?: logger.warn("nothing found for aspect id $id")
+                    data
+                }
+            }
+        }
+    }
+
+    override fun getAspectsWithDeleted(ids: List<String>): List<AspectData> {
+        val validVertices = aspectDaoService.getAspectsWithDeleted(ids.map { ORecordId(it) })
+        return getData(validVertices)
+    }
+
     override fun getAspects(orderBy: List<AspectOrderBy>, query: String?): List<AspectData> {
         val aspects = transaction(db) {
             val vertices = logTime(logger, "getting aspect vertices") {
@@ -198,29 +231,7 @@ class DefaultAspectService(
                 }
             }
 
-            val ids = vertices.map { it.identity }
-
-            val props = aspectDaoService.getProperties(ids).map {
-                it.toAspectPropertyData()
-            }
-
-            val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
-
-            val detailsById: Map<String, AspectDaoDetails> = aspectDaoService.getDetails(ids)
-
-            logTime(logger, "filling aspects using details") {
-                vertices.mapNotNull { aspectVertex ->
-                    logTime(logger, "convert to aspect data") {
-                        val id = aspectVertex.id
-                        val details = detailsById[id]
-                        val data = details?.let {
-                            aspectVertex.toAspectData(propsById, details)
-                        }
-                        data ?: logger.warn("nothing found for aspect id $id")
-                        data
-                    }
-                }
-            }
+            return@transaction getData(vertices)
         }
 
         return logTime(logger, "sorting aspects") {

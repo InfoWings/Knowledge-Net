@@ -8,12 +8,10 @@ import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.subject.SubjectDao
-import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
-import java.util.concurrent.CopyOnWriteArrayList
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
@@ -34,30 +32,38 @@ class AspectHistoryProvider(
     private val refBookDao: ReferenceBookDao,
     private val subjectDao: SubjectDao,
     private val aspectDao: AspectDaoService,
+    private val aspectService: AspectService,
     private val db: OrientDatabase
 ) {
     fun getAllHistory(): List<AspectHistory> {
         val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
 
         val factsByClass = bothFacts.groupBy { it.event.entityClass }
-        val aspectFacts = factsByClass[ASPECT_CLASS] ?: emptyList()
+        val aspectFacts = factsByClass[ASPECT_CLASS].orEmpty()
         val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
-        val propertyFacts = factsByClass[ASPECT_PROPERTY_CLASS] ?: emptyList()
+        val propertyFacts = factsByClass[ASPECT_PROPERTY_CLASS].orEmpty()
         val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
-
         val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
         val refBookIds = aspectFacts.flatMap { fact ->
-            fact.payload.mentionedLinks(AspectField.REFERENCE_BOOK)
+            fact.payload.linksOfType(AspectField.REFERENCE_BOOK)
         }.toSet()
+
+        val refBookIds2 = aspectFacts.linksOfType(AspectField.REFERENCE_BOOK)
+
+        logger.info("same ref ids: ${refBookIds == refBookIds2}")
 
         val refBookNames = logTime(logger, "extracting ref book names") {
             refBookDao.find(refBookIds.toList()).groupBy {it.id}.mapValues { it.value.first().value }
         }
 
         val subjectIds = aspectFacts.flatMap { fact ->
-            fact.payload.mentionedLinks(AspectField.SUBJECT)
+            fact.payload.linksOfType(AspectField.SUBJECT)
         }.toSet()
+
+        val subjectIds2 = aspectFacts.linksOfType(AspectField.SUBJECT)
+
+        logger.info("same subject ids: ${subjectIds == subjectIds2}")
 
         val subjectById = logTime(logger, "extracting subjects") {
             val found = subjectDao.find(subjectIds.toList())
@@ -70,6 +76,12 @@ class AspectHistoryProvider(
         val aspectIdsFromProps = propertyFacts.map { fact ->
             fact.payload.data[AspectPropertyField.ASPECT.name]
         }.toSet()
+
+        val aspectIdsFromProps2 = propertyFacts.mapNotNull { fact ->
+            fact.payload.data[AspectPropertyField.ASPECT.name]
+        }.toSet()
+
+        val aspects2 = aspectService.getAspectsWithDeleted(aspectIdsFromProps2.toList())
 
         logger.info("aspect ids from prop: $aspectIdsFromProps")
 
@@ -103,32 +115,13 @@ class AspectHistoryProvider(
             }
         }
 
-        val aspectsById2: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
+        logger.info("same aspects: ${aspectsData.toSet() == aspects2.toSet()}")
 
-        val aspectIds = propertyFacts.map { fact ->
-            fact.payload.data[AspectPropertyField.ASPECT.name]
-        }.filterNotNull().toSet()
+        val aspectsById: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
+        val aspectsById2: Map<String, AspectData> = aspects2.map { it.id!! to it }.toMap()
 
-        val aspectsById = logTime(logger, "obtaining aspects") {
-            val vertices = aspectDao.findAspectsByIdsStr(aspectIds.toList())
-            transaction(db) {
-                vertices.map { it.id to it.toAspectDataLazy()
-                    .toAspectData(subjectById, refBookNames).copy(lastChangeTimestamp =
-                    aspectFactsByEntity[it.id]?.lastOrNull()?.event?.timestamp?.let { it / 1000 }?:-1 ) }
-            }
-        }.toMap()
+        logger.info("same aspects by id: ${aspectsById == aspectsById2}")
 
-        logger.info("same aspects by Id keys: ${aspectsById.keys == aspectsById2.keys}")
-
-        logger.info("aspects by Id: " + aspectsById)
-        logger.info("aspects by Id-2: " + aspectsById2)
-
-        aspectsById.keys.forEach {
-            logger.info("id: $it")
-            logger.info("aspect-1: ${aspectsById[it]}")
-            logger.info("aspect-2: ${aspectsById2[it]}")
-            logger.info("same aspect: ${aspectsById[it] == aspectsById2[it]?.copy(properties = emptyList())}")
-        }
 
         val events = logTime(logger, "processing aspect event groups") {
             aspectFactsByEntity.values.flatMap {  aspectFacts ->
@@ -204,7 +197,7 @@ class AspectHistoryProvider(
                                 }
                                 val aspectId = propertyFact.payload.data[AspectPropertyField.ASPECT.name] ?: ""
                                 logger.info("create property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                FieldDelta("Property ${name ?: ""}", null, "${name ?: ""} ${aspectsById2[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
+                                FieldDelta("Property ${name ?: ""}", null, "${name ?: ""} ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
                             }
 
                             val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE] ?: emptyList()).filterNot {
@@ -223,8 +216,8 @@ class AspectHistoryProvider(
                                 val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
                                 logger.info("update property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                 FieldDelta("Property ${name ?: ""}",
-                                    "${prevName ?: ""} ${aspectsById2[aspectId]?.name} : [$prevCardinality]",
-                                    "${name ?: ""} ${aspectsById2[aspectId]?.name} : [$cardinality]")
+                                    "${prevName ?: ""} ${aspectsById[aspectId]?.name} : [$prevCardinality]",
+                                    "${name ?: ""} ${aspectsById[aspectId]?.name} : [$cardinality]")
                             }
 
                             val deletePropertyDeltas = ((propertyFactsByType[EventType.DELETE] ?: emptyList()) +
@@ -240,7 +233,7 @@ class AspectHistoryProvider(
                                     val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
                                     logger.info("delete property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
                                     FieldDelta("Property ${name ?: " "}",
-                                            "$prevName ${aspectsById2[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
+                                            "$prevName ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
                                             null)
                             }
 
@@ -343,19 +336,10 @@ class AspectHistoryProvider(
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull {
-                                    aspectsById2[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
+                                    aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("res.fdata1: ${res.fullData.aspectData}")
-                            logger.info("res2.fdata1: ${res2.fullData.aspectData}")
-                            logger.info("32 res.fdata1==res2.fdata1: ${res.fullData.aspectData == res2.fullData.aspectData}")
-                            logger.info("res.fdata2: ${res.fullData.related}")
-                            logger.info("res2.fdat2: ${res2.fullData.related}")
-                            logger.info("32 res.fdata2==res2.fdata2: ${res.fullData.related == res2.fullData.related}")
-                            logger.info("res.changes: ${res.changes}")
-                            logger.info("res2.changes: ${res2.changes}")
-                            logger.info("32 res.changes==res2.changes: ${res.changes == res2.changes}")
-                            logger.info("32 res==res2: ${res==res2}")
+                            logger.info("33 res==res2: ${res==res2}")
 
                             res
                         }
