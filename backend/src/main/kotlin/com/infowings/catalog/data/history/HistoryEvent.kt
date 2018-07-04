@@ -12,6 +12,8 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
+data class Split(val added: Set<String>, val removed: Set<String>, val changed: Set<String>)
+
 data class DiffPayload (
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
@@ -31,6 +33,13 @@ data class DiffPayload (
     override fun dataItem(key: String): String? = data[key]
 
     fun isEmpty() = data.isEmpty() && addedLinks.isEmpty() && removedLinks.isEmpty()
+
+    fun classifyLinks(): Split {
+        val added = addedLinks.keys
+        val removed = removedLinks.keys
+        val changed = added.intersect(removed)
+        return Split(added = added, removed = removed, changed = changed)
+    }
 
     fun addedFor(target: String): List<ORID> = valueOrEmptyList(addedLinks, target)
     fun removedFor(target: String): List<ORID> = valueOrEmptyList(removedLinks, target)

@@ -84,6 +84,8 @@ class AspectHistoryTest {
         assertEquals(3, aspectHistoryElement.changes.size)
         val changedFields =  aspectHistoryElement.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+        val nameChange = changedFields.getValue("Name")[0]
+        assertEquals(aspect.name, nameChange.after)
     }
 
     @Test
@@ -126,6 +128,8 @@ class AspectHistoryTest {
 
             assertEquals(3, historyElement.changes.size, "history element: $historyElement")
             assertEquals(0, historyElement.fullData.related.size, "history element: $historyElement")
+            val changedFields = historyElement.changes.groupBy { it.fieldName }
+            assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
         }
     }
 
@@ -158,6 +162,7 @@ class AspectHistoryTest {
         assertEquals(1, historyElement1.changes.size)
         val delta =  historyElement1.changes[0]
         assertEquals("Description", delta.fieldName)
+        assertEquals(aspect1.description, delta.before)
     }
 
     @Test
@@ -273,6 +278,8 @@ class AspectHistoryTest {
         assertEquals(1, updateAspectFact.changes.size, "no data in update")
         val change = updateAspectFact.changes[0]
         println("change: " + change)
+        println("aspect3: " + aspect3)
+        //assertEquals("Property" + aspect3.properties[0].name, change.fieldName)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
         assertEquals(true, change.after?.contains("aspect-2"))
@@ -339,6 +346,8 @@ class AspectHistoryTest {
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
+
+        assertEquals(1, aspectProviderFact.changes.size)
     }
 
     @Test

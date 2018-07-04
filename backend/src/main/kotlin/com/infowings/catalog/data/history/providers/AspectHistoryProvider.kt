@@ -29,13 +29,42 @@ private val changeNamesConvert = mapOf(
 
 private val removedSubject = SubjectData(id = "", name = "Subject removed", description = "")
 
-private data class AggregationContext(val aspectsById: Map<String, AspectData>, val before: DataWithSnapshot) {
-    fun aspectName(id: String): String? = aspectsById[id]?.name
+private data class AggregationContext(val aspectById: Map<String, AspectData>,
+                                      val subjectById: Map<String, SubjectData>,
+                                      val refBookNames: Map<String, String>,
+                                      val before: DataWithSnapshot) {
+    fun aspectName(id: String): String? = aspectById[id]?.name
+    fun subjectName(id: String): String? = subjectById[id]?.name
 }
 
 private fun DataAware.cardinalityLabel() = this.dataItem(AspectPropertyField.CARDINALITY.name)?.let {
     PropertyCardinality.valueOf(it).label
 }
+
+private fun DataAware.toAspectPropertyData(id: String) = AspectPropertyData(id = id,
+    name = dataOrEmpty(AspectPropertyField.NAME.name),
+    aspectId = dataOrEmpty(AspectPropertyField.ASPECT.name),
+    cardinality = dataOrEmpty(AspectPropertyField.CARDINALITY.name),
+    description = dataItem(AspectPropertyField.DESCRIPTION.name),
+    version = dataItem("_version")?.toInt()?:-1)
+
+private fun DataAware.toAspectData(properties: List<AspectPropertyData>, event: HistoryEventData, refBookName: String?, subject: SubjectData?): AspectData {
+    val baseType = dataItem(AspectField.BASE_TYPE.name)
+    return AspectData(
+        id = null,
+        name = dataOrEmpty(AspectField.NAME.name),
+        description = dataItem(AspectField.DESCRIPTION.name),
+        baseType = baseType,
+        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
+        measure = dataItem(AspectField.MEASURE.name),
+        properties = properties,
+        version = event.version,
+        deleted = event.type.isDelete(),
+        refBookName = refBookName,
+        subject = subject
+    )
+}
+
 
 private fun createPropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta? {
     val name = propertyFact.payload.dataOrEmpty(AspectPropertyField.NAME.name)
@@ -75,19 +104,34 @@ private fun deletePropertyDelta(propertyFact: HistoryFact, context: AggregationC
         null)
 }
 
+private fun changeLinkDelta(key: String, aspectFact: HistoryFact, context: AggregationContext): FieldDelta? {
+    val beforeId = aspectFact.payload.removedSingleFor(key)?.toString()
+    val afterId = aspectFact.payload.addedSingleFor(key)?.toString()
+
+    val beforeName = beforeId?.let {
+        when (key) {
+            AspectField.SUBJECT -> context.subjectName(beforeId)?:"Subject removed"
+            AspectField.REFERENCE_BOOK -> context.refBookNames[afterId]
+            else -> null
+        }
+    } ?: "???"
+    val afterName = afterId?.let {
+        when (key) {
+            AspectField.SUBJECT -> context.subjectName(afterId)?:"Subject removed"
+            AspectField.REFERENCE_BOOK -> context.refBookNames[afterId]
+            else -> null
+        }
+    } ?: "???"
+
+    return FieldDelta(changeNamesConvert.getOrDefault(key, key), beforeName, afterName)
+}
+
 private val propertyDeltaCreators = listOf(
     EventType.UPDATE to ::updatePropertyDelta,
     EventType.DELETE to ::deletePropertyDelta,
     EventType.SOFT_DELETE to ::deletePropertyDelta,
     EventType.CREATE to ::createPropertyDelta
 )
-
-private fun DataAware.toAspectPropertyData(id: String) = AspectPropertyData(id = id,
-    name = dataOrEmpty(AspectPropertyField.NAME.name),
-    aspectId = dataOrEmpty(AspectPropertyField.ASPECT.name),
-    cardinality = dataOrEmpty(AspectPropertyField.CARDINALITY.name),
-    description = dataItem(AspectPropertyField.DESCRIPTION.name),
-    version = dataItem("_version")?.toInt()?:-1)
 
 class AspectHistoryProvider(
     private val historyService: HistoryService,
@@ -157,25 +201,14 @@ class AspectHistoryProvider(
                         subjectById[it] ?: removedSubject
                     }
 
-                    val data = AspectData(id = null,
-                        name = snapshot.data.getValue(AspectField.NAME.name),
-                        description = snapshot.data[AspectField.DESCRIPTION.name],
-                        baseType = snapshot.data[AspectField.BASE_TYPE.name],
-                        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
-                        measure = snapshot.data[AspectField.MEASURE.name],
-                        properties = properties,
-                        version = aspectFact.event.version ,
-                        deleted = aspectFact.event.type.isDelete(),
-                        refBookName = refBookName,
-                        subject = subject
-                    )
+                    val aspectData = snapshot.toAspectData(properties, aspectFact.event, refBookName, subject)
 
                     val propertySnapshotsById = properties.map { property ->
                         val propertySnapshot = propertySnapshots[property.id] ?: MutableSnapshot()
                         property.id to propertySnapshot.immutable()
                     }.toMap()
 
-                    DataWithSnapshot(data, snapshot.immutable(), propertySnapshotsById)
+                    DataWithSnapshot(aspectData, snapshot.immutable(), propertySnapshotsById)
                 }
 
                 val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
@@ -187,43 +220,18 @@ class AspectHistoryProvider(
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
-                            val context = AggregationContext(aspectsById, before)
+                            val context = AggregationContext(aspectsById, subjectById, refBookNames, before)
 
                             val propertyDeltas = propertyDeltaCreators.flatMap { (eventType, deltaCreator) ->
                                 propertyFactsByType[eventType].orEmpty().mapNotNull { deltaCreator(it, context) }
                             }
 
-                            val replacedLinks = aspectFact.payload.addedLinks.keys.intersect(aspectFact.payload.removedLinks.keys)
-                            logger.info("replaced: $replacedLinks")
-                            val replaceDeltas = replacedLinks.map {
-                                logger.info("$it: ${aspectFact.payload.removedLinks[it]} -> ${aspectFact.payload.addedLinks[it]}")
-                                val beforeId = aspectFact.payload.removedLinks[it]?.first()?.toString()
-                                val afterId = aspectFact.payload.addedLinks[it]?.first()?.toString()
-                                val key = it
-                                val beforeName = beforeId?.let {
-                                    when (key) {
-                                        AspectField.SUBJECT -> subjectById[beforeId]?.name?:"Subject removed"
-                                        AspectField.REFERENCE_BOOK -> refBookNames[afterId]
-                                        else -> null
-                                    }
-                                } ?: "???"
-                                val afterName = afterId?.let {
-                                    when (key) {
-                                        AspectField.SUBJECT -> subjectById[afterId]?.name?:"Subject removed"
-                                        AspectField.REFERENCE_BOOK -> refBookNames[afterId]
-                                        else -> null
-                                    }
-                                } ?: "???"
+                            val linksSplit: Split = aspectFact.payload.classifyLinks()
 
-                                logger.info("replaced before: $beforeId, $beforeName")
-                                logger.info("replaced after: $afterId, $afterName")
+                            //val replacedLinks = aspectFact.payload.addedLinks.keys.intersect(aspectFact.payload.removedLinks.keys)
+                            //logger.info("replaced: $replacedLinks")
 
-                                FieldDelta(
-                                    changeNamesConvert.getOrDefault(it, it),
-                                    beforeName,
-                                    afterName
-                                )
-                            }
+                            val replaceDeltas = linksSplit.changed.mapNotNull { changeLinkDelta(it, aspectFact, context)}
 
                             val deltas = aspectFact.payload.data.map {
                                 val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
@@ -231,7 +239,7 @@ class AspectHistoryProvider(
                                     before.snapshot.data[it.key]?:emptyPlaceholder,
                                     if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
                             } + replaceDeltas + aspectFact.payload.addedLinks.mapNotNull {
-                                if (it.key != AspectField.PROPERTY && !replacedLinks.contains(it.key) ) {
+                                if (it.key != AspectField.PROPERTY && !linksSplit.changed.contains(it.key) ) {
                                     logger.info("key: ${it.key}")
                                     logger.info("before links: " + before.snapshot.links)
                                     logger.info("after links: " + after.snapshot.links)
@@ -255,7 +263,7 @@ class AspectHistoryProvider(
                                     )
                                 } else null
                             } + aspectFact.payload.removedLinks.mapNotNull {
-                                if (it.key != AspectField.PROPERTY && !replacedLinks.contains(it.key)) {
+                                if (it.key != AspectField.PROPERTY && !linksSplit.changed.contains(it.key)) {
                                     logger.info("r key: ${it.key}")
                                     logger.info("r before links: " + before.snapshot.links)
                                     logger.info("r after links: " + after.snapshot.links)
