@@ -104,7 +104,7 @@ class AspectHistoryProvider(
                         subjectById[it] ?: removedSubject
                     }
 
-                    DataWithSnapshot(AspectData(id = null,
+                    val data = AspectData(id = null,
                         name = snapshot.data.getValue(AspectField.NAME.name),
                         description = snapshot.data[AspectField.DESCRIPTION.name],
                         baseType = snapshot.data[AspectField.BASE_TYPE.name],
@@ -115,21 +115,23 @@ class AspectHistoryProvider(
                         deleted = aspectFact.event.type.isDelete(),
                         refBookName = refBookName,
                         subject = subject
-                    ), snapshot.toSnapshot(), properties.map {
+                    )
+
+                    val propertySnapshotsById = properties.map {
                         val propId = it.id
                         val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
                         propId to propSnapshot.toSnapshot()
-                    }.toMap())
+                    }.toMap()
+
+                    DataWithSnapshot(data, snapshot.toSnapshot(), propertySnapshotsById)
                 }
 
                 val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
-                        .map {
-                            val res: AspectHistory = aspectDeltaConstructor.createDiff(it.first.first.data, it.first.second.data, it.second)
+                        .map { (versionsPair, aspectFact) ->
+                            val res: AspectHistory = aspectDeltaConstructor.createDiff(versionsPair.first.data, versionsPair.second.data, aspectFact)
 
-                            val aspectFact = it.second
-                            val before = it.first.first
-                            val after = it.first.second
+                            val (before, after) = versionsPair
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
 
@@ -281,7 +283,7 @@ class AspectHistoryProvider(
                                     aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("34 res==res2: ${res==res2}")
+                            logger.info("35 res==res2: ${res==res2}")
 
                             res
                         }
