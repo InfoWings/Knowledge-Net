@@ -83,7 +83,13 @@ class AspectHistoryTest {
 
         assertEquals(3, aspectHistoryElement.changes.size)
         val changedFields =  aspectHistoryElement.changes.groupBy { it.fieldName }
+        val expectedKeys = setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name)
         println("keys: " + changedFields.keys)
+        println("expected keys: " + expectedKeys)
+        println("equals: ${changedFields.keys.equals(expectedKeys)}")
+        println("==: ${changedFields.keys == expectedKeys}")
+        println("===: ${changedFields.keys === expectedKeys}")
+
         //assertEquals(setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name), changedFields.keys)
     }
 
@@ -128,6 +134,7 @@ class AspectHistoryTest {
 
         aspectHistory.forEach { element ->
             assertEquals(3, element.changes.size, "history element: $element")
+            assertEquals(0, element.fullData.related.size, "history element: $element")
         }
     }
 
@@ -156,6 +163,8 @@ class AspectHistoryTest {
         assertGreater(historyElement1.event.timestamp, historyElement2.event.timestamp)
         assertGreater(historyElement1.event.version, historyElement2.event.version)
         assertNotEquals(historyElement1.event.sessionId, historyElement2.event.sessionId)
+
+        assertEquals(1, historyElement1.changes.size)
     }
 
     @Test

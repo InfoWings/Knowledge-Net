@@ -36,16 +36,16 @@ private fun DataAware.cardinalityLabel() = this.dataItem(AspectPropertyField.CAR
 }
 
 private fun createPropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta? {
-    val name = propertyFact.payload.dataItem(AspectPropertyField.NAME.name)
+    val name = propertyFact.payload.dataOrEmpty(AspectPropertyField.NAME.name)
     val cardinality = propertyFact.payload.cardinalityLabel()
     val aspectId = propertyFact.payload.dataOrEmpty(AspectPropertyField.ASPECT.name)
-    return FieldDelta("Property ${name ?: ""}", null, "${name ?: ""} ${context.aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
+    return FieldDelta("Property $name", null, "$name ${context.aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$cardinality]")
 }
 
 private fun updatePropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta?  = when (propertyFact.payload.isEmpty()) {
     true -> null
     false -> {
-        val name = propertyFact.payload.dataItem(AspectPropertyField.NAME.name)
+        val name = propertyFact.payload.dataOrEmpty(AspectPropertyField.NAME.name)
         val prevSnapshot: Snapshot = context.before.propertySnapshot(propertyFact.event.entityId)
 
         val prevName = prevSnapshot.dataOrEmpty(AspectPropertyField.NAME.name)
@@ -54,11 +54,23 @@ private fun updatePropertyDelta(propertyFact: HistoryFact, context: AggregationC
         val aspectId = prevSnapshot.dataOrEmpty(AspectPropertyField.ASPECT.name)
 
         FieldDelta(
-            "Property ${name ?: ""}",
+            "Property $name",
             "$prevName ${context.aspectsById[aspectId]?.name} : [$prevCardinality]",
             "${name ?: ""} ${context.aspectsById[aspectId]?.name} : [$cardinality]"
         )
     }
+}
+
+private fun deletePropertyDelta(propertyFact: HistoryFact, context: AggregationContext): FieldDelta? {
+    val name = propertyFact.payload.dataItem(AspectPropertyField.NAME.name)
+    val prevSnapshot: Snapshot = context.before.propertySnapshot(propertyFact.event.entityId)
+    val prevName =  prevSnapshot.dataOrEmpty(AspectPropertyField.NAME.name)
+    val prevCardinality =  prevSnapshot.cardinalityLabel()
+
+    val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
+    return FieldDelta("Property ${name ?: " "}",
+        "$prevName ${context.aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
+        null)
 }
 
 class AspectHistoryProvider(
@@ -171,22 +183,10 @@ class AspectHistoryProvider(
 
                             val updatePropertyDeltas = (propertyFactsByType[EventType.UPDATE].orEmpty()).mapNotNull { updatePropertyDelta(it, context) }
 
-                            val deletePropertyDeltas = ((propertyFactsByType[EventType.DELETE] ?: emptyList()) +
-                                    ((propertyFactsByType[EventType.SOFT_DELETE] ?: emptyList())))
-                                .map { propertyFact ->
-                                    val name = propertyFact.payload.data[AspectPropertyField.NAME.name]
-                                    val prevSnapshot: Snapshot = before.propSnapshots[propertyFact.event.entityId] ?: Snapshot()
-                                    logger.info("previous previous snapshot: $prevSnapshot")
-                                    val prevName =  prevSnapshot.data.get(AspectPropertyField.NAME.name) ?: ""
-                                    val prevCardinality =  prevSnapshot.data.get(AspectPropertyField.CARDINALITY.name)?.let {
-                                        PropertyCardinality.valueOf(it).label
-                                    }
-                                    val aspectId = prevSnapshot.data.get(AspectPropertyField.ASPECT.name) ?: ""
-                                    logger.info("delete property fact for aspect ${aspectFact.event.entityId}: $propertyFact")
-                                    FieldDelta("Property ${name ?: " "}",
-                                            "$prevName ${aspectsById[aspectId]?.name?:"'Aspect removed'"} : [$prevCardinality]",
-                                            null)
-                            }
+                            val deletePropertyDeltas = (
+                                    propertyFactsByType[EventType.DELETE].orEmpty() +
+                                    propertyFactsByType[EventType.SOFT_DELETE].orEmpty()
+                                    ).mapNotNull { deletePropertyDelta(it, context) }
 
                             val replacedLinks = aspectFact.payload.addedLinks.keys.intersect(aspectFact.payload.removedLinks.keys)
                             logger.info("replaced: $replacedLinks")
@@ -290,7 +290,7 @@ class AspectHistoryProvider(
                                     aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("37 res==res2: ${res==res2}")
+                            logger.info("38 res==res2: ${res==res2}")
 
                             res
                         }
