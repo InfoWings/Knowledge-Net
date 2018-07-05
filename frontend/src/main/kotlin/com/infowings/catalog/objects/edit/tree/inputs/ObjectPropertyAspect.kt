@@ -10,41 +10,54 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withTimeoutOrNull
 import react.RBuilder
 
+data class ShortAspectDescriptor(
+    val id: String,
+    val name: String,
+    val subject: String?
+)
+
 private interface AspectOption : SelectOption {
     var aspectLabel: String
-    var aspectData: AspectData
+    var aspectDescriptor: ShortAspectDescriptor
 }
 
-private fun aspectOption(aspectData: AspectData) = jsObject<AspectOption> {
+private fun aspectOptionFromData(aspectData: AspectData) = jsObject<AspectOption> {
     this.aspectLabel = buildString {
-        append(aspectData.name ?: error("Inconsistent State"))
+        append(aspectData.name)
         append(" (")
         append(aspectData.subject?.name ?: "Global")
         append(")")
     }
-    this.aspectData = aspectData
+    this.aspectDescriptor = ShortAspectDescriptor(
+        aspectData.id ?: error("Aspect has no id"),
+        aspectData.name,
+        aspectData.subject?.name
+    )
 }
 
-fun RBuilder.propertyAspect(value: AspectData?, onSelect: (AspectData) -> Unit, onOpen: () -> Unit) =
+private fun aspectOptionFromDescriptor(aspectDescriptor: ShortAspectDescriptor) = jsObject<AspectOption> {
+    this.aspectLabel = buildString {
+        append(aspectDescriptor.name)
+        append(" (")
+        append(aspectDescriptor.subject ?: "Global")
+        append(")")
+    }
+    this.aspectDescriptor = aspectDescriptor
+}
+
+fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspectDescriptor) -> Unit) =
     asyncSelect<AspectOption> {
         attrs {
             className = "object-property-input-aspect"
             placeholder = "Select Aspect"
-            this.value = value?.let {
-                buildString {
-                    append(it.name ?: error("Inconsistent State"))
-                    append(" (")
-                    append(it.subject?.name ?: "Global")
-                    append(")")
-                }
-            } ?: ""
-            onChange = { onSelect(it.aspectData) }
+            this.value = value?.let { aspectOptionFromDescriptor(it) }
+            onChange = { onSelect(it.aspectDescriptor) }
             labelKey = "aspectLabel"
             valueKey = "aspectLabel"
             cache = false
             clearable = false
-            options = value?.let { arrayOf(aspectOption(it)) } ?: emptyArray()
-            this.onOpen = onOpen
+            options = emptyArray()
+            filterOptions = { options, _, _ -> options }
             loadOptions = { input, callback ->
                 if (input.isNotEmpty()) {
                     launch {
@@ -53,13 +66,13 @@ fun RBuilder.propertyAspect(value: AspectData?, onSelect: (AspectData) -> Unit, 
                         }
                         callback(null, jsObject {
                             options = aspectList?.aspects?.map {
-                                aspectOption(it)
+                                aspectOptionFromData(it)
                             }?.toTypedArray() ?: emptyArray()
                         })
                     }
                 } else {
                     callback(null, jsObject {
-                        options = value?.let { arrayOf(aspectOption(it)) } ?: emptyArray()
+                        options = emptyArray()
                     })
                 }
                 false

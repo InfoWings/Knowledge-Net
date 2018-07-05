@@ -10,6 +10,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.id.ORecordId
 
 /**
  * Data layer for Aspect & Aspect properties
@@ -207,6 +208,8 @@ class AspectService(
      * @throws AspectDoesNotExist
      */
     fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
+
+    fun findTreeById(id: String): TreeAspectResponse = transaction(db) { aspectDaoService.getAspectTreeForProperty(ORecordId(id)) }
 
     fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 

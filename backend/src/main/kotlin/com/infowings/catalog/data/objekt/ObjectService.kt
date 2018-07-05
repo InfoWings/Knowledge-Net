@@ -18,7 +18,7 @@ class ObjectService(
     private val db: OrientDatabase,
     private val dao: ObjectDaoService,
     subjectService: SubjectService,
-    aspectDao: AspectDaoService,
+    private val aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
     private val userService: UserService,
@@ -61,7 +61,7 @@ class ObjectService(
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
             val objectSubject = objectVertex.subject ?: throw IllegalStateException("Object in database does not have a subject")
-            val objectProperties = dao.getObjectProperties(objectVertex.identity)
+            val objectProperties = objectVertex.properties
 
             return@transaction ObjectEditDetailsResponse(
                 objectVertex.id,
@@ -85,7 +85,7 @@ class ObjectService(
                         it.cardinality,
                         values.filter { it.propertyId == null },
                         values,
-                        dao.getAspectTreeForProperty(it.identity)
+                        aspectDao.getAspectTreeForProperty(it.identity)
                     )
                 }
             )

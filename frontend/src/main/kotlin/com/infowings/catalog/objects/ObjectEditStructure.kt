@@ -9,7 +9,7 @@ data class ObjectEditModel(
     var subject: SubjectTruncated,
     var description: String?,
     var properties: MutableList<ObjectPropertyEditModel>,
-    var expanded: Boolean = false
+    var expanded: Boolean = true
 ) {
     constructor(response: ObjectEditDetailsResponse) : this(
         response.id,
@@ -24,6 +24,7 @@ data class ObjectPropertyEditModel(
     val id: String? = null,
     var name: String? = null,
     var cardinality: PropertyCardinality? = null,
+    var description: String? = null,
     var aspect: TreeAspectResponse? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
     var expanded: Boolean = true
@@ -32,6 +33,7 @@ data class ObjectPropertyEditModel(
         response.id,
         response.name,
         response.cardinality,
+        response.description,
         response.aspectDescriptor,
         response.rootValues.toTreeView(response.valueDescriptors)
     )

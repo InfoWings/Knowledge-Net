@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.edit.tree
 
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectEditModel
+import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectEditLineFormat
 import react.*
@@ -27,9 +28,45 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                     }
                     treeNodeContent = buildElement {
                         objectEditLineFormat {
-
+                            attrs {
+                                name = props.objectTree.name
+                                onNameChanged = {
+                                    props.editModel.onUpdate {
+                                        name = it
+                                    }
+                                }
+                                subject = props.objectTree.subject
+                                onSubjectChanged = {
+                                    props.editModel.onUpdate {
+                                        subject = it
+                                    }
+                                }
+                                description = props.objectTree.description
+                                onDescriptionChanged = {
+                                    props.editModel.onUpdate {
+                                        description = it
+                                    }
+                                }
+                                canCreateNewProperty = props.objectTree.properties.isEmpty() || props.objectTree.properties.last().id != null
+                                onCreateNewProperty = {
+                                    props.editModel.onUpdate {
+                                        properties.add(ObjectPropertyEditModel())
+                                    }
+                                }
+                            }
                         }
                     }!!
+                }
+                objectPropertiesEditList {
+                    attrs {
+                        properties = props.objectTree.properties
+                        onCreateProperty = props.editModel::onCreateProperty
+                        updater = { index, block ->
+                            props.editModel.onUpdate {
+                                properties[index].block()
+                            }
+                        }
+                    }
                 }
             }
         }

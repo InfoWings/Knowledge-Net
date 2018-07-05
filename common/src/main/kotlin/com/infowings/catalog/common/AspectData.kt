@@ -70,11 +70,11 @@ data class AspectPropertyDataExtended(
 data class TreeAspectResponse(
     val id: String,
     val name: String,
-    val measure: String?,
-    val baseType: String?,
-    val domain: String?,
-    val refBookId: String?,
-    val properties: List<TreeAspectPropertyResponse>
+    val measure: String? = null,
+    val baseType: String? = null,
+    val domain: String? = null,
+    val refBookId: String? = null,
+    val properties: List<TreeAspectPropertyResponse> = emptyList()
 )
 
 @Serializable

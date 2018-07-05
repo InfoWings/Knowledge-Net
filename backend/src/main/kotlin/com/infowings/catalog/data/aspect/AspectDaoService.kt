@@ -3,10 +3,12 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.common.TreeAspectResponse
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -48,6 +50,52 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }
         }
     }
+
+    fun getAspectTreeForProperty(propertyRid: ORID): TreeAspectResponse =
+        transaction(db) {
+            val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") " +
+                    "FROM (SELECT EXPAND(FIRST(OUT(\"$ASPECT_OBJECT_PROPERTY_EDGE\"))) FROM :propertyRid) " +
+                    "STRATEGY DEPTH_FIRST"
+            return@transaction db.query(query, "propertyRid" to propertyRid) {
+                val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
+                    val vertex = record.toVertex()
+                    when (vertex.schemaType.orElse(null)?.name) {
+                        ASPECT_CLASS -> {
+                            val aspectVertex = vertex.toAspectVertex()
+                            builder.apply { tryAppendAspect(aspectVertex) }
+                        }
+                        ASPECT_PROPERTY_CLASS -> {
+                            val propertyVertex = vertex.toAspectPropertyVertex()
+                            builder.apply { tryAppendAspectProperty(propertyVertex) }
+                        }
+                        else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.orElse(null)?.name}")
+                    }
+                }
+                aspectTreeBuilder.tryBuildAspectTree()
+            }
+        }
+
+    fun getAspectTreeById(aspectRid: ORID): TreeAspectResponse =
+        transaction(db) {
+            val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM :aspectRid STRATEGY DEPTH_FIRST"
+            return@transaction db.query(query, "aspectRid" to aspectRid) {
+                val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
+                    val vertex = record.toVertex()
+                    when (vertex.schemaType.orElse(null)?.name) {
+                        ASPECT_CLASS -> {
+                            val aspectVertex = vertex.toAspectVertex()
+                            builder.apply { tryAppendAspect(aspectVertex) }
+                        }
+                        ASPECT_PROPERTY_CLASS -> {
+                            val propertyVertex = vertex.toAspectPropertyVertex()
+                            builder.apply { tryAppendAspectProperty(propertyVertex) }
+                        }
+                        else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.orElse(null)}")
+                    }
+                }
+                aspectTreeBuilder.tryBuildAspectTree()
+            }
+        }
 
     fun remove(vertex: AspectPropertyVertex) {
         session(db) {

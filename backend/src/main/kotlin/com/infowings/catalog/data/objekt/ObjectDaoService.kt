@@ -3,10 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.data.aspect.AspectTreeBuilder
 import com.infowings.catalog.data.aspect.OpenDomain
-import com.infowings.catalog.data.aspect.toAspectPropertyVertex
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
@@ -66,14 +63,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-    fun getObjectProperties(objectRid: ORID): List<ObjectPropertyVertex> =
-        transaction(db) {
-            val query = "SELECT EXPAND(IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\")) FROM :objectRid"
-            return@transaction db.query(query, "objectRid" to objectRid) {
-                it.map { it.toVertex().toObjectPropertyVertex() }.toList()
-            }
-        }
-
     fun getPropertyValuesList(propertyRid: ORID): List<ObjectPropertyValueVertex> =
         transaction(db) {
             val query = "SELECT *, IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\").@rid as childrenIds, " +
@@ -81,30 +70,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     "FROM (SELECT EXPAND(IN(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) FROM :propertyRid)"
             return@transaction db.query(query, "propertyRid" to propertyRid) {
                 it.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-
-    fun getAspectTreeForProperty(propertyRid: ORID): TreeAspectResponse =
-        transaction(db) {
-            val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") " +
-                    "FROM (SELECT EXPAND(FIRST(OUT(\"$ASPECT_OBJECT_PROPERTY_EDGE\"))) FROM :propertyRid) " +
-                    "STRATEGY DEPTH_FIRST"
-            return@transaction db.query(query, "propertyRid" to propertyRid) {
-                val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
-                    val vertex = record.toVertex()
-                    when (vertex.schemaType.orElse(null)?.name) {
-                        ASPECT_CLASS -> {
-                            val aspectVertex = vertex.toAspectVertex()
-                            builder.apply { tryAppendAspect(aspectVertex) }
-                        }
-                        ASPECT_PROPERTY_CLASS -> {
-                            val propertyVertex = vertex.toAspectPropertyVertex()
-                            builder.apply { tryAppendAspectProperty(propertyVertex) }
-                        }
-                        else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.orElse(null)?.name}")
-                    }
-                }
-                aspectTreeBuilder.tryBuildAspectTree()
             }
         }
 
