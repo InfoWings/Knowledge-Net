@@ -167,6 +167,14 @@ private object DeltaProducers {
             )
         }
     }
+
+    fun data(key: String, aspectFact: HistoryFact, context: AggregationContext): FieldDelta? {
+        val emptyPlaceholder = if (key == AspectField.NAME.name) "" else null
+        return FieldDelta(changeNamesConvert.getOrDefault(key, key),
+            context.before.snapshot.dataItem(key) ?: emptyPlaceholder,
+            if (aspectFact.event.type.isDelete()) null else aspectFact.payload.dataItem(key))
+
+    }
 }
 
 private val propertyDeltaCreators = listOf(
@@ -275,24 +283,20 @@ class AspectHistoryProvider(
                             val addedLinksDeltas = linksSplit.added.mapNotNull { DeltaProducers.addLink(it, aspectFact, context)}
                             val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, aspectFact, context)}
 
-                            val deltas = aspectFact.payload.data.map {
-                                val emptyPlaceholder = if (it.key == AspectField.NAME.name) "" else null
-                                FieldDelta(changeNamesConvert.getOrDefault(it.key, it.key),
-                                    before.snapshot.data[it.key]?:emptyPlaceholder,
-                                    if (aspectFact.event.type.isDelete()) null else after.snapshot.data[it.key])
-                            } + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas
+                            val dataDeltas = aspectFact.payload.data.mapNotNull { DeltaProducers.data(it.key, aspectFact, context)}
 
+                            val deltas = dataDeltas + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas
 
                             val res2 = AspectHistory(aspectFact.event, after.data.name, after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull {
                                     aspectsById[it.aspectId] ?: AspectData(it.aspectId, "'Aspect removed'", null)
                                 }), if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas)
 
-                            logger.info("43 res.f==res2.f: ${res.fullData==res2.fullData}")
-                            logger.info("43 res: ${res.changes}")
-                            logger.info("43 res2: ${res2.changes}")
-                            logger.info("43 res.c==res2.c: ${res.changes==res2.changes}")
-                            logger.info("43 res==res2: ${res==res2}")
+                            logger.info("44 res.f==res2.f: ${res.fullData==res2.fullData}")
+                            logger.info("44 res: ${res.changes}")
+                            logger.info("44 res2: ${res2.changes}")
+                            logger.info("44 res.c==res2.c: ${res.changes==res2.changes}")
+                            logger.info("44 res==res2: ${res==res2}")
 
                             res
                         }

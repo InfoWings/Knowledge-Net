@@ -38,7 +38,7 @@ data class DiffPayload (
         val added = addedLinks.keys
         val removed = removedLinks.keys
         val changed = added.intersect(removed)
-        return Split(added = added, removed = removed, changed = changed)
+        return Split(added = added.minus(changed), removed = removed.minus(changed), changed = changed)
     }
 
     fun addedFor(target: String): List<ORID> = valueOrEmptyList(addedLinks, target)
