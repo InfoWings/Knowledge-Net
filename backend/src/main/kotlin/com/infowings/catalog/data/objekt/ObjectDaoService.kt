@@ -68,7 +68,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val query = "SELECT *, IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\").@rid as childrenIds, " +
                     "FIRST(OUT(\"$OBJECT_VALUE_ASPECT_PROPERTY_EDGE\")).@rid as propertyId " +
                     "FROM (SELECT EXPAND(IN(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) FROM :propertyRid)"
-            return@transaction db.query(query, "propertyRid" to propertyRid) {
+            return@transaction db.query(query, mapOf("propertyRid" to propertyRid)) {
                 it.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
             }
         }

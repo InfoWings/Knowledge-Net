@@ -209,7 +209,7 @@ class AspectService(
      */
     fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
 
-    fun findTreeById(id: String): TreeAspectResponse = transaction(db) { aspectDaoService.getAspectTreeForProperty(ORecordId(id)) }
+    fun findTreeById(id: String): TreeAspectResponse = transaction(db) { aspectDaoService.getAspectTreeById(ORecordId(id)) }
 
     fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 

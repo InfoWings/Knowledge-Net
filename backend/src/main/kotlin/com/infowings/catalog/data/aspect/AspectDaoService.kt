@@ -56,7 +56,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") " +
                     "FROM (SELECT EXPAND(FIRST(OUT(\"$ASPECT_OBJECT_PROPERTY_EDGE\"))) FROM :propertyRid) " +
                     "STRATEGY DEPTH_FIRST"
-            return@transaction db.query(query, "propertyRid" to propertyRid) {
+            return@transaction db.query(query, mapOf("propertyRid" to propertyRid)) {
                 val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
                     val vertex = record.toVertex()
                     when (vertex.schemaType.orElse(null)?.name) {
@@ -78,7 +78,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun getAspectTreeById(aspectRid: ORID): TreeAspectResponse =
         transaction(db) {
             val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM :aspectRid STRATEGY DEPTH_FIRST"
-            return@transaction db.query(query, "aspectRid" to aspectRid) {
+            return@transaction db.query(query, mapOf("aspectRid" to aspectRid)) {
                 val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
                     val vertex = record.toVertex()
                     when (vertex.schemaType.orElse(null)?.name) {

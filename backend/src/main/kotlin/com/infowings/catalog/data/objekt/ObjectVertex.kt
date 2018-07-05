@@ -44,7 +44,6 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val properties: List<ObjectPropertyVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE).map { it.toObjectPropertyVertex() }
 
-
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw ObjectWithoutSubjectException(this)
 

@@ -134,7 +134,9 @@ class AspectTreeBuilder {
                         }
                     )
                     lastVertexHolderInState.completeWith(aspectResponse)
-                    aspectTraversalState.removeAt(aspectTraversalState.lastIndex)
+                    if (aspectTraversalState.lastIndex > 0) {
+                        aspectTraversalState.removeAt(aspectTraversalState.lastIndex)
+                    }
                     return true
                 } else {
                     return false
