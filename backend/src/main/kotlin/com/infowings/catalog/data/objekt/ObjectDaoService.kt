@@ -2,8 +2,8 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
@@ -274,16 +274,19 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
+        logger.info("sql: ${sqlBuilder.sql}")
+        logger.info("params: ${sqlBuilder.params}")
+
         return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
             rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
         }
     }
 }
 
+private val logger = loggerFor<ObjectDaoService>()
 
 sealed class ObjectException(message: String) : Exception(message)
 class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
-class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectException("object name is empty: $data")
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
