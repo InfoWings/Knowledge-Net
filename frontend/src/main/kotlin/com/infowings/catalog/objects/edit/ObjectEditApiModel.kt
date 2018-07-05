@@ -88,6 +88,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         state.editedObject?.let {
             objectTreeEditModel {
                 attrs {
+                    apiModel = this@ObjectEditApiModelComponent
                     serverView = it
                 }
             }
