@@ -191,7 +191,7 @@ class DefaultAspectService(
         aspectDaoService.findByName(name).map { it.toAspectData() }.toSet()
     }
 
-    fun getData(vertices: Set<AspectVertex>): List<AspectData> {
+    private fun getData(vertices: Set<AspectVertex>): List<AspectData> {
         val ids = vertices.map { it.identity }
 
         val props = aspectDaoService.getProperties(ids).map {
@@ -367,13 +367,13 @@ class DefaultAspectService(
 }
 
 private fun AspectData.normalize(): AspectData = copy(
-    name = this.name?.trim(),
+    name = this.name.trim(),
     description = this.description?.trim(),
     properties = this.properties.map { it.copy(name = it.name.trim(), description = it.description?.trim()) })
 
 sealed class AspectException(message: String? = null) : Exception(message)
 
-class  AspectAlreadyExist(val name: String, subject: String?) :
+class AspectAlreadyExist(val name: String, subject: String?) :
     AspectException("name = $name, subject ${subject ?: "GLOBAL"}")
 
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")

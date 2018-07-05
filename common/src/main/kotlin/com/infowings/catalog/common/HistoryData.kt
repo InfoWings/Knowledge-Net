@@ -114,7 +114,7 @@ data class DiffPayloadData(
 
 @Serializable
 data class HistorySnapshotData(
-     val event: HistoryEventData,
+    val event: HistoryEventData,
     val before: SnapshotData,
     val after: SnapshotData,
     val diff: DiffPayloadData

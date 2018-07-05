@@ -1,16 +1,13 @@
 package com.infowings.catalog.data.history
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.assertGreater
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.data.subject.SubjectDao
-import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.*
 import org.junit.Before
 import org.junit.Test
@@ -20,9 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.fail
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
@@ -42,7 +36,8 @@ class HistoryDaoTest {
     @Autowired
     private lateinit var historyDao: HistoryDao
 
-    val classes = listOf(SUBJECT_CLASS, ASPECT_CLASS, ASPECT_PROPERTY_CLASS, REFERENCE_BOOK_ITEM_VERTEX, OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
+    val classes =
+        listOf(SUBJECT_CLASS, ASPECT_CLASS, ASPECT_PROPERTY_CLASS, REFERENCE_BOOK_ITEM_VERTEX, OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     @Before
     fun initTestData() {
@@ -70,7 +65,7 @@ class HistoryDaoTest {
         val subjectEventsL = historyDao.getAllHistoryEventsByTime(listOf(SUBJECT_CLASS))
 
         assertEquals(1, events.size)
-        assertEquals(1, subjectEvents.size )
+        assertEquals(1, subjectEvents.size)
         assertEquals(1, subjectEventsL.size)
 
         assertEquals(events, subjectEvents)
@@ -92,7 +87,16 @@ class HistoryDaoTest {
     fun testHistoryDaoAspect() {
         val aspectName = "aspect"
         val aspectDescr = "aspect description"
-        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr, version = 0, deleted = false, baseType = BaseType.Decimal.name), username)
+        val created = aspectService.save(
+            AspectData(
+                id = "",
+                name = aspectName,
+                description = aspectDescr,
+                version = 0,
+                deleted = false,
+                baseType = BaseType.Decimal.name
+            ), username
+        )
 
         val events = historyDao.getAllHistoryEventsByTime()
         val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
@@ -119,8 +123,12 @@ class HistoryDaoTest {
     fun testHistoryDaoRefBook() {
         val aspectName = "aspect"
         val aspectDescr = "aspect description"
-        val created = aspectService.save(AspectData(id = "", name = aspectName, description = aspectDescr,
-            version = 0, deleted = false, baseType = BaseType.Text.name), username)
+        val created = aspectService.save(
+            AspectData(
+                id = "", name = aspectName, description = aspectDescr,
+                version = 0, deleted = false, baseType = BaseType.Text.name
+            ), username
+        )
         val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
 
         val rbName = "rb"

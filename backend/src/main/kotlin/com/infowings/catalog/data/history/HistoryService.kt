@@ -2,7 +2,6 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
-import com.infowings.catalog.external.HistoryApi
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<HistoryService>()
 
-class  HistoryService(
+class HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao
 ) {
@@ -23,7 +22,7 @@ class  HistoryService(
 
     fun getAll(): Set<HistoryFact> = logTime(logger, "all history facts collection") {
         transaction(db) {
-            val events = logTime(logger, "basic collecting of events") {historyDao.getAllHistoryEvents()}
+            val events = logTime(logger, "basic collecting of events") { historyDao.getAllHistoryEvents() }
             logger.info("${events.size} history events")
             return@transaction events.map { it.toFact() }.toSet()
         }
@@ -41,16 +40,15 @@ class  HistoryService(
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime(entityClass) }
 
-            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
+            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map { it.identity })
 
-            val facts = logTime(logger, "event data extraction") { events.map { event ->
-                    val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
+            return@transaction logTime(logger, "event data extraction") {
+                events.map { event ->
+                    val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first ?: "")
                     val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
                     HistoryFact(eventData, payload)
                 }
             }
-
-            return@transaction facts
         }
     }
 
@@ -58,16 +56,15 @@ class  HistoryService(
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClasses") { historyDao.getAllHistoryEventsByTime(entityClasses) }
 
-            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map {it.identity})
+            val payloadsAndUsers = historyDao.getPayloadsAndUsers(events.map { it.identity })
 
-            val facts = logTime(logger, "event data extraction") { events.map { event ->
-                val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first?:"")
-                val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
-                HistoryFact(eventData, payload)
+            return@transaction logTime(logger, "event data extraction") {
+                events.map { event ->
+                    val eventData = event.toEventFast().copy(username = payloadsAndUsers[event.id]?.first ?: "")
+                    val payload = payloadsAndUsers[event.id]?.second ?: throw IllegalStateException("no payload for event ${event.id}")
+                    HistoryFact(eventData, payload)
+                }
             }
-            }
-
-            return@transaction facts
         }
     }
 

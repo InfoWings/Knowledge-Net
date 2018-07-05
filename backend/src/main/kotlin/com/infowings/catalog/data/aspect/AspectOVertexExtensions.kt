@@ -198,7 +198,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     // может быть приемлемым при работе с одним аспектом
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
-    fun toAspectData(properties: Map<String, AspectPropertyData>, details:  AspectDaoDetails): AspectData {
+    fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
             val propertyId = it.toString()
             val data: AspectPropertyData? = properties[propertyId]

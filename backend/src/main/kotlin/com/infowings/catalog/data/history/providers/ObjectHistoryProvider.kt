@@ -174,7 +174,7 @@ class ObjectHistoryProvider(
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
         val aspectPropertyName = nameById("aspectProperty") {
-            aspectService.findPropertyById(it)?.name
+            aspectService.findPropertyById(it).name
         }
         val subjectName = nameById("refValueSubject") {
             subjectService.findById(it)?.name
@@ -228,9 +228,14 @@ class ObjectHistoryProvider(
     }
 
     private fun placeHolder(fact: HistoryFact) =
-        ObjectHistory(event = fact.event, info = "<UNSUPPORTED>", deleted = false,
+        ObjectHistory(
+            event = fact.event, info = "<UNSUPPORTED>", deleted = false,
             fullData = ObjectHistoryData.Companion.BriefState(
-                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""), null, null), changes = emptyList())
+                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""),
+                null,
+                null
+            ), changes = emptyList()
+        )
 
     private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
@@ -259,14 +264,14 @@ class ObjectHistoryProvider(
         }
     }
 
-    private val objectVertices  = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
+    private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
         val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
             historyService.allTimeline(objectVertices.toList())
         }
 
-        val  factsByEntity = objectFacts.groupBy { it.event.entityClass }
+        val factsByEntity = objectFacts.groupBy { it.event.entityClass }
         val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
         val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
 
@@ -274,9 +279,9 @@ class ObjectHistoryProvider(
 
         val aspectPropertyLinks = valueFacts.map { it.payload.linksOfType("aspectProperty") }.flatten().toSet()
 
-        val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
+        val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
 
-        val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
+        val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
 
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 

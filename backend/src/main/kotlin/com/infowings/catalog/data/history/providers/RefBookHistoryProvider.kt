@@ -12,7 +12,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 
-const val HISTORY_ENTITY_REFBOOK =  "Reference Book"
+const val HISTORY_ENTITY_REFBOOK = "Reference Book"
 
 private data class RefBookState(
     val headers: MutableMap<String, RefBookHistoryInfo.Companion.Header>,
@@ -28,8 +28,6 @@ private data class RefBookState(
 }
 
 private val logger = loggerFor<RefBookHistoryProvider>()
-
-private data class ItemHistoryStep(val snapshot: Snapshot, val event: HistoryEventData)
 
 class RefBookHistoryProvider(
     private val historyService: HistoryService,
@@ -256,7 +254,7 @@ class RefBookHistoryProvider(
         }.toSet()
 
         val aspectNames = logTime(logger, "extract aspect names") {
-            aspectDao.findAspectsByIds(aspectIds.toList()).groupBy {it.id}.mapValues { it.value.first().name }
+            aspectDao.findAspectsByIds(aspectIds.toList()).groupBy { it.id }.mapValues { it.value.first().name }
         }
 
         val historyState = RefBookState()

@@ -12,9 +12,9 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
-data class Split(val added:  Set<String>, val removed: Set<String>, val changed: Set<String>)
+data class Split(val added: Set<String>, val removed: Set<String>, val changed: Set<String>)
 
-data class DiffPayload (
+data class DiffPayload(
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
     val removedLinks: Map<String, List<ORID>>
@@ -68,8 +68,10 @@ interface DataAware {
     fun dataOrEmpty(key: String) = dataItem(key) ?: ""
 }
 
-data class MutableSnapshot(val data: MutableMap<String, String>,
-                           val links: MutableMap<String, MutableSet<ORID>>) : DataAware {
+data class MutableSnapshot(
+    val data: MutableMap<String, String>,
+    val links: MutableMap<String, MutableSet<ORID>>
+) : DataAware {
     fun apply(diff: DiffPayload) {
         diff.data.forEach { updateField(it.key, it.value) }
         diff.addedLinks.forEach { addLinks(it.key, it.value) }
@@ -113,7 +115,7 @@ data class MutableSnapshot(val data: MutableMap<String, String>,
     constructor() : this(mutableMapOf<String, String>(), mutableMapOf<String, MutableSet<ORID>>())
 }
 
-data class Snapshot (
+data class Snapshot(
     val data: Map<String, String>,
     val links: Map<String, List<ORID>>
 ) : DataAware {

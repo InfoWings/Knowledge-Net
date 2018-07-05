@@ -5,10 +5,6 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
-import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
-import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
-import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.external.logTime
@@ -59,7 +55,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun findAspectsByIdsStr(ids: List<String>): List<AspectVertex> = findAspectsByIds(ids.map {ORecordId(it)})
+    fun findAspectsByIdsStr(ids: List<String>): List<AspectVertex> = findAspectsByIds(ids.map { ORecordId(it) })
 
     fun findPropertiesByIds(ids: List<ORID>): List<AspectPropertyVertex> {
         return db.query(
@@ -71,7 +67,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map {ORecordId(it)})
+    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map { ORecordId(it) })
 
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
@@ -125,7 +121,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    fun getAspectsWithDeleted( ids: List<ORID>): Set<AspectVertex> = logTime(logger, "aspects extraction with deleted at dao level") {
+    fun getAspectsWithDeleted(ids: List<ORID>): Set<AspectVertex> = logTime(logger, "aspects extraction with deleted at dao level") {
         db.query("SELECT FROM $ASPECT_CLASS WHERE @rid in :ids", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
         }
@@ -140,7 +136,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
 
-    fun getDetailsStr(ids: List<String>): Map<String, AspectDaoDetails> = getDetails(ids.map {ORecordId(it)})
+    fun getDetailsStr(ids: List<String>): Map<String, AspectDaoDetails> = getDetails(ids.map { ORecordId(it) })
 
     fun getDetails(ids: List<ORID>): Map<String, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"

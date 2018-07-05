@@ -10,7 +10,6 @@ import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import org.junit.Before
@@ -82,7 +81,7 @@ class AspectHistoryTest {
         assertGreater(aspectHistoryElement.event.timestamp, 0)
 
         assertEquals(3, aspectHistoryElement.changes.size)
-        val changedFields =  aspectHistoryElement.changes.groupBy { it.fieldName }
+        val changedFields = aspectHistoryElement.changes.groupBy { it.fieldName }
         assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
         val nameChange = changedFields.getValue("Name")[0]
         assertEquals(aspect.name, nameChange.after)
@@ -163,7 +162,7 @@ class AspectHistoryTest {
         assertNotEquals(historyElement1.event.sessionId, historyElement2.event.sessionId)
 
         assertEquals(1, historyElement1.changes.size)
-        val delta =  historyElement1.changes[0]
+        val delta = historyElement1.changes[0]
         assertEquals("Description", delta.fieldName)
         assertEquals(aspect1.description, delta.before)
         assertEquals(aspect2.description, delta.after)
@@ -281,8 +280,6 @@ class AspectHistoryTest {
 
         assertEquals(1, updateAspectFact.changes.size, "no data in update")
         val change = updateAspectFact.changes[0]
-        println("change: " + change)
-        println("aspect3: " + aspect3)
         assertEquals("Property " + aspect3.properties[0].name, change.fieldName)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
@@ -309,7 +306,7 @@ class AspectHistoryTest {
             aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2?.id ?: throw IllegalStateException("aspect2 id is null"),
+                        id = "", name = "prop", aspectId = aspect2.id ?: throw IllegalStateException("aspect2 id is null"),
                         cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
