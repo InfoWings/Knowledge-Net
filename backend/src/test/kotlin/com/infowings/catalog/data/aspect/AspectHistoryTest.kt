@@ -352,11 +352,8 @@ class AspectHistoryTest {
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
 
         assertEquals(1, aspectProviderFact.changes.size)
-        val change = aspectProviderFact.changes[0]
-        println("change: " + change)
-        println("aspect4: " + aspect4)
+        //val change = aspectProviderFact.changes[0]
         //assertEquals("Property " + aspect4.properties[0].name, change.fieldName)
-
     }
 
     @Test

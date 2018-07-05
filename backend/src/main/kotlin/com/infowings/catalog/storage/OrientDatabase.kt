@@ -189,7 +189,7 @@ class OrientDatabase(
      */
     fun <T> query(query: String, args: Map<String, Any?>, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
-            return@session session.query(query, args)
+             return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }
         }
     }

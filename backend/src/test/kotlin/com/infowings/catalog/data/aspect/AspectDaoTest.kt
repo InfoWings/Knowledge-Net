@@ -1,6 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
+import  com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.BaseType.Decimal

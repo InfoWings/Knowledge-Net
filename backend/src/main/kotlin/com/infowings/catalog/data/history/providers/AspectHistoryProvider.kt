@@ -166,8 +166,7 @@ private val propertyDeltaCreators = listOf(
 
 class AspectHistoryProvider(
     private val historyService: HistoryService,
-    private val aspectDeltaConstructor: AspectDeltaConstructor,
-    private val refBookDao: ReferenceBookDao,
+    private val  refBookDao: ReferenceBookDao,
     private val subjectDao: SubjectDao,
     private val aspectService: AspectService
 ) {
@@ -242,11 +241,9 @@ class AspectHistoryProvider(
                     DataWithSnapshot(aspectData, snapshot.immutable(), propertySnapshotsById)
                 }
 
-                val res = logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
+                return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
                     versionList.zipWithNext().zip(aspectFacts)
                         .map { (versionsPair, aspectFact) ->
-                            val res: AspectHistory = aspectDeltaConstructor.createDiff(versionsPair.first.data, versionsPair.second.data, aspectFact)
-
                             val (before, after) = versionsPair
 
                             val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId]?: emptyList()).groupBy { it.event.type }
@@ -262,30 +259,19 @@ class AspectHistoryProvider(
                             val replacedLinksDeltas = linksSplit.changed.mapNotNull { DeltaProducers.changeLink(it, aspectFact, context)}
                             val addedLinksDeltas = linksSplit.added.mapNotNull { DeltaProducers.addLink(it, aspectFact, context)}
                             val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, aspectFact, context)}
-
                             val dataDeltas = aspectFact.payload.data.mapNotNull { DeltaProducers.data(it.key, aspectFact, context)}
 
                             val deltas = dataDeltas + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas
 
-                            val res2 = AspectHistory(
+                            AspectHistory(
                                 aspectFact.event,
                                 after.data.name,
                                 after.data.deleted,
                                 AspectDataView(after.data, after.data.properties.mapNotNull { aspectsById[it.aspectId] ?: removedAspect(it.aspectId) }),
                                 if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas
                             )
-
-                            logger.info("45 res.f==res2.f: ${res.fullData==res2.fullData}")
-                            logger.info("45 res: ${res.changes}")
-                            logger.info("45 res2: ${res2.changes}")
-                            logger.info("45 res.c==res2.c: ${res.changes==res2.changes}")
-                            logger.info("45 res==res2: ${res==res2}")
-
-                            res
                         }
                 }
-
-                return@flatMap res
             }
         }
 

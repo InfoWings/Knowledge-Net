@@ -27,7 +27,7 @@ fun SubjectVertex.toSubject(): Subject =
         deleted = this.deleted
     )
 
-class SubjectDao(private val db: OrientDatabase) {
+class  SubjectDao(private val db: OrientDatabase) {
     fun getSubjects(): List<Subject> = db.query(SelectSubjectsQuery) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
     }

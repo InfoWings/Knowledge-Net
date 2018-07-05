@@ -34,7 +34,7 @@ class RefBookDaoTest {
     lateinit var refBookDao: ReferenceBookDao
 
     @Autowired
-    lateinit var refBookService: ReferenceBookService
+    lateinit   var refBookService: ReferenceBookService
 
     @Autowired
     lateinit var aspectService: AspectService

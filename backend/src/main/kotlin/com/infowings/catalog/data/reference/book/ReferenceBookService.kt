@@ -39,7 +39,7 @@ interface ReferenceBookService {
     fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex
     fun getReferenceBookItem(id: String): ReferenceBookItem
     fun itemName(id: String): String
-    fun addReferenceBookItem(request: ItemCreateRequest, username: String): String
+    fun  addReferenceBookItem(request: ItemCreateRequest, username: String): String
     fun addReferenceBookItem(parentId: String, bookItem: ReferenceBookItem, username: String): String
     fun editReferenceBookItem(request: LeafEditRequest, username: String, force: Boolean = false)
     fun updateReferenceBookItem(bookItem: ReferenceBookItem, username: String, force: Boolean = false)
@@ -330,7 +330,7 @@ class DefaultReferenceBookService(
 
             val itemVertex = dao.find(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
 
-            if (itemVertex.toReferenceBookItem() == bookItem) {
+             if (itemVertex.toReferenceBookItem() == bookItem) {
                 throw RefBookEmptyChangeException()
             }
 

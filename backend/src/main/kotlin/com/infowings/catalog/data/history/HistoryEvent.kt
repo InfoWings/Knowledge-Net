@@ -12,7 +12,7 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
-data class Split(val added: Set<String>, val removed: Set<String>, val changed: Set<String>)
+data class Split(val added:  Set<String>, val removed: Set<String>, val changed: Set<String>)
 
 data class DiffPayload (
     val data: Map<String, String>,

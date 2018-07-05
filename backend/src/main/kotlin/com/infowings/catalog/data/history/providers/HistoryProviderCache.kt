@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 interface HistoryProviderCache<T> {
     fun get(id: String): List<T>?
 
-    fun set(id: String, elems: List<T>)
+    fun  set(id: String, elems: List<T>)
 }
 
 class CHMHistoryProviderCache<T> : HistoryProviderCache<T> {

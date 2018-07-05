@@ -30,7 +30,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         }
     }
 
-    fun getRootVertex(aspectId: String): ReferenceBookItemVertex? = transaction(db) {
+    fun  getRootVertex(aspectId: String): ReferenceBookItemVertex? = transaction(db) {
         val aspectVertex = db.getVertexById(aspectId) ?: return@transaction null
         return@transaction aspectVertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
             .map { it.toReferenceBookItemVertex() }
@@ -43,7 +43,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
     fun find(id: String): ReferenceBookItemVertex? =
         db.getVertexById(id)?.toReferenceBookItemVertex()
 
-    fun findStr(ids: List<String>): List<ReferenceBookItemVertex> = find(ids.map { ORecordId(it) })
+     fun findStr(ids: List<String>): List<ReferenceBookItemVertex> = find(ids.map { ORecordId(it) })
 
     fun find(ids: List<ORID>): List<ReferenceBookItemVertex> {
         return db.query(

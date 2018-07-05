@@ -259,28 +259,24 @@ class ObjectHistoryProvider(
         }
     }
 
-    private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
+    private val objectVertices  = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
         val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
             historyService.allTimeline(objectVertices.toList())
         }
 
-        val factsByEntity = objectFacts.groupBy { it.event.entityClass }
+        val  factsByEntity = objectFacts.groupBy { it.event.entityClass }
         val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
         val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
 
         val aspectLinks = propertyFacts.map { it.payload.linksOfType("aspect") }.flatten().toSet()
-        logger.info("aspect links: $aspectLinks")
 
         val aspectPropertyLinks = valueFacts.map { it.payload.linksOfType("aspectProperty") }.flatten().toSet()
-        logger.info("aspect property links: $aspectPropertyLinks")
 
         val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
-        logger.info("aspect names: $aspectNames")
 
         val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy{it.id}.mapValues{ it.value.first().name }
-        logger.info("aspect property names: $aspectPropertyNames")
 
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 

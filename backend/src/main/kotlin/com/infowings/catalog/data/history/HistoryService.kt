@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private val logger = loggerFor<HistoryService>()
 
-class HistoryService(
+class  HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao
 ) {

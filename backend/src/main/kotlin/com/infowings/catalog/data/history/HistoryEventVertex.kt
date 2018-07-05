@@ -69,7 +69,7 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             .map { it.toUserVertex() }
             .first()
 
-    var sessionId: UUID
+    var  sessionId: UUID
         get() = UUID.fromString(vertex["sessionUUID"])
         set(value) {
             vertex["sessionUUID"] = value.toString()

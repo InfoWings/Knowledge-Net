@@ -373,7 +373,7 @@ private fun AspectData.normalize(): AspectData = copy(
 
 sealed class AspectException(message: String? = null) : Exception(message)
 
-class AspectAlreadyExist(val name: String, subject: String?) :
+class  AspectAlreadyExist(val name: String, subject: String?) :
     AspectException("name = $name, subject ${subject ?: "GLOBAL"}")
 
 class AspectDoesNotExist(val id: String) : AspectException("id = $id")

@@ -16,7 +16,7 @@ const val HISTORY_CLASS = "History"
 const val selectFromHistory = "SELECT FROM $HISTORY_EVENT_CLASS"
 const val selectFromHistoryTS = "SELECT FROM $HISTORY_EVENT_CLASS ORDER BY timestamp"
 
-private val logger = loggerFor<HistoryDao>()
+private val logger =   loggerFor<HistoryDao>()
 
 class HistoryDao(private val db: OrientDatabase) {
     fun newHistoryEventVertex() = db.createNewVertex(HISTORY_EVENT_CLASS).toHistoryEventVertex()

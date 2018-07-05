@@ -12,7 +12,7 @@ import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 
-const val HISTORY_ENTITY_REFBOOK = "Reference Book"
+const val HISTORY_ENTITY_REFBOOK =  "Reference Book"
 
 private data class RefBookState(
     val headers: MutableMap<String, RefBookHistoryInfo.Companion.Header>,

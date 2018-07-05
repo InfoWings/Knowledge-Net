@@ -61,7 +61,7 @@ data class AspectDataLazy(
 
 @Serializable
 data class AspectPropertyData(
-    val id: String,
+    val id:  String,
     val name: String,
     val aspectId: String,
     val cardinality: String,
