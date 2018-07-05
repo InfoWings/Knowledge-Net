@@ -57,17 +57,15 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                         }
                     }!!
                 }
-                objectPropertiesEditList {
-                    attrs {
-                        properties = props.objectTree.properties
-                        onCreateProperty = props.editModel::onCreateProperty
-                        updater = { index, block ->
-                            props.editModel.onUpdate {
-                                properties[index].block()
-                            }
+                objectPropertiesEditList(
+                    properties = props.objectTree.properties,
+                    onCreateProperty = props.editModel::onCreateProperty,
+                    updater = { index, block ->
+                        props.editModel.onUpdate {
+                            properties[index].block()
                         }
                     }
-                }
+                )
             }
         }
     }

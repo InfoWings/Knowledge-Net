@@ -24,10 +24,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        if (props.serverView !== nextProps.serverView) {
-            setState {
-                model = ObjectEditModel(props.serverView)
-            }
+        setState {
+            model = ObjectEditModel(nextProps.serverView)
         }
     }
 

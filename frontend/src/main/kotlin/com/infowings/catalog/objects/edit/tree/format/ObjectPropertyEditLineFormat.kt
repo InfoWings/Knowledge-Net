@@ -14,6 +14,7 @@ import react.rFunction
 val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>("ObjectPropertyEditLineFormat") { props ->
     div(classes = "object-tree-edit__object-property") {
         name(
+            className = "object-property__name",
             value = props.name ?: "",
             onChange = props.onNameChanged,
             onCancel = props.onNameChanged

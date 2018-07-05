@@ -3,30 +3,29 @@ package com.infowings.catalog.objects.edit.tree
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
+import react.RBuilder
 import react.RProps
 import react.buildElement
 import react.rFunction
 
-val objectPropertiesEditList = rFunction<ObjectPropertiesEditListProps>("ObjectPropertiesEditList") { props ->
-    props.properties.forEachIndexed { index, property ->
+fun RBuilder.objectPropertiesEditList(
+    properties: List<ObjectPropertyEditModel>,
+    onCreateProperty: (ObjectPropertyEditModel) -> Unit,
+    updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit
+) {
+    properties.forEachIndexed { index, property ->
         objectPropertyEditNode {
             attrs {
                 this.property = property
                 onUpdate = { block ->
-                    props.updater(index, block)
+                    updater(index, block)
                 }
                 onCreate = if (property.id == null && property.cardinality != null && property.aspect != null) {
-                    { props.onCreateProperty(property) }
+                    { onCreateProperty(property) }
                 } else null
             }
         }
     }
-}
-
-interface ObjectPropertiesEditListProps : RProps {
-    var properties: List<ObjectPropertyEditModel>
-    var onCreateProperty: (ObjectPropertyEditModel) -> Unit
-    var updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit
 }
 
 val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPropertyEditNode") { props ->
