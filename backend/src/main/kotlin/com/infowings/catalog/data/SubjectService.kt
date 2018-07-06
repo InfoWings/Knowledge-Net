@@ -3,7 +3,6 @@ package com.infowings.catalog.data
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.subject.SubjectDao
@@ -44,12 +43,10 @@ class DefaultSubjectService(
     override fun findByName(name: String): SubjectData? = dao.findByName(name)?.toSubject()?.toSubjectData()
 
     override fun createSubject(sd: SubjectData, username: String): Subject {
-        val normalizedSubjectData = sd.normalize()
-
         val userVertex = userService.findUserVertexByUsername(username)
 
         val vertex = transaction(db) {
-            val vertex = dao.createSubject(normalizedSubjectData)
+            val vertex = dao.createSubject(sd)
             history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
@@ -59,13 +56,13 @@ class DefaultSubjectService(
 
     override fun updateSubject(subjectData: SubjectData, username: String): Subject {
         val id = subjectData.id ?: throw SubjectIdIsNull
-        val normalizedSubjectData = subjectData.normalize()
 
         val userVertex = userService.findUserVertexByUsername(username)
 
         val resultVertex = transaction(db) {
-            val vertex: SubjectVertex = dao.findByIdStrict(id)
-            if (normalizedSubjectData == vertex.toSubject().toSubjectData()) {
+            val vertex = dao.findByIdStrict(id)
+            val existing: SubjectData = vertex.toSubject().toSubjectData()
+            if (subjectData == existing) {
                 throw SubjectEmptyChangeException()
             }
 
@@ -74,11 +71,9 @@ class DefaultSubjectService(
             //    throw SubjectConcurrentModificationException(expected =  normalizedSubjectData.version, real = vertex.version)
             //}
 
-            val before = vertex.currentSnapshot()
-            val res = dao.updateSubjectVertex(vertex, normalizedSubjectData)
-            history.storeFact(vertex.toUpdateFact(HistoryContext(userVertex), before))
-
-            return@transaction res
+            return@transaction history.trackUpdate(vertex, HistoryContext(userVertex)) {
+                dao.updateSubjectVertex(vertex, subjectData)
+            }
         }
 
         return resultVertex.toSubject()
@@ -86,7 +81,6 @@ class DefaultSubjectService(
 
     override fun remove(subjectData: SubjectData, username: String, force: Boolean) {
         val id = subjectData.id ?: throw SubjectIdIsNull
-        val normalizedSubjectData = subjectData.normalize()
 
         val userVertex = userService.findUserVertexByUsername(username)
 
@@ -106,7 +100,7 @@ class DefaultSubjectService(
                     dao.softRemove(vertex)
                 }
                 linkedByAspects.isNotEmpty() -> {
-                    throw SubjectIsLinkedByAspect(normalizedSubjectData, linkedByAspects.first().toAspectData())
+                    throw SubjectIsLinkedByAspect(subjectData, linkedByAspects.first().toAspectData())
                 }
 
                 else -> {
@@ -131,4 +125,4 @@ class SubjectConcurrentModificationException(expected: Int, real: Int) :
 class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
     SubjectException("Subject ${subject.id} is linked by ${aspect.id}")
 
-class SubjectEmptyChangeException : SubjectException()
+class SubjectEmptyChangeException : SubjectException("such subject already exists")
