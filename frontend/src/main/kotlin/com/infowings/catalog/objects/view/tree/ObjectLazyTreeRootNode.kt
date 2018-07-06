@@ -25,6 +25,7 @@ class ObjectLazyTreeRootNode : RComponent<ObjectLazyTreeRootNode.Props, RState>(
                 treeNodeContent = buildElement {
                     objectLineFormat {
                         attrs {
+                            objectId = props.objectView.id
                             objectName = props.objectView.name
                             objectDescription = props.objectView.description
                             subjectName = props.objectView.subjectName

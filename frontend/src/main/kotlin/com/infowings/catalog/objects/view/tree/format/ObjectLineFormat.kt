@@ -1,6 +1,8 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.utils.encodeURIComponent
+import com.infowings.catalog.wrappers.reactRouter
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -26,10 +28,18 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
                 )
             }
         }
+        reactRouter.Link {
+            attrs {
+                className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit"
+                role = "button"
+                to = "/objects/${encodeURIComponent(props.objectId)}"
+            }
+        }
     }
 }
 
 interface ObjectLineFormatProps : RProps {
+    var objectId: String
     var objectName: String
     var objectDescription: String?
     var subjectName: String
