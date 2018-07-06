@@ -14,6 +14,8 @@ import com.infowings.catalog.storage.transaction
 interface SubjectService {
     fun getSubjects(): List<Subject>
     fun findById(id: String): SubjectVertex?
+    fun findDataById(id: String): SubjectData?
+    fun findDataByIdStrict(id: String): SubjectData
     fun findByIdStrict(id: String): SubjectVertex
     fun findByName(name: String): SubjectData?
     fun createSubject(sd: SubjectData, username: String): Subject
@@ -37,6 +39,14 @@ class DefaultSubjectService(
     override fun getSubjects(): List<Subject> = dao.getSubjects()
 
     override fun findById(id: String): SubjectVertex? = dao.findById(id)
+
+    override fun findDataById(id: String): SubjectData = transaction (db) {
+        dao.findById(id)?.toSubject()?.toSubjectData() ?: throw SubjectNotFoundException("No subject with id $id")
+    }
+
+    override fun findDataByIdStrict(id: String): SubjectData = transaction (db) {
+        dao.findByIdStrict(id)?.toSubject()?.toSubjectData()
+    }
 
     override fun findByIdStrict(id: String): SubjectVertex = dao.findByIdStrict(id)
 

@@ -39,7 +39,7 @@ class SubjectApi(val subjectService: SubjectService) {
     @GetMapping("{id}")
     fun getSubjectById(@PathVariable("id") id: String): SubjectData {
         logger.debug("Get subject by id $id")
-        return subjectService.findById(id)?.toSubject()?.toSubjectData() ?: throw SubjectNotFoundException("No subject with id $id")
+        return subjectService.findDataByIdStrict(id)
     }
 
     @PostMapping("update")
