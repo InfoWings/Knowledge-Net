@@ -18,10 +18,10 @@ private class AspectVertexHolder(val vertex: AspectVertex) : AspectHolder() {
     fun verifyNext(propertyVertex: AspectPropertyVertex) {
         val incomingAspectEdge = propertyVertex.getEdges(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first()
         val edgeId = incomingAspectEdge.identity
-        val isPropertyHasEdgeLikeInAspect = vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).any {
+        val isAspectPropertyHasOutgoingPropertyLikeInAspect =  vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).any {
             it.identity == edgeId
         }
-        if (!isPropertyHasEdgeLikeInAspect) {
+        if (!isAspectPropertyHasOutgoingPropertyLikeInAspect) {
             throw IllegalStateException("Supplied property vertex (id = ${propertyVertex.id}) is not inside aspect (id = ${vertex.id})")
         }
     }
@@ -38,9 +38,11 @@ private class AspectPropertyVertexHolder(val vertex: AspectPropertyVertex) : Asp
     var isComplete: Boolean = false
 
     fun verifyNext(aspectVertex: AspectVertex) {
-        val incomingAspectPropertyEdgeId = aspectVertex.getEdges(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first().identity
-        val isPropertyHasEqualOutgoingEdge = vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first() == incomingAspectPropertyEdgeId
-        if (!isPropertyHasEqualOutgoingEdge) {
+        val outgoingEdgeId = vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().identity
+        val isAspectHasIncomingEdgeLikeInProperty = aspectVertex.getEdges(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).any {
+            it.identity == outgoingEdgeId
+        }
+        if (!isAspectHasIncomingEdgeLikeInProperty) {
             throw IllegalStateException("Supplied aspect vertex (id = ${aspectVertex.id} is not inside aspect property (id = ${vertex.id})")
         }
     }
@@ -54,6 +56,7 @@ private class AspectPropertyVertexHolder(val vertex: AspectPropertyVertex) : Asp
 class AspectTreeBuilder {
 
     private var aspectTraversalState: MutableList<AspectHolder> = mutableListOf()
+    private var completedAspectsCache: MutableMap<String, TreeAspectResponse> = mutableMapOf()
 
     fun tryAppendAspect(aspectVertex: AspectVertex) {
         if (aspectTraversalState.isEmpty()) {
@@ -66,7 +69,9 @@ class AspectTreeBuilder {
                 is AspectVertexHolder -> throw IllegalStateException("Two successive AspectVertexes in aspect tree traversal")
                 is AspectPropertyVertexHolder -> {
                     lastVertexHolderInState.verifyNext(aspectVertex)
-                    aspectTraversalState.add(AspectVertexHolder(aspectVertex))
+                    val newAspect = AspectVertexHolder(aspectVertex)
+                    lastVertexHolderInState.aspect = newAspect
+                    aspectTraversalState.add(newAspect)
                     tryReduceTraversalState()
                 }
             }
@@ -82,7 +87,22 @@ class AspectTreeBuilder {
                 is AspectPropertyVertexHolder -> throw IllegalStateException("Two successive AspectPropertyVertexes in aspect tree traversal")
                 is AspectVertexHolder -> {
                     lastVertexHolderInState.verifyNext(propertyVertex)
-                    aspectTraversalState.add(AspectPropertyVertexHolder(propertyVertex))
+                    val newAspectProperty = AspectPropertyVertexHolder(propertyVertex)
+                    lastVertexHolderInState.properties.add(newAspectProperty)
+                    aspectTraversalState.add(newAspectProperty)
+                    val outgoingPropertyVertexId = propertyVertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().id
+                    if (completedAspectsCache.containsKey(outgoingPropertyVertexId)) {
+                        newAspectProperty.completeWith(
+                            TreeAspectPropertyResponse(
+                                propertyVertex.id,
+                                PropertyCardinality.valueOf(propertyVertex.cardinality),
+                                propertyVertex.name,
+                                completedAspectsCache[outgoingPropertyVertexId] ?: throw IllegalStateException("Ashects cache should contain completed aspects")
+                            )
+                        )
+                        aspectTraversalState.removeAt(aspectTraversalState.lastIndex)
+                        tryReduceTraversalState()
+                    }
                 }
             }
         }
@@ -117,7 +137,7 @@ class AspectTreeBuilder {
         when (lastVertexHolderInState) {
             is AspectPropertyVertexHolder -> throw IllegalStateException("Expected last vertex in state to be Aspect Property")
             is AspectVertexHolder -> {
-                val isReadyForReduce = lastVertexHolderInState.properties.all {
+                val isReadyForReduce = lastVertexHolderInState.vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).count() == lastVertexHolderInState.properties.size && lastVertexHolderInState.properties.all {
                     it.isComplete
                 }
                 if (isReadyForReduce) {
@@ -134,6 +154,9 @@ class AspectTreeBuilder {
                         }
                     )
                     lastVertexHolderInState.completeWith(aspectResponse)
+                    aspectVertex.getEdges(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).forEach {
+                        completedAspectsCache[it.id] = aspectResponse
+                    }
                     if (aspectTraversalState.lastIndex > 0) {
                         aspectTraversalState.removeAt(aspectTraversalState.lastIndex)
                     }

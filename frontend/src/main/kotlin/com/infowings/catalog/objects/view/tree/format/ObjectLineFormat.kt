@@ -30,7 +30,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
         }
         reactRouter.Link {
             attrs {
-                className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit"
+                className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit pt-small"
                 role = "button"
                 to = "/objects/${encodeURIComponent(props.objectId)}"
             }
