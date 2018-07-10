@@ -7,9 +7,9 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import org.junit.Before
@@ -40,7 +40,7 @@ class AspectHistoryTest {
     private lateinit var aspectService: AspectService
 
     @Autowired
-    private lateinit var suggestionService: SuggestionService
+    private lateinit var refBookService: ReferenceBookService
 
     @Autowired
     private lateinit var historyService: HistoryService
@@ -79,6 +79,13 @@ class AspectHistoryTest {
         assertEquals(aspect.id, aspectHistoryElement.event.entityId, "entity id is incorrect")
         assertNotNull(aspectHistoryElement.event.sessionId, "session id must be non-null")
         assertGreater(aspectHistoryElement.event.timestamp, 0)
+
+        assertEquals(3, aspectHistoryElement.changes.size)
+        val changedFields = aspectHistoryElement.changes.groupBy { it.fieldName }
+        assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+        val nameChange = changedFields.getValue("Name")[0]
+        assertEquals(aspect.name, nameChange.after)
+        assertEquals("", nameChange.before)
     }
 
     @Test
@@ -118,6 +125,13 @@ class AspectHistoryTest {
                 "entity class is incorrect for $historyElement"
             )
             assertEquals(aspect.id, historyElement.event.entityId, "enity id must correspond with id of added aspect")
+
+            assertEquals(3, historyElement.changes.size, "history element: $historyElement")
+            assertEquals(0, historyElement.fullData.related.size, "history element: $historyElement")
+            val changedFields = historyElement.changes.groupBy { it.fieldName }
+            assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+            val nameChange = changedFields.getValue("Name")[0]
+            assertEquals(aspect.name, nameChange.after)
         }
     }
 
@@ -146,6 +160,12 @@ class AspectHistoryTest {
         assertGreater(historyElement1.event.timestamp, historyElement2.event.timestamp)
         assertGreater(historyElement1.event.version, historyElement2.event.version)
         assertNotEquals(historyElement1.event.sessionId, historyElement2.event.sessionId)
+
+        assertEquals(1, historyElement1.changes.size)
+        val delta = historyElement1.changes[0]
+        assertEquals("Description", delta.fieldName)
+        assertEquals(aspect1.description, delta.before)
+        assertEquals(aspect2.description, delta.after)
     }
 
     @Test
@@ -260,6 +280,7 @@ class AspectHistoryTest {
 
         assertEquals(1, updateAspectFact.changes.size, "no data in update")
         val change = updateAspectFact.changes[0]
+        assertEquals("Property " + aspect3.properties[0].name, change.fieldName)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
         assertEquals(true, change.after?.contains("aspect-2"))
@@ -285,7 +306,7 @@ class AspectHistoryTest {
             aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2?.id ?: throw IllegalStateException("aspect2 id is null"),
+                        id = "", name = "prop", aspectId = aspect2.id ?: throw IllegalStateException("aspect2 id is null"),
                         cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
@@ -295,7 +316,7 @@ class AspectHistoryTest {
         val factsBefore = historyService.getAll()
         val aspectHistoryBefore: List<AspectHistory> = historyProvider.getAllHistory()
 
-        aspectService.save(
+        val aspect4 = aspectService.save(
             aspect3.copy(properties = aspect3.properties.map { it.copy(description = "descr") }),
             "admin"
         )
@@ -326,6 +347,57 @@ class AspectHistoryTest {
         assertEquals(propertyFact.event.sessionId, aspectFact.event.sessionId)
 
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
+
+        assertEquals(1, aspectProviderFact.changes.size)
+        //val change = aspectProviderFact.changes[0]
+        //assertEquals("Property " + aspect4.properties[0].name, change.fieldName)
+    }
+
+    @Test
+    fun testAspectHistoryWithSubject() {
+        val subject =
+            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+                .toSubjectData()
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Decimal.name,
+                description = "some description-1",
+                subject = subject
+            ), username
+        )
+
+        val subjectId = subject.id
+        if (subjectId == null) {
+            fail("id must be non-null")
+        } else {
+            val subjectVertex = subjectService.findById(subjectId)
+
+            val history = historyProvider.getAllHistory()
+
+            assertEquals(1, history.size)
+            val fact = history.first()
+            assertEquals(4, fact.changes.size)
+        }
+    }
+
+    @Test
+    fun testAspectHistoryWithRefBook() {
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Text.name,
+                description = "some description-1"
+            ), username
+        )
+        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
+        val refBook = refBookService.createReferenceBook("ref book name", aspectId, username)
+
+        val history = historyProvider.getAllHistory()
+
+        assertEquals(2, history.size)
+        //val fact = history.first()
+        //assertEquals(4, fact.changes.size)
     }
 
     @Test
@@ -378,5 +450,43 @@ class AspectHistoryTest {
             val history = historyProvider.getAllHistory()
             assertEquals(2, history.size, "it must be 2 elements")
         }
+    }
+
+    @Test
+    fun testAspectHistoryCreateProperty() {
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = "aspect-1",
+                baseType = BaseType.Text.name,
+                description = "some description-1"
+            ), username
+        )
+        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
+
+        val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val complexAspectData = AspectData(
+            "",
+            "complex",
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
+        val complexAspect = aspectService.save(complexAspectData, username)
+
+        val history = historyProvider.getAllHistory()
+
+        assertEquals(2, history.size)
+
+        val latestFact = history.first()
+
+        println("latest fact: " + latestFact)
+        println("complex aspect: " + complexAspect)
+
+        assertEquals(EventType.CREATE, latestFact.event.type)
+        assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
+        assertEquals(complexAspect.baseType, latestFact.fullData.aspectData.baseType)
+
+        //assertEquals(complexAspect.measure, latestFact.fullData.aspectData.measure)
     }
 }

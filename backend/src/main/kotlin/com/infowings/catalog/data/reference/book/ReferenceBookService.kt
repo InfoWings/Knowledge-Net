@@ -233,7 +233,7 @@ class DefaultReferenceBookService(
 
     override fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex = transaction(db) {
         logger.debug("Getting ReferenceBookItem id: $id")
-        val bookItemVertex = dao.getReferenceBookItemVertex(id)
+        val bookItemVertex = dao.find(id)
         return@transaction bookItemVertex ?: throw RefBookItemNotExist(id)
     }
 
@@ -282,7 +282,7 @@ class DefaultReferenceBookService(
             val updateFact: HistoryFactWrite
             val context = HistoryContext(userVertex)
 
-            val parentVertex = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
+            val parentVertex = dao.find(parentId) ?: throw RefBookItemNotExist(parentId)
             parentBefore = parentVertex.currentSnapshot()
 
             parentVertex.validateValue(value, null)
@@ -292,7 +292,7 @@ class DefaultReferenceBookService(
             itemVertex.description = description
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
-            val parentVertex2 = dao.getReferenceBookItemVertex(parentId) ?: throw RefBookItemNotExist(parentId)
+            val parentVertex2 = dao.find(parentId) ?: throw RefBookItemNotExist(parentId)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
 
             historyService.storeFact(savedItemVertex.toCreateFact(context))
@@ -328,8 +328,7 @@ class DefaultReferenceBookService(
         transaction(db) {
             logger.debug("Updating: $bookItem by $username")
 
-            val itemVertex = dao.getReferenceBookItemVertex(bookItem.id)
-                    ?: throw RefBookItemNotExist(bookItem.id)
+            val itemVertex = dao.find(bookItem.id) ?: throw RefBookItemNotExist(bookItem.id)
 
             if (itemVertex.toReferenceBookItem() == bookItem) {
                 throw RefBookEmptyChangeException()
@@ -374,7 +373,7 @@ class DefaultReferenceBookService(
             val itemId = bookItem.id
             logger.debug("Removing ReferenceBookItem id: $itemId by $username")
 
-            val bookItemVertex = dao.getReferenceBookItemVertex(itemId) ?: throw RefBookItemNotExist(itemId)
+            val bookItemVertex = dao.find(itemId) ?: throw RefBookItemNotExist(itemId)
 
             bookItemVertex
                 .validateItemAndChildrenVersions(bookItem)
@@ -412,8 +411,8 @@ class DefaultReferenceBookService(
             val targetId = target.id
             logger.debug("Moving ReferenceBookItem sourceId: $sourceId, targetId: $targetId by $username")
 
-            val sourceVertex = dao.getReferenceBookItemVertex(sourceId) ?: throw RefBookItemNotExist(sourceId)
-            val targetVertex = dao.getReferenceBookItemVertex(targetId) ?: throw RefBookItemNotExist(targetId)
+            val sourceVertex = dao.find(sourceId) ?: throw RefBookItemNotExist(sourceId)
+            val targetVertex = dao.find(targetId) ?: throw RefBookItemNotExist(targetId)
 
             targetVertex
                 .validateForRemoved()

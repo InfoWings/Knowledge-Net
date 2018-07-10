@@ -74,21 +74,11 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { SuggestionService(database = ref()) }
         bean { HistoryDao(db = ref()) }
         bean { HistoryService(db = ref(), historyDao = ref()) }
-        bean { AspectConstructor(subjectService = ref(), referenceBookService = ref(), db = ref()) }
-        bean { AspectDeltaConstructor(aspectService = ref()) }
-        bean {
-            AspectHistoryProvider(
-                historyService = ref(),
-                aspectConstructor = ref(),
-                aspectDeltaConstructor = ref()
-            )
-        }
-        bean {
-            RefBookHistoryProvider(historyService = ref(), aspectDao = ref())
-        }
+        bean { AspectHistoryProvider(historyService = ref(), refBookDao = ref(), subjectDao = ref(), aspectService = ref()) }
+        bean { RefBookHistoryProvider(historyService = ref(), aspectDao = ref()) }
         bean {
             ObjectHistoryProvider(
-                historyService = ref(), aspectService = ref(), subjectService = ref(),
+                historyService = ref(), aspectService = ref(), aspectDao = ref(), subjectService = ref(),
                 refBookService = ref(), measureService = ref()
             )
         }

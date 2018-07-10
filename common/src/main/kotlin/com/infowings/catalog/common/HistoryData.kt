@@ -51,8 +51,11 @@ data class HistoryEventData(
     val entityId: String,
     val entityClass: String,
     val sessionId: String
-)
-
+) {
+    companion object {
+        val empty = HistoryEventData("", 0, 0, EventType.UPDATE, "", "", "")
+    }
+}
 
 @Serializable
 data class HistoryData<T>(
