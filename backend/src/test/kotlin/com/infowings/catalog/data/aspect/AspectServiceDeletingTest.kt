@@ -186,7 +186,7 @@ class AspectServiceDeletingTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
+        objectService.create(PropertyCreateRequest(obj, "prop", aspectWithObjectProperty.id!!), username)
 
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)

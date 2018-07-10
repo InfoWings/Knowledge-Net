@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 
@@ -90,7 +91,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithPropertyTestName",
-            cardinality = PropertyCardinality.INFINITY.name, objectId = createdObjectId, aspectId = aspect.idStrict()
+                objectId = createdObjectId, aspectId = aspect.idStrict()
         )
 
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -100,9 +101,10 @@ class ObjectServiceTest {
         val foundProperty = objectService.findPropertyById(createdPropertyId)
 
         assertEquals(propertyRequest.name, foundProperty.name, "name is incorrect")
-        assertEquals(propertyRequest.cardinality, foundProperty.cardinality.name, "cardinality is incorrect")
 
         transaction(db) {
+            assertEquals(PropertyCardinality.ZERO.name, foundProperty.cardinality.name, "cardinality is incorrect")
+
             val objectOfProperty = foundProperty.objekt
 
             if (objectOfProperty == null) {
@@ -134,7 +136,6 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithValueTestName",
-            cardinality = PropertyCardinality.INFINITY.name,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -171,4 +172,169 @@ class ObjectServiceTest {
 
     }
 
+    @Test
+    fun deleteObjectTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        objectService.deleteObject(createdObjectId, username)
+
+        try {
+            val found = objectService.findById(createdObjectId)
+            fail("object is found after deletion: $found")
+        } catch (e: ObjectNotFoundException) {
+        }
+    }
+
+    @Test
+    fun deletePropertyTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+                name = propertyName,
+                objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction (db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        objectService.deleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction (db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+    }
+
+    @Test
+    fun softDeletePropertyTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+                name = propertyName,
+                objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction (db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        objectService.softDeleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction (db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+    }
+
+
+    @Test
+    fun deleteValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+                name = propertyName,
+                objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+                value = ObjectValueData.IntegerValue(scalarInt, null),
+                objectPropertyId = createdPropertyId,
+                aspectPropertyId = complexAspect.properties[0].id,
+                parentValueId = null,
+                measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction (db) {
+            assertEquals(1, createdProperty.values.size)
+        }
+
+        objectService.deleteValue(createdValue.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction (db) {
+            assertEquals(0, updatedProperty.values.size)
+        }
+
+        val foundValue = dao.getObjectPropertyValueVertex(createdValue.id.toString())
+        assertNotNull(foundValue)
+    }
+
+    @Test
+    fun softDeleteValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+                name = propertyName,
+                objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+                value = ObjectValueData.IntegerValue(scalarInt, null),
+                objectPropertyId = createdPropertyId,
+                aspectPropertyId = complexAspect.properties[0].id,
+                parentValueId = null,
+                measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction (db) {
+            assertEquals(1, createdProperty.values.size)
+        }
+
+        objectService.softDeleteValue(createdValue.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction (db) {
+            assertEquals(0, updatedProperty.values.size)
+        }
+
+        val foundValue = dao.getObjectPropertyValueVertex(createdValue.id.toString())
+        assertEquals(null, foundValue)
+    }
 }

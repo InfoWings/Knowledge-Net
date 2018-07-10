@@ -13,6 +13,7 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
@@ -60,7 +61,7 @@ fun ObjectValue.tag() = when (this) {
 
 val tagByInt: Map<Int, ScalarTypeTag> = ScalarTypeTag.values().map { it.code to it }.toMap()
 
-class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_VALUE_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -156,6 +157,22 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex[PRECISION_PROPERTY]
         set(v) = setOrRemove(PRECISION_PROPERTY, v)
 
+
+    private val outEdgeTypes = listOf(
+            OBJECT_VALUE_OBJECT_PROPERTY_EDGE,
+            OBJECT_VALUE_ASPECT_PROPERTY_EDGE,
+            OBJECT_VALUE_OBJECT_VALUE_EDGE,
+            OBJECT_VALUE_OBJECT_EDGE,
+            OBJECT_VALUE_SUBJECT_EDGE,
+            OBJECT_VALUE_REFBOOK_ITEM_EDGE,
+            OBJECT_VALUE_MEASURE_EDGE
+    )
+
+    val outEdges: List<OEdge>
+        get() = outEdgeTypes.flatMap {
+            vertex.getEdges(ODirection.OUT, it).toList()
+        }
+
     val objectProperty: ObjectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
             ?.toObjectPropertyVertex()
@@ -188,7 +205,8 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
     val children: List<ObjectPropertyValueVertex>
-        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE).map { it.toObjectPropertyValueVertex() }
+        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
+                .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -263,3 +281,6 @@ class IncorrectTypeTagException(id: String, tag: Int) :
 
 class BooleanValueNodDefinedException(id: String) :
     ObjectValueException("boolean value is not defined for value $id")
+
+class ObjectValueHasChildrenException(ids: List<String>) :
+        ObjectValueException("children: $ids")

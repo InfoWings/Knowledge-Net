@@ -158,12 +158,17 @@ class ObjectHistoryProvider(
         )
     }
 
-    private fun valueAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+    private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>): ObjectHistory {
         val valueId = createFact.event.entityId
         val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
         val objectId = state.objectIds.getValue(propertyId)
         val objekt = state.objects.getValue(objectId)
         val property = state.properties.getValue(propertyId)
+        val newCardinality = updateFacts.find { it.event.entityClass == OBJECT_PROPERTY_CLASS }
+                ?.let { it.payload.data["cardinality"] }
+        if (newCardinality != null) {
+            property.snapshot.data["cardinality"] = newCardinality
+        }
 
         fun nameById(key: String, getter: (String) -> String?): String? =
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
@@ -242,7 +247,7 @@ class ObjectHistoryProvider(
                     propertyAdd(createFact, state)
                 }
                 OBJECT_PROPERTY_VALUE_CLASS -> {
-                    valueAdd(createFact, state)
+                    valueAdd(createFact, state, byType[EventType.UPDATE].orEmpty())
                 }
                 else ->
                     placeHolder(createFact)

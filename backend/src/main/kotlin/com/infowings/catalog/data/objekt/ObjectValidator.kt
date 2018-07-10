@@ -92,7 +92,6 @@ class ObjectValidator(
 
         return PropertyWriteInfo(
             request.name,
-            PropertyCardinality.valueOf(request.cardinality),
             objectVertex,
             aspectVertex
         )
@@ -111,7 +110,7 @@ class ObjectValidator(
             throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, aspectId.toString())
         }
 
-        return PropertyWriteInfo(request.name, property.cardinality, objectVertex, aspectVertex)
+        return PropertyWriteInfo(request.name, objectVertex, aspectVertex)
     }
 
     fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
@@ -177,6 +176,33 @@ class ObjectValidator(
             parentValueVertex,
             valueVertex.measure
         )
+    }
+
+    fun checkedForRemoval(valueVertex: ObjectPropertyValueVertex): DeleteInfo {
+        val children = valueVertex.children
+        if (children.isNotEmpty()) {
+            throw ObjectValueHasChildrenException(children.map { it.id })
+        }
+
+        return DeleteInfo(vertex = valueVertex, incoming = emptyList(), outgoing = valueVertex.outEdges)
+    }
+
+    fun checkedForRemoval(propertyVertex: ObjectPropertyVertex): DeleteInfo {
+        val values = propertyVertex.values
+        if (values.isNotEmpty()) {
+            throw ObjectPropertyHasValuesException(values.map { it.id })
+        }
+
+        return DeleteInfo(vertex = propertyVertex, incoming = emptyList(), outgoing = propertyVertex.outEdges)
+    }
+
+    fun checkedForRemoval(objectVertex: ObjectVertex): DeleteInfo {
+        val properties = objectVertex.properties
+        if (properties.isNotEmpty()) {
+            throw ObjectHasPropertiesException(properties.map { it.id })
+        }
+
+        return DeleteInfo(vertex = objectVertex, incoming = emptyList(), outgoing = objectVertex.outEdges)
     }
 
     private fun getObjectValueFromData(dataValue: ObjectValueData): ObjectValue = when (dataValue) {

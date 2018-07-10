@@ -116,7 +116,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
     ): ObjectPropertyVertex =
         transaction(db) {
             vertex.name = info.name
-            vertex.cardinality = info.cardinality
 
             replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
             replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
@@ -214,6 +213,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
 
+    fun delete(deleteInfo: DeleteInfo) {
+        transaction(db) {
+            deleteInfo.incoming.forEach { db.delete(it) }
+            deleteInfo.outgoing.forEach { db.delete(it) }
+            db.delete(deleteInfo.vertex)
+        }
+    }
+
+    fun softDelete(vertex: DeletableVertex) {
+        transaction(db) {
+            vertex.deleted = true
+        }
+    }
+
     fun getObjectVertex(id: String) = db.getVertexById(id)?.toObjectVertex()
     fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
     fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
@@ -296,3 +309,5 @@ class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspec
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
 class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")
+class ObjectHasPropertiesException(ids: List<String>) :
+        ObjectException("properties: $ids")

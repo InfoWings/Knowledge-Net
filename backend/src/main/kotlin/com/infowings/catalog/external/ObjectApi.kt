@@ -68,11 +68,44 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("updateValue")
-    fun createObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
+    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("Object property value update request: $requestDTO by $username")
         val result: ObjectPropertyValue = objectService.update(request, username)
         return ValueUpdateResponse(result.id.toString())
+    }
+
+    @DeleteMapping("value/{id}")
+    fun deleteValue(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object value delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteValue(id, username)
+        } else {
+            objectService.deleteValue(id, username)
+        }
+    }
+
+    @DeleteMapping("property/{id}")
+    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object property delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteProperty(id, username)
+        } else {
+            objectService.deleteProperty(id, username)
+        }
+    }
+
+    @DeleteMapping("object/{id}")
+    fun deleteObject(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteObject(id, username)
+        } else {
+            objectService.deleteObject(id, username)
+        }
     }
 }

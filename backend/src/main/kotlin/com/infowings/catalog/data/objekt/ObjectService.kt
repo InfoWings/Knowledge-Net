@@ -7,6 +7,7 @@ import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
@@ -152,7 +153,7 @@ class ObjectService(
         return transaction(db) {
             val valueInfo: ValueWriteInfo = validator.checkedForCreation(request)
 
-            val toTrack = listOfNotNull(valueInfo.objectProperty, valueInfo.parentValue)
+            val toTrack: List<HistoryAware> = listOfNotNull(valueInfo.objectProperty, valueInfo.parentValue)
 
             val valueVertex = historyService.trackUpdates(toTrack, context) {
                 val newVertex = dao.newObjectValueVertex()
@@ -177,6 +178,97 @@ class ObjectService(
             return@transaction objectPropertyValue.toObjectPropertyValue()
         }
     }
+
+    fun deleteValue(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var valueVertex = findPropertyValueById(id)
+
+            historyService.storeFact(valueVertex.toDeleteFact(context))
+
+            val deleteInfo = validator.checkedForRemoval(valueVertex)
+
+            dao.delete(deleteInfo)
+
+            return@transaction
+        }
+    }
+
+    fun softDeleteValue(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var valueVertex = findPropertyValueById(id)
+
+            historyService.storeFact(valueVertex.toDeleteFact(context))
+
+            dao.softDelete(valueVertex)
+
+            return@transaction
+        }
+    }
+
+    fun deleteProperty(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var propVertex = findPropertyById(id)
+
+            historyService.storeFact(propVertex.toDeleteFact(context))
+
+            val deleteInfo = validator.checkedForRemoval(propVertex)
+
+            dao.delete(deleteInfo)
+
+            return@transaction
+        }
+    }
+
+    fun softDeleteProperty(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var propVertex = findPropertyValueById(id)
+
+            historyService.storeFact(propVertex.toDeleteFact(context))
+
+            dao.softDelete(propVertex)
+
+            return@transaction
+        }
+    }
+
+    fun deleteObject(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var objVertex = findById(id)
+
+            historyService.storeFact(objVertex.toDeleteFact(context))
+
+            val deleteInfo = validator.checkedForRemoval(objVertex)
+
+            dao.delete(deleteInfo)
+
+            return@transaction
+        }
+    }
+
+    fun softDeleteObject(id: String, username: String) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            var objectVertex = findById(id)
+
+            historyService.storeFact(objectVertex.toDeleteFact(context))
+
+            dao.softDelete(objectVertex)
+
+            return@transaction
+        }
+    }
+
 
     // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
     fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {

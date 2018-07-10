@@ -74,7 +74,7 @@ sealed class ObjectValue {
  * updates in database
  */
 data class ObjectPropertyValue(
-    val id: ORID?,
+    val id: ORID,
     val value: ObjectValue,
     val objectProperty: ObjectPropertyVertex,
     val aspectProperty: AspectPropertyVertex?,

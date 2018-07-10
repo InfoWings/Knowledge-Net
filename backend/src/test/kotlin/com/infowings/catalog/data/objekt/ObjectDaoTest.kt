@@ -113,7 +113,6 @@ class ObjectDaoTest {
         val createdObject = createObject(objectRequest)
         val propertyData = PropertyCreateRequest(
             name = "savePropertyTestObjectPropertyName",
-            cardinality = PropertyCardinality.ONE.name,
             objectId = createdObject.id,
             aspectId = aspect.idStrict()
         )
@@ -157,7 +156,6 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleIntValueTest",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
 
@@ -212,7 +210,6 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleStrValueTest",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
 
@@ -266,7 +263,6 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
         objectService.create(propertyRequest, username)
@@ -279,7 +275,6 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
         val objPropId1 = objectService.create(propertyRequest, username)
@@ -289,7 +284,6 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = anotherAspect.idStrict()
         )
         val objPropId2 = objectService.create(propertyRequest2, username)
@@ -304,7 +298,6 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
         val objPropId1 = objectService.create(propertyRequest, username)
@@ -314,7 +307,6 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop2",
-            cardinality = PropertyCardinality.ONE.name,
             aspectId = aspect.idStrict()
         )
         val objPropId2 = objectService.create(propertyRequest2, username)
@@ -355,7 +347,7 @@ class ObjectDaoTest {
     fun objectPropertyUpdateTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.getAspectVertex(aspect.id!!)
-        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", objVertex, aspectVertex!!))
         objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "new name"), username)
         val objProperty = objectService.findPropertyById(objectPropertyVertex.id)
         Assert.assertEquals("Property must have new name", "new name", objProperty.name)
@@ -365,8 +357,8 @@ class ObjectDaoTest {
     fun objectPropertyUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.getAspectVertex(aspect.id!!)
-        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
-        createObjectProperty(PropertyWriteInfo("propName2", PropertyCardinality.ONE, objVertex, aspectVertex))
+        val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", objVertex, aspectVertex!!))
+        createObjectProperty(PropertyWriteInfo("propName2", objVertex, aspectVertex))
         objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "propName2"), username)
     }
 
@@ -374,7 +366,7 @@ class ObjectDaoTest {
     fun objPropertyValueUpdateTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.getAspectVertex(complexAspect.id!!)
-        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(123, null),
             objectPropertyId = objPropertyVertex.id,
@@ -393,7 +385,7 @@ class ObjectDaoTest {
     fun objPropertyValueUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.getAspectVertex(complexAspect.id!!)
-        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", PropertyCardinality.ONE, objVertex, aspectVertex!!))
+        val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(123, null),
             objectPropertyId = objPropertyVertex.id,

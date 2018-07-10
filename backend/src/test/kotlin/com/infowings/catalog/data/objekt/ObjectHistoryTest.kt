@@ -168,11 +168,10 @@ class ObjectHistoryTest {
         val statesBefore = historyProvider.getAllHistory()
 
         val propertyName = "prop_$testName"
-        val propertyCardinality = PropertyCardinality.INFINITY.name
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = propertyName, cardinality = propertyCardinality, aspectId = aspect.idStrict()
+            name = propertyName, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
@@ -195,7 +194,7 @@ class ObjectHistoryTest {
         assertEquals(setOf("aspect", "object"), propertyPayload.addedLinks.keys, "added links keys must be correct")
 
         assertEquals(propertyRequest.name, propertyPayload.data["name"], "name must be correct")
-        assertEquals(propertyRequest.cardinality, propertyPayload.data["cardinality"], "cardinality must be correct")
+        assertEquals(PropertyCardinality.ZERO.name, propertyPayload.data["cardinality"], "cardinality must be correct")
 
         val aspectLinks = propertyPayload.addedLinks["aspect"] ?: fail("unexpected absence of aspect links")
         assertEquals(1, aspectLinks.size, "only 1 aspect must be here")
@@ -248,7 +247,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(createdPropertyId, property.id)
         assertEquals(propertyName, property.name)
-        assertEquals(propertyCardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ZERO.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -259,7 +258,7 @@ class ObjectHistoryTest {
         val byField = state.changes.groupBy { it.fieldName }
         assertEquals(setOf("name", "cardinality", "aspect"), byField.keys)
         assertEquals(propertyName, byField.getValue("name")[0].after)
-        assertEquals(propertyCardinality, byField.getValue("cardinality")[0].after)
+        assertEquals(PropertyCardinality.ZERO.name, byField.getValue("cardinality")[0].after)
         assertEquals(aspect.name, byField.getValue("aspect")[0].after)
         assertEquals(state.changes.map { "" }, state.changes.map { it.before })
     }
@@ -285,7 +284,7 @@ class ObjectHistoryTest {
 
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObjectId,
-            name = "prop_$objectName", cardinality = PropertyCardinality.INFINITY.name, aspectId = aspect.idStrict()
+            name = "prop_$objectName", aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
@@ -387,13 +386,15 @@ class ObjectHistoryTest {
         )
     }
 
-    private fun checkPropertyFacts(propertyFacts: List<HistoryFact>, propertyId: String, valueId: ORID) {
+    private fun checkPropertyFacts(propertyFacts: List<HistoryFact>, propertyId: String,
+                                   valueId: ORID, cardinalityUpdate: String? = PropertyCardinality.ONE.name) {
         assertEquals(1, propertyFacts.size, "one property event is expected")
         val propertyEvent = propertyFacts.first().event
         val propertyPayload = propertyFacts.first().payload
         assertEquals(propertyId, propertyEvent.entityId, "id must be correct")
         assertEquals(EventType.UPDATE, propertyEvent.type, "type must be correct")
-        assertEquals(emptySet(), propertyPayload.data.keys, "there must be no data keys")
+        assertEquals(cardinalityUpdate?.let {setOf("cardinality")} ?: emptySet(), propertyPayload.data.keys)
+        assertEquals(cardinalityUpdate, propertyPayload.data["cardinality"])
         assertEquals(emptySet(), propertyPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("values"), propertyPayload.addedLinks.keys, "added links keys must be correct")
         val valueLinks = propertyPayload.addedLinks["values"]
@@ -404,10 +405,10 @@ class ObjectHistoryTest {
         }
     }
 
-    private fun checkPropertyFacts(prepared: PreparedValueInfo) {
+    private fun checkPropertyFacts(prepared: PreparedValueInfo, cardinalityUpdate: String? = PropertyCardinality.ONE.name) {
         val valueId = prepared.value.id
         if (valueId != null) {
-            checkPropertyFacts(prepared.propertyFacts, prepared.propertyId, valueId)
+            checkPropertyFacts(prepared.propertyFacts, prepared.propertyId, valueId, cardinalityUpdate)
         } else {
             fail("value id is null")
         }
@@ -494,7 +495,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -550,7 +551,7 @@ class ObjectHistoryTest {
         checkPropertyFacts(prepared)
 
         // ровно одно новое состояние
-        assertEquals(1, prepared.states.size, "History must contain 1 element about ref book")
+        assertEquals(1, prepared.states.size)
         val state = prepared.states[0]
         // проверяем мета-данные
         assertEquals(username, state.event.username)
@@ -576,7 +577,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -656,7 +657,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -735,7 +736,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -820,7 +821,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -878,7 +879,7 @@ class ObjectHistoryTest {
         assertEquals(1, propertyLinks.size, "only 1 property must be here")
         assertEquals(prepared2.propertyId, propertyLinks.first().toString(), "property id must be correct")
 
-        checkPropertyFacts(prepared2)
+        checkPropertyFacts(prepared2, cardinalityUpdate = PropertyCardinality.INFINITY.name)
 
         // ровно одно новое состояние
         assertEquals(1, prepared2.states.size, "History must contain 1 element about ref book")
@@ -907,7 +908,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared2.propertyId, property.id)
         assertEquals(prepared2.propertyRequest.name, property.name)
-        assertEquals(prepared2.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.INFINITY.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -998,7 +999,7 @@ class ObjectHistoryTest {
         assertEquals(emptySet(), parentPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("children"), parentPayload.addedLinks.keys, "added links keys must be correct")
 
-        checkPropertyFacts(prepared2)
+        checkPropertyFacts(prepared2, cardinalityUpdate = null)
 
         // ровно одно новое состояние
         assertEquals(1, prepared2.states.size, "History must contain 1 element about ref book")
@@ -1027,7 +1028,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared2.propertyId, property.id)
         assertEquals(prepared2.propertyRequest.name, property.name)
-        assertEquals(prepared2.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -1116,7 +1117,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -1214,7 +1215,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -1320,7 +1321,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -1424,7 +1425,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
@@ -1532,7 +1533,7 @@ class ObjectHistoryTest {
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(prepared.propertyRequest.cardinality, property.cardinality)
+        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
         assertEquals(aspect.name, property.aspectName)
 
