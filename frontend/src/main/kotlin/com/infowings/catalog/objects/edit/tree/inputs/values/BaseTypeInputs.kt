@@ -7,13 +7,12 @@ import com.infowings.catalog.wrappers.blueprint.Switch
 import org.w3c.dom.HTMLInputElement
 import react.RBuilder
 
-fun RBuilder.textInput(value: String?, onUpdate: (String) -> Unit, onEdit: () -> Unit) = EditableText {
+fun RBuilder.textInput(value: String?, onUpdate: (String) -> Unit) = EditableText {
     attrs {
         this.value = value ?: ""
         placeholder = "Enter property value"
         onCancel = onUpdate
         onChange = onUpdate
-        this.onEdit = onEdit
     }
 }
 

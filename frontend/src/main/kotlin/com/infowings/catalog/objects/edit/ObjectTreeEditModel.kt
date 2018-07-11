@@ -1,7 +1,9 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.objects.ObjectEditModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
@@ -13,7 +15,7 @@ import react.*
 interface ObjectTreeEditModel {
     fun onUpdate(updater: ObjectEditModel.() -> Unit)
     fun onCreateProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, parentValueId: String, aspectPropertyId: String?)
+    fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
 }
 
 class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
@@ -40,14 +42,25 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     state.model.id,
                     propertyEditModel.name,
                     propertyEditModel.description,
-                    propertyEditModel.cardinality?.name ?: error("Cardinality must be set when submitting object property"),
+                    PropertyCardinality.ZERO.name,
                     propertyEditModel.aspect?.id ?: error("Aspect must be set when submitting object property")
                 )
             )
         }
     }
 
-    override fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, parentValueId: String, aspectPropertyId: String?) {
+    override fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+        launch {
+            props.apiModel.submitObjectValue(
+                ValueCreateRequest(
+                    value = valueEditModel.value ?: error("Value should not be empty while submitting"),
+                    objectPropertyId = objectPropertyId,
+                    measureId = null,
+                    aspectPropertyId = aspectPropertyId,
+                    parentValueId = parentValueId
+                )
+            )
+        }
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

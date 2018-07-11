@@ -27,7 +27,7 @@ data class ObjectPropertyEditModel(
     var description: String? = null,
     var aspect: TreeAspectResponse? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
-    var expanded: Boolean = true
+    var expanded: Boolean = false
 ) {
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
         response.id,

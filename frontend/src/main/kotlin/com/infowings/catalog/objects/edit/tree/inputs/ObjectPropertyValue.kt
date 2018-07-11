@@ -1,21 +1,40 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
 import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.objects.edit.tree.inputs.values.*
 import react.RBuilder
 
 fun RBuilder.propertyValue(
-    value: String?,
-    baseType: String,
-    onEdit: () -> Unit,
-    onChange: (String) -> Unit,
-    aspectRefBookId: String?
+    baseType: BaseType,
+    referenceBookId: String?,
+    value: ObjectValueData?,
+    onChange: (ObjectValueData) -> Unit
 ) {
     when {
-        baseType == BaseType.Text.name && aspectRefBookId != null -> refBookInput(value, onChange, aspectRefBookId)
-        baseType == BaseType.Text.name -> textInput(value, onChange, onEdit)
-        baseType == BaseType.Integer.name -> integerInput(value, onChange)
-        baseType == BaseType.Decimal.name -> decimalInput(value, onChange)
-        baseType == BaseType.Boolean.name -> booleanInput(value, onChange)
+        baseType == BaseType.Text && referenceBookId != null -> refBookInput(
+            if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
+            { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it))) },
+            referenceBookId
+        )
+        baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue) { onChange(ObjectValueData.StringValue(it)) }
+        baseType == BaseType.Integer -> integerInput((value as? ObjectValueData.IntegerValue)?.asStringValue) { onChange(ObjectValueData.IntegerValue(it.toInt(), null)) }
+        baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue) { onChange(ObjectValueData.DecimalValue(it)) }
+        baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue) { onChange(ObjectValueData.BooleanValue(it.toBoolean())) }
     }
 }
+
+private val ObjectValueData.asStringValue
+    get() = when(this) {
+        is ObjectValueData.StringValue -> this.value
+        is ObjectValueData.BooleanValue -> this.value.toString()
+        is ObjectValueData.IntegerValue -> this.value.toString()
+        is ObjectValueData.DecimalValue -> this.valueRepr
+        is ObjectValueData.Link -> when(this.value) {
+            is LinkValueData.DomainElement -> this.value.id
+            else -> TODO("Subject and Object are not implemented")
+        }
+        else -> throw IllegalArgumentException("$this is not representable by string")
+    }
+

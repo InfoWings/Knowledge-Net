@@ -24,6 +24,25 @@
     & > * {
       margin-right: 1rem;
     }
+
+    & > *:first-child {
+      margin-left: 1rem;
+      margin-right: 2rem;
+    }
+  }
+
+  &__property-value {
+    display: flex;
+    align-items: center;
+
+    & > * {
+      margin-right: 1rem;
+    }
+
+    & > *:first-child {
+      margin-left: 1rem;
+      margin-right: 2rem;
+    }
   }
 
   &__aspect-value {
