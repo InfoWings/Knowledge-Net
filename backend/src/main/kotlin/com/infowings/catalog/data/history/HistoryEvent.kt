@@ -12,11 +12,13 @@ import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
+data class Split(val added: Set<String>, val removed: Set<String>, val changed: Set<String>)
+
 data class DiffPayload(
     val data: Map<String, String>,
     val addedLinks: Map<String, List<ORID>>,
     val removedLinks: Map<String, List<ORID>>
-) {
+) : DataAware {
     private fun <T> valueOrEmptyList(map: Map<String, List<T>>, key: String): List<T> = map[key] ?: emptyList()
 
     private fun <T> singleOf(map: Map<String, List<T>>, key: String): T? {
@@ -26,6 +28,17 @@ data class DiffPayload(
         }
 
         return links.firstOrNull()
+    }
+
+    override fun dataItem(key: String): String? = data[key]
+
+    fun isEmpty() = data.isEmpty() && addedLinks.isEmpty() && removedLinks.isEmpty()
+
+    fun classifyLinks(): Split {
+        val added = addedLinks.keys
+        val removed = removedLinks.keys
+        val changed = added.intersect(removed)
+        return Split(added = added.minus(changed), removed = removed.minus(changed), changed = changed)
     }
 
     fun addedFor(target: String): List<ORID> = valueOrEmptyList(addedLinks, target)
@@ -40,49 +53,75 @@ data class DiffPayload(
         addedLinks = addedLinks.mapValues { it.value.map { it.toString() } },
         removedLinks = removedLinks.mapValues { it.value.map { it.toString() } }
     )
+
+    fun linksOfType(type: String): Set<ORID> {
+        val added = addedLinks[type] ?: emptyList()
+        val removed = removedLinks[type] ?: emptyList()
+
+        return (added + removed).toSet()
+    }
 }
 
-data class MutableSnapshot(val data: MutableMap<String, String>, val links: MutableMap<String, MutableSet<ORID>>) {
+interface DataAware {
+    fun dataItem(key: String): String?
+
+    fun dataOrEmpty(key: String) = dataItem(key) ?: ""
+}
+
+data class MutableSnapshot(
+    val data: MutableMap<String, String>,
+    val links: MutableMap<String, MutableSet<ORID>>
+) : DataAware {
     fun apply(diff: DiffPayload) {
         diff.data.forEach { updateField(it.key, it.value) }
         diff.addedLinks.forEach { addLinks(it.key, it.value) }
         diff.removedLinks.forEach { removeLinks(it.key, it.value) }
     }
 
-    fun updateField(key: String, value: String) {
+    fun <T> resolvedLink(key: String, resolver: (String) -> T): T? {
+        return links[key]?.firstOrNull()?.let { resolver(it.toString()) }
+    }
+
+    override fun dataItem(key: String): String? = data[key]
+
+    private fun updateField(key: String, value: String) {
         data[key] = value
     }
 
-    fun addLink(target: String, link: ORID) {
+    private fun addLink(target: String, link: ORID) {
         links.computeIfAbsent(target) { mutableSetOf() }.add(link)
     }
 
-    fun removeLink(target: String, link: ORID) {
+    private fun removeLink(target: String, link: ORID) {
         if (target in links) {
             links[target]?.remove(link)
             if (links[target]?.size == 0) links.remove(target)
         }
     }
 
-    fun addLinks(target: String, toAdd: List<ORID>) {
+    private fun addLinks(target: String, toAdd: List<ORID>) {
         links.computeIfAbsent(target, { mutableSetOf() }).addAll(toAdd)
     }
 
-    fun removeLinks(target: String, toRemove: List<ORID>) {
+    private fun removeLinks(target: String, toRemove: List<ORID>) {
         if (target in links) {
             links[target]?.removeAll(toRemove)
             if (links[target]?.size == 0) links.remove(target)
         }
     }
 
-    fun toSnapshot() = Snapshot(data.toMap(), links.mapValues { it.value.toList() }.toMap())
+    fun immutable() = Snapshot(data.toMap(), links.mapValues { it.value.toList() }.toMap())
+
+    constructor() : this(mutableMapOf<String, String>(), mutableMapOf<String, MutableSet<ORID>>())
 }
 
 data class Snapshot(
     val data: Map<String, String>,
     val links: Map<String, List<ORID>>
-) {
+) : DataAware {
     constructor() : this(emptyMap(), emptyMap())
+
+    override fun dataItem(key: String): String? = data[key]
 
     fun toMutable() = MutableSnapshot(data.toMutableMap(), links.mapValues { it.value.toMutableSet() }.toMutableMap())
 
@@ -103,26 +142,6 @@ data class HistoryEventWrite(
     val sessionId: UUID
 )
 
-/*
-Структура для представления прочитанного события - вместе vertex - данные, извелеченные оттуда
- */
-/*
-data class HistoryEvent(
-    val username: String,
-    val timestamp: Long,
-    val version: Int,
-    val type: EventType,
-    val entityId: ORID,
-    val entityClass: String,
-    val sessionId: UUID
-) {
-    fun toHistoryEventData() = HistoryEventData(
-        username = username, timestamp = timestamp, version = version, type = type,
-        entityId = entityId.toString(), entityClass = entityClass, sessionId = sessionId.toString()
-    )
-}
-*/
-
 /* Исторический факт. Состоит из метаданных (event) и данных о внесенных изменениях (payload)
  */
 data class HistoryFactWrite(
@@ -133,8 +152,17 @@ data class HistoryFactWrite(
 data class HistoryFact(
     val event: HistoryEventData,
     val payload: DiffPayload
-)
+) {
+    companion object {
+        val empty = HistoryFact(HistoryEventData.empty, DiffPayload())
+    }
+}
 
+fun List<HistoryFact>.linksOfType(type: String): Set<ORID> {
+    return this.flatMap { fact ->
+        fact.payload.linksOfType(type)
+    }.toSet()
+}
 
 data class HistorySnapshot(
     val event: HistoryEventData,

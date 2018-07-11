@@ -45,6 +45,30 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         rs.map { it.toVertex().toAspectVertex() }.toSet()
     }
 
+    fun findAspectsByIds(ids: List<ORID>): List<AspectVertex> {
+        return db.query(
+            "select from $ASPECT_CLASS where @rid in :ids ", mapOf("ids" to ids)
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toAspectVertex()
+            }.toList()
+        }
+    }
+
+    fun findAspectsByIdsStr(ids: List<String>): List<AspectVertex> = findAspectsByIds(ids.map { ORecordId(it) })
+
+    fun findPropertiesByIds(ids: List<ORID>): List<AspectPropertyVertex> {
+        return db.query(
+            "select from $ASPECT_PROPERTY_CLASS where @rid in :ids ", mapOf("ids" to ids)
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toAspectPropertyVertex()
+            }.toList()
+        }
+    }
+
+    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map { ORecordId(it) })
+
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"
         val traverseQuery = "TRAVERSE IN(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM ($selectQuery)"
@@ -97,6 +121,13 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
+    fun getAspectsWithDeleted(ids: List<ORID>): Set<AspectVertex> = logTime(logger, "aspects extraction with deleted at dao level") {
+        db.query("SELECT FROM $ASPECT_CLASS WHERE @rid in :ids", mapOf("ids" to ids)) { rs ->
+            rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
+        }
+    }
+
+
     fun getProperties(ids: List<ORID>): Set<AspectPropertyVertex> = logTime(logger, "all properties extraction at dao level") {
         db.query("select from  (traverse out(\"$ASPECT_ASPECT_PROPERTY_EDGE\") from :ids  maxdepth 1) where \$depth==1", mapOf("ids" to ids)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectPropertyVertex() }.toSet()
@@ -104,6 +135,8 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
     private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
+
+    fun getDetailsStr(ids: List<String>): Map<String, AspectDaoDetails> = getDetails(ids.map { ORecordId(it) })
 
     fun getDetails(ids: List<ORID>): Map<String, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
