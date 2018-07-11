@@ -48,6 +48,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                         cache = false
                         clearable = false
                         options = if (boundAspect == null) emptyArray() else arrayOf(aspectOption(boundAspect))
+                        filterOptions = { options, _, _ -> options }
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
