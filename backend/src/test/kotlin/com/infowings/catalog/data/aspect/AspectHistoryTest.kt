@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
@@ -48,6 +49,9 @@ class AspectHistoryTest {
     @Autowired
     private lateinit var historyProvider: AspectHistoryProvider
 
+    @Autowired
+    private lateinit var historyDao: HistoryDao
+
     @Before
     fun initTestData() {
     }
@@ -79,6 +83,9 @@ class AspectHistoryTest {
         assertEquals(aspect.id, aspectHistoryElement.event.entityId, "entity id is incorrect")
         assertNotNull(aspectHistoryElement.event.sessionId, "session id must be non-null")
         assertGreater(aspectHistoryElement.event.timestamp, 0)
+
+        val timeline = historyDao.timelineForEntity(aspect.idStrict())
+        println("timeline: " + timeline)
     }
 
     @Test

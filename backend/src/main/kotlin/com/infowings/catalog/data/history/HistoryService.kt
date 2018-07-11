@@ -33,6 +33,14 @@ class HistoryService(
         }
     }
 
+    fun entityTimeline(id: String): List<HistoryFact> = logTime(logger, "history timeline for entity collection") {
+        transaction(db) {
+            val events = historyDao.timelineForEntity(id)
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
+        }
+    }
+
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()
 
