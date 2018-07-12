@@ -63,16 +63,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-    fun getPropertyValuesList(propertyRid: ORID): List<ObjectPropertyValueVertex> =
-        transaction(db) {
-            val query = "SELECT *, IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\").@rid as childrenIds, " +
-                    "FIRST(OUT(\"$OBJECT_VALUE_ASPECT_PROPERTY_EDGE\")).@rid as propertyId " +
-                    "FROM (SELECT EXPAND(IN(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) FROM :propertyRid)"
-            return@transaction db.query(query, mapOf("propertyRid" to propertyRid)) {
-                it.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
-            }
-        }
-
     private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
         val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
         val aspect = aspectProperty.associatedAspect

@@ -70,12 +70,13 @@ class ObjectService(
                 objectSubject.name,
                 objectSubject.id,
                 objectProperties.map {
-                    val values = dao.getPropertyValuesList(it.identity).map {
-                        ValueTruncated(
+                    //TODO: Maybe performance bottleneck
+                    val values = it.values.map {
+                        ValueTruncated (
                             it.id,
                             it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
-                            it.get<ORID?>("propertyId")?.toString(),
-                            it.get<List<ORID>>("childrenIds").map { it.toString() }
+                            it.aspectProperty?.id,
+                            it.children.map { it.id }
                         )
                     }
                     ObjectPropertyEditDetailsResponse(
