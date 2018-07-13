@@ -2,7 +2,11 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.storage.*
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.session
+import com.infowings.catalog.storage.toVertexOrNull
+import com.infowings.catalog.storage.transaction
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -38,8 +42,20 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
 
-    fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex? =
+    fun find(id: String): ReferenceBookItemVertex? =
         db.getVertexById(id)?.toReferenceBookItemVertex()
+
+    fun findStr(ids: List<String>): List<ReferenceBookItemVertex> = find(ids.map { ORecordId(it) })
+
+    fun find(ids: List<ORID>): List<ReferenceBookItemVertex> {
+        return db.query(
+            "select from $REFERENCE_BOOK_ITEM_VERTEX where @rid in :ids ", mapOf("ids" to ids)
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toReferenceBookItemVertex()
+            }.toList()
+        }
+    }
 
     fun saveBookItemVertex(
         parentVertex: ReferenceBookItemVertex,

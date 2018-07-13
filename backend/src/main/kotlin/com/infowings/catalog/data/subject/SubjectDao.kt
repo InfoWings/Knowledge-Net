@@ -5,6 +5,8 @@ import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import notDeletedSql
 
@@ -34,6 +36,18 @@ class SubjectDao(private val db: OrientDatabase) {
     } catch (e: VertexNotFound) {
         null
     }
+
+    fun find(ids: List<ORID>): List<SubjectVertex> {
+        return db.query(
+            "select from $SUBJECT_CLASS where @rid in :ids ", mapOf("ids" to ids)
+        ) { rs ->
+            rs.mapNotNull {
+                it.toVertexOrNull()?.toSubjectVertex()
+            }.toList()
+        }
+    }
+
+    fun findStr(ids: List<String>): List<SubjectVertex> = find(ids.map { ORecordId(it) })
 
     fun findByIdStrict(id: String): SubjectVertex = try {
         db[id].toSubjectVertex()

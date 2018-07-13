@@ -1,7 +1,8 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
+import  com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.common.BaseType.Text
 import com.infowings.catalog.data.SubjectService
@@ -29,10 +30,10 @@ class AspectDaoTest {
     lateinit var aspectDao: AspectDaoService
 
     @Autowired
-    lateinit var aspectService: AspectService
+    lateinit var subjectService: SubjectService
 
     @Autowired
-    lateinit var subjectService: SubjectService
+    lateinit var aspectService: AspectService
 
     @Autowired
     lateinit var refBookService: ReferenceBookService
@@ -49,7 +50,7 @@ class AspectDaoTest {
      *             -> baseAspect
      */
     @Before
-    fun initialize() {
+    fun initTestData() {
         val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
@@ -64,6 +65,17 @@ class AspectDaoTest {
             listOf(property)
         )
         complexAspect = aspectService.save(ad2, username)
+    }
+
+    @Test
+    fun testFindAspectsByIdsOne() {
+        val aspect =
+            aspectService.save(AspectData(name = "aspect", description = "some description", baseType = BaseType.Text.name), username)
+        val aspectId = aspect.id ?: throw IllegalStateException("")
+
+        val aspectVertices = aspectDao.findAspectsByIdsStr(listOf(aspectId))
+
+        assertEquals(1, aspectVertices.size)
     }
 
     @Test
