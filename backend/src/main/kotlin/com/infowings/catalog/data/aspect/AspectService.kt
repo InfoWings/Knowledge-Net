@@ -229,7 +229,7 @@ class DefaultAspectService(
     }
 
     private fun findVertexById(id: String): AspectVertex =
-        aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
+        aspectDaoService.find(id) ?: throw AspectDoesNotExist(id)
 
     /**
      * Search [AspectData] by it's id
@@ -239,7 +239,7 @@ class DefaultAspectService(
 
     override fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 
-    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.findProperty(id)
             ?: throw AspectPropertyDoesNotExist(id)
 
 
@@ -276,8 +276,10 @@ class DefaultAspectService(
     private fun remove(property: AspectPropertyData, context: HistoryContext) = transaction(db) {
         historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(context))
 
-        val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
+        val vertex = aspectDaoService.findProperty(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
+
+        println("is linked by: " + vertex.isLinkedBy())
 
         return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
             vertex
@@ -297,7 +299,7 @@ class DefaultAspectService(
             return aspectDaoService.createNewAspectVertex()
 
 
-        return aspectDaoService.getAspectVertex(aspectId!!)
+        return aspectDaoService.find(aspectId!!)
             ?.validateExistingAspect(this)
                 ?: throw IllegalArgumentException("Incorrect aspect id")
 
@@ -315,7 +317,7 @@ class DefaultAspectService(
         if (propertyId.isEmpty())
             return aspectDaoService.createNewAspectPropertyVertex()
 
-        return aspectDaoService.getAspectPropertyVertex(propertyId)
+        return aspectDaoService.findProperty(propertyId)
             ?.validateExistingAspectProperty(this)
                 ?: throw IllegalArgumentException("Incorrect property id")
 
@@ -356,7 +358,7 @@ class DefaultAspectService(
 }
 
 private fun AspectData.normalize(): AspectData = copy(
-    name = this.name?.trim(),
+    name = this.name.trim(),
     description = this.description?.trim(),
     properties = this.properties.map { it.copy(name = it.name.trim(), description = it.description?.trim()) })
 

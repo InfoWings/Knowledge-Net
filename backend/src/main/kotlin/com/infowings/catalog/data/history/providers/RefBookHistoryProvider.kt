@@ -58,7 +58,7 @@ class RefBookHistoryProvider(
         val refBookId = createFact.event.entityId
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
-        val aspectName = aspectDao.getAspectVertex(aspectId)?.name ?: "???"
+        val aspectName = aspectDao.find(aspectId)?.name ?: "???"
 
         initial.apply(createFact.payload)
 

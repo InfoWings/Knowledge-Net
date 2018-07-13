@@ -35,11 +35,15 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
-    fun getAspectVertex(aspectId: String) = db.getVertexById(aspectId)?.toAspectVertex()
+    fun find(id: String) = db.getVertexById(id)?.toAspectVertex()
+
+    fun findStrict(id: String) = find(id) ?: throw AspectDoesNotExist(id)
 
     fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
-    fun getAspectPropertyVertex(aspectPropertyId: String) = getVertex(aspectPropertyId)?.toAspectPropertyVertex()
+    fun findProperty(id: String) = getVertex(id)?.toAspectPropertyVertex()
+
+    fun findPropertyStrict(id: String) = findProperty(id) ?: throw AspectPropertyDoesNotExist(id)
 
     fun findByName(name: String): Set<AspectVertex> = db.query(selectWithName, mapOf("name" to name)) { rs ->
         rs.map { it.toVertex().toAspectVertex() }.toSet()

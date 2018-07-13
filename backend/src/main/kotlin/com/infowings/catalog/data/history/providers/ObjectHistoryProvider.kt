@@ -125,7 +125,7 @@ class ObjectHistoryProvider(
         val objekt = state.objects.getValue(objectId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
-        val aspectName = aspectService.findById(aspectId)?.name ?: "???"
+        val aspectName = aspectService.findById(aspectId).name
 
         initial.apply(createFact.payload)
 
@@ -169,7 +169,7 @@ class ObjectHistoryProvider(
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
         val aspectPropertyName = nameById("aspectProperty") {
-            aspectService.findPropertyById(it)?.name
+            aspectService.findPropertyById(it).name
         }
         val subjectName = nameById("refValueSubject") {
             subjectService.findById(it)?.name
@@ -177,8 +177,18 @@ class ObjectHistoryProvider(
         val objectName = nameById("refValueObject") {
             state.objects[it]?.snapshot?.data?.get("name")
         }
+        val objectPropertyRefName = nameById("refValueObjectProperty") {
+            state.properties[it]?.snapshot?.data?.get("name")
+        }
+        val objectValueRefName = createFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
         val domainElement = nameById("refValueDomainElement") {
             refBookService.itemName(it)
+        }
+        val aspectRefName = nameById("refValueAspect") {
+            aspectService.findById(it).name
+        }
+        val aspectPropertyRefName = nameById("refValueAspectProperty") {
+            aspectService.findPropertyById(it).name
         }
         val measureName = nameById("measure") {
             measureService.name(it)
@@ -192,8 +202,12 @@ class ObjectHistoryProvider(
             id = valueId, snapshot = initial,
             subjectName = subjectName,
             objectName = objectName,
+            objectPropertyRefName = objectPropertyRefName,
+            objectValueRefName = objectValueRefName,
             domainElement = domainElement,
             measureName = measureName,
+            aspectRefName = aspectRefName,
+            aspectPropertyRefName = aspectPropertyRefName,
             aspectPropertyName = aspectPropertyName
         )
 
@@ -223,9 +237,14 @@ class ObjectHistoryProvider(
     }
 
     private fun placeHolder(fact: HistoryFact) =
-        ObjectHistory(event = fact.event, info = "<UNSUPPORTED>", deleted = false,
+        ObjectHistory(
+            event = fact.event, info = "<UNSUPPORTED>", deleted = false,
             fullData = ObjectHistoryData.Companion.BriefState(
-                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""), null, null), changes = emptyList())
+                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""),
+                null,
+                null
+            ), changes = emptyList()
+        )
 
     private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
@@ -284,7 +303,11 @@ private val idReprExtractors: Map<String, (ObjectHistoryData.Companion.BriefStat
     "subject" to { currentState -> currentState.objekt.subjectName },
     "refValueSubject" to { currentState -> currentState.value?.repr },
     "refValueObject" to { currentState -> currentState.value?.repr },
+    "refValueObjectProperty" to { currentState -> currentState.value?.repr },
+    "refValueObjectValue" to { currentState -> currentState.value?.repr },
     "refValueDomainElement" to { currentState -> currentState.value?.repr },
+    "refValueAspect" to { currentState -> currentState.value?.repr },
+    "refValueAspectProperty" to { currentState -> currentState.value?.repr },
     "aspect" to { currentState -> currentState.property?.aspectName },
     "aspectProperty" to { currentState -> currentState.value?.aspectPropertyName },
     "measure" to { currentState -> currentState.value?.measureName }

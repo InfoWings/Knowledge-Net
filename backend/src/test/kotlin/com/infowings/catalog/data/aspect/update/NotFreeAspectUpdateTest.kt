@@ -114,7 +114,7 @@ class NotFreeAspectUpdateTest {
         )
 
         Assert.assertEquals("with value prop exist", withValueProp.id, saved.properties[0].id)
-        Assert.assertEquals("with value prop has deleted flag", withValueProp.deleted, saved.properties[0].deleted)
+        Assert.assertEquals("with value prop has deleted flag", true, saved.properties[0].deleted)
         Assert.assertTrue("simple prop not exist", saved.properties.none { it.id == simpleProp.id })
     }
 

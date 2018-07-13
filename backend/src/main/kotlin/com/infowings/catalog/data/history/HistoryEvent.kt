@@ -246,8 +246,12 @@ class ObjectHistoryInfo {
             val snapshot: MutableSnapshot,
             val subjectName: String?,
             val objectName: String?,
+            val objectPropertyRefName: String?,
+            val objectValueRefName: String?,
             val domainElement: String?,
             val measureName: String?,
+            val aspectRefName: String?,
+            val aspectPropertyRefName: String?,
             val aspectPropertyName: String?
         ) {
             fun toData(): ObjectHistoryData.Companion.Value {
@@ -263,8 +267,20 @@ class ObjectHistoryInfo {
                     ScalarTypeTag.OBJECT.name -> {
                         objectName ?: throw IllegalStateException("object name is unknown")
                     }
+                    ScalarTypeTag.OBJECT_PROPERTY.name -> {
+                        objectPropertyRefName ?: throw IllegalStateException("object property name is unknown")
+                    }
+                    ScalarTypeTag.OBJECT_VALUE.name -> {
+                        objectValueRefName ?: throw IllegalStateException("object value name is unknown")
+                    }
                     ScalarTypeTag.DOMAIN_ELEMENT.name -> {
                         domainElement ?: throw IllegalStateException("domain element is unknown")
+                    }
+                    ScalarTypeTag.ASPECT.name -> {
+                        aspectRefName ?: throw IllegalStateException("aspect name is unknown")
+                    }
+                    ScalarTypeTag.ASPECT_PROPERTY.name -> {
+                        aspectPropertyRefName ?: throw IllegalStateException("aspect property name is unknown")
                     }
                     else -> "???"
                 }
