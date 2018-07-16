@@ -19,7 +19,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             onCancel = props.onNameChanged
         )
         propertyAspect(
-            value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, null) },
+            value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, it.subjectName) },
             onSelect = { props.onAspectChanged(TreeAspectResponse(id = it.id, name = it.name)) }
         )
         props.onConfirmCreate?.let {

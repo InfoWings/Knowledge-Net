@@ -8,6 +8,7 @@ import com.infowings.catalog.storage.ASPECT_ASPECT_PROPERTY_EDGE
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.impl.ODocument
 
 private sealed class AspectHolder
 private class AspectVertexHolder(val vertex: AspectVertex) : AspectHolder() {
@@ -142,13 +143,16 @@ class AspectTreeBuilder {
                 }
                 if (isReadyForReduce) {
                     val aspectVertex = lastVertexHolderInState.vertex
+                    val subject = aspectVertex.subject // FIXME: Possible bottleneck
                     val aspectResponse = TreeAspectResponse(
                         aspectVertex.id,
                         aspectVertex.name,
+                        subject?.id,
+                        subject?.name,
                         aspectVertex.measureName,
                         aspectVertex.baseType,
                         aspectVertex.baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
-                        aspectVertex["refBookId"],
+                        aspectVertex.referenceBookRootVertex?.id,
                         lastVertexHolderInState.properties.map {
                             it.completedProperty ?: throw IllegalStateException("Completed flag is up while completed property is absent")
                         }

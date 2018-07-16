@@ -1,9 +1,6 @@
 package com.infowings.catalog.objects.edit.tree
 
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
-import com.infowings.catalog.common.TreeAspectPropertyResponse
-import com.infowings.catalog.common.TreeAspectResponse
+import com.infowings.catalog.common.*
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
@@ -117,7 +114,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                     attrs {
                         propertyName = props.aspectProperty.name
                         aspectName = props.aspectProperty.aspect.name
-                        subjectName = "Global"
+                        subjectName = props.aspectProperty.aspect.subjectName
                         cardinality = props.aspectProperty.cardinality
                         onCreateValue = {
                             if (props.aspectProperty.cardinality == PropertyCardinality.ZERO)
@@ -149,9 +146,18 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
             treeNodeContent = buildElement {
                 aspectPropertyEditLineFormat {
                     attrs {
+                        val aspect = props.aspectProperty.aspect
                         propertyName = props.aspectProperty.name
-                        aspectName = props.aspectProperty.aspect.name
-                        subjectName = null
+                        aspectName = aspect.name
+                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
+                        aspectReferenceBookId = aspect.refBookId
+                        subjectName = aspect.subjectName
+                        value = props.value.value
+                        onChange = {
+                            props.onUpdate {
+                                value = it
+                            }
+                        }
                         recommendedCardinality = props.aspectProperty.cardinality
                         conformsToCardinality = when(props.aspectProperty.cardinality) {
                             PropertyCardinality.ZERO -> props.valueCount == 1 && props.value.value == ObjectValueData.NullValue

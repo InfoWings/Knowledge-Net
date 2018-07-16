@@ -5,6 +5,7 @@ import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.TreeAspectResponse
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -13,6 +14,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import notDeletedSql
 
 /** Should be used externally for query building. */

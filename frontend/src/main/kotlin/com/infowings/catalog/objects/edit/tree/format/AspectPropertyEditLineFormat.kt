@@ -1,11 +1,13 @@
 package com.infowings.catalog.objects.edit.tree.format
 
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
+import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -13,9 +15,10 @@ import react.rFunction
 
 val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>("AspectPropertyEditLineFormat") { props ->
     div("object-tree-edit__aspect-property") {
-        props.propertyName?.let {
+        val propertyName = props.propertyName
+        if (!propertyName.isNullOrBlank()) {
             span(classes = "aspect-property__property-name text-bold text-italic") {
-                +it
+                +propertyName!!
             }
         }
         span(classes = "aspect-property__aspect-name text-bold") {
@@ -30,6 +33,15 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             +"["
             +props.recommendedCardinality.label
             +"]"
+        }
+        val value = props.value
+        if (value != ObjectValueData.NullValue) {
+            propertyValue(
+                baseType = props.aspectBaseType,
+                referenceBookId = props.aspectReferenceBookId,
+                value = value,
+                onChange = props.onChange
+            )
         }
         props.onSubmit?.let {
             submitButtonComponent(it, "pt-small")
@@ -49,6 +61,8 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
 interface AspectPropertyEditLineFormatProps : RProps {
     var propertyName: String?
     var aspectName: String
+    var aspectBaseType: BaseType
+    var aspectReferenceBookId: String?
     var subjectName: String?
     var recommendedCardinality: PropertyCardinality
     var value: ObjectValueData?

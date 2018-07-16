@@ -50,6 +50,10 @@
   &__aspect-property {
     display: flex;
     align-items: center;
+
+    & > * {
+      margin-right: 1rem;
+    }
   }
 
   &__aspect-property-empty {

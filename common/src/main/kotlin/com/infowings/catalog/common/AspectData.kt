@@ -70,6 +70,8 @@ data class AspectPropertyDataExtended(
 data class TreeAspectResponse(
     val id: String,
     val name: String,
+    val subjectId: String? = null,
+    val subjectName: String? = null,
     val measure: String? = null,
     val baseType: String? = null,
     val domain: String? = null,

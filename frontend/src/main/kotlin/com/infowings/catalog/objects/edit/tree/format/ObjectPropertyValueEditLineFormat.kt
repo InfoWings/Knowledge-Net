@@ -28,7 +28,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         }
         span(classes = "property-value__aspect-subject") {
             +"("
-            +"Global"
+            +(props.subjectName ?: "Global")
             +")"
         }
         if (props.value != ObjectValueData.NullValue) {
@@ -59,6 +59,7 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var propertyName: String?
     var aspectName: String
     var aspectBaseType: BaseType
+    var subjectName: String?
     var referenceBookId: String?
     var value: ObjectValueData?
     var onPropertyNameUpdate: (String) -> Unit
