@@ -2,7 +2,9 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asString
@@ -39,6 +41,10 @@ enum class ScalarTypeTag(val code: Int) {
     OBJECT(100),
     SUBJECT(101),
     DOMAIN_ELEMENT(102),
+    ASPECT(103),
+    ASPECT_PROPERTY(104),
+    OBJECT_PROPERTY(105),
+    OBJECT_VALUE(106),
 }
 
 /*
@@ -52,9 +58,13 @@ fun ObjectValue.tag() = when (this) {
     is ObjectValue.DecimalValue -> ScalarTypeTag.DECIMAL
     is ObjectValue.NullValue -> ScalarTypeTag.NULL
     is ObjectValue.Link -> when (this.value) {
-        is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT
-        is LinkValueVertex.SubjectValue -> ScalarTypeTag.SUBJECT
-        is LinkValueVertex.DomainElementValue -> ScalarTypeTag.DOMAIN_ELEMENT
+        is LinkValueVertex.Object -> ScalarTypeTag.OBJECT
+        is LinkValueVertex.ObjectProperty -> ScalarTypeTag.OBJECT_PROPERTY
+        is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT_VALUE
+        is LinkValueVertex.Subject -> ScalarTypeTag.SUBJECT
+        is LinkValueVertex.DomainElement -> ScalarTypeTag.DOMAIN_ELEMENT
+        is LinkValueVertex.Aspect -> ScalarTypeTag.ASPECT
+        is LinkValueVertex.AspectProperty -> ScalarTypeTag.ASPECT_PROPERTY
     }
 }
 
@@ -76,6 +86,10 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             "objectProperty" to listOfNotNull(objectProperty?.identity),
             "aspectProperty" to listOfNotNull(aspectProperty?.identity),
             "refValueObject" to listOfNotNull(refValueObject?.identity),
+            "refValueObjectProperty" to listOfNotNull(refValueObjectProperty?.identity),
+            "refValueObjectValue" to listOfNotNull(refValueObjectValue?.identity),
+            "refValueAspect" to listOfNotNull(refValueAspect?.identity),
+            "refValueAspectProperty" to listOfNotNull(refValueAspectProperty?.identity),
             "refValueSubject" to listOfNotNull(refValueSubject?.identity),
             "refValueDomainElement" to listOfNotNull(refValueDomainElement?.identity),
             "measure" to listOfNotNull(measure?.identity),
@@ -174,16 +188,25 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ?.map { it.toObjectPropertyValueVertex() }
 
     val refValueObject: ObjectVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).firstOrNull()
-            ?.toObjectVertex()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).firstOrNull()?.toObjectVertex()
+
+    val refValueObjectProperty: ObjectPropertyVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE).firstOrNull()?.toObjectPropertyVertex()
+
+    val refValueObjectValue: ObjectPropertyValueVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE).firstOrNull()?.toObjectPropertyValueVertex()
 
     val refValueSubject: SubjectVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).firstOrNull()
-            ?.toSubjectVertex()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()
 
     val refValueDomainElement: ReferenceBookItemVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).firstOrNull()
-            ?.toReferenceBookItemVertex()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
+
+    val refValueAspect: AspectVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).firstOrNull()?.toAspectVertex()
+
+    val refValueAspectProperty: AspectPropertyVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectPropertyVertex()
 
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
@@ -197,26 +220,25 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         val currentAspectProperty = aspectProperty
 
         val value: ObjectValue = when (typeTag) {
-            ScalarTypeTag.OBJECT ->
-                ObjectValue.Link(
-                    LinkValueVertex.ObjectValue(
-                        refValueObject ?: throw ObjectVertexNotDefinedException(id)
-                    )
+            ScalarTypeTag.OBJECT -> ObjectValue.Link(LinkValueVertex.Object(refValueObject ?: throw ObjectVertexNotDefinedException(id)))
+            ScalarTypeTag.OBJECT_PROPERTY -> ObjectValue.Link(
+                LinkValueVertex.ObjectProperty(
+                    refValueObjectProperty ?: throw ObjectPropertyVertexNotDefinedException(id)
                 )
-            ScalarTypeTag.SUBJECT ->
-                ObjectValue.Link(
-                    LinkValueVertex.SubjectValue(
-                        refValueSubject ?: throw SubjectVertexNotDefinedException(
-                            id
-                        )
-                    )
+            )
+            ScalarTypeTag.OBJECT_VALUE -> ObjectValue.Link(LinkValueVertex.ObjectValue(refValueObjectValue ?: throw ObjectValueVertexNotDefinedException(id)))
+            ScalarTypeTag.SUBJECT -> ObjectValue.Link(LinkValueVertex.Subject(refValueSubject ?: throw SubjectVertexNotDefinedException(id)))
+            ScalarTypeTag.DOMAIN_ELEMENT -> ObjectValue.Link(
+                LinkValueVertex.DomainElement(
+                    refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
                 )
-            ScalarTypeTag.DOMAIN_ELEMENT ->
-                ObjectValue.Link(
-                    LinkValueVertex.DomainElementValue(
-                        refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
-                    )
+            )
+            ScalarTypeTag.ASPECT -> ObjectValue.Link(LinkValueVertex.Aspect(refValueAspect ?: throw AspectVertexNotDefinedException(id)))
+            ScalarTypeTag.ASPECT_PROPERTY -> ObjectValue.Link(
+                LinkValueVertex.AspectProperty(
+                    refValueAspectProperty ?: throw AspectPropertyVertexNotDefinedException(id)
                 )
+            )
             ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, precision)
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
@@ -250,6 +272,18 @@ class RangeNotDefinedException(id: String) :
 
 class ObjectVertexNotDefinedException(id: String) :
     ObjectValueException("object vertex is not defined for value $id")
+
+class AspectVertexNotDefinedException(id: String) :
+    ObjectValueException("aspect vertex is not defined for value $id")
+
+class AspectPropertyVertexNotDefinedException(id: String) :
+    ObjectValueException("aspect property vertex is not defined for value $id")
+
+class ObjectPropertyVertexNotDefinedException(id: String) :
+    ObjectValueException("object property vertex is not defined for value $id")
+
+class ObjectValueVertexNotDefinedException(id: String) :
+    ObjectValueException("object value vertex is not defined for value $id")
 
 class SubjectVertexNotDefinedException(id: String) :
     ObjectValueException("subject vertex is not defined for value $id")

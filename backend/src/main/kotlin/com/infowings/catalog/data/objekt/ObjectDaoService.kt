@@ -243,17 +243,23 @@ class ObjectDaoService(private val db: OrientDatabase) {
             is ObjectValue.Link -> {
                 val linkValue = objectValue.value
                 when (linkValue) {
-                    is LinkValueVertex.ObjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.vertex)
-                    is LinkValueVertex.SubjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
-                    is LinkValueVertex.DomainElementValue ->
-                        replaceEdge(
-                            vertex,
-                            OBJECT_VALUE_REFBOOK_ITEM_EDGE,
-                            vertex.refValueDomainElement,
-                            linkValue.vertex
-                        )
+                    is LinkValueVertex.Object -> replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.vertex)
+                    is LinkValueVertex.ObjectProperty -> replaceEdge(
+                        vertex,
+                        OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE,
+                        vertex.refValueObjectProperty,
+                        linkValue.vertex
+                    )
+                    is LinkValueVertex.ObjectValue -> replaceEdge(vertex, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE, vertex.refValueObjectValue, linkValue.vertex)
+                    is LinkValueVertex.Subject -> replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
+                    is LinkValueVertex.DomainElement -> replaceEdge(vertex, OBJECT_VALUE_REFBOOK_ITEM_EDGE, vertex.refValueDomainElement, linkValue.vertex)
+                    is LinkValueVertex.Aspect -> replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.refValueAspect, linkValue.vertex)
+                    is LinkValueVertex.AspectProperty -> replaceEdge(
+                        vertex,
+                        OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE,
+                        vertex.refValueAspectProperty,
+                        linkValue.vertex
+                    )
                 }
             }
         }
@@ -339,9 +345,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         is ObjectValue.Link -> {
                             val linkValue = objectValue.value
                             when (linkValue) {
-                                is LinkValueVertex.ObjectValue -> withObjectLink(linkValue.vertex.identity)
-                                is LinkValueVertex.SubjectValue -> withSubjectLink(linkValue.vertex.identity)
-                                is LinkValueVertex.DomainElementValue -> withDomainElementLink(linkValue.vertex.identity)
+                                is LinkValueVertex.Object -> withObjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.Subject -> withSubjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.DomainElement -> withDomainElementLink(linkValue.vertex.identity)
                             }
                         }
                         ObjectValue.NullValue -> withNullValue()
