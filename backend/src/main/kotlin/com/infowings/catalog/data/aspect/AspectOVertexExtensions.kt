@@ -12,6 +12,8 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.external.logTime
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
@@ -32,6 +34,8 @@ fun OVertex.isJustCreated() = this.identity.isNew
  * */
 class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = ASPECT_CLASS
+
+    private val logger = loggerFor<AspectVertex>()
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
@@ -90,8 +94,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-    val lastChange: Instant?
+    private val lastChange: Instant?
         get() {
+            // это все работает медленно. Чем больше история, тем медленнее
             val maybeLastAspectUpdate: Instant? = vertex.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
             val maybeLastPropertyUpdates: List<Instant?> = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).map {
                 it.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
@@ -101,7 +106,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             }.max()
         }
 
-    val subjectVertex: SubjectVertex?
+    private val subjectVertex: SubjectVertex?
         get() {
             val subjects = vertex.getVertices(ODirection.OUT, ASPECT_SUBJECT_EDGE).toList()
             if (subjects.size > 1) {
@@ -148,21 +153,62 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
     override fun toString(): String =
         "AspectVertex[id=${this.id}, name=${this.name}]"
 
-    fun toAspectData(): AspectData {
+    private fun toAspectOnlyData(): AspectData {
         val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+        val subjectData = subject?.toSubjectData()
+        val refBookValue = referenceBookRootVertex?.value
+        val lastChange = logTime(logger, "extracting last change") { lastChange }
+
         return AspectData(
             id = id,
             name = name,
             measure = measureName,
             domain = baseTypeObj?.let { OpenDomain(it).toString() },
             baseType = baseType,
-            properties = properties.map { it.toAspectPropertyData() },
+            properties = emptyList(),
             version = version,
-            subject = subject?.toSubjectData(),
+            subject = subjectData,
             deleted = deleted,
             description = description,
             lastChangeTimestamp = lastChange?.epochSecond,
-            refBookName = referenceBookRootVertex?.value
+            refBookName = refBookValue
+        )
+    }
+
+    private fun toAspectLocalData(): AspectData {
+        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
+
+        return AspectData(
+            id = id,
+            name = name,
+            measure = measureName,
+            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            baseType = baseType,
+            properties = emptyList(),
+            version = version,
+            subject = null,
+            deleted = deleted,
+            description = description,
+            lastChangeTimestamp = null,
+            refBookName = null
+        )
+    }
+
+    // медленный вызов, в первую очередь за счет lastChange, во вторую -  за счет ссылок на субъект и имя справочника
+    // может быть приемлемым при работе с одним аспектом
+    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
+
+    fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
+        val propertiesData = details.propertyIds.mapNotNull {
+            val propertyId = it.toString()
+            val data: AspectPropertyData? = properties[propertyId]
+            data ?: logger.warn("Not found aspect property with id $propertyId. Aspect id: $id")
+            data
+        }
+        val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
+        return data.copy(
+            properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
+            lastChangeTimestamp = details.lastChange.epochSecond
         )
     }
 }

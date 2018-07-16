@@ -7,15 +7,19 @@ import com.infowings.catalog.common.ObjectHistory
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.ObjectHistoryInfo
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.external.logTime
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OBJECT_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
+import com.infowings.catalog.storage.id
 
 const val HISTORY_ENTITY_OBJECT = "Object"
 
@@ -46,6 +50,7 @@ private data class ObjectState(
 class ObjectHistoryProvider(
     private val historyService: HistoryService,
     private val aspectService: AspectService,
+    private val aspectDao: AspectDaoService,
     private val subjectService: SubjectService,
     private val refBookService: ReferenceBookService,
     private val measureService: MeasureService
@@ -119,13 +124,13 @@ class ObjectHistoryProvider(
         )
     }
 
-    private fun propertyAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+    private fun propertyAdd(createFact: HistoryFact, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val propertyId = createFact.event.entityId
         val objectId = createFact.payload.addedLinks.getValue("object")[0].toString()
         val objekt = state.objects.getValue(objectId)
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
-        val aspectName = aspectService.findById(aspectId)?.name ?: "???"
+        val aspectName = aspectNameById[aspectId] ?: "???"
 
         initial.apply(createFact.payload)
 
@@ -174,7 +179,7 @@ class ObjectHistoryProvider(
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
         val aspectPropertyName = nameById("aspectProperty") {
-            aspectService.findPropertyById(it)?.name
+            aspectService.findPropertyById(it).name
         }
         val subjectName = nameById("refValueSubject") {
             subjectService.findById(it)?.name
@@ -228,11 +233,16 @@ class ObjectHistoryProvider(
     }
 
     private fun placeHolder(fact: HistoryFact) =
-        ObjectHistory(event = fact.event, info = "<UNSUPPORTED>", deleted = false,
+        ObjectHistory(
+            event = fact.event, info = "<UNSUPPORTED>", deleted = false,
             fullData = ObjectHistoryData.Companion.BriefState(
-                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""), null, null), changes = emptyList())
+                ObjectHistoryData.Companion.Objekt(id = "<UNSUPPORTED>", name = "<UNSUPPORTED>", description = null, subjectId = "", subjectName = ""),
+                null,
+                null
+            ), changes = emptyList()
+        )
 
-    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState): ObjectHistory {
+    private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
 
@@ -244,7 +254,7 @@ class ObjectHistoryProvider(
                     objectCreate(createFact, state)
                 }
                 OBJECT_PROPERTY_CLASS -> {
-                    propertyAdd(createFact, state)
+                    propertyAdd(createFact, state, aspectNameById)
                 }
                 OBJECT_PROPERTY_VALUE_CLASS -> {
                     valueAdd(createFact, state, byType[EventType.UPDATE].orEmpty())
@@ -262,16 +272,28 @@ class ObjectHistoryProvider(
     private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
-        val allHistory = historyService.allTimeline()
+        val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
+            historyService.allTimeline(objectVertices.toList())
+        }
 
-        val objectFacts = allHistory.filter { objectVertices.contains(it.event.entityClass) }
+        val factsByEntity = objectFacts.groupBy { it.event.entityClass }
+        val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
+        val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
+
+        val aspectLinks = propertyFacts.map { it.payload.linksOfType("aspect") }.flatten().toSet()
+
+        val aspectPropertyLinks = valueFacts.map { it.payload.linksOfType("aspectProperty") }.flatten().toSet()
+
+        val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
+
+        val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
 
         val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
         val historyState = ObjectState()
 
         return factsBySession.map { (sessionId, sessionFacts) ->
-            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState)
+            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState, aspectNames)
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
             val newEvent = ch.event.copy(
@@ -298,3 +320,5 @@ private val idReprExtractors: Map<String, (ObjectHistoryData.Companion.BriefStat
 private fun String.dropPrefix(p: String): String? {
     return if (startsWith(p)) drop(p.length) else null
 }
+
+private val logger = loggerFor<ObjectHistoryProvider>()

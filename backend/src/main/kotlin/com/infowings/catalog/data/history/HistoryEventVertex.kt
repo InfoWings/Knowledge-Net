@@ -85,15 +85,27 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
         sessionId.toString()
     )
 
+    fun toEventFast() = HistoryEventData(
+        "",
+        timestamp.toEpochMilli(),
+        entityVersion,
+        EventType.valueOf(eventType),
+        entityRID.toString(),
+        entityClass,
+        sessionId.toString()
+    )
+
     private fun dataMap() = getVertices(ODirection.OUT, HISTORY_ELEMENT_EDGE).map { vertex ->
         val heVertex = vertex.toHistoryElementVertex()
         heVertex.key to heVertex.stringValue
     }.toMap()
 
-    private fun addedLinks() = getVertices(ODirection.OUT, HISTORY_ADD_LINK_EDGE)
-        .map { vertex -> vertex.toHistoryLinksVertex() }
-        .groupBy { linksVertex -> linksVertex.key }
-        .mapValues { (_, peers) -> peers.map { it.peerId } }
+    private fun addedLinks(): Map<String, List<ORID>> {
+        return getVertices(ODirection.OUT, HISTORY_ADD_LINK_EDGE)
+            .map { vertex -> vertex.toHistoryLinksVertex() }
+            .groupBy { linksVertex -> linksVertex.key }
+            .mapValues { (_, peers) -> peers.map { it.peerId } }
+    }
 
     private fun removedLinks() = getVertices(ODirection.OUT, HISTORY_DROP_LINK_EDGE)
         .map { vertex -> vertex.toHistoryLinksVertex() }
