@@ -9,6 +9,7 @@ import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
@@ -21,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 
@@ -41,6 +41,8 @@ class ObjectServiceTest {
     private lateinit var measureService: MeasureService
     @Autowired
     private lateinit var objectService: ObjectService
+    @Autowired
+    private lateinit var historyService: HistoryService
 
     private lateinit var subject: Subject
 
@@ -91,7 +93,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithPropertyTestName",
-                objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
 
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -172,21 +174,390 @@ class ObjectServiceTest {
 
     }
 
+    private fun checkValueAbsense(id: String) = try {
+        val found = objectService.findPropertyValueById(id)
+        fail("object property value is found after deletion: $found")
+    } catch (e: ObjectPropertyValueNotFoundException) {
+    }
+
+    private fun checkValuesAbsense(ids: List<String>) = ids.forEach { checkValueAbsense(it) }
+
+    private fun checkPropertyAbsense(id: String) = try {
+        val found = objectService.findPropertyById(id)
+        fail("object property is found after deletion: $found")
+    } catch (e: ObjectPropertyNotFoundException) {
+    }
+
+    private fun checkPropertiesAbsense(ids: List<String>) = ids.forEach { checkPropertyAbsense(it) }
+
+    private fun checkObjectAbsense(id: String) = try {
+        val found = objectService.findById(id)
+        fail("object is found after deletion: $found")
+    } catch (e: ObjectNotFoundException) {
+    }
+
+    private fun checkObjectSoftAbsense(id: String) {
+        val found = objectService.findById(id)
+        assertEquals(true, found.deleted)
+    }
+
     @Test
     fun deleteObjectTest() {
         val objectName = "object"
         val objectDescription = "object description"
         val objectRequest =
-                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         objectService.deleteObject(createdObjectId, username)
 
+        checkObjectAbsense(createdObjectId)
+    }
+
+    @Test
+    fun softDeleteObjectTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+    }
+
+    @Test
+    fun deleteObjectWithPropTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+    }
+
+    @Test
+    fun softDeleteObjectWithPropTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+    }
+
+    @Test
+    fun deleteObjectWithTwoPropsTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName1 = "prop1_$objectName"
+        val propertyName2 = "prop2_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName1, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId1 = objectService.create(propertyRequest, username)
+        val createdPropertyId2 = objectService.create(propertyRequest.copy(name = propertyName2), username)
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertiesAbsense(listOf(createdPropertyId1, createdPropertyId2))
+    }
+
+    @Test
+    fun softDeleteObjectWithTwoPropsTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName1 = "prop1_$objectName"
+        val propertyName2 = "prop2_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName1, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId1 = objectService.create(propertyRequest, username)
+        val createdPropertyId2 = objectService.create(propertyRequest.copy(name = propertyName2), username)
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertiesAbsense(listOf(createdPropertyId1, createdPropertyId2))
+    }
+
+    @Test
+    fun deleteObjectWithValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun softDeleteObjectWithValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun deleteObjectInternallyLinkedTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun softDeleteObjectInternallyLinkedTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun deleteObjectExternallyLinkedTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val objectRequest2 =
+            ObjectCreateRequest("$objectName-2", objectDescription, subject.id, subject.version)
+        val createdObjectId2 = objectService.create(objectRequest2, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+
         try {
-            val found = objectService.findById(createdObjectId)
-            fail("object is found after deletion: $found")
-        } catch (e: ObjectNotFoundException) {
+            objectService.deleteObject(createdObjectId, username)
+            fail("Expected exception is not thrown")
+        } catch (e: ObjectIsLinkedException) {
         }
+    }
+
+    @Test
+    fun softDeleteObjectExternallyLinkedTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val objectRequest2 =
+            ObjectCreateRequest("$objectName-2", objectDescription, subject.id, subject.version)
+        val createdObjectId2 = objectService.create(objectRequest2, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
+        val createdValue = objectService.create(valueRequest, username)
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectSoftAbsense(createdObjectId)
+    }
+
+    @Test
+    fun deleteObjectWithTwoRootValuesTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue1 = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(ObjectValueData.IntegerValue(123, null), createdPropertyId)
+        val createdValue2 = objectService.create(valueRequest2, username)
+
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeleteObjectWithTwoRootValuesTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue1 = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(ObjectValueData.IntegerValue(123, null), createdPropertyId)
+        val createdValue2 = objectService.create(valueRequest2, username)
+
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+    @Test
+    fun deleteObjectWithChildValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue1 = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null), objectPropertyId = createdPropertyId,
+            measureId = null, aspectPropertyId = null, parentValueId = createdValue1.id.toString()
+        )
+        val createdValue2 = objectService.create(valueRequest2, username)
+
+        objectService.deleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeleteObjectWithChildValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val createdValue1 = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null), objectPropertyId = createdPropertyId,
+            measureId = null, aspectPropertyId = null, parentValueId = createdValue1.id.toString()
+        )
+        val createdValue2 = objectService.create(valueRequest2, username)
+
+        objectService.softDeleteObject(createdObjectId, username)
+
+        checkObjectAbsense(createdObjectId)
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
@@ -194,28 +565,29 @@ class ObjectServiceTest {
         val objectName = "object"
         val objectDescription = "object description"
         val objectRequest =
-                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-                name = propertyName,
-                objectId = createdObjectId, aspectId = aspect.idStrict()
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val createdObject = objectService.findById(createdObjectId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(1, createdObject.properties.size)
         }
 
         objectService.deleteProperty(createdPropertyId, username)
 
         val updatedObject = objectService.findById(createdObjectId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
+        checkPropertyAbsense(createdPropertyId)
     }
 
     @Test
@@ -223,61 +595,342 @@ class ObjectServiceTest {
         val objectName = "object"
         val objectDescription = "object description"
         val objectRequest =
-                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-                name = propertyName,
-                objectId = createdObjectId, aspectId = aspect.idStrict()
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val createdObject = objectService.findById(createdObjectId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(1, createdObject.properties.size)
         }
 
         objectService.softDeleteProperty(createdPropertyId, username)
 
         val updatedObject = objectService.findById(createdObjectId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
+        checkPropertyAbsense(createdPropertyId)
     }
 
+    @Test
+    fun deletePropertyWithValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        objectService.deleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun softDeletePropertyWithValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        objectService.softDeleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun deletePropertyWithTwoRootsTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.StringValue("hello"),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
+
+        objectService.deleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeletePropertyWithTwoRootsTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.StringValue("hello"),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
+
+        objectService.softDeleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+
+    @Test
+    fun deletePropertyWithChildTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.StringValue("hello"),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue1.id.toString(),
+            measureId = null
+        )
+        val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
+
+        objectService.deleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeletePropertyWithChildTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val createdObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(1, createdObject.properties.size)
+        }
+
+        val valueRequest1 = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(123, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
+
+        val valueRequest2 = ValueCreateRequest(
+            value = ObjectValueData.StringValue("hello"),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue1.id.toString(),
+            measureId = null
+        )
+        val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
+
+        objectService.softDeleteProperty(createdPropertyId, username)
+
+        val updatedObject = objectService.findById(createdObjectId)
+        transaction(db) {
+            assertEquals(0, updatedObject.properties.size)
+        }
+        checkPropertyAbsense(createdPropertyId)
+        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+    }
 
     @Test
     fun deleteValueTest() {
         val objectName = "object"
         val objectDescription = "object description"
         val objectRequest =
-                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-                name = propertyName,
-                objectId = createdObjectId, aspectId = aspect.idStrict()
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val scalarInt = 123
 
         val valueRequest = ValueCreateRequest(
-                value = ObjectValueData.IntegerValue(scalarInt, null),
-                objectPropertyId = createdPropertyId,
-                aspectPropertyId = complexAspect.properties[0].id,
-                parentValueId = null,
-                measureId = null
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
         )
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(1, createdProperty.values.size)
         }
 
@@ -285,12 +938,11 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(createdPropertyId)
 
-        transaction (db) {
+        transaction(db) {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        val foundValue = dao.getObjectPropertyValueVertex(createdValue.id.toString())
-        assertNotNull(foundValue)
+        checkValueAbsense(createdValue.id.toString())
     }
 
     @Test
@@ -298,31 +950,31 @@ class ObjectServiceTest {
         val objectName = "object"
         val objectDescription = "object description"
         val objectRequest =
-                ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-                name = propertyName,
-                objectId = createdObjectId, aspectId = aspect.idStrict()
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val scalarInt = 123
 
         val valueRequest = ValueCreateRequest(
-                value = ObjectValueData.IntegerValue(scalarInt, null),
-                objectPropertyId = createdPropertyId,
-                aspectPropertyId = complexAspect.properties[0].id,
-                parentValueId = null,
-                measureId = null
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
         )
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
-        transaction (db) {
+        transaction(db) {
             assertEquals(1, createdProperty.values.size)
         }
 
@@ -330,11 +982,224 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(createdPropertyId)
 
-        transaction (db) {
+        transaction(db) {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        val foundValue = dao.getObjectPropertyValueVertex(createdValue.id.toString())
-        assertEquals(null, foundValue)
+        checkValueAbsense(createdValue.id.toString())
+    }
+
+    @Test
+    fun deleteValueWithChildTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        val valueChildRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue.id.toString(),
+            measureId = null
+        )
+        val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction(db) {
+            assertEquals(2, createdProperty.values.size)
+        }
+
+        objectService.deleteValue(createdValue.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction(db) {
+            assertEquals(0, updatedProperty.values.size)
+        }
+
+        checkValuesAbsense(listOf(createdValue, createdValueChild).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeleteValueWithChildTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        val valueChildRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue.id.toString(),
+            measureId = null
+        )
+        val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction(db) {
+            assertEquals(2, createdProperty.values.size)
+        }
+
+        objectService.softDeleteValue(createdValue.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction(db) {
+            assertEquals(0, updatedProperty.values.size)
+        }
+
+        checkValuesAbsense(listOf(createdValue, createdValueChild).map { it.id.toString() })
+    }
+
+    @Test
+    fun deleteChildOfValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        val valueChildRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue.id.toString(),
+            measureId = null
+        )
+        val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction(db) {
+            assertEquals(2, createdProperty.values.size)
+        }
+
+        objectService.deleteValue(createdValueChild.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction(db) {
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(createdValue.id, updatedProperty.values[0].identity)
+        }
+
+        checkValuesAbsense(listOf(createdValueChild).map { it.id.toString() })
+    }
+
+    @Test
+    fun softDeleteChildOfValueTest() {
+        val objectName = "object"
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName,
+            objectId = createdObjectId, aspectId = aspect.idStrict()
+        )
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val scalarInt = 123
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = null,
+            measureId = null
+        )
+        val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
+
+        val valueChildRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            objectPropertyId = createdPropertyId,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = createdValue.id.toString(),
+            measureId = null
+        )
+        val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
+
+
+        val createdProperty = objectService.findPropertyById(createdPropertyId)
+        transaction(db) {
+            assertEquals(2, createdProperty.values.size)
+        }
+
+        objectService.softDeleteValue(createdValueChild.id.toString(), username)
+
+        val updatedProperty = objectService.findPropertyById(createdPropertyId)
+
+        transaction(db) {
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(createdValue.id, updatedProperty.values[0].identity)
+        }
+
+        checkValuesAbsense(listOf(createdValueChild).map { it.id.toString() })
     }
 }

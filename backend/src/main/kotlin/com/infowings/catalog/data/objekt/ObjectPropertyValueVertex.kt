@@ -13,7 +13,6 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
@@ -158,21 +157,6 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         set(v) = setOrRemove(PRECISION_PROPERTY, v)
 
 
-    private val outEdgeTypes = listOf(
-            OBJECT_VALUE_OBJECT_PROPERTY_EDGE,
-            OBJECT_VALUE_ASPECT_PROPERTY_EDGE,
-            OBJECT_VALUE_OBJECT_VALUE_EDGE,
-            OBJECT_VALUE_OBJECT_EDGE,
-            OBJECT_VALUE_SUBJECT_EDGE,
-            OBJECT_VALUE_REFBOOK_ITEM_EDGE,
-            OBJECT_VALUE_MEASURE_EDGE
-    )
-
-    val outEdges: List<OEdge>
-        get() = outEdgeTypes.flatMap {
-            vertex.getEdges(ODirection.OUT, it).toList()
-        }
-
     val objectProperty: ObjectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
             ?.toObjectPropertyVertex()
@@ -206,7 +190,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
 
     val children: List<ObjectPropertyValueVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
-                .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+            .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -252,9 +236,6 @@ abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
 
-class ObjectValueWithoutAspectPropertyException(vertex: ObjectPropertyValueVertex) :
-    ObjectValueException("Aspect property vertex not linked for ${vertex.id} ")
-
 class IntValueNotDefinedException(id: String) :
     ObjectValueException("int value is not defined for value $id")
 
@@ -282,5 +263,5 @@ class IncorrectTypeTagException(id: String, tag: Int) :
 class BooleanValueNodDefinedException(id: String) :
     ObjectValueException("boolean value is not defined for value $id")
 
-class ObjectValueHasChildrenException(ids: List<String>) :
-        ObjectValueException("children: $ids")
+class ObjectValueIsLinkedException(ids: List<String>) :
+    ObjectValueException("linked values: $ids")

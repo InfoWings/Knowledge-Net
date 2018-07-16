@@ -6,6 +6,7 @@ import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -44,6 +45,58 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 }
             }.toList()
         }
+
+    fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
+
+    fun getSubValues(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("SELECT FROM (TRAVERSE IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") FROM :id)", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun valuesOfProperty(id: String): Set<ObjectPropertyValueVertex> = valuesOfProperty(ORecordId(id))
+
+    private fun valuesOfProperty(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) from :id", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun valuesOfPropertiesStr(ids: List<String>): Set<ObjectPropertyValueVertex> = valuesOfProperties(ids.map { ORecordId(it) })
+
+    fun valuesOfProperties(ids: List<ORID>): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) from :ids", mapOf("ids" to ids)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun propertiesOfObject(id: String): Set<ObjectPropertyVertex> = propertiesOfObject(ORecordId(id))
+
+    private fun propertiesOfObject(id: ORID): Set<ObjectPropertyVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_OBJECT_PROPERTY_EDGE\")) from :id", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyVertex() }.toSet()
+        }
+    }
+
+    fun linkedFrom(id: Set<ORID>, linkTypes: Set<String>): Map<ORID, Set<ORID>> {
+        val linkClasses = linkTypes.joinToString("\", \"", "\"", "\"")
+
+        return db.query("select @rid as sourceId,  in($linkClasses).@rid as id from :id", mapOf("id" to id)) {
+            it.map {
+                it.getProperty<ORID>("sourceId") to it.getProperty<List<ORID>>("id").toSet()
+            }.toMap().filterValues { it.isNotEmpty() }
+        }
+    }
+
+    fun valuesBetween(sources: Set<ORID>, targets: Set<ORID>): Set<ObjectPropertyValueVertex> {
+        return db.query(
+            "SELECT FROM (traverse out(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") from :sources while not  @rid in :targets)",
+            mapOf("sources" to sources, "targets" to targets)
+        ) {
+            val res = it.toList()
+            res.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
 
     fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
         transaction(db) {
@@ -213,6 +266,16 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
 
+
+    fun deleteAll(vertices: List<OVertex>) {
+        transaction(db) {
+            vertices.forEach { db.delete(it) }
+        }
+    }
+
+    fun delete(vertex: OVertex) = deleteAll(listOf(vertex))
+
+
     fun delete(deleteInfo: DeleteInfo) {
         transaction(db) {
             deleteInfo.incoming.forEach { db.delete(it) }
@@ -309,5 +372,5 @@ class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspec
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
 class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")
-class ObjectHasPropertiesException(ids: List<String>) :
-        ObjectException("properties: $ids")
+class ObjectIsLinkedException(valueIds: List<String>, propertyIds: List<String>, objectId: String?) :
+    ObjectException("linked values: $valueIds, linked properties: $propertyIds, inked object: $objectId")

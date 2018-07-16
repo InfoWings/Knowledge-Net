@@ -2,7 +2,6 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
@@ -176,33 +175,6 @@ class ObjectValidator(
             parentValueVertex,
             valueVertex.measure
         )
-    }
-
-    fun checkedForRemoval(valueVertex: ObjectPropertyValueVertex): DeleteInfo {
-        val children = valueVertex.children
-        if (children.isNotEmpty()) {
-            throw ObjectValueHasChildrenException(children.map { it.id })
-        }
-
-        return DeleteInfo(vertex = valueVertex, incoming = emptyList(), outgoing = valueVertex.outEdges)
-    }
-
-    fun checkedForRemoval(propertyVertex: ObjectPropertyVertex): DeleteInfo {
-        val values = propertyVertex.values
-        if (values.isNotEmpty()) {
-            throw ObjectPropertyHasValuesException(values.map { it.id })
-        }
-
-        return DeleteInfo(vertex = propertyVertex, incoming = emptyList(), outgoing = propertyVertex.outEdges)
-    }
-
-    fun checkedForRemoval(objectVertex: ObjectVertex): DeleteInfo {
-        val properties = objectVertex.properties
-        if (properties.isNotEmpty()) {
-            throw ObjectHasPropertiesException(properties.map { it.id })
-        }
-
-        return DeleteInfo(vertex = objectVertex, incoming = emptyList(), outgoing = objectVertex.outEdges)
     }
 
     private fun getObjectValueFromData(dataValue: ObjectValueData): ObjectValue = when (dataValue) {

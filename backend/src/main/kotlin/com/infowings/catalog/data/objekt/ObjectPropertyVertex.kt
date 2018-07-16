@@ -8,7 +8,6 @@ import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toObjectPropertyVertex() = ObjectPropertyVertex(this)
@@ -54,22 +53,11 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
         get() = vertex.getVertices(
             ODirection.IN,
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
-        ).map { it.toObjectPropertyValueVertex() }.filterNot {  it.deleted }
-
-    private val outEdgeTypes = listOf(
-            OBJECT_OBJECT_PROPERTY_EDGE,
-            ASPECT_OBJECT_PROPERTY_EDGE
-    )
-
-    val outEdges: List<OEdge>
-        get() = outEdgeTypes.flatMap {
-            vertex.getEdges(ODirection.OUT, it).toList()
-        }
-
+        ).map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
 }
 
 sealed class ObjectPropertyException(message: String) : Exception(message)
 
-class ObjectPropertyHasValuesException(ids: List<String>) :
-        ObjectPropertyException("values: $ids")
+class ObjectPropertyIsLinkedException(valueIds: List<String>, propertyId: String?) :
+    ObjectPropertyException("linked values: $valueIds, linked property: $propertyId")

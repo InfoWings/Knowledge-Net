@@ -11,10 +11,9 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.description
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -183,13 +182,17 @@ class ObjectService(
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         transaction(db) {
-            var valueVertex = findPropertyValueById(id)
+            val children = dao.getSubValues(ORecordId(id))
 
-            historyService.storeFact(valueVertex.toDeleteFact(context))
+            val blockers = dao.linkedFrom(children.map { it.identity }.toSet(), emptySet())
 
-            val deleteInfo = validator.checkedForRemoval(valueVertex)
+            if (blockers.isNotEmpty()) {
+                throw ObjectValueIsLinkedException(blockers.map { it.toString() }.toList())
+            }
 
-            dao.delete(deleteInfo)
+            children.forEach { historyService.storeFact(it.toDeleteFact(context)) }
+
+            dao.deleteAll(children.toList())
 
             return@transaction
         }
@@ -199,74 +202,195 @@ class ObjectService(
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         transaction(db) {
-            var valueVertex = findPropertyValueById(id)
+            val children = dao.getSubValues(ORecordId(id))
 
-            historyService.storeFact(valueVertex.toDeleteFact(context))
+            val childrenById = children.map { it.identity to it }.toMap()
 
-            dao.softDelete(valueVertex)
+            val blockersByTarget = dao.linkedFrom(childrenById.keys, emptySet())
+
+            val blockers = blockersByTarget.values.flatten()
+
+            val blockersById = blockers.map { it.identity to it }.toMap()
+
+            val toDelete = (childrenById.keys - blockersById.keys).map { childrenById.getValue(it) }
+
+            toDelete.forEach { historyService.storeFact(it.toDeleteFact(context)) }
+            dao.deleteAll(toDelete)
+
+
+            //if (blockers.isNotEmpty()) {
+            //    throw ObjectValueIsLinkedException(blockers.map {it.toString()}.toList())
+            //}
+
+            //children.forEach { historyService.storeFact(it.toDeleteFact(context)) }
+
+            //dao.deleteAll(children.toList())
+
+            return@transaction
+        }
+    }
+
+    private data class DeletePropertyContext(
+        val propVertex: ObjectPropertyVertex,
+        val values: Set<ObjectPropertyValueVertex>,
+        val propIsLinked: Boolean,
+        val valueBlockers: Map<ORID, Set<ORID>>,
+        val historyContext: HistoryContext
+    )
+
+    private fun deleteProperty(id: String, username: String, deleteOp: (DeletePropertyContext) -> Unit) {
+        val userVertex = userService.findUserVertexByUsername(username)
+        val context = HistoryContext(userVertex)
+        transaction(db) {
+            val propVertex = findPropertyById(id)
+            val values = dao.valuesOfProperty(id)
+
+            val valueBlockers = dao.linkedFrom(values.map { it.identity }.toSet(), emptySet())
+            val propLinks = dao.linkedFrom(setOf(propVertex.identity), setOf())
+            val propLinksExt = propLinks.mapValues { it.value.minus(values) }.filterValues { it.isNotEmpty() }
+            val propIsLinked = propLinksExt.isNotEmpty()
+
+            deleteOp(
+                DeletePropertyContext(
+                    propVertex = propVertex, values = values, propIsLinked = propIsLinked,
+                    valueBlockers = valueBlockers, historyContext = context
+                )
+            )
 
             return@transaction
         }
     }
 
     fun deleteProperty(id: String, username: String) {
-        val userVertex = userService.findUserVertexByUsername(username)
-        val context = HistoryContext(userVertex)
-        transaction(db) {
-            var propVertex = findPropertyById(id)
+        fun removeOrThrow(context: DeletePropertyContext) {
+            if (context.valueBlockers.isNotEmpty() || context.propIsLinked) {
+                throw ObjectPropertyIsLinkedException(
+                    context.valueBlockers.map { it.toString() }.toList(),
+                    if (context.propIsLinked) context.propVertex.id else null
+                )
+            }
 
-            historyService.storeFact(propVertex.toDeleteFact(context))
+            context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
 
-            val deleteInfo = validator.checkedForRemoval(propVertex)
+            dao.deleteAll(context.values.toList().plus(context.propVertex))
 
-            dao.delete(deleteInfo)
-
-            return@transaction
         }
+
+        deleteProperty(id, username, { ctx -> removeOrThrow(ctx) })
     }
 
     fun softDeleteProperty(id: String, username: String) {
+        fun removeOrMark(context: DeletePropertyContext) {
+            val rootValues = context.values.filter { it.parentValue == null }
+
+            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), emptySet())
+
+            val valuesToDelete = context.values - valuesToKeep
+
+            valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
+
+            if (context.propIsLinked || valuesToKeep.isNotEmpty()) {
+                historyService.storeFact(context.propVertex.toSoftDeleteFact(context.historyContext))
+                dao.softDelete(context.propVertex)
+            } else {
+                historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
+                dao.delete(context.propVertex)
+            }
+
+            dao.deleteAll(valuesToDelete.toList())
+        }
+
+        deleteProperty(id, username, { ctx -> removeOrMark(ctx) })
+    }
+
+    private data class DeleteObjectContext(
+        val objVertex: ObjectVertex,
+        val properties: Set<ObjectPropertyVertex>,
+        val values: Set<ObjectPropertyValueVertex>,
+        val objIsLinked: Boolean,
+        val propertyBlockers: Map<ORID, Set<ORID>>,
+        val valueBlockers: Map<ORID, Set<ORID>>,
+        val historyContext: HistoryContext
+    )
+
+    private fun deleteObject(id: String, username: String, deleteOp: (DeleteObjectContext) -> Unit) {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         transaction(db) {
-            var propVertex = findPropertyValueById(id)
+            val objVertex = findById(id)
+            val properties = dao.propertiesOfObject(id)
 
-            historyService.storeFact(propVertex.toDeleteFact(context))
+            val values = dao.valuesOfProperties(properties.map { it.identity })
 
-            dao.softDelete(propVertex)
+            val valueBlockers = dao.linkedFrom(values.map { it.identity }.toSet(), emptySet())
+            val propertyBlockers = dao.linkedFrom(properties.map { it.identity }.toSet(), emptySet())
+            val objLinks = dao.linkedFrom(setOf(objVertex.identity), setOf(OBJECT_VALUE_OBJECT_EDGE))
+            val objLinksExt = objLinks.mapValues { it.value.minus(values) }.filterValues { it.isNotEmpty() }
+            val objIsLinked = objLinksExt.isNotEmpty()
+
+            deleteOp(
+                DeleteObjectContext(
+                    objVertex = objVertex, properties = properties, values = values, objIsLinked = objIsLinked,
+                    propertyBlockers = propertyBlockers, valueBlockers = valueBlockers, historyContext = context
+                )
+            )
 
             return@transaction
         }
+
     }
 
     fun deleteObject(id: String, username: String) {
-        val userVertex = userService.findUserVertexByUsername(username)
-        val context = HistoryContext(userVertex)
-        transaction(db) {
-            var objVertex = findById(id)
+        fun removeOrThrow(context: DeleteObjectContext) {
+            if (context.valueBlockers.isNotEmpty() || context.propertyBlockers.isNotEmpty() || context.objIsLinked) {
+                throw ObjectIsLinkedException(
+                    context.valueBlockers.map { it.toString() }.toList(),
+                    context.propertyBlockers.map { it.toString() }.toList(),
+                    if (context.objIsLinked) context.objVertex.id else null
+                )
+            }
 
-            historyService.storeFact(objVertex.toDeleteFact(context))
+            context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            context.properties.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
 
-            val deleteInfo = validator.checkedForRemoval(objVertex)
-
-            dao.delete(deleteInfo)
-
-            return@transaction
+            dao.deleteAll((context.values + context.properties + context.objVertex).toList())
         }
+
+        deleteObject(id, username, { ctx -> removeOrThrow(ctx) })
     }
 
     fun softDeleteObject(id: String, username: String) {
-        val userVertex = userService.findUserVertexByUsername(username)
-        val context = HistoryContext(userVertex)
-        transaction(db) {
-            var objectVertex = findById(id)
+        fun removeOrMark(context: DeleteObjectContext) {
+            val rootValues = context.values.filter { it.parentValue == null }
 
-            historyService.storeFact(objectVertex.toDeleteFact(context))
+            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), emptySet())
+            val propertiesToKeep = context.properties.filter { context.propertyBlockers.contains(it.identity) }.toSet() +
+                    valuesToKeep.map { it.objectProperty ?: throw IllegalStateException("no property for value ${it.identity}") }
 
-            dao.softDelete(objectVertex)
+            val valuesToDelete = context.values - valuesToKeep
+            val propertiesToDelete = context.properties - propertiesToKeep
 
-            return@transaction
+            valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            propertiesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+
+            valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
+            propertiesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
+
+            if (context.objIsLinked || propertiesToKeep.isNotEmpty()) {
+                historyService.storeFact(context.objVertex.toSoftDeleteFact(context.historyContext))
+                dao.softDelete(context.objVertex)
+            } else {
+                historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
+                dao.delete(context.objVertex)
+            }
+
+            dao.deleteAll((propertiesToDelete + valuesToDelete).toList())
         }
+
+        deleteObject(id, username, { ctx -> removeOrMark(ctx) })
     }
 
 
