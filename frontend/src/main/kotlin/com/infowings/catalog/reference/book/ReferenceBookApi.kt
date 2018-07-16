@@ -13,6 +13,9 @@ internal suspend fun getAllReferenceBooks(): ReferenceBooksList =
 internal suspend fun getReferenceBook(aspectId: String): ReferenceBook =
     JSON.parse(get("/api/book/get?aspectId=${encodeURIComponent(aspectId)}"))
 
+internal suspend fun getReferenceBookById(refBookId: String): ReferenceBook =
+    JSON.parse(get("/api/book/${encodeURIComponent(refBookId)}"))
+
 internal suspend fun createReferenceBook(book: ReferenceBook): ReferenceBook =
     JSON.parse(post("/api/book/create", JSON.stringify(book)))
 

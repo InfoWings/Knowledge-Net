@@ -24,6 +24,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         return referenceBookService.getReferenceBook(aspectId)
     }
 
+    @GetMapping("{id}")
+    fun getById(@PathVariable(value = "id") refBookId: String): ReferenceBook {
+        return referenceBookService.getReferenceBookById(refBookId)
+    }
+
     @GetMapping("item/path")
     fun getPath(@RequestParam(value = "itemId", required = true) itemId: String): ReferenceBookItemPath {
         return ReferenceBookItemPath(referenceBookService.getPath(itemId))

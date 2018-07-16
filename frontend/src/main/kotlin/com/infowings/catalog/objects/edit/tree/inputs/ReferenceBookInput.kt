@@ -9,13 +9,13 @@ import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinx.coroutines.experimental.launch
 import react.*
 
-class RefBookValue(val aspectId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
+class RefBookValue(val refBookId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
 
 class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props) {
 
     override fun State.init(props: Props) {
         isDialogOpen = false
-        value = RefBookValue(props.aspectId, listOf())
+        value = RefBookValue(props.refBookId, listOf())
     }
 
     override fun componentDidMount() {
@@ -24,7 +24,7 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
                 launch {
                     val itemPath: List<RefBookNodeDescriptor> = getReferenceBookItemPath(itemId).path
                     setState {
-                        value = RefBookValue(value.aspectId, itemPath)
+                        value = RefBookValue(value.refBookId, itemPath)
                     }
                 }
             }
@@ -68,7 +68,7 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
 
     interface Props : RProps {
         var itemId: String?
-        var aspectId: String
+        var refBookId: String
         var onUpdate: (String) -> Unit
     }
 

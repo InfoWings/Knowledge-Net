@@ -3,6 +3,7 @@ package com.infowings.catalog.objects.edit.tree.inputs.dialog
 import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.RefBookValue
 import com.infowings.catalog.reference.book.getReferenceBook
+import com.infowings.catalog.reference.book.getReferenceBookById
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Callout
@@ -30,7 +31,7 @@ class SelectReferenceBookValueDialog(props: Props) :
     override fun componentDidUpdate(prevProps: Props, prevState: State) {
         if (!prevProps.isOpen && props.isOpen) {
             launch {
-                val referenceBook = getReferenceBook(props.initialValue.aspectId)
+                val referenceBook = getReferenceBookById(props.initialValue.refBookId)
                 setState {
                     referenceBookViewModel =
                             referenceBook.toSelectViewModel().expandPath(props.initialValue.refBookTreePath)
@@ -43,7 +44,7 @@ class SelectReferenceBookValueDialog(props: Props) :
         launch {
             val selectedPath = getReferenceBookItemPath(itemId).path
             setState {
-                selectedValue = RefBookValue(state.selectedValue.aspectId, selectedPath)
+                selectedValue = RefBookValue(state.selectedValue.refBookId, selectedPath)
             }
         }
     }

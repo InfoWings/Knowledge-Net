@@ -48,7 +48,7 @@ fun RBuilder.booleanInput(value: String?, onUpdate: (String) -> Unit) = Switch {
 fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefBookId: String) = referenceBookInput {
     attrs {
         this.itemId = value
-        this.aspectId = aspectRefBookId
+        this.refBookId = aspectRefBookId
         this.onUpdate = onUpdate
     }
 }
