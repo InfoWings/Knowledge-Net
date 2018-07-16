@@ -99,7 +99,6 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override fun RBuilder.render() {
-        console.log(state.editedObject)
         state.editedObject?.let {
             objectTreeEditModel {
                 attrs {

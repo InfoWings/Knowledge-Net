@@ -28,12 +28,12 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun componentWillReceiveProps(nextProps: Props) {
         setState {
-            /*if (nextProps.serverView.id == model.id) {
+            if (nextProps.serverView.id == model.id) {
                 model.mergeFrom(nextProps.serverView)
             } else {
                 model = ObjectEditModel(nextProps.serverView)
-            }*/
-            model = ObjectEditModel(nextProps.serverView)
+            }
+//            model = ObjectEditModel(nextProps.serverView)
         }
     }
 

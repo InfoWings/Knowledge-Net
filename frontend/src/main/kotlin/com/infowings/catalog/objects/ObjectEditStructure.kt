@@ -50,8 +50,8 @@ data class ObjectPropertyEditModel(
         cardinality = response.cardinality
         description = response.description
         aspect = response.aspectDescriptor
-        if (values == null && response.rootValues.isNotEmpty()) {
-            values = response.rootValues.toTreeView(response.valueDescriptors)
+        values = if (values == null && response.rootValues.isNotEmpty()) {
+            response.rootValues.toTreeView(response.valueDescriptors)
         } else {
             values!!.mergeWith(response.rootValues, response.valueDescriptors.associateBy { it.id })
         }
@@ -137,7 +137,6 @@ data class ObjectPropertyValueEditModel(
 }
 
 fun MutableList<ObjectPropertyValueEditModel>.mergeWith(rootValues: List<ValueTruncated>, valueMap: Map<String, ValueTruncated>): MutableList<ObjectPropertyValueEditModel> {
-    console.log(rootValues)
     val existingValues = this.associateBy { it.id }
     return rootValues.map {
         if (existingValues.containsKey(it.id)) {
