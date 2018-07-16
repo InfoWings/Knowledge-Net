@@ -2,6 +2,9 @@ package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.components.buttons.cancelButtonComponent
+import com.infowings.catalog.components.buttons.minusButtonComponent
+import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
@@ -28,15 +31,27 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             +"Global"
             +")"
         }
-        propertyValue(
-            baseType = props.aspectBaseType,
-            referenceBookId = props.referenceBookId,
-            value = props.value,
-            onChange = props.onValueUpdate
-        )
+        if (props.value != ObjectValueData.NullValue) {
+            propertyValue(
+                baseType = props.aspectBaseType,
+                referenceBookId = props.referenceBookId,
+                value = props.value,
+                onChange = props.onValueUpdate
+            )
+        }
+        props.onAddValue?.let {
+            plusButtonComponent(it, "pt-small")
+        }
+        props.onRemoveValue?.let {
+            minusButtonComponent(it, "pt-small")
+        }
         props.onSaveValue?.let {
             submitButtonComponent(it, "pt-small")
         }
+        props.onCancelValue?.let {
+            cancelButtonComponent(it, "pt-small")
+        }
+
     }
 }
 
@@ -49,4 +64,7 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
     var onSaveValue: (() -> Unit)?
+    var onAddValue: (() -> Unit)?
+    var onCancelValue: (() -> Unit)?
+    var onRemoveValue: (() -> Unit)?
 }

@@ -8,6 +8,7 @@ import com.infowings.catalog.common.objekt.ValueCreateResponse
 import com.infowings.catalog.objects.createProperty
 import com.infowings.catalog.objects.createValue
 import com.infowings.catalog.objects.getDetailedObjectForEdit
+import com.infowings.catalog.utils.replaceBy
 import kotlinx.coroutines.experimental.launch
 import react.*
 
@@ -69,7 +70,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = request.value.toDTO(),
-            propertyId = request.aspectPropertyId ?: request.objectPropertyId,
+            propertyId = request.aspectPropertyId,
             childrenIds = emptyList()
         )
         return if (request.aspectPropertyId == null) {
@@ -78,13 +79,27 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 valueDescriptors = this.valueDescriptors + valueDescriptor
             )
         } else {
-            this.copy(
-                valueDescriptors = this.valueDescriptors + valueDescriptor
-            )
+            val parentValueId = request.parentValueId ?: error("Parent value should be null when aspectPropertyId is not null")
+            val parentDescriptor = valueDescriptors.find { it.id == parentValueId } ?: error("Value descriptors should contain parent value")
+            val newParentDescriptor = parentDescriptor.copy(childrenIds = parentDescriptor.childrenIds + response.id)
+            when {
+                newParentDescriptor.propertyId == null -> {
+                    this.copy(
+                        rootValues = this.rootValues.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id },
+                        valueDescriptors = this.valueDescriptors.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id } + valueDescriptor
+                    )
+                }
+                else -> {
+                    this.copy(
+                        valueDescriptors = this.valueDescriptors.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id } + valueDescriptor
+                    )
+                }
+            }
         }
     }
 
     override fun RBuilder.render() {
+        console.log(state.editedObject)
         state.editedObject?.let {
             objectTreeEditModel {
                 attrs {

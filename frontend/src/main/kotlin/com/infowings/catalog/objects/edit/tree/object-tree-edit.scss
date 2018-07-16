@@ -1,3 +1,5 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+
 .object-tree-edit {
 
   max-width: 120rem;
@@ -45,11 +47,30 @@
     }
   }
 
-  &__aspect-value {
+  &__aspect-property {
     display: flex;
     align-items: center;
   }
 
+  &__aspect-property-empty {
+    display: flex;
+    align-items: center;
+  }
+
+}
+
+.aspect-property {
+
+  &__property-cardinality {
+
+    &--conforms {
+      color: rgba($green3, 0.5);
+    }
+
+    &--conforms-not {
+      color: rgba($red3, 0.5);
+    }
+  }
 }
 
 .object-input-description {

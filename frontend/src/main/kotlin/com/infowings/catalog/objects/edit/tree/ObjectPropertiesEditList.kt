@@ -14,32 +14,29 @@ import react.rFunction
 fun RBuilder.objectPropertiesEditList(
     properties: List<ObjectPropertyEditModel>,
     onCreateProperty: (ObjectPropertyEditModel) -> Unit,
-    onCreateValue: (ObjectPropertyValueEditModel, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) -> Unit,
+    onCreateValue: (ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) -> Unit,
     updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit
 ) {
-    properties.forEachIndexed { index, property ->
+    properties.forEachIndexed { propertyIndex, property ->
         val propertyValues = property.values
         if (propertyValues == null || propertyValues.isEmpty()) {
             objectPropertyEditNode {
                 attrs {
                     this.property = property
                     onUpdate = { block ->
-                        updater(index, block)
+                        updater(propertyIndex, block)
                     }
                     onCreate = if (property.id == null && property.aspect != null) {
                         { onCreateProperty(property) }
                     } else null
-                    onCreateNullValue = if (property.id != null && property.values == null) {
-                        { /*onCreateValue(ObjectPropertyValueEditModel(null, ObjectValueData.NullValue, false, mutableListOf()), null, null)*/ }
-                    } else null
                     onAddValue = if (property.id != null) {
                         {
-                            updater(index) {
+                            updater(propertyIndex) {
                                 when {
                                     this.values == null -> {
                                         this.values = mutableListOf(ObjectPropertyValueEditModel(
                                             null,
-                                            property.aspect?.defaultValue(),
+                                            ObjectValueData.NullValue,
                                             false,
                                             mutableListOf()
                                         ))
@@ -48,7 +45,7 @@ fun RBuilder.objectPropertiesEditList(
                                         this.values?.add(
                                             ObjectPropertyValueEditModel(
                                                 null,
-                                                property.aspect?.defaultValue(),
+                                                ObjectValueData.NullValue,
                                                 false,
                                                 mutableListOf()
                                             )
@@ -64,19 +61,62 @@ fun RBuilder.objectPropertiesEditList(
             propertyValues.forEachIndexed { valueIndex, value ->
                 objectPropertyValueEditNode {
                     attrs {
+                        key = value.id ?: valueIndex.toString()
                         this.property = property
                         this.rootValue = value
-                        onPropertyUpdate = { updater(index, it) }
+                        onPropertyUpdate = { updater(propertyIndex, it) }
                         onValueUpdate = { block ->
-                            updater(index) {
+                            updater(propertyIndex) {
                                 values?.let {
                                     it[valueIndex].block()
                                 } ?: TODO("Should never happen")
                             }
                         }
                         onSaveValue = if (value.id == null && value.value != null) {
-                            { onCreateValue(value, property.id ?: error("Property should have id != null"), null, null) }
+                            { onCreateValue(value.value ?: error("value should not be null"), property.id ?: error("Property should have id != null"), null, null) }
                         } else null
+                        val allValues = property.values ?: error("Property should have at least one value")
+                        onAddValue = when {
+                            allValues.all { it.id != null } && allValues.none { it.value == ObjectValueData.NullValue } -> {
+                                {
+                                    updater(propertyIndex) {
+                                        values?.add(
+                                            ObjectPropertyValueEditModel(
+                                                null,
+                                                property.aspect?.defaultValue(),
+                                                false,
+                                                mutableListOf()
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            value.id == null && value.value == ObjectValueData.NullValue -> {
+                                {
+                                    updater(propertyIndex) {
+                                        (values ?: TODO())[valueIndex].value = property.aspect?.defaultValue()
+                                    }
+                                }
+                            }
+                            else -> null
+                        }
+                        onCancelValue = if (value.id == null) {
+                            {
+                                updater(propertyIndex) {
+                                    (values ?: TODO()).removeAt(valueIndex)
+                                }
+                            }
+                        } else null
+                        onRemoveValue = if (value.id == null && value.value != ObjectValueData.NullValue) {
+                            {
+                                updater(propertyIndex) {
+                                    (values ?: TODO())[valueIndex].value = ObjectValueData.NullValue
+                                }
+                            }
+                        } else null
+                        onSubmitValue = { value, parentValueId, aspectPropertyId ->
+                            onCreateValue(value, property.id ?: error("Property should have id != null"), parentValueId, aspectPropertyId)
+                        }
                     }
                 }
             }
@@ -91,9 +131,6 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
             onExpanded = {
                 props.onUpdate {
                     expanded = it
-                }
-                if (it) {
-                    props.onCreateNullValue?.invoke()
                 }
             }
             treeNodeContent = buildElement {
@@ -116,9 +153,6 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                     }
                 }
             }!!
-            if (props.property.id != null) {
-                +"Loading..."
-            }
         }
     }
 }
@@ -128,21 +162,20 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onCreate: (() -> Unit)?
     var onAddValue: (() -> Unit)?
-    var onCreateNullValue: (() -> Unit)?
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
     controlledTreeNode {
+        val aspect = props.property.aspect ?: error("Object Property must have ready-to-use aspect")
         attrs {
             expanded = props.rootValue.id != null && props.rootValue.expanded
             onExpanded = {
                 props.onValueUpdate {
-                    expanded = false // TODO: fix
+                    expanded = it
                 }
             }
             treeNodeContent = buildElement {
                 objectPropertyValueEditLineFormat {
-                    val aspect = props.property.aspect ?: error("Object Property must have ready-to-use aspect")
                     attrs {
                         propertyName = props.property.name
                         aspectName = aspect.name
@@ -160,9 +193,37 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                             }
                         }
                         onSaveValue = props.onSaveValue
+                        onAddValue = props.onAddValue
+                        onCancelValue = props.onCancelValue
+                        onRemoveValue = props.onRemoveValue
                     }
                 }
             }!!
+        }
+        val rootValueId = props.rootValue.id
+        if (rootValueId != null && aspect.properties.isNotEmpty()) {
+            aspectPropertiesEditList(
+                aspect = props.property.aspect ?: error("Aspect should be present inside the property"),
+                valueGroups = props.rootValue.valueGroups,
+                parentValueId = rootValueId,
+                onUpdate = { index, block ->
+                    props.onValueUpdate {
+                        valueGroups[index].block()
+                    }
+                },
+                onAddValueGroup = { valueGroup ->
+                    props.onValueUpdate {
+                        valueGroups.add(valueGroup)
+                    }
+                },
+                onSubmitValue = props.onSubmitValue,
+                onRemoveGroup = { id ->
+                    props.onValueUpdate {
+                        val groupIndex = valueGroups.indexOfFirst { it.propertyId == id }
+                        valueGroups.removeAt(groupIndex)
+                    }
+                }
+            )
         }
     }
 }
@@ -173,6 +234,10 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var onPropertyUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onValueUpdate: (ObjectPropertyValueEditModel.() -> Unit) -> Unit
     var onSaveValue: (() -> Unit)?
+    var onAddValue: (() -> Unit)?
+    var onCancelValue: (() -> Unit)?
+    var onRemoveValue: (() -> Unit)?
+    var onSubmitValue: (ObjectValueData, parentValueId: String?, aspectPropertyId: String?) -> Unit
 }
 
 fun TreeAspectResponse.defaultValue(): ObjectValueData? {

@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
@@ -15,7 +16,7 @@ import react.*
 interface ObjectTreeEditModel {
     fun onUpdate(updater: ObjectEditModel.() -> Unit)
     fun onCreateProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
+    fun onCreateValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
 }
 
 class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
@@ -27,6 +28,11 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun componentWillReceiveProps(nextProps: Props) {
         setState {
+            /*if (nextProps.serverView.id == model.id) {
+                model.mergeFrom(nextProps.serverView)
+            } else {
+                model = ObjectEditModel(nextProps.serverView)
+            }*/
             model = ObjectEditModel(nextProps.serverView)
         }
     }
@@ -49,11 +55,11 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun onCreateValue(valueEditModel: ObjectPropertyValueEditModel, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+    override fun onCreateValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
         launch {
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
-                    value = valueEditModel.value ?: error("Value should not be empty while submitting"),
+                    value = value,
                     objectPropertyId = objectPropertyId,
                     measureId = null,
                     aspectPropertyId = aspectPropertyId,
@@ -61,7 +67,6 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 )
             )
         }
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun RBuilder.render() {

@@ -1,7 +1,7 @@
 package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.TreeAspectResponse
-import com.infowings.catalog.components.buttons.plusButtonComponent
+import com.infowings.catalog.components.buttons.newValueButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.ShortAspectDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.name
@@ -26,7 +26,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             submitButtonComponent(it)
         }
         props.onAddValue?.let {
-            plusButtonComponent(it)
+            newValueButtonComponent(it)
         }
     }
 }
