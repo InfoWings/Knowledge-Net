@@ -61,8 +61,7 @@ class SelectReferenceBookValueDialog(props: Props) :
             attrs {
                 isOpen = props.isOpen
                 onClose = { props.onCancel() }
-                title =
-                        "Select value from reference book${state.referenceBookViewModel?.let { " ${it.name}" }}".asReactElement()
+                title = "Select value from reference book${state.referenceBookViewModel?.let { " ${it.name}" }}".asReactElement()
             }
             div(classes = "pt-dialog-body") {
                 if (state.selectedValue.refBookTreePath.isNotEmpty()) {

@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.buttons.cancelButtonComponent
@@ -42,6 +43,11 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 value = value,
                 onChange = props.onChange
             )
+            props.aspectMeasure?.let {
+                span(classes = "aspect-property__property-measure") {
+                    +it.symbol
+                }
+            }
         }
         props.onSubmit?.let {
             submitButtonComponent(it, "pt-small")
@@ -63,6 +69,7 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var aspectName: String
     var aspectBaseType: BaseType
     var aspectReferenceBookId: String?
+    var aspectMeasure: Measure<*>?
     var subjectName: String?
     var recommendedCardinality: PropertyCardinality
     var value: ObjectValueData?

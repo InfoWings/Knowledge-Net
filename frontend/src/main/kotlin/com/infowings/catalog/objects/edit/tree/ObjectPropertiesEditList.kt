@@ -180,6 +180,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         propertyName = props.property.name
                         aspectName = aspect.name
                         aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
+                        aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
                         value = props.rootValue.value
