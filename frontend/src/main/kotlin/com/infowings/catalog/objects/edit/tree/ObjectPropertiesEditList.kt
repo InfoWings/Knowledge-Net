@@ -32,8 +32,10 @@ fun RBuilder.objectPropertiesEditList(
                     onAddValue = if (property.id != null) {
                         {
                             updater(propertyIndex) {
+                                val currentValues = this.values
+
                                 when {
-                                    this.values == null -> {
+                                    currentValues == null -> {
                                         this.values = mutableListOf(ObjectPropertyValueEditModel(
                                             null,
                                             ObjectValueData.NullValue,
@@ -41,8 +43,8 @@ fun RBuilder.objectPropertiesEditList(
                                             mutableListOf()
                                         ))
                                     }
-                                    this.values?.isEmpty() ?: TODO("Should not happen") -> {
-                                        this.values?.add(
+                                    currentValues.isEmpty() -> {
+                                        currentValues.add(
                                             ObjectPropertyValueEditModel(
                                                 null,
                                                 ObjectValueData.NullValue,
@@ -69,7 +71,7 @@ fun RBuilder.objectPropertiesEditList(
                             updater(propertyIndex) {
                                 values?.let {
                                     it[valueIndex].block()
-                                } ?: TODO("Should never happen")
+                                } ?: error("Must not be able to update value if there is no value")
                             }
                         }
                         onSaveValue = if (value.id == null && value.value != null) {
@@ -94,7 +96,7 @@ fun RBuilder.objectPropertiesEditList(
                             value.id == null && value.value == ObjectValueData.NullValue -> {
                                 {
                                     updater(propertyIndex) {
-                                        (values ?: TODO())[valueIndex].value = property.aspect?.defaultValue()
+                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = property.aspect?.defaultValue()
                                     }
                                 }
                             }
@@ -103,14 +105,14 @@ fun RBuilder.objectPropertiesEditList(
                         onCancelValue = if (value.id == null) {
                             {
                                 updater(propertyIndex) {
-                                    (values ?: TODO()).removeAt(valueIndex)
+                                    (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
                                 }
                             }
                         } else null
                         onRemoveValue = if (value.id == null && value.value != ObjectValueData.NullValue) {
                             {
                                 updater(propertyIndex) {
-                                    (values ?: TODO())[valueIndex].value = ObjectValueData.NullValue
+                                    (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = ObjectValueData.NullValue
                                 }
                             }
                         } else null

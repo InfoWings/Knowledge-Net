@@ -23,7 +23,8 @@ fun RBuilder.aspectPropertiesEditList(
     val groupsMap = valueGroups.associateBy { it.propertyId }
     aspect.properties.forEach { aspectProperty ->
         val valueGroup = groupsMap[aspectProperty.id]
-        if (valueGroup == null) { // FIXME: (valueGroup == null || valueGroup.isEmpty())?
+
+        if (valueGroup == null) { // Не может быть пустой (#isEmpty()), так как мы удаляем всю группу при удалении единственного значения
             aspectPropertyValueCreateNode {
                 attrs {
                     this.aspectProperty = aspectProperty

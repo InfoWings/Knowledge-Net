@@ -29,7 +29,7 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
         valueFormat(props.value)
         props.measure?.let {
             span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure")) // TODO: Fetch from server
+                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
             }
         }
         props.valueDescription?.let {
@@ -65,7 +65,7 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
         valueFormat(props.value)
         props.measure?.let {
             span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure")) // TODO: Fetch from server
+                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
             }
         }
         props.valueDescription?.let {

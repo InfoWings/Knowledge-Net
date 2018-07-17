@@ -70,7 +70,7 @@ class ObjectService(
                 objectSubject.name,
                 objectSubject.id,
                 objectProperties.map {
-                    //TODO: Maybe performance bottleneck
+                    //TODO: KS-168 Maybe performance bottleneck
                     val values = it.values.map {
                         ValueTruncated (
                             it.id,

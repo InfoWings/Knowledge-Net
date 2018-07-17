@@ -91,7 +91,7 @@ data class ObjectPropertyValueEditModel(
                 .foldRight(mutableListOf<AspectPropertyValueGroupEditModel>()) { childValue, propertyGroups ->
                     when {
                         propertyGroups.isEmpty() -> {
-                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                             propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
                             propertyGroups
                         }
@@ -100,7 +100,7 @@ data class ObjectPropertyValueEditModel(
                             propertyGroups
                         }
                         else -> {
-                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                             propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
                             propertyGroups
                         }
@@ -117,7 +117,7 @@ data class ObjectPropertyValueEditModel(
             .foldRight(mutableListOf()) { childValue, propertyGroups ->
                 when {
                     propertyGroups.isEmpty() -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(existingValuesMap[childValue.id].mergeWith(childValue, valueMap))
                         propertyGroups
                     }
@@ -126,7 +126,7 @@ data class ObjectPropertyValueEditModel(
                         propertyGroups
                     }
                     else -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(existingValuesMap[childValue.id].mergeWith(childValue, valueMap))
                         propertyGroups
                     }
@@ -167,7 +167,7 @@ data class AspectPropertyValueEditModel(
             .foldRight(mutableListOf<AspectPropertyValueGroupEditModel>()) { childValue, propertyGroups ->
                 when {
                     propertyGroups.isEmpty() -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
                         propertyGroups
                     }
@@ -176,7 +176,7 @@ data class AspectPropertyValueEditModel(
                         propertyGroups
                     }
                     else -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
                         propertyGroups
                     }
@@ -197,7 +197,7 @@ fun AspectPropertyValueEditModel?.mergeWith(value: ValueTruncated, valueMap: Map
             .foldRight(mutableListOf()) { childValue, propertyGroups ->
                 when {
                     propertyGroups.isEmpty() -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(existingValuesMap[childValue.id].mergeWith(childValue, valueMap))
                         propertyGroups
                     }
@@ -206,7 +206,7 @@ fun AspectPropertyValueEditModel?.mergeWith(value: ValueTruncated, valueMap: Map
                         propertyGroups
                     }
                     else -> {
-                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: TODO()))
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
                         propertyGroups.last().values.add(existingValuesMap[childValue.id].mergeWith(childValue, valueMap))
                         propertyGroups
                     }
