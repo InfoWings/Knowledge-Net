@@ -71,7 +71,7 @@ data class ObjectPropertyEditDetailsResponse(
     val cardinality: PropertyCardinality,
     val rootValues: List<ValueTruncated>,
     val valueDescriptors: List<ValueTruncated>,
-    val aspectDescriptor: TreeAspectResponse
+    val aspectDescriptor: AspectTree
 )
 
 @Serializable

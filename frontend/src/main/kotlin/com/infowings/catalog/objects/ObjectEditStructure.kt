@@ -32,7 +32,7 @@ data class ObjectPropertyEditModel(
     var name: String? = null,
     var cardinality: PropertyCardinality? = null,
     var description: String? = null,
-    var aspect: TreeAspectResponse? = null,
+    var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
     var expanded: Boolean = false
 ) {

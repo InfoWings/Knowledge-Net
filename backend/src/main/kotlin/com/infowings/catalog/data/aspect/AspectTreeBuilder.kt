@@ -2,18 +2,16 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.PropertyCardinality
-import com.infowings.catalog.common.TreeAspectPropertyResponse
-import com.infowings.catalog.common.TreeAspectResponse
+import com.infowings.catalog.common.AspectPropertyTree
+import com.infowings.catalog.common.AspectTree
 import com.infowings.catalog.storage.ASPECT_ASPECT_PROPERTY_EDGE
-import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.impl.ODocument
 
 private sealed class AspectHolder
 private class AspectVertexHolder(val vertex: AspectVertex) : AspectHolder() {
     var properties: MutableList<AspectPropertyVertexHolder> = mutableListOf()
-    var completedAspect: TreeAspectResponse? = null
+    var completedAspect: AspectTree? = null
     var isComplete: Boolean = false
 
     fun verifyNext(propertyVertex: AspectPropertyVertex) {
@@ -27,15 +25,15 @@ private class AspectVertexHolder(val vertex: AspectVertex) : AspectHolder() {
         }
     }
 
-    fun completeWith(response: TreeAspectResponse) {
-        this.completedAspect = response
+    fun completeWith(tree: AspectTree) {
+        this.completedAspect = tree
         this.isComplete = true
     }
 }
 
 private class AspectPropertyVertexHolder(val vertex: AspectPropertyVertex) : AspectHolder() {
     var aspect: AspectVertexHolder? = null
-    var completedProperty: TreeAspectPropertyResponse? = null
+    var completedProperty: AspectPropertyTree? = null
     var isComplete: Boolean = false
 
     fun verifyNext(aspectVertex: AspectVertex) {
@@ -48,8 +46,8 @@ private class AspectPropertyVertexHolder(val vertex: AspectPropertyVertex) : Asp
         }
     }
 
-    fun completeWith(response: TreeAspectPropertyResponse) {
-        completedProperty = response
+    fun completeWith(tree: AspectPropertyTree) {
+        completedProperty = tree
         isComplete = true
     }
 }
@@ -57,7 +55,7 @@ private class AspectPropertyVertexHolder(val vertex: AspectPropertyVertex) : Asp
 class AspectTreeBuilder {
 
     private var aspectTraversalState: MutableList<AspectHolder> = mutableListOf()
-    private var completedAspectsCache: MutableMap<String, TreeAspectResponse> = mutableMapOf()
+    private var completedAspectsCache: MutableMap<String, AspectTree> = mutableMapOf()
 
     fun tryAppendAspect(aspectVertex: AspectVertex) {
         if (aspectTraversalState.isEmpty()) {
@@ -94,7 +92,7 @@ class AspectTreeBuilder {
                     val outgoingPropertyVertexId = propertyVertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().id
                     if (completedAspectsCache.containsKey(outgoingPropertyVertexId)) {
                         newAspectProperty.completeWith(
-                            TreeAspectPropertyResponse(
+                            AspectPropertyTree(
                                 propertyVertex.id,
                                 PropertyCardinality.valueOf(propertyVertex.cardinality),
                                 propertyVertex.name,
@@ -109,7 +107,7 @@ class AspectTreeBuilder {
         }
     }
 
-    fun tryBuildAspectTree(): TreeAspectResponse {
+    fun tryBuildAspectTree(): AspectTree {
         val firstInAspectState = aspectTraversalState.firstOrNull()
         if (firstInAspectState != null && firstInAspectState is AspectVertexHolder && firstInAspectState.isComplete) {
             return firstInAspectState.completedAspect ?: throw IllegalStateException("Completed aspect holder does not contain built aspect tree")
@@ -144,7 +142,7 @@ class AspectTreeBuilder {
                 if (isReadyForReduce) {
                     val aspectVertex = lastVertexHolderInState.vertex
                     val subject = aspectVertex.subject // FIXME: Possible bottleneck
-                    val aspectResponse = TreeAspectResponse(
+                    val aspectResponse = AspectTree(
                         aspectVertex.id,
                         aspectVertex.name,
                         subject?.id,
@@ -178,7 +176,7 @@ class AspectTreeBuilder {
             is AspectVertexHolder -> throw IllegalStateException("Expected last vertex in state to be Aspect")
             is AspectPropertyVertexHolder -> {
                 val aspectPropertyVertex = lastVertexHolderInState.vertex
-                val aspectPropertyResponse = TreeAspectPropertyResponse(
+                val aspectPropertyResponse = AspectPropertyTree(
                     aspectPropertyVertex.id,
                     PropertyCardinality.valueOf(aspectPropertyVertex.cardinality),
                     aspectPropertyVertex.name,

@@ -12,7 +12,7 @@ import react.buildElement
 import react.rFunction
 
 fun RBuilder.aspectPropertiesEditList(
-    aspect: TreeAspectResponse,
+    aspect: AspectTree,
     valueGroups: List<AspectPropertyValueGroupEditModel>,
     parentValueId: String,
     onUpdate: (index: Int, block: AspectPropertyValueGroupEditModel.() -> Unit) -> Unit,
@@ -141,7 +141,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 }
 
 interface AspectPropertyValueCreateNodeProps : RProps {
-    var aspectProperty: TreeAspectPropertyResponse
+    var aspectProperty: AspectPropertyTree
     var onCreateValue: (ObjectValueData?) -> Unit
 }
 
@@ -211,7 +211,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
 }
 
 interface AspectPropertyValueEditNodeProps : RProps {
-    var aspectProperty: TreeAspectPropertyResponse
+    var aspectProperty: AspectPropertyTree
     var value: AspectPropertyValueEditModel
     var valueCount: Int
     var onUpdate: (AspectPropertyValueEditModel.() -> Unit) -> Unit

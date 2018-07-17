@@ -254,7 +254,7 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var onSubmitValue: (ObjectValueData, parentValueId: String?, aspectPropertyId: String?) -> Unit
 }
 
-fun TreeAspectResponse.defaultValue(): ObjectValueData? {
+fun AspectTree.defaultValue(): ObjectValueData? {
     val baseType = baseType?.let { BaseType.valueOf(it) } ?: measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type: ${this}")
     return baseType.defaultValue()
 }

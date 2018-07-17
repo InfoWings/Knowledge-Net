@@ -67,7 +67,7 @@ data class AspectPropertyDataExtended(
 )
 
 @Serializable
-data class TreeAspectResponse(
+data class AspectTree(
     val id: String,
     val name: String,
     val subjectId: String? = null,
@@ -76,15 +76,15 @@ data class TreeAspectResponse(
     val baseType: String? = null,
     val domain: String? = null,
     val refBookId: String? = null,
-    val properties: List<TreeAspectPropertyResponse> = emptyList()
+    val properties: List<AspectPropertyTree> = emptyList()
 )
 
 @Serializable
-data class TreeAspectPropertyResponse(
+data class AspectPropertyTree(
     val id: String,
     val cardinality: PropertyCardinality,
     val name: String?,
-    val aspect: TreeAspectResponse
+    val aspect: AspectTree
 )
 
 /** Helpful extensions */

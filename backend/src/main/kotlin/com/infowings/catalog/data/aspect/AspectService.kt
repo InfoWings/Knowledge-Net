@@ -19,7 +19,7 @@ interface AspectService {
     fun findByName(name: String): Set<AspectData>
     fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
     fun findById(id: String): AspectData
-    fun findTreeById(id: String): TreeAspectResponse
+    fun findTreeById(id: String): AspectTree
     fun findPropertyById(id: String): AspectPropertyData
     fun getAspectsWithDeleted(ids: List<String>): List<AspectData>
 }
@@ -249,7 +249,7 @@ class DefaultAspectService(
      */
     override fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
 
-    override fun findTreeById(id: String): TreeAspectResponse = transaction(db) { aspectDaoService.getAspectTreeById(ORecordId(id)) }
+    override fun findTreeById(id: String): AspectTree = transaction(db) { aspectDaoService.getAspectTreeById(ORecordId(id)) }
 
     override fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 

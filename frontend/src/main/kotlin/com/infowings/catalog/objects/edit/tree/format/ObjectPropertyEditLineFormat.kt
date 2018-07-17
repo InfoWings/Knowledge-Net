@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.edit.tree.format
 
-import com.infowings.catalog.common.TreeAspectResponse
+import com.infowings.catalog.common.AspectTree
 import com.infowings.catalog.components.buttons.newValueButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.ShortAspectDescriptor
@@ -20,7 +20,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
         )
         propertyAspect(
             value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, it.subjectName) },
-            onSelect = { props.onAspectChanged(TreeAspectResponse(id = it.id, name = it.name)) }
+            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name)) }
         )
         props.onConfirmCreate?.let {
             submitButtonComponent(it)
@@ -33,9 +33,9 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
 
 interface ObjectPropertyEditLineFormatProps : RProps {
     var name: String?
-    var aspect: TreeAspectResponse?
+    var aspect: AspectTree?
     var onNameChanged: (String) -> Unit
-    var onAspectChanged: (TreeAspectResponse) -> Unit
+    var onAspectChanged: (AspectTree) -> Unit
     var onConfirmCreate: (() -> Unit)?
     var onAddValue: (() -> Unit)?
 }

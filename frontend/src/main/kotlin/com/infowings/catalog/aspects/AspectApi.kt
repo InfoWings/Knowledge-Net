@@ -16,7 +16,7 @@ suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery:
     )
 }
 
-suspend fun getAspectTree(id: String): TreeAspectResponse = JSON.parse(get("/api/aspect/tree/${encodeURIComponent(id)}"))
+suspend fun getAspectTree(id: String): AspectTree = JSON.parse(get("/api/aspect/tree/${encodeURIComponent(id)}"))
 
 suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))
 
