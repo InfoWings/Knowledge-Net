@@ -94,16 +94,16 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     when (vertex.schemaType.toNullable()?.name) {
                         ASPECT_CLASS -> {
                             val aspectVertex = vertex.toAspectVertex()
-                            aspectTreeBuilder.apply { tryAppendAspect(aspectVertex) }
+                            aspectTreeBuilder.apply { appendAspect(aspectVertex) }
                         }
                         ASPECT_PROPERTY_CLASS -> {
                             val propertyVertex = vertex.toAspectPropertyVertex()
-                            aspectTreeBuilder.apply { tryAppendAspectProperty(propertyVertex) }
+                            aspectTreeBuilder.apply { appendAspectProperty(propertyVertex) }
                         }
                         else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.toNullable()?.name}")
                     }
                 }
-                aspectTreeBuilder.tryBuildAspectTree()
+                aspectTreeBuilder.buildAspectTree()
             }
         }
 
@@ -117,16 +117,16 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     when (vertex.schemaType.toNullable()?.name) {
                         ASPECT_CLASS -> {
                             val aspectVertex = vertex.toAspectVertex()
-                            aspectTreeBuilder.apply { tryAppendAspect(aspectVertex) }
+                            aspectTreeBuilder.apply { appendAspect(aspectVertex) }
                         }
                         ASPECT_PROPERTY_CLASS -> {
                             val propertyVertex = vertex.toAspectPropertyVertex()
-                            aspectTreeBuilder.apply { tryAppendAspectProperty(propertyVertex) }
+                            aspectTreeBuilder.apply { appendAspectProperty(propertyVertex) }
                         }
                         else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.toNullable()?.name}")
                     }
                 }
-                aspectTreeBuilder.tryBuildAspectTree()
+                aspectTreeBuilder.buildAspectTree()
             }
         }
 
