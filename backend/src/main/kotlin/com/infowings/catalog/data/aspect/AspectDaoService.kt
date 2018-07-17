@@ -88,16 +88,17 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     "FROM (SELECT EXPAND(FIRST(OUT(\"$ASPECT_OBJECT_PROPERTY_EDGE\"))) FROM :propertyRid) " +
                     "STRATEGY DEPTH_FIRST"
             return@transaction db.query(query, mapOf("propertyRid" to propertyRid)) {
-                val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
+                val aspectTreeBuilder = AspectTreeBuilder()
+                it.forEach { record ->
                     val vertex = record.toVertex()
                     when (vertex.schemaType.toNullable()?.name) {
                         ASPECT_CLASS -> {
                             val aspectVertex = vertex.toAspectVertex()
-                            builder.apply { tryAppendAspect(aspectVertex) }
+                            aspectTreeBuilder.apply { tryAppendAspect(aspectVertex) }
                         }
                         ASPECT_PROPERTY_CLASS -> {
                             val propertyVertex = vertex.toAspectPropertyVertex()
-                            builder.apply { tryAppendAspectProperty(propertyVertex) }
+                            aspectTreeBuilder.apply { tryAppendAspectProperty(propertyVertex) }
                         }
                         else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.toNullable()?.name}")
                     }
@@ -110,16 +111,17 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         transaction(db) {
             val query = "TRAVERSE OUT(\"$ASPECT_ASPECT_PROPERTY_EDGE\") FROM :aspectRid STRATEGY DEPTH_FIRST"
             return@transaction db.query(query, mapOf("aspectRid" to aspectRid)) {
-                val aspectTreeBuilder = it.fold(AspectTreeBuilder()) { builder, record ->
+                val aspectTreeBuilder = AspectTreeBuilder()
+                it.forEach { record ->
                     val vertex = record.toVertex()
                     when (vertex.schemaType.toNullable()?.name) {
                         ASPECT_CLASS -> {
                             val aspectVertex = vertex.toAspectVertex()
-                            builder.apply { tryAppendAspect(aspectVertex) }
+                            aspectTreeBuilder.apply { tryAppendAspect(aspectVertex) }
                         }
                         ASPECT_PROPERTY_CLASS -> {
                             val propertyVertex = vertex.toAspectPropertyVertex()
-                            builder.apply { tryAppendAspectProperty(propertyVertex) }
+                            aspectTreeBuilder.apply { tryAppendAspectProperty(propertyVertex) }
                         }
                         else -> throw IllegalStateException("Illegal class name or link in storage: ${vertex.schemaType.toNullable()?.name}")
                     }
