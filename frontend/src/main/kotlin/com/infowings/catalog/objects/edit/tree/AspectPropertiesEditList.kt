@@ -92,13 +92,23 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             else -> null
                         }
-                        this.onRemoveValue = if (value.id == null && value.value != ObjectValueData.NullValue) {
-                            {
-                                onUpdate(valueGroupIndex) {
-                                    values[valueIndex].value = ObjectValueData.NullValue
+                        this.onRemoveValue = when {
+                            (value.id == null && valueGroup.values.size > 1) -> {
+                                {
+                                    onUpdate(valueGroupIndex) {
+                                        values.removeAt(valueIndex)
+                                    }
                                 }
                             }
-                        } else null
+                            (value.id == null && value.value != ObjectValueData.NullValue) -> {
+                                {
+                                    onUpdate(valueGroupIndex) {
+                                        values[valueIndex].value = ObjectValueData.NullValue
+                                    }
+                                }
+                            }
+                            else -> null
+                        }
                         this.onSubmitValueGeneric = onSubmitValue
                     }
                 }

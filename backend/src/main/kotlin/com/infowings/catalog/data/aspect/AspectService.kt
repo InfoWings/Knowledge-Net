@@ -372,7 +372,7 @@ class DefaultAspectService(
 private fun AspectData.normalize(): AspectData = copy(
     name = this.name.trim(),
     description = this.description?.trim(),
-    properties = this.properties.map { it.copy(name = it.name.trim(), description = it.description?.trim()) })
+    properties = this.properties.map { it.copy(name = it.name?.trim(), description = it.description?.trim()) })
 
 sealed class AspectException(message: String? = null) : Exception(message)
 

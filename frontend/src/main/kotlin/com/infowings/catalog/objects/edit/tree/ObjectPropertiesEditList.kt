@@ -109,13 +109,23 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                         } else null
-                        onRemoveValue = if (value.id == null && value.value != ObjectValueData.NullValue) {
-                            {
-                                updater(propertyIndex) {
-                                    (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = ObjectValueData.NullValue
+                        onRemoveValue = when {
+                            (value.id == null && allValues.size > 1) -> {
+                                {
+                                    updater(propertyIndex) {
+                                        (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
+                                    }
                                 }
                             }
-                        } else null
+                            (value.id == null && value.value != ObjectValueData.NullValue) -> {
+                                {
+                                    updater(propertyIndex) {
+                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = ObjectValueData.NullValue
+                                    }
+                                }
+                            }
+                            else -> null
+                        }
                         onSubmitValue = { value, parentValueId, aspectPropertyId ->
                             onCreateValue(value, property.id ?: error("Property should have id != null"), parentValueId, aspectPropertyId)
                         }

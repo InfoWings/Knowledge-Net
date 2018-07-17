@@ -27,14 +27,6 @@ class Header : RComponent<Header.Props, RState>() {
                 AnchorButton {
                     attrs {
                         className = "pt-minimal"
-                        active = props.location == "/objectsedit"
-                        onClick = { props.history.push("/objectsedit") }
-                        text = "Objects Edit".asReactElement()
-                    }
-                }
-                AnchorButton {
-                    attrs {
-                        className = "pt-minimal"
                         active = props.location == "/aspects"
                         onClick = { props.history.push("/aspects") }
                         text = "Aspects".asReactElement()
