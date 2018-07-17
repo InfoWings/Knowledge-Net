@@ -56,6 +56,7 @@ class AspectFullContainer : RComponent<AspectFullContainer.Props, RState>() {
                                     aspectName = aspect?.name ?: "",
                                     aspectMeasure = aspect?.measure ?: "",
                                     aspectDomain = aspect?.domain ?: "",
+                                    aspectRefBookName = aspect?.refBookName ?: "",
                                     aspectBaseType = aspect?.baseType ?: "",
                                     aspectSubjectName = aspect?.subject?.name ?: "Global",
                                     isSubjectDeleted = aspect?.subject?.deleted ?: false,

@@ -23,6 +23,7 @@ class AspectPropertyLabel : RComponent<AspectPropertyLabel.Props, RState>() {
                 aspectName = props.aspect?.name ?: "",
                 aspectMeasure = props.aspect?.measure ?: "",
                 aspectDomain = props.aspect?.domain ?: "",
+                aspectRefBookName = props.aspect?.refBookName ?: "",
                 aspectBaseType = props.aspect?.baseType ?: "",
                 aspectSubjectName = props.aspect?.subject?.name ?: "Global",
                 isSubjectDeleted = props.aspect?.subject?.deleted ?: false,
