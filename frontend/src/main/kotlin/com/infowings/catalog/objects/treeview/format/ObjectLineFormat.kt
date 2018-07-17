@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.treeview.format
 
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.submit.expandTreeButtonComponent
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -26,6 +27,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
                 )
             }
         }
+        expandTreeButtonComponent(props.expandTree, "pt-small")
     }
 }
 
@@ -33,4 +35,5 @@ interface ObjectLineFormatProps : RProps {
     var objectName: String
     var objectDescription: String?
     var subjectName: String
+    var expandTree: () -> Unit
 }
