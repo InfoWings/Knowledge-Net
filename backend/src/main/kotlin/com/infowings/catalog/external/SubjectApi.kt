@@ -5,6 +5,7 @@ import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.data.*
+import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
@@ -33,6 +34,12 @@ class SubjectApi(val subjectService: SubjectService) {
     fun getSubjectByName(@PathVariable("name") subjectName: String): SubjectData {
         logger.debug("Get subject by name $subjectName")
         return subjectService.findByName(subjectName) ?: throw SubjectNotFoundException("No subject with name $subjectName")
+    }
+
+    @GetMapping("{id}")
+    fun getSubjectById(@PathVariable("id") id: String): SubjectData {
+        logger.debug("Get subject by id $id")
+        return subjectService.findDataByIdStrict(id)
     }
 
     @PostMapping("update")
@@ -78,6 +85,7 @@ class SubjectApi(val subjectService: SubjectService) {
                         )
                     )
                 )
+
             is SubjectNotFoundException -> ResponseEntity.badRequest()
                 .body(
                     JSON.stringify(
@@ -96,8 +104,8 @@ class SubjectApi(val subjectService: SubjectService) {
                         )
                     )
                 )
-            is SubjectIsLinkedByAspect -> ResponseEntity.badRequest()
-                .body(
+            is SubjectIsLinkedByAspect -> {
+                ResponseEntity.badRequest().body(
                     JSON.stringify(
                         BadRequest(
                             BadRequestCode.NEED_CONFIRMATION,
@@ -105,6 +113,7 @@ class SubjectApi(val subjectService: SubjectService) {
                         )
                     )
                 )
+            }
             is SubjectEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)
         }
     }
