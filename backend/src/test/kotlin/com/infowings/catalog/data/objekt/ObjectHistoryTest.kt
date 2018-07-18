@@ -1445,6 +1445,7 @@ class ObjectHistoryTest {
         val objectPropertyId = objectService.create(
             PropertyCreateRequest(
                 name = anotherPropName,
+                description = null,
                 cardinality = PropertyCardinality.ONE.name,
                 aspectId = aspect.idStrict(), objectId = objectId
             ), "admin"
@@ -1555,6 +1556,7 @@ class ObjectHistoryTest {
         val objectPropertyId = objectService.create(
             PropertyCreateRequest(
                 name = "another_prop",
+                description = null,
                 cardinality = PropertyCardinality.ONE.name,
                 aspectId = aspect.idStrict(), objectId = objectId
             ), "admin"
