@@ -57,8 +57,7 @@ class ObjectServiceFetchTest {
             ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version),
             username
         )
-        val boxDimensionPropertyId =
-            objectService.create(PropertyCreateRequest(boxV1Id, "", null, PropertyCardinality.ZERO.name, dimensionsAspect.idStrict()), username)
+        val boxDimensionPropertyId = objectService.create(PropertyCreateRequest(boxV1Id, "", null, dimensionsAspect.idStrict()), username)
         val boxDimensionValue = objectService.create(ValueCreateRequest(ObjectValueData.NullValue, boxDimensionPropertyId), username)
         objectService.create(
             ValueCreateRequest(

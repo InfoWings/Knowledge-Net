@@ -1,12 +1,17 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.DetailedObjectResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
-import com.infowings.catalog.data.objekt.ObjectPropertyValue
-import com.infowings.catalog.data.objekt.ObjectService
+import com.infowings.catalog.data.aspect.*
+import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
+import kotlinx.serialization.json.JSON
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -44,11 +49,26 @@ class ObjectApi(val objectService: ObjectService) {
         return ObjectCreateResponse(result)
     }
 
+    @PostMapping("update")
+    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
+        val username = principal.name
+        logger.debug("Object ${request.id} update request: $request by $username")
+        val result = objectService.update(request, username)
+        return ObjectUpdateResponse(result)
+    }
+
     @PostMapping("createProperty")
     fun createObjectProperty(@RequestBody request: PropertyCreateRequest, principal: Principal): PropertyCreateResponse {
         val username = principal.name
-        logger.debug("New object property create request: $request by $username")
+        logger.debug("Object property update request: $request by $username")
         return PropertyCreateResponse(objectService.create(request, username))
+    }
+
+    @PostMapping("updateProperty")
+    fun createObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
+        val username = principal.name
+        logger.debug("Object property update request: $request by $username")
+        return PropertyUpdateResponse(objectService.update(request, username))
     }
 
     @PostMapping("createValue")
@@ -58,5 +78,70 @@ class ObjectApi(val objectService: ObjectService) {
         logger.debug("New object property value create request: $requestDTO by $username")
         val result: ObjectPropertyValue = objectService.create(request, username)
         return ValueCreateResponse(result.id.toString())
+    }
+
+    @PostMapping("updateValue")
+    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
+        val username = principal.name
+        val request = requestDTO.toRequest()
+        logger.debug("Object property value update request: $requestDTO by $username")
+        val result: ObjectPropertyValue = objectService.update(request, username)
+        return ValueUpdateResponse(result.id.toString())
+    }
+
+    @DeleteMapping("value/{id}")
+    fun deleteValue(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object value delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteValue(id, username)
+        } else {
+            objectService.deleteValue(id, username)
+        }
+    }
+
+    @DeleteMapping("property/{id}")
+    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object property delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteProperty(id, username)
+        } else {
+            objectService.deleteProperty(id, username)
+        }
+    }
+
+    @DeleteMapping("object/{id}")
+    fun deleteObject(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+        val username = principal.name
+        logger.debug("Object delete request: $id by $username")
+        if (force) {
+            objectService.softDeleteObject(id, username)
+        } else {
+            objectService.deleteObject(id, username)
+        }
+    }
+
+    @ExceptionHandler(ObjectException::class)
+    fun handleObjectException(exception: ObjectException): ResponseEntity<String> {
+        return when (exception) {
+            is ObjectIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${exception.message}")
+        }
+    }
+
+    @ExceptionHandler(ObjectPropertyException::class)
+    fun handleObjectPropertyException(exception: ObjectPropertyException): ResponseEntity<String> {
+        return when (exception) {
+            is ObjectPropertyIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+        }
+    }
+
+    @ExceptionHandler(ObjectValueException::class)
+    fun handleObjectValueException(exception: ObjectValueException): ResponseEntity<String> {
+        return when (exception) {
+            is ObjectValueIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${exception.message}")
+        }
     }
 }

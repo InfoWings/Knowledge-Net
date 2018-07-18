@@ -135,7 +135,7 @@ class AspectServiceDeletingTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, PropertyCardinality.ONE.name, aspectId), username)
+        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
         val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), propId), username)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
@@ -204,7 +204,7 @@ class AspectServiceDeletingTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        objectService.create(PropertyCreateRequest(obj, "prop", null, PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
+        objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
 
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
@@ -274,7 +274,7 @@ class AspectServiceDeletingTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, PropertyCardinality.ONE.name, aspectId), username)
+        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
         val objValue = objectService.create(
             ValueCreateRequest(
                 ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)),

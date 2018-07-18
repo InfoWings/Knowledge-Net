@@ -70,7 +70,7 @@ fun ObjectValue.tag() = when (this) {
 
 val tagByInt: Map<Int, ScalarTypeTag> = ScalarTypeTag.values().map { it.code to it }.toMap()
 
-class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_VALUE_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -170,6 +170,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex[PRECISION_PROPERTY]
         set(v) = setOrRemove(PRECISION_PROPERTY, v)
 
+
     val objectProperty: ObjectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
             ?.toObjectPropertyVertex()
@@ -211,7 +212,8 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, OVe
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
     val children: List<ObjectPropertyValueVertex>
-        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE).map { it.toObjectPropertyValueVertex() }
+        get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
+            .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -256,9 +258,6 @@ abstract class ObjectValueException(message: String) : Exception(message)
 class ObjectValueWithoutPropertyException(vertex: ObjectPropertyValueVertex) :
     ObjectValueException("Object property vertex not linked for ${vertex.id} ")
 
-class ObjectValueWithoutAspectPropertyException(vertex: ObjectPropertyValueVertex) :
-    ObjectValueException("Aspect property vertex not linked for ${vertex.id} ")
-
 class IntValueNotDefinedException(id: String) :
     ObjectValueException("int value is not defined for value $id")
 
@@ -297,3 +296,6 @@ class IncorrectTypeTagException(id: String, tag: Int) :
 
 class BooleanValueNodDefinedException(id: String) :
     ObjectValueException("boolean value is not defined for value $id")
+
+class ObjectValueIsLinkedException(ids: List<String>) :
+    ObjectValueException("linked values: $ids")

@@ -30,4 +30,4 @@ data class ObjectTruncated(
     fun toResponse() = ObjectGetResponse(id.toString(), name, description, subjectName, objectPropertiesCount)
 }
 
-data class ObjectCreateInfo(val name: String, val description: String?, val subject: SubjectVertex)
+data class ObjectWriteInfo(val name: String, val description: String?, val subject: SubjectVertex)
