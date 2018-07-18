@@ -240,7 +240,7 @@ class DefaultAspectService(
     }
 
     private fun findVertexById(id: String): AspectVertex =
-        aspectDaoService.getAspectVertex(id) ?: throw AspectDoesNotExist(id)
+        aspectDaoService.find(id) ?: throw AspectDoesNotExist(id)
 
     /**
      * Search [AspectData] by it's id
@@ -250,7 +250,7 @@ class DefaultAspectService(
 
     override fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
 
-    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.getAspectPropertyVertex(id)
+    private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.findProperty(id)
             ?: throw AspectPropertyDoesNotExist(id)
 
 
@@ -287,7 +287,7 @@ class DefaultAspectService(
     private fun remove(property: AspectPropertyData, context: HistoryContext) = transaction(db) {
         historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(context))
 
-        val vertex = aspectDaoService.getAspectPropertyVertex(property.id)
+        val vertex = aspectDaoService.findProperty(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
         return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
@@ -308,7 +308,7 @@ class DefaultAspectService(
             return aspectDaoService.createNewAspectVertex()
 
 
-        return aspectDaoService.getAspectVertex(aspectId!!)
+        return aspectDaoService.find(aspectId!!)
             ?.validateExistingAspect(this)
                 ?: throw IllegalArgumentException("Incorrect aspect id")
 
@@ -326,7 +326,7 @@ class DefaultAspectService(
         if (propertyId.isEmpty())
             return aspectDaoService.createNewAspectPropertyVertex()
 
-        return aspectDaoService.getAspectPropertyVertex(propertyId)
+        return aspectDaoService.findProperty(propertyId)
             ?.validateExistingAspectProperty(this)
                 ?: throw IllegalArgumentException("Incorrect property id")
 

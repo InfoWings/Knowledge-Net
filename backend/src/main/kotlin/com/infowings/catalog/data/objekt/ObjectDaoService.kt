@@ -2,7 +2,6 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
@@ -188,17 +187,23 @@ class ObjectDaoService(private val db: OrientDatabase) {
             is ObjectValue.Link -> {
                 val linkValue = objectValue.value
                 when (linkValue) {
-                    is LinkValueVertex.ObjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.vertex)
-                    is LinkValueVertex.SubjectValue ->
-                        replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
-                    is LinkValueVertex.DomainElementValue ->
-                        replaceEdge(
-                            vertex,
-                            OBJECT_VALUE_REFBOOK_ITEM_EDGE,
-                            vertex.refValueDomainElement,
-                            linkValue.vertex
-                        )
+                    is LinkValueVertex.Object -> replaceEdge(vertex, OBJECT_VALUE_OBJECT_EDGE, vertex.refValueObject, linkValue.vertex)
+                    is LinkValueVertex.ObjectProperty -> replaceEdge(
+                        vertex,
+                        OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE,
+                        vertex.refValueObjectProperty,
+                        linkValue.vertex
+                    )
+                    is LinkValueVertex.ObjectValue -> replaceEdge(vertex, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE, vertex.refValueObjectValue, linkValue.vertex)
+                    is LinkValueVertex.Subject -> replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
+                    is LinkValueVertex.DomainElement -> replaceEdge(vertex, OBJECT_VALUE_REFBOOK_ITEM_EDGE, vertex.refValueDomainElement, linkValue.vertex)
+                    is LinkValueVertex.Aspect -> replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.refValueAspect, linkValue.vertex)
+                    is LinkValueVertex.AspectProperty -> replaceEdge(
+                        vertex,
+                        OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE,
+                        vertex.refValueAspectProperty,
+                        linkValue.vertex
+                    )
                 }
             }
         }
@@ -226,10 +231,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
 sealed class ObjectException(message: String) : Exception(message)
 class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
-class EmptyObjectPropertyNameException(data: PropertyCreateRequest) : ObjectException("object name is empty: $data")
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
+
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")

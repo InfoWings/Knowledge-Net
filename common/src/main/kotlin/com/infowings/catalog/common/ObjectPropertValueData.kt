@@ -24,5 +24,9 @@ sealed class ObjectValueData {
 sealed class LinkValueData(open val id: String) {
     class Subject(override val id: String) : LinkValueData(id)
     class Object(override val id: String) : LinkValueData(id)
+    class ObjectProperty(override val id: String) : LinkValueData(id)
+    class ObjectValue(override val id: String) : LinkValueData(id)
     class DomainElement(override val id: String) : LinkValueData(id)
+    class Aspect(override val id: String) : LinkValueData(id)
+    class AspectProperty(override val id: String) : LinkValueData(id)
 }

@@ -100,7 +100,7 @@ class AspectValidator(
     }
 
     private fun AspectData.checkAspectBusinessKey() = this.also {
-        val name = this.name ?: throw AspectNameCannotBeNull()
+        val name = this.name
         if (name.isBlank()) throw AspectNameCannotBeNull()
         id?.let { checkAspectBusinessKeyForExistingAspect(this, name) } ?: checkAspectBusinessKeyForNewAspect(this, name)
     }
@@ -214,7 +214,7 @@ class AspectValidator(
                 throw AspectDoesNotExist(aspectId)
             }
         } else {
-            val existingProperty = aspectDaoService.getAspectPropertyVertex(id) ?: throw AspectPropertyDoesNotExist(id)
+            val existingProperty = aspectDaoService.findProperty(id) ?: throw AspectPropertyDoesNotExist(id)
             if (existingProperty.aspect != aspectId && isRelatedAspectRemoved()) {
                 throw AspectDoesNotExist(aspectId)
             }
@@ -222,7 +222,7 @@ class AspectValidator(
     }
 
     private fun AspectPropertyData.isRelatedAspectRemoved(): Boolean {
-        val relatedAspect = aspectDaoService.getAspectVertex(aspectId)
+        val relatedAspect = aspectDaoService.find(aspectId)
         return relatedAspect != null && relatedAspect.deleted
     }
 }
