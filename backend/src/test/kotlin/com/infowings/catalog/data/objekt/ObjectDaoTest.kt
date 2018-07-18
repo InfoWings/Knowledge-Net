@@ -117,6 +117,7 @@ class ObjectDaoTest {
         val createdObject = createObject(objectRequest)
         val propertyData = PropertyCreateRequest(
             name = "savePropertyTestObjectPropertyName",
+            description = null,
             objectId = createdObject.id,
             aspectId = aspect.idStrict()
         )
@@ -160,6 +161,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleIntValueTest",
+            description = null,
             aspectId = aspect.idStrict()
         )
 
@@ -214,6 +216,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
             name = "savePropertySimpleStrValueTest",
+            description = null,
             aspectId = aspect.idStrict()
         )
 
@@ -267,6 +270,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             aspectId = aspect.idStrict()
         )
         objectService.create(propertyRequest, username)
@@ -279,6 +283,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             aspectId = aspect.idStrict()
         )
         val objPropId1 = objectService.create(propertyRequest, username)
@@ -288,6 +293,7 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             aspectId = anotherAspect.idStrict()
         )
         val objPropId2 = objectService.create(propertyRequest2, username)
@@ -302,6 +308,7 @@ class ObjectDaoTest {
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
+            description = null,
             aspectId = aspect.idStrict()
         )
         val objPropId1 = objectService.create(propertyRequest, username)
@@ -311,6 +318,7 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop2",
+            description = null,
             aspectId = aspect.idStrict()
         )
         val objPropId2 = objectService.create(propertyRequest2, username)

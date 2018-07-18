@@ -49,13 +49,20 @@ external class History {
 
 
 class RedirectProps(var to: String) : RProps
-class LinkProps(var to: String, var onClick: dynamic = {}) : RProps
 class RouterProps(var history: dynamic) : RProps
 
-class RouteProps(var path: String? = null,
-                 var component: dynamic,
-                 var exact: Boolean = false,
-                 var render: dynamic = null) : RProps
+interface LinkProps : RProps {
+    var to: String
+    var role: String
+    var className: String
+}
+
+class RouteProps(
+    var path: String? = null,
+    var component: dynamic,
+    var exact: Boolean = false,
+    var render: dynamic = null
+) : RProps
 
 class IndexRouteProps(var component: dynamic) : RProps
 

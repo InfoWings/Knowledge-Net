@@ -5,12 +5,14 @@ import com.infowings.catalog.auth.AuthComponent
 import com.infowings.catalog.auth.privateRoute
 import com.infowings.catalog.history.HistoryPage
 import com.infowings.catalog.measures.MeasuresPage
-import com.infowings.catalog.objects.ObjectsPage
-import com.infowings.catalog.objects.ObjectsViewPage
+import com.infowings.catalog.objects.edit.ObjectEditPage
+import com.infowings.catalog.objects.view.ObjectsViewPage
 import com.infowings.catalog.reference.book.ReferenceBookPage
 import com.infowings.catalog.subjects.SubjectRouter
+import com.infowings.catalog.utils.decodeURIComponent
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.reactRouter
+import com.infowings.catalog.wrappers.toMap
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -29,7 +31,8 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
 
             privateRoute("/aspects", true, renderFunction<AspectsPage>())
             privateRoute("/objects", true, renderFunction<ObjectsViewPage>())
-            privateRoute("/objectsedit", true, renderFunction<ObjectsPage>())
+            privateRoute("/objects/new", true, RBuilder::objectEnterPage)
+            privateRoute("/objects/:id", true, RBuilder::objectEditPage)
             privateRoute("/measures", true, renderFunction<MeasuresPage>())
             privateRoute("/reference", true, renderFunction<ReferenceBookPage>())
             privateRoute("/subjects", false, renderFunction<SubjectRouter>())
@@ -54,3 +57,28 @@ inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFuncti
         }
     }
 }
+
+fun RBuilder.objectEditPage(props: RouteSuppliedProps) {
+    val id = props.match.params.toMap()["id"]!!
+    val objectId = decodeURIComponent(id)
+    child(ObjectEditPage::class) {
+        attrs {
+            location = props.location
+            history = props.history
+            match = props.match
+            this.objectId = objectId
+        }
+    }
+}
+
+fun RBuilder.objectEnterPage(props: RouteSuppliedProps) {
+    child(ObjectEditPage::class) {
+        attrs {
+            location = props.location
+            history = props.history
+            match = props.match
+            objectId = null
+        }
+    }
+}
+

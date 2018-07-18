@@ -1,8 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.DetailedObjectPropertyResponse
-import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
@@ -19,7 +18,7 @@ class ObjectService(
     private val db: OrientDatabase,
     private val dao: ObjectDaoService,
     subjectService: SubjectService,
-    aspectDao: AspectDaoService,
+    private val aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
     private val userService: UserService,
@@ -29,6 +28,7 @@ class ObjectService(
 
     fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
 
+    // TODO: KS-168 - possible bottleneck
     fun getDetailedObject(id: String) =
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
@@ -56,6 +56,40 @@ class ObjectService(
             values
         )
     }
+
+    fun getDetailedObjectForEdit(id: String) =
+        transaction(db) {
+            val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
+            val objectSubject = objectVertex.subject ?: throw IllegalStateException("Object in database does not have a subject")
+            val objectProperties = objectVertex.properties
+
+            return@transaction ObjectEditDetailsResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                objectSubject.name,
+                objectSubject.id,
+                objectProperties.map {
+                    //TODO: KS-168 Maybe performance bottleneck
+                    val values = it.values.map {
+                        ValueTruncated (
+                            it.id,
+                            it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                            it.aspectProperty?.id,
+                            it.children.map { it.id }
+                        )
+                    }
+                    ObjectPropertyEditDetailsResponse(
+                        it.id,
+                        it.name,
+                        it.description,
+                        values.filter { it.propertyId == null },
+                        values,
+                        aspectDao.getAspectTreeForProperty(it.identity)
+                    )
+                }
+            )
+        }
 
     fun create(request: ObjectCreateRequest, username: String): String {
         val userVertex = userService.findUserVertexByUsername(username)

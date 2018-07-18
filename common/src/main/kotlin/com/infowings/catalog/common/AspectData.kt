@@ -44,7 +44,7 @@ data class AspectData(
 @Serializable
 data class AspectPropertyData(
     val id: String,
-    val name: String,
+    val name: String?,
     val aspectId: String,
     val cardinality: String,
     val description: String?,
@@ -56,7 +56,7 @@ data class AspectPropertyData(
 @Serializable
 data class AspectPropertyDataExtended(
     val id: String,
-    val name: String,
+    val name: String?,
     val aspectId: String,
     val cardinality: String,
     val aspectName: String,
@@ -64,6 +64,27 @@ data class AspectPropertyDataExtended(
     val aspectDomain: String,
     val aspectBaseType: String,
     val refBookName: String?
+)
+
+@Serializable
+data class AspectTree(
+    val id: String,
+    val name: String,
+    val subjectId: String? = null,
+    val subjectName: String? = null,
+    val measure: String? = null,
+    val baseType: String? = null,
+    val domain: String? = null,
+    val refBookId: String? = null,
+    val properties: List<AspectPropertyTree> = emptyList()
+)
+
+@Serializable
+data class AspectPropertyTree(
+    val id: String,
+    val cardinality: PropertyCardinality,
+    val name: String?,
+    val aspect: AspectTree
 )
 
 /** Helpful extensions */

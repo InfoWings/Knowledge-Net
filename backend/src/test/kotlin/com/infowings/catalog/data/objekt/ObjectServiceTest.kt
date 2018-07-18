@@ -75,7 +75,6 @@ class ObjectServiceTest {
         val request = ObjectCreateRequest("createObjectTestName", "object descr", subject.id, subject.version)
         val createdObjectId = objectService.create(request, "user")
 
-        assertTrue(createdObjectId != null)
         val objectVertex = objectService.findById(createdObjectId)
         assertEquals(request.name, objectVertex.name, "names must be equal")
         assertEquals(request.description, objectVertex.description, "descriptions must be equal")
@@ -93,11 +92,10 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithPropertyTestName",
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            description = null, objectId = createdObjectId, aspectId = aspect.idStrict()
         )
 
         val createdPropertyId = objectService.create(propertyRequest, username)
-        assertTrue(createdPropertyId != null)
 
         val foundObject = objectService.findById(createdObjectId)
         val foundProperty = objectService.findPropertyById(createdPropertyId)
@@ -138,6 +136,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_createObjectWithValueTestName",
+            description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -252,6 +251,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = propertyName,
+            description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -273,6 +273,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = propertyName,
+            description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -293,7 +294,7 @@ class ObjectServiceTest {
         val propertyName1 = "prop1_$objectName"
         val propertyName2 = "prop2_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName1, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName1, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId1 = objectService.create(propertyRequest, username)
         val createdPropertyId2 = objectService.create(propertyRequest.copy(name = propertyName2), username)
 
@@ -313,7 +314,7 @@ class ObjectServiceTest {
         val propertyName1 = "prop1_$objectName"
         val propertyName2 = "prop2_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName1, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName1, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId1 = objectService.create(propertyRequest, username)
         val createdPropertyId2 = objectService.create(propertyRequest.copy(name = propertyName2), username)
 
@@ -332,7 +333,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -354,7 +355,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -376,7 +377,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -399,7 +400,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -427,7 +428,7 @@ class ObjectServiceTest {
 
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -455,7 +456,7 @@ class ObjectServiceTest {
 
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -475,7 +476,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -501,7 +502,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -527,7 +528,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -555,7 +556,7 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
@@ -585,7 +586,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -615,7 +616,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -645,7 +646,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -687,7 +688,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -729,7 +730,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -778,7 +779,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -828,7 +829,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -877,7 +878,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -926,7 +927,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -966,7 +967,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1005,14 +1006,14 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
 
         val propertyName2= "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1054,14 +1055,14 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
 
         val propertyName2= "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1099,7 +1100,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1143,7 +1144,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1187,7 +1188,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1240,7 +1241,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1293,7 +1294,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1347,7 +1348,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1401,7 +1402,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1450,7 +1451,7 @@ class ObjectServiceTest {
         val propertyName = "prop_$objectName"
 
         val propertyRequest = PropertyCreateRequest(
-            name = propertyName,
+            name = propertyName, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
@@ -1498,7 +1499,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1528,7 +1529,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1565,7 +1566,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1595,7 +1596,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1629,7 +1630,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1659,7 +1660,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1696,7 +1697,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1726,7 +1727,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1760,7 +1761,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1790,7 +1791,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1827,7 +1828,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1857,7 +1858,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1890,7 +1891,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1920,7 +1921,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -1957,7 +1958,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -1987,7 +1988,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -2025,7 +2026,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName1"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId1, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -2055,7 +2056,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId2, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -2098,7 +2099,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName1"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId1, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -2128,7 +2129,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId2, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
@@ -2166,7 +2167,7 @@ class ObjectServiceTest {
 
         val propertyName1 = "prop1_$objectName1"
         val propertyRequest1 = PropertyCreateRequest(
-            name = propertyName1,
+            name = propertyName1, description = null,
             objectId = createdObjectId1, aspectId = aspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
@@ -2196,7 +2197,7 @@ class ObjectServiceTest {
 
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
-            name = propertyName2,
+            name = propertyName2, description = null,
             objectId = createdObjectId2, aspectId = aspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)

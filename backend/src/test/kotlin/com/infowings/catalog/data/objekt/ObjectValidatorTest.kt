@@ -136,7 +136,8 @@ class ObjectValidatorTest {
         val objectVertex = createObject(objectRequest)
 
         val propertyRequest = PropertyCreateRequest(
-            name = "prop_objectPropertyValidatorTestName", objectId = objectVertex.id, aspectId = aspect.idStrict()
+            name = "prop_objectPropertyValidatorTestName",
+            description = null, objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
         val propertyInfo = validator.checkedForCreation(propertyRequest)
 
@@ -158,6 +159,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorTestName",
+            description = null,
             objectId = createNonExistentObjectKey(),
             aspectId = aspect.idStrict()
         )
@@ -184,6 +186,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorTestName",
+            description = null,
             objectId = objectVertex.id,
             aspectId = createNonExistentAspectKey()
         )
@@ -232,7 +235,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntTestName",
-            objectId = createdObject.id, aspectId = aspect.idStrict()
+            description = null, objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
@@ -265,6 +268,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntWithRangeTestName",
+            description = null,
             objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val createdProperty = createObjectProperty(propertyRequest)
@@ -293,7 +297,7 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleStrTestName",
-            objectId = createdObject.id, aspectId = aspect.idStrict()
+            description = null, objectId = createdObject.id, aspectId = aspect.idStrict()
         )
         val createdProperty = createObjectProperty(propertyRequest)
 
@@ -320,13 +324,13 @@ class ObjectValidatorTest {
 
         val propertyRequest1 = PropertyCreateRequest(
             name = "1:prop_objectSecondPropertyValidatorTestName",
-                objectId = objectVertex.id, aspectId = aspect.idStrict()
+            description = null, objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
         val propertyVertex = createObjectProperty(propertyRequest1)
 
         val propertyRequest2 = PropertyCreateRequest(
             name = "2:prop_objectSecondPropertyValidatorTestName",
-            objectId = objectVertex.id, aspectId = complexAspect.idStrict()
+            description = null, objectId = objectVertex.id, aspectId = complexAspect.idStrict()
         )
 
         val propertyInfo = validator.checkedForCreation(propertyRequest2)

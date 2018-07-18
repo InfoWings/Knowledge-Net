@@ -30,6 +30,7 @@ interface ReferenceBookService {
     fun getReferenceBookNameById(id: String): String?
     fun getReferenceBookOrNull(aspectId: String): ReferenceBook?
     fun getReferenceBook(aspectId: String): ReferenceBook
+    fun getReferenceBookById(refBookId: String): ReferenceBook
     fun createReferenceBook(name: String, aspectId: String, username: String): ReferenceBook
     fun editRoot(request: RootEditRequest, username: String)
     fun removeReferenceBook(referenceBook: ReferenceBook, userVertex: UserVertex, force: Boolean = false)
@@ -100,6 +101,22 @@ class DefaultReferenceBookService(
      */
     override fun getReferenceBook(aspectId: String): ReferenceBook =
         getReferenceBookOrNull(aspectId) ?: throw RefBookNotExist(aspectId)
+
+    /**
+     * Get ReferenceBook instance by its id
+     * @throws RefBookNotExist
+     * @throws RefBookAspectNotFoundException
+     */
+    override fun getReferenceBookById(refBookId: String): ReferenceBook = transaction(db) {
+        val rootVertex = dao.getReferenceBookVertexById(refBookId)
+        if (rootVertex != null) {
+            val aspectId = rootVertex.aspect?.id ?: throw RefBookAspectNotFoundException(refBookId)
+            return@transaction rootVertex.toReferenceBook(aspectId)
+        } else {
+            throw RefBookNotExist(refBookId)
+        }
+    }
+
 
     /**
      * Create ReferenceBook with name = [name]

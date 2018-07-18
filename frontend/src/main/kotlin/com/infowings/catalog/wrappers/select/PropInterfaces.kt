@@ -366,7 +366,7 @@ external interface CommonSelectProps<T : SelectOption> : RProps {
     /**
      * initial fieldName value
      */
-    var value: Any
+    var value: Any?
 
     /**
      * function which returns a custom way to render/manage the value selected `<CustomValue />`
