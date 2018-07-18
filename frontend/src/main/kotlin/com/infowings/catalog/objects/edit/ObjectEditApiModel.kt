@@ -40,7 +40,6 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                     createPropertyResponse.id,
                     propertyCreateRequest.name,
                     propertyCreateRequest.description,
-                    PropertyCardinality.valueOf(propertyCreateRequest.cardinality),
                     emptyList(),
                     emptyList(),
                     treeAspectResponse

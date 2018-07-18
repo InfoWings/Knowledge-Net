@@ -48,7 +48,6 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     state.model.id,
                     propertyEditModel.name,
                     propertyEditModel.description,
-                    PropertyCardinality.ZERO.name,
                     propertyEditModel.aspect?.id ?: error("Aspect must be set when submitting object property")
                 )
             )

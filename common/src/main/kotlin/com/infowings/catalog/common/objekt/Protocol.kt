@@ -26,7 +26,7 @@ data class ObjectUpdateRequest(
 data class PropertyCreateRequest(
     val objectId: String,
     val name: String?,
-    val description: String?
+    val description: String?,
     val aspectId: String
 )
 

@@ -68,7 +68,6 @@ data class ObjectPropertyEditDetailsResponse(
     val id: String,
     val name: String?,
     val description: String?,
-    val cardinality: PropertyCardinality,
     val rootValues: List<ValueTruncated>,
     val valueDescriptors: List<ValueTruncated>,
     val aspectDescriptor: AspectTree

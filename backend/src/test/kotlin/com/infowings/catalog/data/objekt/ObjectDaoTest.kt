@@ -318,7 +318,7 @@ class ObjectDaoTest {
         val propertyRequest2 = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop2",
-            description = null
+            description = null,
             aspectId = aspect.idStrict()
         )
         val objPropId2 = objectService.create(propertyRequest2, username)

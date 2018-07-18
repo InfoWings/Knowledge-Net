@@ -30,7 +30,6 @@ data class ObjectEditModel(
 data class ObjectPropertyEditModel(
     val id: String? = null,
     var name: String? = null,
-    var cardinality: PropertyCardinality? = null,
     var description: String? = null,
     var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
@@ -39,7 +38,6 @@ data class ObjectPropertyEditModel(
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
         response.id,
         response.name,
-        response.cardinality,
         response.description,
         response.aspectDescriptor,
         response.rootValues.toTreeView(response.valueDescriptors)
@@ -47,7 +45,6 @@ data class ObjectPropertyEditModel(
 
     fun mergeWith(response: ObjectPropertyEditDetailsResponse): ObjectPropertyEditModel {
         name = response.name
-        cardinality = response.cardinality
         description = response.description
         aspect = response.aspectDescriptor
         values = if (values == null && response.rootValues.isNotEmpty()) {

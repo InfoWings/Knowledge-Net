@@ -83,7 +83,6 @@ class ObjectService(
                         it.id,
                         it.name,
                         it.description,
-                        it.cardinality,
                         values.filter { it.propertyId == null },
                         values,
                         aspectDao.getAspectTreeForProperty(it.identity)
