@@ -180,7 +180,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     /** Initializes measures search */
 
-    fun initSearch(): OrientDatabaseInitializer  {
+    fun initSearch(): OrientDatabaseInitializer {
         initLuceneIndex(ASPECT_CLASS)
         initLuceneIndex(SUBJECT_CLASS)
         return this

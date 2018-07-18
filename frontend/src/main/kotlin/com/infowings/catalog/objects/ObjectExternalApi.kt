@@ -34,7 +34,7 @@ suspend fun createProperty(objectId: String, data: ObjectPropertyData): Property
     val name = data.name
     val aspectId = data.aspect.id ?: throw IllegalStateException("aspect id is not defined")
 
-    return createProperty(PropertyCreateRequest(objectId, name, data.cardinality, aspectId))
+    return createProperty(PropertyCreateRequest(objectId, name, aspectId))
 }
 
 suspend fun createValue(request: ValueCreateRequest): ValueCreateResponse =

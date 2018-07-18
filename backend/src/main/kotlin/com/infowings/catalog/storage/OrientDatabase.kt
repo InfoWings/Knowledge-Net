@@ -205,7 +205,7 @@ class OrientDatabase(
         return@session it.newVertex(className)
     }
 
-    fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
+    fun delete(v: ORecord): ODatabase<ORecord> = session(database = this) {
         it.delete(v.identity)
     }
 

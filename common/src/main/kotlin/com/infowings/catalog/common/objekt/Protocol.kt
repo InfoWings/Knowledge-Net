@@ -16,11 +16,23 @@ data class ObjectCreateRequest(
 )
 
 @Serializable
+data class ObjectUpdateRequest(
+    val id: String,
+    val name: String,
+    val description: String?
+)
+
+@Serializable
 data class PropertyCreateRequest(
     val objectId: String,
     val name: String?,
-    val cardinality: String,
     val aspectId: String
+)
+
+@Serializable
+data class PropertyUpdateRequest(
+    val objectPropertyId: String,
+    val name: String
 )
 
 data class ValueCreateRequest(
@@ -60,11 +72,32 @@ data class ValueCreateRequestDTO(
     )
 }
 
+data class ValueUpdateRequest(val valueId: String, val value: ObjectValueData) {
+    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO())
+}
+
+@Serializable
+data class ValueUpdateRequestDTO(
+    val valueId: String,
+    val value: ValueDTO
+) {
+    fun toRequest() = ValueUpdateRequest(value = value.toData(), valueId = valueId)
+}
+
 @Serializable
 data class ObjectCreateResponse(val id: String)
+
+@Serializable
+data class ObjectUpdateResponse(val id: String)
 
 @Serializable
 data class PropertyCreateResponse(val id: String)
 
 @Serializable
+data class PropertyUpdateResponse(val id: String)
+
+@Serializable
 data class ValueCreateResponse(val id: String)
+
+@Serializable
+data class ValueUpdateResponse(val id: String)

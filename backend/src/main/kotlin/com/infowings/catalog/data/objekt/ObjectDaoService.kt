@@ -3,16 +3,14 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
-import notDeletedSql
 import java.math.BigDecimal
-
-const val selectObjectWithName =
-    "SELECT from $OBJECT_CLASS WHERE name = :name and $notDeletedSql"
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -47,6 +45,58 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 }
             }.toList()
         }
+
+    fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
+
+    fun getSubValues(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("SELECT FROM (TRAVERSE IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") FROM :id)", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun valuesOfProperty(id: String): Set<ObjectPropertyValueVertex> = valuesOfProperty(ORecordId(id))
+
+    private fun valuesOfProperty(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) from :id", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun valuesOfPropertiesStr(ids: List<String>): Set<ObjectPropertyValueVertex> = valuesOfProperties(ids.map { ORecordId(it) })
+
+    fun valuesOfProperties(ids: List<ORID>): Set<ObjectPropertyValueVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) from :ids", mapOf("ids" to ids)) {
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
+
+    fun propertiesOfObject(id: String): Set<ObjectPropertyVertex> = propertiesOfObject(ORecordId(id))
+
+    private fun propertiesOfObject(id: ORID): Set<ObjectPropertyVertex> = transaction(db) {
+        db.query("select expand(in(\"$OBJECT_OBJECT_PROPERTY_EDGE\")) from :id", mapOf("id" to id)) {
+            it.map { it.toVertex().toObjectPropertyVertex() }.toSet()
+        }
+    }
+
+    fun linkedFrom(id: Set<ORID>, linkTypes: Set<String>, except: Set<ORID> = emptySet()): Map<ORID, Set<ORID>> {
+        val linkClasses = linkTypes.joinToString("\", \"", "\"", "\"")
+
+        return db.query("select @rid as sourceId,  in($linkClasses).@rid as id from :id", mapOf("id" to id)) {
+            it.map {
+                it.getProperty<ORID>("sourceId") to it.getProperty<List<ORID>>("id").toSet().filterNot { except.contains(it) }.toSet()
+            }.toMap().filterValues { it.isNotEmpty() }
+        }
+    }
+
+    fun valuesBetween(sources: Set<ORID>, targets: Set<ORID>): Set<ObjectPropertyValueVertex> {
+        return db.query(
+            "SELECT FROM (traverse out(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") from :sources while not  @rid in :targets)",
+            mapOf("sources" to sources, "targets" to targets)
+        ) {
+            val res = it.toList()
+            res.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+        }
+    }
 
     fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
         transaction(db) {
@@ -83,7 +133,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         )
     }
 
-    fun saveObject(vertex: ObjectVertex, info: ObjectCreateInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
+    fun saveObject(vertex: ObjectVertex, info: ObjectWriteInfo, properties: List<ObjectPropertyVertex>): ObjectVertex =
         transaction(db) {
             vertex.name = info.name
             vertex.description = info.description
@@ -105,6 +155,13 @@ class ObjectDaoService(private val db: OrientDatabase) {
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
+    fun updateObject(vertex: ObjectVertex, info: ObjectWriteInfo): ObjectVertex =
+        transaction(db) {
+            vertex.name = info.name
+            vertex.description = info.description
+            return@transaction vertex.save<OVertex>().toObjectVertex()
+        }
+
     fun saveObjectProperty(
         vertex: ObjectPropertyVertex,
         info: PropertyWriteInfo,
@@ -112,7 +169,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
     ): ObjectPropertyVertex =
         transaction(db) {
             vertex.name = info.name
-            vertex.cardinality = info.cardinality
 
             replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
             replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
@@ -216,18 +272,104 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
 
+
+    fun deleteAll(vertices: List<OVertex>) {
+        transaction(db) {
+            vertices.forEach { db.delete(it) }
+        }
+    }
+
+    fun delete(vertex: OVertex) = deleteAll(listOf(vertex))
+
+
+    fun delete(deleteInfo: DeleteInfo) {
+        transaction(db) {
+            deleteInfo.incoming.forEach { db.delete(it) }
+            deleteInfo.outgoing.forEach { db.delete(it) }
+            db.delete(deleteInfo.vertex)
+        }
+    }
+
+    fun softDelete(vertex: DeletableVertex) {
+        transaction(db) {
+            vertex.deleted = true
+        }
+    }
+
     fun getObjectVertex(id: String) = db.getVertexById(id)?.toObjectVertex()
     fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
     fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
 
-    fun getObjectVertexByNameAndSubject(name: String, subjectId: String): ObjectVertex? {
-        val query = "$selectObjectWithName and (@rid in (select out.@rid from $OBJECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
+    fun getObjectVertexesByNameAndSubject(name: String, subjectId: ORID): List<ObjectVertex> {
+        val sqlBuilder = objectSqlBuilder {
+            allObjects {
+                withoutDeleted()
+                withName(name)
+                withSubjectLink(subjectId)
+            }
+        }
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
+            rs.map { it.toVertex().toObjectVertex() }.toList()
+        }
+    }
 
-        return db.query(query, mapOf("name" to name, "subjectId" to ORecordId(subjectId))) { rs ->
-            rs.map { it.toVertex().toObjectVertex() }.firstOrNull()
+    fun getPropertyVertexesByNameAndAspect(name: String?, objectId: ORID, aspectId: ORID): List<ObjectPropertyVertex> {
+
+        val sqlBuilder = objectSqlBuilder {
+            fromObject(objectId) {
+                toObjProps {
+                    withName(name)
+                    withoutDeleted()
+                    withAspect(aspectId)
+                }
+            }
+        }
+
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
+            rs.map { it.toVertex().toObjectPropertyVertex() }.toList()
+        }
+    }
+
+    fun getValuesByObjectPropertyAndValue(objPropertyId: ORID, objectValue: ObjectValue): List<ObjectPropertyValueVertex> {
+
+        val sqlBuilder = objectSqlBuilder {
+            fromObjProp(objPropertyId) {
+                toObjValues {
+                    withoutDeleted()
+                    when (objectValue) {
+                        is ObjectValue.IntegerValue -> withIntValue(objectValue.value)
+                        is ObjectValue.DecimalValue -> withDecimalValue(objectValue.value)
+                        is ObjectValue.StringValue -> withStrValue(objectValue.value)
+                        is ObjectValue.RangeValue -> withRange(objectValue.range)
+                        is ObjectValue.BooleanValue -> withBooleanValue(objectValue.value)
+                        is ObjectValue.Link -> {
+                            val linkValue = objectValue.value
+                            when (linkValue) {
+                                is LinkValueVertex.Object -> withObjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.ObjectProperty -> withObjectPropertyLink(linkValue.vertex.identity)
+                                is LinkValueVertex.ObjectValue -> withObjectValueLink(linkValue.vertex.identity)
+                                is LinkValueVertex.Subject -> withSubjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.DomainElement -> withDomainElementLink(linkValue.vertex.identity)
+                                is LinkValueVertex.Aspect -> withAspectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.AspectProperty -> withAspectPropertyLink(linkValue.vertex.identity)
+                            }
+                        }
+                        ObjectValue.NullValue -> withNullValue()
+                    }
+                }
+            }
+        }
+
+        logger.info("sql: ${sqlBuilder.sql}")
+        logger.info("params: ${sqlBuilder.params}")
+
+        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
+            rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
         }
     }
 }
+
+private val logger = loggerFor<ObjectDaoService>()
 
 sealed class ObjectException(message: String) : Exception(message)
 class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
@@ -238,3 +380,7 @@ class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspec
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
 
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
+class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
+class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")
+class ObjectIsLinkedException(valueIds: List<String>, propertyIds: List<String>, objectId: String?) :
+    ObjectException("linked values: $valueIds, linked properties: $propertyIds, inked object: $objectId")

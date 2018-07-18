@@ -128,8 +128,8 @@ class NotFreeAspectUpdateTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
-        createValue(aspectWithObjectProperty.properties[0].id)
+        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", aspectWithObjectProperty.id!!), username)
+        createValue(aspectWithObjectProperty.properties[0].id, 124)
 
         aspectWithObjectProperty = aspectService.findById(aspectWithObjectProperty.id!!)
         aspectWithValue = aspectService.findById(aspectWithValue.id!!)
@@ -144,9 +144,9 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createValue(aspectPropertyId: String? = null) {
+    private fun createValue(aspectPropertyId: String? = null, value: Int = 123) {
         val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
+            value = ObjectValueData.IntegerValue(value, null),
             objectPropertyId = objectPropertyId,
             aspectPropertyId = aspectPropertyId,
             measureId = null,

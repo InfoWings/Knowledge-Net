@@ -137,7 +137,7 @@ class ObjectServiceExampleTest {
 
 
         val propertyRequest = PropertyCreateRequest(
-            objectId = createdObjectId, name = "name", cardinality = PropertyCardinality.ZERO.name,
+            objectId = createdObjectId, name = "name",
             aspectId = aspectChargeCharacteristic.idStrict()
         )
         val createdPropertyId: String = objectService.create(propertyRequest, username)
