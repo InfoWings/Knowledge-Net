@@ -43,14 +43,14 @@ class SubjectApi(val subjectService: SubjectService) {
     }
 
     @PostMapping("remove")
-    fun removeAspect(@RequestBody subjectData: SubjectData, principal: Principal) {
+    fun removeSubject(@RequestBody subjectData: SubjectData, principal: Principal) {
         val username = principal.name
         logger.debug("Remove subject request: ${subjectData.id} by $username")
         subjectService.remove(subjectData, username)
     }
 
     @PostMapping("forceRemove")
-    fun forceRemoveAspect(@RequestBody subjectData: SubjectData, principal: Principal) {
+    fun forceRemoveSubject(@RequestBody subjectData: SubjectData, principal: Principal) {
         val username = principal.name
         logger.debug("Forced remove subject request: ${subjectData.id} by $username")
         subjectService.remove(subjectData, username, true)

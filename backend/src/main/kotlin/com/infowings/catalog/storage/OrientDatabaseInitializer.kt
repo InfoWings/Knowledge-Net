@@ -69,9 +69,13 @@ const val OBJECT_VALUE_OBJECT_PROPERTY_EDGE = "ObjectValueObjectPropertyEdge"
 const val OBJECT_VALUE_ASPECT_PROPERTY_EDGE = "ObjectValueAspectPropertyEdge"
 const val OBJECT_VALUE_OBJECT_VALUE_EDGE = "ObjectValueObjectValueEdge"
 const val OBJECT_VALUE_OBJECT_EDGE = "ObjectValueObjectEdge"
+const val OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE = "ObjectValueRefObjectPropertyEdge"
+const val OBJECT_VALUE_REF_OBJECT_VALUE_EDGE = "ObjectValueRefObjectValueEdge"
 const val OBJECT_VALUE_SUBJECT_EDGE = "ObjectValueSubjectEdge"
 const val OBJECT_VALUE_REFBOOK_ITEM_EDGE = "ObjectValueRefBookItemEdge"
 const val OBJECT_VALUE_MEASURE_EDGE = "ObjectValueMeasureEdge"
+const val OBJECT_VALUE_ASPECT_EDGE = "ObjectValueAspectEdge"
+const val OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE = "ObjectValueRefAspectPropertyEdge"
 
 private val logger = loggerFor<OrientDatabaseInitializer>()
 
@@ -130,6 +134,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
         initEdge(session, OBJECT_VALUE_OBJECT_VALUE_EDGE)
         initEdge(session, OBJECT_VALUE_OBJECT_EDGE)
+        initEdge(session, OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE)
+        initEdge(session, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE)
+        initEdge(session, OBJECT_VALUE_ASPECT_EDGE)
+        initEdge(session, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
         initEdge(session, OBJECT_VALUE_SUBJECT_EDGE)
         initEdge(session, OBJECT_VALUE_REFBOOK_ITEM_EDGE)
         initEdge(session, OBJECT_VALUE_MEASURE_EDGE)
@@ -183,7 +191,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         /** Add initial measures to database */
         val localMeasureService = MeasureService(database)
-        session(database) {
+        transaction(database) {
             MeasureGroupMap.values.forEach { localMeasureService.saveGroup(it) }
             localMeasureService.linkGroupsBidirectional(AreaGroup, LengthGroup)
             localMeasureService.linkGroupsBidirectional(VolumeGroup, LengthGroup)
@@ -204,12 +212,18 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     }
 
     /** Initializes measures search */
-    fun initSearch() {
-        initLuceneIndex(MEASURE_VERTEX)
+
+    fun initSearch(): OrientDatabaseInitializer  {
         initLuceneIndex(ASPECT_CLASS)
         initLuceneIndex(SUBJECT_CLASS)
+        return this
+    }
+
+    fun initSearchMeasure() {
+        initLuceneIndex(MEASURE_VERTEX)
         initLuceneIndex(MEASURE_GROUP_VERTEX)
     }
+
 
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")

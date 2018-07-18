@@ -3,22 +3,20 @@ package com.infowings.catalog
 import com.infowings.catalog.auth.user.UserDao
 import com.infowings.catalog.auth.user.UserProperties
 import com.infowings.catalog.auth.user.UserService
+import com.infowings.catalog.data.DefaultSubjectService
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.NormalizedSubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
-import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.aspect.DefaultAspectService
+import com.infowings.catalog.data.aspect.NormalizedAspectService
 import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.*
-import com.infowings.catalog.data.history.providers.AspectConstructor
-import com.infowings.catalog.data.history.providers.AspectDeltaConstructor
-import com.infowings.catalog.data.history.providers.AspectHistoryProvider
-import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
-import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.objekt.ObjectDaoService
 import com.infowings.catalog.data.objekt.ObjectService
+import com.infowings.catalog.data.reference.book.DefaultReferenceBookService
+import com.infowings.catalog.data.reference.book.NormalizedReferenceBookService
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
-import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.DEFAULT_HEART_BEAT__TIMEOUT
@@ -53,37 +51,34 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { UserService(db = ref(), dao = ref()) }
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
-        bean { ReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref()) }
+        bean {
+            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref())
+            return@bean NormalizedReferenceBookService(innerRefBookService)
+        }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
         bean { SubjectDao(db = ref()) }
-        bean { SubjectService(db = ref(), dao = ref(), history = ref(), userService = ref()) }
         bean {
-            AspectService(
+            val innerSubjectService = DefaultSubjectService(db = ref(), dao = ref(), history = ref(), userService = ref())
+            return@bean NormalizedSubjectService(innerSubjectService)
+        }
+        bean {
+            val innerAspectService = DefaultAspectService(
                 db = ref(),
                 aspectDaoService = ref(),
                 referenceBookService = ref(),
                 historyService = ref(),
                 userService = ref()
             )
+            return@bean NormalizedAspectService(innerAspectService)
         }
         bean { SuggestionService(database = ref()) }
         bean { HistoryDao(db = ref()) }
         bean { HistoryService(db = ref(), historyDao = ref()) }
-        bean { AspectConstructor(subjectService = ref(), referenceBookService = ref()) }
-        bean { AspectDeltaConstructor(aspectService = ref()) }
-        bean {
-            AspectHistoryProvider(
-                historyService = ref(),
-                aspectConstructor = ref(),
-                aspectDeltaConstructor = ref()
-            )
-        }
-        bean {
-            RefBookHistoryProvider(historyService = ref(), aspectDao = ref())
-        }
+        bean { AspectHistoryProvider(historyService = ref(), refBookDao = ref(), subjectDao = ref(), aspectService = ref()) }
+        bean { RefBookHistoryProvider(historyService = ref(), aspectDao = ref()) }
         bean {
             ObjectHistoryProvider(
-                historyService = ref(), aspectService = ref(), subjectService = ref(),
+                historyService = ref(), aspectService = ref(), aspectDao = ref(), subjectService = ref(),
                 refBookService = ref(), measureService = ref()
             )
         }

@@ -36,6 +36,7 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
                 value = props.subjectsFilter.map { subjectOption(it) }.toTypedArray()
                 labelKey = "subjectName"
                 valueKey = "subjectName"
+                cache = false
                 onChange = {
                     props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData }) // TODO: KS-143
                 }
