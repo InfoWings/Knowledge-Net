@@ -78,12 +78,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun linkedFrom(id: Set<ORID>, linkTypes: Set<String>): Map<ORID, Set<ORID>> {
+    fun linkedFrom(id: Set<ORID>, linkTypes: Set<String>, except: Set<ORID> = emptySet()): Map<ORID, Set<ORID>> {
         val linkClasses = linkTypes.joinToString("\", \"", "\"", "\"")
 
         return db.query("select @rid as sourceId,  in($linkClasses).@rid as id from :id", mapOf("id" to id)) {
             it.map {
-                it.getProperty<ORID>("sourceId") to it.getProperty<List<ORID>>("id").toSet()
+                it.getProperty<ORID>("sourceId") to it.getProperty<List<ORID>>("id").toSet().filterNot { except.contains(it) }.toSet()
             }.toMap().filterValues { it.isNotEmpty() }
         }
     }
@@ -346,8 +346,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
                             val linkValue = objectValue.value
                             when (linkValue) {
                                 is LinkValueVertex.Object -> withObjectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.ObjectProperty -> withObjectPropertyLink(linkValue.vertex.identity)
+                                is LinkValueVertex.ObjectValue -> withObjectValueLink(linkValue.vertex.identity)
                                 is LinkValueVertex.Subject -> withSubjectLink(linkValue.vertex.identity)
                                 is LinkValueVertex.DomainElement -> withDomainElementLink(linkValue.vertex.identity)
+                                is LinkValueVertex.Aspect -> withAspectLink(linkValue.vertex.identity)
+                                is LinkValueVertex.AspectProperty -> withAspectPropertyLink(linkValue.vertex.identity)
                             }
                         }
                         ObjectValue.NullValue -> withNullValue()

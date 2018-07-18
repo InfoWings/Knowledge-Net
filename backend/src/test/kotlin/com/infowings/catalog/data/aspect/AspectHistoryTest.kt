@@ -480,9 +480,6 @@ class AspectHistoryTest {
 
         val latestFact = history.first()
 
-        println("latest fact: " + latestFact)
-        println("complex aspect: " + complexAspect)
-
         assertEquals(EventType.CREATE, latestFact.event.type)
         assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
         assertEquals(complexAspect.baseType, latestFact.fullData.aspectData.baseType)

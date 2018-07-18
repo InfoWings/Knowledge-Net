@@ -59,5 +59,5 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
 
 sealed class ObjectPropertyException(message: String) : Exception(message)
 
-class ObjectPropertyIsLinkedException(valueIds: List<String>, propertyId: String?) :
+data class ObjectPropertyIsLinkedException(val valueIds: List<String>, val propertyId: String?) :
     ObjectPropertyException("linked values: $valueIds, linked property: $propertyId")

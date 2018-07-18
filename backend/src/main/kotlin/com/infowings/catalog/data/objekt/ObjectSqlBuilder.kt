@@ -139,6 +139,30 @@ class ObjectPropertyValueSqlBuilder(from: String, private val params: MutableMap
         sql += ":linkedObjectId in OUT(\"$OBJECT_VALUE_OBJECT_EDGE\")"
     }
 
+    fun withObjectPropertyLink(objectPropertyId: ORID) {
+        processConditions()
+        params["linkedObjectPropertyId"] = objectPropertyId
+        sql += ":linkedObjectPropertyId in OUT(\"$OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE\")"
+    }
+
+    fun withObjectValueLink(objectValueId: ORID) {
+        processConditions()
+        params["linkedObjectValueId"] = objectValueId
+        sql += ":linkedObjectValueId in OUT(\"$OBJECT_VALUE_REF_OBJECT_VALUE_EDGE\")"
+    }
+
+    fun withAspectLink(aspectId: ORID) {
+        processConditions()
+        params["linkedAspectId"] = aspectId
+        sql += ":linkedAspectId in OUT(\"$OBJECT_VALUE_ASPECT_EDGE\")"
+    }
+
+    fun withAspectPropertyLink(aspectPropertyId: ORID) {
+        processConditions()
+        params["linkedAspectPropertyId"] = aspectPropertyId
+        sql += ":linkedAspectPropertyId in OUT(\"$OBJECT_VALUE_ASPECT_PROPERTY_EDGE\")"
+    }
+
     fun withSubjectLink(subjectId: ORID) {
         processConditions()
         params["linkedSubjectId"] = subjectId
