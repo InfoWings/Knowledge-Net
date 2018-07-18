@@ -14,11 +14,18 @@ import react.RComponent
 import react.RState
 import react.setState
 
+private external fun encodeURIComponent(component: String): String = definedExternally
+
 suspend fun getAllSubjects(): SubjectsList =
     JSON.parse(get("/api/subject/all"))
 
 suspend fun getSubjectByName(name: String): SubjectData =
     JSON.parse(get("/api/subject/get/$name"))
+
+suspend fun getSubjectById(id: String): SubjectData {
+    val encoded = encodeURIComponent(id)
+    return JSON.parse(get("/api/subject/$encoded"))
+}
 
 suspend fun createSubject(body: SubjectData): SubjectData =
     JSON.parse(post("/api/subject/create", JSON.stringify(body)))
@@ -95,7 +102,8 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
         val res = try {
             updateSubject(subjectData)
         } catch (e: NotModifiedException) {
-            subjectData
+            val subjectId = subjectData.id
+            if (subjectId != null) getSubjectById(subjectId) else subjectData
         }
 
         setState {
@@ -153,6 +161,3 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
     }
 
 }
-
-
-
