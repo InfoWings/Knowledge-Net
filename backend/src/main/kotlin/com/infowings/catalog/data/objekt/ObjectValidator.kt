@@ -52,7 +52,7 @@ class ObjectValidator(
 
     fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
         val objectVertex = objectService.findById(request.objectId)
-        val aspectVertex = aspectDao.getAspectVertex(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
+        val aspectVertex = aspectDao.find(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
 
         val trimmedName = request.name?.trim()
 
@@ -73,7 +73,7 @@ class ObjectValidator(
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
         val aspectPropertyVertex = request.aspectPropertyId?.let {
-            aspectDao.getAspectPropertyVertex(it)
+            aspectDao.findProperty(it)
                     ?: throw AspectPropertyDoesNotExist(it)
         }
 
@@ -86,11 +86,19 @@ class ObjectValidator(
                 val refValueVertex = dataValue.value.let {
                     when (it) {
                         is LinkValueData.Subject ->
-                            LinkValueVertex.SubjectValue(subjectService.findByIdStrict(it.id))
+                            LinkValueVertex.Subject(subjectService.findByIdStrict(it.id))
                         is LinkValueData.Object ->
-                            LinkValueVertex.ObjectValue(objectService.findById(it.id))
+                            LinkValueVertex.Object(objectService.findById(it.id))
+                        is LinkValueData.ObjectProperty ->
+                            LinkValueVertex.ObjectProperty(objectService.findPropertyById(it.id))
+                        is LinkValueData.ObjectValue ->
+                            LinkValueVertex.ObjectValue(objectService.findPropertyValueById(it.id))
                         is LinkValueData.DomainElement ->
-                            LinkValueVertex.DomainElementValue(refBookService.getReferenceBookItemVertex(it.id))
+                            LinkValueVertex.DomainElement(refBookService.getReferenceBookItemVertex(it.id))
+                        is LinkValueData.Aspect ->
+                            LinkValueVertex.Aspect(aspectDao.findStrict(it.id))
+                        is LinkValueData.AspectProperty ->
+                            LinkValueVertex.AspectProperty(aspectDao.findPropertyStrict(it.id))
                     }
                 }
                 ObjectValue.Link(refValueVertex)

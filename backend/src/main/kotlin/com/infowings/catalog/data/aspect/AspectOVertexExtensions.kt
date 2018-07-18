@@ -121,7 +121,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             vertex[ATTR_DESC] = value
         }
 
-    fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE)
+    fun isLinkedBy() = hasIncomingEdges(ASPECT_ASPECT_PROPERTY_EDGE, ASPECT_OBJECT_PROPERTY_EDGE, OBJECT_VALUE_ASPECT_EDGE)
 
     fun existsAspectImplementation(): Boolean {
         val inPropertyWithValue = lazy {
@@ -229,7 +229,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
     )
 
     fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, description, version)
+        AspectPropertyData(id, name, aspect, cardinality, description, version, deleted)
 
     var name: String?
         get() = vertex["name"]
@@ -264,7 +264,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
 
-    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
+    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
 
     fun existsAspectPropertyImplementation(): Boolean = isLinkedBy()
 

@@ -27,8 +27,6 @@ private data class RefBookState(
     )
 }
 
-private val logger = loggerFor<RefBookHistoryProvider>()
-
 class RefBookHistoryProvider(
     private val historyService: HistoryService,
     private val aspectDao: AspectDaoService
@@ -260,7 +258,20 @@ class RefBookHistoryProvider(
         val historyState = RefBookState()
 
         return factsBySession.map { (sessionId, sessionFacts) ->
-            val ch = sessionToChange(sessionFacts, historyState, aspectNames)
+            val ch = try {
+                sessionToChange(sessionFacts, historyState, aspectNames)
+            } catch (e: Exception) {
+                logger.warn("Failed to aggregate history for session ${sessionId}")
+                sessionFacts.forEach { logger.warn("fact: " + it) }
+                logger.warn("history state: $historyState")
+
+                RefBookHistory(sessionFacts.first().event, info = "", deleted = false,
+                    fullData = RefBookHistoryData.Companion.BriefState(
+                        RefBookHistoryData.Companion.Header("", "", null, "", ""),
+                        RefBookHistoryData.Companion.Item("", "", null)),
+                    changes = emptyList(),
+                    problem = "Thrown: $e")
+            }
             val timestamps = sessionFacts.map { it.event.timestamp }
             val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
             val newEvent = ch.event.copy(
@@ -272,3 +283,5 @@ class RefBookHistoryProvider(
         }.reversed()
     }
 }
+
+private val logger = loggerFor<RefBookHistoryProvider>()

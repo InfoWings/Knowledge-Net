@@ -9,8 +9,16 @@ data class ObjectLazyViewModel(
     val subjectName: String,
     val objectPropertiesCount: Int,
     val objectProperties: List<ObjectPropertyViewModel>? = null,
-    var expanded: Boolean = false
-)
+    var expanded: Boolean = false,
+    var expandAllFlag: Boolean = false
+) {
+    fun expandAll() {
+        expanded = true
+        objectProperties?.forEach { property ->
+            property.values.forEach { it.expandAll() }
+        }
+    }
+}
 
 data class ObjectPropertyViewModel(
     val id: String,
@@ -50,6 +58,13 @@ data class ObjectPropertyValueViewModel(
         }
     )
 
+    fun expandAll() {
+        expanded = true
+        valueGroups.forEach { valueGroup ->
+            valueGroup.values.forEach { it.expandAll() }
+        }
+    }
+
 }
 
 data class AspectPropertyValueGroupViewModel(
@@ -76,6 +91,13 @@ data class AspectPropertyValueViewModel(
             )
         }
     )
+
+    fun expandAll() {
+        expanded = true
+        children.forEach { valueGroup ->
+            valueGroup.values.forEach { it.expandAll() }
+        }
+    }
 }
 
 data class AspectPropertyViewModel(
@@ -147,7 +169,11 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 detailedObject.propertiesCount,
                 it.objectProperties ?: detailedObject.objectProperties.map(::ObjectPropertyViewModel),
                 it.expanded
-            )
+            ).also { newObject ->
+                if (it.expandAllFlag) {
+                    newObject.expandAll()
+                }
+            }
         }
     }
 

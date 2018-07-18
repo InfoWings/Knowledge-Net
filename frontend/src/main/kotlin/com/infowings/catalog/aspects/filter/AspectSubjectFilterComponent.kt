@@ -40,6 +40,7 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
                 onChange = {
                     props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData }) // TODO: KS-143
                 }
+                filterOptions = { options, _, _ -> options }
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {
                         launch {

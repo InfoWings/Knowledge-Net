@@ -41,6 +41,10 @@ enum class ValueDTOTags {
     RANGE,
     SUBJECT,
     OBJECT,
+    OBJECT_PROPERTY,
+    OBJECT_VALUE,
+    ASPECT,
+    ASPECT_PROPERTY,
     DOMAIN_ELEMENT,
 }
 
@@ -60,39 +64,36 @@ data class ValueDTO(
 fun stringValueDto(value: String) = ValueDTO(ValueDTOTags.STRING.name, value, null, null, null, null, null)
 
 fun nullValueDto() = ValueDTO(ValueDTOTags.NULL.name, null, null, null, null, null, null)
-
 fun booleanValueDto(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, null, null, null, null, null, value)
-
 fun decimalValueDto(valueRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, valueRepr, null, null, null, null, null)
-
-fun integerValueDto(value: Int, precision: Int?) =
-    ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null, null)
-
+fun integerValueDto(value: Int, precision: Int?) = ValueDTO(ValueDTOTags.INTEGER.name, null, value, null, precision, null, null)
 fun rangeValueDto(value: Range) = ValueDTO(ValueDTOTags.RANGE.name, null, null, value, null, null, null)
 fun subjectValueDto(id: String) = ValueDTO(ValueDTOTags.SUBJECT.name, null, null, null, null, id, null)
 fun objectValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT.name, null, null, null, null, id, null)
+fun objectPropertyValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT_PROPERTY.name, null, null, null, null, id, null)
+fun objectValueValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT_VALUE.name, null, null, null, null, id, null)
 fun domainElementValueDto(id: String) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.name, null, null, null, null, id, null)
+fun aspectValueDto(id: String) = ValueDTO(ValueDTOTags.ASPECT.name, null, null, null, null, id, null)
+fun aspectPropertyValueDto(id: String) = ValueDTO(ValueDTOTags.ASPECT_PROPERTY.name, null, null, null, null, id, null)
 
 /* Конвертеры */
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
-    is ObjectValueData.IntegerValue ->
-        integerValueDto(value, precision)
-    is ObjectValueData.DecimalValue ->
-        decimalValueDto(valueRepr)
-    is ObjectValueData.BooleanValue ->
-        booleanValueDto(value)
-    is ObjectValueData.StringValue ->
-        stringValueDto(value)
-    is ObjectValueData.RangeValue ->
-        rangeValueDto(range)
+    is ObjectValueData.IntegerValue -> integerValueDto(value, precision)
+    is ObjectValueData.DecimalValue -> decimalValueDto(valueRepr)
+    is ObjectValueData.BooleanValue -> booleanValueDto(value)
+    is ObjectValueData.StringValue -> stringValueDto(value)
+    is ObjectValueData.RangeValue -> rangeValueDto(range)
     is ObjectValueData.Link ->
         when (this.value) {
             is LinkValueData.Subject -> subjectValueDto(this.value.id)
             is LinkValueData.Object -> objectValueDto(this.value.id)
+            is LinkValueData.ObjectProperty -> objectPropertyValueDto(this.value.id)
+            is LinkValueData.ObjectValue -> objectValueValueDto(this.value.id)
             is LinkValueData.DomainElement -> domainElementValueDto(this.value.id)
+            is LinkValueData.Aspect -> aspectValueDto(this.value.id)
+            is LinkValueData.AspectProperty -> aspectPropertyValueDto(this.value.id)
         }
-    is ObjectValueData.NullValue ->
-        nullValueDto()
+    is ObjectValueData.NullValue -> nullValueDto()
 }
 
 fun ValueDTO.idStrict(): String = vertexId ?: throw IllegalStateException("id is absent")
@@ -100,32 +101,20 @@ fun ValueDTO.intStrict(): Int = intValue ?: throw IllegalStateException("int val
 fun ValueDTO.stringStrict(): String = stringValue ?: throw IllegalStateException("str value is absent")
 fun ValueDTO.rangeStrict(): Range = range ?: throw IllegalStateException("range value is absent")
 fun ValueDTO.booleanStrict(): Boolean = booleanValue ?: throw IllegalStateException("boolean value is absent")
-fun ValueDTO.decimalStrict(): String =
-    stringValue ?: throw IllegalStateException("decimal value representation is absent")
+fun ValueDTO.decimalStrict(): String = stringValue ?: throw IllegalStateException("decimal value representation is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
-    ValueDTOTags.INTEGER -> {
-        ObjectValueData.IntegerValue(intStrict(), precision)
-    }
-    ValueDTOTags.STRING -> {
-        ObjectValueData.StringValue(stringStrict())
-    }
-    ValueDTOTags.BOOLEAN -> {
-        ObjectValueData.BooleanValue(booleanStrict())
-    }
-    ValueDTOTags.RANGE -> {
-        ObjectValueData.RangeValue(rangeStrict())
-    }
-    ValueDTOTags.DECIMAL -> {
-        ObjectValueData.DecimalValue(decimalStrict())
-    }
-    ValueDTOTags.OBJECT ->
-        ObjectValueData.Link(LinkValueData.Object(idStrict()))
-    ValueDTOTags.SUBJECT ->
-        ObjectValueData.Link(LinkValueData.Subject(idStrict()))
-    ValueDTOTags.DOMAIN_ELEMENT ->
-        ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
-    ValueDTOTags.NULL ->
-        ObjectValueData.NullValue
+    ValueDTOTags.INTEGER -> ObjectValueData.IntegerValue(intStrict(), precision)
+    ValueDTOTags.STRING -> ObjectValueData.StringValue(stringStrict())
+    ValueDTOTags.BOOLEAN -> ObjectValueData.BooleanValue(booleanStrict())
+    ValueDTOTags.RANGE -> ObjectValueData.RangeValue(rangeStrict())
+    ValueDTOTags.DECIMAL -> ObjectValueData.DecimalValue(decimalStrict())
+    ValueDTOTags.OBJECT -> ObjectValueData.Link(LinkValueData.Object(idStrict()))
+    ValueDTOTags.OBJECT_PROPERTY -> ObjectValueData.Link(LinkValueData.ObjectProperty(idStrict()))
+    ValueDTOTags.OBJECT_VALUE -> ObjectValueData.Link(LinkValueData.ObjectValue(idStrict()))
+    ValueDTOTags.SUBJECT -> ObjectValueData.Link(LinkValueData.Subject(idStrict()))
+    ValueDTOTags.DOMAIN_ELEMENT -> ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
+    ValueDTOTags.ASPECT -> ObjectValueData.Link(LinkValueData.Aspect(idStrict()))
+    ValueDTOTags.ASPECT_PROPERTY -> ObjectValueData.Link(LinkValueData.AspectProperty(idStrict()))
+    ValueDTOTags.NULL -> ObjectValueData.NullValue
 }
-

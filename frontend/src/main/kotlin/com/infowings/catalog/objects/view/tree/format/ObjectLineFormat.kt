@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.submit.expandTreeButtonComponent
 import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.wrappers.reactRouter
 import react.RProps
@@ -28,6 +29,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
                 )
             }
         }
+        expandTreeButtonComponent(props.expandTree, "pt-small")
         reactRouter.Link {
             attrs {
                 className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit pt-small"
@@ -43,4 +45,5 @@ interface ObjectLineFormatProps : RProps {
     var objectName: String
     var objectDescription: String?
     var subjectName: String
+    var expandTree: () -> Unit
 }
