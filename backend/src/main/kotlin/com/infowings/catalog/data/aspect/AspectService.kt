@@ -290,8 +290,6 @@ class DefaultAspectService(
         val vertex = aspectDaoService.findProperty(property.id)
                 ?: throw AspectPropertyDoesNotExist(property.id)
 
-        println("is linked by: " + vertex.isLinkedBy())
-
         return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
             vertex
         )
