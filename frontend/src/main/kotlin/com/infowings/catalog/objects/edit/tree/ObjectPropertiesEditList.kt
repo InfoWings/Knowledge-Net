@@ -4,6 +4,8 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
+import com.infowings.catalog.objects.edit.ObjectEditApiModel
+import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
 import react.RBuilder
@@ -13,8 +15,7 @@ import react.rFunction
 
 fun RBuilder.objectPropertiesEditList(
     properties: List<ObjectPropertyEditModel>,
-    onCreateProperty: (ObjectPropertyEditModel) -> Unit,
-    onCreateValue: (ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) -> Unit,
+    editModel: ObjectTreeEditModel,
     updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit
 ) {
     properties.forEachIndexed { propertyIndex, property ->
@@ -27,7 +28,7 @@ fun RBuilder.objectPropertiesEditList(
                         updater(propertyIndex, block)
                     }
                     onCreate = if (property.id == null && property.aspect != null) {
-                        { onCreateProperty(property) }
+                        { editModel.createProperty(property) }
                     } else null
                     onAddValue = if (property.id != null) {
                         {
@@ -75,7 +76,7 @@ fun RBuilder.objectPropertiesEditList(
                             }
                         }
                         onSaveValue = if (value.id == null && value.value != null) {
-                            { onCreateValue(value.value ?: error("value should not be null"), property.id ?: error("Property should have id != null"), null, null) }
+                            { editModel.createValue(value.value ?: error("value should not be null"), property.id ?: error("Property should have id != null"), null, null) }
                         } else null
                         val allValues = property.values ?: error("Property should have at least one value")
                         onAddValue = when {
@@ -127,7 +128,7 @@ fun RBuilder.objectPropertiesEditList(
                             else -> null
                         }
                         onSubmitValue = { value, parentValueId, aspectPropertyId ->
-                            onCreateValue(value, property.id ?: error("Property should have id != null"), parentValueId, aspectPropertyId)
+                            editModel.createValue(value, property.id ?: error("Property should have id != null"), parentValueId, aspectPropertyId)
                         }
                     }
                 }

@@ -4,7 +4,9 @@ import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.PropertyUpdateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.objects.ObjectEditModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
@@ -14,9 +16,13 @@ import react.*
 
 
 interface ObjectTreeEditModel {
-    fun onUpdate(updater: ObjectEditModel.() -> Unit)
-    fun onCreateProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun onCreateValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
+    fun update(updater: ObjectEditModel.() -> Unit)
+    fun createProperty(propertyEditModel: ObjectPropertyEditModel)
+    fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
+    fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
+    fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
+    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData)
+    fun deleteValue(valueId: String, propertyId: String)
 }
 
 class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
@@ -33,15 +39,14 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
             } else {
                 model = ObjectEditModel(nextProps.serverView)
             }
-//            model = ObjectEditModel(nextProps.serverView)
         }
     }
 
-    override fun onUpdate(updater: ObjectEditModel.() -> Unit) = setState {
+    override fun update(updater: ObjectEditModel.() -> Unit) = setState {
         model.updater()
     }
 
-    override fun onCreateProperty(propertyEditModel: ObjectPropertyEditModel) {
+    override fun createProperty(propertyEditModel: ObjectPropertyEditModel) {
         launch {
             props.apiModel.submitObjectProperty(
                 PropertyCreateRequest(
@@ -54,7 +59,24 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun onCreateValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+    override fun updateProperty(propertyEditModel: ObjectPropertyEditModel) {
+        launch {
+            props.apiModel.editObjectProperty(
+                PropertyUpdateRequest(
+                    propertyEditModel.id ?: error("Property should have id in order to be updated"),
+                    propertyEditModel.name ?: TODO("Does property should have name in order to be updated?")
+                )
+            )
+        }
+    }
+
+    override fun deleteProperty(propertyEditModel: ObjectPropertyEditModel) {
+        launch {
+            props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"))
+        }
+    }
+
+    override fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
         launch {
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
@@ -65,6 +87,24 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     parentValueId = parentValueId
                 )
             )
+        }
+    }
+
+    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData) {
+        launch {
+            props.apiModel.editObjectValue(
+                propertyId,
+                ValueUpdateRequest(
+                    valueId = valueId,
+                    value = value
+                )
+            )
+        }
+    }
+
+    override fun deleteValue(valueId: String, propertyId: String) {
+        launch {
+            props.apiModel.deleteObjectValue(propertyId, valueId)
         }
     }
 
