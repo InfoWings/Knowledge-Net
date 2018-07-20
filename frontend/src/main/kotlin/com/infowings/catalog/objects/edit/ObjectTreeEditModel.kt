@@ -2,17 +2,21 @@ package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.PropertyUpdateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.objects.ObjectEditModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
+import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.wrappers.blueprint.Alert
+import com.infowings.catalog.wrappers.blueprint.Intent
 import kotlinx.coroutines.experimental.launch
 import react.*
+import react.dom.div
+import react.dom.h3
+import react.dom.span
 
 
 interface ObjectTreeEditModel {
@@ -49,7 +53,20 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun deleteObject() {
         launch {
-            props.apiModel.deleteObject()
+            try {
+                props.apiModel.deleteObject()
+            } catch (badRequestException: BadRequestException) {
+                setState {
+                    entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
+                        launch {
+                            props.apiModel.deleteObject(true)
+                            setState {
+                                entityDeleteInfo = null
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -79,7 +96,20 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun deleteProperty(propertyEditModel: ObjectPropertyEditModel) {
         launch {
-            props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"))
+            try {
+                props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"))
+            } catch (badRequestException: BadRequestException) {
+                setState {
+                    entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
+                        launch {
+                            props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"), true)
+                            setState {
+                                entityDeleteInfo = null
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -111,7 +141,20 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun deleteValue(valueId: String, propertyId: String) {
         launch {
-            props.apiModel.deleteObjectValue(propertyId, valueId)
+            try {
+                props.apiModel.deleteObjectValue(propertyId, valueId)
+            } catch (badRequestException: BadRequestException) {
+                setState {
+                    entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
+                        launch {
+                            props.apiModel.deleteObjectValue(propertyId, valueId, true)
+                            setState {
+                                entityDeleteInfo = null
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -122,17 +165,41 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 objectTree = state.model
             }
         }
+        state.entityDeleteInfo?.let { entityDeleteInfo ->
+            Alert {
+                attrs {
+                    cancelButtonText = "Cancel"
+                    confirmButtonText = "Delete"
+                    onCancel = {
+                        setState {
+                            this.entityDeleteInfo = null
+                        }
+                    }
+                    intent = Intent.DANGER
+                    isOpen = true
+                    onConfirm = {
+                        entityDeleteInfo.continuation()
+                    }
+                }
+                div(classes = "linked-object-window") {
+                    h3 { +"The entity is linked" }
+                    span { +entityDeleteInfo.message }
+                }
+            }
+        }
     }
 
     interface State : RState {
         var model: ObjectEditModel
-        var deleted: Boolean
+        var entityDeleteInfo: EntityDeleteInfo?
     }
 
     interface Props : RProps {
         var serverView: ObjectEditDetailsResponse
         var apiModel: ObjectEditApiModel
     }
+
+    data class EntityDeleteInfo(val message: String, val continuation: () -> Unit)
 }
 
 fun RBuilder.objectTreeEditModel(block: RHandler<ObjectTreeEditModelComponent.Props>) =

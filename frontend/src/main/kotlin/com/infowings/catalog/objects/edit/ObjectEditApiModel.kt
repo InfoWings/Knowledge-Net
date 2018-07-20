@@ -16,9 +16,9 @@ interface ObjectEditApiModel {
     suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
     suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest)
-    suspend fun deleteObject()
-    suspend fun deleteObjectProperty(id: String)
-    suspend fun deleteObjectValue(propertyId: String, id: String)
+    suspend fun deleteObject(force: Boolean = false)
+    suspend fun deleteObjectProperty(id: String, force: Boolean = false)
+    suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean = false)
 }
 
 class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props, ObjectEditApiModelComponent.State>(),
@@ -49,9 +49,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun deleteObject() {
+    override suspend fun deleteObject(force: Boolean) {
         val editedObject = state.editedObject ?: error("Object is not yet loaded")
-        deleteObject(editedObject.id, false)
+        deleteObject(editedObject.id, force)
         setState {
             this.editedObject = null
             this.deleted = true
@@ -93,8 +93,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun deleteObjectProperty(id: String) {
-        deleteProperty(id, false)
+    override suspend fun deleteObjectProperty(id: String, force: Boolean) {
+        deleteProperty(id, force)
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
@@ -135,8 +135,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun deleteObjectValue(propertyId: String, id: String) {
-        deleteValue(id, false)
+    override suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean) {
+        deleteValue(id, force)
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
