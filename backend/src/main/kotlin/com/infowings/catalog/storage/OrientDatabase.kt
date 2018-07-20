@@ -12,6 +12,7 @@ import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
+import com.orientechnologies.orient.core.sql.executor.OResultInternal
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
@@ -27,6 +28,20 @@ import javax.annotation.PreDestroy
 operator fun <T> OVertex.get(name: String): T = getProperty<T>(name)
 
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
+
+data class DBIndexInfo(
+    val name: String,
+    val type: String,
+    val algorithm: String,
+    val indexVersion: Int,
+    val valueContainerAlgorithm: String,
+    val indexDefinitionClass: String,
+    val clusters: Set<String>,
+    val indexDefinition: Map<String, String>,
+    val metadata: Map<String, String>
+) {
+    fun nameElements(): List<String> = name.split(".")
+}
 
 val OElement.id: String
     get() = identity.toString()
@@ -218,6 +233,45 @@ class OrientDatabase(
 
     fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
         vertices.forEach { it.save<OVertex>() }
+    }
+
+    fun countVertices(className: String) = query("select count() as c, @rid from $className") { result ->
+        val data = result.toList()
+        when (data.size) {
+            0 -> 0
+            else -> {
+                val row = data[0]
+                row.getProperty("c")
+            }
+        }
+    }
+
+    fun getIndexes(): List<DBIndexInfo> = query("select expand(indexes) from metadata:indexmanager") { result ->
+        val data = result.toList()
+        data.map {vertex ->
+            val indef = vertex.getProperty<OResultInternal>("indexDefinition")
+
+            val indefMap = indef.propertyNames.map { it to indef.getProperty<String>(it) }.toMap()
+
+            val metadata = if (vertex.hasProperty("metadata")) vertex.getProperty<OResultInternal>("metadata") else null
+
+            val metadataMap = metadata?.let { md ->
+                md.propertyNames.map { it to md.getProperty<String>(it) }.toMap()
+            } ?: emptyMap()
+
+
+            DBIndexInfo(
+                name = vertex.getProperty("name"),
+                type = vertex.getProperty("type"),
+                algorithm = vertex.getProperty("algorithm"),
+                indexVersion = vertex.getProperty("indexVersion"),
+                valueContainerAlgorithm = vertex.getProperty("valueContainerAlgorithm"),
+                indexDefinitionClass = vertex.getProperty("indexDefinitionClass"),
+                clusters = vertex.getProperty("clusters"),
+                indexDefinition = indefMap,
+                metadata = metadataMap
+            )
+        }
     }
 }
 

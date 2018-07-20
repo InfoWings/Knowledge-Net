@@ -50,7 +50,12 @@ data class AspectPropertyData(
     val description: String?,
     val version: Int = 0,
     val deleted: Boolean = false
-)
+) {
+    companion object {
+        fun Initial(name: String, description: String?, aspectId: String, cardinality: String) =
+            AspectPropertyData(id = "", name = name, description = description, aspectId = aspectId, cardinality = cardinality, version = 0, deleted = false)
+    }
+}
 
 /** Data about AspectProperty together with data about relevant aspect */
 @Serializable
