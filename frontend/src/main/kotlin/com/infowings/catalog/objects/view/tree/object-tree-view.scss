@@ -1,0 +1,79 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+
+.object-tree-view {
+  max-width: 120rem;
+  margin: 3rem auto;
+}
+
+.object-line {
+
+  display: flex;
+  align-items: center;
+
+  &__name {
+    margin-right: 1rem;
+  }
+
+  &__description {
+    height: 1.6rem;
+    margin-left: 1rem;
+  }
+
+  &__subject {
+    margin: 0 1rem;
+  }
+
+  &__edit-link {
+    margin-left: 1rem;
+  }
+}
+
+.object-property-value-line {
+
+  display: flex;
+  align-items: center;
+
+  &__role-name {
+    margin-right: 1rem;
+  }
+
+  &__aspect-name {
+    margin-right: 1rem;
+  }
+
+  &__property-description {
+    height: 1.6rem;
+    margin-right: 1rem;
+  }
+
+  &__value {
+    margin-right: 1rem;
+  }
+
+  &__value-measure {
+    margin-right: 1rem;
+  }
+
+  &__value-description {
+    height: 1.6rem;
+  }
+}
+
+.object-value {
+
+  &__boolean {
+
+    &--true {
+      color: $red4;
+    }
+
+    &--false {
+      color: $green4;
+    }
+
+  }
+}
+
+.new-object-link {
+  transform: translateX(2rem);
+}

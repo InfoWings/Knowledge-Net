@@ -54,40 +54,29 @@ data class ValueResponse(
 )
 
 @Serializable
-data class ObjectData(
-    val id: String? = null,
-    val name: String? = null,
+data class ObjectEditDetailsResponse(
+    val id: String,
+    val name: String,
     val description: String?,
-    val subject: SubjectData,
-    val properties: List<ObjectPropertyData> = emptyList()
+    val subjectName: String,
+    val subjectId: String,
+    val properties: List<ObjectPropertyEditDetailsResponse>
 )
 
 @Serializable
-data class ObjectPropertyData(
-    val id: String? = null,
-    val name: String? = null,
-    val cardinality: String,
-    val aspect: AspectData,
-    val values: List<ObjectPropertyValueData>
+data class ObjectPropertyEditDetailsResponse(
+    val id: String,
+    val name: String?,
+    val description: String?,
+    val rootValues: List<ValueTruncated>,
+    val valueDescriptors: List<ValueTruncated>,
+    val aspectDescriptor: AspectTree
 )
 
 @Serializable
-data class ObjectPropertyValueData(
-    val id: String? = null,
-    val scalarValue: String?,
-    val children: List<AspectPropertyValueData>
+data class ValueTruncated(
+    val id: String,
+    val value: ValueDTO,
+    val propertyId: String?,
+    val childrenIds: List<String>
 )
-
-@Serializable
-data class AspectPropertyValueData(
-    val id: String? = null,
-    val scalarValue: String?,
-    val aspectProperty: AspectPropertyDataExtended,
-    val children: List<AspectPropertyValueData>
-) {
-
-    fun forEach(f: (AspectPropertyValueData, AspectPropertyValueData?) -> Unit, parent: AspectPropertyValueData?) {
-        f(this, parent)
-        children.forEach { it.forEach(f, this) }
-    }
-}

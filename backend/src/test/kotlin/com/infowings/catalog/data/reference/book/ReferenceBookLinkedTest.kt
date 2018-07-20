@@ -150,7 +150,7 @@ class ReferenceBookLinkedTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
+        val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
         val objPropertyValueRequest = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking)),
             objectPropertyId = objProperty,

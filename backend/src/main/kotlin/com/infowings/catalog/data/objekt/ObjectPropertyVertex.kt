@@ -12,7 +12,7 @@ import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toObjectPropertyVertex() = ObjectPropertyVertex(this)
 
-class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -33,10 +33,14 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             vertex[ATTR_NAME] = value
         }
 
-    var cardinality: PropertyCardinality
-        get() = PropertyCardinality.valueOf(vertex["cardinality"])
-        set(value) {
-            vertex["cardinality"] = value.toString()
+    val cardinality: PropertyCardinality
+        get() {
+            val rootsCount = values.filter { it.parentValue == null }.size
+            return when (rootsCount) {
+                0 -> PropertyCardinality.ZERO
+                1 -> PropertyCardinality.ONE
+                else -> PropertyCardinality.INFINITY
+            }
         }
 
     val objekt: ObjectVertex?
@@ -49,7 +53,11 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         get() = vertex.getVertices(
             ODirection.IN,
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
-        ).map { it.toObjectPropertyValueVertex() }
+        ).map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+
 }
 
-abstract class ObjectPropertyException(message: String) : Exception(message)
+sealed class ObjectPropertyException(message: String) : Exception(message)
+
+data class ObjectPropertyIsLinkedException(val valueIds: List<String>, val propertyId: String?) :
+    ObjectPropertyException("linked values: $valueIds, linked property: $propertyId")

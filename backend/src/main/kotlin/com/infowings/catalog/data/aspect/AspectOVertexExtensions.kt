@@ -231,7 +231,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
     fun toAspectPropertyData(): AspectPropertyData =
         AspectPropertyData(id, name, aspect, cardinality, description, version, deleted)
 
-    var name: String
+    var name: String?
         get() = vertex["name"]
         set(value) {
             vertex["name"] = value

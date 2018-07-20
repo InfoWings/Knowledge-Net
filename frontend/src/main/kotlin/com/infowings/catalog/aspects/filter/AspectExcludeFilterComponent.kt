@@ -34,6 +34,7 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 onChange = {
                     props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData }) // TODO: KS-143
                 }
+                filterOptions = { options, _, _ -> options }
                 loadOptions = { input, callback ->
                     if (input.isNotEmpty()) {
                         launch {

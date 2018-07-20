@@ -36,6 +36,12 @@ class AspectApi(val aspectService: AspectService) {
         return aspectService.findById(id)
     }
 
+    @GetMapping("/tree/{id}")
+    fun getAspectTreeById(@PathVariable id: String): AspectTree {
+        logger.debug("Get aspect tree by id: $id")
+        return aspectService.findTreeById(id)
+    }
+
     @GetMapping("all")
     fun getAspects(
         @RequestParam(required = false) orderFields: List<String>,
