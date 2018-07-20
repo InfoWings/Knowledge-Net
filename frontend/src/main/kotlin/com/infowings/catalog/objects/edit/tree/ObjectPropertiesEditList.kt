@@ -30,6 +30,9 @@ fun RBuilder.objectPropertiesEditList(
                     onCreate = if (property.id == null && property.aspect != null) {
                         { editModel.createProperty(property) }
                     } else null
+                    onRemoveProperty = if (property.id != null) {
+                        { editModel.deleteProperty(property) }
+                    } else null
                     onAddValue = if (property.id != null) {
                         {
                             updater(propertyIndex) {
@@ -125,11 +128,27 @@ fun RBuilder.objectPropertiesEditList(
                                     }
                                 }
                             }
+                            (value.id != null && allValues.size > 1) -> {
+                                {
+                                    editModel.deleteValue(value.id, property.id ?: error("Property should have id"))
+                                }
+                            }
+                            (value.id != null && value.value != ObjectValueData.NullValue) -> {
+                                {
+                                    editModel.updateValue(value.id, property.id ?: error("Property should have id"), ObjectValueData.NullValue)
+                                }
+                            }
+                            (value.id != null && value.value == ObjectValueData.NullValue) -> {
+                                {
+                                    editModel.deleteProperty(property)
+                                }
+                            }
                             else -> null
                         }
                         onSubmitValue = { value, parentValueId, aspectPropertyId ->
                             editModel.createValue(value, property.id ?: error("Property should have id != null"), parentValueId, aspectPropertyId)
                         }
+                        this.editModel = editModel
                     }
                 }
             }
@@ -163,6 +182,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         }
                         onConfirmCreate = props.onCreate
                         onAddValue = props.onAddValue
+                        onRemoveProperty = props.onRemoveProperty
                     }
                 }
             }!!
@@ -175,6 +195,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onCreate: (() -> Unit)?
     var onAddValue: (() -> Unit)?
+    var onRemoveProperty: (() -> Unit)?
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
@@ -211,6 +232,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         onAddValue = props.onAddValue
                         onCancelValue = props.onCancelValue
                         onRemoveValue = props.onRemoveValue
+                        needRemoveConfirmation = props.rootValue.id != null
                     }
                 }
             }!!
@@ -237,7 +259,9 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         val groupIndex = valueGroups.indexOfFirst { it.propertyId == id }
                         valueGroups.removeAt(groupIndex)
                     }
-                }
+                },
+                editModel = props.editModel,
+                objectPropertyId = props.property.id ?: error("Object property should exist when editing values")
             )
         }
     }
@@ -253,6 +277,7 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var onCancelValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var onSubmitValue: (ObjectValueData, parentValueId: String?, aspectPropertyId: String?) -> Unit
+    var editModel: ObjectTreeEditModel
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {

@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.replaceBy
+import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
 import react.*
 
@@ -22,6 +23,11 @@ interface ObjectEditApiModel {
 
 class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props, ObjectEditApiModelComponent.State>(),
     ObjectEditApiModel {
+
+    override fun State.init() {
+        editedObject = null
+        deleted = false
+    }
 
     override fun componentDidMount() {
         launch {
@@ -46,6 +52,10 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     override suspend fun deleteObject() {
         val editedObject = state.editedObject ?: error("Object is not yet loaded")
         deleteObject(editedObject.id, false)
+        setState {
+            this.editedObject = null
+            this.deleted = true
+        }
     }
 
     override suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest) {
@@ -213,11 +223,19 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override fun RBuilder.render() {
-        state.editedObject?.let {
-            objectTreeEditModel {
+        if (state.deleted) {
+            reactRouter.Redirect {
                 attrs {
-                    apiModel = this@ObjectEditApiModelComponent
-                    serverView = it
+                    to = "/objects"
+                }
+            }
+        } else {
+            state.editedObject?.let {
+                objectTreeEditModel {
+                    attrs {
+                        apiModel = this@ObjectEditApiModelComponent
+                        serverView = it
+                    }
                 }
             }
         }
@@ -225,6 +243,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     interface State : RState {
         var editedObject: ObjectEditDetailsResponse?
+        var deleted: Boolean
     }
 
     interface Props : RProps {

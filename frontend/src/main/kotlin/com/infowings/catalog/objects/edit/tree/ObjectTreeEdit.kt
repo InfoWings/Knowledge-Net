@@ -14,6 +14,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
     companion object {
         init {
             kotlinext.js.require("styles/object-tree-edit.scss")
+            kotlinext.js.require("styles/delete-button.scss")
         }
     }
 
@@ -53,6 +54,9 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                     props.editModel.update {
                                         properties.add(ObjectPropertyEditModel())
                                     }
+                                }
+                                onDeleteObject = {
+                                    props.editModel.deleteObject()
                                 }
                             }
                         }

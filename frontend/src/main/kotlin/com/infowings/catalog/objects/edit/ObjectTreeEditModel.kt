@@ -17,6 +17,7 @@ import react.*
 
 interface ObjectTreeEditModel {
     fun update(updater: ObjectEditModel.() -> Unit)
+    fun deleteObject()
     fun createProperty(propertyEditModel: ObjectPropertyEditModel)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
@@ -44,6 +45,12 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun update(updater: ObjectEditModel.() -> Unit) = setState {
         model.updater()
+    }
+
+    override fun deleteObject() {
+        launch {
+            props.apiModel.deleteObject()
+        }
     }
 
     override fun createProperty(propertyEditModel: ObjectPropertyEditModel) {
@@ -119,6 +126,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     interface State : RState {
         var model: ObjectEditModel
+        var deleted: Boolean
     }
 
     interface Props : RProps {
