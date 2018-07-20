@@ -262,7 +262,7 @@ class PingTest {
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE.extName]!!, 0)
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE_GROUP.extName]!!, 0)
         assertEquals(8, status.dbMetrics.counts[OrientClass.HISTORY_EVENT.extName])
-        assertEquals(8, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
+        assertEquals(9, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(7, status.dbMetrics.counts[OrientClass.HISTORY_ADD_LINK.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_REMOVE_LINK.extName])
 
