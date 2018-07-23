@@ -11,8 +11,10 @@ import react.rFunction
 val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps>("ObjectPropertyValueLineFormat") { props ->
     div("object-property-value-line") {
         props.propertyName?.let {
-            span(classes = "text-italic text-bold object-property-value-line__role-name") {
-                +it
+            if (it.isNotBlank()) {
+                span(classes = "text-italic text-bold object-property-value-line__role-name") {
+                    +it
+                }
             }
         }
         span(classes = "text-bold object-property-value-line__aspect-name") {
