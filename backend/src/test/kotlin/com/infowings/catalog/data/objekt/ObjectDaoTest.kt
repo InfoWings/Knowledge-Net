@@ -11,6 +11,8 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import junit.framework.Assert.assertTrue
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -393,8 +395,8 @@ class ObjectDaoTest {
         Assert.assertEquals("PropertyValue must have new value", "hello", updatedValue.value.toObjectValueData().toDTO().stringValue)
     }
 
-    @Test(expected = ObjectPropertyValueAlreadyExists::class)
-    fun objPropertyValueUpdateWrongBkTest() {
+    @Test
+    fun objectPropertyValueUpdateRequest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", objVertex, aspectVertex!!))
@@ -405,7 +407,7 @@ class ObjectDaoTest {
             measureId = null,
             parentValueId = null
         )
-        val objPropValue = objectService.create(valueRequest1, username)
+        val valueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(124, null),
@@ -415,7 +417,10 @@ class ObjectDaoTest {
             parentValueId = null
         )
         objectService.create(valueRequest2, username)
-        objectService.update(ValueUpdateRequest(objPropValue.id.toString(), ObjectValueData.IntegerValue(124, null)), username)
+        val valueUpdateRequest = ValueUpdateRequest(valueResponse1.id.toString(), ObjectValueData.IntegerValue(124, null))
+        val valueUpdateResponse = objectService.update(valueUpdateRequest, username)
+        assertThat("Updated node have the same id as created node", valueUpdateResponse.id, Matchers.equalTo(valueResponse1.id))
+        assertThat("Updated value equals to one in request", valueUpdateResponse.value.toObjectValueData(), Matchers.equalTo(valueUpdateRequest.value))
     }
 
     @Test
