@@ -8,9 +8,13 @@ import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.exception.OStorageException
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.index.OIndex
+import com.orientechnologies.orient.core.metadata.schema.OClass
+import com.orientechnologies.orient.core.metadata.schema.OProperty
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
@@ -155,7 +159,6 @@ class OrientDatabase(
             .initObject()
             .initMeasures()
             .initSearchMeasure() // this call should be latest
-
     }
 
     @PreDestroy
@@ -218,6 +221,69 @@ class OrientDatabase(
 
     fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
         vertices.forEach { it.save<OVertex>() }
+    }
+
+    private fun luceneIndexName(classType: String, attrName: String) = "$classType.lucene.$attrName"
+
+    fun createLuceneIndex(classType: String, attrName: String) = createLuceneIndex(classType, luceneIndexName(classType, attrName), attrName)
+
+    private fun createLuceneIndex(classType: String, indexName: String, attrName: String) = session(this) { session ->
+        val oClass = session.getClass(classType)
+        if (oClass.getClassIndex(indexName) == null) {
+            val metadata = ODocument()
+            metadata.setProperty("allowLeadingWildcard", true)
+            CreateIndexWrapper.createIndexWrapper(oClass, indexName, "FULLTEXT", null, metadata, "LUCENE", arrayOf(attrName))
+        }
+    }
+
+    fun removeIndex(classType: String, indexName: String) = session(this) { session ->
+        val oClass = session.getClass(classType)
+        val index = oClass.getClassIndex(indexName)
+        if (oClass.getClassIndex(indexName) != null) {
+            session.command("drop index $indexName")
+        }
+    }
+
+    fun resetLuceneIndex(classType: String, indexName: String) {
+        removeIndex(classType, indexName)
+        createLuceneIndex(classType, indexName, indexName.split(".").last())
+    }
+
+    fun resetSbTreeIndex(classType: String, indexName: String): OIndex<*> {
+        removeIndex(classType, indexName)
+        return if (indexName.endsWith(".ic")) createICIndex(classType) else {
+            val elems = indexName.split(".")
+            val className = elems.first()
+            val propertyName = elems.last()
+            session(this) {
+                return@session createBasicIndex(classProperty(className, propertyName))
+            }
+        }
+    }
+
+    fun luceneIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
+        session.getClass(classType).classIndexes.filter { it.algorithm == "LUCENE" }
+    }
+
+    fun createICIndex(className: String): OIndex<*> {
+        return session(this) { session ->
+            session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
+            return@session session.getClass(className).getClassIndex("$className.index.name.ic")!!
+        }
+    }
+
+    fun createBasicIndex(property: OProperty): OIndex<*> = property.createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
+
+    fun sbTreeIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
+        session.getClass(classType).classIndexes.filter { it.algorithm == "SBTREE" }
+    }
+    
+    private fun classProperty(className: String, propertyName: String): OProperty = session(this) { session ->
+        return@session session.getClass(className).getProperty(propertyName)
+    }
+
+    fun indexSize(index: OIndex<*>) = transaction(this) {
+        return@transaction index.iterateEntriesMajor("", true, true).toKeys().size
     }
 }
 
