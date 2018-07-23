@@ -152,21 +152,12 @@ class ObjectValidator(
 
         val objectPropertyVertex = objectService.findPropertyById(objPropertyVertex.id)
         val aspectPropertyVertex = valueVertex.aspectProperty
-                //?: throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked Aspect") // TODO: Remove commented code
 
         val parentValueVertex = valueVertex.parentValue
 
         val dataValue = request.value
 
         val value = getObjectValueFromData(dataValue)
-
-        // check business key // TODO: Not a business key. Remove commented code
-//        val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.identity, value).any {
-//            it.id != valueVertex.id
-//        }
-//        if (existsSameValue) {
-//            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-//        }
 
         return ValueWriteInfo(
             value,
