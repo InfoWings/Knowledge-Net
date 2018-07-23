@@ -29,21 +29,23 @@ fun RBuilder.aspectPropertiesEditList(
         val valueGroup = groupsMap[aspectProperty.id]
 
         if (valueGroup == null) { // Не может быть пустой (#isEmpty()), так как мы удаляем всю группу при удалении единственного значения
-            aspectPropertyValueCreateNode {
-                attrs {
-                    this.aspectProperty = aspectProperty
-                    this.onCreateValue = { valueData ->
-                        onAddValueGroup(
-                            AspectPropertyValueGroupEditModel(
-                                propertyId = aspectProperty.id,
-                                values = mutableListOf(
-                                    AspectPropertyValueEditModel(
-                                        id = null,
-                                        value = valueData
+            if (!aspectProperty.deleted && !aspectProperty.aspect.deleted) {
+                aspectPropertyValueCreateNode {
+                    attrs {
+                        this.aspectProperty = aspectProperty
+                        this.onCreateValue = { valueData ->
+                            onAddValueGroup(
+                                AspectPropertyValueGroupEditModel(
+                                    propertyId = aspectProperty.id,
+                                    values = mutableListOf(
+                                        AspectPropertyValueEditModel(
+                                            id = null,
+                                            value = valueData
+                                        )
                                     )
                                 )
                             )
-                        )
+                        }
                     }
                 }
             }
