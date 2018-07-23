@@ -4,6 +4,7 @@ import com.infowings.catalog.utils.removeAuthRole
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
+import com.infowings.catalog.wrappers.reactRouter
 import react.*
 
 class Header : RComponent<Header.Props, RState>() {
@@ -16,53 +17,53 @@ class Header : RComponent<Header.Props, RState>() {
                     +"Knowledge Net"
                 }
                 NavbarDivider {}
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/objects"
-                        onClick = { props.history.push("/objects") }
-                        text = "Objects".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/objects") " pt-active" else ""}"
+                        role = "button"
+                        to = "/objects"
                     }
+                    +"Objects"
                 }
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/aspects"
-                        onClick = { props.history.push("/aspects") }
-                        text = "Aspects".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/aspects") " pt-active" else ""}"
+                        role = "button"
+                        to = "/aspects"
                     }
+                    +"Aspects"
                 }
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/measures"
-                        onClick = { props.history.push("/measures") }
-                        text = "Measures".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/measures") " pt-active" else ""}"
+                        role = "button"
+                        to = "/measures"
                     }
+                    +"Measures"
                 }
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/subjects"
-                        onClick = { props.history.push("/subjects") }
-                        text = "Subjects".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/subjects") " pt-active" else ""}"
+                        role = "button"
+                        to = "/subjects"
                     }
+                    +"Subjects"
                 }
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/reference"
-                        onClick = { props.history.push("/reference") }
-                        text = "Reference Books".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/reference") " pt-active" else ""}"
+                        role = "button"
+                        to = "/reference"
                     }
+                    +"Reference Books"
                 }
-                AnchorButton {
+                reactRouter.Link {
                     attrs {
-                        className = "pt-minimal"
-                        active = props.location == "/history"
-                        onClick = { props.history.push("/history") }
-                        text = "History".asReactElement()
+                        className = "pt-button pt-minimal${if (props.location == "/history") " pt-active" else ""}"
+                        role = "button"
+                        to = "/history"
                     }
+                    +"History"
                 }
             }
             NavbarGroup {
