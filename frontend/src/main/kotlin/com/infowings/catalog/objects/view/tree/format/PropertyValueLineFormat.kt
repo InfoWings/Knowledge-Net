@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.description.descriptionComponent
 import react.RProps
@@ -28,8 +29,10 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
         }
         valueFormat(props.value)
         props.measure?.let {
-            span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+            if (props.value != ObjectValueData.NullValue) {
+                span(classes = "object-property-value-line__value-measure") {
+                    +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+                }
             }
         }
         props.valueDescription?.let {
@@ -64,8 +67,10 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
         }
         valueFormat(props.value)
         props.measure?.let {
-            span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+            if (props.value != ObjectValueData.NullValue) {
+                span(classes = "object-property-value-line__value-measure") {
+                    +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+                }
             }
         }
         props.valueDescription?.let {
