@@ -127,14 +127,6 @@ class ObjectValidator(
 
         val value = getObjectValueFromData(dataValue)
 
-        // check business key
-        val similarValues = objectDaoService.getValuesByObjectPropertyAndValue(objectPropertyVertex.identity, value).filter {
-            it.aspectProperty?.id == request.aspectPropertyId
-        }
-        if (similarValues.isNotEmpty()) {
-            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-        }
-
         val measureVertex = request.measureId?.let { measureService.findById(it) }
 
         return ValueWriteInfo(
