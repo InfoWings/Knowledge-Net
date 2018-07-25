@@ -2,11 +2,8 @@ package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.PropertyUpdateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
-import com.infowings.catalog.common.objekt.ValueUpdateRequest
-import com.infowings.catalog.objects.ObjectEditModel
+import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
 import com.infowings.catalog.utils.BadRequestException
@@ -20,7 +17,8 @@ import react.dom.span
 
 
 interface ObjectTreeEditModel {
-    fun update(updater: ObjectEditModel.() -> Unit)
+    fun update(updater: ObjectEditViewModel.() -> Unit)
+    fun updateObject()
     fun deleteObject()
     fun createProperty(propertyEditModel: ObjectPropertyEditModel)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
@@ -34,21 +32,33 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     ObjectTreeEditModel {
 
     override fun State.init(props: Props) {
-        model = ObjectEditModel(props.serverView)
+        viewModel = ObjectEditViewModel(props.serverView)
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
         setState {
-            if (nextProps.serverView.id == model.id) {
-                model.mergeFrom(nextProps.serverView)
+            if (nextProps.serverView.id == viewModel.id) {
+                viewModel.mergeFrom(nextProps.serverView)
             } else {
-                model = ObjectEditModel(nextProps.serverView)
+                viewModel = ObjectEditViewModel(nextProps.serverView)
             }
         }
     }
 
-    override fun update(updater: ObjectEditModel.() -> Unit) = setState {
-        model.updater()
+    override fun update(updater: ObjectEditViewModel.() -> Unit) = setState {
+        viewModel.updater()
+    }
+
+    override fun updateObject() {
+        launch {
+            props.apiModel.editObject(
+                ObjectUpdateRequest(
+                    state.viewModel.id,
+                    state.viewModel.name,
+                    state.viewModel.description
+                )
+            )
+        }
     }
 
     override fun deleteObject() {
@@ -59,7 +69,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         launch {
             props.apiModel.submitObjectProperty(
                 PropertyCreateRequest(
-                    state.model.id,
+                    state.viewModel.id,
                     propertyEditModel.name,
                     propertyEditModel.description,
                     propertyEditModel.aspect?.id ?: error("Aspect must be set when submitting object property")
@@ -140,7 +150,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         objectEditTree {
             attrs {
                 editModel = this@ObjectTreeEditModelComponent
-                objectTree = state.model
+                objectTree = state.viewModel
+                apiModel = props.serverView
             }
         }
         state.entityDeleteInfo?.let { entityDeleteInfo ->
@@ -168,7 +179,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     interface State : RState {
-        var model: ObjectEditModel
+        var viewModel: ObjectEditViewModel
         var entityDeleteInfo: EntityDeleteInfo?
     }
 

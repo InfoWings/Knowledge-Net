@@ -1,7 +1,8 @@
 package com.infowings.catalog.objects.edit.tree
 
+import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.components.treeview.controlledTreeNode
-import com.infowings.catalog.objects.ObjectEditModel
+import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.ObjectEditApiModel
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
@@ -55,6 +56,9 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                         properties.add(ObjectPropertyEditModel())
                                     }
                                 }
+                                onUpdateObject = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
+                                    { props.editModel.updateObject() }
+                                } else null
                                 onDeleteObject = {
                                     props.editModel.deleteObject()
                                 }
@@ -77,7 +81,8 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
 
     interface Props : RProps {
         var editModel: ObjectTreeEditModel
-        var objectTree: ObjectEditModel
+        var objectTree: ObjectEditViewModel
+        var apiModel: ObjectEditDetailsResponse
     }
 }
 

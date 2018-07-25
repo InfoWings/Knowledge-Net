@@ -3,7 +3,7 @@ package com.infowings.catalog.objects
 import com.infowings.catalog.common.*
 import com.infowings.catalog.objects.edit.SubjectTruncated
 
-data class ObjectEditModel(
+data class ObjectEditViewModel(
     val id: String,
     var name: String,
     var subject: SubjectTruncated,
