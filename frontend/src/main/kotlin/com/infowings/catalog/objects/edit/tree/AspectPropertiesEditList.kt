@@ -19,10 +19,10 @@ fun RBuilder.aspectPropertiesEditList(
     parentValueId: String,
     onUpdate: (index: Int, block: AspectPropertyValueGroupEditModel.() -> Unit) -> Unit,
     onAddValueGroup: (AspectPropertyValueGroupEditModel) -> Unit,
-    onSubmitValue: (ObjectValueData, parentValueId: String, aspectPropertyId: String) -> Unit,
     onRemoveGroup: (id: String) -> Unit,
     editModel: ObjectTreeEditModel,
-    objectPropertyId: String
+    objectPropertyId: String,
+    apiModelValuesById: Map<String, ValueTruncated>
 ) {
     val groupsMap = valueGroups.associateBy { it.propertyId }
     aspect.properties.forEach { aspectProperty ->
@@ -62,9 +62,15 @@ fun RBuilder.aspectPropertiesEditList(
                                 values[valueIndex].block()
                             }
                         }
-                        this.onSubmit = if (value.id == null && value.value != null) {
-                            { onSubmitValue(value.value ?: error("No value to submit"), parentValueId, aspectProperty.id) }
-                        } else null
+                        this.onSubmit = when {
+                            value.id == null && value.value != null -> {
+                                { editModel.createValue(value.value ?: error("No value to submit"), objectPropertyId, parentValueId, aspectProperty.id) }
+                            }
+                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                                { editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit")) }
+                            }
+                            else -> null
+                        }
                         this.onCancel = if (value.id == null) {
                             if (valueGroup.values.size == 1) {
                                 { onRemoveGroup(valueGroup.propertyId) }
@@ -130,9 +136,9 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             else -> null
                         }
-                        this.onSubmitValueGeneric = onSubmitValue
                         this.editModel = editModel
                         this.objectPropertyId = objectPropertyId
+                        this.apiModelValuesById = apiModelValuesById
                     }
                 }
             }
@@ -224,7 +230,6 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                 onAddValueGroup = { newValueGroup ->
                     props.onUpdate { children.add(newValueGroup) }
                 },
-                onSubmitValue = props.onSubmitValueGeneric,
                 onRemoveGroup = { id ->
                     props.onUpdate {
                         val removeIndex = children.indexOfFirst { it.propertyId == id }
@@ -232,7 +237,8 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                     }
                 },
                 editModel = props.editModel,
-                objectPropertyId = props.objectPropertyId
+                objectPropertyId = props.objectPropertyId,
+                apiModelValuesById = props.apiModelValuesById
             )
         }
     }
@@ -247,8 +253,8 @@ interface AspectPropertyValueEditNodeProps : RProps {
     var onCancel: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
-    var onSubmitValueGeneric: (ObjectValueData, String, String) -> Unit
     var editModel: ObjectTreeEditModel
     var objectPropertyId: String
+    var apiModelValuesById: Map<String, ValueTruncated>
 }
 

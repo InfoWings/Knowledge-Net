@@ -69,6 +69,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                 objectPropertiesEditList(
                     properties = props.objectTree.properties,
                     editModel = props.editModel,
+                    apiModelProperties = props.apiModel.properties,
                     updater = { index, block ->
                         props.editModel.update {
                             properties[index].block()
