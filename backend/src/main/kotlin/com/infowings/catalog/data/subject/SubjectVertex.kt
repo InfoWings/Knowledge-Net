@@ -11,7 +11,10 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import incomingEdges
 
-fun OVertex.toSubjectVertex() = SubjectVertex(this)
+fun OVertex.toSubjectVertex(): SubjectVertex {
+    checkClass(OrientClass.SUBJECT)
+    return SubjectVertex(this)
+}
 
 class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = SUBJECT_CLASS

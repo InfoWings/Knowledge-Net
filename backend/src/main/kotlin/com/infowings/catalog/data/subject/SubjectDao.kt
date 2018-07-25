@@ -31,10 +31,12 @@ class SubjectDao(private val db: OrientDatabase) {
         rs.map { it.toVertex().toSubjectVertex() }.firstOrNull()
     }
 
-    fun findById(id: String): SubjectVertex? = try {
-        db[id].toSubjectVertex()
-    } catch (e: VertexNotFound) {
-        null
+    fun findById(id: String): SubjectVertex? = transaction(db) {
+        try {
+            db[id].toSubjectVertex()
+        } catch (e: VertexNotFound) {
+            null
+        }
     }
 
     fun find(ids: List<ORID>): List<SubjectVertex> {
@@ -49,10 +51,12 @@ class SubjectDao(private val db: OrientDatabase) {
 
     fun findStr(ids: List<String>): List<SubjectVertex> = find(ids.map { ORecordId(it) })
 
-    fun findByIdStrict(id: String): SubjectVertex = try {
-        db[id].toSubjectVertex()
-    } catch (e: VertexNotFound) {
-        throw SubjectNotFoundException(id)
+    fun findByIdStrict(id: String): SubjectVertex = transaction(db) {
+        try {
+            db[id].toSubjectVertex()
+        } catch (e: VertexNotFound) {
+            throw SubjectNotFoundException(id)
+        }
     }
 
     private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()

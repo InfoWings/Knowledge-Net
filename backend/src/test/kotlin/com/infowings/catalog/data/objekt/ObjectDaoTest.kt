@@ -226,7 +226,7 @@ class ObjectDaoTest {
         val valueRequest = ValueCreateRequest(
             value = ObjectValueData.StringValue("some value"),
             objectPropertyId = createdProperty.id,
-            aspectPropertyId = complexAspect.id,
+            aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
             parentValueId = null
         )

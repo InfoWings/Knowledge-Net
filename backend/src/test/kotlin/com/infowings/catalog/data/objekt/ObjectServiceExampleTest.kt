@@ -207,7 +207,7 @@ class ObjectServiceExampleTest {
         val value131Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("1.2"),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = aspectChargeMode.id,
+            aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue13.id.toString(),
             measureId = ampereMeasure?.id
         )

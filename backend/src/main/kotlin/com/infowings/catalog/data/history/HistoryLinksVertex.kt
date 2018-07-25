@@ -1,12 +1,15 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.storage.get
-import com.infowings.catalog.storage.set
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 
-fun OVertex.toHistoryLinksVertex() = HistoryLinksVertex(this)
+fun OVertex.toHistoryLinksVertex(): HistoryLinksVertex {
+    checkClassAny(listOf(OrientClass.HISTORY_ADD_LINK, OrientClass.HISTORY_REMOVE_LINK))
+    return HistoryLinksVertex(this)
+}
+
 const val HISTORY_ADD_LINK_CLASS = "HistoryAddLink"
 const val HISTORY_ADD_LINK_EDGE = "HistoryAddLinkEdge"
 const val HISTORY_DROP_LINK_CLASS = "HistoryDropLink"

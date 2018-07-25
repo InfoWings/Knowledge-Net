@@ -240,14 +240,17 @@ class DefaultAspectService(
         }
     }
 
-    private fun findVertexById(id: String): AspectVertex =
-        aspectDaoService.find(id) ?: throw AspectDoesNotExist(id)
+    private fun findVertexById(id: String): AspectVertex {
+        return aspectDaoService.find(id) ?: throw AspectDoesNotExist(id)
+    }
 
     /**
      * Search [AspectData] by it's id
      * @throws AspectDoesNotExist
      */
-    override fun findById(id: String): AspectData = transaction(db) { findVertexById(id).toAspectData() }
+    override fun findById(id: String): AspectData = transaction(db) {
+        findVertexById(id).toAspectData()
+    }
 
     override fun findTreeById(id: String): AspectTree = transaction(db) { aspectDaoService.getAspectTreeById(ORecordId(id)) }
 

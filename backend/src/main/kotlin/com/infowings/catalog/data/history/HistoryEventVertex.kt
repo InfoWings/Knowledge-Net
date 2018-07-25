@@ -5,6 +5,8 @@ import com.infowings.catalog.auth.user.UserVertex
 import com.infowings.catalog.auth.user.toUserVertex
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.HistoryEventData
+import com.infowings.catalog.storage.OrientClass
+import com.infowings.catalog.storage.checkClass
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
@@ -16,8 +18,10 @@ import java.util.*
 
 const val HISTORY_EVENT_CLASS = "HistoryEvent"
 
-
-fun OVertex.toHistoryEventVertex() = HistoryEventVertex(this)
+fun OVertex.toHistoryEventVertex(): HistoryEventVertex {
+    checkClass(OrientClass.HISTORY_EVENT)
+    return HistoryEventVertex(this)
+}
 
 class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
     override fun equals(other: Any?): Boolean {
