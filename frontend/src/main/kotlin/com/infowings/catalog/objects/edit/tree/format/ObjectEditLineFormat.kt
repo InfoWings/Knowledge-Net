@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.components.additem.addPropertyButton
+import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
@@ -38,6 +39,9 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
         props.onUpdateObject?.let {
             submitButtonComponent(it)
         }
+        props.onDiscardUpdate?.let {
+            cancelButtonComponent(it)
+        }
         if (props.canCreateNewProperty) {
             addPropertyButton(onClick = props.onCreateNewProperty)
         }
@@ -56,4 +60,5 @@ interface ObjectEditLineFormatProps : RProps {
     var onCreateNewProperty: () -> Unit
     var onDeleteObject: () -> Unit
     var onUpdateObject: (() -> Unit)?
+    var onDiscardUpdate: (() -> Unit)?
 }

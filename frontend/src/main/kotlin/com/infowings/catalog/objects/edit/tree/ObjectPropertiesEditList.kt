@@ -38,6 +38,13 @@ fun RBuilder.objectPropertiesEditList(
                         }
                         else -> null
                     }
+                    onCancel = if (property.id != null && apiModelPropertiesById[property.id]?.name != property.name) {
+                        {
+                            updater(propertyIndex) {
+                                name = apiModelPropertiesById[property.id]?.name
+                            }
+                        }
+                    } else null
                     onRemove = if (property.id != null) {
                         { editModel.deleteProperty(property) }
                     } else null
@@ -205,6 +212,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                             }
                         }
                         onConfirmCreate = props.onConfirm
+                        onCancel = props.onCancel
                         onAddValue = props.onAddValue
                         onRemoveProperty = props.onRemove
                     }
@@ -218,6 +226,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var property: ObjectPropertyEditModel
     var onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onConfirm: (() -> Unit)?
+    var onCancel: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemove: (() -> Unit)?
 }

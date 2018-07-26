@@ -59,6 +59,14 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                 onUpdateObject = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
                                     { props.editModel.updateObject() }
                                 } else null
+                                onDiscardUpdate = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
+                                    {
+                                        props.editModel.update {
+                                            name = props.apiModel.name
+                                            description = props.apiModel.description
+                                        }
+                                    }
+                                } else null
                                 onDeleteObject = {
                                     props.editModel.deleteObject()
                                 }
