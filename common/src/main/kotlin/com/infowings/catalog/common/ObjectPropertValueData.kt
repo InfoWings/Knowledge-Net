@@ -47,12 +47,12 @@ sealed class ObjectValueData {
  * typeGroup - маркер с информацией о том, куда этот id показывает
  */
 sealed class LinkValueData(open val id: String) {
-    class Subject(override val id: String) : LinkValueData(id)
-    class Object(override val id: String) : LinkValueData(id)
-    class ObjectProperty(override val id: String) : LinkValueData(id)
-    class ObjectValue(override val id: String) : LinkValueData(id)
-    class DomainElement(override val id: String) : LinkValueData(id)
-    class RefBookItem(override val id: String) : LinkValueData(id)
-    class Aspect(override val id: String) : LinkValueData(id)
-    class AspectProperty(override val id: String) : LinkValueData(id)
+    data class Subject(override val id: String) : LinkValueData(id)
+    data class Object(override val id: String) : LinkValueData(id)
+    data class ObjectProperty(override val id: String) : LinkValueData(id)
+    data class ObjectValue(override val id: String) : LinkValueData(id)
+    data class DomainElement(override val id: String) : LinkValueData(id)
+    data class RefBookItem(override val id: String) : LinkValueData(id)
+    data class Aspect(override val id: String) : LinkValueData(id)
+    data class AspectProperty(override val id: String) : LinkValueData(id)
 }

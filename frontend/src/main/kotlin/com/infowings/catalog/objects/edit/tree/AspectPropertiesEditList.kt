@@ -71,26 +71,35 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             else -> null
                         }
-                        this.onCancel = if (value.id == null) {
-                            if (valueGroup.values.size == 1) {
+                        this.onCancel = when {
+                            value.id == null && valueGroup.values.size == 1 -> {
                                 { onRemoveGroup(valueGroup.propertyId) }
-                            } else {
+                            }
+                            value.id == null && valueGroup.values.size > 1 -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values.removeAt(valueIndex)
                                     }
                                 }
                             }
-                        } else null
+                            value.id != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                                {
+                                    onUpdate(valueGroupIndex) {
+                                        values[valueIndex].value = apiModelValuesById[value.id]?.value?.toData()
+                                    }
+                                }
+                            }
+                            else -> null
+                        }
                         this.onAddValue = when {
-                            value.id == null && value.value == ObjectValueData.NullValue -> {
+                            value.value == ObjectValueData.NullValue -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = aspectProperty.aspect.defaultValue()
                                     }
                                 }
                             }
-                            valueGroup.values.all { it.id != null } && valueGroup.values.none { it.value == ObjectValueData.NullValue } -> {
+                            valueGroup.values.all { it.id != null } && valueGroup.values.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values.add(

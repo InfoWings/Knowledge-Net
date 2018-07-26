@@ -92,13 +92,13 @@ fun RBuilder.objectPropertiesEditList(
                                 { editModel.createValue(value.value ?: error("value should not be null"), property.id ?: error("Property should have id != null"), null, null) }
                             }
                             value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
-                                { editModel.updateValue(value.id, property.id ?: error("Property should have id != null"), value.value ?: error("Value should not be null"))}
+                                { editModel.updateValue(value.id, property.id ?: error("Property should have id != null"), value.value ?: error("Value should not be null")) }
                             }
                             else -> null
                         }
                         val allValues = property.values ?: error("Property should have at least one value")
                         onAddValue = when {
-                            allValues.all { it.id != null } && allValues.none { it.value == ObjectValueData.NullValue } -> {
+                            allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } -> {
                                 {
                                     updater(propertyIndex) {
                                         values?.add(
@@ -112,7 +112,7 @@ fun RBuilder.objectPropertiesEditList(
                                     }
                                 }
                             }
-                            value.id == null && value.value == ObjectValueData.NullValue -> {
+                            value.value == ObjectValueData.NullValue -> {
                                 {
                                     updater(propertyIndex) {
                                         (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = property.aspect?.defaultValue()
@@ -121,13 +121,24 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             else -> null
                         }
-                        onCancelValue = if (value.id == null) {
-                            {
-                                updater(propertyIndex) {
-                                    (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
+                        onCancelValue = when {
+                            value.id == null -> {
+                                {
+                                    updater(propertyIndex) {
+                                        (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
+                                    }
                                 }
                             }
-                        } else null
+                            value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                                {
+                                    updater(propertyIndex) {
+                                        val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
+                                        targetValue.value = apiModelValuesById[value.id]?.value?.toData()
+                                    }
+                                }
+                            }
+                            else -> null
+                        }
                         onRemoveValue = when {
                             (value.id == null && allValues.size > 1) -> {
                                 {
