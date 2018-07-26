@@ -54,6 +54,11 @@ data class ValueCreateRequest(
     )
 
     fun toDTO() = ValueCreateRequestDTO(value.toDTO(), objectPropertyId, measureId, aspectPropertyId, parentValueId)
+
+    companion object {
+        fun root(value: ObjectValueData, objectPropertyId: String, measureId: String? = null) = ValueCreateRequest(
+            value = value, objectPropertyId = objectPropertyId, measureId = measureId, aspectPropertyId = null, parentValueId = null)
+    }
 }
 
 @Serializable

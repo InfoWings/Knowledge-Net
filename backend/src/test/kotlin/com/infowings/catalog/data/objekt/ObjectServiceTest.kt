@@ -47,7 +47,7 @@ class ObjectServiceTest {
     private lateinit var subject: Subject
 
     private lateinit var aspect: AspectData
-
+    private lateinit var referenceAspect: AspectData
     private lateinit var complexAspect: AspectData
 
     private val username = "admin"
@@ -58,15 +58,12 @@ class ObjectServiceTest {
         aspect = aspectService.save(
             AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val complexAspectData = AspectData(
-            "",
-            "complex",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property)
+        referenceAspect = aspectService.save(
+            AspectData(name = "aspectReference", description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
+        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val complexAspectData = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
@@ -141,22 +138,15 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val strValue = "hello"
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue(strValue), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         val objectValue = createdValue.value
 
         when (objectValue) {
-            is ObjectValue.IntegerValue -> {
-                assertEquals(scalarInt, objectValue.value, "scalar value must be with correct type name")
+            is ObjectValue.StringValue -> {
+                assertEquals(strValue, objectValue.value, "scalar value must be with correct type name")
                 assertEquals(
                     valueRequest.objectPropertyId, createdValue.objectProperty.id,
                     "object property must point to parent property"
@@ -377,12 +367,11 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = referenceAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
         val createdValue = objectService.create(valueRequest, username)
-
 
         objectService.deleteObject(createdObjectId, username)
 
@@ -400,12 +389,11 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = referenceAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
+        val valueRequest = ValueCreateRequest.root(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
         val createdValue = objectService.create(valueRequest, username)
-
 
         objectService.softDeleteObject(createdObjectId, username)
 
@@ -428,7 +416,7 @@ class ObjectServiceTest {
 
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = referenceAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -456,7 +444,7 @@ class ObjectServiceTest {
 
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId2, aspectId = referenceAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
         val valueRequest = ValueCreateRequest(ObjectValueData.Link(LinkValueData.Object(createdObjectId)), createdPropertyId)
@@ -482,7 +470,7 @@ class ObjectServiceTest {
         val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
         val createdValue1 = objectService.create(valueRequest1, username)
 
-        val valueRequest2 = ValueCreateRequest(ObjectValueData.IntegerValue(123, null), createdPropertyId)
+        val valueRequest2 = ValueCreateRequest(ObjectValueData.StringValue("234"), createdPropertyId)
         val createdValue2 = objectService.create(valueRequest2, username)
 
 
@@ -505,10 +493,10 @@ class ObjectServiceTest {
         val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val valueRequest1 = ValueCreateRequest.root(ObjectValueData.StringValue("123"), createdPropertyId)
         val createdValue1 = objectService.create(valueRequest1, username)
 
-        val valueRequest2 = ValueCreateRequest(ObjectValueData.IntegerValue(123, null), createdPropertyId)
+        val valueRequest2 = ValueCreateRequest.root(ObjectValueData.StringValue("234"), createdPropertyId)
         val createdValue2 = objectService.create(valueRequest2, username)
 
 
@@ -528,15 +516,15 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = complexAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123"), createdPropertyId)
         val createdValue1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null), objectPropertyId = createdPropertyId,
-            measureId = null, aspectPropertyId = null, parentValueId = createdValue1.id.toString()
+            value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId,
+            measureId = null, aspectPropertyId = complexAspect.properties[0].id, parentValueId = createdValue1.id.toString()
         )
         val createdValue2 = objectService.create(valueRequest2, username)
 
@@ -556,15 +544,15 @@ class ObjectServiceTest {
         val createdObjectId = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 
-        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = aspect.idStrict())
+        val propertyRequest = PropertyCreateRequest(name = propertyName, description = null, objectId = createdObjectId, aspectId = complexAspect.idStrict())
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val valueRequest1 = ValueCreateRequest(ObjectValueData.StringValue("123"), createdPropertyId)
+        val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123"), createdPropertyId)
         val createdValue1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null), objectPropertyId = createdPropertyId,
-            measureId = null, aspectPropertyId = null, parentValueId = createdValue1.id.toString()
+            value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId,
+            measureId = null, aspectPropertyId = complexAspect.properties[0].id, parentValueId = createdValue1.id.toString()
         )
         val createdValue2 = objectService.create(valueRequest2, username)
 
@@ -656,15 +644,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         objectService.deleteProperty(createdPropertyId, username)
@@ -698,15 +678,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         objectService.softDeleteProperty(createdPropertyId, username)
@@ -740,22 +712,10 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("hello1"), objectPropertyId = createdPropertyId)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
-        val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("hello"),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest2 = ValueCreateRequest(value = ObjectValueData.StringValue("hello2"), objectPropertyId = createdPropertyId)
         val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
 
         objectService.deleteProperty(createdPropertyId, username)
@@ -789,22 +749,10 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("hello1"), objectPropertyId = createdPropertyId)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
-        val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("hello"),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest2 = ValueCreateRequest(value = ObjectValueData.StringValue("hello2"), objectPropertyId = createdPropertyId)
         val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
 
         objectService.softDeleteProperty(createdPropertyId, username)
@@ -839,13 +787,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("hello1"), objectPropertyId = createdPropertyId)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -889,16 +831,13 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            value = ObjectValueData.StringValue("hello1"),
+            objectPropertyId = createdPropertyId
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("hello"),
+            value = ObjectValueData.StringValue("hello2"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = createdValue1.id.toString(),
@@ -928,7 +867,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = propertyName, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
@@ -939,10 +878,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectProperty(createdPropertyId)),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
@@ -968,7 +904,7 @@ class ObjectServiceTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = propertyName, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
@@ -979,10 +915,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectProperty(createdPropertyId)),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
@@ -1007,11 +940,11 @@ class ObjectServiceTest {
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
             name = propertyName1, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
 
-        val propertyName2= "prop2_$objectName"
+        val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
@@ -1025,10 +958,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectProperty(createdPropertyId2)),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId1
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
@@ -1056,11 +986,11 @@ class ObjectServiceTest {
         val propertyName1 = "prop1_$objectName"
         val propertyRequest1 = PropertyCreateRequest(
             name = propertyName1, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId1 = objectService.create(propertyRequest1, username)
 
-        val propertyName2= "prop2_$objectName"
+        val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
             objectId = createdObjectId, aspectId = aspect.idStrict()
@@ -1074,10 +1004,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectProperty(createdPropertyId2)),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId1
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
@@ -1105,17 +1032,8 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
-
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
         transaction(db) {
@@ -1149,17 +1067,8 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello"), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
-
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
         transaction(db) {
@@ -1193,26 +1102,20 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
         val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            value = ObjectValueData.StringValue("hello1"),
+            objectPropertyId = createdPropertyId
         )
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         val valueChildRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            value = ObjectValueData.StringValue("hello2"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = createdValue.id.toString(),
             measureId = null
         )
         val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
-
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
         transaction(db) {
@@ -1245,27 +1148,17 @@ class ObjectServiceTest {
             objectId = createdObjectId, aspectId = aspect.idStrict()
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello1"), objectPropertyId = createdPropertyId)
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
-
         val valueChildRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            value = ObjectValueData.StringValue("hello2"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = createdValue.id.toString(),
             measureId = null
         )
         val createdValueChild: ObjectPropertyValue = objectService.create(valueChildRequest, username)
-
 
         val createdProperty = objectService.findPropertyById(createdPropertyId)
         transaction(db) {
@@ -1299,19 +1192,11 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
-        val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("hello1"), objectPropertyId = createdPropertyId)
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         val valueChildRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            value = ObjectValueData.StringValue("hello2"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = createdValue.id.toString(),
@@ -1353,19 +1238,14 @@ class ObjectServiceTest {
         )
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val scalarInt = 123
-
         val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt, null),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            value = ObjectValueData.StringValue("hello1"),
+            objectPropertyId = createdPropertyId
         )
         val createdValue: ObjectPropertyValue = objectService.create(valueRequest, username)
 
         val valueChildRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(scalarInt + 1, null),
+            value = ObjectValueData.StringValue("hello2"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = createdValue.id.toString(),
@@ -1412,19 +1292,13 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue(""),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue(""), objectPropertyId = createdPropertyId)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
+            aspectPropertyId = complexAspect.properties[1].id,
             parentValueId = createdValue1.id.toString(),
             measureId = null
         )
@@ -1461,24 +1335,17 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue(""),
-            objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue(""), objectPropertyId = createdPropertyId)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = complexAspect.properties[0].id,
+            aspectPropertyId = complexAspect.properties[1].id,
             parentValueId = createdValue1.id.toString(),
             measureId = null
         )
         val createdValue2: ObjectPropertyValue = objectService.create(valueRequest2, username)
-
 
         objectService.softDeleteValue(createdValue1.id.toString(), username)
 
@@ -1511,10 +1378,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueCreateRequest(
             value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId1
         )
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
@@ -1530,16 +1394,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1576,13 +1437,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1597,16 +1452,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1640,13 +1492,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1661,16 +1507,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue2.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1707,13 +1550,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1728,16 +1565,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue2.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1771,13 +1605,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1792,16 +1620,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1838,13 +1663,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1859,16 +1678,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1901,13 +1717,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1922,16 +1732,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue2.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -1968,13 +1775,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -1989,16 +1790,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId, aspectId = aspect.idStrict()
+            objectId = createdObjectId, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue2.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -2036,13 +1834,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject1.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -2057,16 +1849,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId2, aspectId = aspect.idStrict()
+            objectId = createdObjectId2, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -2109,13 +1898,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject1.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -2130,16 +1913,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId2, aspectId = aspect.idStrict()
+            objectId = createdObjectId2, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue1.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 
@@ -2177,13 +1957,7 @@ class ObjectServiceTest {
             assertEquals(1, createdObject1.properties.size)
         }
 
-        val valueRequest1 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("1111"),
-            objectPropertyId = createdPropertyId1,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest1 = ValueCreateRequest(value = ObjectValueData.StringValue("1111"), objectPropertyId = createdPropertyId1)
         val createdValue1: ObjectPropertyValue = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
@@ -2198,16 +1972,13 @@ class ObjectServiceTest {
         val propertyName2 = "prop2_$objectName2"
         val propertyRequest2 = PropertyCreateRequest(
             name = propertyName2, description = null,
-            objectId = createdObjectId2, aspectId = aspect.idStrict()
+            objectId = createdObjectId2, aspectId = referenceAspect.idStrict()
         )
         val createdPropertyId2 = objectService.create(propertyRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(createdValue2.id.toString())),
-            objectPropertyId = createdPropertyId2,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
+            objectPropertyId = createdPropertyId2
         )
         val createdValue3: ObjectPropertyValue = objectService.create(valueRequest3, username)
 

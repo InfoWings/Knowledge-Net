@@ -15,6 +15,8 @@ actual sealed class BaseType actual constructor(_name: String) {
                 Decimal.name -> Decimal
                 Boolean.name -> Boolean
                 Text.name -> Text
+                Reference.name -> Reference
+                Range.name -> Range
                 else -> TODO("Base type $name is not supported")
             }
 
@@ -24,6 +26,8 @@ actual sealed class BaseType actual constructor(_name: String) {
                 Decimal.name -> BigDecimal::class
                 Boolean.name -> Boolean::class
                 Text.name -> String::class
+                Reference.name -> Reference::class
+                Range.name -> Range::class
                 else -> TODO("Base type $name is not supported")
             }
     }
@@ -36,4 +40,6 @@ actual sealed class BaseType actual constructor(_name: String) {
     actual object Decimal : BaseType("Decimal")
     actual object Boolean : BaseType("Boolean")
     actual object Text : BaseType("String")
+    actual object Reference : BaseType("Reference")
+    actual object Range : BaseType("Range")
 }
