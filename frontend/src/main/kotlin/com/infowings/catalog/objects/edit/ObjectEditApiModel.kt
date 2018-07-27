@@ -4,6 +4,7 @@ import com.infowings.catalog.aspects.getAspectTree
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
+import com.infowings.catalog.utils.mapOn
 import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
@@ -82,13 +83,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
-                properties = editedObject.properties.map {
-                    if (it.id == editPropertyResponse.id) {
-                        it.copy(name = propertyUpdateRequest.name)
-                    } else {
-                        it
-                    }
-                }
+                properties = editedObject.properties.mapOn({ it.id == editPropertyResponse.id }, { it.copy(name = propertyUpdateRequest.name) })
             )
         }
     }
@@ -108,13 +103,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
-                properties = editedObject.properties.map { property ->
-                    if (property.id == valueCreateRequest.objectPropertyId) {
-                        property.addValue(valueCreateRequest, valueCreateResponse)
-                    } else {
-                        property
-                    }
-                }
+                properties = editedObject.properties.mapOn(
+                    { it.id == valueCreateRequest.objectPropertyId },
+                    { it.addValue(valueCreateRequest, valueCreateResponse) })
             )
         }
     }
@@ -124,13 +115,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
-                properties = editedObject.properties.map { property ->
-                    if (property.id == propertyId) {
-                        property.editValue(valueEditResponse.id, valueUpdateRequest.value)
-                    } else {
-                        property
-                    }
-                }
+                properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.editValue(valueEditResponse.id, valueUpdateRequest.value) })
             )
         }
     }
@@ -140,13 +125,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
-                properties = editedObject.properties.map { property ->
-                    if (property.id == propertyId) {
-                        property.deleteValue(id)
-                    } else {
-                        property
-                    }
-                }
+                properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.deleteValue(id) })
             )
         }
     }
@@ -171,13 +150,13 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             when {
                 newParentDescriptor.propertyId == null -> {
                     this.copy(
-                        rootValues = this.rootValues.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id },
-                        valueDescriptors = this.valueDescriptors.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id } + valueDescriptor
+                        rootValues = this.rootValues.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor),
+                        valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
                 else -> {
                     this.copy(
-                        valueDescriptors = this.valueDescriptors.replaceBy(newParentDescriptor) { it.id == newParentDescriptor.id } + valueDescriptor
+                        valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
             }
@@ -186,20 +165,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     private fun ObjectPropertyEditDetailsResponse.editValue(valueId: String, value: ObjectValueData): ObjectPropertyEditDetailsResponse {
         return this.copy(
-            rootValues = this.rootValues.map {
-                if (it.id == valueId) {
-                    it.copy(value = value.toDTO())
-                } else {
-                    it
-                }
-            },
-            valueDescriptors = this.valueDescriptors.map {
-                if (it.id == valueId) {
-                    it.copy(value = value.toDTO())
-                } else {
-                    it
-                }
-            }
+            rootValues = this.rootValues.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO()) }),
+            valueDescriptors = this.valueDescriptors.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO()) })
         )
     }
 
@@ -211,8 +178,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             val changedParentValue = parentValue.copy(childrenIds = parentValue.childrenIds.filterNot { it == valueId })
 
             this.copy(
-                rootValues = this.rootValues.replaceBy(changedParentValue) { it.id == changedParentValue.id },
-                valueDescriptors = this.valueDescriptors.replaceBy(changedParentValue) { it.id == changedParentValue.id }.filterNot { it.id == valueId }
+                rootValues = this.rootValues.replaceBy({ it.id == changedParentValue.id }, changedParentValue),
+                valueDescriptors = this.valueDescriptors.replaceBy({ it.id == changedParentValue.id }, changedParentValue).filterNot { it.id == valueId }
             )
         } else {
             this.copy(

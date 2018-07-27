@@ -44,7 +44,7 @@ fun RBuilder.propertyLabel(
             } catch (exception: IllegalStateException) {
                 null
             }
-            +(cardinality?.label ?: "")
+            +(cardinality?.label ?: aspectPropertyCardinality)
         }
         +"]"
     }
