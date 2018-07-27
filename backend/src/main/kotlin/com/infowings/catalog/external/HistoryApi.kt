@@ -88,11 +88,11 @@ class HistoryApi(
 
     @GetMapping("/entity/{id}")
     fun getEntityHistory(@PathVariable id: String): EntityHistory {
-        val beforeMS = System.currentTimeMillis()
+        return logTime(logger, "entity history") {
+            val timeline = historyService.entityTimeline(id)
 
-        val timeline = historyService.entityTimeline(id)
-
-        return EntityHistory(id, historyService.asSnapshots(timeline, SnapshotData.empty))
+            return@logTime EntityHistory(id, historyService.asSnapshots(timeline, SnapshotData.empty))
+        }
     }
 }
 
