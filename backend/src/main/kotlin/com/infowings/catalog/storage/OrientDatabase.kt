@@ -8,10 +8,15 @@ import com.orientechnologies.orient.core.db.*
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.exception.OStorageException
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.index.OIndex
+import com.orientechnologies.orient.core.metadata.schema.OClass
+import com.orientechnologies.orient.core.metadata.schema.OProperty
 import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.OVertex
+import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.executor.OResult
+import com.orientechnologies.orient.core.sql.executor.OResultInternal
 import com.orientechnologies.orient.core.sql.executor.OResultSet
 import com.orientechnologies.orient.core.tx.OTransaction
 import com.orientechnologies.orient.core.tx.OTransactionNoTx
@@ -27,6 +32,20 @@ import javax.annotation.PreDestroy
 operator fun <T> OVertex.get(name: String): T = getProperty<T>(name)
 
 operator fun OVertex.set(name: String, value: Any?) = setProperty(name, value)
+
+data class DBIndexInfo(
+    val name: String,
+    val type: String,
+    val algorithm: String,
+    val indexVersion: Int,
+    val valueContainerAlgorithm: String,
+    val indexDefinitionClass: String,
+    val clusters: Set<String>,
+    val indexDefinition: Map<String, String>,
+    val metadata: Map<String, String>
+) {
+    fun nameElements(): List<String> = name.split(".")
+}
 
 val OElement.id: String
     get() = identity.toString()
@@ -147,15 +166,14 @@ class OrientDatabase(
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
-            .initReferenceBooks()
             .initSubject()
             .initSearch()
             .initHistory()
             .initUsers(users)
-            .initMeasures()
+            .initReferenceBooks()
             .initObject()
+            .initMeasures()
             .initSearchMeasure() // this call should be latest
-
     }
 
     @PreDestroy
@@ -205,7 +223,7 @@ class OrientDatabase(
         return@session it.newVertex(className)
     }
 
-    fun delete(v: OVertex): ODatabase<ORecord> = session(database = this) {
+    fun delete(v: ORecord): ODatabase<ORecord> = session(database = this) {
         it.delete(v.identity)
     }
 
@@ -218,6 +236,109 @@ class OrientDatabase(
 
     fun saveAll(vertices: List<OVertex>) = transaction(database = this) {
         vertices.forEach { it.save<OVertex>() }
+    }
+
+
+    private fun luceneIndexName(classType: String, attrName: String) = "$classType.lucene.$attrName"
+
+    fun createLuceneIndex(classType: String, attrName: String) = createLuceneIndex(classType, luceneIndexName(classType, attrName), attrName)
+
+    private fun createLuceneIndex(classType: String, indexName: String, attrName: String) = session(this) { session ->
+        val oClass = session.getClass(classType)
+        if (oClass.getClassIndex(indexName) == null) {
+            val metadata = ODocument()
+            metadata.setProperty("allowLeadingWildcard", true)
+            CreateIndexWrapper.createIndexWrapper(oClass, indexName, "FULLTEXT", null, metadata, "LUCENE", arrayOf(attrName))
+        }
+    }
+
+    fun removeIndex(classType: String, indexName: String) = session(this) { session ->
+        val oClass = session.getClass(classType)
+        val index = oClass.getClassIndex(indexName)
+        if (oClass.getClassIndex(indexName) != null) {
+            session.command("drop index $indexName")
+        }
+    }
+
+    fun resetLuceneIndex(classType: String, indexName: String) {
+        removeIndex(classType, indexName)
+        createLuceneIndex(classType, indexName, indexName.split(".").last())
+    }
+
+    fun resetSbTreeIndex(classType: String, indexName: String): OIndex<*> {
+        removeIndex(classType, indexName)
+        return if (indexName.endsWith(".ic")) createICIndex(classType) else {
+            val elems = indexName.split(".")
+            val className = elems.first()
+            val propertyName = elems.last()
+            session(this) {
+                return@session createBasicIndex(classProperty(className, propertyName))
+            }
+        }
+    }
+
+    fun countVertices(className: String) = query("select count() as c, @rid from $className") { result ->
+        val data = result.toList()
+        when (data.size) {
+            0 -> 0
+            else -> {
+                val row = data[0]
+                row.getProperty("c")
+            }
+        }
+    }
+
+    fun luceneIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
+        session.getClass(classType).classIndexes.filter { it.algorithm == "LUCENE" }
+    }
+
+    fun createICIndex(className: String): OIndex<*> {
+        return session(this) { session ->
+            session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
+            return@session session.getClass(className).getClassIndex("$className.index.name.ic")!!
+        }
+    }
+
+    fun createBasicIndex(property: OProperty): OIndex<*> = property.createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
+
+    fun sbTreeIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
+        session.getClass(classType).classIndexes.filter { it.algorithm == "SBTREE" }
+    }
+
+    private fun classProperty(className: String, propertyName: String): OProperty = session(this) { session ->
+        return@session session.getClass(className).getProperty(propertyName)
+    }
+
+    fun indexSize(index: OIndex<*>) = transaction(this) {
+        return@transaction index.iterateEntriesMajor("", true, true).toKeys().size
+    }
+
+    fun getIndexes(): List<DBIndexInfo> = query("select expand(indexes) from metadata:indexmanager") { result ->
+        val data = result.toList()
+        data.map { vertex ->
+            val indef = vertex.getProperty<OResultInternal>("indexDefinition")
+
+            val indefMap = indef.propertyNames.map { it to indef.getProperty<String>(it) }.toMap()
+
+            val metadata = if (vertex.hasProperty("metadata")) vertex.getProperty<OResultInternal>("metadata") else null
+
+            val metadataMap = metadata?.let { md ->
+                md.propertyNames.map { it to md.getProperty<String>(it) }.toMap()
+            } ?: emptyMap()
+
+
+            DBIndexInfo(
+                name = vertex.getProperty("name"),
+                type = vertex.getProperty("type"),
+                algorithm = vertex.getProperty("algorithm"),
+                indexVersion = vertex.getProperty("indexVersion"),
+                valueContainerAlgorithm = vertex.getProperty("valueContainerAlgorithm"),
+                indexDefinitionClass = vertex.getProperty("indexDefinitionClass"),
+                clusters = vertex.getProperty("clusters"),
+                indexDefinition = indefMap,
+                metadata = metadataMap
+            )
+        }
     }
 }
 

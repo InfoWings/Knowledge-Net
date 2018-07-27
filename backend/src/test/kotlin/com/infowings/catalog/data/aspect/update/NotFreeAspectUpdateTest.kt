@@ -9,6 +9,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectModificationException
 import com.infowings.catalog.data.aspect.AspectPropertyModificationException
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
 import org.junit.Assert
 import org.junit.Before
@@ -52,7 +53,7 @@ class NotFreeAspectUpdateTest {
 
     @Test(expected = AspectModificationException::class)
     fun testChangeBaseTypeHasValue() {
-        createValue()
+        createRootValue(125)
         aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
     }
 
@@ -78,7 +79,7 @@ class NotFreeAspectUpdateTest {
 
     @Test(expected = AspectModificationException::class)
     fun testChangeAspectMeasureOtherGroupHasValue() {
-        createValue()
+        createRootValue(125)
         aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
     }
 
@@ -114,7 +115,7 @@ class NotFreeAspectUpdateTest {
         )
 
         Assert.assertEquals("with value prop exist", withValueProp.id, saved.properties[0].id)
-        Assert.assertEquals("with value prop has deleted flag", withValueProp.deleted, saved.properties[0].deleted)
+        Assert.assertEquals("with value prop has deleted flag", true, saved.properties[0].deleted)
         Assert.assertTrue("simple prop not exist", saved.properties.none { it.id == simpleProp.id })
     }
 
@@ -128,8 +129,9 @@ class NotFreeAspectUpdateTest {
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", PropertyCardinality.ONE.name, aspectWithObjectProperty.id!!), username)
-        createValue(aspectWithObjectProperty.properties[0].id)
+        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
+        val rootValue = createNullRootValue()
+        val childValue = createChildValue(aspectPropertyId = aspectWithObjectProperty.properties[0].id, parentId = rootValue.id.toString())
 
         aspectWithObjectProperty = aspectService.findById(aspectWithObjectProperty.id!!)
         aspectWithValue = aspectService.findById(aspectWithValue.id!!)
@@ -144,14 +146,19 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createValue(aspectPropertyId: String? = null) {
-        val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(123, null),
-            objectPropertyId = objectPropertyId,
-            aspectPropertyId = aspectPropertyId,
-            measureId = null,
-            parentValueId = null
-        )
+    private fun createRootValue(value: Int = 123): ObjectPropertyValue {
+        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), objectPropertyId)
+        return objectService.create(objPropertyValueRequest, username)
+    }
+
+    private fun createNullRootValue(): ObjectPropertyValue {
+        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.NullValue, objectPropertyId)
+        return objectService.create(objPropertyValueRequest, username)
+    }
+
+    private fun createChildValue(aspectPropertyId: String, parentId: String, value: Int = 124) {
+        val objPropertyValueRequest = ValueCreateRequest(value = ObjectValueData.DecimalValue(value.toString()), objectPropertyId = objectPropertyId,
+            aspectPropertyId = aspectPropertyId, measureId = null, parentValueId = parentId)
         objectService.create(objPropertyValueRequest, username)
     }
 }

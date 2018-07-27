@@ -163,12 +163,17 @@ class ObjectHistoryProvider(
         )
     }
 
-    private fun valueAdd(createFact: HistoryFact, state: ObjectState): ObjectHistory {
+    private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>): ObjectHistory {
         val valueId = createFact.event.entityId
         val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
         val objectId = state.objectIds.getValue(propertyId)
         val objekt = state.objects.getValue(objectId)
         val property = state.properties.getValue(propertyId)
+        val newCardinality = updateFacts.find { it.event.entityClass == OBJECT_PROPERTY_CLASS }
+                ?.let { it.payload.data["cardinality"] }
+        if (newCardinality != null) {
+            property.snapshot.data["cardinality"] = newCardinality
+        }
 
         fun nameById(key: String, getter: (String) -> String?): String? =
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
@@ -182,8 +187,18 @@ class ObjectHistoryProvider(
         val objectName = nameById("refValueObject") {
             state.objects[it]?.snapshot?.data?.get("name")
         }
+        val objectPropertyRefName = nameById("refValueObjectProperty") {
+            state.properties[it]?.snapshot?.data?.get("name")
+        }
+        val objectValueRefName = createFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
         val domainElement = nameById("refValueDomainElement") {
             refBookService.itemName(it)
+        }
+        val aspectRefName = nameById("refValueAspect") {
+            aspectService.findById(it).name
+        }
+        val aspectPropertyRefName = nameById("refValueAspectProperty") {
+            aspectService.findPropertyById(it).name
         }
         val measureName = nameById("measure") {
             measureService.name(it)
@@ -197,8 +212,12 @@ class ObjectHistoryProvider(
             id = valueId, snapshot = initial,
             subjectName = subjectName,
             objectName = objectName,
+            objectPropertyRefName = objectPropertyRefName,
+            objectValueRefName = objectValueRefName,
             domainElement = domainElement,
             measureName = measureName,
+            aspectRefName = aspectRefName,
+            aspectPropertyRefName = aspectPropertyRefName,
             aspectPropertyName = aspectPropertyName
         )
 
@@ -252,7 +271,7 @@ class ObjectHistoryProvider(
                     propertyAdd(createFact, state, aspectNameById)
                 }
                 OBJECT_PROPERTY_VALUE_CLASS -> {
-                    valueAdd(createFact, state)
+                    valueAdd(createFact, state, byType[EventType.UPDATE].orEmpty())
                 }
                 else ->
                     placeHolder(createFact)
@@ -306,7 +325,11 @@ private val idReprExtractors: Map<String, (ObjectHistoryData.Companion.BriefStat
     "subject" to { currentState -> currentState.objekt.subjectName },
     "refValueSubject" to { currentState -> currentState.value?.repr },
     "refValueObject" to { currentState -> currentState.value?.repr },
+    "refValueObjectProperty" to { currentState -> currentState.value?.repr },
+    "refValueObjectValue" to { currentState -> currentState.value?.repr },
     "refValueDomainElement" to { currentState -> currentState.value?.repr },
+    "refValueAspect" to { currentState -> currentState.value?.repr },
+    "refValueAspectProperty" to { currentState -> currentState.value?.repr },
     "aspect" to { currentState -> currentState.property?.aspectName },
     "aspectProperty" to { currentState -> currentState.value?.aspectPropertyName },
     "measure" to { currentState -> currentState.value?.measureName }

@@ -4,6 +4,7 @@ import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.storage.id
@@ -19,22 +20,42 @@ sealed class LinkValueVertex {
     abstract val vertex: OVertex
     abstract fun toData(): LinkValueData
 
-    class SubjectValue(override val vertex: SubjectVertex) : LinkValueVertex() {
+    class Subject(override val vertex: SubjectVertex) : LinkValueVertex() {
         override fun toData() = LinkValueData.Subject(vertex.id)
     }
 
-    class ObjectValue(override val vertex: ObjectVertex) : LinkValueVertex() {
+    class Object(override val vertex: ObjectVertex) : LinkValueVertex() {
         override fun toData() = LinkValueData.Object(vertex.id)
     }
 
-    class DomainElementValue(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
+    class ObjectProperty(override val vertex: ObjectPropertyVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.ObjectProperty(vertex.id)
+    }
+
+    class ObjectValue(override val vertex: ObjectPropertyValueVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.ObjectValue(vertex.id)
+    }
+
+    class DomainElement(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
         override fun toData() = LinkValueData.DomainElement(vertex.id)
+    }
+
+    class RefBookItem(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.RefBookItem(vertex.id)
+    }
+
+    class Aspect(override val vertex: AspectVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.Aspect(vertex.id)
+    }
+
+    class AspectProperty(override val vertex: AspectPropertyVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.AspectProperty(vertex.id)
     }
 }
 
 /* Это бекендный аналог структуры ObjectValueData
 
-   Часть подтипов совсем такие же, как в ObjectValue, но Decimal и Link отличаются
+   Часть подтипов совсем такие же, как в Object, но Decimal и Link отличаются
  */
 sealed class ObjectValue {
     data class IntegerValue(val value: Int, val precision: Int?) : ObjectValue() {
@@ -74,7 +95,7 @@ sealed class ObjectValue {
  * updates in database
  */
 data class ObjectPropertyValue(
-    val id: ORID?,
+    val id: ORID,
     val value: ObjectValue,
     val objectProperty: ObjectPropertyVertex,
     val aspectProperty: AspectPropertyVertex?,

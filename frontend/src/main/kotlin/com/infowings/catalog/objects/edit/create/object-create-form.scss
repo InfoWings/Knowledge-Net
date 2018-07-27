@@ -1,0 +1,17 @@
+.object-create-form {
+
+  max-width: 120rem;
+  margin: 3rem auto;
+
+  display: flex;
+  align-items: center;
+
+  & > * {
+    margin-right: 1rem;
+  }
+
+  & > .object-input-subject {
+    width: 25rem;
+  }
+
+}
