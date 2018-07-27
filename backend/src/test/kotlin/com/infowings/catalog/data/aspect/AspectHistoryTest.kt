@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
@@ -12,6 +13,8 @@ import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.transaction
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,6 +50,12 @@ class AspectHistoryTest {
 
     @Autowired
     private lateinit var historyProvider: AspectHistoryProvider
+
+    @Autowired
+    private lateinit var historyDao: HistoryDao
+
+    @Autowired
+    private lateinit var db: OrientDatabase
 
     @Before
     fun initTestData() {
@@ -86,6 +95,17 @@ class AspectHistoryTest {
         val nameChange = changedFields.getValue("Name")[0]
         assertEquals(aspect.name, nameChange.after)
         assertEquals("", nameChange.before)
+
+        val timeline = historyDao.timelineForEntity(aspect.idStrict())
+        assertEquals(1, timeline.size)
+        val entityVertex = timeline[0]
+        assertEquals(aspect.version, entityVertex.entityVersion)
+        assertEquals(ASPECT_CLASS, entityVertex.entityClass)
+        val fact = transaction(db) {
+            entityVertex.toFact()
+        }
+        assertEquals(setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name), fact.payload.data.keys)
+        assertEquals("aspect", fact.payload.data[AspectField.NAME.name])
     }
 
     @Test
@@ -133,6 +153,20 @@ class AspectHistoryTest {
             val nameChange = changedFields.getValue("Name")[0]
             assertEquals(aspect.name, nameChange.after)
         }
+
+
+        val timeline1 = historyDao.timelineForEntity(aspect1.idStrict())
+        assertEquals(1, timeline1.size)
+        val timeline2 = historyDao.timelineForEntity(aspect2.idStrict())
+        assertEquals(1, timeline2.size)
+
+        val entityVertex1 = timeline1[0]
+        val entityVertex2 = timeline2[0]
+
+        assertEquals(aspect1.version, entityVertex1.entityVersion)
+        assertEquals(aspect2.version, entityVertex2.entityVersion)
+        assertEquals(ASPECT_CLASS, entityVertex1.entityClass)
+        assertEquals(ASPECT_CLASS, entityVertex2.entityClass)
     }
 
     @Test
@@ -166,6 +200,17 @@ class AspectHistoryTest {
         assertEquals("Description", delta.fieldName)
         assertEquals(aspect1.description, delta.before)
         assertEquals(aspect2.description, delta.after)
+
+        val timeline = historyDao.timelineForEntity(aspect1.idStrict())
+        assertEquals(2, timeline.size)
+
+        val entityVertex1 = timeline[0]
+        val entityVertex2 = timeline[1]
+
+        assertEquals(aspect1.version, entityVertex1.entityVersion)
+        assertEquals(aspect2.version, entityVertex2.entityVersion)
+        assertEquals(ASPECT_CLASS, entityVertex1.entityClass)
+        assertEquals(ASPECT_CLASS, entityVertex2.entityClass)
     }
 
     @Test
@@ -194,6 +239,7 @@ class AspectHistoryTest {
                 )
             ), username = "admin"
         )
+        val createdProperty = aspect3.properties[0]
 
         val all = historyService.getAll()
         val byClass = all.groupBy { it.event.entityClass }
@@ -237,7 +283,7 @@ class AspectHistoryTest {
         val propertyFact = propertyFacts[0]
 
         assertEquals(EventType.CREATE, propertyFact.event.type)
-        assertEquals(aspect3.properties[0].id, propertyFact.event.entityId)
+        assertEquals(createdProperty.id, propertyFact.event.entityId)
         assertEquals(updateFact.event.sessionId, propertyFact.event.sessionId, "session ids must match")
 
         assertEquals(
@@ -246,11 +292,11 @@ class AspectHistoryTest {
         )
 
         assertEquals(
-            aspect3.properties[0].cardinality,
+            createdProperty.cardinality,
             propertyFact.payload.data[AspectPropertyField.CARDINALITY.name]
         )
-        assertEquals(aspect3.properties[0].name, propertyFact.payload.data[AspectPropertyField.NAME.name])
-        assertEquals(aspect3.properties[0].aspectId, propertyFact.payload.data[AspectPropertyField.ASPECT.name])
+        assertEquals(createdProperty.name, propertyFact.payload.data[AspectPropertyField.NAME.name])
+        assertEquals(createdProperty.aspectId, propertyFact.payload.data[AspectPropertyField.ASPECT.name])
 
         assertEquals(emptySet(), propertyFact.payload.removedLinks.keys, "no removed links in property fact")
         assertEquals(emptySet(), propertyFact.payload.addedLinks.keys, "no added links in property fact")
@@ -284,6 +330,15 @@ class AspectHistoryTest {
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
         assertEquals(true, change.after?.contains("aspect-2"))
+
+        val timelineParent = historyDao.timelineForEntity(aspect3.idStrict())
+        assertEquals(2, timelineParent.size)
+
+        val timelineChild = historyDao.timelineForEntity(aspect2.idStrict())
+        assertEquals(1, timelineChild.size)
+
+        val timelineProp = historyDao.timelineForEntity(createdProperty.id)
+        assertEquals(1, timelineProp.size)
     }
 
     @Test
@@ -349,8 +404,7 @@ class AspectHistoryTest {
         assertEquals(aspect3.id, aspectProviderFact.event.entityId)
 
         assertEquals(1, aspectProviderFact.changes.size)
-        //val change = aspectProviderFact.changes[0]
-        //assertEquals("Property " + aspect4.properties[0].name, change.fieldName)
+        val change = aspectProviderFact.changes[0]
     }
 
     @Test

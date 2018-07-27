@@ -39,6 +39,7 @@ class WebSecurity : WebSecurityConfigurerAdapter() {
         http?.also {
             it.csrf().disable().authorizeRequests()
                 .antMatchers("/api/access/signIn", "/api/access/refresh").permitAll()
+                .antMatchers("/api/ping").permitAll()
                 .antMatchers("/api/admin/**").hasAuthority(UserRole.ADMIN.name)
                 .antMatchers("/api/powereduser/**").hasAuthority(UserRole.POWERED_USER.name)
                 .antMatchers("/api/user/**").hasAuthority(UserRole.USER.name)

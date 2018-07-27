@@ -2,6 +2,8 @@ package com.infowings.catalog.data.history
 
 import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.auth.user.UserVertex
+import com.infowings.catalog.common.HistorySnapshotData
+import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
@@ -36,6 +38,14 @@ class HistoryService(
         }
     }
 
+    fun entityTimeline(id: String): List<HistoryFact> = logTime(logger, "history timeline for entity collection") {
+        transaction(db) {
+            val events = historyDao.timelineForEntity(id)
+            logger.info("${events.size} timeline events")
+            return@transaction events.map { it.toFact() }
+        }
+    }
+
     fun allTimeline(entityClass: String): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClass") {
         transaction(db) {
             val events = logTime(logger, "basic collecting of timed events for $entityClass") { historyDao.getAllHistoryEventsByTime(entityClass) }
@@ -50,6 +60,21 @@ class HistoryService(
                 }
             }
         }
+    }
+
+    fun asSnapshots(timeline: List<HistoryFact>, base: SnapshotData): List<HistorySnapshotData> {
+        val current = Snapshot(base).toMutable()
+        val result = listOf<HistorySnapshotData>().toMutableList()
+
+
+        timeline.forEach { fact ->
+            val before = current.immutable().toSnapshotData()
+            current.apply(fact.payload)
+            val after = current.immutable().toSnapshotData()
+            result.add(HistorySnapshotData(event = fact.event, before = before, after = after, diff = fact.payload.toData()))
+        }
+
+        return result.toList()
     }
 
     fun allTimeline(entityClasses: List<String>): List<HistoryFact> = logTime(logger, "history timeline collection for $entityClasses") {
@@ -67,7 +92,6 @@ class HistoryService(
             }
         }
     }
-
 
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()

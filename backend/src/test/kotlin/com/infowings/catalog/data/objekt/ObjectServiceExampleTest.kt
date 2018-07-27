@@ -81,7 +81,7 @@ class ObjectServiceExampleTest {
             AspectData(
                 name = "temperature",
                 description = "При нормальныхз условиях окружающей среды: T воздуха = 20 гр. C",
-                baseType = BaseType.Decimal.name
+                baseType = BaseType.Integer.name
             ), username
         )
 
@@ -176,7 +176,7 @@ class ObjectServiceExampleTest {
         val createdValue13 = objectService.create(value13Request, username)
 
         val value111Request = ValueCreateRequest(
-            value = ObjectValueData.IntegerValue(3, null),
+            value = ObjectValueData.DecimalValue("3.0"),
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue11.id.toString(),
@@ -207,7 +207,7 @@ class ObjectServiceExampleTest {
         val value131Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("1.2"),
             objectPropertyId = createdPropertyId,
-            aspectPropertyId = aspectChargeMode.id,
+            aspectPropertyId = chargeModeProperty(aspectStage2.idStrict()),
             parentValueId = createdValue13.id.toString(),
             measureId = ampereMeasure?.id
         )

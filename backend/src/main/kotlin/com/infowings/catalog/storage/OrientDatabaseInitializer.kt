@@ -13,8 +13,41 @@ import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ROOT_EDGE
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OClass
+import com.orientechnologies.orient.core.metadata.schema.OProperty
 import com.orientechnologies.orient.core.metadata.schema.OType
-import com.orientechnologies.orient.core.record.impl.ODocument
+
+enum class OrientClass(val extName: String) {
+    ASPECT(ASPECT_CLASS),
+    ASPECT_PROPERTY(ASPECT_PROPERTY_CLASS),
+    SUBJECT(SUBJECT_CLASS),
+    OBJECT(OBJECT_CLASS),
+    OBJECT_PROPERTY(OBJECT_PROPERTY_CLASS),
+    OBJECT_VALUE(OBJECT_PROPERTY_VALUE_CLASS),
+    REFBOOK_ITEM(REFERENCE_BOOK_ITEM_VERTEX),
+    MEASURE(MEASURE_VERTEX),
+    MEASURE_GROUP(MEASURE_GROUP_VERTEX),
+    HISTORY_EVENT(HISTORY_EVENT_CLASS),
+    HISTORY_ELEMENT(HISTORY_ELEMENT_CLASS),
+    HISTORY_ADD_LINK(HISTORY_ADD_LINK_CLASS),
+    HISTORY_REMOVE_LINK(HISTORY_DROP_LINK_CLASS),
+    USER(USER_CLASS)
+}
+
+enum class OrientEdge(val extName: String) {
+    ASPECT_PROPERTY(ASPECT_ASPECT_PROPERTY_EDGE),
+    SUBJECT_OF_ASPECT(ASPECT_SUBJECT_EDGE),
+    SUBJECT_OF_OBJECT(OBJECT_SUBJECT_EDGE),
+    OBJECT_OF_OBJECT_PROPERTY(OBJECT_OBJECT_PROPERTY_EDGE),
+    ASPECT_OF_OBJECT_PROPERTY(ASPECT_OBJECT_PROPERTY_EDGE),
+    OBJECT_PROPERTY_OF_OBJECT_VALUE(OBJECT_VALUE_OBJECT_PROPERTY_EDGE),
+    ASPECT_PROPERTY_OF_OBJECT_VALUE(OBJECT_VALUE_ASPECT_PROPERTY_EDGE),
+    OBJECT_VALUE_CHILD_OF_VALUE(OBJECT_VALUE_OBJECT_VALUE_EDGE),
+    OBJECT_MEASURE_OF_VALUE(OBJECT_VALUE_MEASURE_EDGE),
+    OBJECT_VALUE_REF_OBJECT(OBJECT_VALUE_OBJECT_EDGE),
+    OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
+    OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REFBOOK_ITEM_EDGE),
+}
+
 
 const val ATTR_NAME = "name"
 const val ATTR_DESC = "description"
@@ -68,13 +101,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
-        val aspectClass = session.getClass(ASPECT_CLASS) ?: createAspectVertex(session)
-        aspectClass.getProperty(ATTR_DESC) ?: aspectClass.createProperty(ATTR_DESC, OType.STRING)
-        if (session.getClass(ASPECT_CLASS) == null) {
-            session.createVertexClass(ASPECT_CLASS)
-                .createProperty("name", OType.STRING).isMandatory = true
-            createIgnoreCaseIndex(session, ASPECT_CLASS)
-        }
+        session.getClass(ASPECT_CLASS) ?: createAspectVertex(session)
         session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECT_PROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECT_PROPERTY_EDGE)
@@ -87,7 +114,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(OBJECT_CLASS) == null) {
             val vertexClass = session.createVertexClass(OBJECT_CLASS)
             vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
-            createIgnoreCaseIndex(session, OBJECT_CLASS)
+            initIgnoreCaseIndex(OBJECT_CLASS)
         }
         initEdge(session, OBJECT_SUBJECT_EDGE)
 
@@ -129,10 +156,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     }
 
     private fun createAspectVertex(session: ODatabaseDocument): OClass {
-        val vertexClass = session.createVertexClass(ASPECT_CLASS)
-        vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
-        createIgnoreCaseIndex(session, ASPECT_CLASS)
-        return vertexClass
+        val aspectClass = session.createVertexClass(ASPECT_CLASS)
+        aspectClass.getProperty(ATTR_DESC) ?: aspectClass.createProperty(ATTR_DESC, OType.STRING)
+        aspectClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        initIgnoreCaseIndex(ASPECT_CLASS)
+        return aspectClass
     }
 
     private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String) {
@@ -142,9 +170,13 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
         logger.info("create vertex: $className")
+
         val vertex = session.createVertexClass(className)
-        vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true).createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
-        createIgnoreCaseIndex(session, className)
+        val property = vertex.createProperty(ATTR_NAME, OType.STRING).setMandatory(true)
+
+        initBasicIndex(property)
+        initIgnoreCaseIndex(className)
+
         return vertex
     }
 
@@ -215,31 +247,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     }
 
     private fun initLuceneIndex(classType: String) {
-        initLuceneIndex(classType, ATTR_NAME)
-        initLuceneIndex(classType, ATTR_DESC)
+        database.createLuceneIndex(classType, ATTR_NAME)
+        database.createLuceneIndex(classType, ATTR_DESC)
     }
 
-    private fun initLuceneIndex(classType: String, attrName: String) =
-        session(database) { session ->
-            val iName = "$classType.lucene.$attrName"
-            val oClass = session.getClass(classType)
-            if (oClass.getClassIndex(iName) == null) {
-                val metadata = ODocument()
-                metadata.setProperty("allowLeadingWildcard", true)
-                CreateIndexWrapper.createIndexWrapper(
-                    oClass,
-                    iName,
-                    "FULLTEXT",
-                    null,
-                    metadata,
-                    "LUCENE",
-                    arrayOf(attrName)
-                )
-            }
-        }
+    private fun initIgnoreCaseIndex(className: String) = database.createICIndex(className)
 
-    private fun createIgnoreCaseIndex(session: ODatabaseDocument, className: String) {
-        session.command("CREATE INDEX $className.index.name.ic ON $className (name COLLATE ci) NOTUNIQUE")
-    }
+    private fun initBasicIndex(property: OProperty) = database.createBasicIndex(property)
 }
-

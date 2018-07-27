@@ -45,6 +45,7 @@ enum class ScalarTypeTag(val code: Int) {
     ASPECT_PROPERTY(104),
     OBJECT_PROPERTY(105),
     OBJECT_VALUE(106),
+    REF_BOOK_ITEM(107),
 }
 
 /*
@@ -63,6 +64,7 @@ fun ObjectValue.tag() = when (this) {
         is LinkValueVertex.ObjectValue -> ScalarTypeTag.OBJECT_VALUE
         is LinkValueVertex.Subject -> ScalarTypeTag.SUBJECT
         is LinkValueVertex.DomainElement -> ScalarTypeTag.DOMAIN_ELEMENT
+        is LinkValueVertex.RefBookItem -> ScalarTypeTag.REF_BOOK_ITEM
         is LinkValueVertex.Aspect -> ScalarTypeTag.ASPECT
         is LinkValueVertex.AspectProperty -> ScalarTypeTag.ASPECT_PROPERTY
     }

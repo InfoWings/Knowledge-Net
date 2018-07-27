@@ -46,6 +46,7 @@ enum class ValueDTOTags {
     ASPECT,
     ASPECT_PROPERTY,
     DOMAIN_ELEMENT,
+    REF_BOOK_ITEM
 }
 
 /* json-представление скалярного значения. */
@@ -73,6 +74,7 @@ fun objectValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT.name, null, null, 
 fun objectPropertyValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT_PROPERTY.name, null, null, null, null, id, null)
 fun objectValueValueDto(id: String) = ValueDTO(ValueDTOTags.OBJECT_VALUE.name, null, null, null, null, id, null)
 fun domainElementValueDto(id: String) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.name, null, null, null, null, id, null)
+fun refBookItemValueDto(id: String) = ValueDTO(ValueDTOTags.REF_BOOK_ITEM.name, null, null, null, null, id, null)
 fun aspectValueDto(id: String) = ValueDTO(ValueDTOTags.ASPECT.name, null, null, null, null, id, null)
 fun aspectPropertyValueDto(id: String) = ValueDTO(ValueDTOTags.ASPECT_PROPERTY.name, null, null, null, null, id, null)
 
@@ -90,6 +92,7 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
             is LinkValueData.ObjectProperty -> objectPropertyValueDto(this.value.id)
             is LinkValueData.ObjectValue -> objectValueValueDto(this.value.id)
             is LinkValueData.DomainElement -> domainElementValueDto(this.value.id)
+            is LinkValueData.RefBookItem -> refBookItemValueDto(this.value.id)
             is LinkValueData.Aspect -> aspectValueDto(this.value.id)
             is LinkValueData.AspectProperty -> aspectPropertyValueDto(this.value.id)
         }
@@ -114,6 +117,7 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.OBJECT_VALUE -> ObjectValueData.Link(LinkValueData.ObjectValue(idStrict()))
     ValueDTOTags.SUBJECT -> ObjectValueData.Link(LinkValueData.Subject(idStrict()))
     ValueDTOTags.DOMAIN_ELEMENT -> ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
+    ValueDTOTags.REF_BOOK_ITEM -> ObjectValueData.Link(LinkValueData.RefBookItem(idStrict()))
     ValueDTOTags.ASPECT -> ObjectValueData.Link(LinkValueData.Aspect(idStrict()))
     ValueDTOTags.ASPECT_PROPERTY -> ObjectValueData.Link(LinkValueData.AspectProperty(idStrict()))
     ValueDTOTags.NULL -> ObjectValueData.NullValue
