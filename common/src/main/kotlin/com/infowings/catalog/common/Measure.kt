@@ -134,6 +134,8 @@ expect sealed class BaseType(_name: String) {
     object Decimal : BaseType
     object Boolean : BaseType
     object Text : BaseType
+    object Reference : BaseType
+    object Range : BaseType
 }
 
 fun createDecimalMeasure(

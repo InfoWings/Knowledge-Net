@@ -43,7 +43,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
 
-    fun findProperty(id: String) = getVertex(id)?.toAspectPropertyVertex()
+    fun findProperty(id: String) = transaction(db) { getVertex(id)?.toAspectPropertyVertex() }
 
     fun findPropertyStrict(id: String) = findProperty(id) ?: throw AspectPropertyDoesNotExist(id)
 
@@ -331,6 +331,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 it.toVertexOrNull()?.toAspectVertex()?.toAspectData()
             }.toList()
         }
+    }
+
+    fun baseType(propertyVertex: AspectPropertyVertex): String? = transaction(db) {
+        propertyVertex.associatedAspect.baseType
     }
 }
 

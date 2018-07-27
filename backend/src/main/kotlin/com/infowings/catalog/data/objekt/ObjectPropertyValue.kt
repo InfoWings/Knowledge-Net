@@ -40,6 +40,10 @@ sealed class LinkValueVertex {
         override fun toData() = LinkValueData.DomainElement(vertex.id)
     }
 
+    class RefBookItem(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
+        override fun toData() = LinkValueData.RefBookItem(vertex.id)
+    }
+
     class Aspect(override val vertex: AspectVertex) : LinkValueVertex() {
         override fun toData() = LinkValueData.Aspect(vertex.id)
     }
