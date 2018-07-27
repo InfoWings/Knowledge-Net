@@ -296,9 +296,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun getObjectVertex(id: String) = db.getVertexById(id)?.toObjectVertex()
-    fun getObjectPropertyVertex(id: String) = db.getVertexById(id)?.toObjectPropertyVertex()
-    fun getObjectPropertyValueVertex(id: String) = db.getVertexById(id)?.toObjectPropertyValueVertex()
+    fun getObjectVertex(id: String) = transaction(db) { db.getVertexById(id)?.toObjectVertex() }
+    fun getObjectPropertyVertex(id: String) = transaction(db) { db.getVertexById(id)?.toObjectPropertyVertex() }
+    fun getObjectPropertyValueVertex(id: String) = transaction(db) { db.getVertexById(id)?.toObjectPropertyValueVertex() }
 
     fun getObjectVertexesByNameAndSubject(name: String, subjectId: ORID): List<ObjectVertex> {
         val sqlBuilder = objectSqlBuilder {

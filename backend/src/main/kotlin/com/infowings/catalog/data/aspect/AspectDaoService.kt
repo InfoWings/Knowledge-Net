@@ -37,7 +37,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
-    fun find(id: String) = db.getVertexById(id)?.toAspectVertex()
+    fun find(id: String): AspectVertex? = transaction(db) {
+        val v = db.getVertexById(id)
+        return@transaction v?.toAspectVertex()
+    }
 
     fun findStrict(id: String) = find(id) ?: throw AspectDoesNotExist(id)
 

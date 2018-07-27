@@ -155,13 +155,7 @@ class ObjectValidator(
 
         val measureVertex = request.measureId?.let { measureService.findById(it) }
 
-        return ValueWriteInfo(
-            value,
-            objectPropertyVertex,
-            aspectPropertyVertex,
-            parentValueVertex,
-            measureVertex
-        )
+        return ValueWriteInfo(value, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
 
     fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo {

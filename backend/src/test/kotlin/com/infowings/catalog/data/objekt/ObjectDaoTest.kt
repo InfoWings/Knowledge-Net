@@ -228,7 +228,7 @@ class ObjectDaoTest {
         val propertyInfo = validator.checkedForCreation(propertyRequest)
         val createdProperty = createObjectProperty(propertyInfo)
 
-        val valueRequest = ValueCreateRequest(value = ObjectValueData.StringValue("some value"), objectPropertyId = createdProperty.id)
+        val valueRequest = ValueCreateRequest.root(value = ObjectValueData.StringValue("some value"), objectPropertyId = createdProperty.id)
         val valueInfo = validator.checkedForCreation(valueRequest)
         val createdValue = createObjectPropertyValue(valueInfo)
 

@@ -68,6 +68,7 @@ class ObjectValidatorTest {
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         aspectInt = aspectService.save(AspectData(name = "aspectNameInt", description = "aspectDescr", baseType = BaseType.Integer.name), username)
+
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",

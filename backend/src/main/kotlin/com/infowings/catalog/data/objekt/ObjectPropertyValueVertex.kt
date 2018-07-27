@@ -18,7 +18,10 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
-fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
+fun OVertex.toObjectPropertyValueVertex(): ObjectPropertyValueVertex {
+    checkClass(OrientClass.OBJECT_VALUE)
+    return ObjectPropertyValueVertex(this)
+}
 
 const val INT_TYPE_PROPERTY = "int"
 const val DECIMAL_TYPE_PROPERTY = "decimal"
