@@ -28,7 +28,7 @@ class SelectReferenceBookValueDialog(props: Props) :
         selectedValue = props.initialValue
     }
 
-    override fun componentDidUpdate(prevProps: Props, prevState: State) {
+    override fun componentDidUpdate(prevProps: Props, prevState: State, snapshot: Any) {
         if (!prevProps.isOpen && props.isOpen) {
             launch {
                 val referenceBook = getReferenceBookById(props.initialValue.refBookId)
