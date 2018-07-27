@@ -106,7 +106,6 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                     }!!
                 }
                 objectPropertiesEditList(
-                    objectId = props.objectTree.id,
                     editContext = props.editContext,
                     properties = props.objectTree.properties,
                     editModel = props.editModel,

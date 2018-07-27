@@ -7,8 +7,6 @@ import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
-import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import react.RProps
@@ -31,6 +29,12 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             +"("
             +(props.subjectName ?: "Global")
             +")"
+        }
+        props.onSaveProperty?.let {
+            submitButtonComponent(it, "pt-small")
+        }
+        props.onCancelProperty?.let {
+            cancelButtonComponent(it, "pt-small")
         }
         if (props.value != ObjectValueData.NullValue) {
             propertyValue(
@@ -76,4 +80,6 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onCancelValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var needRemoveConfirmation: Boolean
+    var onSaveProperty: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
 }

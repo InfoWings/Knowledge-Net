@@ -14,7 +14,6 @@ import react.buildElement
 import react.rFunction
 
 fun RBuilder.objectPropertiesEditList(
-    objectId: String,
     editContext: EditContext,
     properties: List<ObjectPropertyEditModel>,
     editModel: ObjectTreeEditModel,
@@ -150,20 +149,6 @@ fun RBuilder.objectPropertiesEditList(
                             else -> null
                         }
                         onRemoveValue = when {
-                            (value.id == null && allValues.size > 1) -> {
-                                {
-                                    updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
-                                    }
-                                }
-                            }
-                            (value.id == null && value.value != ObjectValueData.NullValue) -> {
-                                {
-                                    updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = ObjectValueData.NullValue
-                                    }
-                                }
-                            }
                             (value.id != null && allValues.size > 1) -> {
                                 {
                                     editModel.deleteValue(value.id, property.id ?: error("Property should have id"))
@@ -181,6 +166,16 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             else -> null
                         }
+                        onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                            { editModel.updateProperty(property) }
+                        } else null
+                        onCancelProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                            {
+                                updater(propertyIndex) {
+                                    name = apiModelPropertiesById[property.id]?.name
+                                }
+                            }
+                        } else null
                         this.editModel = editModel
                         this.apiModelValuesById = apiModelValuesById
                     }
@@ -268,6 +263,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         onAddValue = props.onAddValue
                         onCancelValue = props.onCancelValue
                         onRemoveValue = props.onRemoveValue
+                        onSaveProperty = props.onSaveProperty
+                        onCancelProperty = props.onCancelProperty
                         needRemoveConfirmation = props.rootValue.id != null
                     }
                 }
@@ -312,6 +309,8 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var onAddValue: (() -> Unit)?
     var onCancelValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
+    var onSaveProperty: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
     var editModel: ObjectTreeEditModel
     var apiModelValuesById: Map<String, ValueTruncated>
 }
