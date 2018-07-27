@@ -52,22 +52,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun deleteObject() {
-        launch {
-            try {
-                props.apiModel.deleteObject()
-            } catch (badRequestException: BadRequestException) {
-                setState {
-                    entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
-                        launch {
-                            props.apiModel.deleteObject(true)
-                            setState {
-                                entityDeleteInfo = null
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        deleteEntity { force -> props.apiModel.deleteObject(force) }
     }
 
     override fun createProperty(propertyEditModel: ObjectPropertyEditModel) {
@@ -95,22 +80,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun deleteProperty(propertyEditModel: ObjectPropertyEditModel) {
-        launch {
-            try {
-                props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"))
-            } catch (badRequestException: BadRequestException) {
-                setState {
-                    entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
-                        launch {
-                            props.apiModel.deleteObjectProperty(propertyEditModel.id ?: error("Property should have id in order to be deleted"), true)
-                            setState {
-                                entityDeleteInfo = null
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        val propertyId = propertyEditModel.id ?: error("Property should have id in order to be deleted")
+        deleteEntity { force -> props.apiModel.deleteObjectProperty(propertyId, force) }
     }
 
     override fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
@@ -140,14 +111,18 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun deleteValue(valueId: String, propertyId: String) {
+        deleteEntity { force -> props.apiModel.deleteObjectValue(propertyId, valueId, force) }
+    }
+
+    private fun deleteEntity(deleteOperation: suspend (force: Boolean) -> Unit) {
         launch {
             try {
-                props.apiModel.deleteObjectValue(propertyId, valueId)
+                deleteOperation(false)
             } catch (badRequestException: BadRequestException) {
                 setState {
                     entityDeleteInfo = EntityDeleteInfo(badRequestException.message) {
                         launch {
-                            props.apiModel.deleteObjectValue(propertyId, valueId, true)
+                            deleteOperation(true)
                             setState {
                                 entityDeleteInfo = null
                             }
