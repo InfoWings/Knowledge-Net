@@ -10,18 +10,39 @@ fun RBuilder.propertyValue(
     baseType: BaseType,
     referenceBookId: String?,
     value: ObjectValueData?,
-    onChange: (ObjectValueData) -> Unit
+    onChange: (ObjectValueData) -> Unit,
+    disabled: Boolean = false
 ) {
     when {
         baseType == BaseType.Text && referenceBookId != null -> refBookInput(
             if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
             { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it))) },
-            referenceBookId
+            referenceBookId,
+            disabled
         )
-        baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue) { onChange(ObjectValueData.StringValue(it)) }
-        baseType == BaseType.Integer -> integerInput((value as? ObjectValueData.IntegerValue)?.asStringValue) { onChange(ObjectValueData.IntegerValue(it.toInt(), null)) }
-        baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue) { onChange(ObjectValueData.DecimalValue(it)) }
-        baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue) { onChange(ObjectValueData.BooleanValue(it.toBoolean())) }
+        baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue, disabled) { onChange(ObjectValueData.StringValue(it)) }
+        baseType == BaseType.Integer -> integerInput((value as? ObjectValueData.IntegerValue)?.asStringValue, disabled) {
+            onChange(
+                ObjectValueData.IntegerValue(
+                    it.toInt(),
+                    null
+                )
+            )
+        }
+        baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue, disabled) {
+            onChange(
+                ObjectValueData.DecimalValue(
+                    it
+                )
+            )
+        }
+        baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue, disabled) {
+            onChange(
+                ObjectValueData.BooleanValue(
+                    it.toBoolean()
+                )
+            )
+        }
     }
 }
 
