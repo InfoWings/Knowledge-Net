@@ -32,6 +32,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     ObjectTreeEditModel {
 
     override fun State.init(props: Props) {
+        editContextModel = null
         viewModel = ObjectEditViewModel(props.serverView)
     }
 
@@ -152,6 +153,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 editModel = this@ObjectTreeEditModelComponent
                 objectTree = state.viewModel
                 apiModel = props.serverView
+                editContext = EditContext(state.editContextModel) { setState { editContextModel = it } }
             }
         }
         state.entityDeleteInfo?.let { entityDeleteInfo ->
@@ -180,6 +182,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     interface State : RState {
         var viewModel: ObjectEditViewModel
+        var editContextModel: EditContextModel?
         var entityDeleteInfo: EntityDeleteInfo?
     }
 

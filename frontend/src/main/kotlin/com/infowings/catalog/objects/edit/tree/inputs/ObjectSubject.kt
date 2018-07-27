@@ -26,7 +26,7 @@ private fun subjectOption(subjectTruncated: SubjectTruncated) = jsObject<Subject
     this.subject = subjectTruncated
 }
 
-fun RBuilder.objectSubject(value: SubjectTruncated?, onSelect: (SubjectTruncated) -> Unit) =
+fun RBuilder.objectSubject(value: SubjectTruncated?, onSelect: (SubjectTruncated) -> Unit, disabled: Boolean) =
     asyncSelect<SubjectOption> {
         attrs {
             className = "object-input-subject"
@@ -57,5 +57,6 @@ fun RBuilder.objectSubject(value: SubjectTruncated?, onSelect: (SubjectTruncated
                 }
                 false
             }
+            this.disabled = disabled
         }
     }

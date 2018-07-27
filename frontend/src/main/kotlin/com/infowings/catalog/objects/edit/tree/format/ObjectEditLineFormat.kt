@@ -18,34 +18,49 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
         name(
             value = props.name,
             onChange = props.onNameChanged,
-            onCancel = props.onNameChanged
+            onCancel = props.onNameChanged,
+            disabled = props.disabled
         )
         span(classes = "object-tree-edit__label") {
             +"( Subject:"
         }
         objectSubject(
             value = props.subject,
-            onSelect = props.onSubjectChanged
+            onSelect = props.onSubjectChanged,
+            disabled = true
         )
         span(classes = "object-tree-edit__label") {
             +")"
         }
-        descriptionComponent(
-            className = "object-input-description",
-            description = props.description,
-            onNewDescriptionConfirmed = props.onDescriptionChanged,
-            onEditStarted = null
-        )
+        if (props.disabled) {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.description
+            )
+        } else {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.description,
+                onNewDescriptionConfirmed = props.onDescriptionChanged,
+                onEditStarted = null
+            )
+        }
         props.onUpdateObject?.let {
             submitButtonComponent(it)
         }
         props.onDiscardUpdate?.let {
             cancelButtonComponent(it)
         }
-        if (props.canCreateNewProperty) {
-            addPropertyButton(onClick = props.onCreateNewProperty)
+        props.onCreateNewProperty?.let {
+            if (!props.disabled) {
+                addPropertyButton(onClick = it)
+            }
         }
-        minusButtonComponent(props.onDeleteObject, true)
+        props.onDeleteObject?.let {
+            if (!props.disabled) {
+                minusButtonComponent(it, true)
+            }
+        }
     }
 }
 
@@ -56,9 +71,9 @@ interface ObjectEditLineFormatProps : RProps {
     var onNameChanged: (String) -> Unit
     var onSubjectChanged: (SubjectTruncated) -> Unit
     var onDescriptionChanged: (String) -> Unit
-    var canCreateNewProperty: Boolean
-    var onCreateNewProperty: () -> Unit
-    var onDeleteObject: () -> Unit
+    var onCreateNewProperty: (() -> Unit)?
+    var onDeleteObject: (() -> Unit)?
     var onUpdateObject: (() -> Unit)?
     var onDiscardUpdate: (() -> Unit)?
+    var disabled: Boolean
 }

@@ -4,6 +4,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
+import com.infowings.catalog.objects.edit.EditContext
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
@@ -13,6 +14,8 @@ import react.buildElement
 import react.rFunction
 
 fun RBuilder.objectPropertiesEditList(
+    objectId: String,
+    editContext: EditContext,
     properties: List<ObjectPropertyEditModel>,
     editModel: ObjectTreeEditModel,
     apiModelProperties: List<ObjectPropertyEditDetailsResponse>,
