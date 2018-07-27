@@ -37,7 +37,11 @@ data class FieldDelta(
 )
 
 @Serializable
-data class SnapshotData(val data: Map<String, String>, val links: Map<String, List<String>>)
+data class SnapshotData(val data: Map<String, String>, val links: Map<String, List<String>>) {
+    companion object {
+        val empty = SnapshotData(emptyMap(), emptyMap())
+    }
+}
 
 /*
 Структура для предствления прочитанного события, пригодная для контекста KotlinJS
@@ -132,3 +136,6 @@ class ObjectHistoryList(val history: List<ObjectHistory>)
 
 @Serializable
 class SubjectHistoryList(val history: List<SubjectHistory>)
+
+@Serializable
+class EntityHistory(val id: String, val timeline: List<HistorySnapshotData>)

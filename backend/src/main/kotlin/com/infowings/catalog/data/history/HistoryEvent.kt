@@ -9,6 +9,7 @@ import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.history.objekt.ObjectHistoryData
 import com.infowings.catalog.data.objekt.ScalarTypeTag
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
@@ -120,6 +121,8 @@ data class Snapshot(
     val links: Map<String, List<ORID>>
 ) : DataAware {
     constructor() : this(emptyMap(), emptyMap())
+
+    constructor(data: SnapshotData) : this(data.data, data.links.mapValues { it.value.map{ ORecordId(it) } })
 
     override fun dataItem(key: String): String? = data[key]
 

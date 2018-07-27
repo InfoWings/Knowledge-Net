@@ -6,6 +6,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.toVertexOrNull
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.sql.executor.OResultInternal
 
 class SqlBuilder() {
@@ -90,8 +91,10 @@ class HistoryDao(private val db: OrientDatabase) {
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
     }
 
-    fun timelineForEntity(id: String): List<HistoryEventVertex> {
-        val q = SqlBuilder().select().from(HISTORY_EVENT_CLASS).where("@rid == :id").sortedBy("timestamp").build()
+    fun timelineForEntity(id: String): List<HistoryEventVertex> = timelineForEntity(ORecordId(id))
+
+    fun timelineForEntity(id: ORID): List<HistoryEventVertex> {
+        val q = SqlBuilder().select().from(HISTORY_EVENT_CLASS).where("entityRID == :id").sortedBy("timestamp").build()
         return db.query(q, mapOf("id" to id)) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
         }
