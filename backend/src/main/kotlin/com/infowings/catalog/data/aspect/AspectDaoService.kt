@@ -335,6 +335,10 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }.toList()
         }
     }
+
+    fun baseType(propertyVertex: AspectPropertyVertex): String? = transaction(db) {
+        propertyVertex.associatedAspect.baseType
+    }
 }
 
 private val logger = loggerFor<AspectDaoService>()

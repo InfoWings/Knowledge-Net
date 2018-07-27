@@ -7,13 +7,38 @@ data class Range(val left: Int, val right: Int)
  * но не для сериализации в json
  */
 sealed class ObjectValueData {
-    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData()
-    data class BooleanValue(val value: Boolean) : ObjectValueData()
-    data class StringValue(val value: String) : ObjectValueData()
-    data class RangeValue(val range: Range) : ObjectValueData()
-    data class DecimalValue(val valueRepr: String) : ObjectValueData()
-    data class Link(val value: LinkValueData) : ObjectValueData()
-    object NullValue : ObjectValueData()
+    abstract fun assignableTo(baseType: BaseType): Boolean
+
+    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Integer.name
+    }
+
+    data class BooleanValue(val value: Boolean) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Boolean.name
+    }
+
+    data class StringValue(val value: String) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Text.name
+    }
+
+    data class RangeValue(val range: Range) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Range.name
+    }
+
+    data class DecimalValue(val valueRepr: String) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Decimal.name
+    }
+
+    data class Link(val value: LinkValueData) : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = when (value) {
+            is LinkValueData.DomainElement -> baseType.name == BaseType.Text.name
+            else -> baseType.name == BaseType.Reference.name
+        }
+    }
+
+    object NullValue : ObjectValueData() {
+        override fun assignableTo(baseType: BaseType) = true
+    }
 }
 
 
@@ -27,6 +52,7 @@ sealed class LinkValueData(open val id: String) {
     class ObjectProperty(override val id: String) : LinkValueData(id)
     class ObjectValue(override val id: String) : LinkValueData(id)
     class DomainElement(override val id: String) : LinkValueData(id)
+    class RefBookItem(override val id: String) : LinkValueData(id)
     class Aspect(override val id: String) : LinkValueData(id)
     class AspectProperty(override val id: String) : LinkValueData(id)
 }

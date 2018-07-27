@@ -56,6 +56,8 @@ class ObjectValidatorTest {
 
     private lateinit var aspect: AspectData
 
+    private lateinit var aspectInt: AspectData
+
     private lateinit var complexAspect: AspectData
 
     private val username = "admin"
@@ -64,13 +66,8 @@ class ObjectValidatorTest {
     fun initTestData() {
         validator = ObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(
-            AspectData(
-                name = "aspectName",
-                description = "aspectDescr",
-                baseType = BaseType.Text.name
-            ), username
-        )
+        aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+        aspectInt = aspectService.save(AspectData(name = "aspectNameInt", description = "aspectDescr", baseType = BaseType.Integer.name), username)
 
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
@@ -236,28 +233,17 @@ class ObjectValidatorTest {
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntTestName",
-            description = null, objectId = createdObject.id, aspectId = aspect.idStrict()
+            description = null, objectId = createdObject.id, aspectId = aspectInt.idStrict()
         )
         val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueRequest = ValueCreateRequest(
-            value = scalarValue,
-            objectPropertyId = savedProperty.id,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = scalarValue, objectPropertyId = savedProperty.id)
         val objectValue = validator.checkedForCreation(valueRequest)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
-        assertEquals(
-            valueRequest.aspectPropertyId,
-            objectValue.aspectProperty?.id,
-            "root characteristics must be equal"
-        )
+        assertEquals(valueRequest.aspectPropertyId, objectValue.aspectProperty?.id, "root characteristics must be equal")
         assertEquals(valueRequest.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
     }
-
 
     @Test
     fun objectValueValidatorSimpleIntWithRangeTest() {
@@ -270,22 +256,15 @@ class ObjectValidatorTest {
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorSimpleIntWithRangeTestName",
             description = null,
-            objectId = createdObject.id, aspectId = aspect.idStrict()
+            objectId = createdObject.id, aspectId = aspectInt.idStrict()
         )
         val createdProperty = createObjectProperty(propertyRequest)
 
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueData = ValueCreateRequest(
-            scalarValue,
-            createdProperty.id,
-            complexAspect.properties[0].id,
-            null,
-            null
-        )
+        val valueData = ValueCreateRequest.root(scalarValue, createdProperty.id)
         val objectValue = validator.checkedForCreation(valueData)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
-        assertEquals(valueData.aspectPropertyId, objectValue.aspectProperty?.id, "aspect properties must be equal")
         assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
     }
 
@@ -303,13 +282,7 @@ class ObjectValidatorTest {
         val createdProperty = createObjectProperty(propertyRequest)
 
         val scalarValue = ObjectValueData.StringValue("string-value")
-        val valueRequest = ValueCreateRequest(
-            value = scalarValue,
-            objectPropertyId = createdProperty.id,
-            aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = null,
-            measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value = scalarValue, objectPropertyId = createdProperty.id)
         val valueInfo = validator.checkedForCreation(valueRequest)
 
         assertEquals(scalarValue, valueInfo.value.toObjectValueData(), "values must be equal")

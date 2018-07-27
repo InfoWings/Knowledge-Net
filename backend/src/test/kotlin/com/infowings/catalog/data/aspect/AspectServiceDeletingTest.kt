@@ -91,6 +91,12 @@ class AspectServiceDeletingTest {
             domain = null, baseType = null, properties = properties, version = 0
         )
 
+    private fun initialRefAspectData(name: String, properties: List<AspectPropertyData> = emptyList()) =
+        AspectData(
+            id = "", name = name, measure = null,
+            domain = null, baseType = BaseType.Reference.name, properties = properties, version = 0
+        )
+
     private fun initialAspectDataForRefBook(name: String, properties: List<AspectPropertyData> = emptyList()) =
         AspectData(
             id = "", name = name, measure = null,
@@ -126,7 +132,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithObjectValue() {
-        val aspectData = initialAspectData("ASPECT-1")
+        val aspectData = initialRefAspectData("ASPECT-1")
         val aspect = aspectService.save(aspectData, username)
 
         val aspectId = aspect.idStrict()
@@ -268,19 +274,14 @@ class AspectServiceDeletingTest {
         val property2 = AspectPropertyData("", "prop-1", id2, PropertyCardinality.ONE.name, null)
         val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)), username)
 
-        val aspectData = initialAspectData("ASPECT-1")
+        val aspectData = initialRefAspectData("ASPECT-1")
         val aspect = aspectService.save(aspectData, username)
         val aspectId = aspect.idStrict()
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
-        val objValue = objectService.create(
-            ValueCreateRequest(
-                ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)),
-                propId
-            ), username
-        )
+        val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), propId), username)
 
         val current = aspectService.findById(initial.idStrict())
 

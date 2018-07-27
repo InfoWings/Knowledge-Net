@@ -55,6 +55,9 @@ class ObjectHistoryTest {
     private lateinit var subject: Subject
 
     private lateinit var aspect: AspectData
+    private lateinit var rangeAspect: AspectData
+    private lateinit var intAspect: AspectData
+    private lateinit var refAspect: AspectData
 
     private lateinit var complexAspect: AspectData
 
@@ -63,9 +66,11 @@ class ObjectHistoryTest {
     @Before
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(
-            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
-        )
+        aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
+        rangeAspect = aspectService.save(AspectData(name = "rangeAspectName", description = "aspectDescr", baseType = BaseType.Range.name), username)
+        intAspect = aspectService.save(AspectData(name = "intAspectName", description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        refAspect = aspectService.save(AspectData(name = "refAspectName", description = "aspectDescr", baseType = BaseType.Reference.name), username)
+
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
@@ -279,23 +284,17 @@ class ObjectHistoryTest {
         objectName: String,
         objectDescription: String,
         value: ObjectValueData,
-        aspectPropertyId: String? = null,
+        aspectId: String,
         measureId: String? = null
     ): PreparedValueInfo {
         val createdObjectId = createObject(objectName, objectDescription)
 
-        val propertyRequest = PropertyCreateRequest(
-            objectId = createdObjectId,
-            name = "prop_$objectName", description = null, aspectId = aspect.idStrict()
-        )
+        val propertyRequest = PropertyCreateRequest(objectId = createdObjectId, name = "prop_$objectName", description = null, aspectId = aspectId)
         val createdPropertyId = objectService.create(propertyRequest, "user")
 
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest(
-            value = value, objectPropertyId = createdPropertyId,
-            aspectPropertyId = aspectPropertyId, measureId = measureId, parentValueId = null
-        )
+        val valueRequest = ValueCreateRequest.root(value, createdPropertyId, measureId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
@@ -353,12 +352,12 @@ class ObjectHistoryTest {
         )
     }
 
-    private fun prepareChildValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
+    private fun prepareChildValue(prepared: PreparedValueInfo, aspectPropertyId: String?, value: ObjectValueData): PreparedValueInfo {
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
         val valueRequest = ValueCreateRequest(
             value = value, objectPropertyId = prepared.propertyId,
-            parentValueId = prepared.value.id.toString(), aspectPropertyId = null, measureId = null
+            parentValueId = prepared.value.id.toString(), aspectPropertyId = aspectPropertyId, measureId = null
         )
 
         val propertyFactsBefore = propertyEvents(factsBefore)
@@ -422,7 +421,7 @@ class ObjectHistoryTest {
     fun createValueNullHistoryTest() {
         val testName = "createValueNullHistoryTest"
 
-        val prepared = prepareValue(testName, "descr", ObjectValueData.NullValue)
+        val prepared = prepareValue(testName, "descr", ObjectValueData.NullValue, complexAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -450,7 +449,7 @@ class ObjectHistoryTest {
         val value = "hello"
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value))
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value), aspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -532,7 +531,7 @@ class ObjectHistoryTest {
         val value = "123.12"
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.DecimalValue(value))
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.DecimalValue(value), complexAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -582,8 +581,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(complexAspect.id, property.aspectId)
+        assertEquals(complexAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -614,7 +613,7 @@ class ObjectHistoryTest {
         val range = Range(3, 5)
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.RangeValue(range))
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.RangeValue(range), rangeAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -662,8 +661,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(rangeAspect.id, property.aspectId)
+        assertEquals(rangeAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -691,7 +690,7 @@ class ObjectHistoryTest {
         val intValue = 234
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.IntegerValue(intValue, null))
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.IntegerValue(intValue, null), intAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -741,8 +740,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(intAspect.id, property.aspectId)
+        assertEquals(intAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -775,7 +774,7 @@ class ObjectHistoryTest {
         val precision = 2
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.IntegerValue(intValue, precision))
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.IntegerValue(intValue, precision), intAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -826,8 +825,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(intAspect.id, property.aspectId)
+        assertEquals(intAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -860,7 +859,7 @@ class ObjectHistoryTest {
         val value2 = "world"
         val objectDescription = "object description"
 
-        val prepared1 = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value1))
+        val prepared1 = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value1), aspect.idStrict())
         val prepared2 = prepareAnotherValue(prepared1, ObjectValueData.StringValue(value2))
 
         val valueFacts = prepared2.valueFacts
@@ -947,8 +946,8 @@ class ObjectHistoryTest {
         val value2 = "world"
         val objectDescription = "object description"
 
-        val prepared1 = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value1))
-        val prepared2 = prepareChildValue(prepared1, ObjectValueData.StringValue(value2))
+        val prepared1 = prepareValue(testName, objectDescription, ObjectValueData.StringValue(value1), aspect.idStrict())
+        val prepared2 = prepareChildValue(prepared1, complexAspect.properties[0].id, ObjectValueData.StringValue(value2))
 
         val valueFacts = prepared2.valueFacts
 
@@ -962,12 +961,8 @@ class ObjectHistoryTest {
             "value facts must be for proper entities"
         )
 
-        val childFact =
-            byEntity[prepared2.value.id.toString()]?.firstOrNull()
-                    ?: throw IllegalStateException("no fact for child value")
-        val parentFact =
-            byEntity[prepared1.value.id.toString()]?.firstOrNull()
-                    ?: throw IllegalStateException("no fact for child value")
+        val childFact = byEntity[prepared2.value.id.toString()]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
+        val parentFact = byEntity[prepared1.value.id.toString()]?.firstOrNull() ?: throw IllegalStateException("no fact for child value")
 
         val childEvent = childFact.event
         val childPayload = childFact.payload
@@ -977,7 +972,7 @@ class ObjectHistoryTest {
         assertEquals(setOf("typeTag", "strValue"), childPayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), childPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(
-            setOf("objectProperty", "parentValue"),
+            setOf("objectProperty", "parentValue", "aspectProperty"),
             childPayload.addedLinks.keys,
             "added links keys must be correct"
         )
@@ -1042,16 +1037,16 @@ class ObjectHistoryTest {
         assertEquals(prepared2.value.id.toString(), propertyValue.id)
         assertEquals(ScalarTypeTag.STRING.name, propertyValue.typeTag)
         assertEquals(value2, propertyValue.repr)
-        assertEquals(null, propertyValue.aspectPropertyId)
-        assertEquals(null, propertyValue.aspectPropertyName)
+        assertEquals(complexAspect.properties[0].id, propertyValue.aspectPropertyId)
+        assertEquals(complexAspect.properties[0].name, propertyValue.aspectPropertyName)
         assertEquals(null, propertyValue.precision)
         assertEquals(null, propertyValue.measureName)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
         assertEquals(
-            setOf("typeTag", "strValue").map { prepared2.propertyRequest.name + ":" + it }.toSet(),
+            setOf("typeTag", "strValue", "aspectProperty").map { prepared2.propertyRequest.name + ":" + it }.toSet(),
             byField.keys
         )
         assertEquals(ScalarTypeTag.STRING.name, byField.getValue(prepared2.propertyRequest.name + ":typeTag")[0].after)
@@ -1065,7 +1060,7 @@ class ObjectHistoryTest {
         val linkValue = ObjectValueData.Link(LinkValueData.Subject(subject.id))
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1122,8 +1117,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1154,7 +1149,7 @@ class ObjectHistoryTest {
         val linkValue = ObjectValueData.Link(LinkValueData.Aspect(aspect.idStrict()))
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1213,8 +1208,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1247,7 +1242,7 @@ class ObjectHistoryTest {
 
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1306,8 +1301,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1348,7 +1343,7 @@ class ObjectHistoryTest {
         val linkValue = ObjectValueData.Link(LinkValueData.Object(objectId))
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1405,8 +1400,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1457,7 +1452,7 @@ class ObjectHistoryTest {
         val linkValue = ObjectValueData.Link(LinkValueData.ObjectProperty(objectPropertyId))
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1516,8 +1511,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1569,7 +1564,7 @@ class ObjectHistoryTest {
 
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1628,8 +1623,8 @@ class ObjectHistoryTest {
         assertEquals(prepared.propertyId, property.id)
         assertEquals(prepared.propertyRequest.name, property.name)
         assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
+        assertEquals(refAspect.id, property.aspectId)
+        assertEquals(refAspect.name, property.aspectName)
 
         // проверяем значение
         assertNotNull(state.fullData.value)
@@ -1676,7 +1671,7 @@ class ObjectHistoryTest {
 
         val linkValue = ObjectValueData.Link(LinkValueData.DomainElement(rbiId))
 
-        val prepared = prepareValue(testName, objectDescription, linkValue)
+        val prepared = prepareValue(testName, objectDescription, linkValue, aspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1764,111 +1759,6 @@ class ObjectHistoryTest {
     }
 
     @Test
-    fun createValueWithAspectPropertyHistoryTest() {
-        val testName = "createValueWithAspectPropertyHistoryTest"
-        val value = "hello"
-        val objectDescription = "object description"
-        val aspectProperty = complexAspect.properties[0]
-
-        val prepared = prepareValue(
-            objectName = testName,
-            objectDescription = objectDescription,
-            value = ObjectValueData.StringValue(value),
-            aspectPropertyId = aspectProperty.id
-        )
-        val valueFacts = prepared.valueFacts
-
-        assertEquals(1, valueFacts.size, "exactly one object property event must appear")
-        val valueEvent = valueFacts.first().event
-        val valuePayload = valueFacts.first().payload
-        assertEquals(OBJECT_PROPERTY_VALUE_CLASS, valueEvent.entityClass, "class must be correct")
-        assertEquals(EventType.CREATE, valueEvent.type, "event type must be correct")
-
-        assertEquals(setOf("typeTag", "strValue"), valuePayload.data.keys, "data keys must be correct")
-        assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
-        assertEquals(
-            setOf("objectProperty", "aspectProperty"),
-            valuePayload.addedLinks.keys,
-            "added links keys must be correct"
-        )
-
-        assertEquals(ScalarTypeTag.STRING.name, valuePayload.data["typeTag"], "type tag must be correct")
-        assertEquals(value, valuePayload.data["strValue"], "value must be correct")
-
-        val propertyLinks = valuePayload.addedLinks["objectProperty"] ?: fail("unexpected absence of property links")
-        assertEquals(1, propertyLinks.size, "only 1 property must be here")
-        assertEquals(prepared.propertyId, propertyLinks.first().toString(), "property id must be correct")
-
-        val aspectPropertyLinks =
-            valuePayload.addedLinks["aspectProperty"] ?: fail("unexpected absence of aspect property links")
-        assertEquals(1, aspectPropertyLinks.size, "only 1 aspect property must be here")
-        assertEquals(
-            complexAspect.properties[0].id,
-            aspectPropertyLinks.first().toString(),
-            "aspect property id must be correct"
-        )
-
-        checkPropertyFacts(prepared)
-
-        // ровно одно новое состояние
-        assertEquals(1, prepared.states.size, "History must contain 1 element about ref book")
-        val state = prepared.states[0]
-
-        // проверяем мета-данные
-        assertEquals(username, state.event.username)
-        assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
-            state.event.timestamp
-        )
-        assertEquals(EventType.UPDATE, state.event.type)
-        assertEquals(HISTORY_ENTITY_OBJECT, state.event.entityClass)
-        assertEquals(false, state.deleted)
-        assertEquals(testName, state.info)
-
-        // проверяем объект
-        assertEquals(prepared.objectId, state.fullData.objekt.id)
-        assertEquals(testName, state.fullData.objekt.name)
-        assertEquals(objectDescription, state.fullData.objekt.description)
-        assertEquals(subject.id, state.fullData.objekt.subjectId)
-        assertEquals(subject.name, state.fullData.objekt.subjectName)
-
-        // проверяем свойство
-        assertNotNull(state.fullData.property)
-        val property = state.fullData.property ?: throw IllegalStateException("property is null")
-        assertEquals(prepared.propertyId, property.id)
-        assertEquals(prepared.propertyRequest.name, property.name)
-        assertEquals(PropertyCardinality.ONE.name, property.cardinality)
-        assertEquals(aspect.id, property.aspectId)
-        assertEquals(aspect.name, property.aspectName)
-
-        // проверяем значение
-        assertNotNull(state.fullData.value)
-        val propertyValue = state.fullData.value ?: throw IllegalStateException("value is null")
-        assertEquals(prepared.value.id.toString(), propertyValue.id)
-        assertEquals(ScalarTypeTag.STRING.name, propertyValue.typeTag)
-        assertEquals(value, propertyValue.repr)
-        assertEquals(aspectProperty.id, propertyValue.aspectPropertyId)
-        assertEquals(aspectProperty.name, propertyValue.aspectPropertyName)
-        assertEquals(null, propertyValue.measureName)
-        assertEquals(null, propertyValue.precision)
-
-        // проверяем изменения
-        assertEquals(3, state.changes.size)
-        val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(
-            setOf(
-                "typeTag",
-                "strValue",
-                "aspectProperty"
-            ).map { prepared.propertyRequest.name + ":" + it }.toSet(), byField.keys
-        )
-        assertEquals(ScalarTypeTag.STRING.name, byField.getValue(prepared.propertyRequest.name + ":typeTag")[0].after)
-        assertEquals(value, byField.getValue(prepared.propertyRequest.name + ":strValue")[0].after)
-        assertEquals(aspectProperty.name, byField.getValue(prepared.propertyRequest.name + ":aspectProperty")[0].after)
-        assertEquals(state.changes.map { "" }, state.changes.map { it.before })
-    }
-
-    @Test
     fun createValueWithMeasureHistoryTest() {
         val testName = "createValueWithMeasureHistoryTest"
         val value = "hello"
@@ -1878,7 +1768,7 @@ class ObjectHistoryTest {
 
         val prepared = prepareValue(
             objectName = testName, objectDescription = objectDescription, value = ObjectValueData.StringValue(value),
-            aspectPropertyId = aspectProperty.id, measureId = measure.id
+            aspectId = aspect.idStrict(), measureId = measure.id
         )
         val valueFacts = prepared.valueFacts
 
@@ -1891,7 +1781,7 @@ class ObjectHistoryTest {
         assertEquals(setOf("typeTag", "strValue"), valuePayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
         assertEquals(
-            setOf("objectProperty", "aspectProperty", "measure"),
+            setOf("objectProperty", "measure"),
             valuePayload.addedLinks.keys,
             "added links keys must be correct"
         )
@@ -1902,15 +1792,6 @@ class ObjectHistoryTest {
         val propertyLinks = valuePayload.addedLinks["objectProperty"] ?: fail("unexpected absence of property links")
         assertEquals(1, propertyLinks.size, "only 1 property must be here")
         assertEquals(prepared.propertyId, propertyLinks.first().toString(), "property id must be correct")
-
-        val aspectPropertyLinks =
-            valuePayload.addedLinks["aspectProperty"] ?: fail("unexpected absence of aspect property links")
-        assertEquals(1, aspectPropertyLinks.size, "only 1 aspect property must be here")
-        assertEquals(
-            complexAspect.properties[0].id,
-            aspectPropertyLinks.first().toString(),
-            "aspect property id must be correct"
-        )
 
         val measureLinks = valuePayload.addedLinks["measure"] ?: fail("unexpected absence of measure links")
         assertEquals(1, measureLinks.size, "only 1 measure must be here")
@@ -1955,25 +1836,23 @@ class ObjectHistoryTest {
         assertEquals(prepared.value.id.toString(), propertyValue.id)
         assertEquals(ScalarTypeTag.STRING.name, propertyValue.typeTag)
         assertEquals(value, propertyValue.repr)
-        assertEquals(aspectProperty.id, propertyValue.aspectPropertyId)
-        assertEquals(aspectProperty.name, propertyValue.aspectPropertyName)
+        assertEquals(null, propertyValue.aspectPropertyId)
+        assertEquals(null, propertyValue.aspectPropertyName)
         assertEquals(measure.name, propertyValue.measureName)
         assertEquals(null, propertyValue.precision)
 
         // проверяем изменения
-        assertEquals(4, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
         assertEquals(
             setOf(
                 "typeTag",
                 "strValue",
-                "aspectProperty",
                 "measure"
             ).map { prepared.propertyRequest.name + ":" + it }.toSet(), byField.keys
         )
         assertEquals(ScalarTypeTag.STRING.name, byField.getValue(prepared.propertyRequest.name + ":typeTag")[0].after)
         assertEquals(value, byField.getValue(prepared.propertyRequest.name + ":strValue")[0].after)
-        assertEquals(aspectProperty.name, byField.getValue(prepared.propertyRequest.name + ":aspectProperty")[0].after)
         assertEquals(measure.name, byField.getValue(prepared.propertyRequest.name + ":measure")[0].after)
         assertEquals(state.changes.map { "" }, state.changes.map { it.before })
     }

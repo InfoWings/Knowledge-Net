@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.objekt.*
@@ -116,12 +117,29 @@ class ObjectValidator(
         logger.info("checking value for creation: $request")
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
+        if (request.parentValueId != null && request.aspectPropertyId == null) {
+            throw IllegalArgumentException("No aspect property id for non-root value")
+        }
+
+        if (request.parentValueId == null && request.aspectPropertyId != null) {
+            throw IllegalArgumentException("There is aspect property ${request.aspectPropertyId} for root value creation")
+        }
+
         val aspectPropertyVertex = request.aspectPropertyId?.let {
             aspectDao.findProperty(it)
                     ?: throw AspectPropertyDoesNotExist(it)
         }
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
+
+        val btStr = if (request.parentValueId != null)
+            aspectPropertyVertex?.let { aspectDao.baseType(it) }
+        else objectPropertyVertex.let { objectDaoService.baseType(it) }
+
+        val baseType = btStr?.let { BaseType.restoreBaseType(it) }
+        if (!request.value.assignableTo(baseType!!)) {
+            throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
+        }
 
         val dataValue = request.value
 
@@ -146,14 +164,29 @@ class ObjectValidator(
 
         val objectPropertyVertex = objectService.findPropertyById(objPropertyVertex.id)
         val aspectPropertyVertex = valueVertex.aspectProperty
-                ?: throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked Aspect")
+
+        if (aspectPropertyVertex == null && valueVertex.parentValue != null) {
+            throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked Aspect")
+        }
+
+        if (aspectPropertyVertex != null && valueVertex.parentValue == null) {
+            throw IllegalArgumentException("There is aspect property ${aspectPropertyVertex.id} for root value")
+        }
+
+        val btStr = if (valueVertex.parentValue != null)
+            aspectPropertyVertex?.let { aspectDao.baseType(it) }
+        else objectPropertyVertex.let { objectDaoService.baseType(it) }
+
+        val baseType = btStr?.let { BaseType.restoreBaseType(it) }
+        if (!request.value.assignableTo(baseType!!)) {
+            throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
+        }
 
         val parentValueVertex = valueVertex.parentValue
 
         val dataValue = request.value
 
         val value = getObjectValueFromData(dataValue)
-
         // check business key
         val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.identity, value).any {
             it.id != valueVertex.id
@@ -185,6 +218,8 @@ class ObjectValidator(
                         LinkValueVertex.ObjectValue(objectService.findPropertyValueById(it.id))
                     is LinkValueData.DomainElement ->
                         LinkValueVertex.DomainElement(refBookService.getReferenceBookItemVertex(it.id))
+                    is LinkValueData.RefBookItem ->
+                        LinkValueVertex.RefBookItem(refBookService.getReferenceBookItemVertex(it.id))
                     is LinkValueData.Aspect ->
                         LinkValueVertex.Aspect(aspectDao.findStrict(it.id))
                     is LinkValueData.AspectProperty ->

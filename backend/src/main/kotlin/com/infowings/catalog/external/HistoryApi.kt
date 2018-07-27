@@ -7,11 +7,14 @@ import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
+import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.loggerFor
 import org.slf4j.Logger
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -29,7 +32,8 @@ class HistoryApi(
     val aspectHistoryProvider: AspectHistoryProvider,
     val refBookHistoryProvider: RefBookHistoryProvider,
     val objectHistoryProvider: ObjectHistoryProvider,
-    val subjectHistoryProvider: SubjectHistoryProvider
+    val subjectHistoryProvider: SubjectHistoryProvider,
+    val historyService: HistoryService
 ) {
     @GetMapping("aspects")
     fun getAspects(): AspectHistoryList {
@@ -80,6 +84,15 @@ class HistoryApi(
         logger.info("all subjects history took ${afterMS - beforeMS}")        
 
         return result
+    }
+
+    @GetMapping("/entity/{id}")
+    fun getEntityHistory(@PathVariable id: String): EntityHistory {
+        return logTime(logger, "entity history") {
+            val timeline = historyService.entityTimeline(id)
+
+            return@logTime EntityHistory(id, historyService.asSnapshots(timeline, SnapshotData.empty))
+        }
     }
 }
 

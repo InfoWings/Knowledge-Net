@@ -367,6 +367,11 @@ class ObjectDaoService(private val db: OrientDatabase) {
             rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
         }
     }
+
+    fun baseType(propertyVertex: ObjectPropertyVertex): String? = transaction(db) {
+        propertyVertex.aspect?.baseType
+    }
+
 }
 
 private val logger = loggerFor<ObjectDaoService>()
