@@ -27,7 +27,7 @@ fun OVertex.toAspectVertex(): AspectVertex {
 }
 
 fun OVertex.toAspectPropertyVertex(): AspectPropertyVertex {
-    if (!this.ofClass(OrientClass.ASPECT_PROPERTY)) throw IllegalStateException("vertex with id ${this.id} is of class ${this.schemaType}")
+    checkClass(OrientClass.ASPECT_PROPERTY)
     return AspectPropertyVertex(this)
 }
 
