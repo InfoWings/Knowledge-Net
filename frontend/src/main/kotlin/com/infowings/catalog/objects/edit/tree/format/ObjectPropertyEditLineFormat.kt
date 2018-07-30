@@ -33,14 +33,10 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             cancelButtonComponent(it)
         }
         props.onRemoveProperty?.let {
-            if (!props.disabled) {
-                minusButtonComponent(it, true)
-            }
+            minusButtonComponent(it, true)
         }
         props.onAddValue?.let {
-            if (!props.disabled) {
-                newValueButtonComponent(it)
-            }
+            newValueButtonComponent(it)
         }
     }
 }

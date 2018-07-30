@@ -57,14 +57,10 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             cancelButtonComponent(it, "pt-small")
         }
         props.onAddValue?.let {
-            if (!props.disabled) {
-                plusButtonComponent(it, "pt-small")
-            }
+            plusButtonComponent(it, "pt-small")
         }
         props.onRemoveValue?.let {
-            if (!props.disabled) {
-                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
-            }
+            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
         }
     }
 }

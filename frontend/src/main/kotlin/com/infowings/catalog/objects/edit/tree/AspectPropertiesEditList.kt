@@ -114,7 +114,7 @@ fun RBuilder.aspectPropertiesEditList(
                             else -> null
                         }
                         this.onAddValue = when {
-                            value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
+                            value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null && !aspectProperty.deleted && !aspectProperty.aspect.deleted -> {
                                 {
                                     editContext.setContext(EditExistingContextModel(value.id))
                                     onUpdate(valueGroupIndex) {
@@ -122,7 +122,7 @@ fun RBuilder.aspectPropertiesEditList(
                                     }
                                 }
                             }
-                            valueGroup.values.all { it.id != null } && valueGroup.values.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } && currentEditContextModel == null -> {
+                            valueGroup.values.all { it.id != null } && valueGroup.values.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } && currentEditContextModel == null && !aspectProperty.deleted && !aspectProperty.aspect.deleted -> {
                                 {
                                     editContext.setContext(EditNewChildContextModel)
                                     onUpdate(valueGroupIndex) {
@@ -155,7 +155,8 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             else -> null
                         }
-                        disabled = value.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(value.id)
+                        disabled = (value.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(value.id)) ||
+                                aspectProperty.deleted || aspectProperty.aspect.deleted
                         this.editModel = editModel
                         this.objectPropertyId = objectPropertyId
                         this.apiModelValuesById = apiModelValuesById

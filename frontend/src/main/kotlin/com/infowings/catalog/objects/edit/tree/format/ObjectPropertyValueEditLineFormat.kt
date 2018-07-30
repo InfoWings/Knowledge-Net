@@ -52,14 +52,10 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             }
         }
         props.onAddValue?.let {
-            if (!props.valueDisabled && !props.propertyDisabled) {
-                plusButtonComponent(it, "pt-small")
-            }
+            plusButtonComponent(it, "pt-small")
         }
         props.onRemoveValue?.let {
-            if (!props.valueDisabled && !props.propertyDisabled) {
-                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
-            }
+            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
         }
         props.onSaveValue?.let {
             submitButtonComponent(it, "pt-small")
