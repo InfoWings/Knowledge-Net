@@ -5,6 +5,8 @@ import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.EditContext
+import com.infowings.catalog.objects.edit.EditExistingContextModel
+import com.infowings.catalog.objects.edit.EditNewChildContextModel
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
@@ -27,31 +29,51 @@ fun RBuilder.objectPropertiesEditList(
             objectPropertyEditNode {
                 val apiModelProperty = property.id?.let { apiModelPropertiesById[property.id] }
                 attrs {
+                    val currentEditContextModel = editContext.currentContext
                     this.property = property
-                    onUpdate = { block ->
-                        updater(propertyIndex, block)
+                    onUpdate = if (currentEditContextModel == null) {
+                        { block ->
+                            editContext.setContext(EditExistingContextModel(property.id ?: error("Property should have id in order to be edited")))
+                            updater(propertyIndex, block)
+                        }
+                    } else {
+                        { block ->
+                            updater(propertyIndex, block)
+                        }
                     }
                     onConfirm = when {
-                        property.id == null && property.aspect != null -> {
-                            { editModel.createProperty(property) }
+                        property.id == null && property.aspect != null && currentEditContextModel == EditNewChildContextModel -> {
+                            {
+                                editModel.createProperty(property)
+                                editContext.setContext(null)
+                            }
                         }
-                        property.id != null && apiModelProperty != null && (apiModelProperty.name != property.name || apiModelProperty.aspectDescriptor.id != property.aspect?.id) -> {
-                            { editModel.updateProperty(property) }
+                        property.id != null && apiModelProperty != null && currentEditContextModel is EditExistingContextModel &&
+                                currentEditContextModel.identity == property.id &&
+                                (apiModelProperty.name != property.name || apiModelProperty.aspectDescriptor.id != property.aspect?.id) -> {
+                            {
+                                editModel.updateProperty(property)
+                                editContext.setContext(null)
+                            }
                         }
                         else -> null
                     }
-                    onCancel = if (property.id != null && apiModelPropertiesById[property.id]?.name != property.name) {
+                    onCancel = if (property.id != null && apiModelPropertiesById[property.id]?.name != property.name &&
+                        currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == property.id
+                    ) {
                         {
                             updater(propertyIndex) {
                                 name = apiModelPropertiesById[property.id]?.name
                             }
+                            editContext.setContext(null)
                         }
                     } else null
-                    onRemove = if (property.id != null) {
+                    onRemove = if (property.id != null && editContext.currentContext == null) {
                         { editModel.deleteProperty(property) }
                     } else null
-                    onAddValue = if (property.id != null) {
+                    onAddValue = if (property.id != null && editContext.currentContext == null) {
                         {
+                            editContext.setContext(EditNewChildContextModel)
                             updater(propertyIndex) {
                                 val currentValues = this.values
 
@@ -85,30 +107,75 @@ fun RBuilder.objectPropertiesEditList(
             propertyValues.forEachIndexed { valueIndex, value ->
                 objectPropertyValueEditNode {
                     attrs {
+                        val currentEditContextModel = editContext.currentContext
                         key = value.id ?: valueIndex.toString()
                         this.property = property
+                        onPropertyUpdate = {
+                            editContext.setContext(EditExistingContextModel(property.id ?: error("Property should have id != null")))
+                            updater(propertyIndex, it)
+                        }
+                        onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                            { editModel.updateProperty(property) }
+                        } else null
+                        onCancelProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                            {
+                                updater(propertyIndex) {
+                                    name = apiModelPropertiesById[property.id]?.name
+                                }
+                            }
+                        } else null
                         this.rootValue = value
-                        onPropertyUpdate = { updater(propertyIndex, it) }
-                        onValueUpdate = { block ->
-                            updater(propertyIndex) {
-                                values?.let {
-                                    it[valueIndex].block()
-                                } ?: error("Must not be able to update value if there is no value")
+                        onValueUpdate = when {
+                            value.id != null && currentEditContextModel == null -> {
+                                { block ->
+                                    editContext.setContext(EditExistingContextModel(value.id))
+                                    updater(propertyIndex) {
+                                        values?.let {
+                                            it[valueIndex].block()
+                                        } ?: error("Must not be able to update value if there is no value")
+                                    }
+                                }
+                            }
+                            else -> {
+                                { block ->
+                                    updater(propertyIndex) {
+                                        values?.let {
+                                            it[valueIndex].block()
+                                        } ?: error("Must not be able to update value if there is no value")
+                                    }
+                                }
                             }
                         }
                         onSaveValue = when {
-                            value.id == null && value.value != null -> {
-                                { editModel.createValue(value.value ?: error("value should not be null"), property.id ?: error("Property should have id != null"), null, null) }
+                            value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
+                                {
+                                    editModel.createValue(
+                                        value.value ?: error("value should not be null"),
+                                        property.id ?: error("Property should have id != null"),
+                                        null,
+                                        null
+                                    )
+                                    editContext.setContext(null)
+                                }
                             }
-                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
-                                { editModel.updateValue(value.id, property.id ?: error("Property should have id != null"), value.value ?: error("Value should not be null")) }
+                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() &&
+                                    currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == value.id -> {
+                                {
+                                    editModel.updateValue(
+                                        value.id,
+                                        property.id ?: error("Property should have id != null"),
+                                        value.value ?: error("Value should not be null")
+                                    )
+                                    editContext.setContext(null)
+                                }
                             }
                             else -> null
                         }
                         val allValues = property.values ?: error("Property should have at least one value")
                         onAddValue = when {
-                            allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } -> {
+                            allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } && currentEditContextModel == null -> {
                                 {
+                                    editContext.setContext(EditNewChildContextModel)
                                     updater(propertyIndex) {
                                         values?.add(
                                             ObjectPropertyValueEditModel(
@@ -121,8 +188,18 @@ fun RBuilder.objectPropertiesEditList(
                                     }
                                 }
                             }
-                            value.value == ObjectValueData.NullValue -> {
+                            value.value == ObjectValueData.NullValue &&
+                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) || (value.id != null && currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == value.id)) -> {
                                 {
+                                    updater(propertyIndex) {
+                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value =
+                                                property.aspect?.defaultValue()
+                                    }
+                                }
+                            }
+                            value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
+                                {
+                                    editContext.setContext(EditExistingContextModel(value.id ?: error("value should have id != null")))
                                     updater(propertyIndex) {
                                         (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = property.aspect?.defaultValue()
                                     }
@@ -131,52 +208,45 @@ fun RBuilder.objectPropertiesEditList(
                             else -> null
                         }
                         onCancelValue = when {
-                            value.id == null -> {
+                            value.id == null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
                                     updater(propertyIndex) {
                                         (values ?: error("Must not be able to update value if there is no value")).removeAt(valueIndex)
                                     }
+                                    editContext.setContext(null)
                                 }
                             }
-                            value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                            value.id != null && currentEditContextModel == EditExistingContextModel(value.id) && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
                                 {
                                     updater(propertyIndex) {
                                         val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
                                         targetValue.value = apiModelValuesById[value.id]?.value?.toData()
                                     }
+                                    editContext.setContext(null)
                                 }
                             }
                             else -> null
                         }
                         onRemoveValue = when {
-                            (value.id != null && allValues.size > 1) -> {
+                            value.id != null && allValues.size > 1 && currentEditContextModel == null -> {
                                 {
                                     editModel.deleteValue(value.id, property.id ?: error("Property should have id"))
                                 }
                             }
-                            (value.id != null && value.value != ObjectValueData.NullValue) -> {
+                            value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.updateValue(value.id, property.id ?: error("Property should have id"), ObjectValueData.NullValue)
                                 }
                             }
-                            (value.id != null && value.value == ObjectValueData.NullValue) -> {
+                            value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.deleteProperty(property)
                                 }
                             }
                             else -> null
                         }
-                        onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
-                            { editModel.updateProperty(property) }
-                        } else null
-                        onCancelProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
-                            {
-                                updater(propertyIndex) {
-                                    name = apiModelPropertiesById[property.id]?.name
-                                }
-                            }
-                        } else null
                         this.editModel = editModel
+                        this.editContext = editContext
                         this.apiModelValuesById = apiModelValuesById
                     }
                 }
@@ -294,7 +364,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                 },
                 editModel = props.editModel,
                 objectPropertyId = props.property.id ?: error("Object property should exist when editing values"),
-                apiModelValuesById = props.apiModelValuesById
+                apiModelValuesById = props.apiModelValuesById,
+                editContext = props.editContext
             )
         }
     }
@@ -313,6 +384,7 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var onCancelProperty: (() -> Unit)?
     var editModel: ObjectTreeEditModel
     var apiModelValuesById: Map<String, ValueTruncated>
+    var editContext: EditContext
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {

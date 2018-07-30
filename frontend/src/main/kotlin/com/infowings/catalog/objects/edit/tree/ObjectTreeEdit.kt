@@ -71,19 +71,17 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                         }
                                     }
                                 }
-                                onCreateNewProperty =
-                                        if (editContextModel == null && (props.objectTree.properties.isEmpty() || props.objectTree.properties.last().id != null)) {
-                                            {
-                                                props.editContext.setContext(EditNewChildContextModel)
-                                                props.editModel.update {
-                                                    properties.add(ObjectPropertyEditModel())
-                                                }
-                                            }
-                                        } else null
-                                onDeleteObject =
-                                        if (editContextModel == null && (props.objectTree.properties.isEmpty() || props.objectTree.properties.last().id != null)) {
-                                            { props.editModel.deleteObject() }
-                                        } else null
+                                onCreateNewProperty = if (editContextModel == null) {
+                                    {
+                                        props.editContext.setContext(EditNewChildContextModel)
+                                        props.editModel.update {
+                                            properties.add(ObjectPropertyEditModel())
+                                        }
+                                    }
+                                } else null
+                                onDeleteObject = if (editContextModel == null) {
+                                    { props.editModel.deleteObject() }
+                                } else null
                                 onUpdateObject = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
                                     {
                                         props.editModel.updateObject()

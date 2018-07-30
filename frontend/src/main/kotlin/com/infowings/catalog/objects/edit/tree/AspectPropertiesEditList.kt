@@ -4,7 +4,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
-import com.infowings.catalog.objects.ObjectPropertyEditModel
+import com.infowings.catalog.objects.edit.EditContext
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyCreateLineFormat
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyEditLineFormat
@@ -22,7 +22,8 @@ fun RBuilder.aspectPropertiesEditList(
     onRemoveGroup: (id: String) -> Unit,
     editModel: ObjectTreeEditModel,
     objectPropertyId: String,
-    apiModelValuesById: Map<String, ValueTruncated>
+    apiModelValuesById: Map<String, ValueTruncated>,
+    editContext: EditContext
 ) {
     val groupsMap = valueGroups.associateBy { it.propertyId }
     aspect.properties.forEach { aspectProperty ->
@@ -148,6 +149,7 @@ fun RBuilder.aspectPropertiesEditList(
                         this.editModel = editModel
                         this.objectPropertyId = objectPropertyId
                         this.apiModelValuesById = apiModelValuesById
+                        this.editContext = editContext
                     }
                 }
             }
@@ -247,7 +249,8 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                 },
                 editModel = props.editModel,
                 objectPropertyId = props.objectPropertyId,
-                apiModelValuesById = props.apiModelValuesById
+                apiModelValuesById = props.apiModelValuesById,
+                editContext = props.editContext
             )
         }
     }
@@ -265,5 +268,6 @@ interface AspectPropertyValueEditNodeProps : RProps {
     var editModel: ObjectTreeEditModel
     var objectPropertyId: String
     var apiModelValuesById: Map<String, ValueTruncated>
+    var editContext: EditContext
 }
 
