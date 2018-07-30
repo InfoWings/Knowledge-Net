@@ -5,6 +5,8 @@ import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
 import com.infowings.catalog.objects.edit.EditContext
+import com.infowings.catalog.objects.edit.EditExistingContextModel
+import com.infowings.catalog.objects.edit.EditNewChildContextModel
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyCreateLineFormat
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyEditLineFormat
@@ -34,19 +36,22 @@ fun RBuilder.aspectPropertiesEditList(
                 aspectPropertyValueCreateNode {
                     attrs {
                         this.aspectProperty = aspectProperty
-                        this.onCreateValue = { valueData ->
-                            onAddValueGroup(
-                                AspectPropertyValueGroupEditModel(
-                                    propertyId = aspectProperty.id,
-                                    values = mutableListOf(
-                                        AspectPropertyValueEditModel(
-                                            id = null,
-                                            value = valueData
+                        this.onCreateValue = if (editContext.currentContext == null) {
+                            { valueData ->
+                                editContext.setContext(EditNewChildContextModel)
+                                onAddValueGroup(
+                                    AspectPropertyValueGroupEditModel(
+                                        propertyId = aspectProperty.id,
+                                        values = mutableListOf(
+                                            AspectPropertyValueEditModel(
+                                                id = null,
+                                                value = valueData
+                                            )
                                         )
                                     )
                                 )
-                            )
-                        }
+                            }
+                        } else null
                     }
                 }
             }
@@ -55,53 +60,80 @@ fun RBuilder.aspectPropertiesEditList(
             valueGroup.values.forEachIndexed { valueIndex, value ->
                 aspectPropertyValueEditNode {
                     attrs {
+                        val currentEditContextModel = editContext.currentContext
                         this.aspectProperty = aspectProperty
                         this.value = value
                         this.valueCount = valueGroup.values.size
-                        this.onUpdate = { block ->
-                            onUpdate(valueGroupIndex) {
-                                values[valueIndex].block()
+                        this.onUpdate = if (value.id != null && currentEditContextModel == null) {
+                            { block ->
+                                editContext.setContext(EditExistingContextModel(value.id))
+                                onUpdate(valueGroupIndex) {
+                                    values[valueIndex].block()
+                                }
+                            }
+                        } else {
+                            { block ->
+                                onUpdate(valueGroupIndex) {
+                                    values[valueIndex].block()
+                                }
                             }
                         }
                         this.onSubmit = when {
-                            value.id == null && value.value != null -> {
-                                { editModel.createValue(value.value ?: error("No value to submit"), objectPropertyId, parentValueId, aspectProperty.id) }
+                            value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
+                                {
+                                    editModel.createValue(value.value ?: error("No value to submit"), objectPropertyId, parentValueId, aspectProperty.id)
+                                    editContext.setContext(null)
+                                }
                             }
-                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
-                                { editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit")) }
+                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() && currentEditContextModel == EditExistingContextModel(
+                                value.id
+                            ) -> {
+                                {
+                                    editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit"))
+                                    editContext.setContext(null)
+                                }
                             }
                             else -> null
                         }
                         this.onCancel = when {
-                            value.id == null && valueGroup.values.size == 1 -> {
-                                { onRemoveGroup(valueGroup.propertyId) }
+                            value.id == null && valueGroup.values.size == 1 && currentEditContextModel == EditNewChildContextModel -> {
+                                {
+                                    onRemoveGroup(valueGroup.propertyId)
+                                    editContext.setContext(null)
+                                }
                             }
-                            value.id == null && valueGroup.values.size > 1 -> {
+                            value.id == null && valueGroup.values.size > 1 && currentEditContextModel == EditNewChildContextModel -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values.removeAt(valueIndex)
                                     }
+                                    editContext.setContext(null)
                                 }
                             }
-                            value.id != null && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                            value.id != null && value.value != apiModelValuesById[value.id]?.value?.toData() && currentEditContextModel == EditExistingContextModel(
+                                value.id
+                            ) -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = apiModelValuesById[value.id]?.value?.toData()
                                     }
+                                    editContext.setContext(null)
                                 }
                             }
                             else -> null
                         }
                         this.onAddValue = when {
-                            value.value == ObjectValueData.NullValue -> {
+                            value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
+                                    editContext.setContext(EditExistingContextModel(value.id))
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = aspectProperty.aspect.defaultValue()
                                     }
                                 }
                             }
-                            valueGroup.values.all { it.id != null } && valueGroup.values.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } -> {
+                            valueGroup.values.all { it.id != null } && valueGroup.values.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } && currentEditContextModel == null -> {
                                 {
+                                    editContext.setContext(EditNewChildContextModel)
                                     onUpdate(valueGroupIndex) {
                                         values.add(
                                             AspectPropertyValueEditModel(
@@ -115,31 +147,17 @@ fun RBuilder.aspectPropertiesEditList(
                             else -> null
                         }
                         this.onRemoveValue = when {
-                            (value.id == null && valueGroup.values.size > 1) -> {
-                                {
-                                    onUpdate(valueGroupIndex) {
-                                        values.removeAt(valueIndex)
-                                    }
-                                }
-                            }
-                            (value.id == null && value.value != ObjectValueData.NullValue) -> {
-                                {
-                                    onUpdate(valueGroupIndex) {
-                                        values[valueIndex].value = ObjectValueData.NullValue
-                                    }
-                                }
-                            }
-                            (value.id != null && valueGroup.values.size > 1) -> {
+                            value.id != null && valueGroup.values.size > 1 && currentEditContextModel == null -> {
                                 {
                                     editModel.deleteValue(value.id, objectPropertyId)
                                 }
                             }
-                            (value.id != null && value.value != ObjectValueData.NullValue) -> {
+                            value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue)
                                 }
                             }
-                            (value.id != null && value.value == ObjectValueData.NullValue) -> {
+                            value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.deleteValue(value.id, objectPropertyId)
                                 }
@@ -167,11 +185,12 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                         aspectName = props.aspectProperty.aspect.name
                         subjectName = props.aspectProperty.aspect.subjectName
                         cardinality = props.aspectProperty.cardinality
-                        onCreateValue = {
-                            if (props.aspectProperty.cardinality == PropertyCardinality.ZERO)
-                                props.onCreateValue(ObjectValueData.NullValue)
-                            else
-                                props.onCreateValue(props.aspectProperty.aspect.defaultValue())
+                        onCreateValue = props.onCreateValue?.let { onCreateValue ->
+                            if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
+                                { onCreateValue(ObjectValueData.NullValue) }
+                            } else {
+                                { onCreateValue(props.aspectProperty.aspect.defaultValue()) }
+                            }
                         }
                     }
                 }
@@ -182,7 +201,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 
 interface AspectPropertyValueCreateNodeProps : RProps {
     var aspectProperty: AspectPropertyTree
-    var onCreateValue: (ObjectValueData?) -> Unit
+    var onCreateValue: ((ObjectValueData?) -> Unit)?
 }
 
 val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("AspectPropertyValueEditNode") { props ->
