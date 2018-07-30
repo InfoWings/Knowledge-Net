@@ -31,16 +31,7 @@ fun RBuilder.objectPropertiesEditList(
                 attrs {
                     val currentEditContextModel = editContext.currentContext
                     this.property = property
-                    onUpdate = if (currentEditContextModel == null) {
-                        { block ->
-                            editContext.setContext(EditExistingContextModel(property.id ?: error("Property should have id in order to be edited")))
-                            updater(propertyIndex, block)
-                        }
-                    } else {
-                        { block ->
-                            updater(propertyIndex, block)
-                        }
-                    }
+                    onUpdate = { block -> updater(propertyIndex, block) }
                     onConfirm = when {
                         property.id == null && property.aspect != null && currentEditContextModel == EditNewChildContextModel -> {
                             {
@@ -100,6 +91,7 @@ fun RBuilder.objectPropertiesEditList(
                             }
                         }
                     } else null
+                    this.editContext = editContext
                     disabled = property.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(property.id)
                 }
             }
@@ -111,10 +103,7 @@ fun RBuilder.objectPropertiesEditList(
                         val currentEditContextModel = editContext.currentContext
                         key = value.id ?: valueIndex.toString()
                         this.property = property
-                        onPropertyUpdate = {
-                            editContext.setContext(EditExistingContextModel(property.id ?: error("Property should have id != null")))
-                            updater(propertyIndex, it)
-                        }
+                        onPropertyUpdate = { updater(propertyIndex, it) }
                         onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
                             { editModel.updateProperty(property) }
                         } else null
@@ -128,25 +117,11 @@ fun RBuilder.objectPropertiesEditList(
                         propertyDisabled = currentEditContextModel != null && currentEditContextModel !=
                                 EditExistingContextModel(property.id ?: error("Property should have id != null"))
                         this.rootValue = value
-                        onValueUpdate = when {
-                            value.id != null && currentEditContextModel == null -> {
-                                { block ->
-                                    editContext.setContext(EditExistingContextModel(value.id))
-                                    updater(propertyIndex) {
-                                        values?.let {
-                                            it[valueIndex].block()
-                                        } ?: error("Must not be able to update value if there is no value")
-                                    }
-                                }
-                            }
-                            else -> {
-                                { block ->
-                                    updater(propertyIndex) {
-                                        values?.let {
-                                            it[valueIndex].block()
-                                        } ?: error("Must not be able to update value if there is no value")
-                                    }
-                                }
+                        onValueUpdate = { block ->
+                            updater(propertyIndex) {
+                                values?.let {
+                                    it[valueIndex].block()
+                                } ?: error("Must not be able to update value if there is no value")
                             }
                         }
                         onSaveValue = when {
@@ -273,14 +248,40 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                     attrs {
                         name = props.property.name
                         aspect = props.property.aspect
-                        onNameChanged = {
-                            props.onUpdate {
-                                name = it
+                        onNameChanged = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onUpdate {
+                                    name = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onUpdate {
+                                    name = it
+                                }
                             }
                         }
-                        onAspectChanged = {
-                            props.onUpdate {
-                                aspect = it
+                        onAspectChanged = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onUpdate {
+                                    aspect = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onUpdate {
+                                    aspect = it
+                                }
                             }
                         }
                         onConfirmCreate = props.onConfirm
@@ -303,6 +304,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onAddValue: (() -> Unit)?
     var onRemove: (() -> Unit)?
     var disabled: Boolean
+    var editContext: EditContext
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
@@ -325,14 +327,40 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
                         value = props.rootValue.value
-                        onPropertyNameUpdate = {
-                            props.onPropertyUpdate {
-                                name = it
+                        onPropertyNameUpdate = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onPropertyUpdate {
+                                    name = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onPropertyUpdate {
+                                    name = it
+                                }
                             }
                         }
-                        onValueUpdate = {
-                            props.onValueUpdate {
-                                value = it
+                        onValueUpdate = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onValueUpdate {
+                                    value = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onValueUpdate {
+                                    value = it
+                                }
                             }
                         }
                         onSaveValue = props.onSaveValue

@@ -64,18 +64,9 @@ fun RBuilder.aspectPropertiesEditList(
                         this.aspectProperty = aspectProperty
                         this.value = value
                         this.valueCount = valueGroup.values.size
-                        this.onUpdate = if (value.id != null && currentEditContextModel == null) {
-                            { block ->
-                                editContext.setContext(EditExistingContextModel(value.id))
-                                onUpdate(valueGroupIndex) {
-                                    values[valueIndex].block()
-                                }
-                            }
-                        } else {
-                            { block ->
-                                onUpdate(valueGroupIndex) {
-                                    values[valueIndex].block()
-                                }
+                        this.onUpdate = { block ->
+                            onUpdate(valueGroupIndex) {
+                                values[valueIndex].block()
                             }
                         }
                         this.onSubmit = when {
@@ -227,9 +218,26 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         value = props.value.value
-                        onChange = {
-                            props.onUpdate {
-                                value = it
+                        onChange = if (props.editContext.currentContext == null) {
+                            {
+                                if (props.value.id == null) {
+                                    props.editContext.setContext(EditNewChildContextModel)
+                                } else {
+                                    props.editContext.setContext(
+                                        EditExistingContextModel(
+                                            props.value.id ?: error("Value should have id != null in order to be edited")
+                                        )
+                                    )
+                                }
+                                props.onUpdate {
+                                    value = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onUpdate {
+                                    value = it
+                                }
                             }
                         }
                         recommendedCardinality = props.aspectProperty.cardinality
