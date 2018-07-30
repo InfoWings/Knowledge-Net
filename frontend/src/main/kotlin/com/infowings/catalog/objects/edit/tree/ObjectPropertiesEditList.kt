@@ -100,6 +100,7 @@ fun RBuilder.objectPropertiesEditList(
                             }
                         }
                     } else null
+                    disabled = property.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(property.id)
                 }
             }
         } else {
@@ -124,6 +125,8 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                         } else null
+                        propertyDisabled = currentEditContextModel != null && currentEditContextModel !=
+                                EditExistingContextModel(property.id ?: error("Property should have id != null"))
                         this.rootValue = value
                         onValueUpdate = when {
                             value.id != null && currentEditContextModel == null -> {
@@ -245,6 +248,7 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             else -> null
                         }
+                        valueDisabled = currentEditContextModel != null && value.id != null && currentEditContextModel != EditExistingContextModel(value.id)
                         this.editModel = editModel
                         this.editContext = editContext
                         this.apiModelValuesById = apiModelValuesById
@@ -283,6 +287,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         onCancel = props.onCancel
                         onAddValue = props.onAddValue
                         onRemoveProperty = props.onRemove
+                        disabled = props.disabled
                     }
                 }
             }!!
@@ -297,6 +302,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onCancel: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemove: (() -> Unit)?
+    var disabled: Boolean
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
@@ -336,6 +342,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         onSaveProperty = props.onSaveProperty
                         onCancelProperty = props.onCancelProperty
                         needRemoveConfirmation = props.rootValue.id != null
+                        valueDisabled = props.valueDisabled
+                        propertyDisabled = props.propertyDisabled
                     }
                 }
             }!!
@@ -385,6 +393,8 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var editModel: ObjectTreeEditModel
     var apiModelValuesById: Map<String, ValueTruncated>
     var editContext: EditContext
+    var valueDisabled: Boolean
+    var propertyDisabled: Boolean
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {

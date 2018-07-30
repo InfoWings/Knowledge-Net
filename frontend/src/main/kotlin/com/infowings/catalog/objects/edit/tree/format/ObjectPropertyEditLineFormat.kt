@@ -4,7 +4,6 @@ import com.infowings.catalog.common.AspectTree
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.newValueButtonComponent
-import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.ShortAspectDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.name
@@ -19,11 +18,13 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             className = "object-property__name",
             value = props.name ?: "",
             onChange = props.onNameChanged,
-            onCancel = props.onNameChanged
+            onCancel = props.onNameChanged,
+            disabled = props.disabled
         )
         propertyAspect(
             value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, it.subjectName) },
-            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name)) }
+            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name)) },
+            disabled = props.disabled
         )
         props.onConfirmCreate?.let {
             submitButtonComponent(it)
@@ -32,10 +33,14 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             cancelButtonComponent(it)
         }
         props.onRemoveProperty?.let {
-            minusButtonComponent(it, true)
+            if (!props.disabled) {
+                minusButtonComponent(it, true)
+            }
         }
         props.onAddValue?.let {
-            newValueButtonComponent(it)
+            if (!props.disabled) {
+                newValueButtonComponent(it)
+            }
         }
     }
 }
@@ -49,4 +54,5 @@ interface ObjectPropertyEditLineFormatProps : RProps {
     var onCancel: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemoveProperty: (() -> Unit)?
+    var disabled: Boolean
 }

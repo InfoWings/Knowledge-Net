@@ -41,7 +41,8 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.aspectReferenceBookId,
                 value = value,
-                onChange = props.onChange
+                onChange = props.onChange,
+                disabled = props.disabled
             )
             props.aspectMeasure?.let {
                 span(classes = "aspect-property__property-measure") {
@@ -56,10 +57,14 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             cancelButtonComponent(it, "pt-small")
         }
         props.onAddValue?.let {
-            plusButtonComponent(it, "pt-small")
+            if (!props.disabled) {
+                plusButtonComponent(it, "pt-small")
+            }
         }
         props.onRemoveValue?.let {
-            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            if (!props.disabled) {
+                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            }
         }
     }
 }
@@ -80,4 +85,5 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var onAddValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var needRemoveConfirmation: Boolean
+    var disabled: Boolean
 }

@@ -20,7 +20,8 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             className = "property-value__property-name",
             value = props.propertyName ?: "",
             onChange = props.onPropertyNameUpdate,
-            onCancel = props.onPropertyNameUpdate
+            onCancel = props.onPropertyNameUpdate,
+            disabled = props.propertyDisabled
         )
         span(classes = "property-value__aspect") {
             +props.aspectName
@@ -41,7 +42,8 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
                 value = props.value,
-                onChange = props.onValueUpdate
+                onChange = props.onValueUpdate,
+                disabled = props.valueDisabled
             )
             props.aspectMeasure?.let {
                 span(classes = "property-value__aspect-measure") {
@@ -50,10 +52,14 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             }
         }
         props.onAddValue?.let {
-            plusButtonComponent(it, "pt-small")
+            if (!props.valueDisabled && !props.propertyDisabled) {
+                plusButtonComponent(it, "pt-small")
+            }
         }
         props.onRemoveValue?.let {
-            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            if (!props.valueDisabled && !props.propertyDisabled) {
+                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            }
         }
         props.onSaveValue?.let {
             submitButtonComponent(it, "pt-small")
@@ -82,4 +88,6 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var needRemoveConfirmation: Boolean
     var onSaveProperty: (() -> Unit)?
     var onCancelProperty: (() -> Unit)?
+    var propertyDisabled: Boolean
+    var valueDisabled: Boolean
 }

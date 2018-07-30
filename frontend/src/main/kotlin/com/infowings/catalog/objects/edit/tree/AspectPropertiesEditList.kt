@@ -164,6 +164,7 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             else -> null
                         }
+                        disabled = value.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(value.id)
                         this.editModel = editModel
                         this.objectPropertyId = objectPropertyId
                         this.apiModelValuesById = apiModelValuesById
@@ -242,6 +243,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         onAddValue = props.onAddValue
                         onRemoveValue = props.onRemoveValue
                         needRemoveConfirmation = props.value.id != null
+                        disabled = props.disabled
                     }
                 }
             }!!
@@ -288,5 +290,6 @@ interface AspectPropertyValueEditNodeProps : RProps {
     var objectPropertyId: String
     var apiModelValuesById: Map<String, ValueTruncated>
     var editContext: EditContext
+    var disabled: Boolean
 }
 
