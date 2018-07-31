@@ -173,19 +173,19 @@ class ObjectDaoService(private val db: OrientDatabase) {
             replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
             replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
 
-            var valuesSet = values.toSet()
-            var toDelete = emptySet<ObjectPropertyValueVertex>()
+            var valuesSet = values.associateBy { it.id }
+            var toDelete = emptyMap<String, ObjectPropertyValueVertex>()
             vertex.values.forEach {
-                if (valuesSet.contains(it)) {
-                    valuesSet -= it
+                if (valuesSet.containsKey(it.id)) {
+                    valuesSet -= it.id
                 } else {
-                    toDelete += it
+                    toDelete += it.id to it
                 }
             }
 
-            toDelete.forEach { it.delete<ObjectPropertyValueVertex>() }
-            valuesSet.forEach {
-                it.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).save<OEdge>()
+            toDelete.forEach { _, value -> value.delete<ObjectPropertyValueVertex>() }
+            valuesSet.forEach { _, value ->
+                value.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
 
             return@transaction vertex.save<OVertex>().toObjectPropertyVertex()

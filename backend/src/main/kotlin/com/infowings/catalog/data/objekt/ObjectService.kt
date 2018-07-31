@@ -12,7 +12,6 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
-import com.orientechnologies.orient.core.id.ORecordId
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -169,7 +168,7 @@ class ObjectService(
             val propertyInfo = validator.checkForUpdating(objectPropertyVertex, request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
-            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, emptyList())
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, objectPropertyVertex.values)
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(objectPropertyVertex.toUpdateFact(context, objectBefore))
