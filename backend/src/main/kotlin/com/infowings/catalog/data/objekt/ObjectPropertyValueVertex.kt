@@ -80,6 +80,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
+            "description" to asStringOrEmpty(description),
             "typeTag" to asStringOrEmpty(typeTag),
             "range" to range?.asString().orEmpty(),
             "precision" to asStringOrEmpty(precision),
