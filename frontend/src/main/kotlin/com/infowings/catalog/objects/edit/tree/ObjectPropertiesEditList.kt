@@ -105,13 +105,17 @@ fun RBuilder.objectPropertiesEditList(
                         this.property = property
                         onPropertyUpdate = { updater(propertyIndex, it) }
                         onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
-                            { editModel.updateProperty(property) }
+                            {
+                                editModel.updateProperty(property)
+                                editContext.setContext(null)
+                            }
                         } else null
                         onCancelProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
                             {
                                 updater(propertyIndex) {
                                     name = apiModelPropertiesById[property.id]?.name
                                 }
+                                editContext.setContext(null)
                             }
                         } else null
                         propertyDisabled = currentEditContextModel != null && currentEditContextModel !=
