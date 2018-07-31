@@ -385,7 +385,7 @@ class ObjectDaoTest {
         Assert.assertEquals("PropertyValue must have new value", "1123.4", updatedValue.value.toObjectValueData().toDTO().decimalStrict())
     }
 
-    @Test(expected = ObjectPropertyValueAlreadyExists::class)
+    @Test
     fun objPropertyValueUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
