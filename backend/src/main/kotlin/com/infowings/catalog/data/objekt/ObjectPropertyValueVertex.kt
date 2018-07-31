@@ -18,7 +18,10 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
-fun OVertex.toObjectPropertyValueVertex() = ObjectPropertyValueVertex(this)
+fun OVertex.toObjectPropertyValueVertex(): ObjectPropertyValueVertex {
+    checkClass(OrientClass.OBJECT_VALUE)
+    return ObjectPropertyValueVertex(this)
+}
 
 const val INT_TYPE_PROPERTY = "int"
 const val DECIMAL_TYPE_PROPERTY = "decimal"
@@ -77,6 +80,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
+            "description" to asStringOrEmpty(description),
             "typeTag" to asStringOrEmpty(typeTag),
             "range" to range?.asString().orEmpty(),
             "precision" to asStringOrEmpty(precision),

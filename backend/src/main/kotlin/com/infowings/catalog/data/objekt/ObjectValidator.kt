@@ -26,21 +26,55 @@ import java.math.BigDecimal
  * Придется или игнорировать возможность null, полагаясь на уже проведенную валидацию
  * (вынесенную в валидатор), либо фактически повторять уже сделанную проверку
  */
-class ObjectValidator(
+interface ObjectValidator {
+    fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo
+    fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo
+    fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo
+    fun checkedForUpdating(propertyVertex: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo
+    fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo
+    fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo
+}
+
+class TrimmingObjectValidator(private val objectValidator: ObjectValidator) : ObjectValidator by objectValidator {
+
+    override fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
+        return objectValidator.checkedForCreation(
+            request.copy(name = if (request.name.isBlank()) throw EmptyObjectCreateNameException(request) else request.name.trim())
+        )
+    }
+
+    override fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
+        return objectValidator.checkedForUpdating(
+            objectVertex,
+            request.copy(name = if (request.name.isBlank()) throw EmptyObjectUpdateNameException(request) else request.name.trim())
+        )
+    }
+
+    override fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
+        return objectValidator.checkedForCreation(
+            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
+        )
+    }
+
+    override fun checkedForUpdating(propertyVertex: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
+        return objectValidator.checkedForUpdating(
+            propertyVertex,
+            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
+        )
+    }
+
+}
+
+class MainObjectValidator(
     private val objectService: ObjectService,
     private val subjectService: SubjectService,
     private val measureService: MeasureService,
     private val refBookService: ReferenceBookService,
     private val objectDaoService: ObjectDaoService,
     private val aspectDao: AspectDaoService
-) {
-    fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
+) : ObjectValidator {
+    override fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
         val subjectVertex = subjectService.findByIdStrict(request.subjectId)
-
-        val trimmedName: String = request.name.trim()
-        if (trimmedName.isEmpty()) {
-            throw EmptyObjectNameException(request)
-        }
 
         objectDaoService.getObjectVertexesByNameAndSubject(request.name, subjectVertex.identity).let {
             if (it.isNotEmpty()) {
@@ -60,7 +94,7 @@ class ObjectValidator(
         )
     }
 
-    fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
+    override fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
         val subjectVertex = objectVertex.subject
         val subjectId = subjectVertex?.identity ?: throw ObjectWithoutSubjectException(objectVertex.id)
 
@@ -74,15 +108,13 @@ class ObjectValidator(
         return ObjectWriteInfo(request.name, request.description, subjectVertex)
     }
 
-    fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
+    override fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
         val objectVertex = objectService.findById(request.objectId)
         val aspectVertex = aspectDao.find(request.aspectId) ?: throw AspectDoesNotExist(request.aspectId)
 
-        val trimmedName = request.name?.trim()
-
         val sameAspectProps = objectService.findPropertyByObjectAndAspect(objectVertex.id, aspectVertex.id).map { it.name }
-        if (sameAspectProps.contains(trimmedName)) {
-            throw ObjectPropertyAlreadyExistException(trimmedName, objectVertex.id, aspectVertex.id)
+        if (sameAspectProps.contains(request.name)) {
+            throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, aspectVertex.id)
         }
 
         //check business key
@@ -92,28 +124,29 @@ class ObjectValidator(
 
         return PropertyWriteInfo(
             request.name,
+            request.description,
             objectVertex,
             aspectVertex
         )
     }
 
-    fun checkForUpdating(property: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
-        val objectVertex = property.objekt ?: throw IllegalStateException("Object property must be linked with object")
-        val aspectVertex = property.aspect ?: throw IllegalStateException("Object property must be linked with aspect")
+    override fun checkedForUpdating(propertyVertex: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
+        val objectVertex = propertyVertex.objekt ?: throw IllegalStateException("Object property must be linked with object")
+        val aspectVertex = propertyVertex.aspect ?: throw IllegalStateException("Object property must be linked with aspect")
         val aspectId = aspectVertex.identity
 
         // check business key
         val existsAnotherPropertySameName = objectDaoService.getPropertyVertexesByNameAndAspect(request.name, objectVertex.identity, aspectId).any {
-            it.id != property.id
+            it.id != propertyVertex.id
         }
         if (existsAnotherPropertySameName) {
             throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, aspectId.toString())
         }
 
-        return PropertyWriteInfo(request.name, objectVertex, aspectVertex)
+        return PropertyWriteInfo(request.name, request.description, objectVertex, aspectVertex)
     }
 
-    fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
+    override fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
         logger.info("checking value for creation: $request")
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
@@ -145,26 +178,12 @@ class ObjectValidator(
 
         val value = getObjectValueFromData(dataValue)
 
-        // check business key
-        val similarValues = objectDaoService.getValuesByObjectPropertyAndValue(objectPropertyVertex.identity, value).filter {
-            it.aspectProperty?.id == request.aspectPropertyId
-        }
-        if (similarValues.isNotEmpty()) {
-            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-        }
-
         val measureVertex = request.measureId?.let { measureService.findById(it) }
 
-        return ValueWriteInfo(
-            value,
-            objectPropertyVertex,
-            aspectPropertyVertex,
-            parentValueVertex,
-            measureVertex
-        )
+        return ValueWriteInfo(value, request.description, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
 
-    fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo {
+    override fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo {
         val objPropertyVertex = valueVertex.objectProperty
                 ?: throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked ObjectProperty")
 
@@ -193,16 +212,10 @@ class ObjectValidator(
         val dataValue = request.value
 
         val value = getObjectValueFromData(dataValue)
-        // check business key
-        val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.identity, value).any {
-            it.id != valueVertex.id
-        }
-        if (existsSameValue) {
-            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-        }
 
         return ValueWriteInfo(
             value,
+            request.description,
             objectPropertyVertex,
             aspectPropertyVertex,
             parentValueVertex,

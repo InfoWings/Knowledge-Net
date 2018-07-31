@@ -89,6 +89,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
                     value = value,
+                    description = null,
                     objectPropertyId = objectPropertyId,
                     measureId = null,
                     aspectPropertyId = aspectPropertyId,

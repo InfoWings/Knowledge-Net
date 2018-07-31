@@ -7,15 +7,15 @@ import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
-import com.infowings.catalog.storage.OBJECT_VALUE_REFBOOK_ITEM_EDGE
-import com.infowings.catalog.storage.get
-import com.infowings.catalog.storage.id
-import com.infowings.catalog.storage.set
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
 
-fun OVertex.toReferenceBookItemVertex() = ReferenceBookItemVertex(this)
+fun OVertex.toReferenceBookItemVertex(): ReferenceBookItemVertex {
+    checkClass(OrientClass.REFBOOK_ITEM)
+    return ReferenceBookItemVertex(this)
+}
 
 const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"

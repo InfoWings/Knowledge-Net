@@ -1,11 +1,17 @@
 package com.infowings.catalog.data.history
 
+import com.infowings.catalog.storage.OrientClass
+import com.infowings.catalog.storage.checkClass
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
 
-fun OVertex.toHistoryElementVertex() = HistoryElementVertex(this)
+fun OVertex.toHistoryElementVertex(): HistoryElementVertex {
+    checkClass(OrientClass.HISTORY_ELEMENT)
+    return HistoryElementVertex(this)
+}
+
 const val HISTORY_ELEMENT_CLASS = "HistoryElement"
 const val HISTORY_ELEMENT_EDGE = "HistoryElementEdge"
 

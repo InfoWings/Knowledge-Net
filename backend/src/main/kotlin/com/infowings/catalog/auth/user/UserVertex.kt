@@ -2,13 +2,18 @@ package com.infowings.catalog.auth.user
 
 import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.storage.OrientClass
+import com.infowings.catalog.storage.checkClass
 import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.OVertex
 
 const val HISTORY_USER_EDGE = "UserHistoryEdge"
 
-fun OVertex.toUserVertex() = UserVertex(this)
+fun OVertex.toUserVertex(): UserVertex {
+    checkClass(OrientClass.USER)
+    return UserVertex(this)
+}
 
 data class UserVertex(private val vertex: OVertex) : OVertex by vertex {
     var username: String

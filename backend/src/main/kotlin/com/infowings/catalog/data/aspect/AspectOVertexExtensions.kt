@@ -21,9 +21,16 @@ import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
 import java.time.Instant
 
+fun OVertex.toAspectVertex(): AspectVertex {
+    checkClass(OrientClass.ASPECT)
+    return AspectVertex(this)
+}
 
-fun OVertex.toAspectVertex() = AspectVertex(this)
-fun OVertex.toAspectPropertyVertex() = AspectPropertyVertex(this)
+fun OVertex.toAspectPropertyVertex(): AspectPropertyVertex {
+    checkClass(OrientClass.ASPECT_PROPERTY)
+    return AspectPropertyVertex(this)
+}
+
 fun OVertex.isJustCreated() = this.identity.isNew
 
 

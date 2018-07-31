@@ -10,7 +10,10 @@ import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
-fun OVertex.toObjectPropertyVertex() = ObjectPropertyVertex(this)
+fun OVertex.toObjectPropertyVertex(): ObjectPropertyVertex {
+    checkClass(OrientClass.OBJECT_PROPERTY)
+    return ObjectPropertyVertex(this)
+}
 
 class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_CLASS
@@ -18,6 +21,7 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
+            "description" to asStringOrEmpty(description),
             "cardinality" to asStringOrEmpty(cardinality)
         ),
         links = mapOf(

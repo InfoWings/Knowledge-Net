@@ -10,7 +10,10 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
-fun OVertex.toObjectVertex() = ObjectVertex(this)
+fun OVertex.toObjectVertex(): ObjectVertex {
+    checkClass(OrientClass.OBJECT)
+    return ObjectVertex(this)
+}
 
 class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_CLASS
@@ -48,7 +51,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
 
     val properties: List<ObjectPropertyVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE)
-                .map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
+            .map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
 
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
