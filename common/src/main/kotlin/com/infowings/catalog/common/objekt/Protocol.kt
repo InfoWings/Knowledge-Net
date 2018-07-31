@@ -19,7 +19,9 @@ data class ObjectCreateRequest(
 data class ObjectUpdateRequest(
     val id: String,
     val name: String,
-    val description: String?
+    val description: String?,
+    val subjectId: String,
+    val subjectVersion: Int?
 )
 
 @Serializable

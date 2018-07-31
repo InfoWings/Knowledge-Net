@@ -45,7 +45,8 @@ enum class OrientEdge(val extName: String) {
     OBJECT_MEASURE_OF_VALUE(OBJECT_VALUE_MEASURE_EDGE),
     OBJECT_VALUE_REF_OBJECT(OBJECT_VALUE_OBJECT_EDGE),
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
-    OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REFBOOK_ITEM_EDGE),
+    OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
+    OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
 }
 
 
@@ -72,7 +73,8 @@ const val OBJECT_VALUE_OBJECT_EDGE = "ObjectValueObjectEdge"
 const val OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE = "ObjectValueRefObjectPropertyEdge"
 const val OBJECT_VALUE_REF_OBJECT_VALUE_EDGE = "ObjectValueRefObjectValueEdge"
 const val OBJECT_VALUE_SUBJECT_EDGE = "ObjectValueSubjectEdge"
-const val OBJECT_VALUE_REFBOOK_ITEM_EDGE = "ObjectValueRefBookItemEdge"
+const val OBJECT_VALUE_DOMAIN_ELEMENT_EDGE = "ObjectValueRefBookItemEdge"
+const val OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE = "ObjectValueRefRefBookItemEdge"
 const val OBJECT_VALUE_MEASURE_EDGE = "ObjectValueMeasureEdge"
 const val OBJECT_VALUE_ASPECT_EDGE = "ObjectValueAspectEdge"
 const val OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE = "ObjectValueRefAspectPropertyEdge"
@@ -133,7 +135,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, OBJECT_VALUE_ASPECT_EDGE)
         initEdge(session, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
         initEdge(session, OBJECT_VALUE_SUBJECT_EDGE)
-        initEdge(session, OBJECT_VALUE_REFBOOK_ITEM_EDGE)
+        initEdge(session, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE)
+        initEdge(session, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE)
         initEdge(session, OBJECT_VALUE_MEASURE_EDGE)
 
         return@session this

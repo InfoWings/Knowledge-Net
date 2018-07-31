@@ -84,7 +84,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
         RefBookNodeDescriptor(id, value, description)
 
 
-    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_REFBOOK_ITEM_EDGE)
+    fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE)
 
     fun getLinkedInSubtree(): MutableList<ReferenceBookItemVertex> {
         val linkedChildren = children.flatMap { it.getLinkedInSubtree() }.toMutableList()

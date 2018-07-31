@@ -160,6 +160,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
         transaction(db) {
             vertex.name = info.name
             vertex.description = info.description
+            if (vertex.subject?.id != info.subject.id) {
+                vertex.getEdges(ODirection.OUT, OBJECT_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
+                vertex.addEdge(info.subject, OBJECT_SUBJECT_EDGE).save<OEdge>()
+            }
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
@@ -216,8 +220,23 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 ScalarTypeTag.OBJECT -> {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_OBJECT_EDGE).forEach { it.delete<OEdge>() }
                 }
+                ScalarTypeTag.OBJECT_PROPERTY -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.OBJECT_VALUE -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.ASPECT -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.ASPECT_PROPERTY -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_ASPECT_PROPERTY_EDGE).forEach { it.delete<OEdge>() }
+                }
                 ScalarTypeTag.DOMAIN_ELEMENT -> {
-                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.REF_BOOK_ITEM -> {
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
                 }
             }
 
@@ -255,7 +274,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     )
                     is LinkValueVertex.ObjectValue -> replaceEdge(vertex, OBJECT_VALUE_REF_OBJECT_VALUE_EDGE, vertex.refValueObjectValue, linkValue.vertex)
                     is LinkValueVertex.Subject -> replaceEdge(vertex, OBJECT_VALUE_SUBJECT_EDGE, vertex.refValueSubject, linkValue.vertex)
-                    is LinkValueVertex.DomainElement -> replaceEdge(vertex, OBJECT_VALUE_REFBOOK_ITEM_EDGE, vertex.refValueDomainElement, linkValue.vertex)
+                    is LinkValueVertex.DomainElement -> replaceEdge(vertex, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE, vertex.refValueDomainElement, linkValue.vertex)
                     is LinkValueVertex.Aspect -> replaceEdge(vertex, OBJECT_VALUE_ASPECT_EDGE, vertex.refValueAspect, linkValue.vertex)
                     is LinkValueVertex.AspectProperty -> replaceEdge(
                         vertex,

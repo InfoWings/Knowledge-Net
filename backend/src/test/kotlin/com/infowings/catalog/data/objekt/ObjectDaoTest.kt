@@ -331,7 +331,7 @@ class ObjectDaoTest {
     @Test
     fun objectUpdateTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
-        objectService.update(ObjectUpdateRequest(objVertex.id, "new name", "new description"), username)
+        objectService.update(ObjectUpdateRequest(objVertex.id, "new name", "new description", subject.id, subject.version), username)
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "new name", updatedObject.name)
         Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
@@ -341,7 +341,7 @@ class ObjectDaoTest {
     fun objectUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         createObject(ObjectCreateRequest("obj2", "another descr", subject.id, subject.version))
-        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description"), username)
+        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
     }
 
     @Test
@@ -349,10 +349,14 @@ class ObjectDaoTest {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val sbj2 = subjectService.createSubject(SubjectData(name = "name2", description = "descr"), username)
         createObject(ObjectCreateRequest("obj2", "descr", sbj2.id, 1))
-        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description"), username)
+        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "obj2", updatedObject.name)
         Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
+        transaction (db) {
+            Assert.assertEquals("Object must have new subject id", subject.id, updatedObject.subject?.id)
+            Assert.assertEquals("Object must have new subject name", subject.name, updatedObject.subject?.name)
+        }
     }
 
     @Test
