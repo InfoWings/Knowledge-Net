@@ -236,7 +236,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE).forEach { it.delete<OEdge>() }
                 }
                 ScalarTypeTag.REF_BOOK_ITEM -> {
-                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE).forEach { it.delete<OEdge>() }
+                    vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
                 }
             }
 

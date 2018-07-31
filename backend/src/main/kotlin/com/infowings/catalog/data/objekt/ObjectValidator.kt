@@ -96,7 +96,7 @@ class MainObjectValidator(
 
     override fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
         val currentSubjectVertex = objectVertex.subject
-        val currentSubjectId = currentSubjectVertex?.identity?.toString() ?: throw ObjectWithoutSubjectException(objectVertex.id)
+        val currentSubjectId = currentSubjectVertex?.id ?: throw ObjectWithoutSubjectException(objectVertex.id)
 
         val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findByIdStrict(request.subjectId)
         val newSubjectId = newSubjectVertex.identity
