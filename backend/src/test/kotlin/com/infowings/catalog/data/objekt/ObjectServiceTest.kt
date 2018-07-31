@@ -137,11 +137,12 @@ class ObjectServiceTest {
 
         val createdPropertyId = objectService.create(propertyRequest, username)
 
-        val rootValueRequest = ValueCreateRequest(ObjectValueData.NullValue, createdPropertyId)
+        val rootValueRequest = ValueCreateRequest(ObjectValueData.NullValue, null, createdPropertyId)
         val rootValueId = objectService.create(rootValueRequest, username).id.toString()
 
         val childValueRequest = ValueCreateRequest(
             value = ObjectValueData.StringValue("Text Value"),
+            description = null,
             objectPropertyId = createdPropertyId,
             measureId = null,
             aspectPropertyId = complexAspect.properties[0].id,
@@ -151,7 +152,8 @@ class ObjectServiceTest {
 
         val propertyUpdateRequest = PropertyUpdateRequest(
             createdPropertyId,
-            "newProp_updateObjectPropertyWithValueTest"
+            "newProp_updateObjectPropertyWithValueTest",
+            null
         )
         val updatedPropertyId = objectService.update(propertyUpdateRequest, username)
 
