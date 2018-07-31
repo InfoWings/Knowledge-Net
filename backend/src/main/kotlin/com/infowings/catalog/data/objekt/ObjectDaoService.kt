@@ -386,6 +386,5 @@ class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspec
 
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")
-class ObjectPropertyValueAlreadyExists(value: ObjectValueData) : ObjectException("Object property value with value $value already exists")
 class ObjectIsLinkedException(valueIds: List<String>, propertyIds: List<String>, objectId: String?) :
     ObjectException("linked values: $valueIds, linked properties: $propertyIds, inked object: $objectId")

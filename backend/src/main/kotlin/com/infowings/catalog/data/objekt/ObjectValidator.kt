@@ -145,14 +145,6 @@ class ObjectValidator(
 
         val value = getObjectValueFromData(dataValue)
 
-        // check business key
-        val similarValues = objectDaoService.getValuesByObjectPropertyAndValue(objectPropertyVertex.identity, value).filter {
-            it.aspectProperty?.id == request.aspectPropertyId
-        }
-        if (similarValues.isNotEmpty()) {
-            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-        }
-
         val measureVertex = request.measureId?.let { measureService.findById(it) }
 
         return ValueWriteInfo(value, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
@@ -187,13 +179,6 @@ class ObjectValidator(
         val dataValue = request.value
 
         val value = getObjectValueFromData(dataValue)
-        // check business key
-        val existsSameValue = objectDaoService.getValuesByObjectPropertyAndValue(objPropertyVertex.identity, value).any {
-            it.id != valueVertex.id
-        }
-        if (existsSameValue) {
-            throw ObjectPropertyValueAlreadyExists(value.toObjectValueData())
-        }
 
         return ValueWriteInfo(
             value,
