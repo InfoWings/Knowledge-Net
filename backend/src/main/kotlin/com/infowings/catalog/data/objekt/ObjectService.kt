@@ -12,7 +12,6 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
-import com.orientechnologies.orient.core.id.ORecordId
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -24,7 +23,7 @@ class ObjectService(
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
-    private val validator = ObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao)
+    private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
     fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
 
@@ -166,7 +165,7 @@ class ObjectService(
         val context = HistoryContext(userVertex)
         val propertyVertex = transaction(db) {
             val objectPropertyVertex = findPropertyById(request.objectPropertyId)
-            val propertyInfo = validator.checkForUpdating(objectPropertyVertex, request)
+            val propertyInfo = validator.checkedForUpdating(objectPropertyVertex, request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
             val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, emptyList())
@@ -247,7 +246,7 @@ class ObjectService(
 
         }
 
-        deleteValue(id, username, { ctx -> removeOrThrow(ctx) })
+        deleteValue(id, username, ::removeOrThrow)
     }
 
     fun softDeleteValue(id: String, username: String) {
@@ -268,7 +267,7 @@ class ObjectService(
             }
         }
 
-        deleteValue(id, username, { ctx -> removeOrMark(ctx) })
+        deleteValue(id, username, ::removeOrMark)
     }
 
     private data class DeletePropertyContext(
@@ -318,7 +317,7 @@ class ObjectService(
 
         }
 
-        deleteProperty(id, username, { ctx -> removeOrThrow(ctx) })
+        deleteProperty(id, username, ::removeOrThrow)
     }
 
     fun softDeleteProperty(id: String, username: String) {
@@ -343,7 +342,7 @@ class ObjectService(
             dao.deleteAll(valuesToDelete.toList())
         }
 
-        deleteProperty(id, username, { ctx -> removeOrMark(ctx) })
+        deleteProperty(id, username, ::removeOrMark)
     }
 
     private data class DeleteObjectContext(
@@ -400,7 +399,7 @@ class ObjectService(
             dao.deleteAll((context.values + context.properties + context.objVertex).toList())
         }
 
-        deleteObject(id, username, { ctx -> removeOrThrow(ctx) })
+        deleteObject(id, username, ::removeOrThrow)
     }
 
     fun softDeleteObject(id: String, username: String) {
@@ -431,7 +430,7 @@ class ObjectService(
             dao.deleteAll((propertiesToDelete + valuesToDelete).toList())
         }
 
-        deleteObject(id, username, { ctx -> removeOrMark(ctx) })
+        deleteObject(id, username, ::removeOrMark)
     }
 
 
