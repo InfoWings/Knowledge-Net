@@ -205,13 +205,16 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()
 
     val refValueDomainElement: ReferenceBookItemVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE).firstOrNull()?.toReferenceBookItemVertex()
 
     val refValueAspect: AspectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_ASPECT_EDGE).firstOrNull()?.toAspectVertex()
 
     val refValueAspectProperty: AspectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectPropertyVertex()
+
+    val refValueRefBookItem: ReferenceBookItemVertex?
+        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
 
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()

@@ -172,7 +172,7 @@ class ObjectPropertyValueSqlBuilder(from: String, private val params: MutableMap
     fun withDomainElementLink(refBookId: ORID) {
         processConditions()
         params["refBookId"] = refBookId
-        sql += ":refBookId in OUT(\"$OBJECT_VALUE_REFBOOK_ITEM_EDGE\")"
+        sql += ":refBookId in OUT(\"$OBJECT_VALUE_DOMAIN_ELEMENT_EDGE\")"
     }
 
     fun withNullValue() {

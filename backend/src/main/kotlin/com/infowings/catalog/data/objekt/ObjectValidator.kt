@@ -61,17 +61,20 @@ class ObjectValidator(
     }
 
     fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
-        val subjectVertex = objectVertex.subject
-        val subjectId = subjectVertex?.identity ?: throw ObjectWithoutSubjectException(objectVertex.id)
+        val currentSubjectVertex = objectVertex.subject
+        val currentSubjectId = currentSubjectVertex?.identity?.toString() ?: throw ObjectWithoutSubjectException(objectVertex.id)
+
+        val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findByIdStrict(request.subjectId)
+        val newSubjectId = newSubjectVertex.identity
 
         //check business key
-        val existsAnotherObjectSameName = objectDaoService.getObjectVertexesByNameAndSubject(request.name, subjectId).any {
+        val existsAnotherObjectSameName = objectDaoService.getObjectVertexesByNameAndSubject(request.name, newSubjectId).any {
             it.id != request.id
         }
         if (existsAnotherObjectSameName) {
             throw ObjectAlreadyExists(request.name)
         }
-        return ObjectWriteInfo(request.name, request.description, subjectVertex)
+        return ObjectWriteInfo(request.name, request.description, newSubjectVertex)
     }
 
     fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
