@@ -64,7 +64,7 @@ class ObjectValidatorTest {
 
     @Before
     fun initTestData() {
-        validator = DecoratedTrimmingObjectValidator(MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao))
+        validator = TrimmingObjectValidator(MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao))
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         aspectInt = aspectService.save(AspectData(name = "aspectNameInt", description = "aspectDescr", baseType = BaseType.Integer.name), username)

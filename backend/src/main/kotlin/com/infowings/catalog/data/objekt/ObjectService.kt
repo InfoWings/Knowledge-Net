@@ -23,7 +23,7 @@ class ObjectService(
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
-    private val validator = DecoratedTrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
+    private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
     fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
 

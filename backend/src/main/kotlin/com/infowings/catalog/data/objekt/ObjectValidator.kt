@@ -35,49 +35,31 @@ interface ObjectValidator {
     fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo
 }
 
-class DecoratedTrimmingObjectValidator(private val objectValidator: ObjectValidator) : ObjectValidator by objectValidator {
+class TrimmingObjectValidator(private val objectValidator: ObjectValidator) : ObjectValidator by objectValidator {
 
     override fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
         return objectValidator.checkedForCreation(
-            ObjectCreateRequest(
-                if (request.name.isBlank()) throw EmptyObjectCreateNameException(request) else request.name.trim(),
-                request.description,
-                request.subjectId,
-                request.subjectVersion
-            )
+            request.copy(name = if (request.name.isBlank()) throw EmptyObjectCreateNameException(request) else request.name.trim())
         )
     }
 
     override fun checkedForUpdating(objectVertex: ObjectVertex, request: ObjectUpdateRequest): ObjectWriteInfo {
         return objectValidator.checkedForUpdating(
             objectVertex,
-            ObjectUpdateRequest(
-                request.id,
-                if (request.name.isBlank()) throw EmptyObjectUpdateNameException(request) else request.name.trim(),
-                request.description
-            )
+            request.copy(name = if (request.name.isBlank()) throw EmptyObjectUpdateNameException(request) else request.name.trim())
         )
     }
 
     override fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
         return objectValidator.checkedForCreation(
-            PropertyCreateRequest(
-                request.objectId,
-                if (request.name == null || request.name.isBlank()) null else request.name.trim(),
-                request.description,
-                request.aspectId
-            )
+            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
         )
     }
 
     override fun checkedForUpdating(propertyVertex: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
         return objectValidator.checkedForUpdating(
             propertyVertex,
-            PropertyUpdateRequest(
-                request.objectPropertyId,
-                if (request.name == null || request.name.isBlank()) null else request.name.trim(),
-                request.description
-            )
+            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
         )
     }
 
