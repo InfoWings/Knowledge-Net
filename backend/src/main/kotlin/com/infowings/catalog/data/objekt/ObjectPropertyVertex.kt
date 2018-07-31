@@ -21,6 +21,7 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
+            "description" to asStringOrEmpty(description),
             "cardinality" to asStringOrEmpty(cardinality)
         ),
         links = mapOf(

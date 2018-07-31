@@ -64,7 +64,7 @@ class ObjectValidatorTest {
 
     @Before
     fun initTestData() {
-        validator = ObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
+        validator = DecoratedTrimmingObjectValidator(MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao))
         subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
         aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
         aspectInt = aspectService.save(AspectData(name = "aspectNameInt", description = "aspectDescr", baseType = BaseType.Integer.name), username)
@@ -121,7 +121,7 @@ class ObjectValidatorTest {
         try {
             validator.checkedForCreation(request)
             Assert.fail("Nothing thrown")
-        } catch (e: EmptyObjectNameException) {
+        } catch (e: EmptyObjectCreateNameException) {
         } catch (e: Exception) {
             Assert.fail("Unexpected exception: $e")
         }
@@ -237,7 +237,7 @@ class ObjectValidatorTest {
         )
         val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueRequest = ValueCreateRequest(value = scalarValue, objectPropertyId = savedProperty.id)
+        val valueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = savedProperty.id)
         val objectValue = validator.checkedForCreation(valueRequest)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
@@ -261,7 +261,7 @@ class ObjectValidatorTest {
         val createdProperty = createObjectProperty(propertyRequest)
 
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueData = ValueCreateRequest.root(scalarValue, createdProperty.id)
+        val valueData = ValueCreateRequest.root(scalarValue, null, createdProperty.id)
         val objectValue = validator.checkedForCreation(valueData)
 
         assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
@@ -282,7 +282,7 @@ class ObjectValidatorTest {
         val createdProperty = createObjectProperty(propertyRequest)
 
         val scalarValue = ObjectValueData.StringValue("string-value")
-        val valueRequest = ValueCreateRequest(value = scalarValue, objectPropertyId = createdProperty.id)
+        val valueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = createdProperty.id)
         val valueInfo = validator.checkedForCreation(valueRequest)
 
         assertEquals(scalarValue, valueInfo.value.toObjectValueData(), "values must be equal")

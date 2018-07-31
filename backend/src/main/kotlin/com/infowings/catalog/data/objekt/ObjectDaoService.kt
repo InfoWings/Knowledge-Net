@@ -2,6 +2,7 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.ObjectUpdateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -169,6 +170,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
     ): ObjectPropertyVertex =
         transaction(db) {
             vertex.name = info.name
+            vertex.description = info.description
 
             replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
             replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
@@ -195,6 +197,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         vertex: ObjectPropertyValueVertex,
         valueInfo: ValueWriteInfo
     ): ObjectPropertyValueVertex = transaction(db) {
+        vertex.description = valueInfo.description
         val newTypeTag = valueInfo.value.tag()
 
         if (vertex.typeTag != newTypeTag) {
@@ -377,7 +380,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
 private val logger = loggerFor<ObjectDaoService>()
 
 sealed class ObjectException(message: String) : Exception(message)
-class EmptyObjectNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
+class EmptyObjectCreateNameException(data: ObjectCreateRequest) : ObjectException("object name is empty: $data")
+class EmptyObjectUpdateNameException(data: ObjectUpdateRequest) : ObjectException("object name is empty: $data")
 class ObjectNotFoundException(id: String) : ObjectException("object not found. id: $id")
 class ObjectAlreadyExists(name: String) : ObjectException("object with name $name already exists")
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")

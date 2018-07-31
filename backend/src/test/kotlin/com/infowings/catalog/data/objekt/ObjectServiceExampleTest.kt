@@ -142,12 +142,13 @@ class ObjectServiceExampleTest {
         )
         val createdPropertyId: String = objectService.create(propertyRequest, username)
 
-        val topValueRequest = ValueCreateRequest(ObjectValueData.NullValue, createdPropertyId)
+        val topValueRequest = ValueCreateRequest(ObjectValueData.NullValue, null, createdPropertyId)
         val topValueId = objectService.create(topValueRequest, username).id?.toString()
 
         val refValue11Data = LinkValueData.DomainElement(refBookItemIds[0])
         val value11Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue11Data),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
@@ -158,6 +159,7 @@ class ObjectServiceExampleTest {
         val refValue12Data = LinkValueData.DomainElement(refBookItemIds[1])
         val value12Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue12Data),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
@@ -168,6 +170,7 @@ class ObjectServiceExampleTest {
         val refValue13Data = LinkValueData.DomainElement(refBookItemIds[2])
         val value13Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue13Data),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
@@ -177,6 +180,7 @@ class ObjectServiceExampleTest {
 
         val value111Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("3.0"),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue11.id.toString(),
@@ -186,6 +190,7 @@ class ObjectServiceExampleTest {
 
         val value112Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(75, null),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
             parentValueId = createdValue11.id.toString(),
@@ -197,6 +202,7 @@ class ObjectServiceExampleTest {
 
         val value121Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.8"),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue12.id.toString(),
@@ -206,6 +212,7 @@ class ObjectServiceExampleTest {
 
         val value131Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("1.2"),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
             parentValueId = createdValue13.id.toString(),
@@ -215,6 +222,7 @@ class ObjectServiceExampleTest {
 
         val value132Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.3"),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectStage2.idStrict()),
             parentValueId = createdValue13.id.toString(),
@@ -224,6 +232,7 @@ class ObjectServiceExampleTest {
 
         val value133Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(45, null),
+            description = null,
             objectPropertyId = createdPropertyId,
             aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
             parentValueId = createdValue13.id.toString(),

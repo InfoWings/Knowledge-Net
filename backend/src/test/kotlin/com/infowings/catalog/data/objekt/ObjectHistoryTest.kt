@@ -294,7 +294,7 @@ class ObjectHistoryTest {
 
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest.root(value, createdPropertyId, measureId)
+        val valueRequest = ValueCreateRequest.root(value, null, createdPropertyId, measureId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
@@ -325,7 +325,7 @@ class ObjectHistoryTest {
     private fun prepareAnotherValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest(value = value, objectPropertyId = prepared.propertyId)
+        val valueRequest = ValueCreateRequest(value = value, description = null, objectPropertyId = prepared.propertyId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
@@ -356,7 +356,7 @@ class ObjectHistoryTest {
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
         val valueRequest = ValueCreateRequest(
-            value = value, objectPropertyId = prepared.propertyId,
+            value = value, description = null, objectPropertyId = prepared.propertyId,
             parentValueId = prepared.value.id.toString(), aspectPropertyId = aspectPropertyId, measureId = null
         )
 
@@ -1558,7 +1558,14 @@ class ObjectHistoryTest {
             ), "admin"
         )
 
-        val objectValue = objectService.create(ValueCreateRequest(value = ObjectValueData.StringValue("value"), objectPropertyId = objectPropertyId), "admin")
+        val objectValue = objectService.create(
+            ValueCreateRequest(
+                value = ObjectValueData.StringValue("value"),
+                description = null,
+                objectPropertyId = objectPropertyId
+            ),
+            "admin"
+        )
 
         val linkValue = ObjectValueData.Link(LinkValueData.ObjectValue(objectValue.id.toString()))
 

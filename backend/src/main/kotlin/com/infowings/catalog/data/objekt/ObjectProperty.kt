@@ -25,16 +25,18 @@ data class ObjectProperty(
 
 data class PropertyWriteInfo(
     val name: String?,
+    val description: String?,
     val objekt: ObjectVertex,
     val aspect: AspectVertex
 )
 
 data class ValueWriteInfo(
-        val value: ObjectValue,
-        val objectProperty: ObjectPropertyVertex,
-        val aspectProperty: AspectPropertyVertex?,
-        val parentValue: ObjectPropertyValueVertex?,
-        val measure: OVertex?
+    val value: ObjectValue,
+    val description: String?,
+    val objectProperty: ObjectPropertyVertex,
+    val aspectProperty: AspectPropertyVertex?,
+    val parentValue: ObjectPropertyValueVertex?,
+    val measure: OVertex?
 )
 
 data class DeleteInfo(
