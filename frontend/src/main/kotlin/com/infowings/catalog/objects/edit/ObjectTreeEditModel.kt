@@ -73,8 +73,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
             props.apiModel.editObjectProperty(
                 PropertyUpdateRequest(
                     propertyEditModel.id ?: error("Property should have id in order to be updated"),
-                    null,
-                    propertyEditModel.name ?: TODO("Does property should have name in order to be updated?")
+                    propertyEditModel.name,
+                    null
                 )
             )
         }
