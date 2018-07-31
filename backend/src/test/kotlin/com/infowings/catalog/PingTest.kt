@@ -19,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
@@ -226,7 +225,7 @@ class PingTest {
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE.extName]!!, 0)
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE_GROUP.extName]!!, 0)
         assertEquals(6, status.dbMetrics.counts[OrientClass.HISTORY_EVENT.extName])
-        assertEquals(6, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
+        assertEquals(7, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(5, status.dbMetrics.counts[OrientClass.HISTORY_ADD_LINK.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_REMOVE_LINK.extName])
 
@@ -243,7 +242,7 @@ class PingTest {
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val aspect = aspectService.save(AspectData("", "name", description = null, baseType = BaseType.Text.name), "admin")
         val objectPropertyId = objectService.create(PropertyCreateRequest(objectId, "property", PropertyCardinality.ONE.name, aspect.idStrict()), username)
-        objectService.create(ValueCreateRequest(ObjectValueData.StringValue("hello"), objectPropertyId), username)
+        objectService.create(ValueCreateRequest(ObjectValueData.StringValue("hello"), null, objectPropertyId), username)
 
         val response = pingApi.ping()
 
@@ -262,7 +261,7 @@ class PingTest {
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE.extName]!!, 0)
         assertGreater(status.dbMetrics.counts[OrientClass.MEASURE_GROUP.extName]!!, 0)
         assertEquals(8, status.dbMetrics.counts[OrientClass.HISTORY_EVENT.extName])
-        assertEquals(9, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
+        assertEquals(10, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(7, status.dbMetrics.counts[OrientClass.HISTORY_ADD_LINK.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_REMOVE_LINK.extName])
 

@@ -142,7 +142,7 @@ class AspectServiceDeletingTest {
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
-        val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), propId), username)
+        val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propId), username)
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
         aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
@@ -281,7 +281,8 @@ class AspectServiceDeletingTest {
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
-        val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), propId), username)
+        val objValue =
+            objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), null, propId), username)
 
         val current = aspectService.findById(initial.idStrict())
 

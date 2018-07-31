@@ -153,6 +153,7 @@ class ReferenceBookLinkedTest {
         val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
         val objPropertyRootValueRequest = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("123.1"),
+            description = null,
             objectPropertyId = objProperty,
             aspectPropertyId = null,
             measureId = null,
@@ -161,6 +162,7 @@ class ReferenceBookLinkedTest {
         val rootValue = objectService.create(objPropertyRootValueRequest, username)
         val objPropertyValueRequest = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking)),
+            description = null,
             objectPropertyId = objProperty,
             aspectPropertyId = aspectWithObjectProperty.properties[0].id,
             measureId = null,

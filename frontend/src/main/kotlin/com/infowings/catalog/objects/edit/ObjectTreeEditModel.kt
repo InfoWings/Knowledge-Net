@@ -2,12 +2,10 @@ package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.objects.ObjectEditModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
 import kotlinx.coroutines.experimental.launch
 import react.*
@@ -59,6 +57,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
                     value = value,
+                    description = null,
                     objectPropertyId = objectPropertyId,
                     measureId = null,
                     aspectPropertyId = aspectPropertyId,
