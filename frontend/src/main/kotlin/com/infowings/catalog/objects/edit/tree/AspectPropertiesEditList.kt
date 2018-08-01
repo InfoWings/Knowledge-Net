@@ -4,6 +4,8 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
+import com.infowings.catalog.objects.ObjectPropertyEditModel
+import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyCreateLineFormat
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyEditLineFormat
 import react.RBuilder
@@ -18,28 +20,32 @@ fun RBuilder.aspectPropertiesEditList(
     onUpdate: (index: Int, block: AspectPropertyValueGroupEditModel.() -> Unit) -> Unit,
     onAddValueGroup: (AspectPropertyValueGroupEditModel) -> Unit,
     onSubmitValue: (ObjectValueData, parentValueId: String, aspectPropertyId: String) -> Unit,
-    onRemoveGroup: (id: String) -> Unit
+    onRemoveGroup: (id: String) -> Unit,
+    editModel: ObjectTreeEditModel,
+    objectPropertyId: String
 ) {
     val groupsMap = valueGroups.associateBy { it.propertyId }
     aspect.properties.forEach { aspectProperty ->
         val valueGroup = groupsMap[aspectProperty.id]
 
         if (valueGroup == null) { // Не может быть пустой (#isEmpty()), так как мы удаляем всю группу при удалении единственного значения
-            aspectPropertyValueCreateNode {
-                attrs {
-                    this.aspectProperty = aspectProperty
-                    this.onCreateValue = { valueData ->
-                        onAddValueGroup(
-                            AspectPropertyValueGroupEditModel(
-                                propertyId = aspectProperty.id,
-                                values = mutableListOf(
-                                    AspectPropertyValueEditModel(
-                                        id = null,
-                                        value = valueData
+            if (!aspectProperty.deleted && !aspectProperty.aspect.deleted) {
+                aspectPropertyValueCreateNode {
+                    attrs {
+                        this.aspectProperty = aspectProperty
+                        this.onCreateValue = { valueData ->
+                            onAddValueGroup(
+                                AspectPropertyValueGroupEditModel(
+                                    propertyId = aspectProperty.id,
+                                    values = mutableListOf(
+                                        AspectPropertyValueEditModel(
+                                            id = null,
+                                            value = valueData
+                                        )
                                     )
                                 )
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -107,9 +113,26 @@ fun RBuilder.aspectPropertiesEditList(
                                     }
                                 }
                             }
+                            (value.id != null && valueGroup.values.size > 1) -> {
+                                {
+                                    editModel.deleteValue(value.id, objectPropertyId)
+                                }
+                            }
+                            (value.id != null && value.value != ObjectValueData.NullValue) -> {
+                                {
+                                    editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue)
+                                }
+                            }
+                            (value.id != null && value.value == ObjectValueData.NullValue) -> {
+                                {
+                                    editModel.deleteValue(value.id, objectPropertyId)
+                                }
+                            }
                             else -> null
                         }
                         this.onSubmitValueGeneric = onSubmitValue
+                        this.editModel = editModel
+                        this.objectPropertyId = objectPropertyId
                     }
                 }
             }
@@ -160,7 +183,9 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         val aspect = props.aspectProperty.aspect
                         propertyName = props.aspectProperty.name
                         aspectName = aspect.name
-                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
+                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) }
+                                ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType }
+                                ?: throw IllegalStateException("Aspect can not infer its base type")
                         aspectReferenceBookId = aspect.refBookId
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
@@ -180,6 +205,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         onCancel = props.onCancel
                         onAddValue = props.onAddValue
                         onRemoveValue = props.onRemoveValue
+                        needRemoveConfirmation = props.value.id != null
                     }
                 }
             }!!
@@ -204,7 +230,9 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         val removeIndex = children.indexOfFirst { it.propertyId == id }
                         children.removeAt(removeIndex)
                     }
-                }
+                },
+                editModel = props.editModel,
+                objectPropertyId = props.objectPropertyId
             )
         }
     }
@@ -220,5 +248,7 @@ interface AspectPropertyValueEditNodeProps : RProps {
     var onAddValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var onSubmitValueGeneric: (ObjectValueData, String, String) -> Unit
+    var editModel: ObjectTreeEditModel
+    var objectPropertyId: String
 }
 

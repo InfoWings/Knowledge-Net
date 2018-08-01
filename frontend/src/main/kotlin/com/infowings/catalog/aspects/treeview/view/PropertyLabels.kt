@@ -39,7 +39,12 @@ fun RBuilder.propertyLabel(
     span(classes = "text-grey") {
         +"["
         span(classes = "aspect-tree-view--label-property-cardinality") {
-            +PropertyCardinality.valueOf(aspectPropertyCardinality).label
+            val cardinality = try {
+                PropertyCardinality.valueOf(aspectPropertyCardinality)
+            } catch (exception: IllegalStateException) {
+                null
+            }
+            +(cardinality?.label ?: aspectPropertyCardinality)
         }
         +"]"
     }

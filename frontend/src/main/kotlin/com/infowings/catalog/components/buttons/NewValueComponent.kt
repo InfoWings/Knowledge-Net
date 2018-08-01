@@ -8,7 +8,7 @@ import react.RBuilder
 fun RBuilder.newValueButtonComponent(onSubmit: () -> Unit, className: String? = null) =
     Button {
         attrs {
-            this.className = "pt-minimal${className?.let { " $it" } ?: ""}"
+            this.className = listOfNotNull("pt-minimal", className).joinToString(" ")
             onClick = { onSubmit() }
             intent = Intent.SUCCESS
             text = "New Value".asReactElement()

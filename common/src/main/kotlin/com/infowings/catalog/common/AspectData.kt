@@ -81,6 +81,7 @@ data class AspectTree(
     val baseType: String? = null,
     val domain: String? = null,
     val refBookId: String? = null,
+    val deleted: Boolean = false,
     val properties: List<AspectPropertyTree> = emptyList()
 )
 
@@ -89,7 +90,8 @@ data class AspectPropertyTree(
     val id: String,
     val cardinality: PropertyCardinality,
     val name: String?,
-    val aspect: AspectTree
+    val aspect: AspectTree,
+    val deleted: Boolean
 )
 
 /** Helpful extensions */

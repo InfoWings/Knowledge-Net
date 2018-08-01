@@ -1,7 +1,9 @@
 package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.AspectTree
+import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.newValueButtonComponent
+import com.infowings.catalog.components.delete.deleteButtonComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.ShortAspectDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.name
@@ -25,6 +27,9 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
         props.onConfirmCreate?.let {
             submitButtonComponent(it)
         }
+        props.onRemoveProperty?.let {
+            minusButtonComponent(it, true)
+        }
         props.onAddValue?.let {
             newValueButtonComponent(it)
         }
@@ -38,4 +43,5 @@ interface ObjectPropertyEditLineFormatProps : RProps {
     var onAspectChanged: (AspectTree) -> Unit
     var onConfirmCreate: (() -> Unit)?
     var onAddValue: (() -> Unit)?
+    var onRemoveProperty: (() -> Unit)?
 }

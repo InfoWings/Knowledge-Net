@@ -103,7 +103,8 @@ class AspectTreeBuilder {
                                 propertyVertex.id,
                                 PropertyCardinality.valueOf(propertyVertex.cardinality),
                                 propertyVertex.name,
-                                completedAspectsCache[outgoingPropertyVertexId] ?: throw IllegalStateException("Ashects cache should contain completed aspects")
+                                completedAspectsCache[outgoingPropertyVertexId] ?: throw IllegalStateException("Ashects cache should contain completed aspects"),
+                                propertyVertex.deleted
                             )
                         )
                         aspectTraversalState.pop()
@@ -161,6 +162,7 @@ class AspectTreeBuilder {
                         aspectVertex.baseType,
                         aspectVertex.baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                         aspectVertex.referenceBookRootVertex?.id,
+                        aspectVertex.deleted,
                         lastVertexHolderInState.properties.map {
                             it.completedProperty ?: throw IllegalStateException("Completed flag is up while completed property is absent")
                         }
@@ -190,7 +192,8 @@ class AspectTreeBuilder {
                     aspectPropertyVertex.id,
                     PropertyCardinality.valueOf(aspectPropertyVertex.cardinality),
                     aspectPropertyVertex.name,
-                    lastVertexHolderInState.aspect?.completedAspect ?: throw IllegalStateException("Expected child aspect to be reduced")
+                    lastVertexHolderInState.aspect?.completedAspect ?: throw IllegalStateException("Expected child aspect to be reduced"),
+                    aspectPropertyVertex.deleted
                 )
                 lastVertexHolderInState.completeWith(aspectPropertyResponse)
                 aspectTraversalState.pop()

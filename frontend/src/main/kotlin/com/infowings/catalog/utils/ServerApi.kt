@@ -13,6 +13,7 @@ import kotlin.js.*
 import kotlin.js.JSON
 import kotlinx.serialization.json.JSON as KJSON
 
+private const val DELETE = "DELETE"
 private const val POST = "POST"
 private const val GET = "GET"
 private const val PUT = "PUT"
@@ -29,6 +30,14 @@ private const val NOT_MODIFIED = 304
 
 external fun encodeURIComponent(component: String): String = definedExternally
 external fun decodeURIComponent(component: String): String = definedExternally
+
+/**
+ * HTTP DELETE request to server.
+ * Return response text.
+ */
+suspend fun delete(url: String, body: dynamic = null): String {
+    return authorizedRequest(DELETE, url, body).text().await()
+}
 
 /**
  * Http POST request to server.

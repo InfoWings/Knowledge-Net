@@ -129,9 +129,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                             }
                             onChange = {
                                 setState {
-                                    data = data.replaceBy(subjectData.copy(name = it)) {
-                                        it.id == subjectData.id
-                                    }
+                                    data = data.replaceBy({ it.id == subjectData.id }, subjectData.copy(name = it))
                                 }
                             }
                             confirmOnEnterKey = true

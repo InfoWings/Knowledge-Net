@@ -49,7 +49,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             plusButtonComponent(it, "pt-small")
         }
         props.onRemoveValue?.let {
-            minusButtonComponent(it, "pt-small")
+            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
         }
         props.onSaveValue?.let {
             submitButtonComponent(it, "pt-small")
@@ -75,4 +75,5 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onAddValue: (() -> Unit)?
     var onCancelValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
+    var needRemoveConfirmation: Boolean
 }

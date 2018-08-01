@@ -162,7 +162,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 setState {
                     val currentAspect = context[id]
                     val updatedByVersion = currentAspect!!.copy(version = response.version, deleted = response.deleted)
-                    data = data.replaceBy(updatedByVersion) { it.id == response.id }
+                    data = data.replaceBy({ it.id == response.id }, updatedByVersion)
                     context[id] = updatedByVersion
                     refreshOperation = false
                 }
@@ -193,7 +193,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
 
         setState {
-            data = data.replaceBy(deletedAspect) { deletedAspect.id == it.id }
+            data = data.replaceBy({ deletedAspect.id == it.id }, deletedAspect)
             if (!aspectData.id.isNullOrEmpty()) {
                 context[aspectData.id!!] = deletedAspect
             }

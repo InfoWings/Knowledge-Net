@@ -3,6 +3,7 @@ package com.infowings.catalog.objects.edit.tree
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectEditModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
+import com.infowings.catalog.objects.edit.ObjectEditApiModel
 import com.infowings.catalog.objects.edit.ObjectTreeEditModel
 import com.infowings.catalog.objects.edit.tree.format.objectEditLineFormat
 import react.*
@@ -13,6 +14,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
     companion object {
         init {
             kotlinext.js.require("styles/object-tree-edit.scss")
+            kotlinext.js.require("styles/delete-button.scss")
         }
     }
 
@@ -22,7 +24,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                 attrs {
                     expanded = props.objectTree.expanded
                     onExpanded = {
-                        props.editModel.onUpdate {
+                        props.editModel.update {
                             expanded = it
                         }
                     }
@@ -31,27 +33,30 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                             attrs {
                                 name = props.objectTree.name
                                 onNameChanged = {
-                                    props.editModel.onUpdate {
+                                    props.editModel.update {
                                         name = it
                                     }
                                 }
                                 subject = props.objectTree.subject
                                 onSubjectChanged = {
-                                    props.editModel.onUpdate {
+                                    props.editModel.update {
                                         subject = it
                                     }
                                 }
                                 description = props.objectTree.description
                                 onDescriptionChanged = {
-                                    props.editModel.onUpdate {
+                                    props.editModel.update {
                                         description = it
                                     }
                                 }
                                 canCreateNewProperty = props.objectTree.properties.isEmpty() || props.objectTree.properties.last().id != null
                                 onCreateNewProperty = {
-                                    props.editModel.onUpdate {
+                                    props.editModel.update {
                                         properties.add(ObjectPropertyEditModel())
                                     }
+                                }
+                                onDeleteObject = {
+                                    props.editModel.deleteObject()
                                 }
                             }
                         }
@@ -59,10 +64,9 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                 }
                 objectPropertiesEditList(
                     properties = props.objectTree.properties,
-                    onCreateProperty = props.editModel::onCreateProperty,
-                    onCreateValue = props.editModel::onCreateValue,
+                    editModel = props.editModel,
                     updater = { index, block ->
-                        props.editModel.onUpdate {
+                        props.editModel.update {
                             properties[index].block()
                         }
                     }
