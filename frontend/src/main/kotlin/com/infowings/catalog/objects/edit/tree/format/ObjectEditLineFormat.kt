@@ -27,7 +27,7 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
         objectSubject(
             value = props.subject,
             onSelect = props.onSubjectChanged,
-            disabled = true
+            disabled = props.disabled
         )
         span(classes = "object-tree-edit__label") {
             +")"

@@ -75,6 +75,7 @@ fun List<ValueTruncated>.toTreeView(values: List<ValueTruncated>): MutableList<O
 data class ObjectPropertyValueEditModel(
     val id: String? = null,
     var value: ObjectValueData? = null,
+    var description: String? = null,
     var expanded: Boolean = false,
     var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
@@ -82,6 +83,7 @@ data class ObjectPropertyValueEditModel(
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
         value = value.value.toData(),
+        description = value.description,
         valueGroups = value.childrenIds
                 .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
                 .sortedBy { it.propertyId }
@@ -152,12 +154,14 @@ data class AspectPropertyValueGroupEditModel(
 data class AspectPropertyValueEditModel(
     val id: String? = null,
     var value: ObjectValueData? = null,
+    var description: String? = null,
     var expanded: Boolean = false,
     var children: MutableList<AspectPropertyValueGroupEditModel> = mutableListOf()
 ) {
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
         value = value.value.toData(),
+        description = value.description,
         children = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
             .sortedBy { it.propertyId }

@@ -14,7 +14,7 @@ import react.*
 interface ObjectEditApiModel {
     suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest)
     suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
-    suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest)
+    suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
     suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest)
     suspend fun deleteObject(force: Boolean = false)
@@ -39,12 +39,14 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest) {
+    override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String) {
         updateObject(objectUpdateRequest) // TODO: trim everything?
         setState {
             val editedObject = this.editedObject ?: error("Object is not yet loaded")
             this.editedObject = editedObject.copy(
                 name = objectUpdateRequest.name,
+                subjectId = objectUpdateRequest.subjectId,
+                subjectName = subjectName,
                 description = objectUpdateRequest.description
             )
         }
@@ -134,6 +136,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = request.value.toDTO(),
+            description = request.description,
             propertyId = request.aspectPropertyId,
             childrenIds = emptyList()
         )

@@ -72,15 +72,19 @@ fun RBuilder.aspectPropertiesEditList(
                         this.onSubmit = when {
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
-                                    editModel.createValue(value.value ?: error("No value to submit"), objectPropertyId, parentValueId, aspectProperty.id)
+                                    editModel.createValue(
+                                        value.value ?: error("No value to submit"),
+                                        value.description,
+                                        objectPropertyId,
+                                        parentValueId,
+                                        aspectProperty.id
+                                    )
                                     editContext.setContext(null)
                                 }
                             }
-                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() && currentEditContextModel == EditExistingContextModel(
-                                value.id
-                            ) -> {
+                            value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit"))
+                                    editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit"), value.description)
                                     editContext.setContext(null)
                                 }
                             }
@@ -101,9 +105,7 @@ fun RBuilder.aspectPropertiesEditList(
                                     editContext.setContext(null)
                                 }
                             }
-                            value.id != null && value.value != apiModelValuesById[value.id]?.value?.toData() && currentEditContextModel == EditExistingContextModel(
-                                value.id
-                            ) -> {
+                            value.id != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = apiModelValuesById[value.id]?.value?.toData()
@@ -145,7 +147,7 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue)
+                                    editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue, value.description)
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {

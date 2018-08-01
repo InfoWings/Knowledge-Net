@@ -51,9 +51,18 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                     }
                                 }
                                 subject = props.objectTree.subject
-                                onSubjectChanged = {
-                                    props.editModel.update {
-                                        subject = it
+                                onSubjectChanged = if (props.editContext.currentContext == null) {
+                                    {
+                                        props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
+                                        props.editModel.update {
+                                            subject = it
+                                        }
+                                    }
+                                } else {
+                                    {
+                                        props.editModel.update {
+                                            subject = it
+                                        }
                                     }
                                 }
                                 description = props.objectTree.description
@@ -82,13 +91,13 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                 onDeleteObject = if (editContextModel == null) {
                                     { props.editModel.deleteObject() }
                                 } else null
-                                onUpdateObject = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
+                                onUpdateObject = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
                                     {
                                         props.editModel.updateObject()
                                         props.editContext.setContext(null)
                                     }
                                 } else null
-                                onDiscardUpdate = if (props.apiModel.name != props.objectTree.name || props.apiModel.description != props.objectTree.description) {
+                                onDiscardUpdate = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
                                     {
                                         props.editModel.update {
                                             name = props.apiModel.name
@@ -97,8 +106,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                         props.editContext.setContext(null)
                                     }
                                 } else null
-                                disabled =
-                                        !(editContextModel == null || (editContextModel is EditExistingContextModel && editContextModel.identity != props.objectTree.id))
+                                disabled = editContextModel != null && editContextModel != EditExistingContextModel(props.objectTree.id)
                             }
                         }
                     }!!

@@ -23,8 +23,8 @@ interface ObjectTreeEditModel {
     fun createProperty(propertyEditModel: ObjectPropertyEditModel)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
-    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData)
+    fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
+    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?)
     fun deleteValue(valueId: String, propertyId: String)
 }
 
@@ -56,8 +56,11 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 ObjectUpdateRequest(
                     state.viewModel.id,
                     state.viewModel.name,
-                    state.viewModel.description
-                )
+                    state.viewModel.description,
+                    state.viewModel.subject.id,
+                    null
+                ),
+                state.viewModel.subject.name
             )
         }
     }
@@ -85,7 +88,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 PropertyUpdateRequest(
                     propertyEditModel.id ?: error("Property should have id in order to be updated"),
                     propertyEditModel.name,
-                    null
+                    propertyEditModel.description
                 )
             )
         }
@@ -96,7 +99,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         deleteEntity { force -> props.apiModel.deleteObjectProperty(propertyId, force) }
     }
 
-    override fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+    override fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
         launch {
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
@@ -111,7 +114,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData) {
+    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?) {
         launch {
             props.apiModel.editObjectValue(
                 propertyId,

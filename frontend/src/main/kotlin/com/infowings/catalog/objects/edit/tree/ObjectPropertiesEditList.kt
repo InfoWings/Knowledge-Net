@@ -27,7 +27,7 @@ fun RBuilder.objectPropertiesEditList(
         val propertyValues = property.values
         if (propertyValues == null || propertyValues.isEmpty()) {
             objectPropertyEditNode {
-                val apiModelProperty = property.id?.let { apiModelPropertiesById[property.id] }
+                val apiModelProperty = property.id?.let { apiModelPropertiesById[it] }
                 attrs {
                     val currentEditContextModel = editContext.currentContext
                     this.property = property
@@ -39,9 +39,7 @@ fun RBuilder.objectPropertiesEditList(
                                 editContext.setContext(null)
                             }
                         }
-                        property.id != null && apiModelProperty != null && currentEditContextModel is EditExistingContextModel &&
-                                currentEditContextModel.identity == property.id &&
-                                (apiModelProperty.name != property.name || apiModelProperty.aspectDescriptor.id != property.aspect?.id) -> {
+                        property.id != null && apiModelProperty != null && currentEditContextModel == EditExistingContextModel(property.id) -> {
                             {
                                 editModel.updateProperty(property)
                                 editContext.setContext(null)
@@ -49,9 +47,7 @@ fun RBuilder.objectPropertiesEditList(
                         }
                         else -> null
                     }
-                    onCancel = if (property.id != null && apiModelPropertiesById[property.id]?.name != property.name &&
-                        currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == property.id
-                    ) {
+                    onCancel = if (property.id != null && currentEditContextModel == EditExistingContextModel(property.id)) {
                         {
                             updater(propertyIndex) {
                                 name = apiModelPropertiesById[property.id]?.name
@@ -73,6 +69,7 @@ fun RBuilder.objectPropertiesEditList(
                                         this.values = mutableListOf(ObjectPropertyValueEditModel(
                                             null,
                                             ObjectValueData.NullValue,
+                                            null,
                                             false,
                                             mutableListOf()
                                         ))
@@ -82,6 +79,7 @@ fun RBuilder.objectPropertiesEditList(
                                             ObjectPropertyValueEditModel(
                                                 null,
                                                 ObjectValueData.NullValue,
+                                                null,
                                                 false,
                                                 mutableListOf()
                                             )
@@ -101,16 +99,17 @@ fun RBuilder.objectPropertiesEditList(
                 objectPropertyValueEditNode {
                     attrs {
                         val currentEditContextModel = editContext.currentContext
+                        val propertyId = property.id ?: error("Property should not have id != null")
                         key = value.id ?: valueIndex.toString()
                         this.property = property
                         onPropertyUpdate = { updater(propertyIndex, it) }
-                        onSaveProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                        onSaveProperty = if (currentEditContextModel == EditExistingContextModel(propertyId)) {
                             {
                                 editModel.updateProperty(property)
                                 editContext.setContext(null)
                             }
                         } else null
-                        onCancelProperty = if (property.name != apiModelPropertiesById[property.id]?.name) {
+                        onCancelProperty = if (currentEditContextModel == EditExistingContextModel(propertyId)) {
                             {
                                 updater(propertyIndex) {
                                     name = apiModelPropertiesById[property.id]?.name
@@ -118,8 +117,7 @@ fun RBuilder.objectPropertiesEditList(
                                 editContext.setContext(null)
                             }
                         } else null
-                        propertyDisabled = currentEditContextModel != null && currentEditContextModel !=
-                                EditExistingContextModel(property.id ?: error("Property should have id != null"))
+                        propertyDisabled = currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(propertyId)
                         this.rootValue = value
                         onValueUpdate = { block ->
                             updater(propertyIndex) {
@@ -133,20 +131,21 @@ fun RBuilder.objectPropertiesEditList(
                                 {
                                     editModel.createValue(
                                         value.value ?: error("value should not be null"),
-                                        property.id ?: error("Property should have id != null"),
+                                        value.description,
+                                        propertyId,
                                         null,
                                         null
                                     )
                                     editContext.setContext(null)
                                 }
                             }
-                            value.id != null && value.value != null && value.value != apiModelValuesById[value.id]?.value?.toData() &&
-                                    currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == value.id -> {
+                            value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     editModel.updateValue(
                                         value.id,
-                                        property.id ?: error("Property should have id != null"),
-                                        value.value ?: error("Value should not be null")
+                                        propertyId,
+                                        value.value ?: error("Value should not be null"),
+                                        value.description
                                     )
                                     editContext.setContext(null)
                                 }
@@ -155,8 +154,8 @@ fun RBuilder.objectPropertiesEditList(
                         }
                         val allValues = property.values ?: error("Property should have at least one value")
                         onAddValue = when {
-                            allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } && currentEditContextModel == null && !(property.aspect?.deleted
-                                    ?: true) -> {
+                            allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } &&
+                                    currentEditContextModel == null && !(property.aspect?.deleted ?: true) -> {
                                 {
                                     editContext.setContext(EditNewChildContextModel)
                                     updater(propertyIndex) {
@@ -164,6 +163,7 @@ fun RBuilder.objectPropertiesEditList(
                                             ObjectPropertyValueEditModel(
                                                 null,
                                                 property.aspect?.defaultValue(),
+                                                null,
                                                 false,
                                                 mutableListOf()
                                             )
@@ -172,7 +172,9 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                             value.value == ObjectValueData.NullValue && !(property.aspect?.deleted ?: true) &&
-                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) || (value.id != null && currentEditContextModel is EditExistingContextModel && currentEditContextModel.identity == value.id)) -> {
+                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) || (value.id != null && currentEditContextModel == EditExistingContextModel(
+                                        value.id
+                                    ))) -> {
                                 {
                                     updater(propertyIndex) {
                                         (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value =
@@ -199,7 +201,7 @@ fun RBuilder.objectPropertiesEditList(
                                     editContext.setContext(null)
                                 }
                             }
-                            value.id != null && currentEditContextModel == EditExistingContextModel(value.id) && value.value != apiModelValuesById[value.id]?.value?.toData() -> {
+                            value.id != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     updater(propertyIndex) {
                                         val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
@@ -213,12 +215,12 @@ fun RBuilder.objectPropertiesEditList(
                         onRemoveValue = when {
                             value.id != null && allValues.size > 1 && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, property.id ?: error("Property should have id"))
+                                    editModel.deleteValue(value.id, propertyId)
                                 }
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.updateValue(value.id, property.id ?: error("Property should have id"), ObjectValueData.NullValue)
+                                    editModel.updateValue(value.id, propertyId, ObjectValueData.NullValue, value.description)
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
@@ -228,8 +230,8 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             else -> null
                         }
-                        valueDisabled = (currentEditContextModel != null && value.id != null && currentEditContextModel != EditExistingContextModel(value.id)) || property.aspect?.deleted ?:
-                                true
+                        valueDisabled = (currentEditContextModel != null && value.id != null && currentEditContextModel != EditExistingContextModel(value.id)) ||
+                                property.aspect?.deleted ?: true
                         this.editModel = editModel
                         this.editContext = editContext
                         this.apiModelValuesById = apiModelValuesById
