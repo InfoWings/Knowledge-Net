@@ -256,6 +256,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                     attrs {
                         name = props.property.name
                         aspect = props.property.aspect
+                        description = props.property.description
                         onNameChanged = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(
@@ -289,6 +290,24 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                             {
                                 props.onUpdate {
                                     aspect = it
+                                }
+                            }
+                        }
+                        onDescriptionChanged = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onUpdate {
+                                    description = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onUpdate {
+                                    description = it
                                 }
                             }
                         }
@@ -329,12 +348,14 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                 objectPropertyValueEditLineFormat {
                     attrs {
                         propertyName = props.property.name
+                        propertyDescription = props.property.description
                         aspectName = aspect.name
                         aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
                         value = props.rootValue.value
+                        valueDescription = props.rootValue.description
                         onPropertyNameUpdate = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(
@@ -353,11 +374,29 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                                 }
                             }
                         }
-                        onValueUpdate = if (props.editContext.currentContext == null) {
+                        onPropertyDescriptionChanged = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(
                                     EditExistingContextModel(
                                         props.property.id ?: error("Property should have id != null in order to edit")
+                                    )
+                                )
+                                props.onPropertyUpdate {
+                                    description = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onPropertyUpdate {
+                                    description = it
+                                }
+                            }
+                        }
+                        onValueUpdate = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.rootValue.id ?: error("Root value should have id != null in order to edit")
                                     )
                                 )
                                 props.onValueUpdate {
@@ -368,6 +407,24 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                             {
                                 props.onValueUpdate {
                                     value = it
+                                }
+                            }
+                        }
+                        onValueDescriptionChanged = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.rootValue.id ?: error("Root value should have id != null in order to edit")
+                                    )
+                                )
+                                props.onValueUpdate {
+                                    description = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onValueUpdate {
+                                    description = it
                                 }
                             }
                         }
