@@ -221,17 +221,14 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         value = props.value.value
+                        valueDescription = props.value.description
                         onChange = if (props.editContext.currentContext == null) {
                             {
-                                if (props.value.id == null) {
-                                    props.editContext.setContext(EditNewChildContextModel)
-                                } else {
-                                    props.editContext.setContext(
-                                        EditExistingContextModel(
-                                            props.value.id ?: error("Value should have id != null in order to be edited")
-                                        )
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.value.id ?: error("Value should have id != null in order to be edited")
                                     )
-                                }
+                                )
                                 props.onUpdate {
                                     value = it
                                 }
@@ -240,6 +237,24 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                             {
                                 props.onUpdate {
                                     value = it
+                                }
+                            }
+                        }
+                        onDescriptionChange = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.value.id ?: error("Value should have id != null in order to be edited")
+                                    )
+                                )
+                                props.onUpdate {
+                                    description = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onUpdate {
+                                    description = it
                                 }
                             }
                         }
