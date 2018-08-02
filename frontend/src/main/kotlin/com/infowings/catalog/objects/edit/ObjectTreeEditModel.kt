@@ -37,6 +37,9 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
+        nextProps.lastApiError?.let {
+            console.log(it)
+        }
         setState {
             if (nextProps.serverView.id == viewModel.id) {
                 viewModel.mergeFrom(nextProps.serverView)
@@ -192,6 +195,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     interface Props : RProps {
         var serverView: ObjectEditDetailsResponse
         var apiModel: ObjectEditApiModel
+        var lastApiError: String?
     }
 
     data class EntityDeleteInfo(val message: String, val continuation: () -> Unit)
