@@ -77,6 +77,7 @@ data class ObjectPropertyEditDetailsResponse(
 data class ValueTruncated(
     val id: String,
     val value: ValueDTO,
+    val description: String?,
     val propertyId: String?,
     val childrenIds: List<String>
 )

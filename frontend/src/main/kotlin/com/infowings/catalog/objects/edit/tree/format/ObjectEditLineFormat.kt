@@ -1,8 +1,10 @@
 package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.components.additem.addPropertyButton
+import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.SubjectTruncated
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.objectSubject
@@ -16,28 +18,45 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
         name(
             value = props.name,
             onChange = props.onNameChanged,
-            onCancel = props.onNameChanged
+            onCancel = props.onNameChanged,
+            disabled = props.disabled
         )
         span(classes = "object-tree-edit__label") {
             +"( Subject:"
         }
         objectSubject(
             value = props.subject,
-            onSelect = props.onSubjectChanged
+            onSelect = props.onSubjectChanged,
+            disabled = props.disabled
         )
         span(classes = "object-tree-edit__label") {
             +")"
         }
-        descriptionComponent(
-            className = "object-input-description",
-            description = props.description,
-            onNewDescriptionConfirmed = props.onDescriptionChanged,
-            onEditStarted = null
-        )
-        if (props.canCreateNewProperty) {
-            addPropertyButton(onClick = props.onCreateNewProperty)
+        if (props.disabled) {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.description
+            )
+        } else {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.description,
+                onNewDescriptionConfirmed = props.onDescriptionChanged,
+                onEditStarted = null
+            )
         }
-        minusButtonComponent(props.onDeleteObject, true)
+        props.onUpdateObject?.let {
+            submitButtonComponent(it)
+        }
+        props.onDiscardUpdate?.let {
+            cancelButtonComponent(it)
+        }
+        props.onCreateNewProperty?.let {
+            addPropertyButton(onClick = it)
+        }
+        props.onDeleteObject?.let {
+            minusButtonComponent(it, true)
+        }
     }
 }
 
@@ -48,7 +67,9 @@ interface ObjectEditLineFormatProps : RProps {
     var onNameChanged: (String) -> Unit
     var onSubjectChanged: (SubjectTruncated) -> Unit
     var onDescriptionChanged: (String) -> Unit
-    var canCreateNewProperty: Boolean
-    var onCreateNewProperty: () -> Unit
-    var onDeleteObject: () -> Unit
+    var onCreateNewProperty: (() -> Unit)?
+    var onDeleteObject: (() -> Unit)?
+    var onUpdateObject: (() -> Unit)?
+    var onDiscardUpdate: (() -> Unit)?
+    var disabled: Boolean
 }

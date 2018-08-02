@@ -21,7 +21,8 @@ val objectCreateForm = rFunction<ObjectCreateFormProps>("ObjectCreateForm") { pr
         }
         objectSubject(
             value = props.subject,
-            onSelect = props.onSubjectUpdate
+            onSelect = props.onSubjectUpdate,
+            disabled = false
         )
         span(classes = "object-create-form__label") {
             +")"

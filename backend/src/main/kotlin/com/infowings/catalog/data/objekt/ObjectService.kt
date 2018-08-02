@@ -74,6 +74,7 @@ class ObjectService(
                         ValueTruncated (
                             it.id,
                             it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                            it.description,
                             it.aspectProperty?.id,
                             it.children.map { it.id }
                         )

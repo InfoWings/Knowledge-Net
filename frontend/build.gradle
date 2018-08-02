@@ -20,10 +20,10 @@ buildscript {
 }
 
 ext {
-    kotlinx_html_version = 'latest-1.2.30-dev-132-242'
-    wrapper_react_version='16.2.1-pre.24-kotlin-1.2.30'
-    wrapper_extentions_version = '1.0.1-pre.24-kotlin-1.2.30'
-    wrapper_mocha_version = '3.0.1-pre.24-kotlin-1.2.30'
+    kotlinx_html_version = 'latest-1.2.70-dev-990-675'
+    wrapper_react_version='16.4.1-pre.34-kotlin-1.2.51'
+    wrapper_extentions_version = '1.0.1-pre.34-kotlin-1.2.51'
+    wrapper_mocha_version = '3.0.1-pre.34-kotlin-1.2.51'
 }
 
 node {

@@ -4,6 +4,7 @@ import com.infowings.catalog.aspects.getAspectTree
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
+import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.utils.mapOn
 import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.reactRouter
@@ -14,7 +15,7 @@ import react.*
 interface ObjectEditApiModel {
     suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest)
     suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
-    suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest)
+    suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
     suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest)
     suspend fun deleteObject(force: Boolean = false)
@@ -39,94 +40,156 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest) {
-        updateObject(objectUpdateRequest) // TODO: trim everything?
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                name = objectUpdateRequest.name,
-                description = objectUpdateRequest.description
-            )
+    override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String) {
+        try {
+            updateObject(objectUpdateRequest) // TODO: trim everything?
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    name = objectUpdateRequest.name,
+                    subjectId = objectUpdateRequest.subjectId,
+                    subjectName = subjectName,
+                    description = objectUpdateRequest.description
+                )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun deleteObject(force: Boolean) {
-        val editedObject = state.editedObject ?: error("Object is not yet loaded")
-        deleteObject(editedObject.id, force)
-        setState {
-            this.editedObject = null
-            this.deleted = true
+        try {
+            val editedObject = state.editedObject ?: error("Object is not yet loaded")
+            deleteObject(editedObject.id, force)
+            setState {
+                this.editedObject = null
+                this.deleted = true
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest) {
-        val createPropertyResponse = createProperty(propertyCreateRequest)
-        val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
-                    createPropertyResponse.id,
-                    propertyCreateRequest.name,
-                    propertyCreateRequest.description,
-                    emptyList(),
-                    emptyList(),
-                    treeAspectResponse
+        try {
+            val createPropertyResponse = createProperty(propertyCreateRequest)
+            val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
+                        createPropertyResponse.id,
+                        propertyCreateRequest.name,
+                        propertyCreateRequest.description,
+                        emptyList(),
+                        emptyList(),
+                        treeAspectResponse
+                    )
                 )
-
-            )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest) {
-        val editPropertyResponse = updateProperty(propertyUpdateRequest)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties.mapOn({ it.id == editPropertyResponse.id }, { it.copy(name = propertyUpdateRequest.name) })
-            )
+        try {
+            val editPropertyResponse = updateProperty(propertyUpdateRequest)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.mapOn(
+                        { it.id == editPropertyResponse.id },
+                        { it.copy(name = propertyUpdateRequest.name, description = propertyUpdateRequest.description) }
+                    )
+                )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun deleteObjectProperty(id: String, force: Boolean) {
-        deleteProperty(id, force)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties.filterNot { it.id == id }
-            )
+        try {
+            deleteProperty(id, force)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.filterNot { it.id == id }
+                )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest) {
-        val valueCreateResponse = createValue(valueCreateRequest)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties.mapOn(
-                    { it.id == valueCreateRequest.objectPropertyId },
-                    { it.addValue(valueCreateRequest, valueCreateResponse) })
-            )
+        try {
+            val valueCreateResponse = createValue(valueCreateRequest)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.mapOn(
+                        { it.id == valueCreateRequest.objectPropertyId },
+                        { it.addValue(valueCreateRequest, valueCreateResponse) })
+                )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
     override suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest) {
-        val valueEditResponse = updateValue(valueUpdateRequest)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.editValue(valueEditResponse.id, valueUpdateRequest.value) })
-            )
+        try {
+            val valueEditResponse = updateValue(valueUpdateRequest)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.mapOn(
+                        { it.id == propertyId },
+                        { it.editValue(valueEditResponse.id, valueUpdateRequest.value, valueUpdateRequest.description) })
+                )
+                lastApiError = null
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
+
     }
 
     override suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean) {
-        deleteValue(id, force)
-        setState {
-            val editedObject = this.editedObject ?: error("Object is not yet loaded")
-            this.editedObject = editedObject.copy(
-                properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.deleteValue(id) })
-            )
+        try {
+            deleteValue(id, force)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.deleteValue(id) })
+                )
+            }
+        } catch (exception: ServerException) {
+            setState {
+                lastApiError = exception.message
+            }
         }
     }
 
@@ -134,6 +197,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = request.value.toDTO(),
+            description = request.description,
             propertyId = request.aspectPropertyId,
             childrenIds = emptyList()
         )
@@ -163,10 +227,10 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.editValue(valueId: String, value: ObjectValueData): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.editValue(valueId: String, value: ObjectValueData, description: String?): ObjectPropertyEditDetailsResponse {
         return this.copy(
-            rootValues = this.rootValues.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO()) }),
-            valueDescriptors = this.valueDescriptors.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO()) })
+            rootValues = this.rootValues.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) }),
+            valueDescriptors = this.valueDescriptors.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) })
         )
     }
 
@@ -201,6 +265,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 objectTreeEditModel {
                     attrs {
                         apiModel = this@ObjectEditApiModelComponent
+                        lastApiError = state.lastApiError
                         serverView = it
                     }
                 }
@@ -210,6 +275,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     interface State : RState {
         var editedObject: ObjectEditDetailsResponse?
+        var lastApiError: String?
         var deleted: Boolean
     }
 

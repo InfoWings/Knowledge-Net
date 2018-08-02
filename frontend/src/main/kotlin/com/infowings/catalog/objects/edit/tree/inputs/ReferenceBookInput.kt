@@ -50,12 +50,14 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
     override fun RBuilder.render() {
         if (state.value.refBookTreePath.isEmpty()) {
             emptyReferenceBookInput(
-                onClick = this@ReferenceBookInput::handleClick
+                onClick = this@ReferenceBookInput::handleClick,
+                disabled = props.disabled ?: false
             )
         } else {
             valueReferenceBookInput(
                 renderedPath = state.value.refBookTreePath,
-                onClick = this@ReferenceBookInput::handleClick
+                onClick = this@ReferenceBookInput::handleClick,
+                disabled = props.disabled ?: false
             )
         }
         selectReferenceBookValueDialog(
@@ -70,6 +72,7 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
         var itemId: String?
         var refBookId: String
         var onUpdate: (String) -> Unit
+        var disabled: Boolean?
     }
 
     interface State : RState {
@@ -78,19 +81,21 @@ class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<Reference
     }
 }
 
-fun RBuilder.emptyReferenceBookInput(onClick: () -> Unit) = Button {
+fun RBuilder.emptyReferenceBookInput(onClick: () -> Unit, disabled: Boolean) = Button {
     attrs {
         text = "Select value".asReactElement()
         intent = Intent.NONE
         this.onClick = { onClick() }
+        this.disabled = disabled
     }
 }
 
-fun RBuilder.valueReferenceBookInput(renderedPath: List<RefBookNodeDescriptor>, onClick: () -> Unit) = Button {
+fun RBuilder.valueReferenceBookInput(renderedPath: List<RefBookNodeDescriptor>, onClick: () -> Unit, disabled: Boolean) = Button {
     attrs {
         text = renderedPath.joinToString(" → ") { it.value }.asReactElement()
         intent = Intent.NONE
         this.onClick = { onClick() }
+        this.disabled = disabled
     }
 }
 

@@ -7,6 +7,7 @@ import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import react.RProps
@@ -41,13 +42,27 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.aspectReferenceBookId,
                 value = value,
-                onChange = props.onChange
+                onChange = props.onChange,
+                disabled = props.disabled
             )
             props.aspectMeasure?.let {
                 span(classes = "aspect-property__property-measure") {
                     +it.symbol
                 }
             }
+        }
+        if (props.disabled) {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.valueDescription
+            )
+        } else {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.valueDescription,
+                onNewDescriptionConfirmed = props.onDescriptionChange,
+                onEditStarted = null
+            )
         }
         props.onSubmit?.let {
             submitButtonComponent(it, "pt-small")
@@ -74,10 +89,13 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var recommendedCardinality: PropertyCardinality
     var value: ObjectValueData?
     var onChange: (ObjectValueData) -> Unit
+    var valueDescription: String?
+    var onDescriptionChange: (String) -> Unit
     var conformsToCardinality: Boolean
     var onSubmit: (() -> Unit)?
     var onCancel: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var needRemoveConfirmation: Boolean
+    var disabled: Boolean
 }

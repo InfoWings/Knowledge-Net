@@ -6,9 +6,8 @@ import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
+import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
-import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import react.RProps
@@ -22,7 +21,8 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             className = "property-value__property-name",
             value = props.propertyName ?: "",
             onChange = props.onPropertyNameUpdate,
-            onCancel = props.onPropertyNameUpdate
+            onCancel = props.onPropertyNameUpdate,
+            disabled = props.propertyDisabled
         )
         span(classes = "property-value__aspect") {
             +props.aspectName
@@ -32,18 +32,51 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             +(props.subjectName ?: "Global")
             +")"
         }
+        if (props.propertyDisabled) {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.propertyDescription
+            )
+        } else {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.propertyDescription,
+                onNewDescriptionConfirmed = props.onPropertyDescriptionChanged,
+                onEditStarted = null
+            )
+        }
+        props.onSaveProperty?.let {
+            submitButtonComponent(it, "pt-small")
+        }
+        props.onCancelProperty?.let {
+            cancelButtonComponent(it, "pt-small")
+        }
         if (props.value != ObjectValueData.NullValue) {
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
                 value = props.value,
-                onChange = props.onValueUpdate
+                onChange = props.onValueUpdate,
+                disabled = props.valueDisabled
             )
             props.aspectMeasure?.let {
                 span(classes = "property-value__aspect-measure") {
                     +it.symbol
                 }
             }
+        }
+        if (props.valueDisabled) {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.valueDescription
+            )
+        } else {
+            descriptionComponent(
+                className = "object-input-description",
+                description = props.valueDescription,
+                onNewDescriptionConfirmed = props.onValueDescriptionChanged,
+                onEditStarted = null
+            )
         }
         props.onAddValue?.let {
             plusButtonComponent(it, "pt-small")
@@ -63,12 +96,16 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
 
 interface ObjectPropertyValueEditLineFormatProps : RProps {
     var propertyName: String?
+    var propertyDescription: String?
+    var onPropertyDescriptionChanged: (String) -> Unit
     var aspectName: String
     var aspectBaseType: BaseType
     var aspectMeasure: Measure<*>?
     var subjectName: String?
     var referenceBookId: String?
     var value: ObjectValueData?
+    var valueDescription: String?
+    var onValueDescriptionChanged: (String) -> Unit
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
     var onSaveValue: (() -> Unit)?
@@ -76,4 +113,8 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onCancelValue: (() -> Unit)?
     var onRemoveValue: (() -> Unit)?
     var needRemoveConfirmation: Boolean
+    var onSaveProperty: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
+    var propertyDisabled: Boolean
+    var valueDisabled: Boolean
 }

@@ -45,7 +45,7 @@ private fun aspectOptionFromDescriptor(aspectDescriptor: ShortAspectDescriptor) 
     this.aspectDescriptor = aspectDescriptor
 }
 
-fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspectDescriptor) -> Unit) =
+fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspectDescriptor) -> Unit, disabled: Boolean = false) =
     asyncSelect<AspectOption> {
         attrs {
             className = "object-property-input-aspect"
@@ -77,5 +77,6 @@ fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspec
                 }
                 false
             }
+            this.disabled = disabled
         }
     }

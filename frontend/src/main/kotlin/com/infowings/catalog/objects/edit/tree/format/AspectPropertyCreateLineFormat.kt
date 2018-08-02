@@ -24,7 +24,9 @@ val aspectPropertyCreateLineFormat = rFunction<AspectPropertyCreateLineFormatPro
             +(props.subjectName ?: "Global")
             +")"
         }
-        newValueButtonComponent(props.onCreateValue, "pt-small")
+        props.onCreateValue?.let {
+            newValueButtonComponent(it, "pt-small")
+        }
     }
 }
 
@@ -33,5 +35,5 @@ interface AspectPropertyCreateLineFormatProps : RProps {
     var aspectName: String
     var subjectName: String?
     var cardinality: PropertyCardinality
-    var onCreateValue: () -> Unit
+    var onCreateValue: (() -> Unit)?
 }

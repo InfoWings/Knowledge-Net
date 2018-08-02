@@ -2,11 +2,8 @@ package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.PropertyUpdateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
-import com.infowings.catalog.common.objekt.ValueUpdateRequest
-import com.infowings.catalog.objects.ObjectEditModel
+import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
 import com.infowings.catalog.utils.BadRequestException
@@ -20,13 +17,14 @@ import react.dom.span
 
 
 interface ObjectTreeEditModel {
-    fun update(updater: ObjectEditModel.() -> Unit)
+    fun update(updater: ObjectEditViewModel.() -> Unit)
+    fun updateObject()
     fun deleteObject()
     fun createProperty(propertyEditModel: ObjectPropertyEditModel)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
-    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData)
+    fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
+    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?)
     fun deleteValue(valueId: String, propertyId: String)
 }
 
@@ -34,21 +32,40 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     ObjectTreeEditModel {
 
     override fun State.init(props: Props) {
-        model = ObjectEditModel(props.serverView)
+        editContextModel = null
+        viewModel = ObjectEditViewModel(props.serverView)
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
+        nextProps.lastApiError?.let {
+            console.log(it)
+        }
         setState {
-            if (nextProps.serverView.id == model.id) {
-                model.mergeFrom(nextProps.serverView)
+            if (nextProps.serverView.id == viewModel.id) {
+                viewModel.mergeFrom(nextProps.serverView)
             } else {
-                model = ObjectEditModel(nextProps.serverView)
+                viewModel = ObjectEditViewModel(nextProps.serverView)
             }
         }
     }
 
-    override fun update(updater: ObjectEditModel.() -> Unit) = setState {
-        model.updater()
+    override fun update(updater: ObjectEditViewModel.() -> Unit) = setState {
+        viewModel.updater()
+    }
+
+    override fun updateObject() {
+        launch {
+            props.apiModel.editObject(
+                ObjectUpdateRequest(
+                    state.viewModel.id,
+                    state.viewModel.name,
+                    state.viewModel.description,
+                    state.viewModel.subject.id,
+                    null
+                ),
+                state.viewModel.subject.name
+            )
+        }
     }
 
     override fun deleteObject() {
@@ -59,7 +76,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         launch {
             props.apiModel.submitObjectProperty(
                 PropertyCreateRequest(
-                    state.model.id,
+                    state.viewModel.id,
                     propertyEditModel.name,
                     propertyEditModel.description,
                     propertyEditModel.aspect?.id ?: error("Aspect must be set when submitting object property")
@@ -74,7 +91,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 PropertyUpdateRequest(
                     propertyEditModel.id ?: error("Property should have id in order to be updated"),
                     propertyEditModel.name,
-                    null
+                    propertyEditModel.description
                 )
             )
         }
@@ -85,7 +102,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         deleteEntity { force -> props.apiModel.deleteObjectProperty(propertyId, force) }
     }
 
-    override fun createValue(value: ObjectValueData, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+    override fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
         launch {
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
@@ -100,7 +117,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData) {
+    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?) {
         launch {
             props.apiModel.editObjectValue(
                 propertyId,
@@ -140,7 +157,9 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         objectEditTree {
             attrs {
                 editModel = this@ObjectTreeEditModelComponent
-                objectTree = state.model
+                objectTree = state.viewModel
+                apiModel = props.serverView
+                editContext = EditContext(state.editContextModel) { setState { editContextModel = it } }
             }
         }
         state.entityDeleteInfo?.let { entityDeleteInfo ->
@@ -168,13 +187,15 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     interface State : RState {
-        var model: ObjectEditModel
+        var viewModel: ObjectEditViewModel
+        var editContextModel: EditContextModel?
         var entityDeleteInfo: EntityDeleteInfo?
     }
 
     interface Props : RProps {
         var serverView: ObjectEditDetailsResponse
         var apiModel: ObjectEditApiModel
+        var lastApiError: String?
     }
 
     data class EntityDeleteInfo(val message: String, val continuation: () -> Unit)
