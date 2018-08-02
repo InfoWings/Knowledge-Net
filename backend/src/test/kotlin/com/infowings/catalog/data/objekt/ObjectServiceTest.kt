@@ -4,6 +4,7 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.PropertyUpdateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
@@ -120,6 +121,52 @@ class ObjectServiceTest {
                     createdPropertyId, objectOfProperty.properties.first().id,
                     "found parent object must contain correct property"
                 )
+            }
+        }
+    }
+
+    @Test
+    fun updateObjectPropertyWithValueTest() {
+        val objectRequest = ObjectCreateRequest("updateObjectPropertyWithValueTest", null, subject.id, subject.version)
+        val createdObjectId = objectService.create(objectRequest, username)
+
+        val propertyRequest = PropertyCreateRequest(
+            name = "prop_updateObjectPropertyWithValueTest",
+            description = null, objectId = createdObjectId, aspectId = complexAspect.idStrict()
+        )
+
+        val createdPropertyId = objectService.create(propertyRequest, username)
+
+        val rootValueRequest = ValueCreateRequest(ObjectValueData.NullValue, null, createdPropertyId)
+        val rootValueId = objectService.create(rootValueRequest, username).id.toString()
+
+        val childValueRequest = ValueCreateRequest(
+            value = ObjectValueData.StringValue("Text Value"),
+            description = null,
+            objectPropertyId = createdPropertyId,
+            measureId = null,
+            aspectPropertyId = complexAspect.properties[0].id,
+            parentValueId = rootValueId
+        )
+        val childValueId = objectService.create(childValueRequest, username).id.toString()
+
+        val propertyUpdateRequest = PropertyUpdateRequest(
+            createdPropertyId,
+            "newProp_updateObjectPropertyWithValueTest",
+            null
+        )
+        val updatedPropertyId = objectService.update(propertyUpdateRequest, username)
+
+        transaction(db) {
+            assertEquals(createdPropertyId, updatedPropertyId, "Created and updated property ids are not equal")
+
+            val foundPropertyInDb = objectService.findPropertyById(updatedPropertyId)
+
+            assertEquals("newProp_updateObjectPropertyWithValueTest", foundPropertyInDb.name, "Updated property has different name than in update request")
+            assertEquals(2, foundPropertyInDb.values.size, "Updated property has different amount of values attached")
+            val propertyValueIds = foundPropertyInDb.values.map { it.id }
+            listOf(rootValueId, childValueId).forEach {
+                assertTrue("Property values does not contain previously created value", propertyValueIds.contains(it))
             }
         }
     }

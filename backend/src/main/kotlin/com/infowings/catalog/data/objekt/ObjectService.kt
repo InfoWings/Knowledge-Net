@@ -169,7 +169,7 @@ class ObjectService(
             val propertyInfo = validator.checkedForUpdating(objectPropertyVertex, request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
-            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, emptyList())
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, objectPropertyVertex.values)
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(objectPropertyVertex.toUpdateFact(context, objectBefore))

@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.GlobalMeasureMap
+import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.description.descriptionComponent
 import react.RProps
@@ -11,8 +12,10 @@ import react.rFunction
 val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps>("ObjectPropertyValueLineFormat") { props ->
     div("object-property-value-line") {
         props.propertyName?.let {
-            span(classes = "text-italic text-bold object-property-value-line__role-name") {
-                +it
+            if (it.isNotBlank()) {
+                span(classes = "text-italic text-bold object-property-value-line__role-name") {
+                    +it
+                }
             }
         }
         span(classes = "text-bold object-property-value-line__aspect-name") {
@@ -28,8 +31,10 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
         }
         valueFormat(props.value)
         props.measure?.let {
-            span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+            if (props.value != ObjectValueData.NullValue) {
+                span(classes = "object-property-value-line__value-measure") {
+                    +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+                }
             }
         }
         props.valueDescription?.let {
@@ -55,8 +60,10 @@ interface ObjectPropertyValueLineFormatProps : RProps {
 val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps>("AspectPropertyValueLineFormat") { props ->
     div("object-property-value-line") {
         props.propertyName?.let {
-            span(classes = "text-italic text-bold object-property-value-line__role-name") {
-                +it
+            if (it.isNotBlank()) {
+                span(classes = "text-italic text-bold object-property-value-line__role-name") {
+                    +it
+                }
             }
         }
         span(classes = "text-bold object-property-value-line__aspect-name") {
@@ -64,8 +71,10 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
         }
         valueFormat(props.value)
         props.measure?.let {
-            span(classes = "object-property-value-line__value-measure") {
-                +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+            if (props.value != ObjectValueData.NullValue) {
+                span(classes = "object-property-value-line__value-measure") {
+                    +(GlobalMeasureMap[it]?.symbol ?: error("No such measure"))
+                }
             }
         }
         props.valueDescription?.let {

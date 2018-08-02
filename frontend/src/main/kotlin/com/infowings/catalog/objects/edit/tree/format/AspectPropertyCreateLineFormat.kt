@@ -10,8 +10,10 @@ import react.rFunction
 val aspectPropertyCreateLineFormat = rFunction<AspectPropertyCreateLineFormatProps>("AspectPropertyCreateLineFormat") { props ->
     div(classes = "object-tree-edit__aspect-property-empty") {
         props.propertyName?.let {
-            span(classes = "aspect-property-empty__property-name text-grey text-bold text-italic") {
-                +it
+            if (it.isNotBlank()) {
+                span(classes = "aspect-property-empty__property-name text-grey text-bold text-italic") {
+                    +it
+                }
             }
         }
         span(classes = "aspect-property-empty__aspect-name text-grey text-bold") {
