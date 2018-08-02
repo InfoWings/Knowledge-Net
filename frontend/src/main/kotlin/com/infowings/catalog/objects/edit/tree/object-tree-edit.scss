@@ -59,6 +59,10 @@
   &__aspect-property-empty {
     display: flex;
     align-items: center;
+
+    & > * {
+      margin-right: 1rem;
+    }
   }
 
 }
