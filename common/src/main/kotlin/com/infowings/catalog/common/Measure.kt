@@ -54,6 +54,7 @@ val MeasureDesc: Map<String, String> = mapOf(
     "Om" to "",
     "Milliom" to "",
     "Celsius" to "The Celsius scale, previously known as the centigrade scale,[1][2] is a temperature scale used by the International System of Units (SI). As an SI derived unit, it is used by all countries in the world, except the U.S. It is named after the Swedish astronomer Anders Celsius (1701–1744), who developed a similar temperature scale. The degree Celsius (symbol: °C) can refer to a specific temperature on the Celsius scale as well as a unit to indicate a temperature interval, a difference between two temperatures or an uncertainty. Before being renamed to honor Anders Celsius in 1948, the unit was called centigrade, from the Latin centum, which means 100, and gradus, which means steps.",
+    "Sound Pressure Level" to "Sound pressure level (SPL) or acoustic pressure level is a logarithmic measure of the effective pressure of a sound relative to a reference value. The commonly used reference sound pressure in air is 20 μPa which is often considered as the threshold of human hearing (roughly the sound of a mosquito flying 3 m away). The proper notations for sound pressure level using this reference are Lp/(20 μPa) or Lp (re 20 μPa), but the suffix notations dB SPL, dB(SPL), dBSPL, or dBSPL are very common, even if they are not accepted by the SI.",
     "Fahrenheit" to "The Fahrenheit scale is a temperature scale based on one proposed in 1724 by Dutch-German-Polish physicist Daniel Gabriel Fahrenheit (1686–1736).[1] It uses the degree Fahrenheit (symbol: °F) as the unit. Several accounts of how he originally defined his scale exist. The lower defining point, 0 °F, was established as the temperature of a solution of brine made from equal parts of ice, water and salt (ammonium chloride).[2] Further limits were established as the melting point of ice (32 °F) and his best estimate of the average human body temperature (96 °F, about 2.6 °F less than the modern value due to a later redefinition of the scale).[3] The scale is now usually defined by two fixed points: the temperature at which water freezes into ice is defined as 32 °F, and the boiling point of water is defined to be 212 °F, a 180 °F separation, as defined at sea level and standard atmospheric pressure.",
     "Newton" to "The newton (symbol: N) is the International System of Units (SI) derived unit of force. It is named after Isaac Newton in recognition of his work on classical mechanics, specifically Newton's second law of motion",
     "Hertz" to "The hertz (symbol: Hz) is the derived unit of frequency in the International System of Units (SI) and is defined as one cycle per second.",
@@ -121,7 +122,10 @@ expect class DecimalNumber(value: Double) {
     operator fun times(other: DecimalNumber): DecimalNumber
     operator fun plus(other: DecimalNumber): DecimalNumber
     operator fun div(other: DecimalNumber): DecimalNumber
+    fun pow(other: DecimalNumber): DecimalNumber
 }
+
+expect fun log10(num: DecimalNumber): DecimalNumber
 
 /**
  * Тип данных, соответствующий значению свойства, на уровне БД это не обязательно тот же тип
@@ -308,10 +312,18 @@ val FrequencyGroup = MeasureGroup("Frequency", listOf(Hertz, Kilohertz), Hertz)
 
 /** Pressure group */
 val Pascal = createDecimalMeasure("Pascal", "Pa", 1.0)
+val Bar = createDecimalMeasure("Bar", "bar", 100000.0)
+val SoundPressureLevel = Measure<DecimalNumber>(
+    "Sound Pressure Level",
+    "dB SPL",
+    { DecimalNumber(0.00002) * DecimalNumber(10.0).pow(it / DecimalNumber(20.0)) },
+    { DecimalNumber(20) * log10(it / DecimalNumber(0.00002)) }, BaseType.Decimal,
+    MeasureDesc["Sound Pressure Level"]
+)
 val Atmosphere = createDecimalMeasure("Atmosphere", "atm", 101325.0)
 val KilogramPerSquareMetre = createDecimalMeasure("Kilogram per Square Metre", "kg/m^2", 9.80665)
 
-val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Atmosphere, KilogramPerSquareMetre), Pascal)
+val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Bar, SoundPressureLevel, Atmosphere, KilogramPerSquareMetre), Pascal)
 
 /** Density group */
 val KilogramPerCubicMetre = createDecimalMeasure("Kilogram per Cubic Metre", "kg/m^3", 1.0)
@@ -338,6 +350,29 @@ val InductionGroup = MeasureGroup("Induction", listOf(Henry), Henry)
 /** MagneticFluxDensity group */
 val Tesla = createDecimalMeasure("Tesla", "T", 1.0)
 val MagneticFluxDensityGroup = MeasureGroup("Magnetic Flux Density", listOf(Tesla), Tesla)
+
+/** Volume Flow Rate group */
+val CubicMetrePerSecond = createDecimalMeasure("Cubic Metre Per Second", "(m^3)/s", 1.0)
+val CubicMetrePerHour = createDecimalMeasure("Cubic Metre Per Hour", "(m^3)/h", 0.000277778)
+val CubicCentimetrePerSecond = createDecimalMeasure("Cubic Centimetre Per Second", "(cm^3)/s", 0.000001)
+val MillilitrePerSecond = createDecimalMeasure("Millilitre Per Second", "ml/s", 0.000001)
+val MillilitrePerMinute = createDecimalMeasure("Millilitre Per Minute", "ml/min", 0.0000000166667)
+val LitrePerMinute = createDecimalMeasure("Litre Per Minute", "l/min", 0.0000166667)
+val LitrePerSecond = createDecimalMeasure("Litre Per Second", "l/s", 0.001)
+
+val VolumeFlowRateGroup = MeasureGroup(
+    "Volume Flow Rate",
+    listOf(
+        CubicMetrePerSecond,
+        CubicMetrePerHour,
+        CubicCentimetrePerSecond,
+        MillilitrePerSecond,
+        MillilitrePerMinute,
+        LitrePerMinute,
+        LitrePerSecond
+    ),
+    CubicMetrePerSecond
+)
 
 /** Time group */
 val Second = createDecimalMeasure("Second", "s", 1.0)
@@ -397,6 +432,7 @@ val MeasureGroupMap = setOf<MeasureGroup<*>>(
     AccelerationGroup,
     InductionGroup,
     MagneticFluxDensityGroup,
+    VolumeFlowRateGroup,
     TimeGroup,
     QuantityGroup,
     PercentageGroup,
