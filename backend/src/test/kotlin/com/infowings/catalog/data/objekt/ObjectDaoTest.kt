@@ -9,6 +9,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
 import junit.framework.Assert.assertTrue
 import org.junit.Assert
@@ -17,7 +18,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -26,7 +26,6 @@ import kotlin.test.fail
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ObjectDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -66,17 +65,17 @@ class ObjectDaoTest {
     @Before
     fun initTestData() {
         validator = MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
-        subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
+        subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(
             AspectData(
-                name = "aspectName",
+                name = randomName(),
                 description = "aspectDescr",
                 baseType = BaseType.Text.name
             ), username
         )
         intAspect = aspectService.save(
             AspectData(
-                name = "aspectNameInt",
+                name = randomName(),
                 description = "aspectDescr",
                 baseType = BaseType.Integer.name
             ), username
@@ -84,7 +83,7 @@ class ObjectDaoTest {
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
-            "complex",
+            randomName(),
             Kilometre.name,
             null,
             BaseType.Decimal.name,
@@ -95,7 +94,7 @@ class ObjectDaoTest {
 
     @Test
     fun saveTest() {
-        val data = ObjectCreateRequest("saveTestName", "object descr", subject.id, subject.version)
+        val data = ObjectCreateRequest(randomName(), "object descr", subject.id, subject.version)
         val objectCreateInfo = validator.checkedForCreation(data)
         val saved = createObject(objectCreateInfo)
 
@@ -353,7 +352,7 @@ class ObjectDaoTest {
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "obj2", updatedObject.name)
         Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
-        transaction (db) {
+        transaction(db) {
             Assert.assertEquals("Object must have new subject id", subject.id, updatedObject.subject?.id)
             Assert.assertEquals("Object must have new subject name", subject.name, updatedObject.subject?.name)
         }
@@ -371,7 +370,7 @@ class ObjectDaoTest {
 
     @Test(expected = ObjectPropertyAlreadyExistException::class)
     fun objectPropertyUpdateWrongBkTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(aspect.id!!)
         val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
@@ -380,7 +379,7 @@ class ObjectDaoTest {
 
     @Test
     fun objPropertyValueUpdateTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -392,7 +391,7 @@ class ObjectDaoTest {
 
     @Test
     fun objPropertyValueUpdateWrongBkTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -407,7 +406,7 @@ class ObjectDaoTest {
 
     @Test
     fun getSubValuesSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -419,7 +418,7 @@ class ObjectDaoTest {
 
     @Test
     fun getSubValuesTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("123.4"), description = null, objectPropertyId = objPropertyVertex.id)
@@ -436,7 +435,7 @@ class ObjectDaoTest {
 
     @Test
     fun getSubValuesChildTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("123.4"), description = null, objectPropertyId = objPropertyVertex.id)
@@ -459,7 +458,7 @@ class ObjectDaoTest {
 
     @Test
     fun getSubValuesTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -542,7 +541,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -554,7 +553,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -568,7 +567,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesChildTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -589,7 +588,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -620,7 +619,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesTwoGrandChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -659,7 +658,7 @@ class ObjectDaoTest {
 
     @Test
     fun getPropValuesTwoPropsTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex1 = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex1.id)
@@ -668,7 +667,7 @@ class ObjectDaoTest {
         val objPropertyVertex2 = createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
 
         val valueRequest2 = ValueCreateRequest.root(ObjectValueData.DecimalValue("234.5"), null, objPropertyVertex2.id)
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        objectService.create(valueRequest2, username)
 
         val valueIds = dao.valuesOfProperty(objPropertyVertex1.id).map { it.identity }
         assertEquals(listOf(objPropValue1.id), valueIds)
@@ -676,7 +675,7 @@ class ObjectDaoTest {
 
     @Test
     fun valuesBetweenSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
@@ -688,7 +687,7 @@ class ObjectDaoTest {
 
     @Test
     fun valuesBetweenTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -706,7 +705,7 @@ class ObjectDaoTest {
 
     @Test
     fun valuesBetweenChildTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -731,7 +730,7 @@ class ObjectDaoTest {
 
     @Test
     fun valuesBetweenTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -773,7 +772,7 @@ class ObjectDaoTest {
 
     @Test
     fun valuesBetweenTwoGrandChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
@@ -820,10 +819,10 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromEmptyTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
-        val valueRequest = ValueCreateRequest(
+        ValueCreateRequest(
             value = ObjectValueData.IntegerValue(123, null),
             description = null,
             objectPropertyId = objPropertyVertex.id,
@@ -844,7 +843,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromObjPropTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -860,7 +859,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromPropValueTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -876,7 +875,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromValueValueTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue1 = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -893,7 +892,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromTwoEdgesTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue1 = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
