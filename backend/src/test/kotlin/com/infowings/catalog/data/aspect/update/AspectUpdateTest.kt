@@ -4,18 +4,17 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectEmptyChangeException
 import com.infowings.catalog.data.aspect.AspectService
-import org.hamcrest.core.Is
 import org.junit.Assert
+import org.junit.Assert.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.hamcrest.core.Is.`is` as Is
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectUpdateTest {
     private val username = "admin"
 
@@ -26,19 +25,19 @@ class AspectUpdateTest {
 
     @Test
     fun testChangeAspectNameMeasure() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", "testChangeAspectNameMeasure-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad, username)
 
-        val ad2 = AspectData(aspect.id, "new Aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
+        val ad2 = AspectData(aspect.id, "testChangeAspectNameMeasure-new Aspect", Metre.name, null, BaseType.Decimal.name, emptyList(), 1)
         val newAspect = aspectService.save(ad2, username)
 
-        Assert.assertThat("aspect should have new name", newAspect.name, Is.`is`("new Aspect"))
-        Assert.assertThat("aspect should have new measure", newAspect.measure, Is.`is`(Metre.name))
+        assertThat("aspect should have new name", newAspect.name, Is("testChangeAspectNameMeasure-new Aspect"))
+        assertThat("aspect should have new measure", newAspect.measure, Is(Metre.name))
     }
 
     @Test
     fun testChangeAspectMeasureSameGroup() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", "testChangeAspectMeasureSameGroup-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad, username).copy(measure = Metre.name)
 
         val newAspect = aspectService.save(aspect, username)
@@ -50,13 +49,13 @@ class AspectUpdateTest {
 
     @Test
     fun testMeasureBaseTypeManipulating() {
-        val ad = AspectData("", "aspect", Litre.name, null, null, emptyList())
+        val ad = AspectData("", "testMeasureBaseTypeManipulating-aspect", Litre.name, null, null, emptyList())
         val aspect = aspectService.save(ad, username)
 
         Assert.assertTrue("base type should be decimal", aspect.baseType == BaseType.Decimal.name)
         Assert.assertTrue("measure should be litre", aspect.measure == Litre.name)
 
-        val ad2 = AspectData(aspect.id, "aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
+        val ad2 = AspectData(aspect.id, "testMeasureBaseTypeManipulating-aspect", null, null, BaseType.Boolean.name, emptyList(), aspect.version)
         val aspect2 = aspectService.save(ad2, username)
 
         Assert.assertTrue("base type should be boolean", aspect2.baseType == BaseType.Boolean.name)
@@ -79,7 +78,7 @@ class AspectUpdateTest {
 
     @Test
     fun testChangeAspectMeasureOtherGroupOtherBaseType() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", "testChangeAspectMeasureOtherGroupOtherBaseType-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val aspect = aspectService.save(ad, username)
 
         // We have not measures with different from Decimal BaseType. So, little hack
@@ -99,7 +98,7 @@ class AspectUpdateTest {
 
     @Test
     fun testUpdateSameData() {
-        val ad = AspectData("", "aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", "testUpdateSameData-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad, username)
 
         val ad2 = aspectService.getAspects().first()
