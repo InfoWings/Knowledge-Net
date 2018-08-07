@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.MasterCatalog
@@ -6,11 +8,10 @@ import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.PropertyUpdateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
-import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
@@ -20,7 +21,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -28,22 +28,15 @@ import kotlin.test.fail
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ObjectServiceTest {
     @Autowired
     private lateinit var db: OrientDatabase
-    @Autowired
-    private lateinit var dao: ObjectDaoService
     @Autowired
     private lateinit var subjectService: SubjectService
     @Autowired
     private lateinit var aspectService: AspectService
     @Autowired
-    private lateinit var measureService: MeasureService
-    @Autowired
     private lateinit var objectService: ObjectService
-    @Autowired
-    private lateinit var historyService: HistoryService
 
     private lateinit var subject: Subject
 
@@ -55,16 +48,14 @@ class ObjectServiceTest {
 
     @Before
     fun initTestData() {
-        subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(
-            AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username
-        )
+        subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
+        aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
         referenceAspect = aspectService.save(
-            AspectData(name = "aspectReference", description = "aspect with reference base type", baseType = BaseType.Reference.name), username
+            AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val complexAspectData = AspectData("", "complex", Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
+        val complexAspectData = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
@@ -157,7 +148,7 @@ class ObjectServiceTest {
         )
         val updatedPropertyId = objectService.update(propertyUpdateRequest, username)
 
-        transaction(db) {
+        transaction(db) { _ ->
             assertEquals(createdPropertyId, updatedPropertyId, "Created and updated property ids are not equal")
 
             val foundPropertyInDb = objectService.findPropertyById(updatedPropertyId)
@@ -210,35 +201,33 @@ class ObjectServiceTest {
 
     }
 
-    private fun checkValueAbsense(id: String) = try {
+    private fun checkValueAbsence(id: String) = try {
         val found = objectService.findPropertyValueById(id)
         fail("object property value is found after deletion: $found")
     } catch (e: ObjectPropertyValueNotFoundException) {
     }
 
-    private fun checkValuesAbsense(ids: List<String>) = ids.forEach { checkValueAbsense(it) }
+    private fun checkValuesAbsence(ids: List<String>) = ids.forEach { checkValueAbsence(it) }
 
-    private fun checkValueSoftAbsense(id: String) = {
+    private fun checkValueSoftAbsence(id: String) {
         val found = objectService.findPropertyValueById(id)
-        assertEquals(true, found.deleted)
+        assertTrue(found.deleted)
     }
 
-    private fun checkValuesSoftAbsense(ids: List<String>) = ids.forEach { checkValueSoftAbsense(it) }
+    private fun checkValuesSoftAbsence(ids: List<String>) = ids.forEach { checkValueSoftAbsence(it) }
 
-    private fun checkPropertyAbsense(id: String) = try {
+    private fun checkPropertyAbsence(id: String) = try {
         val found = objectService.findPropertyById(id)
         fail("object property is found after deletion: $found")
     } catch (e: ObjectPropertyNotFoundException) {
     }
 
-    private fun checkPropertiesAbsense(ids: List<String>) = ids.forEach { checkPropertyAbsense(it) }
+    private fun checkPropertiesAbsence(ids: List<String>) = ids.forEach { checkPropertyAbsence(it) }
 
-    private fun checkPropertySoftAbsense(id: String) = {
+    private fun checkPropertySoftAbsence(id: String) {
         val found = objectService.findPropertyById(id)
         assertEquals(true, found.deleted)
     }
-
-    private fun checkPropertiesSoftAbsense(ids: List<String>) = ids.forEach { checkPropertySoftAbsense(it) }
 
     private fun checkObjectAbsense(id: String) = try {
         val found = objectService.findById(id)
@@ -296,7 +285,7 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
+        checkPropertyAbsence(createdPropertyId)
     }
 
     @Test
@@ -318,7 +307,7 @@ class ObjectServiceTest {
         objectService.softDeleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
+        checkPropertyAbsence(createdPropertyId)
     }
 
     @Test
@@ -338,7 +327,7 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertiesAbsense(listOf(createdPropertyId1, createdPropertyId2))
+        checkPropertiesAbsence(listOf(createdPropertyId1, createdPropertyId2))
     }
 
     @Test
@@ -358,7 +347,7 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertiesAbsense(listOf(createdPropertyId1, createdPropertyId2))
+        checkPropertiesAbsence(listOf(createdPropertyId1, createdPropertyId2))
     }
 
     @Test
@@ -379,8 +368,8 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
@@ -401,8 +390,8 @@ class ObjectServiceTest {
         objectService.softDeleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
@@ -423,8 +412,8 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
@@ -445,8 +434,8 @@ class ObjectServiceTest {
         objectService.softDeleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
@@ -524,8 +513,8 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
@@ -550,8 +539,8 @@ class ObjectServiceTest {
         objectService.softDeleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
@@ -578,8 +567,8 @@ class ObjectServiceTest {
         objectService.deleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
@@ -606,13 +595,13 @@ class ObjectServiceTest {
         objectService.softDeleteObject(createdObjectId, username)
 
         checkObjectAbsense(createdObjectId)
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun deletePropertyTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -637,12 +626,12 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
+        checkPropertyAbsence(createdPropertyId)
     }
 
     @Test
     fun softDeletePropertyTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -667,12 +656,12 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
+        checkPropertyAbsence(createdPropertyId)
     }
 
     @Test
     fun deletePropertyWithValueTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyWithValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -700,13 +689,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
     fun softDeletePropertyWithValueTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyWithValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -734,13 +723,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValueAbsense(createdValue.id.toString())
+        checkPropertyAbsence(createdPropertyId)
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
     fun deletePropertyWithTwoRootsTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyWithTwoRootsTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -771,13 +760,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun softDeletePropertyWithTwoRootsTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyWithTwoRootsTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -808,14 +797,14 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
 
     @Test
     fun deletePropertyWithChildTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyWithChildTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -853,13 +842,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun softDeletePropertyWithChildTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyWithChildTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -901,13 +890,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun deletePropertyInternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyInternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -939,13 +928,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1).map { it.id.toString() })
     }
 
     @Test
     fun softDeletePropertyInternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyInternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -977,13 +966,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
         }
-        checkPropertyAbsense(createdPropertyId)
-        checkValuesAbsense(listOf(createdValue1).map { it.id.toString() })
+        checkPropertyAbsence(createdPropertyId)
+        checkValuesAbsence(listOf(createdValue1).map { it.id.toString() })
     }
 
     @Test
     fun deletePropertyExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deletePropertyExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1030,7 +1019,7 @@ class ObjectServiceTest {
 
     @Test
     fun softDeletePropertyExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropertyExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1072,7 +1061,7 @@ class ObjectServiceTest {
 
     @Test
     fun deleteValueTest() {
-        val objectName = "object"
+        val objectName = "deleteValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1102,12 +1091,12 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        checkValueAbsense(createdValue.id.toString())
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
     fun softDeleteValueTest() {
-        val objectName = "object"
+        val objectName = "softDeleteValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1137,12 +1126,12 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        checkValueAbsense(createdValue.id.toString())
+        checkValueAbsence(createdValue.id.toString())
     }
 
     @Test
     fun deleteValueWithChildTest() {
-        val objectName = "object"
+        val objectName = "deleteValueWithChildTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1186,12 +1175,12 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        checkValuesAbsense(listOf(createdValue, createdValueChild).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValue, createdValueChild).map { it.id.toString() })
     }
 
     @Test
     fun softDeleteValueWithChildTest() {
-        val objectName = "object"
+        val objectName = "softDeleteValueWithChildTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1230,12 +1219,12 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty.values.size)
         }
 
-        checkValuesAbsense(listOf(createdValue, createdValueChild).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValue, createdValueChild).map { it.id.toString() })
     }
 
     @Test
     fun deleteChildOfValueTest() {
-        val objectName = "object"
+        val objectName = "deleteChildOfValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1277,12 +1266,12 @@ class ObjectServiceTest {
             assertEquals(createdValue.id, updatedProperty.values[0].identity)
         }
 
-        checkValuesAbsense(listOf(createdValueChild).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValueChild).map { it.id.toString() })
     }
 
     @Test
     fun softDeleteChildOfValueTest() {
-        val objectName = "object"
+        val objectName = "softDeleteChildOfValueTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1328,12 +1317,12 @@ class ObjectServiceTest {
             assertEquals(createdValue.id, updatedProperty.values[0].identity)
         }
 
-        checkValuesAbsense(listOf(createdValueChild).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValueChild).map { it.id.toString() })
     }
 
     @Test
     fun deleteRootValueInternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deleteRootValueInternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1372,12 +1361,12 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedProperty.values.size)
         }
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun softDeleteRootValueInternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeleteRootValueInternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1415,12 +1404,12 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedProperty.values.size)
         }
-        checkValuesAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun deleteRootValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deleteRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1484,10 +1473,9 @@ class ObjectServiceTest {
 
     @Test
     fun softDeleteRootValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeleteRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
-        val objectRequest =
-            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val objectRequest = ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName1 = "prop1_$objectName"
@@ -1535,13 +1523,13 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(0, updatedProperty.values.size)
         }
-        checkValuesSoftAbsense(listOf(createdValue1).map { it.id.toString() })
-        checkValuesAbsense(listOf(createdValue2).map { it.id.toString() })
+        checkValuesSoftAbsence(listOf(createdValue1).map { it.id.toString() })
+        checkValuesAbsence(listOf(createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun deleteChildValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deleteChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1601,7 +1589,7 @@ class ObjectServiceTest {
 
     @Test
     fun softDeleteChildValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeleteChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1653,12 +1641,12 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty1.values.size)
         }
 
-        checkValuesSoftAbsense(listOf(createdValue1, createdValue2).map { it.id.toString() })
+        checkValuesSoftAbsence(listOf(createdValue1, createdValue2).map { it.id.toString() })
     }
 
     @Test
     fun deletePropWithRootValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deletePropWithRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1718,10 +1706,9 @@ class ObjectServiceTest {
 
     @Test
     fun softDeletePropWithRootValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropWithRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
-        val objectRequest =
-            ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
+        val objectRequest = ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
         val createdObjectId = objectService.create(objectRequest, "user")
 
         val propertyName1 = "prop1_$objectName"
@@ -1769,12 +1756,12 @@ class ObjectServiceTest {
         transaction(db) {
             assertEquals(1, updatedObject.properties.size)
         }
-        checkPropertySoftAbsense(createdPropertyId1)
+        checkPropertySoftAbsence(createdPropertyId1)
     }
 
     @Test
     fun deletePropWithChildValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "deletePropWithChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1834,7 +1821,7 @@ class ObjectServiceTest {
 
     @Test
     fun softDeletePropWithChildValueExternallyLinkedTest() {
-        val objectName = "object"
+        val objectName = "softDeletePropWithChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
         val objectRequest =
             ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
@@ -1889,7 +1876,7 @@ class ObjectServiceTest {
 
     @Test
     fun deleteObjectWithRootValueExternallyLinkedTest() {
-        val objectName1 = "object"
+        val objectName1 = "deleteObjectWithRootValueExternallyLinkedTest-object"
         val objectDescription1 = "object description"
         val objectRequest1 =
             ObjectCreateRequest(objectName1, objectDescription1, subject.id, subject.version)
@@ -1955,7 +1942,7 @@ class ObjectServiceTest {
 
     @Test
     fun softDeleteObjectWithRootValueExternallyLinkedTest() {
-        val objectName1 = "object"
+        val objectName1 = "softDeleteObjectWithRootValueExternallyLinkedTest-object"
         val objectDescription1 = "object description"
         val objectRequest1 =
             ObjectCreateRequest(objectName1, objectDescription1, subject.id, subject.version)
@@ -2016,7 +2003,7 @@ class ObjectServiceTest {
 
     @Test
     fun deleteObjectWithChildValueExternallyLinkedTest() {
-        val objectName1 = "object"
+        val objectName1 = "deleteObjectWithChildValueExternallyLinkedTest-object"
         val objectDescription1 = "object description"
         val objectRequest1 =
             ObjectCreateRequest(objectName1, objectDescription1, subject.id, subject.version)
