@@ -1,19 +1,22 @@
 package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BaseType
+import com.infowings.catalog.common.EventType
+import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.HISTORY_ENTITY_REFBOOK
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
+import com.infowings.catalog.randomName
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.lang.Long.max
 import kotlin.test.assertEquals
@@ -21,7 +24,6 @@ import kotlin.test.assertNotNull
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RefBookHistoryTest {
     private val username = "admin"
 
@@ -46,7 +48,7 @@ class RefBookHistoryTest {
 
     @Before
     fun initTestData() {
-        val aspectData = AspectData("", "newAspect", null, null, BaseType.Text.name, emptyList())
+        val aspectData = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         aspect = aspectService.save(aspectData, username)
         userName = "admin"
     }
@@ -227,7 +229,7 @@ class RefBookHistoryTest {
 
         val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = "admin")
 
-        val item1 = refBookService.addReferenceBookItem(
+        refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = "rbi-1", description = "rbi-1 description"), "admin"
         )
 
@@ -445,7 +447,7 @@ class RefBookHistoryTest {
         val historyBefore = historyService.getAll()
         val statesBefore = historyProvider.getAllHistory()
 
-        val itemId2 = refBookService.editReferenceBookItem(
+        refBookService.editReferenceBookItem(
             LeafEditRequest(id = itemId, value = itemValue2, description = itemDescription2, version = 1), "admin"
         )
 
@@ -528,7 +530,7 @@ class RefBookHistoryTest {
         val historyBefore = historyService.getAll()
         val statesBefore = historyProvider.getAllHistory()
 
-        val itemId2 = refBookService.editRoot(
+        refBookService.editRoot(
             RootEditRequest(aspectId = aspect.idStrict(), value = rbName2, description = rbDescription2, version = 1), "admin"
         )
 
