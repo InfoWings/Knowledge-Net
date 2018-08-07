@@ -11,18 +11,17 @@ import com.infowings.catalog.data.aspect.AspectPropertyModificationException
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
+import com.infowings.catalog.randomName
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class NotFreeAspectUpdateTest {
     private val username = "admin"
 
@@ -68,7 +67,6 @@ class NotFreeAspectUpdateTest {
         val newAspect = aspectService.save(aspectLinkedOtherAspect.copy(measure = Litre.name), username)
 
         Assert.assertTrue("aspect should have new measure", newAspect.measure == Litre.name)
-
         Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal.name)
     }
 
@@ -91,14 +89,14 @@ class NotFreeAspectUpdateTest {
 
     @Test(expected = AspectPropertyModificationException::class)
     fun testEditPropertyHasValue() {
-        val otherAspect = aspectService.save(AspectData(name = "other", measure = Metre.name), username)
+        val otherAspect = aspectService.save(AspectData(name = "testEditPropertyHasValue-other", measure = Metre.name), username)
         val newProperty = aspectWithObjectProperty.properties[0].copy(aspectId = otherAspect.idStrict())
         aspectService.save(aspectWithObjectProperty.copy(properties = listOf(newProperty, aspectWithObjectProperty.properties[1])), username)
     }
 
     @Test
     fun testEditOtherPropertyHasValue() {
-        val otherAspect = aspectService.save(AspectData(name = "other", measure = Metre.name), username)
+        val otherAspect = aspectService.save(AspectData(name = "testEditOtherPropertyHasValue-other", measure = Metre.name), username)
         val newProperty = aspectWithObjectProperty.properties[1].copy(aspectId = otherAspect.idStrict())
         val edited = aspectService.save(aspectWithObjectProperty.copy(properties = listOf(newProperty, aspectWithObjectProperty.properties[0])), username)
 
@@ -120,28 +118,28 @@ class NotFreeAspectUpdateTest {
     }
 
     private fun initAspectWithObjectProperty() {
-        val ad2 = AspectData("", "aspectWithObjectProperty", Second.name, null, BaseType.Decimal.name, emptyList())
+        val ad2 = AspectData("", randomName(), Second.name, null, BaseType.Decimal.name, emptyList())
         aspectWithValue = aspectService.save(ad2, username)
         val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = aspectWithValue.id!!, id = "", description = "")
         val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name, aspectId = aspectWithValue.id!!, id = "", description = "")
-        val ad3 = AspectData("", "parent", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
+        val ad3 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
         aspectWithObjectProperty = aspectService.save(ad3, username)
 
-        val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
-        val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
+        val subject = subjectService.createSubject(SubjectData(name = randomName(), description = null), username)
+        val obj = objectService.create(ObjectCreateRequest(randomName(), null, subject.id, subject.version), username)
         objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
         val rootValue = createNullRootValue()
-        val childValue = createChildValue(aspectPropertyId = aspectWithObjectProperty.properties[0].id, parentId = rootValue.id.toString())
+        createChildValue(aspectPropertyId = aspectWithObjectProperty.properties[0].id, parentId = rootValue.id.toString())
 
         aspectWithObjectProperty = aspectService.findById(aspectWithObjectProperty.id!!)
         aspectWithValue = aspectService.findById(aspectWithValue.id!!)
     }
 
     private fun initAspectLinkedOtherAspect() {
-        val ad0 = AspectData("", "leaf", Metre.name, null, BaseType.Decimal.name, emptyList())
+        val ad0 = AspectData("", randomName(), Metre.name, null, BaseType.Decimal.name, emptyList())
         aspectLinkedOtherAspect = aspectService.save(ad0, username)
         val ap = AspectPropertyData(name = "ad", cardinality = PropertyCardinality.ONE.name, aspectId = aspectLinkedOtherAspect.id!!, id = "", description = "")
-        val ad1 = AspectData("", "aspectLinkedOtherAspect", Kilometre.name, null, BaseType.Decimal.name, listOf(ap))
+        val ad1 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap))
         aspectService.save(ad1, username)
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }

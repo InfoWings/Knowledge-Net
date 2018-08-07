@@ -3,6 +3,7 @@ package com.infowings.catalog.data.aspect.update
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.randomName
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -10,7 +11,6 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.util.*
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -25,7 +25,7 @@ class FreeAspectUpdateTest {
 
     @Before
     fun init() {
-        val ad = AspectData("", UUID.randomUUID().toString(), null, null, BaseType.Text.name, emptyList())
+        val ad = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         aspect = aspectService.save(ad, username).copy(measure = Litre.name)
     }
 
