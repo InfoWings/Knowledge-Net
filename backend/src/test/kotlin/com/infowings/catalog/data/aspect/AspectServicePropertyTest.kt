@@ -6,7 +6,6 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.OVertex
-import org.hamcrest.core.Is
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -14,12 +13,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import java.util.*
+import org.hamcrest.CoreMatchers.`is` as Is
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectServicePropertyTest {
     private val username = "admin"
 
@@ -38,27 +37,26 @@ class AspectServicePropertyTest {
      */
     @Before
     fun addAspectWithProperty() {
-        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", UUID.randomUUID().toString(), Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
         val property = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
-            "",
-            "complex",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property)
+            id = "",
+            name = UUID.randomUUID().toString(),
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property)
         )
         complexAspect = aspectService.save(ad2, username)
     }
 
     @Test
     fun testNotVirtualPropertyId() {
-        assertThat("Property Ids are not virtual",
-            aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") },
-            Is.`is`(true)
+        assertTrue("Property Ids are not virtual",
+            aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") }
         )
     }
 
@@ -66,37 +64,34 @@ class AspectServicePropertyTest {
     fun testAspectWithProperties() {
         val loaded = aspectService.findById(complexAspect.idStrict())
 
-        assertThat("aspect linked with aspect property should be saved", loaded, Is.`is`(complexAspect))
+        assertThat("aspect linked with aspect property should be saved", loaded, Is(complexAspect))
 
         val all = aspectService.getAspects()
-        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
+        assertTrue("there should be at least 2 aspects in db", all.size > 2)
     }
 
     @Test
     fun testAspectSortByNameAsc() {
-        val all = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
-        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
-        assertThat("there should be 2 aspects in db", all[0].name, Is.`is`(baseAspect.name))
-        assertThat("there should be 2 aspects in db", all[1].name, Is.`is`(complexAspect.name))
+        // .toLowerCase() is important here because java sorting differs from orient
+        val all: List<AspectData> = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
+        assertThat("Aspects should be sorted be Name ascending", all.map { it.name.toLowerCase() }, Is(all.map { it.name.toLowerCase() }.sorted()))
     }
 
     @Test
     fun testAspectSortByNameDesc() {
+        // .toLowerCase() is important here because java sorting differs from orient
         val all = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.DESC)))
-        assertThat("there should be 2 aspects in db", all.size, Is.`is`(2))
-        assertThat("there should be 2 aspects in db", all[0].name, Is.`is`(complexAspect.name))
-        assertThat("there should be 2 aspects in db", all[1].name, Is.`is`(baseAspect.name))
+        assertThat("Aspects should be sorted be Name descending", all.map { it.name.toLowerCase() }, Is(all.map { it.name.toLowerCase() }.sortedDescending()))
     }
 
 
     @Test
     fun testAddAspectPropertiesToAspect() {
         val propertyData = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val dataForUpdate =
-            complexAspect.copy(properties = complexAspect.properties.plus(propertyData))
+        val dataForUpdate = complexAspect.copy(properties = complexAspect.properties.plus(propertyData))
         val updatedAspect = aspectService.save(dataForUpdate, username)
 
-        assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is.`is`(2))
+        assertThat("aspect should have 2 properties", updatedAspect.properties.size, Is(2))
     }
 
     @Test
@@ -105,22 +100,22 @@ class AspectServicePropertyTest {
         val property2 = AspectPropertyData("", "p2", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
-            "",
-            "new",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property, property2)
+            id = "",
+            name = "testCreateAspectWithTwoPropertiesDifferentNames",
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property, property2)
         )
         val loaded = aspectService.save(ad2, username)
-        val loadedId = loaded?.id ?: throw IllegalArgumentException("No id for aspect")
+        val loadedId = loaded.id ?: throw IllegalArgumentException("No id for aspect")
 
-        assertThat("aspect properties should be saved", aspectService.findById(loadedId), Is.`is`(loaded))
+        assertThat("aspect properties should be saved", aspectService.findById(loadedId), Is(loaded))
 
         assertThat(
             "aspect should have correct properties",
             loaded.properties.map { it.name },
-            Is.`is`(listOf(property, property2).map { it.name })
+            Is(listOf(property, property2).map { it.name })
         )
     }
 
@@ -130,12 +125,12 @@ class AspectServicePropertyTest {
         val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
-            "",
-            "new",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property, property2)
+            id = "",
+            name = "testCreateAspectWithTwoPropertiesSameNamesSameAspect",
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property, property2)
         )
         aspectService.save(ad2, username)
     }
@@ -146,19 +141,19 @@ class AspectServicePropertyTest {
         val property2 = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
-            "",
-            "new",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property, property2)
+            id = "",
+            name = "testCreateAspectWithTwoPropertiesSameNamesDifferentAspect",
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property, property2)
         )
         val saved = aspectService.save(ad2, username)
 
         assertThat(
             "aspect should have two properties with same name",
             saved.properties.count { it.name == "p" },
-            Is.`is`(2)
+            Is(2)
         )
     }
 
@@ -200,7 +195,7 @@ class AspectServicePropertyTest {
         assertThat(
             "aspect property should have new cardinality",
             aspectService.findById(saved.idStrict()).properties.find { it.name == propertyList[0].name }?.cardinality,
-            Is.`is`(propertyList[0].cardinality)
+            Is(propertyList[0].cardinality)
         )
     }
 
@@ -208,7 +203,7 @@ class AspectServicePropertyTest {
     fun testChangeAspectForAspectProperty() {
         val ad = AspectData("", "new", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         val createAspect: AspectData = aspectService.save(ad, username)
-        val createAspectId = createAspect?.id ?: throw IllegalArgumentException("no id for aspect")
+        val createAspectId = createAspect.id ?: throw IllegalArgumentException("no id for aspect")
 
         val propertyList = complexAspect.properties.toMutableList()
         propertyList[0] = propertyList[0].copy(aspectId = createAspectId)
@@ -219,7 +214,7 @@ class AspectServicePropertyTest {
         assertThat(
             "aspect property should have new linked aspect",
             aspectService.findById(saved.properties[0].aspectId),
-            Is.`is`(createAspect.copy(version = createAspect.version + 1))
+            Is(createAspect.copy(version = createAspect.version + 1))
         )
     }
 
