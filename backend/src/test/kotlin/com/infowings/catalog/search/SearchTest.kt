@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 private val logger = loggerFor<SearchTest>()
 
@@ -43,9 +44,8 @@ class SearchTest {
     @Autowired
     lateinit var aspectDaoService: AspectDaoService
 
-
     @Autowired
-    private val wac: WebApplicationContext? = null
+    lateinit var wac: WebApplicationContext
 
     private lateinit var mockMvc: MockMvc
 
@@ -114,8 +114,8 @@ class SearchTest {
             findInGroups = true
         )
 
-        assertEquals("Square meter", result.measureNames.first())
-        assertEquals("Area", result.measureGroupNames.first())
+        assertTrue(result.measureNames.contains("Square meter"))
+        assertTrue(result.measureGroupNames.contains("Area"))
     }
 
     @Test
