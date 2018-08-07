@@ -3,7 +3,6 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import kotlinx.serialization.json.JSON
-import org.hamcrest.core.Is
 import org.hamcrest.core.IsNot
 import org.hamcrest.text.IsEmptyString
 import org.junit.Assert.assertThat
@@ -16,7 +15,6 @@ import org.springframework.http.MediaType
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -24,10 +22,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import org.hamcrest.CoreMatchers.`is` as Is
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectServiceRestTest {
     private val username = "admin"
 
@@ -35,7 +33,7 @@ class AspectServiceRestTest {
     lateinit var aspectService: AspectService
 
     @Autowired
-    private val wac: WebApplicationContext? = null
+    private lateinit var wac: WebApplicationContext
 
     private lateinit var mockMvc: MockMvc
 
@@ -51,7 +49,7 @@ class AspectServiceRestTest {
 
     @Test
     fun createAspectTest() {
-        val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
+        val baseAspectData = AspectData("", "createAspectTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
@@ -59,32 +57,32 @@ class AspectServiceRestTest {
 
         val testData =
             AspectData(
-                "",
-                "t1",
-                Metre.name,
-                null,
-                BaseType.Decimal.name,
-                listOf(testProperty1, testProperty2)
+                id = "",
+                name = "createAspectTest-t1",
+                measure = Metre.name,
+                domain = null,
+                baseType = BaseType.Decimal.name,
+                properties = listOf(testProperty1, testProperty2)
             )
 
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(fromObject(testData))
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn().response.contentAsString.let { toObject<AspectData>(it) }
+        val post = MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(fromObject(testData))
 
-        assertThat("response aspect has id", result.id, Is.`is`(IsNot.not(IsEmptyString())))
-        assertThat("response aspect has two properties", result.properties.size, Is.`is`(2))
-        assertThat("response aspect properties have not empty id", result.properties.all { it.id != "" }, Is.`is`(true))
+        val result = mockMvc.perform(post)
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn().response.contentAsString.toObject<AspectData>()
+
+        assertThat("response aspect has id", result.id, IsNot.not(IsEmptyString()))
+        assertThat("response aspect has two properties", result.properties.size, Is(2))
+        assertThat("response aspect properties have not empty id", result.properties.all { it.id != "" }, Is(true))
     }
 
     @Test
     fun updateAspectTest() {
 
-        val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
+        val baseAspectData = AspectData("", "updateAspectTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
@@ -92,12 +90,12 @@ class AspectServiceRestTest {
 
         val testData =
             AspectData(
-                "",
-                "t1",
-                Metre.name,
-                null,
-                BaseType.Decimal.name,
-                listOf(testProperty1, testProperty2)
+                id = "",
+                name = "updateAspectTest-t1",
+                measure = Metre.name,
+                domain = null,
+                baseType = BaseType.Decimal.name,
+                properties = listOf(testProperty1, testProperty2)
             )
 
         val saved = aspectService.save(testData, username)
@@ -111,45 +109,45 @@ class AspectServiceRestTest {
         val savedP2 = propertyByName["p2"]?.get(0) ?: throw IllegalStateException("p2 not saved")
 
         val updateData = AspectData(
-            saved.id,
-            "t2",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(
+            id = saved.id,
+            name = "t2",
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(
                 savedP1,
                 newProperty,
                 updatedProperty.copy(id = savedP2.id, version = savedP2.version)
             ),
-            saved.version
+            version = saved.version
         )
 
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/aspect/update").with(authorities)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(fromObject(updateData))
-        )
+        val post = MockMvcRequestBuilders.post("/api/aspect/update").with(authorities)
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(fromObject(updateData))
+
+        val result = mockMvc.perform(post)
             .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn().response.contentAsString.let { toObject<AspectData>(it) }
+            .andReturn().response.contentAsString.toObject<AspectData>()
 
-        assertThat("returned aspect has new name", result.name, Is.`is`(updateData.name))
-        assertThat("returned aspect has new measure", result.measure, Is.`is`(updateData.measure))
+        assertThat("returned aspect has new name", result.name, Is(updateData.name))
+        assertThat("returned aspect has new measure", result.measure, Is(updateData.measure))
         assertThat(
             "returned aspect has correct property list size",
             result.properties.size,
-            Is.`is`(updateData.properties.size)
+            Is(updateData.properties.size)
         )
         assertThat(
             "returned aspect has correct property id for all props",
             result.properties.all { it.id != "" },
-            Is.`is`(true)
+            Is(true)
         )
     }
 
     @Test
     fun createAspectDoubleTest() {
-        val baseAspectData = AspectData("", "base", Gram.name, null, BaseType.Decimal.name)
+        val baseAspectData = AspectData("", "createAspectDoubleTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
         val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
@@ -157,37 +155,32 @@ class AspectServiceRestTest {
 
         val testData =
             AspectData(
-                "",
-                "t1",
-                Metre.name,
-                null,
-                BaseType.Decimal.name,
-                listOf(testProperty1, testProperty2)
+                id = "",
+                name = "createAspectDoubleTest-t1",
+                measure = Metre.name,
+                domain = null,
+                baseType = BaseType.Decimal.name,
+                properties = listOf(testProperty1, testProperty2)
             )
 
-        val result1 = mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(fromObject(testData))
-        )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn().response.contentAsString.let { toObject<AspectData>(it) }
+        val post = MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(fromObject(testData))
 
-        assertThat("response aspect has id", result1.id, Is.`is`(IsNot.not(IsEmptyString())))
-        assertThat("response aspect has two properties", result1.properties.size, Is.`is`(2))
+        val result1 = mockMvc.perform(post)
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn().response.contentAsString.toObject<AspectData>()
+
+        assertThat("response aspect has id", result1.id, IsNot.not(IsEmptyString()))
+        assertThat("response aspect has two properties", result1.properties.size, Is(2))
         assertThat(
             "response aspect properties have not empty id",
             result1.properties.all { it.id != "" },
-            Is.`is`(true)
+            Is(true)
         )
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/aspect/create").with(authorities)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(fromObject(testData))
-        )
+        mockMvc.perform(post)
             .andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 
@@ -195,4 +188,4 @@ class AspectServiceRestTest {
 
 private inline fun <reified T : Any> fromObject(obj: T): String = JSON.stringify(obj)
 
-private inline fun <reified T : Any> toObject(json: String): T = JSON.parse(json)
+private inline fun <reified T : Any> String.toObject(): T = JSON.parse(this)
