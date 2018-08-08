@@ -1,10 +1,6 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.PropertyCardinality
-import com.infowings.catalog.common.AspectTree
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
@@ -293,8 +289,14 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         aspectPropertyVertex.cardinality = cardinality.name
         aspectPropertyVertex.description = aspectPropertyData.description
 
-        // it is not aspectPropertyVertex.properties in mind. This links describe property->aspect relation
-        if (!aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).contains(aspectVertex)) {
+        // it is not aspectPropertyVertex.properties in mind. This links describe property -> aspect relation
+        val currentAspectPropertyAspectVertex = aspectPropertyVertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).firstOrNull()
+        if (currentAspectPropertyAspectVertex != aspectVertex) {
+            if (currentAspectPropertyAspectVertex != null) {
+                aspectPropertyVertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).forEach {
+                    it.delete<OEdge>()
+                }
+            }
             aspectPropertyVertex.addEdge(aspectVertex, ASPECT_ASPECT_PROPERTY_EDGE).save<OEdge>()
         }
 
