@@ -20,7 +20,7 @@ suspend fun getAllSubjects(): SubjectsList =
     JSON.parse(get("/api/subject/all"))
 
 suspend fun getSubjectByName(name: String): SubjectData =
-    JSON.parse(get("/api/subject/get/$name"))
+    JSON.parse(get("/api/subject/get/${encodeURIComponent(name)}"))
 
 suspend fun getSubjectById(id: String): SubjectData {
     val encoded = encodeURIComponent(id)
