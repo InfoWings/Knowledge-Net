@@ -56,6 +56,7 @@ class SubjectHistoryTest {
 
 
     @Test
+    @Disabled
     fun testSubjectHistoryCreate() {
         val subject =
             subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
@@ -89,6 +90,7 @@ class SubjectHistoryTest {
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryUpdate() {
         val subject1 =
             subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
