@@ -39,8 +39,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                     attrs {
                         className = "aspect-table-select"
                         value = boundAspect?.let {
-                            if (it.name != null) "${it.name} ${it.subject?.let { "(${it.name})" }
-                                    ?: "(Global)"}" else ""
+                            "${it.name} ${it.subject?.let { "(${it.name})" } ?: "(Global)"}"
                         } ?: ""
                         labelKey = "aspectLabel"
                         valueKey = "aspectLabel"

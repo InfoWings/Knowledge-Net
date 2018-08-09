@@ -309,7 +309,6 @@ class DefaultReferenceBookService(
             itemVertex.description = description
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
-            val parentVertex2 = dao.find(parentId) ?: throw RefBookItemNotExist(parentId)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
 
             historyService.storeFact(savedItemVertex.toCreateFact(context))
