@@ -1,10 +1,16 @@
-language: java
-install: ./gradlew assemble
-script: travis_wait ./gradlew check
-before_cache:
-- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-cache:
-  directories:
-  - $HOME/.gradle/caches/
-  - $HOME/.gradle/wrapper/
+project:
+  include:
+  - language: java
+    install: ./gradlew assemble
+    script: travis_wait ./gradlew check
+    before_cache:
+    - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+    - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+    cache:
+      directories:
+      - $HOME/.gradle/caches/
+      - $HOME/.gradle/wrapper/
+  - language: node_js
+    cache:
+      directories:
+      - $HOME/frontend/node_modules
