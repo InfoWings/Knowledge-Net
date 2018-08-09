@@ -1,5 +1,6 @@
 package com.infowings.catalog.auth.user
 
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
 import junit.framework.TestCase.assertEquals
@@ -9,12 +10,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class UserDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -24,7 +23,12 @@ class UserDaoTest {
 
     private lateinit var userVertex: UserVertex
 
-    private val username = "test"
+    @Suppress("JoinDeclarationAndAssignment")
+    private lateinit var username: String
+
+    init {
+        username = randomName()
+    }
 
     @BeforeEach
     fun setUp() {

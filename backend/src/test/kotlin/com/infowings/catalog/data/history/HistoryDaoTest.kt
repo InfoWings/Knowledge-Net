@@ -18,7 +18,7 @@ import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class HistoryDaoTest {
     private val username = "admin"
 

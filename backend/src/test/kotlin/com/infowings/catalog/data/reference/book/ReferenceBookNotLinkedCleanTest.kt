@@ -6,6 +6,7 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.randomName
+import io.kotlintest.matchers.collections.shouldNotContain
 import junit.framework.Assert.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -65,7 +66,8 @@ class ReferenceBookNotLinkedCleanTest {
         addReferenceBookItem(bookForRemoving.id, "itemValue")
         bookForRemoving = referenceBookService.getReferenceBook(anotherAspectId)
         referenceBookService.removeReferenceBook(bookForRemoving, username)
-        assertEquals(listOf(referenceBook), referenceBookService.getAllReferenceBooks())
+
+        referenceBookService.getAllReferenceBooks().shouldNotContain(bookForRemoving)
     }
 
     private fun addReferenceBookItem(parentId: String, value: String): String =

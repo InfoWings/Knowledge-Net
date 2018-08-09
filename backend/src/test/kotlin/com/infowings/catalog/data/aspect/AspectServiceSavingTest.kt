@@ -5,6 +5,7 @@ import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.randomName
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
@@ -123,7 +124,6 @@ class AspectServiceSavingTest {
         assertThrows<AspectAlreadyExist> {
             aspectService.save(ad2, username)
         }
-        assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
     }
 
     @Test
@@ -362,9 +362,9 @@ class AspectServiceSavingTest {
     }
 
     @Test
-    fun testCreateAspectSameNameWithSpaces() {
-        val aspectData1 = aspectDataWithSubject("test")
-        val aspectData2 = aspectDataWithSubject("test  ")
+    fun `Should be impossible to create aspects with same names when names are trimmed`() {
+        val aspectData1 = aspectDataWithSubject("testCreateAspectSameNameWithSpaces-test")
+        val aspectData2 = aspectDataWithSubject(" testCreateAspectSameNameWithSpaces-test  ")
         aspectService.save(aspectData1, username)
         assertThrows<AspectAlreadyExist> { aspectService.save(aspectData2, username) }
     }
@@ -418,7 +418,7 @@ class AspectServiceSavingTest {
         return aspectService.save(aspectData, username)
     }
 
-    private fun aspectDataWithSubject(aspectName: String, subjectName: String? = null): AspectData {
+    private fun aspectDataWithSubject(aspectName: String = randomName(), subjectName: String? = null): AspectData {
         val subjectData: SubjectData? = subjectName?.let {
             subjectService.createSubject(SubjectData(name = it, description = "some description"), username)
                 .toSubjectData()

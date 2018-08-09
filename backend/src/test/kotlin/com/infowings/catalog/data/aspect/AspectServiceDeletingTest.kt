@@ -114,22 +114,24 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
         aspectService.remove(aspect, username)
-        thrown.expect(AspectDoesNotExist::class.java)
-        aspectService.remove(aspect, username)
+        assertThrows<AspectDoesNotExist> {
+            aspectService.remove(aspect, username)
+        }
     }
 
     @Test
     fun testDeleteAspectWithProperty() {
-        val aspectData = initialAspectData("ASPECT_DWP")
+        val aspectData = initialAspectData("testDeleteAspectWithProperty-ASPECT_DWP")
         val aspect = aspectService.save(aspectData, username)
 
         val aspectId = aspect.idStrict()
         val aspectProperty = AspectPropertyData("", "prop1", aspectId, PropertyCardinality.INFINITY.name, null)
-        val aspectData2 = initialAspectData("ANOTHER_ASPECT_DWP", listOf(aspectProperty))
+        val aspectData2 = initialAspectData("testDeleteAspectWithProperty-ANOTHER_ASPECT_DWP", listOf(aspectProperty))
         aspectService.save(aspectData2, username)
 
-        thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspectId), username)
+        assertThrows<AspectHasLinkedEntitiesException> {
+            aspectService.remove(aspectService.findById(aspectId), username)
+        }
     }
 
     @Test
@@ -146,8 +148,9 @@ class AspectServiceDeletingTest {
         val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
         val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propId), username)
 
-        thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
+        assertThrows<AspectHasLinkedEntitiesException> {
+            aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
+        }
     }
 
     @Test
@@ -155,8 +158,9 @@ class AspectServiceDeletingTest {
         val aspectData = initialAspectData("testDeleteAspectWithCM-ASPECT_CM")
         val aspect = aspectService.save(aspectData, username)
 
-        thrown.expect(AspectConcurrentModificationException::class.java)
-        aspectService.remove(aspect.copy(version = 5), username)
+        assertThrows<AspectConcurrentModificationException> {
+            aspectService.remove(aspect.copy(version = 5), username)
+        }
     }
 
     @Test
@@ -179,14 +183,15 @@ class AspectServiceDeletingTest {
         var a1 = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
         var a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
         val p1 = AspectPropertyData("", "", a1Id, PropertyCardinality.ONE.name, null)
-        val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
+        val ad = AspectData("", "testDeleteLinkedByAspect-aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
         a1 = aspectService.findById(a1Id)
         a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
-        thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(a1, username)
+        assertThrows<AspectHasLinkedEntitiesException> {
+            aspectService.remove(a1, username)
+        }
 
         val found = database.getVertexById(a1Id)
         assertNotNull("Aspect exists in db", found)
@@ -217,8 +222,9 @@ class AspectServiceDeletingTest {
         objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
 
 
-        thrown.expect(AspectHasLinkedEntitiesException::class.java)
-        aspectService.remove(aspectWithObjectProperty.copy(version = aspectWithObjectProperty.version + 1), username)
+        assertThrows<AspectHasLinkedEntitiesException> {
+            aspectService.remove(aspectWithObjectProperty.copy(version = aspectWithObjectProperty.version + 1), username, force = false)
+        }
 
         aspectService.remove(aspectWithObjectProperty, username, true)
 

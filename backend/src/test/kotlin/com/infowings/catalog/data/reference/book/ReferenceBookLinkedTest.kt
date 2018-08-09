@@ -13,6 +13,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.rules.ExpectedException
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,8 +53,9 @@ class ReferenceBookLinkedTest {
         val childId = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
         addLinkToRefBookItem(childId)
         val forUpdateItem = ReferenceBookItem(childId, "new", null, emptyList(), false, refBook.version)
-        thrown.expect(RefBookItemHasLinkedEntitiesException::class.java)
-        referenceBookService.updateReferenceBookItem(forUpdateItem, username)
+        assertThrows<RefBookItemHasLinkedEntitiesException> {
+            referenceBookService.updateReferenceBookItem(forUpdateItem, username)
+        }
         referenceBookService.updateReferenceBookItem(forUpdateItem, username, true)
 
         val updatedItem = referenceBookService.getReferenceBookItem(childId)
@@ -104,8 +106,9 @@ class ReferenceBookLinkedTest {
     fun removeLinkedItem() {
         val child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("child"), username)
         addLinkToRefBookItem(child)
-        thrown.expect(RefBookItemHasLinkedEntitiesException::class.java)
-        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username)
+        assertThrows<RefBookItemHasLinkedEntitiesException> {
+            referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username)
+        }
 
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username, true)
         val deleted = referenceBookService.getReferenceBook(child)
@@ -118,9 +121,9 @@ class ReferenceBookLinkedTest {
         val layer2Child = referenceBookService.addReferenceBookItem(layer1Child, createReferenceBookItem("layer2_child1"), username)
 
         addLinkToRefBookItem(layer2Child)
-        thrown.expect(RefBookItemHasLinkedEntitiesException::class.java)
-        referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username)
-
+        assertThrows<RefBookItemHasLinkedEntitiesException> {
+            referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username)
+        }
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username, true)
 
         val deletedParent = referenceBookService.getReferenceBook(layer1Child)

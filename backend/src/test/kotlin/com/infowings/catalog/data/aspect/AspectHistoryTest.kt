@@ -10,6 +10,7 @@ import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.forAspect
 import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
@@ -422,9 +423,6 @@ class AspectHistoryTest {
         val fact = history.first { it.fullData.aspectData.name == aspect.name }
         fact.changes.size shouldBe 4
     }
-
-    private fun List<AspectHistory>.forAspect(aspect: AspectData) =
-        this.filter { it.fullData.aspectData.name == aspect.name }
 
     @Test
     fun testAspectHistoryWithRefBook() {

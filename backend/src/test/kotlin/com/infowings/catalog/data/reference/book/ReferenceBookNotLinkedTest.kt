@@ -224,8 +224,8 @@ class ReferenceBookNotLinkedTest {
 
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
-        changeValue(child11, "newValue")
         assertThrows<RefBookConcurrentModificationException>() {
+            changeValue(child11, "newValue")
             referenceBookService.removeReferenceBookItem(forRemoving, username)
         }
     }
@@ -236,8 +236,8 @@ class ReferenceBookNotLinkedTest {
 
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
-        changeValue(child1, "newValue")
         assertThrows<RefBookConcurrentModificationException> {
+            changeValue(child1, "newValue")
             referenceBookService.removeReferenceBookItem(forRemoving, username)
         }
     }
@@ -302,9 +302,9 @@ class ReferenceBookNotLinkedTest {
 
     @Test
     fun testChangeRefBookSameNameSpaces() {
-        val referenceBook2 = referenceBookService.createReferenceBook("ex", aspect.id!!, username)
         assertThrows<RefBookAlreadyExist> {
-            referenceBookService.updateReferenceBook(referenceBook2.copy(name = " ${referenceBook.name}   "), username)
+            val referenceBook2 = referenceBookService.createReferenceBook(randomName(), aspect.id!!, username)
+            referenceBookService.updateReferenceBook(referenceBook2.copy(name = " ${referenceBook2.name}   "), username)
         }
     }
 

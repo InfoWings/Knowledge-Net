@@ -36,11 +36,12 @@ class SubjectServiceTest {
 
     @Test
     fun testAddAspectsSameNameSameSubject() {
+        val name = randomName()
         val subject = createTestSubject("TestSubjectUpdate")
-        val ad1 = createTestAspect(subject = subject.toSubjectData())
+        val ad1 = createTestAspect(name = name, subject = subject.toSubjectData())
         aspectService.save(ad1, username)
 
-        val ad2 = createTestAspect(subject = subject.toSubjectData())
+        val ad2 = createTestAspect(name = name, subject = subject.toSubjectData())
         assertThrows<AspectAlreadyExist> {
             aspectService.save(ad2, username)
         }
@@ -48,10 +49,11 @@ class SubjectServiceTest {
 
     @Test
     fun testAddAspectsSameNameGlobalSubject() {
-        val ad1 = createTestAspect()
+        val name = randomName()
+        val ad1 = createTestAspect(name = name)
         aspectService.save(ad1, username)
 
-        val ad2 = createTestAspect()
+        val ad2 = createTestAspect(name = name)
         assertThrows<AspectAlreadyExist> {
             aspectService.save(ad2, username)
         }
@@ -101,27 +103,24 @@ class SubjectServiceTest {
          *    level1Property
          *       aspect
          */
+        val name = randomName()
         val subject = createTestSubject("TestSubjectUpdate")
-        val aspect = aspectService.save(createTestAspect(subject = subject.toSubjectData()), username)
+        val aspect = aspectService.save(createTestAspect(name = name, subject = subject.toSubjectData()), username)
         val level1Property = AspectPropertyData("", "p_level1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         aspectService.save(
-            createTestAspect(
-                "aspectBase",
-                subject = subject.toSubjectData(),
-                properties = listOf(level1Property)
-            ),
+            createTestAspect("aspectBase", subject = subject.toSubjectData(), properties = listOf(level1Property)),
             username
         )
 
-        aspectService.remove(aspectService.findByName("aspect").first(), username, true)
+        aspectService.remove(aspectService.findByName(name).first(), username, true)
 
-        val ad2 = createTestAspect(subject = subject.toSubjectData())
+        val ad2 = createTestAspect(name = name, subject = subject.toSubjectData())
         aspectService.save(ad2, username)
 
-        val aspects = aspectService.findByName("aspect")
+        val aspects = aspectService.findByName(name)
         Assert.assertThat(
             "aspect should be saved",
-            aspectService.findByName("aspect").firstOrNull(),
+            aspectService.findByName(name).firstOrNull(),
             Is.`is`(aspects.first())
         )
     }
@@ -242,11 +241,12 @@ class SubjectServiceTest {
     }
 
     @Test
-    fun testUpdateSubjectWithSameName() {
-        subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
-        val res = subjectService.createSubject(SubjectData(name = "testSubject2", description = ""), username)
+    fun `Update subject with same name truncated`() {
+        val name = randomName()
+        subjectService.createSubject(SubjectData(name = name, description = ""), username)
+        val res = subjectService.createSubject(SubjectData(name = randomName(), description = ""), username)
         assertThrows<SubjectWithNameAlreadyExist> {
-            subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject   "), username)
+            subjectService.updateSubject(res.toSubjectData().copy(name = "$name   "), username)
         }
     }
 

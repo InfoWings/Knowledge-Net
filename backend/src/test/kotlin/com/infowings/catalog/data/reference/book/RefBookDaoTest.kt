@@ -29,7 +29,7 @@ class RefBookDaoTest {
 
     @Test
     fun testRefBookFindOne() {
-        val aspectName = "aspect"
+        val aspectName = "testRefBookFindOne-aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(
             AspectData(
