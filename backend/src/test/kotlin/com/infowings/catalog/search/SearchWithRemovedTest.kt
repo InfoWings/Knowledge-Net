@@ -8,7 +8,6 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
-import io.kotlintest.fail
 import io.kotlintest.matchers.collections.shouldNotContain
 import io.kotlintest.shouldBe
 import org.junit.jupiter.api.BeforeEach
@@ -20,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-//@EnableConfigurationProperties
 class SearchWithRemovedTest {
     private val username = "admin"
 
@@ -77,6 +75,5 @@ class SearchWithRemovedTest {
     @Test
     fun `Search parents must contain aspect and his parent`() {
         aspectDaoService.findParentAspects(initialAspect.idStrict()).size shouldBe 2
-        fail("erferf")
     }
 }
