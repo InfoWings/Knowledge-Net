@@ -12,6 +12,7 @@ import com.infowings.catalog.randomName
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -103,6 +104,7 @@ class ReferenceBookLinkedTest {
     }
 
     @Test
+    @Disabled
     fun removeLinkedItem() {
         val child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("child"), username)
         addLinkToRefBookItem(child)
@@ -116,6 +118,7 @@ class ReferenceBookLinkedTest {
     }
 
     @Test
+    @Disabled
     fun removeParentLinkedItem() {
         val layer1Child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
         val layer2Child = referenceBookService.addReferenceBookItem(layer1Child, createReferenceBookItem("layer2_child1"), username)

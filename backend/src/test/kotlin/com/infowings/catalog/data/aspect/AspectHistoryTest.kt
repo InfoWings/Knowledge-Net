@@ -426,7 +426,7 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryWithRefBook() {
-        val aspect = aspectService.save(randomAspect(null), username)
+        val aspect = aspectService.save(randomAspect(null, baseType = BaseType.Text), username)
         val aspectId = aspect.id ?: throw IllegalStateException("id of aspect is not defined")
         refBookService.createReferenceBook(randomName(), aspectId, username)
 
@@ -454,10 +454,10 @@ class AspectHistoryTest {
         history.size shouldBe 2
     }
 
-    fun randomAspect(subject: SubjectData?): AspectData {
+    fun randomAspect(subject: SubjectData?, baseType: BaseType = BaseType.Decimal): AspectData {
         return AspectData(
             name = randomName(),
-            baseType = BaseType.Decimal.name,
+            baseType = baseType.name,
             description = "some description-1",
             subject = subject
         )

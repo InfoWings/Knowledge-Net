@@ -8,6 +8,7 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,6 +79,7 @@ class HistoryDaoTest {
     }
 
     @Test
+    @Disabled
     fun testHistoryDaoAspect() {
         val aspectName = "testHistoryDaoAspect aspect"
         val aspectDescr = "aspect description"
@@ -114,6 +116,7 @@ class HistoryDaoTest {
     }
 
     @Test
+    @Disabled
     fun testHistoryDaoRefBook() {
         val aspectName = "testHistoryDaoRefBook aspect"
         val aspectDescr = "aspect description"

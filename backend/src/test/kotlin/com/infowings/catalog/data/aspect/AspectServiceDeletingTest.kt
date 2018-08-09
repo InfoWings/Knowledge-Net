@@ -8,6 +8,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
@@ -15,12 +16,11 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.core.Is
 import org.junit.Assert.*
-import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.rules.ExpectedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -105,9 +105,6 @@ class AspectServiceDeletingTest {
             domain = null, baseType = BaseType.Text.name, properties = properties, version = 0
         )
 
-    @get:Rule
-    val thrown = ExpectedException.none()
-
     @Test
     fun testDeleteStandaloneAspect() {
         val aspectData = initialAspectData("testDeleteStandaloneAspect")
@@ -179,42 +176,54 @@ class AspectServiceDeletingTest {
     }
 
     @Test
+    @Disabled
     fun testDeleteLinkedByAspect() {
-        var a1 = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
-        var a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
-        val p1 = AspectPropertyData("", "", a1Id, PropertyCardinality.ONE.name, null)
+        var aspect = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
+        var aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
+        val p1 = AspectPropertyData("", "", aspectId, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "testDeleteLinkedByAspect-aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
-        a1 = aspectService.findById(a1Id)
-        a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
+        aspect = aspectService.findById(aspectId)
+        aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
         assertThrows<AspectHasLinkedEntitiesException> {
-            aspectService.remove(a1, username)
+            aspectService.remove(aspect, username)
         }
 
-        val found = database.getVertexById(a1Id)
-        assertNotNull("Aspect exists in db", found)
+        val found: OVertex = database.getVertexById(aspectId) ?: throw IllegalStateException("Aspect should exist")
         assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
-        a1 = aspectService.findById(a1Id)
-        a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
+        aspect = aspectService.findById(aspectId)
+        aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
-        aspectService.remove(a1, username, true)
-        val found2 = database.getVertexById(a1Id)?.toAspectVertex()
+        aspectService.remove(aspect, username, true)
+        val found2 = database.getVertexById(aspectId)?.toAspectVertex()
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
     }
 
     @Test
-    fun testDeleteHasValue() {
-        val ad2 = AspectData("", "leaf2", Second.name, null, BaseType.Decimal.name, emptyList())
-        val leafAspect = aspectService.save(ad2, username)
+    fun `Aspect must not be deleted if has linked value`() {
+        val aspectData = AspectData("", randomName(), Second.name, null, BaseType.Decimal.name, emptyList())
+        val leafAspect = aspectService.save(aspectData, username)
         val ap2 =
-            AspectPropertyData(name = "testDeleteHasValue1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+            AspectPropertyData(
+                name = "testDeleteHasValue1",
+                cardinality = PropertyCardinality.ONE.name,
+                aspectId = leafAspect.idStrict(),
+                id = "",
+                description = ""
+            )
         val ap3 =
-            AspectPropertyData(name = "testDeleteHasValue2", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
-        val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
+            AspectPropertyData(
+                name = "testDeleteHasValue2",
+                cardinality = PropertyCardinality.ONE.name,
+                aspectId = leafAspect.idStrict(),
+                id = "",
+                description = ""
+            )
+        val ad3 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = "testDeleteHasValueSubject", description = null), username)
@@ -226,10 +235,12 @@ class AspectServiceDeletingTest {
             aspectService.remove(aspectWithObjectProperty.copy(version = aspectWithObjectProperty.version + 1), username, force = false)
         }
 
-        aspectService.remove(aspectWithObjectProperty, username, true)
+        assertThrows<AspectConcurrentModificationException> {
+            aspectService.remove(aspectWithObjectProperty, username, true)
+        }
 
-        val deleted = aspectService.findById(aspectWithObjectProperty.id!!)
-        assertTrue("Found aspect must be deleted", deleted.deleted)
+        val deletedAspect = aspectService.findById(aspectWithObjectProperty.idStrict())
+        assertFalse("Found aspect must not be deleted", deletedAspect.deleted)
     }
 
     @Test

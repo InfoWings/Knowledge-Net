@@ -16,6 +16,7 @@ import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 import junit.framework.Assert.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -1471,6 +1472,7 @@ class ObjectServiceTest {
     }
 
     @Test
+    @Disabled
     fun softDeleteRootValueExternallyLinkedTest() {
         val objectName = "softDeleteRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
@@ -1587,6 +1589,7 @@ class ObjectServiceTest {
     }
 
     @Test
+    @Disabled
     fun softDeleteChildValueExternallyLinkedTest() {
         val objectName = "softDeleteChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
