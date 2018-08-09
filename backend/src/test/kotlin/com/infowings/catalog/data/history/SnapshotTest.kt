@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SnapshotTest {
     private fun initVertex(session: ODatabaseDocument, name: String) =
         session.getClass(name) ?: session.createVertexClass(name)
