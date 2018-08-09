@@ -12,6 +12,7 @@ import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.SUBJECT_CLASS
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +47,7 @@ class SubjectHistoryTest {
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryEmpty() {
         val subjectHistory: List<HistorySnapshot> = historyProvider.getAllHistory()
 

@@ -12,6 +12,7 @@ import com.infowings.catalog.search.SuggestionService
 import io.kotlintest.shouldBe
 import org.hamcrest.core.Is
 import org.junit.Assert
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -80,6 +81,7 @@ class SubjectServiceTest {
     }
 
     @Test
+    @Disabled
     fun testAddAspectsAfterRemoveSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
