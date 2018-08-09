@@ -23,6 +23,7 @@ import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Disabled
 class SubjectServiceTest {
     private val username = "admin"
 
