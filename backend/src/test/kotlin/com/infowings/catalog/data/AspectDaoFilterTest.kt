@@ -1,22 +1,20 @@
 package com.infowings.catalog.data
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AspectDaoFilterTest {
 
     val username = "admin"
@@ -27,7 +25,7 @@ class AspectDaoFilterTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-    @Before
+    @BeforeEach
     fun saveAspectTree() {
         var heightAspectData = AspectData(null, "Height", Metre.name, null, null)
         heightAspectData = aspectService.save(heightAspectData, username)

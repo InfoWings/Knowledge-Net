@@ -1,24 +1,24 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.set
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.record.OVertex
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.util.*
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.hamcrest.CoreMatchers.`is` as Is
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class AspectServicePropertyTest {
     private val username = "admin"
 
@@ -35,16 +35,16 @@ class AspectServicePropertyTest {
      *     -> property
      *             -> baseAspect
      */
-    @Before
+    @BeforeEach
     fun addAspectWithProperty() {
-        val ad = AspectData("", UUID.randomUUID().toString(), Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val ad = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
         val property = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             id = "",
-            name = UUID.randomUUID().toString(),
+            name = randomName(),
             measure = Kilometre.name,
             domain = null,
             baseType = BaseType.Decimal.name,
@@ -119,7 +119,7 @@ class AspectServicePropertyTest {
         )
     }
 
-    @Test(expected = AspectInconsistentStateException::class)
+    @Test
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
         val property = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
@@ -132,7 +132,9 @@ class AspectServicePropertyTest {
             baseType = BaseType.Decimal.name,
             properties = listOf(property, property2)
         )
-        aspectService.save(ad2, username)
+        assertThrows<AspectInconsistentStateException> {
+            aspectService.save(ad2, username)
+        }
     }
 
     @Test
@@ -168,7 +170,7 @@ class AspectServicePropertyTest {
         assertTrue("aspect property should have new name", updated.properties.map { it.name }.any { it == "new Name" })
     }
 
-    @Test(expected = AspectInconsistentStateException::class)
+    @Test
     fun testUnCorrectChangeAspectPropertyName() {
 
         val propertyList = complexAspect.properties.toMutableList()
@@ -181,7 +183,7 @@ class AspectServicePropertyTest {
         propertyList2 = propertyList2.map { if (it.name == "new Name") it.copy(name = "p") else it }.toMutableList()
         val dataForUpdate2 = saved.copy(properties = propertyList2)
 
-        aspectService.save(dataForUpdate2, username)
+        assertThrows<AspectInconsistentStateException> { aspectService.save(dataForUpdate2, username) }
     }
 
     @Test
@@ -218,7 +220,7 @@ class AspectServicePropertyTest {
         )
     }
 
-    @Test(expected = AspectConcurrentModificationException::class)
+    @Test
     fun testPropertyOldVersion() {
         transaction(orientDatabase) {
             val property = complexAspect.properties[0]
@@ -226,7 +228,7 @@ class AspectServicePropertyTest {
             vertex["name"] = "name"
             vertex.save<OVertex>()
         }
-        aspectService.save(complexAspect, username)
+        assertThrows<AspectConcurrentModificationException> { aspectService.save(complexAspect, username) }
     }
 }
 

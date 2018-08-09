@@ -1,19 +1,20 @@
 package com.infowings.catalog.auth.user
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNull
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class UserDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -25,7 +26,7 @@ class UserDaoTest {
 
     private val username = "test"
 
-    @Before
+    @BeforeEach
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
         db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}

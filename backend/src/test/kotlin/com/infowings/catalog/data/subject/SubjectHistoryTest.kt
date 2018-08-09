@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.subject
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SubjectData
@@ -12,18 +11,18 @@ import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.SUBJECT_CLASS
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class SubjectHistoryTest {
     private val username = "admin"
 
@@ -41,7 +40,7 @@ class SubjectHistoryTest {
 
     private lateinit var historyProvider: SubjectHistoryProvider
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         historyProvider = SubjectHistoryProvider(historyService)
     }

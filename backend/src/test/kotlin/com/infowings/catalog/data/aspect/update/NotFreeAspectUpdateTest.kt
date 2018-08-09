@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.aspect.update
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -13,15 +12,16 @@ import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class NotFreeAspectUpdateTest {
     private val username = "admin"
 
@@ -37,7 +37,7 @@ class NotFreeAspectUpdateTest {
     private lateinit var aspectWithValue: AspectData
     private lateinit var objectPropertyId: String
 
-    @Before
+    @BeforeEach
     fun init() {
         initAspectLinkedOtherAspect()
         initAspectWithObjectProperty()
@@ -50,15 +50,19 @@ class NotFreeAspectUpdateTest {
         Assert.assertEquals("aspect should change base type", aspect.baseType, BaseType.Text.name)
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testChangeBaseTypeHasValue() {
         createRootValue(125)
-        aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
+        assertThrows<AspectModificationException>() {
+            aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
+        }
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testChangeBaseTypePropHasValue() {
-        aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
+        assertThrows<AspectModificationException>() {
+            aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
+        }
     }
 
     @Test
@@ -70,15 +74,19 @@ class NotFreeAspectUpdateTest {
         Assert.assertTrue("aspect should have correct base type", newAspect.baseType == BaseType.Decimal.name)
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testChangeAspectMeasureOtherGroupPropHasValue() {
-        aspectService.save(aspectWithValue.copy(measure = Litre.name), username)
+        assertThrows<AspectModificationException>() {
+            aspectService.save(aspectWithValue.copy(measure = Litre.name), username)
+        }
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testChangeAspectMeasureOtherGroupHasValue() {
         createRootValue(125)
-        aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
+        assertThrows<AspectModificationException>() {
+            aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
+        }
     }
 
     @Test
@@ -87,11 +95,13 @@ class NotFreeAspectUpdateTest {
         Assert.assertEquals("aspect change measure", res.measure, Litre.name)
     }
 
-    @Test(expected = AspectPropertyModificationException::class)
+    @Test
     fun testEditPropertyHasValue() {
         val otherAspect = aspectService.save(AspectData(name = "testEditPropertyHasValue-other", measure = Metre.name), username)
         val newProperty = aspectWithObjectProperty.properties[0].copy(aspectId = otherAspect.idStrict())
-        aspectService.save(aspectWithObjectProperty.copy(properties = listOf(newProperty, aspectWithObjectProperty.properties[1])), username)
+        assertThrows<AspectPropertyModificationException>() {
+            aspectService.save(aspectWithObjectProperty.copy(properties = listOf(newProperty, aspectWithObjectProperty.properties[1])), username)
+        }
     }
 
     @Test

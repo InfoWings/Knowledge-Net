@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
@@ -13,19 +12,20 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
 import junit.framework.Assert.assertTrue
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class ObjectDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -62,7 +62,7 @@ class ObjectDaoTest {
 
     private val username = "admin"
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         validator = MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao)
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
@@ -238,12 +238,14 @@ class ObjectDaoTest {
         assertEquals("some value", createdValue.strValue, "str value must be correct")
     }
 
-    @Test(expected = ObjectAlreadyExists::class)
+    @Test
     fun checkSaveObjectSameNameSameSubjectTest() {
         val objectRequest =
             ObjectCreateRequest("obj", "some descr", subject.id, subject.version)
         objectService.create(objectRequest, username)
-        objectService.create(objectRequest, username)
+        assertThrows<ObjectAlreadyExists> {
+            objectService.create(objectRequest, username)
+        }
     }
 
     @Test
@@ -263,7 +265,7 @@ class ObjectDaoTest {
         assertTrue("Objects have different subjects", subj1.id != subj2.id)
     }
 
-    @Test(expected = ObjectPropertyAlreadyExistException::class)
+    @Test
     fun checkSavePropertySameNameSameAspectTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         val propertyRequest = PropertyCreateRequest(
@@ -273,7 +275,9 @@ class ObjectDaoTest {
             aspectId = aspect.idStrict()
         )
         objectService.create(propertyRequest, username)
-        objectService.create(propertyRequest, username)
+        assertThrows<ObjectPropertyAlreadyExistException> {
+            objectService.create(propertyRequest, username)
+        }
     }
 
     @Test
@@ -336,11 +340,13 @@ class ObjectDaoTest {
         Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
     }
 
-    @Test(expected = ObjectAlreadyExists::class)
+    @Test
     fun objectUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
         createObject(ObjectCreateRequest("obj2", "another descr", subject.id, subject.version))
-        objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
+        assertThrows<ObjectAlreadyExists> {
+            objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
+        }
     }
 
     @Test
@@ -368,13 +374,21 @@ class ObjectDaoTest {
         Assert.assertEquals("Property must have new name", "new name", objProperty.name)
     }
 
-    @Test(expected = ObjectPropertyAlreadyExistException::class)
+    @Test
     fun objectPropertyUpdateWrongBkTest() {
         val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
         val aspectVertex = aspectDao.find(aspect.id!!)
         val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
-        objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "propName2", null), username)
+        assertThrows<ObjectPropertyAlreadyExistException> {
+            objectService.update(
+                PropertyUpdateRequest(
+                    objectPropertyVertex.id,
+                    "propName2",
+                    null
+                ), username
+            )
+        }
     }
 
     @Test

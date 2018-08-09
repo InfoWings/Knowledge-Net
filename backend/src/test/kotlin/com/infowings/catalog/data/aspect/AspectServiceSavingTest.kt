@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.BaseType.Boolean
 import com.infowings.catalog.common.BaseType.Decimal
@@ -9,17 +8,17 @@ import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertThat
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class AspectServiceSavingTest {
     private val username = "admin"
 
@@ -80,10 +79,12 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = AspectInconsistentStateException::class)
+    @Test
     fun testAddAspectWithEmptyParams2() {
         val ad = AspectData("", "testAddAspectWithEmptyParams2-newAspect", null, null, null, emptyList())
-        aspectService.save(ad, username)
+        assertThrows<AspectInconsistentStateException> {
+            aspectService.save(ad, username)
+        }
     }
 
     @Test
@@ -99,7 +100,7 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = AspectInconsistentStateException::class)
+    @Test
     fun testFailAddAspect() {
         val ad = AspectData(
             "",
@@ -109,36 +110,38 @@ class AspectServiceSavingTest {
             BaseType.Boolean.name,
             emptyList()
         )
-        aspectService.save(ad, username)
+        assertThrows<AspectInconsistentStateException> { aspectService.save(ad, username) }
+
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testAddTwoAspectsSameName() {
         val ad = AspectData("", "testAddTwoAspectsSameName-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad, username)
 
         val ad2 = AspectData("", "testAddTwoAspectsSameName-aspect", Metre.name, null, Decimal.name, emptyList(), 1)
-        aspectService.save(ad2, username)
-
+        assertThrows<AspectAlreadyExist> {
+            aspectService.save(ad2, username)
+        }
         assertThat("should return two aspects with name 'aspect'", aspectService.findByName("aspect").size, Is.`is`(2))
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testAddTwoAspectsSameNameIgnoreCase() {
         val ad = AspectData("", "testAddTwoAspectsSameNameIgnoreCase-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad, username)
 
         val ad2 = AspectData("", "testAddTwoAspectsSameNameIgnoreCase-Aspect", Metre.name, null, Decimal.name, emptyList(), 1)
-        aspectService.save(ad2, username)
+        assertThrows<AspectAlreadyExist> { aspectService.save(ad2, username) }
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testAddAspectsSameNameSameMeasure() {
         val ad1 = AspectData("", "testAddAspectsSameNameSameMeasure-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
         aspectService.save(ad1, username)
 
         val ad2 = AspectData("", "testAddAspectsSameNameSameMeasure-aspect", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        aspectService.save(ad2, username)
+        assertThrows<AspectAlreadyExist> { aspectService.save(ad2, username) }
     }
 
     @Test
@@ -156,10 +159,10 @@ class AspectServiceSavingTest {
         )
     }
 
-    @Test(expected = AspectInconsistentStateException::class)
+    @Test
     fun testUnCorrectMeasureBaseTypeRelations() {
         val ad = AspectData("", "testUnCorrectMeasureBaseTypeRelations-aspect", Kilometre.name, null, BaseType.Boolean.name, emptyList())
-        aspectService.save(ad, username)
+        assertThrows<AspectInconsistentStateException> { aspectService.save(ad, username) }
     }
 
     @Test
@@ -173,7 +176,7 @@ class AspectServiceSavingTest {
     }
 
 
-    @Test(expected = AspectCyclicDependencyException::class)
+    @Test
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect("testAspectCyclicDependency")
         val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
@@ -187,8 +190,9 @@ class AspectServiceSavingTest {
             aspect1.properties.plus(editedPropertyData1),
             aspect1.version
         )
-
-        aspectService.save(editedAspectData1, username)
+        assertThrows<AspectCyclicDependencyException> {
+            aspectService.save(editedAspectData1, username)
+        }
     }
 
     @Test
@@ -205,14 +209,14 @@ class AspectServiceSavingTest {
         }
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testDoubleSaveSameSubject() {
         val aspectData = aspectDataWithSubject(
             aspectName = "testDoubleSaveSameSubject-AspectDoubleSaveSameSubject",
             subjectName = "testDoubleSaveSameSubject-SubjectDoubleSaveSameSubject"
         )
         aspectService.save(aspectData, username)
-        aspectService.save(aspectData, username)
+        assertThrows<AspectAlreadyExist> { aspectService.save(aspectData, username) }
     }
 
     @Test
@@ -357,21 +361,21 @@ class AspectServiceSavingTest {
         Assert.assertEquals("third subject is incorrect", null, aspect3.subject)
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testCreateAspectSameNameWithSpaces() {
         val aspectData1 = aspectDataWithSubject("test")
         val aspectData2 = aspectDataWithSubject("test  ")
         aspectService.save(aspectData1, username)
-        aspectService.save(aspectData2, username)
+        assertThrows<AspectAlreadyExist> { aspectService.save(aspectData2, username) }
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testUpdateAspectSameNameWithSpaces() {
         val aspectData1 = aspectDataWithSubject("test ")
         val aspectData2 = aspectDataWithSubject("test2")
         aspectService.save(aspectData1, username)
         val ans = aspectService.save(aspectData2, username)
-        aspectService.save(ans.copy(name = "test   "), username)
+        assertThrows<AspectAlreadyExist> { aspectService.save(ans.copy(name = "test   "), username) }
     }
 
     @Test

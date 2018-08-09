@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.history
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.SubjectData
@@ -9,18 +8,17 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
 class HistoryDaoTest {
     private val username = "admin"
 
@@ -39,10 +37,6 @@ class HistoryDaoTest {
     val classes =
         listOf(SUBJECT_CLASS, ASPECT_CLASS, ASPECT_PROPERTY_CLASS, REFERENCE_BOOK_ITEM_VERTEX, OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
-    @Before
-    fun initTestData() {
-    }
-
     @Test
     fun testHistoryDaoEmpty() {
         val events = historyDao.getAllHistoryEventsByTime()
@@ -56,7 +50,7 @@ class HistoryDaoTest {
 
     @Test
     fun testHistoryDaoSubject() {
-        val subjectName = "subject"
+        val subjectName = "testHistoryDaoSubject subject"
         val subjectDescr = "subject description"
         val created = subjectService.createSubject(SubjectData(id = "", name = subjectName, description = subjectDescr, version = 0, deleted = false), username)
 
@@ -85,7 +79,7 @@ class HistoryDaoTest {
 
     @Test
     fun testHistoryDaoAspect() {
-        val aspectName = "aspect"
+        val aspectName = "testHistoryDaoAspect aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(
             AspectData(
@@ -121,7 +115,7 @@ class HistoryDaoTest {
 
     @Test
     fun testHistoryDaoRefBook() {
-        val aspectName = "aspect"
+        val aspectName = "testHistoryDaoRefBook aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(
             AspectData(

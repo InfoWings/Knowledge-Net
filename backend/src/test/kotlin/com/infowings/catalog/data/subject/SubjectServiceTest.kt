@@ -1,27 +1,27 @@
 package com.infowings.catalog.data.subject
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.createTestAspect
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectAlreadyExist
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.search.CommonSuggestionParam
 import com.infowings.catalog.search.SubjectSuggestionParam
 import com.infowings.catalog.search.SuggestionService
+import io.kotlintest.shouldBe
 import org.hamcrest.core.Is
 import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class SubjectServiceTest {
     private val username = "admin"
 
@@ -34,23 +34,27 @@ class SubjectServiceTest {
     @Autowired
     private lateinit var suggestionService: SuggestionService
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testAddAspectsSameNameSameSubject() {
         val subject = createTestSubject("TestSubjectUpdate")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad1, username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
-        aspectService.save(ad2, username)
+        assertThrows<AspectAlreadyExist> {
+            aspectService.save(ad2, username)
+        }
     }
 
-    @Test(expected = AspectAlreadyExist::class)
+    @Test
     fun testAddAspectsSameNameGlobalSubject() {
         val ad1 = createTestAspect()
         aspectService.save(ad1, username)
 
         val ad2 = createTestAspect()
-        aspectService.save(ad2, username)
+        assertThrows<AspectAlreadyExist> {
+            aspectService.save(ad2, username)
+        }
     }
 
     @Test
@@ -123,7 +127,7 @@ class SubjectServiceTest {
     }
 
     @Test
-    fun testSuggestionByDescription() {
+    fun `subject should be founded by description`() {
         val subject = createTestSubject(
             "testSuggestionByDescription",
             description = "The subject in a simple English sentence such as John runs, John is a teacher, or John was hit by a car is the person or thing about whom the statement is made, in this case 'John'."
@@ -132,7 +136,7 @@ class SubjectServiceTest {
             CommonSuggestionParam(text = "in this case 'John'"),
             SubjectSuggestionParam(null)
         )
-        Assert.assertEquals("subject should be founded by description", res.first(), subject.toSubjectData())
+        res.first() shouldBe subject.toSubjectData()
     }
 
     @Test
@@ -229,17 +233,21 @@ class SubjectServiceTest {
         Assert.assertEquals("Same data shouldn't be rewritten", created.version, updated.version)
     }
 
-    @Test(expected = SubjectWithNameAlreadyExist::class)
+    @Test
     fun testCreateSubjectWithSpaces() {
         subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
-        subjectService.createSubject(SubjectData(name = "testSubject ", description = ""), username)
+        assertThrows<SubjectWithNameAlreadyExist> {
+            subjectService.createSubject(SubjectData(name = "testSubject ", description = ""), username)
+        }
     }
 
-    @Test(expected = SubjectWithNameAlreadyExist::class)
+    @Test
     fun testUpdateSubjectWithSameName() {
         subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
         val res = subjectService.createSubject(SubjectData(name = "testSubject2", description = ""), username)
-        subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject   "), username)
+        assertThrows<SubjectWithNameAlreadyExist> {
+            subjectService.updateSubject(res.toSubjectData().copy(name = "testSubject   "), username)
+        }
     }
 
     @Test
@@ -257,7 +265,7 @@ class SubjectServiceTest {
         createTestSubject(name, aspectNames, aspectService, subjectService, description)
 
     private fun createTestAspect(
-        name: String = "aspect",
+        name: String = randomName(),
         measure: String = Kilometre.name,
         subject: SubjectData? = null,
         properties: List<AspectPropertyData> = emptyList()

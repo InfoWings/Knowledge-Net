@@ -8,20 +8,19 @@ import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectService
+import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.rules.ExpectedException
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ReferenceBookLinkedTest {
     @Autowired
     private lateinit var dao: ReferenceBookDao
@@ -38,9 +37,9 @@ class ReferenceBookLinkedTest {
 
     private val username = "admin"
 
-    @Before
+    @BeforeEach
     fun initTestData() {
-        val ad2 = AspectData("", "leaf2", null, null, BaseType.Text.name, emptyList())
+        val ad2 = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         val leafAspect = aspectService.save(ad2, username)
         refBook = referenceBookService.createReferenceBook("Example", leafAspect.id!!, username)
     }
@@ -145,10 +144,10 @@ class ReferenceBookLinkedTest {
     private fun addLinkToRefBookItem(idForLinking: String) {
         val leafAspect = aspectService.findById(refBook.aspectId)
         val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
-        val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2))
+        val ad3 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap2))
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
-        val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
+        val subject = subjectService.createSubject(SubjectData(name = randomName(), description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
         val objPropertyRootValueRequest = ValueCreateRequest(

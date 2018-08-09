@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -16,19 +15,18 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.core.Is
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.rules.ExpectedException
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class AspectServiceDeletingTest {
     private val username = "admin"
 
@@ -53,9 +51,9 @@ class AspectServiceDeletingTest {
     private lateinit var initialAspect: AspectData
     private lateinit var initialAspectId: String
 
-    @Before
+    @BeforeEach
     fun saveAspectAndRemoveIt() {
-        val ad = AspectData(null, "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, "saveAspectAndRemoveIt", Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
         initialAspectId = initialAspect.id ?: throw IllegalStateException("initial aspect hash no id")
         session(database) {
@@ -67,22 +65,26 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testAddSameNameAfterRemoving() {
-        val ad = AspectData(null, "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, "testAddSameNameAfterRemoving", Metre.name, null, null)
         aspectService.remove(aspectService.findById(initialAspectId), username, true)
         val aspect = aspectService.save(ad, username)
         assertThat("Returned aspect should have different id", aspect.id, Is.`is`(Matchers.not(initialAspect.id)))
     }
 
-    @Test(expected = AspectModificationException::class)
+    @Test
     fun testEditingAfterRemoving() {
-        aspectService.save(initialAspect, username)
+        assertThrows<AspectModificationException> {
+            aspectService.save(initialAspect, username)
+        }
     }
 
-    @Test(expected = AspectDoesNotExist::class)
+    @Test
     fun testCreatePropertyLinksToRemoved() {
         val p1 = AspectPropertyData("", "", initialAspectId, PropertyCardinality.ONE.name, null)
-        val ad = AspectData("", "aspect1", Metre.name, null, null, listOf(p1))
-        aspectService.save(ad, username)
+        val ad = AspectData("", "testCreatePropertyLinksToRemoved", Metre.name, null, null, listOf(p1))
+        assertThrows<AspectDoesNotExist> {
+            aspectService.save(ad, username)
+        }
     }
 
     private fun initialAspectData(name: String, properties: List<AspectPropertyData> = emptyList()) =
@@ -108,7 +110,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteStandaloneAspect() {
-        val aspectData = initialAspectData("SOME_ASPECT")
+        val aspectData = initialAspectData("testDeleteStandaloneAspect")
         val aspect = aspectService.save(aspectData, username)
 
         aspectService.remove(aspect, username)
@@ -132,12 +134,12 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithObjectValue() {
-        val aspectData = initialRefAspectData("ASPECT-1")
+        val aspectData = initialRefAspectData("testDeleteAspectWithObjectValue-ASPECT-1")
         val aspect = aspectService.save(aspectData, username)
 
         val aspectId = aspect.idStrict()
 
-        val aspect2 = aspectService.save(initialAspectData("ASPECT-2"), username)
+        val aspect2 = aspectService.save(initialAspectData("testDeleteAspectWithObjectValue-ASPECT-2"), username)
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
@@ -150,7 +152,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithCM() {
-        val aspectData = initialAspectData("ASPECT_CM")
+        val aspectData = initialAspectData("testDeleteAspectWithCM-ASPECT_CM")
         val aspect = aspectService.save(aspectData, username)
 
         thrown.expect(AspectConcurrentModificationException::class.java)
@@ -159,7 +161,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteSimpleAspect() {
-        val aspect = initialAspectData("A1")
+        val aspect = initialAspectData("testDeleteSimpleAspect")
         val saved = aspectService.save(aspect, username)
         aspectService.remove(saved, username)
 
@@ -174,14 +176,14 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteLinkedByAspect() {
-        var a1 = aspectService.save(initialAspectData("a1"), username)
-        var a1Id = a1.id ?: throw IllegalStateException("No id for aspect a1")
+        var a1 = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
+        var a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
         val p1 = AspectPropertyData("", "", a1Id, PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
         a1 = aspectService.findById(a1Id)
-        a1Id = a1.id ?: throw IllegalStateException("No id for aspect a1")
+        a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
         thrown.expect(AspectHasLinkedEntitiesException::class.java)
         aspectService.remove(a1, username)
@@ -191,7 +193,7 @@ class AspectServiceDeletingTest {
         assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
 
         a1 = aspectService.findById(a1Id)
-        a1Id = a1.id ?: throw IllegalStateException("No id for aspect a1")
+        a1Id = a1.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
         aspectService.remove(a1, username, true)
         val found2 = database.getVertexById(a1Id)?.toAspectVertex()
@@ -203,12 +205,14 @@ class AspectServiceDeletingTest {
     fun testDeleteHasValue() {
         val ad2 = AspectData("", "leaf2", Second.name, null, BaseType.Decimal.name, emptyList())
         val leafAspect = aspectService.save(ad2, username)
-        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
-        val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+        val ap2 =
+            AspectPropertyData(name = "testDeleteHasValue1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+        val ap3 =
+            AspectPropertyData(name = "testDeleteHasValue2", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
         val ad3 = AspectData("", "aspectWithObjectProperty", Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
-        val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
+        val subject = subjectService.createSubject(SubjectData(name = "testDeleteHasValueSubject", description = null), username)
         val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
 
@@ -224,7 +228,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectWithRefBook() {
-        var aspect = aspectService.save(initialAspectDataForRefBook("aspect"), username)
+        var aspect = aspectService.save(initialAspectDataForRefBook("testDeleteAspectWithRefBook"), username)
         var aspectId = aspect.id ?: throw IllegalStateException("No id for aspect id")
 
         referenceBookService.createReferenceBook("book", aspectId, username)
@@ -266,19 +270,19 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testDeleteAspectPropertyWithObjectValue() {
-        val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"), username)
-        val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"), username)
+        val simpleAspect1 = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue1"), username)
+        val simpleAspect2 = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue2"), username)
         val id1 = simpleAspect1.id ?: throw IllegalArgumentException("no id for aspect 1")
         val id2 = simpleAspect2.id ?: throw IllegalArgumentException("no id for aspect 2")
         val property1 = AspectPropertyData("", "prop-0", id1, PropertyCardinality.ONE.name, null)
         val property2 = AspectPropertyData("", "prop-1", id2, PropertyCardinality.ONE.name, null)
-        val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)), username)
+        val initial = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue", listOf(property1, property2)), username)
 
-        val aspectData = initialRefAspectData("ASPECT-1")
+        val aspectData = initialRefAspectData("testDeleteAspectPropertyWithObjectValue-ASPECT-1")
         val aspect = aspectService.save(aspectData, username)
         val aspectId = aspect.idStrict()
 
-        val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
+        val subject = subjectService.createSubject(SubjectData(name = "testDeleteAspectPropertyWithObjectValue-subject", description = null), username)
         val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
         val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
         val objValue =

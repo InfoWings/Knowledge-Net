@@ -12,17 +12,17 @@ import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.HISTORY_ENTITY_REFBOOK
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.randomName
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.lang.Long.max
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
 class RefBookHistoryTest {
     private val username = "admin"
@@ -46,7 +46,7 @@ class RefBookHistoryTest {
 
     private lateinit var userName: String
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         val aspectData = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         aspect = aspectService.save(aspectData, username)

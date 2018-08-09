@@ -5,16 +5,15 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class FreeAspectUpdateTest {
     private val username = "admin"
 
@@ -23,7 +22,7 @@ class FreeAspectUpdateTest {
 
     lateinit var aspect: AspectData
 
-    @Before
+    @BeforeEach
     fun init() {
         val ad = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         aspect = aspectService.save(ad, username).copy(measure = Litre.name)

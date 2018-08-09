@@ -1,22 +1,22 @@
 package com.infowings.catalog.auth.user
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
 import junit.framework.TestCase.assertEquals
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class UserServiceTest {
 
     @Autowired
@@ -30,7 +30,7 @@ class UserServiceTest {
 
     private val userData = user.toUserData()
 
-    @Before
+    @BeforeEach
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
         db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
@@ -46,35 +46,47 @@ class UserServiceTest {
         assertEquals(user, userService.createUser(userData))
     }
 
-    @Test(expected = UsernameNullOrEmptyException::class)
+    @Test
     fun createWithEmptyUsernameTest() {
-        userService.createUser(userData.copy(username = ""))
+        assertThrows<UsernameNullOrEmptyException> {
+            userService.createUser(userData.copy(username = ""))
+        }
     }
 
-    @Test(expected = UsernameNullOrEmptyException::class)
+    @Test
     fun createWithNullUsernameTest() {
-        userService.createUser(userData.copy(username = null))
+        assertThrows<UsernameNullOrEmptyException> {
+            userService.createUser(userData.copy(username = null))
+        }
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun createWithEmptyPasswordTest() {
-        userService.createUser(userData.copy(password = ""))
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.createUser(userData.copy(password = ""))
+        }
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun createWithNullPasswordTest() {
-        userService.createUser(userData.copy(password = null))
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.createUser(userData.copy(password = null))
+        }
     }
 
-    @Test(expected = UserRoleNullOrEmptyException::class)
+    @Test
     fun createWithNullUserRoleTest() {
-        userService.createUser(userData.copy(role = null))
+        assertThrows<UserRoleNullOrEmptyException> {
+            userService.createUser(userData.copy(role = null))
+        }
     }
 
-    @Test(expected = UserWithSuchUsernameAlreadyExist::class)
+    @Test
     fun createAlreadyExistUserTest() {
         userService.createUser(user)
-        userService.createUser(user)
+        assertThrows<UserWithSuchUsernameAlreadyExist> {
+            userService.createUser(user)
+        }
     }
 
     @Test
@@ -83,10 +95,12 @@ class UserServiceTest {
         assertEquals(user, userService.findByUsername(user.username))
     }
 
-    @Test(expected = UserNotFoundException::class)
+    @Test
     fun userNotFoundTest() {
         userService.createUser(user)
-        userService.findByUsername("notExist")
+        assertThrows<UserNotFoundException> {
+            userService.findByUsername("notExist")
+        }
     }
 
     @Test
@@ -110,11 +124,13 @@ class UserServiceTest {
         assertEquals(blockedUser, userService.changeBlocked(blockedUser))
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun changePasswordToEmptyTest() {
         userService.createUser(user)
         val userWithEmptyPassword = user.copy(password = "")
-        userService.changePassword(userWithEmptyPassword)
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.changePassword(userWithEmptyPassword)
+        }
     }
 
     @Test
