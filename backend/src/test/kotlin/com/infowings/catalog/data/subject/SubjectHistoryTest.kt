@@ -69,6 +69,7 @@ class SubjectHistoryTest {
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryCreateTwice() {
         val subject1 =
             subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
