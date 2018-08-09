@@ -179,7 +179,7 @@ class OrientDatabase(
     @PreDestroy
     fun cleanUp() {
         dbPool.get().entity.close()
-        orientDB.close()
+//        orientDB.close()
     }
 
     /**
