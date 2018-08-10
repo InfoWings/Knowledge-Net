@@ -1,12 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
-import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.DetailedObjectResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -45,30 +42,28 @@ class ObjectApi(val objectService: ObjectService) {
     fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectCreateResponse {
         val username = principal.name
         logger.debug("New object create request: $request by $username")
-        val result = objectService.create(request, username)
-        return ObjectCreateResponse(result)
+        return objectService.create(request, username)
     }
 
     @PostMapping("update")
     fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
         val username = principal.name
         logger.debug("Object ${request.id} update request: $request by $username")
-        val result = objectService.update(request, username)
-        return ObjectUpdateResponse(result)
+        return objectService.update(request, username)
     }
 
     @PostMapping("createProperty")
     fun createObjectProperty(@RequestBody request: PropertyCreateRequest, principal: Principal): PropertyCreateResponse {
         val username = principal.name
         logger.debug("Object property update request: $request by $username")
-        return PropertyCreateResponse(objectService.create(request, username))
+        return objectService.create(request, username)
     }
 
     @PostMapping("updateProperty")
-    fun createObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
+    fun updateObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
         val username = principal.name
         logger.debug("Object property update request: $request by $username")
-        return PropertyUpdateResponse(objectService.update(request, username))
+        return objectService.update(request, username)
     }
 
     @PostMapping("createValue")
@@ -76,8 +71,7 @@ class ObjectApi(val objectService: ObjectService) {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("New object property value create request: $requestDTO by $username")
-        val result: ObjectPropertyValue = objectService.create(request, username)
-        return ValueCreateResponse(result.id.toString())
+        return objectService.create(request, username)
     }
 
     @PostMapping("updateValue")
@@ -85,8 +79,7 @@ class ObjectApi(val objectService: ObjectService) {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("Object property value update request: $requestDTO by $username")
-        val result: ObjectPropertyValue = objectService.update(request, username)
-        return ValueUpdateResponse(result.id.toString())
+        return objectService.update(request, username)
     }
 
     @DeleteMapping("value/{id}")

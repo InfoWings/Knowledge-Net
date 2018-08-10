@@ -60,6 +60,7 @@ data class ObjectEditDetailsResponse(
     val description: String?,
     val subjectName: String,
     val subjectId: String,
+    val version: Int,
     val properties: List<ObjectPropertyEditDetailsResponse>
 )
 
@@ -68,6 +69,7 @@ data class ObjectPropertyEditDetailsResponse(
     val id: String,
     val name: String?,
     val description: String?,
+    val version: Int,
     val rootValues: List<ValueTruncated>,
     val valueDescriptors: List<ValueTruncated>,
     val aspectDescriptor: AspectTree
@@ -79,5 +81,6 @@ data class ValueTruncated(
     val value: ValueDTO,
     val description: String?,
     val propertyId: String?,
+    val version: Int,
     val childrenIds: List<String>
 )

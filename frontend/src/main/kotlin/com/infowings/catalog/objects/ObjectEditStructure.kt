@@ -8,6 +8,7 @@ data class ObjectEditViewModel(
     var name: String,
     var subject: SubjectTruncated,
     var description: String?,
+    val version: Int,
     var properties: MutableList<ObjectPropertyEditModel>,
     var expanded: Boolean = true
 ) {
@@ -16,6 +17,7 @@ data class ObjectEditViewModel(
         response.name,
         SubjectTruncated(response.subjectId, response.subjectName),
         response.description,
+        response.version,
         response.properties.map(::ObjectPropertyEditModel).toMutableList()
     )
 
@@ -33,6 +35,7 @@ data class ObjectPropertyEditModel(
     var description: String? = null,
     var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
+    val version: Int,
     var expanded: Boolean = false
 ) {
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
@@ -40,7 +43,8 @@ data class ObjectPropertyEditModel(
         response.name,
         response.description,
         response.aspectDescriptor,
-        response.rootValues.toTreeView(response.valueDescriptors)
+        response.rootValues.toTreeView(response.valueDescriptors),
+        response.version
     )
 
     fun mergeWith(response: ObjectPropertyEditDetailsResponse): ObjectPropertyEditModel {

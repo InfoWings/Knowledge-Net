@@ -87,6 +87,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                         createPropertyResponse.id,
                         propertyCreateRequest.name,
                         propertyCreateRequest.description,
+                        0, // TODO: Real new version
                         emptyList(),
                         emptyList(),
                         treeAspectResponse

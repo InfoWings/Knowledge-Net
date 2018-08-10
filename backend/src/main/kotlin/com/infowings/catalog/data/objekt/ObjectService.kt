@@ -68,14 +68,16 @@ class ObjectService(
                 objectVertex.description,
                 objectSubject.name,
                 objectSubject.id,
+                objectVertex.version,
                 objectProperties.map {
-                    //TODO: KS-168 Maybe performance bottleneck
+                    //TODO: #168 Maybe performance bottleneck
                     val values = it.values.map {
                         ValueTruncated (
                             it.id,
                             it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
                             it.description,
                             it.aspectProperty?.id,
+                            it.version,
                             it.children.map { it.id }
                         )
                     }
@@ -83,6 +85,7 @@ class ObjectService(
                         it.id,
                         it.name,
                         it.description,
+                        it.version,
                         values.filter { it.propertyId == null },
                         values,
                         aspectDao.getAspectTreeForProperty(it.identity)
@@ -91,11 +94,11 @@ class ObjectService(
             )
         }
 
-    fun create(request: ObjectCreateRequest, username: String): String {
+    fun create(request: ObjectCreateRequest, username: String): ObjectCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
 
-        val createdVertex = transaction(db) {
+        return transaction(db) {
             val objectInfo: ObjectWriteInfo = validator.checkedForCreation(request)
 
             /* В свете такого описания бизнес ключа не совсем понятно, как простым и эффективным образом обеспечивать
@@ -117,70 +120,87 @@ class ObjectService(
             historyService.storeFact(createdObject.subject.toUpdateFact(context, subjectBefore))
             historyService.storeFact(objectVertex.toCreateFact(context))
 
-            objectVertex
+            ObjectCreateResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                objectVertex.subject?.id ?: throw IllegalStateException("Object was created without subject"),
+                objectVertex.version
+            )
         }
-
-        return createdVertex.id
     }
 
-    fun update(request: ObjectUpdateRequest, username: String): String {
+    fun update(request: ObjectUpdateRequest, username: String): ObjectUpdateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
 
-        val updatedVertex = transaction(db) {
+        return transaction(db) {
             var objectVertex = findById(request.id)
             val objectInfo = validator.checkedForUpdating(objectVertex, request)
             val objectBefore = objectVertex.currentSnapshot()
+
             objectVertex = dao.updateObject(objectVertex, objectInfo)
             historyService.storeFact(objectVertex.toUpdateFact(context, objectBefore))
-        }
 
-        return updatedVertex.id
+            ObjectUpdateResponse(
+                objectVertex.id,
+                objectVertex.name,
+                objectVertex.description,
+                objectVertex.subject?.id ?: throw IllegalStateException("Object was created without subject"),
+                objectVertex.version
+            )
+        }
     }
 
-    fun create(request: PropertyCreateRequest, username: String): String {
+    fun create(request: PropertyCreateRequest, username: String): PropertyCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
-        val propertyVertex = transaction(db) {
-            val propertyInfo = validator.checkedForCreation(request)
 
-            //validator.checkBusinessKey(objectProperty)
+        return transaction(db) {
+            val propertyInfo = validator.checkedForCreation(request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
 
-            val newVertex = dao.newObjectPropertyVertex()
-
-            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(newVertex, propertyInfo, emptyList())
+            val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(dao.newObjectPropertyVertex(), propertyInfo, emptyList())
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 
-            return@transaction propertyVertex
+            PropertyCreateResponse(
+                propertyVertex.id,
+                propertyVertex.objekt?.id ?: throw IllegalStateException("Object property was created without object"),
+                propertyVertex.name,
+                propertyVertex.description,
+                propertyVertex.version
+            )
         }
-
-        return propertyVertex.id
     }
 
-    fun update(request: PropertyUpdateRequest, username: String): String {
+    fun update(request: PropertyUpdateRequest, username: String): PropertyUpdateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
-        val propertyVertex = transaction(db) {
-            val objectPropertyVertex = findPropertyById(request.objectPropertyId)
+
+        return transaction(db) {
+            val objectPropertyVertex = findPropertyById(request.id)
             val propertyInfo = validator.checkedForUpdating(objectPropertyVertex, request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
             val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(objectPropertyVertex, propertyInfo, objectPropertyVertex.values)
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
-            historyService.storeFact(objectPropertyVertex.toUpdateFact(context, objectBefore))
+            historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 
-            return@transaction propertyVertex
+            PropertyUpdateResponse(
+                propertyVertex.id,
+                propertyVertex.objekt?.id ?: throw IllegalStateException("Object property was created without object"),
+                propertyVertex.name,
+                propertyVertex.description,
+                propertyVertex.version
+            )
         }
-
-        return propertyVertex.id
     }
 
-    fun create(request: ValueCreateRequest, username: String): ObjectPropertyValue {
+    fun create(request: ValueCreateRequest, username: String): ValueCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         return transaction(db) {
@@ -194,21 +214,45 @@ class ObjectService(
             }
             historyService.storeFact(valueVertex.toCreateFact(context))
 
-            return@transaction valueVertex.toObjectPropertyValue()
+            val objectPropertyValue = valueVertex.toObjectPropertyValue()
+
+            ValueCreateResponse(
+                valueVertex.id,
+                objectPropertyValue.value.toObjectValueData().toDTO(),
+                valueVertex.description,
+                valueVertex.measure?.id,
+                valueVertex.objectProperty?.id ?: throw IllegalStateException("Object value was created without reference to object property"),
+                valueVertex.aspectProperty?.id,
+                valueVertex.parentValue?.id,
+                valueVertex.version
+            )
         }
     }
 
-    fun update(request: ValueUpdateRequest, username: String): ObjectPropertyValue {
+    fun update(request: ValueUpdateRequest, username: String): ValueUpdateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         return transaction(db) {
-            var objectPropertyValue = findPropertyValueById(request.valueId)
-            val valueInfo: ValueWriteInfo = validator.checkedForUpdating(objectPropertyValue, request)
-            val before = objectPropertyValue.currentSnapshot()
-            objectPropertyValue = dao.saveObjectValue(objectPropertyValue, valueInfo)
-            historyService.storeFact(objectPropertyValue.toUpdateFact(context, before))
+            var valueVertex = findPropertyValueById(request.valueId)
+            val valueInfo: ValueWriteInfo = validator.checkedForUpdating(valueVertex, request)
+            val before = valueVertex.currentSnapshot()
 
-            return@transaction objectPropertyValue.toObjectPropertyValue()
+            valueVertex = dao.saveObjectValue(valueVertex, valueInfo)
+
+            historyService.storeFact(valueVertex.toUpdateFact(context, before))
+
+            val objectPropertyValue = valueVertex.toObjectPropertyValue()
+
+            ValueUpdateResponse(
+                valueVertex.id,
+                objectPropertyValue.value.toObjectValueData().toDTO(),
+                valueVertex.description,
+                valueVertex.measure?.id,
+                valueVertex.objectProperty?.id ?: throw IllegalStateException("Object value was created without reference to object property"),
+                valueVertex.aspectProperty?.id,
+                valueVertex.parentValue?.id,
+                valueVertex.version
+            )
         }
     }
 

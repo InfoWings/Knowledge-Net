@@ -11,8 +11,7 @@ import kotlinx.serialization.Serializable
 data class ObjectCreateRequest(
     val name: String,
     val description: String?,
-    val subjectId: String,
-    val subjectVersion: Int?
+    val subjectId: String
 )
 
 @Serializable
@@ -21,7 +20,7 @@ data class ObjectUpdateRequest(
     val name: String,
     val description: String?,
     val subjectId: String,
-    val subjectVersion: Int?
+    val version: Int
 )
 
 @Serializable
@@ -34,9 +33,10 @@ data class PropertyCreateRequest(
 
 @Serializable
 data class PropertyUpdateRequest(
-    val objectPropertyId: String,
+    val id: String,
     val name: String?,
-    val description: String?
+    val description: String?,
+    val version: Int
 )
 
 data class ValueCreateRequest(
@@ -105,19 +105,61 @@ data class ValueUpdateRequestDTO(
 }
 
 @Serializable
-data class ObjectCreateResponse(val id: String)
+data class ObjectCreateResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val version: Int
+)
 
 @Serializable
-data class ObjectUpdateResponse(val id: String)
+data class ObjectUpdateResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val version: Int
+)
 
 @Serializable
-data class PropertyCreateResponse(val id: String)
+data class PropertyCreateResponse(
+    val id: String,
+    val objectId: String,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
 
 @Serializable
-data class PropertyUpdateResponse(val id: String)
+data class PropertyUpdateResponse(
+    val id: String,
+    val objectId: String,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
 
 @Serializable
-data class ValueCreateResponse(val id: String)
+data class ValueCreateResponse(
+    val id: String,
+    val value: ValueDTO,
+    val description: String?,
+    val measureId: String?,
+    val objectPropertyId: String,
+    val aspectPropertyId: String?,
+    val parentValueId: String?,
+    val version: Int
+)
 
 @Serializable
-data class ValueUpdateResponse(val id: String)
+data class ValueUpdateResponse(
+    val id: String,
+    val value: ValueDTO,
+    val description: String?,
+    val measureId: String?,
+    val objectPropertyId: String,
+    val aspectPropertyId: String?,
+    val parentValueId: String?,
+    val version: Int
+)
