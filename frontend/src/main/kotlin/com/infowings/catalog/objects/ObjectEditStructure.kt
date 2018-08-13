@@ -5,7 +5,7 @@ import com.infowings.catalog.objects.edit.SubjectTruncated
 
 data class ObjectEditViewModel(
     val id: String,
-    val version: Int,
+    var version: Int,
     var name: String,
     var subject: SubjectTruncated,
     var description: String?,
@@ -23,6 +23,7 @@ data class ObjectEditViewModel(
 
     fun mergeFrom(response: ObjectEditDetailsResponse) {
         name = response.name
+        version = response.version
         subject = SubjectTruncated(response.subjectId, response.subjectName)
         description = response.description
         properties = properties.mergeWith(response.properties)

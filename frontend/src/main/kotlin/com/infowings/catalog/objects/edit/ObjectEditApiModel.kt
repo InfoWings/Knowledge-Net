@@ -86,6 +86,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
+                    version = createPropertyResponse.obj.version,
                     properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
                         createPropertyResponse.id,
                         createPropertyResponse.name,
@@ -111,6 +112,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
+                    version = editPropertyResponse.obj.version,
                     properties = editedObject.properties.mapOn(
                         { it.id == editPropertyResponse.id },
                         { it.copy(name = editPropertyResponse.name, description = editPropertyResponse.description, version = editPropertyResponse.version) }
@@ -149,8 +151,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == valueCreateResponse.objectPropertyId },
-                        { it.addValue(valueCreateResponse) })
+                        { it.id == valueCreateResponse.objectProperty.id },
+                        { it.addValue(valueCreateResponse) }
+                    )
                 )
                 lastApiError = null
             }
@@ -168,7 +171,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == valueEditResponse.objectPropertyId },
+                        { it.id == valueEditResponse.objectProperty.id },
                         { it.editValue(valueEditResponse) })
                 )
                 lastApiError = null
@@ -212,19 +215,21 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 valueDescriptors = this.valueDescriptors + valueDescriptor
             )
         } else {
-            val parentValueId = response.parentValueId ?: error("Parent value should be null when aspectPropertyId is not null")
-            val parentDescriptor = valueDescriptors.find { it.id == parentValueId } ?: error("Value descriptors should contain parent value")
-            val newParentDescriptor = parentDescriptor.copy(childrenIds = parentDescriptor.childrenIds + response.id)
+            val parentValue = response.parentValue ?: error("Parent value should be null when aspectPropertyId is not null")
+            val parentDescriptor = valueDescriptors.find { it.id == parentValue.id } ?: error("Value descriptors should contain parent value")
+            val newParentDescriptor = parentDescriptor.copy(version = parentValue.version, childrenIds = parentDescriptor.childrenIds + response.id)
 
             when {
                 newParentDescriptor.propertyId == null -> {
                     this.copy(
+                        version = response.objectProperty.version,
                         rootValues = this.rootValues.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor),
                         valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
                 else -> {
                     this.copy(
+                        version = response.objectProperty.version,
                         valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
@@ -234,12 +239,21 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     private fun ObjectPropertyEditDetailsResponse.editValue(response: ValueUpdateResponse): ObjectPropertyEditDetailsResponse {
         return this.copy(
-            rootValues = this.rootValues.mapOn(
-                { it.id == response.id },
-                { it.copy(value = response.value, version = response.version, description = response.description) }),
-            valueDescriptors = this.valueDescriptors.mapOn(
-                { it.id == response.id },
-                { it.copy(value = response.value, version = response.version, description = response.description) })
+            version = response.objectProperty.version,
+            rootValues = this.rootValues.map {
+                when {
+                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
+                    else -> it
+                }
+            },
+            valueDescriptors = this.valueDescriptors.map {
+                when {
+                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
+                    else -> it
+                }
+            }
         )
     }
 

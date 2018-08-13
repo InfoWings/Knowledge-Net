@@ -133,7 +133,7 @@ data class ObjectUpdateResponse(
 @Serializable
 data class PropertyCreateResponse(
     val id: String,
-    val objectId: String,
+    val obj: Reference,
     val name: String?,
     val description: String?,
     val version: Int
@@ -142,7 +142,7 @@ data class PropertyCreateResponse(
 @Serializable
 data class PropertyUpdateResponse(
     val id: String,
-    val objectId: String,
+    val obj: Reference,
     val name: String?,
     val description: String?,
     val version: Int
@@ -154,9 +154,9 @@ data class ValueCreateResponse(
     val value: ValueDTO,
     val description: String?,
     val measureId: String?,
-    val objectPropertyId: String,
+    val objectProperty: Reference,
     val aspectPropertyId: String?,
-    val parentValueId: String?,
+    val parentValue: Reference?,
     val version: Int
 )
 
@@ -166,8 +166,11 @@ data class ValueUpdateResponse(
     val value: ValueDTO,
     val description: String?,
     val measureId: String?,
-    val objectPropertyId: String,
+    val objectProperty: Reference,
     val aspectPropertyId: String?,
-    val parentValueId: String?,
+    val parentValue: Reference?,
     val version: Int
 )
+
+@Serializable
+data class Reference(val id: String, val version: Int)

@@ -179,7 +179,7 @@ class ObjectService(
 
         return PropertyCreateResponse(
             propertyCreateResult.id,
-            propertyCreateResult.objectId,
+            Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
             propertyCreateResult.name,
             propertyCreateResult.description,
             propertyCreateResult.version
@@ -205,7 +205,7 @@ class ObjectService(
 
         return PropertyUpdateResponse(
             propertyUpdateResult.id,
-            propertyUpdateResult.objectId,
+            Reference(propertyUpdateResult.objectId, propertyUpdateResult.objectVersion),
             propertyUpdateResult.name,
             propertyUpdateResult.description,
             propertyUpdateResult.version
@@ -241,9 +241,9 @@ class ObjectService(
             valueCreateResult.valueDto,
             valueCreateResult.description,
             valueCreateResult.measureId,
-            valueCreateResult.objectPropertyId,
+            Reference(valueCreateResult.objectPropertyId, valueCreateResult.objectPropertyVersion),
             valueCreateResult.aspectPropertyId,
-            valueCreateResult.parentValueId,
+            valueCreateResult.parentValueId?.let { id -> valueCreateResult.parentValueVersion?.let { version -> Reference(id, version) } },
             valueCreateResult.version
         )
     }
@@ -275,9 +275,9 @@ class ObjectService(
             valueUpdateResult.valueDto,
             valueUpdateResult.description,
             valueUpdateResult.measureId,
-            valueUpdateResult.objectPropertyId,
+            Reference(valueUpdateResult.objectPropertyId, valueUpdateResult.objectPropertyVersion),
             valueUpdateResult.aspectPropertyId,
-            valueUpdateResult.parentValueId,
+            valueUpdateResult.parentValueId?.let { id -> valueUpdateResult.parentValueVersion?.let { version -> Reference(id, version) } },
             valueUpdateResult.version
         )
     }

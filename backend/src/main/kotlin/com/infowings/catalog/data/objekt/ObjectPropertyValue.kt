@@ -122,11 +122,17 @@ class ValueResult(
     val objectPropertyId: String
         get() = objectProperty.id
 
+    val objectPropertyVersion: Int
+        get() = objectProperty.version
+
     val aspectPropertyId: String?
         get() = aspectProperty?.id
 
     val parentValueId: String?
         get() = parentValue?.id
+
+    val parentValueVersion: Int?
+        get() = parentValue?.version
 
     val version: Int
         get() = valueVertex.version

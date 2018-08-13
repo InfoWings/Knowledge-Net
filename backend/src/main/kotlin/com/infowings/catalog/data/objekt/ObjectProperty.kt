@@ -32,6 +32,9 @@ class PropertyCreateResult(private val propertyVertex: ObjectPropertyVertex, pri
     val objectId: String
         get() = objectVertex.id
 
+    val objectVersion: Int
+        get() = objectVertex.version
+
     val name: String?
         get() = propertyVertex.name
 
@@ -48,6 +51,9 @@ class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, pri
 
     val objectId: String
         get() = objectVertex.id
+
+    val objectVersion: Int
+        get() = objectVertex.version
 
     val name: String?
         get() = propertyVertex.name
