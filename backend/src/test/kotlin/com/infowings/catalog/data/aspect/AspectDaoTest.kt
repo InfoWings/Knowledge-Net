@@ -1,28 +1,26 @@
 package com.infowings.catalog.data.aspect
 
-import  com.infowings.catalog.MasterCatalog
-import com.infowings.catalog.common.*
+import com.infowings.catalog.MasterCatalog
+import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.BaseType.Decimal
 import com.infowings.catalog.common.BaseType.Text
+import com.infowings.catalog.common.Kilometre
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
 import com.orientechnologies.orient.core.id.ORecordId
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-
 class AspectDaoTest {
     private val username = "admin"
 
@@ -41,32 +39,6 @@ class AspectDaoTest {
     @Autowired
     lateinit var historyService: HistoryService
 
-    lateinit var complexAspect: AspectData
-    lateinit var baseAspect: AspectData
-
-    /**
-     * complexAspect
-     *     -> property
-     *             -> baseAspect
-     */
-    @Before
-    fun initTestData() {
-        val ad = AspectData("", "base", Kilometre.name, null, BaseType.Decimal.name, emptyList())
-        baseAspect = aspectService.save(ad, username)
-
-        val property = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-
-        val ad2 = AspectData(
-            "",
-            "complex",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property)
-        )
-        complexAspect = aspectService.save(ad2, username)
-    }
-
     @Test
     fun testFindAspectsByIdsOne() {
         val aspect =
@@ -80,7 +52,7 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsPlain() {
-        val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad = AspectData("", "testGetDetailsPlain-newAspect", Kilometre.name, null, Decimal.name, emptyList())
         val createdAspect: AspectData = aspectService.save(ad, username)
 
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(createdAspect.id)))
@@ -100,8 +72,8 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsPlainTwo() {
-        val ad1 = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
-        val ad2 = AspectData("", "newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
+        val ad1 = AspectData("", "testGetDetailsPlainTwo-newAspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad2 = AspectData("", "testGetDetailsPlainTwo-newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
         val created1: AspectData = aspectService.save(ad1, username)
         val created2: AspectData = aspectService.save(ad2, username)
 
@@ -131,8 +103,8 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsPlainOneOfTwo() {
-        val ad1 = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList())
-        val ad2 = AspectData("", "newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
+        val ad1 = AspectData("", "testGetDetailsPlainOneOfTwo-newAspect", Kilometre.name, null, Decimal.name, emptyList())
+        val ad2 = AspectData("", "testGetDetailsPlainOneOfTwo-newAspect-2", Kilometre.name, null, Decimal.name, emptyList())
         val created1: AspectData = aspectService.save(ad1, username)
         val created2: AspectData = aspectService.save(ad2, username)
 
@@ -154,10 +126,10 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsWithSubject() {
-        val sd = SubjectData(id = "", name = "subject", description = "subject description", deleted = false, version = 0)
+        val sd = SubjectData(id = "", name = "testGetDetailsWithSubject-subject", description = "subject description", deleted = false, version = 0)
         val subject = subjectService.createSubject(sd, "admin")
 
-        val ad = AspectData("", "newAspect", Kilometre.name, null, Decimal.name, emptyList(), 0, subject.toSubjectData())
+        val ad = AspectData("", "testGetDetailsWithSubject-newAspect", Kilometre.name, null, Decimal.name, emptyList(), 0, subject.toSubjectData())
         val createdAspect: AspectData = aspectService.save(ad, username)
 
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(createdAspect.id)))
@@ -174,7 +146,7 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsWithRefBook() {
-        val ad = AspectData("", "newAspect", null, null, Text.name, emptyList())
+        val ad = AspectData("", "testGetDetailsWithRefBook-newAspect", null, null, Text.name, emptyList())
         val createdAspect: AspectData = aspectService.save(ad, username)
         val aspectId = createdAspect.id ?: throw IllegalStateException("aspect without id")
         val refBook = refBookService.createReferenceBook("rb", aspectId, username)
@@ -192,6 +164,9 @@ class AspectDaoTest {
 
     @Test
     fun testGetDetailsWithProperty() {
+        val ad = AspectData("", "testGetDetailsWithProperty", Kilometre.name, null, BaseType.Decimal.name, emptyList())
+        val baseAspect = aspectService.save(ad, username)
+
         val baseId = baseAspect.id ?: throw IllegalStateException("base aspect has no id")
         val details: Map<String, AspectDaoDetails> = aspectDao.getDetails(listOf(ORecordId(baseId)))
 

@@ -1,11 +1,8 @@
 package com.infowings.catalog.data.measure
 
 import com.infowings.catalog.common.*
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.junit.jupiter.api.Test
 
-@RunWith(SpringJUnit4ClassRunner::class)
 class ElectricityIndicatorsConverterTest {
 
     @Test
@@ -45,8 +42,9 @@ class ElectricityIndicatorsConverterTest {
     private fun toWattTest(source: Double, sourceInWatt: Double, measure: Measure<DecimalNumber>) =
         measureTest(source, sourceInWatt, measure, PowerGroup.base)
 
-    private fun toVoltTest(source: Double, sourceInVolt: Double, measure: Measure<DecimalNumber>) = measureTest(source, sourceInVolt, measure, VoltageGroup.base)
+    private fun toVoltTest(source: Double, sourceInVolt: Double, measure: Measure<DecimalNumber>) =
+        measureTest(source, sourceInVolt, measure, VoltageGroup.base)
 
     private fun toJouleTest(source: Double, sourceInJoule: Double, measure: Measure<DecimalNumber>) =
-            measureTest(source, sourceInJoule, measure, WorkEnergyGroup.base)
+        measureTest(source, sourceInJoule, measure, WorkEnergyGroup.base)
 }

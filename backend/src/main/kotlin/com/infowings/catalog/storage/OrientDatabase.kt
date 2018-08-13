@@ -69,12 +69,16 @@ data class Versioned<out T>(val entity: T, val version: Int)
 
 /**
  * Main class for work with database
+ *
+ * @param testMode needed for workaround against Embedded Orient mode - it fails to shut down in after executing huge number of unit tests
+ * to reproduce issue set to false and run more than ~200 tests
  * */
 class OrientDatabase(
     url: String,
     val database: String,
     username: String,
     password: String,
+    val testMode: Boolean,
     userProperties: UserProperties
 ) {
     private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
@@ -179,7 +183,9 @@ class OrientDatabase(
     @PreDestroy
     fun cleanUp() {
         dbPool.get().entity.close()
-        orientDB.close()
+        // have no idea why it works, but after a lot of tests orient get stuck in some monitor in shutdown hook. removing close() fixes this.
+        // [testMode] is a guard property to properly close Orient in production mode
+        if (!testMode) orientDB.close()
     }
 
     /**

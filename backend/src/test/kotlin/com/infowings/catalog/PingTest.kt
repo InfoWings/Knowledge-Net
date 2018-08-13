@@ -11,18 +11,17 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.external.PingApi
 import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientEdge
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class PingTest {
     private val username = "admin"
 
@@ -40,10 +39,6 @@ class PingTest {
 
     @Autowired
     lateinit var refBookService: ReferenceBookService
-
-    @Before
-    fun initTestData() {
-    }
 
     @Test
     fun testPingEmpty() {
@@ -275,8 +270,19 @@ class PingTest {
     @Test
     fun testPingWithAspectProperty() {
         val aspect1 = aspectService.save(AspectData("", "name1", description = null, baseType = BaseType.Text.name), "admin")
-        val aspect2 = aspectService.save(AspectData("", "name2", description = null, baseType = BaseType.Text.name,
-            properties = listOf(AspectPropertyData.Initial(name = "prop", cardinality = PropertyCardinality.ONE.name, aspectId = aspect1.idStrict(), description = null))), "admin")
+        val aspect2 = aspectService.save(
+            AspectData(
+                "", "name2", description = null, baseType = BaseType.Text.name,
+                properties = listOf(
+                    AspectPropertyData.Initial(
+                        name = "prop",
+                        cardinality = PropertyCardinality.ONE.name,
+                        aspectId = aspect1.idStrict(),
+                        description = null
+                    )
+                )
+            ), "admin"
+        )
 
         val response = pingApi.ping()
 

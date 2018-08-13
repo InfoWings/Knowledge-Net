@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -15,23 +14,23 @@ import com.infowings.catalog.data.history.asString
 import com.infowings.catalog.data.history.providers.HISTORY_ENTITY_OBJECT
 import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.lang.Long
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
 class ObjectHistoryTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -63,22 +62,22 @@ class ObjectHistoryTest {
 
     private val username = "admin"
 
-    @Before
+    @BeforeEach
     fun initTestData() {
-        subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
-        rangeAspect = aspectService.save(AspectData(name = "rangeAspectName", description = "aspectDescr", baseType = BaseType.Range.name), username)
-        intAspect = aspectService.save(AspectData(name = "intAspectName", description = "aspectDescr", baseType = BaseType.Integer.name), username)
-        refAspect = aspectService.save(AspectData(name = "refAspectName", description = "aspectDescr", baseType = BaseType.Reference.name), username)
+        subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
+        aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
+        rangeAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Range.name), username)
+        intAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        refAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Reference.name), username)
 
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
-            "",
-            "complex",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property)
+            id = "",
+            name = randomName(),
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property)
         )
         complexAspect = aspectService.save(complexAspectData, username)
     }
@@ -235,7 +234,7 @@ class ObjectHistoryTest {
 
         // проверяем мета-данные
         assertEquals(username, state.event.username)
-        assertEquals(Long.max(propertyEvent.timestamp, objectEvent.timestamp), state.event.timestamp)
+        assertEquals(Math.max(propertyEvent.timestamp, objectEvent.timestamp), state.event.timestamp)
         assertEquals(EventType.UPDATE, state.event.type)
         assertEquals(HISTORY_ENTITY_OBJECT, state.event.entityClass)
         assertEquals(false, state.deleted)
@@ -410,18 +409,14 @@ class ObjectHistoryTest {
 
     private fun checkPropertyFacts(prepared: PreparedValueInfo, cardinalityUpdate: String? = PropertyCardinality.ONE.name) {
         val valueId = prepared.value.id
-        if (valueId != null) {
-            checkPropertyFacts(prepared.propertyFacts, prepared.propertyId, valueId, cardinalityUpdate)
-        } else {
-            fail("value id is null")
-        }
+        checkPropertyFacts(prepared.propertyFacts, prepared.propertyId, valueId, cardinalityUpdate)
     }
 
     @Test
     fun createValueNullHistoryTest() {
         val testName = "createValueNullHistoryTest"
 
-        val prepared = prepareValue(testName, "descr", ObjectValueData.NullValue, complexAspect.idStrict())
+        val prepared = prepareValue(testName, "createValueNullHistoryTest-descr", ObjectValueData.NullValue, complexAspect.idStrict())
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -478,7 +473,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -559,7 +554,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -640,7 +635,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -719,7 +714,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -804,7 +799,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -891,7 +886,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(childEvent.timestamp, prepared2.propertyFacts.first().event.timestamp),
+            Math.max(childEvent.timestamp, prepared2.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1007,7 +1002,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(childEvent.timestamp, prepared2.propertyFacts.first().event.timestamp),
+            Math.max(childEvent.timestamp, prepared2.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1096,7 +1091,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1187,7 +1182,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1280,7 +1275,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1379,7 +1374,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1490,7 +1485,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1609,7 +1604,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1715,7 +1710,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
@@ -1813,7 +1808,7 @@ class ObjectHistoryTest {
         // проверяем мета-данные
         assertEquals(username, state.event.username)
         assertEquals(
-            Long.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
+            Math.max(valueEvent.timestamp, prepared.propertyFacts.first().event.timestamp),
             state.event.timestamp
         )
         assertEquals(EventType.UPDATE, state.event.type)
