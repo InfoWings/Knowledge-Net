@@ -91,17 +91,23 @@ data class ValueCreateRequestDTO(
     )
 }
 
-data class ValueUpdateRequest(val valueId: String, val value: ObjectValueData, val description: String?) {
-    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), description)
+data class ValueUpdateRequest(
+    val valueId: String,
+    val value: ObjectValueData,
+    val description: String?,
+    val version: Int
+) {
+    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), description, version)
 }
 
 @Serializable
 data class ValueUpdateRequestDTO(
     val valueId: String,
     val value: ValueDTO,
-    val description: String?
+    val description: String?,
+    val version: Int
 ) {
-    fun toRequest() = ValueUpdateRequest(value = value.toData(), valueId = valueId, description = description)
+    fun toRequest() = ValueUpdateRequest(valueId, value.toData(), description, version)
 }
 
 @Serializable
@@ -110,6 +116,7 @@ data class ObjectCreateResponse(
     val name: String,
     val description: String?,
     val subjectId: String,
+    val subjectName: String,
     val version: Int
 )
 
@@ -119,6 +126,7 @@ data class ObjectUpdateResponse(
     val name: String,
     val description: String?,
     val subjectId: String,
+    val subjectName: String,
     val version: Int
 )
 

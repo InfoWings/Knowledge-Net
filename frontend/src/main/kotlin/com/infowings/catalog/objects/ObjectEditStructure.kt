@@ -5,19 +5,19 @@ import com.infowings.catalog.objects.edit.SubjectTruncated
 
 data class ObjectEditViewModel(
     val id: String,
+    val version: Int,
     var name: String,
     var subject: SubjectTruncated,
     var description: String?,
-    val version: Int,
     var properties: MutableList<ObjectPropertyEditModel>,
     var expanded: Boolean = true
 ) {
     constructor(response: ObjectEditDetailsResponse) : this(
         response.id,
+        response.version,
         response.name,
         SubjectTruncated(response.subjectId, response.subjectName),
         response.description,
-        response.version,
         response.properties.map(::ObjectPropertyEditModel).toMutableList()
     )
 
@@ -31,24 +31,25 @@ data class ObjectEditViewModel(
 
 data class ObjectPropertyEditModel(
     val id: String? = null,
+    var version: Int? = null,
     var name: String? = null,
     var description: String? = null,
     var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
-    val version: Int,
     var expanded: Boolean = false
 ) {
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
         response.id,
+        response.version,
         response.name,
         response.description,
         response.aspectDescriptor,
-        response.rootValues.toTreeView(response.valueDescriptors),
-        response.version
+        response.rootValues.toTreeView(response.valueDescriptors)
     )
 
     fun mergeWith(response: ObjectPropertyEditDetailsResponse): ObjectPropertyEditModel {
         name = response.name
+        version = response.version
         description = response.description
         aspect = response.aspectDescriptor
         values = if (values == null && response.rootValues.isNotEmpty()) {
@@ -78,6 +79,7 @@ fun List<ValueTruncated>.toTreeView(values: List<ValueTruncated>): MutableList<O
 
 data class ObjectPropertyValueEditModel(
     val id: String? = null,
+    var version: Int? = null,
     var value: ObjectValueData? = null,
     var description: String? = null,
     var expanded: Boolean = false,
@@ -86,6 +88,7 @@ data class ObjectPropertyValueEditModel(
 
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
+        version = value.version,
         value = value.value.toData(),
         description = value.description,
         valueGroups = value.childrenIds
@@ -113,6 +116,7 @@ data class ObjectPropertyValueEditModel(
 
     fun mergeWith(value: ValueTruncated, valueMap: Map<String, ValueTruncated>): ObjectPropertyValueEditModel {
         this.value = value.value.toData()
+        this.version = value.version
         val existingValuesMap = this.valueGroups.flatMap { it.values }.associateBy { it.id }
         valueGroups = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
@@ -157,6 +161,7 @@ data class AspectPropertyValueGroupEditModel(
 
 data class AspectPropertyValueEditModel(
     val id: String? = null,
+    var version: Int? = null,
     var value: ObjectValueData? = null,
     var description: String? = null,
     var expanded: Boolean = false,
@@ -164,6 +169,7 @@ data class AspectPropertyValueEditModel(
 ) {
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
+        version = value.version,
         value = value.value.toData(),
         description = value.description,
         children = value.childrenIds
@@ -195,6 +201,7 @@ fun AspectPropertyValueEditModel?.mergeWith(value: ValueTruncated, valueMap: Map
         AspectPropertyValueEditModel(value, valueMap)
     else {
         this.value = value.value.toData()
+        this.version = value.version
         val existingValuesMap = this.children.flatMap { it.values }.associateBy { it.id }
         this.children = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }

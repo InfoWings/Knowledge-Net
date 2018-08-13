@@ -101,6 +101,12 @@ class MainObjectValidator(
         val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findByIdStrict(request.subjectId)
         val newSubjectId = newSubjectVertex.identity
 
+        //check version (Maybe retry if supplied version is bigger than existing)
+        val incorrectVersion = objectVertex.version != request.version
+        if (incorrectVersion) {
+            throw ObjectConcurrentEditException(objectVertex.id, objectVertex.name, objectVertex.subject?.name)
+        }
+
         //check business key
         val existsAnotherObjectSameName = objectDaoService.getObjectVertexesByNameAndSubject(request.name, newSubjectId).any {
             it.id != request.id
@@ -120,7 +126,7 @@ class MainObjectValidator(
             throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, aspectVertex.id)
         }
 
-        //check business key
+        // check business key
         if (objectDaoService.getPropertyVertexesByNameAndAspect(request.name, objectVertex.identity, ORecordId(request.aspectId)).isNotEmpty()) {
             throw ObjectPropertyAlreadyExistException(request.name, objectVertex.id, request.aspectId)
         }
@@ -137,6 +143,12 @@ class MainObjectValidator(
         val objectVertex = propertyVertex.objekt ?: throw IllegalStateException("Object property must be linked with object")
         val aspectVertex = propertyVertex.aspect ?: throw IllegalStateException("Object property must be linked with aspect")
         val aspectId = aspectVertex.identity
+
+        // check version (Maybe retry if supplied version is bigger than existing)
+        val incorrectVersion = propertyVertex.version != request.version
+        if (incorrectVersion) {
+            throw ObjectPropertyConcurrentEditException(propertyVertex.id, propertyVertex.name)
+        }
 
         // check business key
         val existsAnotherPropertySameName = objectDaoService.getPropertyVertexesByNameAndAspect(request.name, objectVertex.identity, aspectId).any {
@@ -192,6 +204,10 @@ class MainObjectValidator(
 
         val objectPropertyVertex = objectService.findPropertyById(objPropertyVertex.id)
         val aspectPropertyVertex = valueVertex.aspectProperty
+
+        if (valueVertex.version != request.version) {
+            throw ObjectPropertyValueConcurrentModificationException(valueVertex.id)
+        }
 
         if (aspectPropertyVertex == null && valueVertex.parentValue != null) {
             throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked Aspect")

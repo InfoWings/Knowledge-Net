@@ -68,6 +68,7 @@ fun RBuilder.objectPropertiesEditList(
                                     currentValues == null -> {
                                         this.values = mutableListOf(ObjectPropertyValueEditModel(
                                             null,
+                                            null,
                                             ObjectValueData.NullValue,
                                             null,
                                             false,
@@ -77,6 +78,7 @@ fun RBuilder.objectPropertiesEditList(
                                     currentValues.isEmpty() -> {
                                         currentValues.add(
                                             ObjectPropertyValueEditModel(
+                                                null,
                                                 null,
                                                 ObjectValueData.NullValue,
                                                 null,
@@ -143,9 +145,9 @@ fun RBuilder.objectPropertiesEditList(
                                 {
                                     editModel.updateValue(
                                         value.id,
-                                        propertyId,
                                         value.value ?: error("Value should not be null"),
-                                        value.description
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) should have non null version")
                                     )
                                     editContext.setContext(null)
                                 }
@@ -161,6 +163,7 @@ fun RBuilder.objectPropertiesEditList(
                                     updater(propertyIndex) {
                                         values?.add(
                                             ObjectPropertyValueEditModel(
+                                                null,
                                                 null,
                                                 property.aspect?.defaultValue(),
                                                 null,
@@ -220,7 +223,12 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.updateValue(value.id, propertyId, ObjectValueData.NullValue, value.description)
+                                    editModel.updateValue(
+                                        value.id,
+                                        ObjectValueData.NullValue,
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) should have non null id")
+                                    )
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {

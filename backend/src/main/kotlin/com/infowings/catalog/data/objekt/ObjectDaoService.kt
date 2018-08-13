@@ -238,6 +238,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 ScalarTypeTag.REF_BOOK_ITEM -> {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
                 }
+                ScalarTypeTag.NULL -> {
+                }
             }
 
             vertex.typeTag = newTypeTag
@@ -406,6 +408,12 @@ class ObjectAlreadyExists(name: String) : ObjectException("object with name $nam
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
+
+class ObjectConcurrentEditException(id: String, name: String, subjectName: String?) :
+    ObjectException("Object $name ($subjectName) with id = $id is already modified")
+
+class ObjectPropertyConcurrentEditException(id: String, name: String?) : ObjectException("Object property $name with id = $id is already modified")
+class ObjectPropertyValueConcurrentModificationException(id: String) : ObjectException("Object property value with id = $id is already modified")
 
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")

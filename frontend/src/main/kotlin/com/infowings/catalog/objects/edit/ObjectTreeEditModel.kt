@@ -24,7 +24,7 @@ interface ObjectTreeEditModel {
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
     fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
-    fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?)
+    fun updateValue(valueId: String, value: ObjectValueData, description: String?, version: Int)
     fun deleteValue(valueId: String, propertyId: String)
 }
 
@@ -61,7 +61,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     state.viewModel.name,
                     state.viewModel.description,
                     state.viewModel.subject.id,
-                    null
+                    state.viewModel.version
                 ),
                 state.viewModel.subject.name
             )
@@ -91,7 +91,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 PropertyUpdateRequest(
                     propertyEditModel.id ?: error("Property should have id in order to be updated"),
                     propertyEditModel.name,
-                    propertyEditModel.description
+                    propertyEditModel.description,
+                    propertyEditModel.version ?: error("Property should have version in order to be updated")
                 )
             )
         }
@@ -107,7 +108,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
             props.apiModel.submitObjectValue(
                 ValueCreateRequest(
                     value = value,
-                    description = null,
+                    description = description,
                     objectPropertyId = objectPropertyId,
                     measureId = null,
                     aspectPropertyId = aspectPropertyId,
@@ -117,14 +118,14 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun updateValue(valueId: String, propertyId: String, value: ObjectValueData, description: String?) {
+    override fun updateValue(valueId: String, value: ObjectValueData, description: String?, version: Int) {
         launch {
             props.apiModel.editObjectValue(
-                propertyId,
                 ValueUpdateRequest(
                     valueId = valueId,
                     value = value,
-                    description = null
+                    description = description,
+                    version = version
                 )
             )
         }

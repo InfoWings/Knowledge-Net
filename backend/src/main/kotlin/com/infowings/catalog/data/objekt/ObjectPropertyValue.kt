@@ -3,10 +3,12 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.ValueDTO
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
+import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OVertex
@@ -102,3 +104,30 @@ data class ObjectPropertyValue(
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
 )
+
+class ValueResult(
+    private val valueVertex: ObjectPropertyValueVertex,
+    val valueDto: ValueDTO,
+    val measureId: String?,
+    private val objectProperty: ObjectPropertyVertex,
+    private val aspectProperty: AspectPropertyVertex?,
+    private val parentValue: ObjectPropertyValueVertex?
+) {
+    val id: String
+        get() = valueVertex.id
+
+    val description: String?
+        get() = valueVertex.description
+
+    val objectPropertyId: String
+        get() = objectProperty.id
+
+    val aspectPropertyId: String?
+        get() = aspectProperty?.id
+
+    val parentValueId: String?
+        get() = parentValue?.id
+
+    val version: Int
+        get() = valueVertex.version
+}

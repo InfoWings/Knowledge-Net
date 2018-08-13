@@ -3,6 +3,8 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.storage.description
+import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -22,6 +24,40 @@ data class ObjectProperty(
     val aspect: AspectVertex,
     val values: List<ObjectPropertyValueVertex>
 )
+
+class PropertyCreateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+    val id: String
+        get() = propertyVertex.id
+
+    val objectId: String
+        get() = objectVertex.id
+
+    val name: String?
+        get() = propertyVertex.name
+
+    val description: String?
+        get() = propertyVertex.description
+
+    val version: Int
+        get() = propertyVertex.version
+}
+
+class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+    val id: String
+        get() = propertyVertex.id
+
+    val objectId: String
+        get() = objectVertex.id
+
+    val name: String?
+        get() = propertyVertex.name
+
+    val description: String?
+        get() = propertyVertex.description
+
+    val version: Int
+        get() = propertyVertex.version
+}
 
 data class PropertyWriteInfo(
     val name: String?,

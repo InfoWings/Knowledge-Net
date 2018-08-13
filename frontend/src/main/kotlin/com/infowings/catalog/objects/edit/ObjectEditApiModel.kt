@@ -1,7 +1,9 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.aspects.getAspectTree
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.ObjectPropertyEditDetailsResponse
+import com.infowings.catalog.common.ValueTruncated
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ServerException
@@ -17,7 +19,7 @@ interface ObjectEditApiModel {
     suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
     suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
-    suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest)
+    suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest)
     suspend fun deleteObject(force: Boolean = false)
     suspend fun deleteObjectProperty(id: String, force: Boolean = false)
     suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean = false)
@@ -42,14 +44,15 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String) {
         try {
-            updateObject(objectUpdateRequest) // TODO: trim everything?
+            val updateResponse = updateObject(objectUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    name = objectUpdateRequest.name,
-                    subjectId = objectUpdateRequest.subjectId,
-                    subjectName = subjectName,
-                    description = objectUpdateRequest.description
+                    name = updateResponse.name,
+                    subjectId = updateResponse.subjectId,
+                    subjectName = updateResponse.subjectName,
+                    description = updateResponse.description,
+                    version = updateResponse.version
                 )
                 lastApiError = null
             }
@@ -85,9 +88,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
                         createPropertyResponse.id,
-                        propertyCreateRequest.name,
-                        propertyCreateRequest.description,
-                        0, // TODO: Real new version
+                        createPropertyResponse.name,
+                        createPropertyResponse.description,
+                        createPropertyResponse.version,
                         emptyList(),
                         emptyList(),
                         treeAspectResponse
@@ -110,7 +113,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
                         { it.id == editPropertyResponse.id },
-                        { it.copy(name = propertyUpdateRequest.name, description = propertyUpdateRequest.description) }
+                        { it.copy(name = editPropertyResponse.name, description = editPropertyResponse.description, version = editPropertyResponse.version) }
                     )
                 )
                 lastApiError = null
@@ -146,8 +149,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == valueCreateRequest.objectPropertyId },
-                        { it.addValue(valueCreateRequest, valueCreateResponse) })
+                        { it.id == valueCreateResponse.objectPropertyId },
+                        { it.addValue(valueCreateResponse) })
                 )
                 lastApiError = null
             }
@@ -158,15 +161,15 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest) {
+    override suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {
         try {
             val valueEditResponse = updateValue(valueUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == propertyId },
-                        { it.editValue(valueEditResponse.id, valueUpdateRequest.value, valueUpdateRequest.description) })
+                        { it.id == valueEditResponse.objectPropertyId },
+                        { it.editValue(valueEditResponse) })
                 )
                 lastApiError = null
             }
@@ -194,21 +197,22 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.addValue(request: ValueCreateRequest, response: ValueCreateResponse): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.addValue(response: ValueCreateResponse): ObjectPropertyEditDetailsResponse {
         val valueDescriptor = ValueTruncated(
             id = response.id,
-            value = request.value.toDTO(),
-            description = request.description,
-            propertyId = request.aspectPropertyId,
+            value = response.value,
+            description = response.description,
+            propertyId = response.aspectPropertyId,
+            version = response.version,
             childrenIds = emptyList()
         )
-        return if (request.aspectPropertyId == null) {
+        return if (response.aspectPropertyId == null) {
             this.copy(
                 rootValues = this.rootValues + valueDescriptor,
                 valueDescriptors = this.valueDescriptors + valueDescriptor
             )
         } else {
-            val parentValueId = request.parentValueId ?: error("Parent value should be null when aspectPropertyId is not null")
+            val parentValueId = response.parentValueId ?: error("Parent value should be null when aspectPropertyId is not null")
             val parentDescriptor = valueDescriptors.find { it.id == parentValueId } ?: error("Value descriptors should contain parent value")
             val newParentDescriptor = parentDescriptor.copy(childrenIds = parentDescriptor.childrenIds + response.id)
 
@@ -228,10 +232,14 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.editValue(valueId: String, value: ObjectValueData, description: String?): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.editValue(response: ValueUpdateResponse): ObjectPropertyEditDetailsResponse {
         return this.copy(
-            rootValues = this.rootValues.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) }),
-            valueDescriptors = this.valueDescriptors.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) })
+            rootValues = this.rootValues.mapOn(
+                { it.id == response.id },
+                { it.copy(value = response.value, version = response.version, description = response.description) }),
+            valueDescriptors = this.valueDescriptors.mapOn(
+                { it.id == response.id },
+                { it.copy(value = response.value, version = response.version, description = response.description) })
         )
     }
 

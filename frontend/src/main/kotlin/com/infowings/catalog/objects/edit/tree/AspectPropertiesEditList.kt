@@ -84,7 +84,12 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit"), value.description)
+                                    editModel.updateValue(
+                                        value.id,
+                                        value.value ?: error("No value to submit"),
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                    )
                                     editContext.setContext(null)
                                 }
                             }
@@ -147,7 +152,12 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue, value.description)
+                                    editModel.updateValue(
+                                        value.id,
+                                        ObjectValueData.NullValue,
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                    )
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
