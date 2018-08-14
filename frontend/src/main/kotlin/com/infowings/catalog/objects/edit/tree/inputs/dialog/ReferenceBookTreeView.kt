@@ -6,9 +6,9 @@ import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.span
 
-class ReferenceBookItemListView : RComponent<ReferenceBookItemListView.Props, RState>() {
-    override fun RBuilder.render() {
-        props.referenceBookItemList.forEachIndexed { index, referenceBookItem ->
+val referenceBookListView = rFunction<ReferenceBookItemListViewProps>("ReferenceBookListView") { props ->
+    props.referenceBookItemList.forEachIndexed { index, referenceBookItem ->
+        if (!referenceBookItem.deleted) {
             child(ReferenceBookTreeView::class) {
                 attrs {
                     referenceBookTreeViewModel = referenceBookItem
@@ -22,17 +22,14 @@ class ReferenceBookItemListView : RComponent<ReferenceBookItemListView.Props, RS
             }
         }
     }
-
-    interface Props : RProps {
-        var referenceBookItemList: List<ReferenceBookItemViewModel>
-        var selectedPath: List<RefBookNodeDescriptor>?
-        var onUpdate: (Int, ReferenceBookItemViewModel.() -> Unit) -> Unit
-        var onSelect: (itemId: String) -> Unit
-    }
 }
 
-fun RBuilder.referenceBookListView(handler: RHandler<ReferenceBookItemListView.Props>) =
-    child(ReferenceBookItemListView::class, handler)
+interface ReferenceBookItemListViewProps : RProps {
+    var referenceBookItemList: List<ReferenceBookItemViewModel>
+    var selectedPath: List<RefBookNodeDescriptor>?
+    var onUpdate: (Int, ReferenceBookItemViewModel.() -> Unit) -> Unit
+    var onSelect: (itemId: String) -> Unit
+}
 
 class ReferenceBookTreeView : RComponent<ReferenceBookTreeView.Props, RState>() {
 
@@ -59,7 +56,7 @@ class ReferenceBookTreeView : RComponent<ReferenceBookTreeView.Props, RState>() 
                 }!!
             }
             if (props.referenceBookTreeViewModel.children.isNotEmpty()) {
-                child(ReferenceBookItemListView::class) {
+                referenceBookListView {
                     attrs {
                         referenceBookItemList = props.referenceBookTreeViewModel.children
                         selectedPath = props.selectedPath?.drop(1)

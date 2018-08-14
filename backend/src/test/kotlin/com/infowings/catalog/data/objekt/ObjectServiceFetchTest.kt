@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -9,16 +8,16 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ObjectServiceFetchTest {
     @Autowired
@@ -33,7 +32,7 @@ class ObjectServiceFetchTest {
     private val username = "admin"
     private var detailedObjectId: String? = null
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         val knetSubject = subjectService.createSubject(SubjectData(name = "Knowledge Net", description = null), username)
         val reflexiaSubject = subjectService.createSubject(SubjectData(name = "Reflexia", description = null), username)

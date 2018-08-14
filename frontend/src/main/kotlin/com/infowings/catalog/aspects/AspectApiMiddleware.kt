@@ -10,6 +10,7 @@ import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -73,7 +74,11 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private fun fetchAspects(updateContext: Boolean = false, refreshOperation: Boolean = false) {
         launch {
             try {
-                val response = getAllAspects(state.orderBy, state.searchQuery)
+                val response = async { getAllAspects(state.orderBy, state.searchQuery) }.await()
+                //
+                val response2 = getAllAspects(state.orderBy, state.searchQuery)
+                val response3 = getAllAspects(state.orderBy, state.searchQuery)
+                val response4 = getAllAspects(state.orderBy, state.searchQuery)
                 setState {
                     data = response.aspects
                     if (updateContext) {

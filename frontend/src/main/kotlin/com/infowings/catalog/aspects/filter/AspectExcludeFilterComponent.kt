@@ -15,7 +15,7 @@ private interface AspectOption : SelectOption {
 
 private fun aspectOption(aspectData: AspectData) = jsObject<AspectOption> {
     this.aspectLabel =
-            "${aspectData.name ?: error("aspectData should have name")} (${aspectData.subject?.name ?: "Global"})"
+            "${aspectData.name} (${aspectData.subject?.name ?: "Global"})"
     this.aspectData = aspectData
 }
 

@@ -1,26 +1,24 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.OVertex
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.Is
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import io.kotlintest.matchers.collections.shouldNotContain
+import io.kotlintest.shouldBe
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class SearchWithRemovedTest {
     private val username = "admin"
 
@@ -40,13 +38,13 @@ class SearchWithRemovedTest {
 
     private lateinit var parentAspect: AspectData
 
-    @Before
+    @BeforeEach
     fun saveAspectAndRemoveIt() {
-        val ad = AspectData(null, "aspect1", Metre.name, null, null)
+        val ad = AspectData(null, randomName(), Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
 
         val p1 = AspectPropertyData("", "", initialAspect.idStrict(), PropertyCardinality.ONE.name, null)
-        val ad2 = AspectData(null, "aspect2", Tonne.name, null, null, listOf(p1))
+        val ad2 = AspectData(null, randomName(), Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2, username)
 
         session(database) {
@@ -57,44 +55,25 @@ class SearchWithRemovedTest {
     }
 
     @Test
-    fun testSearchDeletedAspect() {
-        val byText =
-            suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = initialAspect.name), null)
-
-        assertThat(
-            "Search by text result not contain aspect ${initialAspect.name}",
-            byText[0].name,
-            Is.`is`(parentAspect.name)
-        )
-
-        val byMeasureName =
-            suggestionService.findAspect(SearchContext(), null, AspectSuggestionParam(measureName = Metre.name))
-
-        assertThat(
-            "Search by measure name must not contain aspect ${initialAspect.name}",
-            byMeasureName.map { it.name }.contains(initialAspect.name),
-            Is.`is`(false)
-        )
-
-        val byMeasureText =
-            suggestionService.findAspect(SearchContext(), null, AspectSuggestionParam(measureText = Metre.name))
-
-        assertThat(
-            "Search by measure text must not contain aspect ${initialAspect.name}",
-            byMeasureText.isEmpty(),
-            Is.`is`(true)
-        )
+    fun `Search by text result must not contain deleted aspect`() {
+        val byText = suggestionService.findAspect(SearchContext(), CommonSuggestionParam(text = initialAspect.name), null)
+        byText.map { it.name }.shouldNotContain(initialAspect.name)
     }
 
     @Test
-    fun testFindAsParent() {
+    fun `Search by measure text must not contain aspect`() {
+        val byMeasureText = suggestionService.findAspect(SearchContext(), null, AspectSuggestionParam(measureText = Metre.name))
+        byMeasureText.map { it.name }.shouldNotContain(initialAspect.name)
+    }
 
-        val searched = aspectDaoService.findParentAspects(initialAspect.idStrict())
+    @Test
+    fun `Search by measure name must not contain deleted aspect`() {
+        val byMeasureName = suggestionService.findAspect(SearchContext(), null, AspectSuggestionParam(measureName = Metre.name))
+        byMeasureName.map { it.name }.shouldNotContain(initialAspect.name)
+    }
 
-        assertThat(
-            "Search parents must contain aspect and his parent",
-            searched.size,
-            Is.`is`(2)
-        )
+    @Test
+    fun `Search parents must contain aspect and his parent`() {
+        aspectDaoService.findParentAspects(initialAspect.idStrict()).size shouldBe 2
     }
 }

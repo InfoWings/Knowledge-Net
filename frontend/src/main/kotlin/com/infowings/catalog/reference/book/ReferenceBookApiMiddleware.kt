@@ -50,7 +50,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 .map {
                     val aspectId = it.id ?: ""
                     val book = if (it.id != null) aspectIdToBookMap[aspectId] else null
-                    RowData(aspectId, it.name ?: "", book)
+                    RowData(aspectId, it.name, book)
                 }
 
             setState {
