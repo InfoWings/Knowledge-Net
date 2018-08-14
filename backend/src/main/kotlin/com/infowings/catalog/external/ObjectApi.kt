@@ -94,10 +94,10 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @DeleteMapping("property/{id}")
-    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal): PropertyDeleteResponse {
         val username = principal.name
         logger.debug("Object property delete request: $id by $username")
-        if (force) {
+        return if (force) {
             objectService.softDeleteProperty(id, username)
         } else {
             objectService.deleteProperty(id, username)

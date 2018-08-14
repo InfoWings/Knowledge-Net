@@ -129,11 +129,12 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     override suspend fun deleteObjectProperty(id: String, force: Boolean) {
         try {
-            deleteProperty(id, force)
+            val propertyDeleteResponse = deleteProperty(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.filterNot { it.id == id }
+                    version = propertyDeleteResponse.obj.version,
+                    properties = editedObject.properties.filterNot { it.id == propertyDeleteResponse.id }
                 )
                 lastApiError = null
             }
@@ -260,30 +261,30 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     private fun ObjectPropertyEditDetailsResponse.deleteValues(valueDeleteResponse: ValueDeleteResponse, valueId: String): ObjectPropertyEditDetailsResponse {
         return this.copy(
             version = valueDeleteResponse.objectProperty.version,
-            rootValues = this.rootValues.asSequence().map { rootValue ->
-                when {
-                    rootValue.id == valueDeleteResponse.parentValue?.id ->
-                        rootValue.copy(
-                            version = valueDeleteResponse.parentValue.version,
-                            childrenIds = rootValue.childrenIds.asSequence().map { if (it == valueId) null else it }.filterNotNull().toList()
-                        )
-                    valueDeleteResponse.deletedValues.contains(rootValue.id) -> null
-                    valueDeleteResponse.markedValues.contains(rootValue.id) -> null
-                    else -> rootValue
-                }
-            }.filterNotNull().toList(),
-            valueDescriptors = this.valueDescriptors.asSequence().map { value ->
-                when {
-                    value.id == valueDeleteResponse.parentValue?.id ->
-                        value.copy(
-                            version = valueDeleteResponse.parentValue.version,
-                            childrenIds = value.childrenIds.asSequence().map { if (it == valueId) null else it }.filterNotNull().toList()
-                        )
-                    valueDeleteResponse.deletedValues.contains(value.id) -> null
-                    valueDeleteResponse.markedValues.contains(value.id) -> null
-                    else -> value
-                }
-            }.filterNotNull().toList()
+            rootValues = this.rootValues.asSequence()
+                .filterNot { valueDeleteResponse.deletedValues.contains(it.id) || valueDeleteResponse.markedValues.contains(it.id) }
+                .map { rootValue ->
+                    when {
+                        rootValue.id == valueDeleteResponse.parentValue?.id ->
+                            rootValue.copy(
+                                version = valueDeleteResponse.parentValue.version,
+                                childrenIds = rootValue.childrenIds.filterNot { it == valueId }
+                            )
+                        else -> rootValue
+                    }
+                }.filterNotNull().toList(),
+            valueDescriptors = this.valueDescriptors.asSequence()
+                .filterNot { valueDeleteResponse.deletedValues.contains(it.id) || valueDeleteResponse.markedValues.contains(it.id) }
+                .map { value ->
+                    when {
+                        value.id == valueDeleteResponse.parentValue?.id ->
+                            value.copy(
+                                version = valueDeleteResponse.parentValue.version,
+                                childrenIds = value.childrenIds.filterNot { it == valueId }
+                            )
+                        else -> value
+                    }
+                }.toList()
         )
     }
 

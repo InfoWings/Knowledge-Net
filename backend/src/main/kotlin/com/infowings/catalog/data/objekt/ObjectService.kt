@@ -389,10 +389,10 @@ class ObjectService(
         val historyContext: HistoryContext
     )
 
-    private fun deleteProperty(id: String, username: String, deleteOp: (DeletePropertyContext) -> Unit) {
+    private fun deleteProperty(id: String, username: String, deleteOp: (DeletePropertyContext) -> PropertyDeleteResult): PropertyDeleteResult {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
-        transaction(db) {
+        return transaction(db) {
             val propVertex = findPropertyById(id)
             val values = dao.valuesOfProperty(id)
 
@@ -407,13 +407,11 @@ class ObjectService(
                     valueBlockers = valueBlockers, historyContext = context
                 )
             )
-
-            return@transaction
         }
     }
 
-    fun deleteProperty(id: String, username: String) {
-        fun removeOrThrow(context: DeletePropertyContext) {
+    fun deleteProperty(id: String, username: String): PropertyDeleteResponse {
+        val propertyDeleteResult = deleteProperty(id, username) { context ->
             if (context.valueBlockers.isNotEmpty() || context.propIsLinked) {
                 throw ObjectPropertyIsLinkedException(
                     context.valueBlockers.map { it.toString() }.toList(),
@@ -421,19 +419,29 @@ class ObjectService(
                 )
             }
 
+            val ownerObject = context.propVertex.objekt ?: throw IllegalStateException("Object property does not have a reference to owner object")
+
             context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
             historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
 
             dao.deleteAll(context.values.toList().plus(context.propVertex))
 
+            PropertyDeleteResult(context.propVertex, ownerObject)
         }
 
-        deleteProperty(id, username, ::removeOrThrow)
+        return PropertyDeleteResponse(
+            propertyDeleteResult.id,
+            Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
+            propertyDeleteResult.name,
+            propertyDeleteResult.description,
+            propertyDeleteResult.version
+        )
     }
 
-    fun softDeleteProperty(id: String, username: String) {
-        fun removeOrMark(context: DeletePropertyContext) {
+    fun softDeleteProperty(id: String, username: String): PropertyDeleteResponse {
+        val propertyDeleteResult = deleteProperty(id, username) { context ->
             val rootValues = context.values.filter { it.parentValue == null }
+            val ownerObject = context.propVertex.objekt ?: throw IllegalStateException("Object property does not have a reference to owner object")
 
             val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map {it.identity}.toSet())
 
@@ -451,9 +459,17 @@ class ObjectService(
             }
 
             dao.deleteAll(valuesToDelete.toList())
+
+            PropertyDeleteResult(context.propVertex, ownerObject)
         }
 
-        deleteProperty(id, username, ::removeOrMark)
+        return PropertyDeleteResponse(
+            propertyDeleteResult.id,
+            Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
+            propertyDeleteResult.name,
+            propertyDeleteResult.description,
+            propertyDeleteResult.version
+        )
     }
 
     private data class DeleteObjectContext(

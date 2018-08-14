@@ -38,9 +38,8 @@ suspend fun deleteObject(id: String, force: Boolean) {
     delete("/api/objects/object/${encodeURIComponent(id)}?force=$force")
 }
 
-suspend fun deleteProperty(id: String, force: Boolean) {
-    delete("/api/objects/property/${encodeURIComponent(id)}?force=$force")
-}
+suspend fun deleteProperty(id: String, force: Boolean): PropertyDeleteResponse =
+    JSON.parse(delete("/api/objects/property/${encodeURIComponent(id)}?force=$force"))
 
 suspend fun deleteValue(id: String, force: Boolean): ValueDeleteResponse =
     JSON.parse(delete("/api/objects/value/${encodeURIComponent(id)}?force=$force"))

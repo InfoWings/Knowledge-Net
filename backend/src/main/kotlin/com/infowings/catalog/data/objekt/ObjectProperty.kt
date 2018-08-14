@@ -65,6 +65,26 @@ class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, pri
         get() = propertyVertex.version
 }
 
+class PropertyDeleteResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+    val id: String
+        get() = propertyVertex.id
+
+    val objectId: String
+        get() = objectVertex.id
+
+    val objectVersion: Int
+        get() = objectVertex.version
+
+    val name: String?
+        get() = propertyVertex.name
+
+    val description: String?
+        get() = propertyVertex.description
+
+    val version: Int
+        get() = propertyVertex.version
+}
+
 data class PropertyWriteInfo(
     val name: String?,
     val description: String?,
