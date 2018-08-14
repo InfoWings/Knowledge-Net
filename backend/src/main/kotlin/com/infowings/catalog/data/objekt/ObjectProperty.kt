@@ -25,7 +25,11 @@ data class ObjectProperty(
     val values: List<ObjectPropertyValueVertex>
 )
 
-class PropertyCreateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+class PropertyCreateResult(
+    private val propertyVertex: ObjectPropertyVertex,
+    private val objectVertex: ObjectVertex,
+    private val rootValueVertex: ObjectPropertyValueVertex
+) {
     val id: String
         get() = propertyVertex.id
 
@@ -34,6 +38,12 @@ class PropertyCreateResult(private val propertyVertex: ObjectPropertyVertex, pri
 
     val objectVersion: Int
         get() = objectVertex.version
+
+    val rootValueId: String
+        get() = rootValueVertex.id
+
+    val rootValueVersion: Int
+        get() = rootValueVertex.version
 
     val name: String?
         get() = propertyVertex.name

@@ -144,6 +144,7 @@ data class ObjectDeleteResponse(
 data class PropertyCreateResponse(
     val id: String,
     val obj: Reference,
+    val rootValue: Reference,
     val name: String?,
     val description: String?,
     val version: Int

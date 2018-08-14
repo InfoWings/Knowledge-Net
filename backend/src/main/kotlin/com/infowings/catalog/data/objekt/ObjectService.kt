@@ -168,18 +168,36 @@ class ObjectService(
             val propertyInfo = validator.checkedForCreation(request)
 
             val objectBefore = propertyInfo.objekt.currentSnapshot()
-
             val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(dao.newObjectPropertyVertex(), propertyInfo, emptyList())
 
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 
-            PropertyCreateResult(propertyVertex, propertyVertex.objekt ?: throw IllegalStateException("Object property was created without object"))
+            val propertyBefore = propertyVertex.currentSnapshot()
+            val rootValueWriteInfo = ValueWriteInfo(
+                value = ObjectValue.NullValue,
+                description = null,
+                objectProperty = propertyVertex,
+                aspectProperty = null,
+                parentValue = null,
+                measure = null
+            )
+            val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
+
+            historyService.storeFact(propertyValueVertex.toCreateFact(context))
+            historyService.storeFact(propertyVertex.toUpdateFact(context, propertyBefore))
+
+            PropertyCreateResult(
+                propertyVertex,
+                propertyVertex.objekt ?: throw IllegalStateException("Object property was created without object"),
+                propertyValueVertex
+            )
         }
 
         return PropertyCreateResponse(
             propertyCreateResult.id,
             Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
+            Reference(propertyCreateResult.rootValueId, propertyCreateResult.rootValueVersion),
             propertyCreateResult.name,
             propertyCreateResult.description,
             propertyCreateResult.version

@@ -1,9 +1,7 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.aspects.getAspectTree
-import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectPropertyEditDetailsResponse
-import com.infowings.catalog.common.ValueTruncated
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ServerException
@@ -83,6 +81,14 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         try {
             val createPropertyResponse = createProperty(propertyCreateRequest)
             val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
+            val defaultRootValue = ValueTruncated(
+                createPropertyResponse.rootValue.id,
+                ObjectValueData.NullValue.toDTO(),
+                null,
+                null,
+                createPropertyResponse.rootValue.version,
+                emptyList()
+            )
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
@@ -92,8 +98,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                         createPropertyResponse.name,
                         createPropertyResponse.description,
                         createPropertyResponse.version,
-                        emptyList(),
-                        emptyList(),
+                        listOf(defaultRootValue),
+                        listOf(defaultRootValue),
                         treeAspectResponse
                     )
                 )
