@@ -147,7 +147,7 @@ fun RBuilder.aspectPropertiesEditList(
                         this.onRemoveValue = when {
                             value.id != null && valueGroup.values.size > 1 && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, objectPropertyId)
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
@@ -162,7 +162,7 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, objectPropertyId)
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             else -> null

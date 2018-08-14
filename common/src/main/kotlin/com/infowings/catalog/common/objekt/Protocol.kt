@@ -131,6 +131,16 @@ data class ObjectUpdateResponse(
 )
 
 @Serializable
+data class ObjectDeleteResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val subjectName: String,
+    val version: Int
+)
+
+@Serializable
 data class PropertyCreateResponse(
     val id: String,
     val obj: Reference,
@@ -141,6 +151,15 @@ data class PropertyCreateResponse(
 
 @Serializable
 data class PropertyUpdateResponse(
+    val id: String,
+    val obj: Reference,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
+
+@Serializable
+data class PropertyDeleteResponse(
     val id: String,
     val obj: Reference,
     val name: String?,
@@ -170,6 +189,14 @@ data class ValueUpdateResponse(
     val aspectPropertyId: String?,
     val parentValue: Reference?,
     val version: Int
+)
+
+@Serializable
+data class ValueDeleteResponse(
+    val deletedValues: List<String>,
+    val markedValues: List<String>,
+    val objectProperty: Reference,
+    val parentValue: Reference?
 )
 
 @Serializable

@@ -137,3 +137,28 @@ class ValueResult(
     val version: Int
         get() = valueVertex.version
 }
+
+class ValueDeleteResult(
+    private val deletedValues: List<ObjectPropertyValueVertex>,
+    private val markedValues: List<ObjectPropertyValueVertex>,
+    private val property: ObjectPropertyVertex,
+    private val parentValue: ObjectPropertyValueVertex?
+) {
+    val deletedValueIds: List<String>
+        get() = deletedValues.map { it.id }
+
+    val markedValueIds: List<String>
+        get() = markedValues.map { it.id }
+
+    val propertyId: String
+        get() = property.id
+
+    val propertyVersion: Int
+        get() = property.version
+
+    val parentValueId: String?
+        get() = parentValue?.id
+
+    val parentValueVersion: Int?
+        get() = parentValue?.version
+}

@@ -25,7 +25,7 @@ interface ObjectTreeEditModel {
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
     fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
     fun updateValue(valueId: String, value: ObjectValueData, description: String?, version: Int)
-    fun deleteValue(valueId: String, propertyId: String)
+    fun deleteValue(valueId: String)
 }
 
 class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
@@ -131,8 +131,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun deleteValue(valueId: String, propertyId: String) {
-        deleteEntity { force -> props.apiModel.deleteObjectValue(propertyId, valueId, force) }
+    override fun deleteValue(valueId: String) {
+        deleteEntity { force -> props.apiModel.deleteObjectValue(valueId, force) }
     }
 
     private fun deleteEntity(deleteOperation: suspend (force: Boolean) -> Unit) {

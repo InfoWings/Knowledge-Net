@@ -101,7 +101,7 @@ class MainObjectValidator(
         val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findByIdStrict(request.subjectId)
         val newSubjectId = newSubjectVertex.identity
 
-        //check version (Maybe retry if supplied version is bigger than existing)
+        //check version (Maybe try to #load() or #reload() if supplied version is bigger than existing)
         val incorrectVersion = objectVertex.version != request.version
         if (incorrectVersion) {
             throw ObjectConcurrentEditException(objectVertex.id, objectVertex.name, objectVertex.subject?.name)

@@ -289,41 +289,62 @@ class ObjectService(
         val historyContext: HistoryContext
     )
 
-    private fun deleteValue(id: String, username: String, deleteOp: (DeleteValueContext) -> Unit) {
+    private fun deleteValue(id: String, username: String, deleteOp: (DeleteValueContext) -> ValueDeleteResult): ValueDeleteResult {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
-        transaction(db) {
+        return transaction(db) {
             val rootVertex = findPropertyValueById(id)
-            val values: Set<ObjectPropertyValueVertex> = dao.getSubValues(rootVertex.id).plus(rootVertex)
+            val values: Set<ObjectPropertyValueVertex> = dao.getSubValues(rootVertex.id)
             val valueIds = values.map { it.identity }.toSet()
 
             val valueBlockers = dao.linkedFrom(valueIds, setOf(OBJECT_VALUE_REF_OBJECT_VALUE_EDGE), valueIds)
 
             deleteOp(DeleteValueContext(root = rootVertex, values = values, valueBlockers = valueBlockers, historyContext = context))
-
-            return@transaction
         }
     }
 
-    fun deleteValue(id: String, username: String) {
-        fun removeOrThrow(context: DeleteValueContext) {
+    fun deleteValue(id: String, username: String): ValueDeleteResponse {
+        val valueDeleteResult = deleteValue(id, username) { context ->
             if (context.valueBlockers.isNotEmpty()) {
                 throw ObjectValueIsLinkedException(context.valueBlockers.map { it.toString() }.toList())
             }
+
+            val objectProperty = context.root.objectProperty ?: throw IllegalStateException("Object value does not have a reference to object property")
+            val parentValue = context.root.parentValue
 
             context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
 
             dao.deleteAll(context.values.toList())
 
+            ValueDeleteResult(
+                deletedValues = context.values.toList(),
+                markedValues = emptyList(),
+                property = objectProperty,
+                parentValue = parentValue
+            )
         }
 
-        deleteValue(id, username, ::removeOrThrow)
+        return ValueDeleteResponse(
+            valueDeleteResult.deletedValueIds,
+            valueDeleteResult.markedValueIds,
+            Reference(valueDeleteResult.propertyId, valueDeleteResult.propertyVersion),
+            valueDeleteResult.parentValueId?.let { parentId ->
+                valueDeleteResult.parentValueVersion?.let { parentVersion ->
+                    Reference(
+                        parentId,
+                        parentVersion
+                    )
+                }
+            }
+        )
     }
 
-    fun softDeleteValue(id: String, username: String) {
-        fun removeOrMark(context: DeleteValueContext) {
+    fun softDeleteValue(id: String, username: String): ValueDeleteResponse {
+        val valueDeleteResult = deleteValue(id, username) { context ->
             val blockerIds = context.valueBlockers.keys.toSet()
             val rootSet = setOf(context.root.identity)
+            val objectProperty = context.root.objectProperty ?: throw IllegalStateException("Object value does not have a reference to object property")
+            val parentValue = context.root.parentValue
             val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
             val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
 
@@ -336,9 +357,28 @@ class ObjectService(
             valuesToKeep.forEach {
                 dao.softDelete(it)
             }
+
+            ValueDeleteResult(
+                deletedValues = valuesToDelete.toList(),
+                markedValues = valuesToKeep.toList(),
+                property = objectProperty,
+                parentValue = parentValue
+            )
         }
 
-        deleteValue(id, username, ::removeOrMark)
+        return ValueDeleteResponse(
+            valueDeleteResult.deletedValueIds,
+            valueDeleteResult.markedValueIds,
+            Reference(valueDeleteResult.propertyId, valueDeleteResult.propertyVersion),
+            valueDeleteResult.parentValueId?.let { parentId ->
+                valueDeleteResult.parentValueVersion?.let { parentVersion ->
+                    Reference(
+                        parentId,
+                        parentVersion
+                    )
+                }
+            }
+        )
     }
 
     private data class DeletePropertyContext(

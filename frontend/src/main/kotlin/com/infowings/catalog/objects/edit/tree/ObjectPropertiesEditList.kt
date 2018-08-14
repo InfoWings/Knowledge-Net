@@ -218,7 +218,7 @@ fun RBuilder.objectPropertiesEditList(
                         onRemoveValue = when {
                             value.id != null && allValues.size > 1 && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, propertyId)
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {

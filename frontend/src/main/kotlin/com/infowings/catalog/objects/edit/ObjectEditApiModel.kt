@@ -22,7 +22,7 @@ interface ObjectEditApiModel {
     suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest)
     suspend fun deleteObject(force: Boolean = false)
     suspend fun deleteObjectProperty(id: String, force: Boolean = false)
-    suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean = false)
+    suspend fun deleteObjectValue(id: String, force: Boolean = false)
 }
 
 class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props, ObjectEditApiModelComponent.State>(),
@@ -184,13 +184,13 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     }
 
-    override suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean) {
+    override suspend fun deleteObjectValue(id: String, force: Boolean) {
         try {
-            deleteValue(id, force)
+            val valueDeleteResponse = deleteValue(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.deleteValue(id) })
+                    properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
                 )
             }
         } catch (exception: ServerException) {
@@ -257,23 +257,34 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         )
     }
 
-    private fun ObjectPropertyEditDetailsResponse.deleteValue(valueId: String): ObjectPropertyEditDetailsResponse {
-        val hasParentValue = this.rootValues.find { it.id == valueId } == null
-
-        return if (hasParentValue) {
-            val parentValue = this.valueDescriptors.find { it.childrenIds.contains(valueId) } ?: error("Parent value should exist")
-            val changedParentValue = parentValue.copy(childrenIds = parentValue.childrenIds.filterNot { it == valueId })
-
-            this.copy(
-                rootValues = this.rootValues.replaceBy({ it.id == changedParentValue.id }, changedParentValue),
-                valueDescriptors = this.valueDescriptors.replaceBy({ it.id == changedParentValue.id }, changedParentValue).filterNot { it.id == valueId }
-            )
-        } else {
-            this.copy(
-                rootValues = this.rootValues.filterNot { it.id == valueId },
-                valueDescriptors = this.valueDescriptors.filterNot { it.id == valueId }
-            )
-        }
+    private fun ObjectPropertyEditDetailsResponse.deleteValues(valueDeleteResponse: ValueDeleteResponse, valueId: String): ObjectPropertyEditDetailsResponse {
+        return this.copy(
+            version = valueDeleteResponse.objectProperty.version,
+            rootValues = this.rootValues.asSequence().map { rootValue ->
+                when {
+                    rootValue.id == valueDeleteResponse.parentValue?.id ->
+                        rootValue.copy(
+                            version = valueDeleteResponse.parentValue.version,
+                            childrenIds = rootValue.childrenIds.asSequence().map { if (it == valueId) null else it }.filterNotNull().toList()
+                        )
+                    valueDeleteResponse.deletedValues.contains(rootValue.id) -> null
+                    valueDeleteResponse.markedValues.contains(rootValue.id) -> null
+                    else -> rootValue
+                }
+            }.filterNotNull().toList(),
+            valueDescriptors = this.valueDescriptors.asSequence().map { value ->
+                when {
+                    value.id == valueDeleteResponse.parentValue?.id ->
+                        value.copy(
+                            version = valueDeleteResponse.parentValue.version,
+                            childrenIds = value.childrenIds.asSequence().map { if (it == valueId) null else it }.filterNotNull().toList()
+                        )
+                    valueDeleteResponse.deletedValues.contains(value.id) -> null
+                    valueDeleteResponse.markedValues.contains(value.id) -> null
+                    else -> value
+                }
+            }.filterNotNull().toList()
+        )
     }
 
     override fun RBuilder.render() {
