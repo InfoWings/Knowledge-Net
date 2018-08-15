@@ -3,18 +3,17 @@ package com.infowings.catalog.data.aspect.update
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class FreeAspectUpdateTest {
     private val username = "admin"
 
@@ -23,9 +22,9 @@ class FreeAspectUpdateTest {
 
     lateinit var aspect: AspectData
 
-    @Before
+    @BeforeEach
     fun init() {
-        val ad = AspectData("", "aspect", null, null, BaseType.Text.name, emptyList())
+        val ad = AspectData("", randomName(), null, null, BaseType.Text.name, emptyList())
         aspect = aspectService.save(ad, username).copy(measure = Litre.name)
     }
 
@@ -49,10 +48,10 @@ class FreeAspectUpdateTest {
     @Test
     fun testEditProperty() {
         val pd = AspectPropertyData(name = "prop", aspectId = aspect.id!!, cardinality = PropertyCardinality.ONE.name, description = null, id = "")
-        val ad2 = AspectData("", "complex", Metre.name, null, BaseType.Decimal.name, listOf(pd))
+        val ad2 = AspectData("", "testEditProperty-complex", Metre.name, null, BaseType.Decimal.name, listOf(pd))
         val complex = aspectService.save(ad2, username)
 
-        val otherAspect = aspectService.save(AspectData(name = "other", measure = Metre.name), username)
+        val otherAspect = aspectService.save(AspectData(name = "testEditProperty-other", measure = Metre.name), username)
         val newProperty = complex.properties[0].copy(aspectId = otherAspect.idStrict())
         val edited = aspectService.save(complex.copy(properties = listOf(newProperty)), username)
 

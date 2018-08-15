@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
@@ -11,25 +10,27 @@ import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.forAspect
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import io.kotlintest.shouldBe
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class AspectHistoryTest {
     private val username = "admin"
 
@@ -56,10 +57,6 @@ class AspectHistoryTest {
 
     @Autowired
     private lateinit var db: OrientDatabase
-
-    @Before
-    fun initTestData() {
-    }
 
     @Test
     fun testAspectHistoryEmpty() {
@@ -177,7 +174,7 @@ class AspectHistoryTest {
             subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
         val aspect1 = aspectService.save(
             AspectData(
-                name = "aspect-1",
+                name = randomName(),
                 baseType = BaseType.Decimal.name,
                 description = "some description-1"
             ), username
@@ -217,14 +214,14 @@ class AspectHistoryTest {
     fun testAspectHistoryCreateAddProperty() {
         val aspect1 = aspectService.save(
             AspectData(
-                name = "aspect-1",
+                name = randomName(),
                 baseType = BaseType.Decimal.name,
                 description = "some description-1"
             ), username
         )
         val aspect2 = aspectService.save(
             AspectData(
-                name = "aspect-2",
+                name = randomName(),
                 baseType = BaseType.Decimal.name,
                 description = "some description-2"
             ), username
@@ -263,7 +260,7 @@ class AspectHistoryTest {
         val updateFact = updateFacts[0]
 
         assertEquals(
-            setOf("aspect-1", "aspect-2"),
+            setOf(aspect1.name, aspect2.name),
             createFacts.map { it.payload.data[AspectField.NAME.name] }.toSet(),
             "names in create facts must be correct"
         )
@@ -319,7 +316,7 @@ class AspectHistoryTest {
         val updateAspectFact = updateAspectFacts[0]
 
         assertEquals(
-            setOf("aspect-1", "aspect-2"),
+            setOf(aspect1.name, aspect2.name),
             createAspectFacts.map { it.fullData.aspectData.name }.toSet(),
             "names in create facts must be correct"
         )
@@ -329,7 +326,7 @@ class AspectHistoryTest {
         assertEquals("Property " + aspect3.properties[0].name, change.fieldName)
         assertEquals(null, change.before)
         assertEquals(true, change.after?.contains("prop"))
-        assertEquals(true, change.after?.contains("aspect-2"))
+        assertEquals(true, change.after?.contains(aspect2.name))
 
         val timelineParent = historyDao.timelineForEntity(aspect3.idStrict())
         assertEquals(2, timelineParent.size)
@@ -345,14 +342,14 @@ class AspectHistoryTest {
     fun testAspectHistoryUpdateProperty() {
         val aspect1 = aspectService.save(
             AspectData(
-                name = "aspect-1",
+                name = randomName(),
                 baseType = BaseType.Decimal.name,
                 description = "some description-1"
             ), username
         )
         val aspect2 = aspectService.save(
             AspectData(
-                name = "aspect-2",
+                name = randomName(),
                 baseType = BaseType.Decimal.name,
                 description = "some description-2"
             ), username
@@ -409,84 +406,67 @@ class AspectHistoryTest {
 
     @Test
     fun testAspectHistoryWithSubject() {
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
-                .toSubjectData()
-        val aspect1 = aspectService.save(
-            AspectData(
-                name = "aspect-1",
-                baseType = BaseType.Decimal.name,
-                description = "some description-1",
-                subject = subject
-            ), username
-        )
+        val subject = subjectService
+            .createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+            .toSubjectData()
 
-        val subjectId = subject.id
-        if (subjectId == null) {
-            fail("id must be non-null")
-        } else {
-            val subjectVertex = subjectService.findById(subjectId)
+        //check if properly created
+        subject.id?.let { subjectService.findById(it) } ?: fail("id must be non-null")
 
-            val history = historyProvider.getAllHistory()
+        val aspect = randomAspect(subject)
+        aspectService.save(aspect, username)
 
-            assertEquals(1, history.size)
-            val fact = history.first()
-            assertEquals(4, fact.changes.size)
-        }
+        val history = historyProvider.getAllHistory().forAspect(aspect)
+
+        history.size shouldBe 1
+
+        val fact = history.first { it.fullData.aspectData.name == aspect.name }
+        fact.changes.size shouldBe 4
     }
 
     @Test
     fun testAspectHistoryWithRefBook() {
-        val aspect1 = aspectService.save(
-            AspectData(
-                name = "aspect-1",
-                baseType = BaseType.Text.name,
-                description = "some description-1"
-            ), username
-        )
-        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
-        val refBook = refBookService.createReferenceBook("ref book name", aspectId, username)
+        val aspect = aspectService.save(randomAspect(null, baseType = BaseType.Text), username)
+        val aspectId = aspect.id ?: throw IllegalStateException("id of aspect is not defined")
+        refBookService.createReferenceBook(randomName(), aspectId, username)
 
-        val history = historyProvider.getAllHistory()
+        val history = historyProvider.getAllHistory().forAspect(aspect)
 
-        assertEquals(2, history.size)
-        //val fact = history.first()
-        //assertEquals(4, fact.changes.size)
+        history.size shouldBe 2
     }
 
     @Test
-    fun testAspectHistoryRemovedSubject() {
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
-                .toSubjectData()
-        val aspect1 = aspectService.save(
-            AspectData(
-                name = "aspect-1",
-                baseType = BaseType.Decimal.name,
-                description = "some description-1",
-                subject = subject
-            ), username
+    fun `Aspect history should be saved after removing subject`() {
+        val subject = subjectService
+            .createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+            .toSubjectData()
+
+        //check if properly created
+        subject.id?.let { subjectService.findById(it) } ?: fail("id must be non-null")
+
+        val aspect = aspectService.save(randomAspect(subject), username)
+        aspectService.save(aspect.copy(subject = null), username)
+
+        subjectService.remove(subject, username, force = false)
+
+        val history = historyProvider.getAllHistory().forAspect(aspect)
+
+        history.size shouldBe 2
+    }
+
+    fun randomAspect(subject: SubjectData?, baseType: BaseType = BaseType.Decimal): AspectData {
+        return AspectData(
+            name = randomName(),
+            baseType = baseType.name,
+            description = "some description-1",
+            subject = subject
         )
-        val aspect2 = aspectService.save(aspect1.copy(subject = null), username)
-
-        val subjectId = subject.id
-        if (subjectId == null) {
-            fail("id must be non-null")
-        } else {
-            val subjectVertex = subjectService.findById(subjectId)
-
-            subjectService.remove(subject, username, force = false)
-
-            val history = historyProvider.getAllHistory()
-
-            assertEquals(2, history.size, "it must be 2 elements")
-        }
     }
 
     @Test
     fun testAspectHistoryRemovedSubject2() {
         val subject =
-            subjectService.createSubject(SubjectData(name = "subject-1", description = "subject description"), username)
+            subjectService.createSubject(SubjectData(name = randomName(), description = "subject description"), username)
                 .toSubjectData()
         val aspect1 = aspectService.save(
             AspectData(name = "aspect-1", baseType = BaseType.Decimal.name, description = "some description-1", subject = subject), username
@@ -510,7 +490,7 @@ class AspectHistoryTest {
     fun testAspectHistoryCreateProperty() {
         val aspect1 = aspectService.save(
             AspectData(
-                name = "aspect-1",
+                name = "testAspectHistoryCreateProperty-aspect-1",
                 baseType = BaseType.Text.name,
                 description = "some description-1"
             ), username
@@ -520,7 +500,7 @@ class AspectHistoryTest {
         val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
-            "complex",
+            "testAspectHistoryCreateProperty-complex",
             Kilometre.name,
             null,
             BaseType.Decimal.name,

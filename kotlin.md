@@ -1,16 +1,16 @@
-**Ссылки**
+**Userful links**
 
 IDEA plugin - Preferences->Plugins->Install jetbrains plugin->kotlin
 
 [Code style](https://kotlinlang.org/docs/reference/coding-conventions.html)
 
-[Официальная документация](https://kotlinlang.org/docs/reference/)
+[Kotlin oficial documentation](https://kotlinlang.org/docs/reference/)
 
-[github](https://github.com/JetBrains/kotlin)
+[Kotlin github](https://github.com/JetBrains/kotlin)
 
-[Корутины](https://github.com/Kotlin/kotlinx.coroutines)
+[Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 
-[Сериализация (экспериментальная)](https://github.com/Kotlin/kotlinx.serialization)
+[kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
 
 [html dsl](https://github.com/Kotlin/kotlinx.html)
 

@@ -1,22 +1,22 @@
 package com.infowings.catalog.auth.user
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.USER_CLASS
+import io.kotlintest.shouldBe
 import junit.framework.TestCase.assertEquals
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class UserServiceTest {
 
     @Autowired
@@ -25,12 +25,12 @@ class UserServiceTest {
     @Autowired
     private lateinit var userService: UserService
 
-    private val user = User("test", "qwerty123", UserRole.USER)
-    private val anotherUser = User("another", "123456", UserRole.POWERED_USER)
+    private fun user() = User(randomName(), "qwerty123", UserRole.USER)
+    private fun anotherUser() = User(randomName(), "123456", UserRole.POWERED_USER)
 
-    private val userData = user.toUserData()
+    private fun userData() = user().toUserData()
 
-    @Before
+    @BeforeEach
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
         db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
@@ -38,89 +38,114 @@ class UserServiceTest {
 
     @Test
     fun createUserTest() {
-        assertEquals(user, userService.createUser(user))
+        val user = user()
+        userService.createUser(user) shouldBe user
     }
 
     @Test
     fun createUserFromUserDataTest() {
-        assertEquals(user, userService.createUser(userData))
+        val user = user()
+        userService.createUser(user.toUserData()) shouldBe user
     }
 
-    @Test(expected = UsernameNullOrEmptyException::class)
+    @Test
     fun createWithEmptyUsernameTest() {
-        userService.createUser(userData.copy(username = ""))
+        assertThrows<UsernameNullOrEmptyException> {
+            userService.createUser(userData().copy(username = ""))
+        }
     }
 
-    @Test(expected = UsernameNullOrEmptyException::class)
+    @Test
     fun createWithNullUsernameTest() {
-        userService.createUser(userData.copy(username = null))
+        assertThrows<UsernameNullOrEmptyException> {
+            userService.createUser(userData().copy(username = null))
+        }
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun createWithEmptyPasswordTest() {
-        userService.createUser(userData.copy(password = ""))
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.createUser(userData().copy(password = ""))
+        }
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun createWithNullPasswordTest() {
-        userService.createUser(userData.copy(password = null))
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.createUser(userData().copy(password = null))
+        }
     }
 
-    @Test(expected = UserRoleNullOrEmptyException::class)
+    @Test
     fun createWithNullUserRoleTest() {
-        userService.createUser(userData.copy(role = null))
+        assertThrows<UserRoleNullOrEmptyException> {
+            userService.createUser(userData().copy(role = null))
+        }
     }
 
-    @Test(expected = UserWithSuchUsernameAlreadyExist::class)
+    @Test
     fun createAlreadyExistUserTest() {
+        val user = user()
         userService.createUser(user)
-        userService.createUser(user)
+        assertThrows<UserWithSuchUsernameAlreadyExist> {
+            userService.createUser(user)
+        }
     }
 
     @Test
     fun findByUsernameTest() {
+        val user = user()
         userService.createUser(user)
-        assertEquals(user, userService.findByUsername(user.username))
+        userService.findByUsername(user.username) shouldBe user
     }
 
-    @Test(expected = UserNotFoundException::class)
+    @Test
     fun userNotFoundTest() {
-        userService.createUser(user)
-        userService.findByUsername("notExist")
+        userService.createUser(user())
+        assertThrows<UserNotFoundException> {
+            userService.findByUsername("notExist")
+        }
     }
 
     @Test
     fun getAllUsersTest() {
+        val user = user()
         userService.createUser(user)
+        val anotherUser = anotherUser()
         userService.createUser(anotherUser)
-        assertEquals(setOf(user, anotherUser), userService.getAllUsers())
+        userService.getAllUsers() shouldBe setOf(user, anotherUser)
     }
 
     @Test
     fun changeRoleTest() {
+        val user = user()
         userService.createUser(user)
         val userWithNewRole = user.copy(role = UserRole.ADMIN)
-        assertEquals(userWithNewRole, userService.changeRole(userWithNewRole))
+        userService.changeRole(userWithNewRole) shouldBe userWithNewRole
     }
 
     @Test
     fun blockUserTest() {
+        val user = user()
         userService.createUser(user)
         val blockedUser = user.copy(blocked = true)
         assertEquals(blockedUser, userService.changeBlocked(blockedUser))
     }
 
-    @Test(expected = PasswordNullOrEmptyException::class)
+    @Test
     fun changePasswordToEmptyTest() {
-        userService.createUser(user)
-        val userWithEmptyPassword = user.copy(password = "")
-        userService.changePassword(userWithEmptyPassword)
+        userService.createUser(user())
+        val userWithEmptyPassword = user().copy(password = "")
+        assertThrows<PasswordNullOrEmptyException> {
+            userService.changePassword(userWithEmptyPassword)
+        }
     }
 
     @Test
     fun changePasswordTest() {
+        val user = user()
         userService.createUser(user)
         val userWithNewPassword = user.copy(password = "newPassword")
-        assertEquals(userWithNewPassword, userService.changePassword(userWithNewPassword))
+        userService.changePassword(userWithNewPassword) shouldBe userWithNewPassword
     }
 }

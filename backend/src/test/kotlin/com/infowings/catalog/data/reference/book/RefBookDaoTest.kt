@@ -4,19 +4,17 @@ import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.id
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RefBookDaoTest {
     private val username = "admin"
 
@@ -29,14 +27,9 @@ class RefBookDaoTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-
-    @Before
-    fun initTestData() {
-    }
-
     @Test
     fun testRefBookFindOne() {
-        val aspectName = "aspect"
+        val aspectName = "testRefBookFindOne-aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(
             AspectData(
@@ -59,7 +52,7 @@ class RefBookDaoTest {
 
     @Test
     fun testRefBookFindCorrectClass() {
-        val aspectName = "aspect"
+        val aspectName = randomName()
         val aspectDescr = "aspect description"
         val created = aspectService.save(
             AspectData(

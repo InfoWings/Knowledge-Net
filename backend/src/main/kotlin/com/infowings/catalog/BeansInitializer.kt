@@ -11,7 +11,10 @@ import com.infowings.catalog.data.aspect.DefaultAspectService
 import com.infowings.catalog.data.aspect.NormalizedAspectService
 import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.history.providers.*
+import com.infowings.catalog.data.history.providers.AspectHistoryProvider
+import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
+import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
+import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.objekt.ObjectDaoService
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.data.reference.book.DefaultReferenceBookService
@@ -104,6 +107,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 database = env["orient.database"],
                 username = env["orient.user"],
                 password = env["orient.password"],
+                testMode = env["orient.mode.test"].toBoolean(),
                 userProperties = ref()
             )
         }
