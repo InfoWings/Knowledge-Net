@@ -88,10 +88,6 @@ class ObjectHistoryTest {
     fun createObjectHistoryTest() {
         val testName = "createObjectHistoryTest"
 
-        val eventsBefore: Set<HistoryFact> = historyService.getAll().toSet()
-        val objectEventsBefore = objectEvents(eventsBefore)
-        val subjectEventsBefore = subjectEvents(eventsBefore)
-
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
         val objectFactsBefore = objectEvents(factsBefore)
         val subjectFactsBefore = subjectEvents(factsBefore)
@@ -100,8 +96,8 @@ class ObjectHistoryTest {
         val objectName = testName
         val objectDescription = "object description"
 
-        val request = ObjectCreateRequest(objectName, objectDescription, subject.id, subject.version)
-        val created = objectService.create(request, username)
+        val request = ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val createResponse = objectService.create(request, username)
 
         val factsAfter = historyService.getAll().toSet()
         val objectFactsAfter = objectEvents(factsAfter)
@@ -139,7 +135,7 @@ class ObjectHistoryTest {
         assertEquals(testName, state.info)
 
         // проверяем заголовочную часть
-        assertEquals(created, state.fullData.objekt.id)
+        assertEquals(createResponse.id, state.fullData.objekt.id)
         assertEquals(objectName, state.fullData.objekt.name)
         assertEquals(objectDescription, state.fullData.objekt.description)
         assertEquals(subject.id, state.fullData.objekt.subjectId)
@@ -179,7 +175,7 @@ class ObjectHistoryTest {
             objectId = createdObjectId,
             name = propertyName, description = null, aspectId = aspect.idStrict()
         )
-        val createdPropertyId = objectService.create(propertyRequest, username)
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
         val objectFactsAfter = objectEvents(factsAfter)
@@ -222,7 +218,7 @@ class ObjectHistoryTest {
 
         val propertiesLinks = objectPayload.addedLinks["properties"] ?: fail("unexpected absence of properties links")
         assertEquals(1, propertiesLinks.size, "only 1 property must be here")
-        assertEquals(createdPropertyId, propertiesLinks.first().toString(), "property id must be correct")
+        assertEquals(propertyCreateResponse.id, propertiesLinks.first().toString(), "property id must be correct")
 
         // теперь проверяем историю на уровне справочников
 
@@ -251,7 +247,7 @@ class ObjectHistoryTest {
         // проверяем свойство
         assertNotNull(state.fullData.property)
         val property = state.fullData.property ?: throw IllegalStateException("property is null")
-        assertEquals(createdPropertyId, property.id)
+        assertEquals(propertyCreateResponse.id, property.id)
         assertEquals(propertyName, property.name)
         assertEquals(PropertyCardinality.ZERO.name, property.cardinality)
         assertEquals(aspect.id, property.aspectId)
@@ -289,16 +285,16 @@ class ObjectHistoryTest {
         val createdObjectId = createObject(objectName, objectDescription)
 
         val propertyRequest = PropertyCreateRequest(objectId = createdObjectId, name = "prop_$objectName", description = null, aspectId = aspectId)
-        val createdPropertyId = objectService.create(propertyRequest, "user")
+        val propertyCreateResponse = objectService.create(propertyRequest, "user")
 
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest.root(value, null, createdPropertyId, measureId)
+        val valueRequest = ValueCreateRequest.root(value, null, propertyCreateResponse.id, measureId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
 
-        val createdValue = objectService.create(valueRequest, username)
+        val valueCreateResponse = objectService.create(valueRequest, username)
 
         val factsAfter: Set<HistoryFact> = historyService.getAll().toSet()
         val propertyFactsAfter = propertyEvents(factsAfter)
@@ -312,8 +308,8 @@ class ObjectHistoryTest {
 
         return PreparedValueInfo(
             propertyRequest,
-            createdValue,
-            createdPropertyId,
+            valueCreateResponse.value.toData(),
+            propertyCreateResponse.id,
             createdObjectId,
             propertyFactsAdded,
             valueFactsAdded,

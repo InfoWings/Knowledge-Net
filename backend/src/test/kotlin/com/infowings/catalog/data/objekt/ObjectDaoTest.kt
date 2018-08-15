@@ -10,6 +10,7 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORecordId
 import junit.framework.Assert.assertTrue
 import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
@@ -94,7 +95,7 @@ class ObjectDaoTest {
 
     @Test
     fun saveTest() {
-        val data = ObjectCreateRequest(randomName(), "object descr", subject.id, subject.version)
+        val data = ObjectCreateRequest(randomName(), "object descr", subject.id)
         val objectCreateInfo = validator.checkedForCreation(data)
         val saved = createObject(objectCreateInfo)
 
@@ -106,8 +107,8 @@ class ObjectDaoTest {
 
     @Test
     fun saveTwiceTest() {
-        val request1 = ObjectCreateRequest("saveTwiceName-1", "object descr-1", subject.id, subject.version)
-        val request2 = ObjectCreateRequest("saveTwiceName-2", "object descr-2", subject.id, subject.version)
+        val request1 = ObjectCreateRequest("saveTwiceName-1", "object descr-1", subject.id)
+        val request2 = ObjectCreateRequest("saveTwiceName-2", "object descr-2", subject.id)
 
         val objekt1 = validator.checkedForCreation(request1)
         val saved1 = createObject(objekt1)
@@ -120,7 +121,7 @@ class ObjectDaoTest {
 
     @Test
     fun savePropertyTest() {
-        val objectRequest = ObjectCreateRequest("savePropertyTestObjectName", "some descr", subject.id, subject.version)
+        val objectRequest = ObjectCreateRequest("savePropertyTestObjectName", "some descr", subject.id)
         val createdObject = createObject(objectRequest)
         val propertyData = PropertyCreateRequest(
             name = "savePropertyTestObjectPropertyName",
@@ -163,7 +164,7 @@ class ObjectDaoTest {
     @Test
     fun savePropertySimpleIntValueTest() {
         val objectRequest =
-            ObjectCreateRequest("savePropertySimpleIntValueTest", "some descr", subject.id, subject.version)
+            ObjectCreateRequest("savePropertySimpleIntValueTest", "some descr", subject.id)
         val createdObject = createObject(objectRequest)
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
@@ -216,7 +217,7 @@ class ObjectDaoTest {
     @Test
     fun savePropertySimpleStrValueTest() {
         val objectRequest =
-            ObjectCreateRequest("savePropertySimpleStrValueTest", "some descr", subject.id, subject.version)
+            ObjectCreateRequest("savePropertySimpleStrValueTest", "some descr", subject.id)
         val createdObject = createObject(objectRequest)
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,
@@ -241,7 +242,7 @@ class ObjectDaoTest {
     @Test
     fun checkSaveObjectSameNameSameSubjectTest() {
         val objectRequest =
-            ObjectCreateRequest("obj", "some descr", subject.id, subject.version)
+            ObjectCreateRequest("obj", "some descr", subject.id)
         objectService.create(objectRequest, username)
         assertThrows<ObjectAlreadyExists> {
             objectService.create(objectRequest, username)
@@ -250,15 +251,15 @@ class ObjectDaoTest {
 
     @Test
     fun checkSaveObjectSameNameDiffSubjectTest() {
-        val objectRequest1 = ObjectCreateRequest("obj", "some descr", subject.id, subject.version)
-        val objId1 = objectService.create(objectRequest1, username)
-        val obj1 = objectService.findById(objId1)
+        val objectRequest1 = ObjectCreateRequest("obj", "some descr", subject.id)
+        val objResp1 = objectService.create(objectRequest1, username)
+        val obj1 = objectService.findById(objResp1.id)
         val subj1 = session(db) { obj1.subject!! }
 
         val subject2 = subjectService.createSubject(SubjectData(name = "sub2", description = null), username)
-        val objectRequest2 = ObjectCreateRequest("obj", "some descr", subject2.id, subject2.version)
-        val objId2 = objectService.create(objectRequest2, username)
-        val obj2 = objectService.findById(objId2)
+        val objectRequest2 = ObjectCreateRequest("obj", "some descr", subject2.id)
+        val objResp2 = objectService.create(objectRequest2, username)
+        val obj2 = objectService.findById(objResp2.id)
         val subj2 = session(db) { obj2.subject!! }
 
         assertTrue("There are two objects with same name", obj1.name == obj2.name)
@@ -267,7 +268,7 @@ class ObjectDaoTest {
 
     @Test
     fun checkSavePropertySameNameSameAspectTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
@@ -282,15 +283,15 @@ class ObjectDaoTest {
 
     @Test
     fun checkSavePropertySameNameDiffAspectTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
             description = null,
             aspectId = aspect.idStrict()
         )
-        val objPropId1 = objectService.create(propertyRequest, username)
-        val objProp1 = objectService.findPropertyById(objPropId1)
+        val objPropResp1 = objectService.create(propertyRequest, username)
+        val objProp1 = objectService.findPropertyById(objPropResp1.id)
 
         val anotherAspect = aspectService.save(AspectData(name = "another aspect", baseType = BaseType.Text.name), username)
         val propertyRequest2 = PropertyCreateRequest(
@@ -299,23 +300,23 @@ class ObjectDaoTest {
             description = null,
             aspectId = anotherAspect.idStrict()
         )
-        val objPropId2 = objectService.create(propertyRequest2, username)
-        val objProp2 = objectService.findPropertyById(objPropId2)
+        val objPropResp2 = objectService.create(propertyRequest2, username)
+        val objProp2 = objectService.findPropertyById(objPropResp2.id)
 
         assertTrue("There are two props with same name", objProp1.name == objProp2.name)
     }
 
     @Test
     fun checkSavePropertyDiffNamesSameAspectTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val propertyRequest = PropertyCreateRequest(
             objectId = objVertex.id,
             name = "prop",
             description = null,
             aspectId = aspect.idStrict()
         )
-        val objPropId1 = objectService.create(propertyRequest, username)
-        val objProp1 = objectService.findPropertyById(objPropId1)
+        val objPropResp1 = objectService.create(propertyRequest, username)
+        val objProp1 = objectService.findPropertyById(objPropResp1.id)
         val aspectId1 = session(db) { objProp1.aspect?.id }
 
         val propertyRequest2 = PropertyCreateRequest(
@@ -324,8 +325,8 @@ class ObjectDaoTest {
             description = null,
             aspectId = aspect.idStrict()
         )
-        val objPropId2 = objectService.create(propertyRequest2, username)
-        val objProp2 = objectService.findPropertyById(objPropId2)
+        val objPropResp2 = objectService.create(propertyRequest2, username)
+        val objProp2 = objectService.findPropertyById(objPropResp2.id)
         val aspectId2 = session(db) { objProp2.aspect?.id }
 
         assertTrue("There are two props with same aspectId", aspectId1 == aspectId2)
@@ -333,7 +334,7 @@ class ObjectDaoTest {
 
     @Test
     fun objectUpdateTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         objectService.update(ObjectUpdateRequest(objVertex.id, "new name", "new description", subject.id, subject.version), username)
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "new name", updatedObject.name)
@@ -342,8 +343,8 @@ class ObjectDaoTest {
 
     @Test
     fun objectUpdateWrongBkTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
-        createObject(ObjectCreateRequest("obj2", "another descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
+        createObject(ObjectCreateRequest("obj2", "another descr", subject.id))
         assertThrows<ObjectAlreadyExists> {
             objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
         }
@@ -351,9 +352,9 @@ class ObjectDaoTest {
 
     @Test
     fun objectUpdateDiffBaseSubjectTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val sbj2 = subjectService.createSubject(SubjectData(name = "name2", description = "descr"), username)
-        createObject(ObjectCreateRequest("obj2", "descr", sbj2.id, 1))
+        createObject(ObjectCreateRequest("obj2", "descr", sbj2.id))
         objectService.update(ObjectUpdateRequest(objVertex.id, "obj2", "new description", subject.id, subject.version), username)
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "obj2", updatedObject.name)
@@ -366,118 +367,115 @@ class ObjectDaoTest {
 
     @Test
     fun objectPropertyUpdateTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val aspectVertex = aspectDao.find(aspect.id!!)
         val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
-        objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "new name", null), username)
+        objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "new name", null, objectPropertyVertex.version), username)
         val objProperty = objectService.findPropertyById(objectPropertyVertex.id)
         Assert.assertEquals("Property must have new name", "new name", objProperty.name)
     }
 
     @Test
     fun objectPropertyUpdateWrongBkTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(aspect.id!!)
         val objectPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
         assertThrows<ObjectPropertyAlreadyExistException> {
-            objectService.update(
-                PropertyUpdateRequest(
-                    objectPropertyVertex.id,
-                    "propName2",
-                    null
-                ), username
-            )
+            objectService.update(PropertyUpdateRequest(objectPropertyVertex.id, "propName2", null, objectPropertyVertex.version), username)
         }
     }
 
     @Test
     fun objPropertyValueUpdateTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue = objectService.create(valueRequest1, username)
-        val updatedValue = objectService.update(ValueUpdateRequest(objPropValue.id.toString(), ObjectValueData.DecimalValue("1123.4"), null), username)
+        val objPropValueResponse = objectService.create(valueRequest1, username)
+        val updatedValueResponse = objectService.update(
+            ValueUpdateRequest(objPropValueResponse.id, ObjectValueData.DecimalValue("1123.4"), null, objPropValueResponse.version),
+            username
+        )
 
-        Assert.assertEquals("PropertyValue must have new value", "1123.4", updatedValue.value.toObjectValueData().toDTO().decimalStrict())
+        Assert.assertEquals("PropertyValue must have new value", "1123.4", updatedValueResponse.value.decimalStrict())
     }
 
     @Test
     fun objPropertyValueUpdateWrongBkTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue = objectService.create(valueRequest1, username)
+        val objPropValueResponse = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest.root(ObjectValueData.DecimalValue("234.5"), null, objPropertyVertex.id)
         objectService.create(valueRequest2, username)
 
-        objectService.update(ValueUpdateRequest(objPropValue.id.toString(), ObjectValueData.DecimalValue("234.5"), null), username)
+        objectService.update(ValueUpdateRequest(objPropValueResponse.id, ObjectValueData.DecimalValue("234.5"), null, objPropValueResponse.version), username)
     }
 
     @Test
     fun getSubValuesSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue = objectService.create(valueRequest, username)
+        val objPropValueResponse = objectService.create(valueRequest, username)
 
-        val subvalueIds = dao.getSubValues(objPropValue.id).map { it.identity }
-        assertEquals(listOf(objPropValue.id), subvalueIds)
+        val subvalueIds = dao.getSubValues(objPropValueResponse.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse.id), subvalueIds)
     }
 
     @Test
     fun getSubValuesTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("123.4"), description = null, objectPropertyId = objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("234.5"), description = null, objectPropertyId = objPropertyVertex.id)
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val subvalueIds1 = dao.getSubValues(objPropValue1.id).map { it.identity }
-        assertEquals(listOf(objPropValue1.id), subvalueIds1)
-        val subvalueIds2 = dao.getSubValues(objPropValue2.id).map { it.identity }
-        assertEquals(listOf(objPropValue2.id), subvalueIds2)
+        val subvalueIds1 = dao.getSubValues(objPropValueResponse1.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse1.id), subvalueIds1)
+        val subvalueIds2 = dao.getSubValues(objPropValueResponse2.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse2.id), subvalueIds2)
     }
 
 
     @Test
     fun getSubValuesChildTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("123.4"), description = null, objectPropertyId = objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val subvalueIds1 = dao.getSubValues(objPropValue1.id).map { it.identity }
-        assertEquals(listOf(objPropValue1.id, objPropValue2.id).toSet(), subvalueIds1.toSet())
-        val subvalueIds2 = dao.getSubValues(objPropValue2.id).map { it.identity }
-        assertEquals(listOf(objPropValue2.id), subvalueIds2)
+        val subvalueIds1 = dao.getSubValues(objPropValueResponse1.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse1.id, objPropValueResponse2.id).toSet(), subvalueIds1.toSet())
+        val subvalueIds2 = dao.getSubValues(objPropValueResponse2.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse2.id), subvalueIds2)
     }
 
     @Test
     fun getSubValuesTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
@@ -485,7 +483,7 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
         val objPropValue2 = objectService.create(valueRequest2, username)
 
@@ -495,236 +493,236 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
         val objPropValue3 = objectService.create(valueRequest3, username)
 
-        val subvalueIds1 = dao.getSubValues(objPropValue1.id).map { it.identity }
-        assertEquals(listOf(objPropValue1.id, objPropValue2.id, objPropValue3.id).toSet(), subvalueIds1.toSet())
-        val subvalueIds2 = dao.getSubValues(objPropValue2.id).map { it.identity }
+        val subvalueIds1 = dao.getSubValues(objPropValueResponse1.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse1.id, objPropValue2.id, objPropValue3.id).toSet(), subvalueIds1.toSet())
+        val subvalueIds2 = dao.getSubValues(objPropValue2.id).map { it.id }
         assertEquals(listOf(objPropValue2.id), subvalueIds2)
-        val subvalueIds3 = dao.getSubValues(objPropValue3.id).map { it.identity }
+        val subvalueIds3 = dao.getSubValues(objPropValue3.id).map { it.id }
         assertEquals(listOf(objPropValue3.id), subvalueIds3)
     }
 
     @Test
     fun getSubValuesTwoGrandChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest("obj", "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
 
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
-        val objPropValue3 = objectService.create(valueRequest3, username)
+        val objPropValueResponse3 = objectService.create(valueRequest3, username)
         val valueRequest4 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello3"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
         val objPropValue4 = objectService.create(valueRequest4, username)
 
-        val subvalueIds1 = dao.getSubValues(objPropValue1.id).map { it.identity }
-        assertEquals(setOf(objPropValue1.id, objPropValue2.id, objPropValue3.id, objPropValue4.id), subvalueIds1.toSet())
-        val subvalueIds2 = dao.getSubValues(objPropValue2.id).map { it.identity }
-        assertEquals(setOf(objPropValue2.id, objPropValue3.id, objPropValue4.id), subvalueIds2.toSet())
-        val subvalueIds3 = dao.getSubValues(objPropValue3.id).map { it.identity }
-        assertEquals(listOf(objPropValue3.id), subvalueIds3)
-        val subvalueIds4 = dao.getSubValues(objPropValue4.id).map { it.identity }
+        val subvalueIds1 = dao.getSubValues(objPropValueResponse1.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse1.id, objPropValueResponse2.id, objPropValueResponse3.id, objPropValue4.id), subvalueIds1.toSet())
+        val subvalueIds2 = dao.getSubValues(objPropValueResponse2.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse2.id, objPropValueResponse3.id, objPropValue4.id), subvalueIds2.toSet())
+        val subvalueIds3 = dao.getSubValues(objPropValueResponse3.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse3.id), subvalueIds3)
+        val subvalueIds4 = dao.getSubValues(objPropValue4.id).map { it.id }
         assertEquals(listOf(objPropValue4.id), subvalueIds4)
     }
 
     @Test
     fun getPropValuesSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue = objectService.create(valueRequest, username)
+        val objPropValueResponse = objectService.create(valueRequest, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.identity }
-        assertEquals(listOf(objPropValue.id), valueIds)
+        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse.id), valueIds)
     }
 
     @Test
     fun getPropValuesTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest.root(ObjectValueData.DecimalValue("234.5"), null, objPropertyVertex.id)
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.identity }
-        assertEquals(setOf(objPropValue1.id, objPropValue2.id), valueIds.toSet())
+        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse1.id, objPropValueResponse2.id), valueIds.toSet())
     }
 
     @Test
     fun getPropValuesChildTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.identity }
-        assertEquals(setOf(objPropValue1.id, objPropValue2.id), valueIds.toSet())
+        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse1.id, objPropValueResponse2.id), valueIds.toSet())
     }
 
     @Test
     fun getPropValuesTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
 
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello3"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue3 = objectService.create(valueRequest3, username)
+        val objPropValueResponse3 = objectService.create(valueRequest3, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.identity }
-        assertEquals(setOf(objPropValue1.id, objPropValue2.id, objPropValue3.id), valueIds.toSet())
+        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse1.id, objPropValueResponse2.id, objPropValueResponse3.id), valueIds.toSet())
     }
 
     @Test
     fun getPropValuesTwoGrandChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello3"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
-        val objPropValue3 = objectService.create(valueRequest3, username)
+        val objPropValueResponse3 = objectService.create(valueRequest3, username)
         val valueRequest4 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello4"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
         val objPropValue4 = objectService.create(valueRequest4, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.identity }
-        assertEquals(setOf(objPropValue1.id, objPropValue2.id, objPropValue3.id, objPropValue4.id), valueIds.toSet())
+        val valueIds = dao.valuesOfProperty(objPropertyVertex.id).map { it.id }
+        assertEquals(setOf(objPropValueResponse1.id, objPropValueResponse2.id, objPropValueResponse3.id, objPropValue4.id), valueIds.toSet())
     }
 
     @Test
     fun getPropValuesTwoPropsTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex1 = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex1.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val objPropertyVertex2 = createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
 
         val valueRequest2 = ValueCreateRequest.root(ObjectValueData.DecimalValue("234.5"), null, objPropertyVertex2.id)
         objectService.create(valueRequest2, username)
 
-        val valueIds = dao.valuesOfProperty(objPropertyVertex1.id).map { it.identity }
-        assertEquals(listOf(objPropValue1.id), valueIds)
+        val valueIds = dao.valuesOfProperty(objPropertyVertex1.id).map { it.id }
+        assertEquals(listOf(objPropValueResponse1.id), valueIds)
     }
 
     @Test
     fun valuesBetweenSingleTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val valueRequest = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue = objectService.create(valueRequest, username)
+        val objPropValueResponse = objectService.create(valueRequest, username)
 
-        val between = dao.valuesBetween(setOf(objPropValue.id), setOf(objPropValue.id))
+        val between = dao.valuesBetween(setOf(ORecordId(objPropValueResponse.id)), setOf(ORecordId(objPropValueResponse.id)))
         assertEquals(emptySet(), between)
     }
 
     @Test
     fun valuesBetweenTwoRootsTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("12.3"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest.root(value = ObjectValueData.DecimalValue("13.4"), description = null, objectPropertyId = objPropertyVertex.id)
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val between1 = dao.valuesBetween(setOf(objPropValue1.id), setOf(objPropValue2.id))
-        assertEquals(setOf(objPropValue1.id), between1.map { it.identity }.toSet())
-        val between2 = dao.valuesBetween(setOf(objPropValue2.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue2.id), between2.map { it.identity }.toSet())
+        val between1 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse1.id)), setOf(ORecordId(objPropValueResponse2.id)))
+        assertEquals(setOf(objPropValueResponse1.id), between1.map { it.id }.toSet())
+        val between2 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse2.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse2.id), between2.map { it.id }.toSet())
     }
 
     @Test
     fun valuesBetweenChildTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("123.4"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
@@ -732,24 +730,24 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
-        val subvalueIds1 = dao.valuesBetween(setOf(objPropValue1.id), setOf(objPropValue2.id))
-        assertEquals(setOf(objPropValue1.id), subvalueIds1.map { it.identity }.toSet())
-        val subvalueIds2 = dao.valuesBetween(setOf(objPropValue2.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue2.id), subvalueIds2.map { it.identity }.toSet())
+        val subvalueIds1 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse1.id)), setOf(ORecordId(objPropValueResponse2.id)))
+        assertEquals(setOf(objPropValueResponse1.id), subvalueIds1.map { it.id }.toSet())
+        val subvalueIds2 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse2.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse2.id), subvalueIds2.map { it.id }.toSet())
     }
 
     @Test
     fun valuesBetweenTwoChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue("12.3"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
@@ -757,41 +755,45 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello3"),
             description = null,
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue3 = objectService.create(valueRequest3, username)
+        val objPropValueResponse3 = objectService.create(valueRequest3, username)
 
-        val subvalueIds1 = dao.valuesBetween(setOf(objPropValue1.id), setOf(objPropValue2.id))
-        assertEquals(setOf(objPropValue1.id), subvalueIds1.map { it.identity }.toSet())
-        val subvalueIds2 = dao.valuesBetween(setOf(objPropValue2.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue2.id), subvalueIds2.map { it.identity }.toSet())
-        val subvalueIds3 = dao.valuesBetween(setOf(objPropValue3.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue3.id), subvalueIds3.map { it.identity }.toSet())
-        val subvalueIds4 = dao.valuesBetween(setOf(objPropValue3.id), setOf(objPropValue2.id))
-        assertEquals(setOf(objPropValue3.id, objPropValue1.id), subvalueIds4.map { it.identity }.toSet())
-        val subvalueIds5 = dao.valuesBetween(setOf(objPropValue3.id, objPropValue2.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue3.id, objPropValue2.id), subvalueIds5.map { it.identity }.toSet())
-        val subvalueIds6 = dao.valuesBetween(setOf(objPropValue3.id, objPropValue2.id), setOf(objPropValue1.id, objPropValue2.id))
-        assertEquals(setOf(objPropValue3.id), subvalueIds6.map { it.identity }.toSet())
+        val subvalueIds1 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse1.id)), setOf(ORecordId(objPropValueResponse2.id)))
+        assertEquals(setOf(objPropValueResponse1.id), subvalueIds1.map { it.id }.toSet())
+        val subvalueIds2 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse2.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse2.id), subvalueIds2.map { it.id }.toSet())
+        val subvalueIds3 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse3.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse3.id), subvalueIds3.map { it.id }.toSet())
+        val subvalueIds4 = dao.valuesBetween(setOf(ORecordId(objPropValueResponse3.id)), setOf(ORecordId(objPropValueResponse2.id)))
+        assertEquals(setOf(objPropValueResponse3.id, objPropValueResponse1.id), subvalueIds4.map { it.id }.toSet())
+        val subvalueIds5 =
+            dao.valuesBetween(setOf(ORecordId(objPropValueResponse3.id), ORecordId(objPropValueResponse2.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse3.id, objPropValueResponse2.id), subvalueIds5.map { it.id }.toSet())
+        val subvalueIds6 = dao.valuesBetween(
+            setOf(ORecordId(objPropValueResponse3.id), ORecordId(objPropValueResponse2.id)),
+            setOf(ORecordId(objPropValueResponse1.id), ORecordId(objPropValueResponse2.id))
+        )
+        assertEquals(setOf(objPropValueResponse3.id), subvalueIds6.map { it.id }.toSet())
     }
 
     @Test
     fun valuesBetweenTwoGrandChildrenTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
 
         val valueRequest1 = ValueCreateRequest.root(ObjectValueData.DecimalValue("12.3"), null, objPropertyVertex.id)
-        val objPropValue1 = objectService.create(valueRequest1, username)
+        val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
@@ -799,9 +801,9 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue1.id.toString()
+            parentValueId = objPropValueResponse1.id
         )
-        val objPropValue2 = objectService.create(valueRequest2, username)
+        val objPropValueResponse2 = objectService.create(valueRequest2, username)
 
         val valueRequest3 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello3"),
@@ -809,9 +811,9 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
-        val objPropValue3 = objectService.create(valueRequest3, username)
+        val objPropValueResponse3 = objectService.create(valueRequest3, username)
 
         val valueRequest4 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello4"),
@@ -819,21 +821,26 @@ class ObjectDaoTest {
             objectPropertyId = objPropertyVertex.id,
             aspectPropertyId = complexAspect.properties[0].id,
             measureId = null,
-            parentValueId = objPropValue2.id.toString()
+            parentValueId = objPropValueResponse2.id
         )
-        val objPropValue4 = objectService.create(valueRequest4, username)
+        val objPropValueResponse4 = objectService.create(valueRequest4, username)
 
-        val subvalueIds1 = dao.valuesBetween(setOf(objPropValue3.id, objPropValue4.id), setOf(objPropValue1.id))
-        assertEquals(setOf(objPropValue2.id, objPropValue3.id, objPropValue4.id), subvalueIds1.map { it.identity }.toSet())
-        val subvalueIds2 = dao.valuesBetween(setOf(objPropValue3.id, objPropValue4.id), setOf(objPropValue2.id))
-        assertEquals(setOf(objPropValue3.id, objPropValue4.id), subvalueIds2.map { it.identity }.toSet())
-        val subvalueIds3 = dao.valuesBetween(setOf(objPropValue3.id, objPropValue4.id), setOf(objPropValue1.id, objPropValue3.id))
-        assertEquals(setOf(objPropValue2.id, objPropValue4.id), subvalueIds3.map { it.identity }.toSet())
+        val subvalueIds1 =
+            dao.valuesBetween(setOf(ORecordId(objPropValueResponse3.id), ORecordId(objPropValueResponse4.id)), setOf(ORecordId(objPropValueResponse1.id)))
+        assertEquals(setOf(objPropValueResponse2.id, objPropValueResponse3.id, objPropValueResponse4.id), subvalueIds1.map { it.id }.toSet())
+        val subvalueIds2 =
+            dao.valuesBetween(setOf(ORecordId(objPropValueResponse3.id), ORecordId(objPropValueResponse4.id)), setOf(ORecordId(objPropValueResponse2.id)))
+        assertEquals(setOf(objPropValueResponse3.id, objPropValueResponse4.id), subvalueIds2.map { it.id }.toSet())
+        val subvalueIds3 = dao.valuesBetween(
+            setOf(ORecordId(objPropValueResponse3.id), ORecordId(objPropValueResponse4.id)),
+            setOf(ORecordId(objPropValueResponse1.id), ORecordId(objPropValueResponse3.id))
+        )
+        assertEquals(setOf(objPropValueResponse2.id, objPropValueResponse4.id), subvalueIds3.map { it.id }.toSet())
     }
 
     @Test
     fun linkedFromEmptyTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         ValueCreateRequest(
@@ -857,7 +864,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromObjPropTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -873,7 +880,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromPropValueTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -889,7 +896,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromValueValueTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue1 = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
@@ -906,7 +913,7 @@ class ObjectDaoTest {
 
     @Test
     fun linkedFromTwoEdgesTest() {
-        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id, subject.version))
+        val objVertex = createObject(ObjectCreateRequest(randomName(), "some descr", subject.id))
         val aspectVertex = aspectDao.find(complexAspect.id!!)
         val objPropertyVertex = createObjectProperty(PropertyWriteInfo("propName", null, objVertex, aspectVertex!!))
         val objPropValue1 = createObjectPropertyValue(ValueWriteInfo(ObjectValue.IntegerValue(123, null), null, objPropertyVertex, null, null, null))
