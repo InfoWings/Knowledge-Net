@@ -246,7 +246,7 @@ class ObjectHistoryTest {
 
         // проверяем мета-данные
         assertEquals(username, state.event.username)
-        assertEquals(Math.max(firstPropertyEvent.timestamp, Math.max(secondPropertyEvent.timestamp, objectEvent.timestamp)), state.event.timestamp)
+        assertEquals(valueEvent.timestamp, state.event.timestamp)
         assertEquals(EventType.UPDATE, state.event.type)
         assertEquals(HISTORY_ENTITY_OBJECT, state.event.entityClass)
         assertEquals(false, state.deleted)
