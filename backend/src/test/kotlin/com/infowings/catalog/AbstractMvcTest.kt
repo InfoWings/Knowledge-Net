@@ -23,9 +23,6 @@ import org.springframework.web.context.WebApplicationContext
 abstract class AbstractMvcTest {
 
     @Autowired
-    private lateinit var aspectService: AspectService
-
-    @Autowired
     private lateinit var wac: WebApplicationContext
 
     protected lateinit var mockMvc: MockMvc

@@ -3,7 +3,7 @@ package com.infowings.catalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectService
@@ -166,7 +166,7 @@ class PingTest {
     @Test
     fun testPingWithObject() {
         val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
-        objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
+        objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
 
         val response = pingApi.ping()
 
@@ -199,9 +199,9 @@ class PingTest {
     @Test
     fun testPingWithObjectProperty() {
         val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
-        val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val aspect = aspectService.save(AspectData("", "name", description = null, baseType = BaseType.Text.name), "admin")
-        objectService.create(PropertyCreateRequest(objectId, "property", PropertyCardinality.ONE.name, aspect.idStrict()), username)
+        objectService.create(PropertyCreateRequest(objectCreateResponse.id, "property", PropertyCardinality.ONE.name, aspect.idStrict()), username)
 
         val response = pingApi.ping()
 
@@ -234,10 +234,18 @@ class PingTest {
     @Test
     fun testPingWithObjectValue() {
         val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
-        val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val aspect = aspectService.save(AspectData("", "name", description = null, baseType = BaseType.Text.name), "admin")
-        val objectPropertyId = objectService.create(PropertyCreateRequest(objectId, "property", PropertyCardinality.ONE.name, aspect.idStrict()), username)
-        objectService.create(ValueCreateRequest(ObjectValueData.StringValue("hello"), null, objectPropertyId), username)
+        val propertyCreateResponse =
+            objectService.create(PropertyCreateRequest(objectCreateResponse.id, "property", PropertyCardinality.ONE.name, aspect.idStrict()), username)
+        objectService.update(
+            ValueUpdateRequest(
+                propertyCreateResponse.rootValue.id,
+                ObjectValueData.StringValue("hello"),
+                null,
+                propertyCreateResponse.rootValue.version
+            ), username
+        )
 
         val response = pingApi.ping()
 

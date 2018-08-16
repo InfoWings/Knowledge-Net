@@ -39,10 +39,10 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
 
     val cardinality: PropertyCardinality
         get() {
-            val rootsCount = values.filter { it.parentValue == null }.size
-            return when (rootsCount) {
-                0 -> PropertyCardinality.ZERO
-                1 -> PropertyCardinality.ONE
+            val rootValues = values.filter { it.parentValue == null }
+            return when {
+                rootValues.isEmpty() || (rootValues.size == 1 && rootValues.first().toObjectPropertyValue().value == ObjectValue.NullValue) -> PropertyCardinality.ZERO
+                rootValues.size == 1 -> PropertyCardinality.ONE
                 else -> PropertyCardinality.INFINITY
             }
         }

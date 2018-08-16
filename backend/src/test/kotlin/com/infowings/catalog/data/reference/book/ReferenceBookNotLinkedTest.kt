@@ -212,7 +212,7 @@ class ReferenceBookNotLinkedTest {
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child111), username)
-        assertThrows<RefBookConcurrentModificationException>() {
+        assertThrows<RefBookConcurrentModificationException> {
             referenceBookService.removeReferenceBookItem(forRemoving, username)
         }
     }
@@ -224,7 +224,7 @@ class ReferenceBookNotLinkedTest {
 
         val forRemoving = referenceBookService.getReferenceBookItem(child1)
 
-        assertThrows<RefBookConcurrentModificationException>() {
+        assertThrows<RefBookConcurrentModificationException> {
             changeValue(child11, "newValue")
             referenceBookService.removeReferenceBookItem(forRemoving, username)
         }
@@ -247,7 +247,7 @@ class ReferenceBookNotLinkedTest {
         addReferenceBookItem(referenceBook.id, "some")
         val book = referenceBookService.getReferenceBook(referenceBook.aspectId)
         referenceBookService.updateReferenceBook(book.copy(name = "newName"), username)
-        assertThrows<RefBookConcurrentModificationException>() {
+        assertThrows<RefBookConcurrentModificationException> {
             referenceBookService.removeReferenceBook(book, username)
         }
     }
@@ -257,7 +257,7 @@ class ReferenceBookNotLinkedTest {
         addReferenceBookItem(referenceBook.id, "some")
         val book = referenceBookService.getReferenceBook(referenceBook.aspectId)
         addReferenceBookItem(book.id, "another")
-        assertThrows<RefBookConcurrentModificationException>() {
+        assertThrows<RefBookConcurrentModificationException> {
             referenceBookService.removeReferenceBook(book, username)
         }
     }
@@ -267,7 +267,7 @@ class ReferenceBookNotLinkedTest {
         val itemId = addReferenceBookItem(referenceBook.id, "some")
         val bookItem = referenceBookService.getReferenceBookItem(itemId)
         addReferenceBookItem(itemId, "another")
-        assertThrows<RefBookConcurrentModificationException>() {
+        assertThrows<RefBookConcurrentModificationException> {
             referenceBookService.removeReferenceBookItem(bookItem, username)
         }
     }

@@ -52,20 +52,21 @@ class ObjectServiceFetchTest {
             ), username
         )
 
-        val boxV1Id = objectService.create(
-            ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version),
+        val boxV1CreateResponse = objectService.create(
+            ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id),
             username
         )
-        val boxDimensionPropertyId = objectService.create(PropertyCreateRequest(boxV1Id, "", null, dimensionsAspect.idStrict()), username)
-        val boxDimensionValue = objectService.create(ValueCreateRequest(ObjectValueData.NullValue, null, boxDimensionPropertyId), username)
+        val boxDimensionPropertyCreateResponse =
+            objectService.create(PropertyCreateRequest(boxV1CreateResponse.id, "", null, dimensionsAspect.idStrict()), username)
+        val boxDimensionValueId = boxDimensionPropertyCreateResponse.rootValue.id
         objectService.create(
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[0].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
@@ -73,10 +74,10 @@ class ObjectServiceFetchTest {
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[1].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
@@ -84,22 +85,22 @@ class ObjectServiceFetchTest {
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[2].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
-        detailedObjectId = boxV1Id
+        detailedObjectId = boxV1CreateResponse.id
 
         objectService.create(
-            ObjectCreateRequest(name = "Box V2", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version + 1),
+            ObjectCreateRequest(name = "Box V2", description = null, subjectId = knetSubject.id),
             username
         )
 
         objectService.create(
-            ObjectCreateRequest(name = "Tube V1", description = null, subjectId = reflexiaSubject.id, subjectVersion = reflexiaSubject.version),
+            ObjectCreateRequest(name = "Tube V1", description = null, subjectId = reflexiaSubject.id),
             username
         )
     }

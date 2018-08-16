@@ -50,14 +50,14 @@ class NotFreeAspectUpdateTest {
     @Test
     fun testChangeBaseTypeHasValue() {
         createRootValue(125)
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
         }
     }
 
     @Test
     fun testChangeBaseTypePropHasValue() {
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
         }
     }

@@ -28,8 +28,6 @@ class ObjectServiceExampleTest {
     @Autowired
     private lateinit var db: OrientDatabase
     @Autowired
-    private lateinit var dao: ObjectDaoService
-    @Autowired
     private lateinit var subjectService: SubjectService
     @Autowired
     private lateinit var aspectService: AspectService

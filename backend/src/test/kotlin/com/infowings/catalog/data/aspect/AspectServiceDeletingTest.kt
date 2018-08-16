@@ -192,7 +192,7 @@ class AspectServiceDeletingTest {
         }
 
         val found: OVertex = database.getVertexById(aspectId) ?: throw IllegalStateException("Aspect should exist")
-        assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
+        assertNull("Aspect not deleted", found.getProperty<String>("deleted"))
 
         aspect = aspectService.findById(aspectId)
         aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
