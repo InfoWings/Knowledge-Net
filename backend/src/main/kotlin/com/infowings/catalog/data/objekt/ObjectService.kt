@@ -184,8 +184,8 @@ class ObjectService(
             )
             val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
 
-            historyService.storeFact(propertyValueVertex.toCreateFact(context))
             historyService.storeFact(propertyVertex.toUpdateFact(context, propertyBefore))
+            historyService.storeFact(propertyValueVertex.toCreateFact(context))
 
             PropertyCreateResult(
                 propertyVertex,

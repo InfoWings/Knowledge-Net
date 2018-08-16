@@ -133,7 +133,7 @@ class PingTest {
 
     @Test
     fun testPingWithSubject() {
-        val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
+        subjectService.createSubject(SubjectData.Initial("name"), username)
 
         val response = pingApi.ping()
 
@@ -278,7 +278,7 @@ class PingTest {
     @Test
     fun testPingWithAspectProperty() {
         val aspect1 = aspectService.save(AspectData("", "name1", description = null, baseType = BaseType.Text.name), "admin")
-        val aspect2 = aspectService.save(
+        aspectService.save(
             AspectData(
                 "", "name2", description = null, baseType = BaseType.Text.name,
                 properties = listOf(
