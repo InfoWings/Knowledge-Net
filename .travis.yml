@@ -9,3 +9,5 @@ cache:
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - $HOME/frontend/node_modules/
+after_success:
+- bash <(curl -s https://codecov.io/bash) -t 5afb1257-baa4-4faa-9b91-7054bc394123
