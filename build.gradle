@@ -41,7 +41,9 @@ allprojects {
         maven { url "https://kotlin.bintray.com/kotlinx" }
         maven { url 'https://maven.google.com' }
     }
-
+    test {
+        useJUnitPlatform()
+    }
 }
 
 task codeCoverageReport(type: JacocoReport) {
