@@ -1,6 +1,8 @@
 language: java
 install: ./gradlew assemble
-script: travis_wait ./gradlew check codeCoverageReport
+script:
+- travis_wait ./gradlew check
+- travis_wait ./gradlew codeCoverageReport
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
 - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
