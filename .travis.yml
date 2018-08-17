@@ -11,3 +11,5 @@ cache:
   - $HOME/frontend/node_modules/
 after_success:
 - bash <(curl -s https://codecov.io/bash) -t 5afb1257-baa4-4faa-9b91-7054bc394123
+- wget https://github.com/codacy/codacy-coverage-reporter/releases/download/4.0.2/codacy-coverage-reporter-4.0.2-assembly.jar
+- java -jar codacy-coverage-reporter-4.0.2-assembly.jar report -l Kotlin -r ./build/reports/jacoco/report.xml -t d6acd64676de48e1af5e1ba424799d37
