@@ -34,15 +34,18 @@ class ObjectServiceFetchTest {
 
     @BeforeEach
     fun initTestData() {
-        val knetSubject = subjectService.createSubject(SubjectData(name = "Knowledge Net", description = null), username)
-        val reflexiaSubject = subjectService.createSubject(SubjectData(name = "Reflexia", description = null), username)
+        val knetSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Knowledge Net", description = null), username)
+        val reflexiaSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Reflexia", description = null), username)
 
-        val heightAspect = aspectService.save(AspectData(name = "Height", measure = Metre.name, baseType = BaseType.Decimal.name), username)
-        val widthAspect = aspectService.save(AspectData(name = "Width", measure = Metre.name, baseType = BaseType.Decimal.name), username)
-        val depthAspect = aspectService.save(AspectData(name = "Depth", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val heightAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Height", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val widthAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Width", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val depthAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Depth", measure = Metre.name, baseType = BaseType.Decimal.name), username)
         val dimensionsAspect = aspectService.save(
             AspectData(
-                name = "Dimensions",
+                name = "ObjectServiceFetchTest - Dimensions",
                 baseType = BaseType.Text.name,
                 properties = listOf(
                     AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = heightAspect.idStrict()),
@@ -53,7 +56,7 @@ class ObjectServiceFetchTest {
         )
 
         val boxV1CreateResponse = objectService.create(
-            ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id),
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Box V1", description = null, subjectId = knetSubject.id),
             username
         )
         val boxDimensionPropertyCreateResponse =
@@ -95,12 +98,12 @@ class ObjectServiceFetchTest {
         detailedObjectId = boxV1CreateResponse.id
 
         objectService.create(
-            ObjectCreateRequest(name = "Box V2", description = null, subjectId = knetSubject.id),
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Box V2", description = null, subjectId = knetSubject.id),
             username
         )
 
         objectService.create(
-            ObjectCreateRequest(name = "Tube V1", description = null, subjectId = reflexiaSubject.id),
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Tube V1", description = null, subjectId = reflexiaSubject.id),
             username
         )
     }
@@ -118,9 +121,9 @@ class ObjectServiceFetchTest {
         assertThat("Fetched object has the same id", detailedObject.id, Matchers.`is`(detailedObjectId))
         assertThat("Fetched object has one property", detailedObject.objectProperties.size, Matchers.`is`(1))
         assertThat(
-            "Fetched object property has associated aspect with name \"Dimensions\"",
+            "Fetched object property has associated aspect with name \"ObjectServiceFetchTest - Dimensions\"",
             detailedObject.objectProperties[0].aspect.name,
-            Matchers.`is`("Dimensions")
+            Matchers.`is`("ObjectServiceFetchTest - Dimensions")
         )
         assertThat("Fetched object has three values associated with dimensions", detailedObject.objectProperties[0].values[0].children.size, Matchers.`is`(3))
     }
