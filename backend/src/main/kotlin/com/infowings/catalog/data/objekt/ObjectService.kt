@@ -230,6 +230,15 @@ class ObjectService(
         )
     }
 
+    private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
+        this,
+        this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+        this.measure?.id,
+        this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
+        this.aspectProperty,
+        this.parentValue
+    )
+
     fun create(request: ValueCreateRequest, username: String): ValueCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
@@ -244,14 +253,7 @@ class ObjectService(
             }
             historyService.storeFact(valueVertex.toCreateFact(context))
 
-            ValueResult(
-                valueVertex,
-                valueVertex.toObjectPropertyValue().value.toObjectValueData().toDTO(),
-                valueVertex.measure?.id,
-                valueVertex.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
-                valueVertex.aspectProperty,
-                valueVertex.parentValue
-            )
+            valueVertex.toValueResult()
         }
 
         return ValueCreateResponse(
@@ -278,14 +280,7 @@ class ObjectService(
 
             historyService.storeFact(valueVertex.toUpdateFact(context, before))
 
-            ValueResult(
-                valueVertex,
-                valueVertex.toObjectPropertyValue().value.toObjectValueData().toDTO(),
-                valueVertex.measure?.id,
-                valueVertex.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
-                valueVertex.aspectProperty,
-                valueVertex.parentValue
-            )
+            valueVertex.toValueResult()
         }
 
         return ValueUpdateResponse(

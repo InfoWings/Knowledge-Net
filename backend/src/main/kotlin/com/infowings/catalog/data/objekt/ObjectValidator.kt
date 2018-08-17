@@ -102,8 +102,7 @@ class MainObjectValidator(
         val newSubjectId = newSubjectVertex.identity
 
         //check version (Maybe try to #load() or #reload() if supplied version is bigger than existing)
-        val incorrectVersion = objectVertex.version != request.version
-        if (incorrectVersion) {
+        if (objectVertex.version != request.version) {
             throw ObjectConcurrentEditException(objectVertex.id, objectVertex.name, objectVertex.subject?.name)
         }
 
@@ -145,8 +144,7 @@ class MainObjectValidator(
         val aspectId = aspectVertex.identity
 
         // check version (Maybe retry if supplied version is bigger than existing)
-        val incorrectVersion = propertyVertex.version != request.version
-        if (incorrectVersion) {
+        if (propertyVertex.version != request.version) {
             throw ObjectPropertyConcurrentEditException(propertyVertex.id, propertyVertex.name)
         }
 
