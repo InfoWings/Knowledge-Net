@@ -11,7 +11,6 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
-import junit.framework.Assert.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -20,11 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("StringLiteralDuplication")
 class ObjectServiceTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -155,7 +156,7 @@ class ObjectServiceTest {
             assertEquals(2, foundPropertyInDb.values.size, "Updated property has different amount of values attached")
             val propertyValueIds = foundPropertyInDb.values.map { it.id }
             listOf(defaultRootValueId, childValueId).forEach {
-                assertTrue("Property values does not contain previously created value", propertyValueIds.contains(it))
+                assertTrue(propertyValueIds.contains(it), "Property values does not contain previously created value")
             }
         }
     }

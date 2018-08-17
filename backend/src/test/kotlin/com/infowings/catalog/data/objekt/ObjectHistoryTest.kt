@@ -32,6 +32,7 @@ import kotlin.test.fail
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
 @Disabled("Fails depending on an order (fix in #282)")
+@Suppress("StringLiteralDuplication")
 class ObjectHistoryTest {
     @Autowired
     private lateinit var subjectService: SubjectService

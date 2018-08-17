@@ -25,7 +25,7 @@ data class ObjectProperty(
     val values: List<ObjectPropertyValueVertex>
 )
 
-class PropertyCreateResult(
+data class PropertyCreateResult(
     private val propertyVertex: ObjectPropertyVertex,
     private val objectVertex: ObjectVertex,
     private val rootValueVertex: ObjectPropertyValueVertex
@@ -55,7 +55,7 @@ class PropertyCreateResult(
         get() = propertyVertex.version
 }
 
-class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+data class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
     val id: String
         get() = propertyVertex.id
 
@@ -75,7 +75,7 @@ class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, pri
         get() = propertyVertex.version
 }
 
-class PropertyDeleteResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+data class PropertyDeleteResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
     val id: String
         get() = propertyVertex.id
 

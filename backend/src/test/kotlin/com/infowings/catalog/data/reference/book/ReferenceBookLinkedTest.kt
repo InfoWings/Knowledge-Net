@@ -24,6 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
+@Suppress("UnsafeCallOnNullableType")
 class ReferenceBookLinkedTest {
     @Autowired
     private lateinit var aspectService: AspectService

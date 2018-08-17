@@ -105,7 +105,7 @@ data class ObjectPropertyValue(
     val measure: OVertex?
 )
 
-class ValueResult(
+data class ValueResult(
     private val valueVertex: ObjectPropertyValueVertex,
     val valueDto: ValueDTO,
     val measureId: String?,
@@ -138,7 +138,7 @@ class ValueResult(
         get() = valueVertex.version
 }
 
-class ValueDeleteResult(
+data class ValueDeleteResult(
     private val deletedValues: List<ObjectPropertyValueVertex>,
     private val markedValues: List<ObjectPropertyValueVertex>,
     private val property: ObjectPropertyVertex,

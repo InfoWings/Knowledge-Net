@@ -21,7 +21,7 @@ data class Objekt(
     val properties: List<ObjectPropertyVertex>
 )
 
-class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
+data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
     val id: String
         get() = objectVertex.id
 

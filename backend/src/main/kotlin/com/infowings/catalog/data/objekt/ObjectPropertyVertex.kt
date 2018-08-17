@@ -41,7 +41,8 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
         get() {
             val rootValues = values.filter { it.parentValue == null }
             return when {
-                rootValues.isEmpty() || (rootValues.size == 1 && rootValues.first().toObjectPropertyValue().value == ObjectValue.NullValue) -> PropertyCardinality.ZERO
+                rootValues.isEmpty() -> PropertyCardinality.ZERO
+                rootValues.size == 1 && rootValues.first().toObjectPropertyValue().value == ObjectValue.NullValue -> PropertyCardinality.ZERO
                 rootValues.size == 1 -> PropertyCardinality.ONE
                 else -> PropertyCardinality.INFINITY
             }
