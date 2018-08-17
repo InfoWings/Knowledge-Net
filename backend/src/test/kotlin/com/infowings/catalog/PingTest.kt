@@ -11,6 +11,7 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.external.PingApi
 import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientEdge
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -164,6 +165,7 @@ class PingTest {
     }
 
     @Test
+    @Disabled
     fun testPingWithObject() {
         val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
         objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
