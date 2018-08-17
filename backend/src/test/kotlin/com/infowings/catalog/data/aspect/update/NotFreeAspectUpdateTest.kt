@@ -19,6 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 class NotFreeAspectUpdateTest {
     private val username = "admin"
 
@@ -151,7 +152,7 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createRootValue(value: Int = 123): ValueCreateResponse {
+    private fun createRootValue(value: Int = 0): ValueCreateResponse {
         val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }

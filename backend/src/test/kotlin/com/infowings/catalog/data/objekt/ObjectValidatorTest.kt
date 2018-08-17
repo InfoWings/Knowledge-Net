@@ -29,6 +29,7 @@ import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("StringLiteralDuplication")
 class ObjectValidatorTest {
     @Autowired
     private lateinit var db: OrientDatabase
