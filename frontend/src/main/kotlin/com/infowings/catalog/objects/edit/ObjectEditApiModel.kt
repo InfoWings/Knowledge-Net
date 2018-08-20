@@ -207,7 +207,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.addValue(response: ValueCreateResponse): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.addValue(response: ValueChangeResponse): ObjectPropertyEditDetailsResponse {
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = response.value,
@@ -244,7 +244,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.editValue(response: ValueUpdateResponse): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.editValue(response: ValueChangeResponse): ObjectPropertyEditDetailsResponse {
         return this.copy(
             version = response.objectProperty.version,
             rootValues = this.rootValues.map {

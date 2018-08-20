@@ -111,27 +111,7 @@ data class ValueUpdateRequestDTO(
 }
 
 @Serializable
-data class ObjectCreateResponse(
-    val id: String,
-    val name: String,
-    val description: String?,
-    val subjectId: String,
-    val subjectName: String,
-    val version: Int
-)
-
-@Serializable
-data class ObjectUpdateResponse(
-    val id: String,
-    val name: String,
-    val description: String?,
-    val subjectId: String,
-    val subjectName: String,
-    val version: Int
-)
-
-@Serializable
-data class ObjectDeleteResponse(
+data class ObjectChangeResponse(
     val id: String,
     val name: String,
     val description: String?,
@@ -169,19 +149,7 @@ data class PropertyDeleteResponse(
 )
 
 @Serializable
-data class ValueCreateResponse(
-    val id: String,
-    val value: ValueDTO,
-    val description: String?,
-    val measureId: String?,
-    val objectProperty: Reference,
-    val aspectPropertyId: String?,
-    val parentValue: Reference?,
-    val version: Int
-)
-
-@Serializable
-data class ValueUpdateResponse(
+data class ValueChangeResponse(
     val id: String,
     val value: ValueDTO,
     val description: String?,

@@ -99,11 +99,11 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<DetailedRootValueViewResponse> =
         transaction(db) {
             val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
             return@transaction rootPropertyValues.map { rootValue ->
-                RootValueResponse(
+                DetailedRootValueViewResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
                     rootValue.description,
@@ -112,10 +112,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedValueViewResponse {
         val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
         val aspect = aspectProperty.associatedAspect
-        return ValueResponse(
+        return DetailedValueViewResponse(
             this.id,
             this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
             this.description,

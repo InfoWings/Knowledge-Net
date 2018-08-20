@@ -34,7 +34,7 @@ class ObjectService(
             val subjectVertex = objectVertex.subject ?: throw IllegalStateException("Object ${objectVertex.id} without subject")
             val objectPropertyVertexes = objectVertex.properties
 
-            return@transaction DetailedObjectResponse(
+            return@transaction DetailedObjectViewResponse(
                 objectVertex.id,
                 objectVertex.name,
                 objectVertex.description,
@@ -44,9 +44,9 @@ class ObjectService(
             )
         }
 
-    private fun fetchPropertyValues(propertyVertex: ObjectPropertyVertex): DetailedObjectPropertyResponse {
+    private fun fetchPropertyValues(propertyVertex: ObjectPropertyVertex): DetailedObjectPropertyViewResponse {
         val values = dao.getPropertyValues(propertyVertex)
-        return DetailedObjectPropertyResponse(
+        return DetailedObjectPropertyViewResponse(
             propertyVertex.id,
             propertyVertex.name,
             propertyVertex.description,
@@ -94,7 +94,7 @@ class ObjectService(
             )
         }
 
-    fun create(request: ObjectCreateRequest, username: String): ObjectCreateResponse {
+    fun create(request: ObjectCreateRequest, username: String): ObjectChangeResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
 
@@ -123,7 +123,7 @@ class ObjectService(
             ObjectResult(objectVertex, objectVertex.subject ?: throw IllegalStateException("Object was created without subject"))
         }
 
-        return ObjectCreateResponse(
+        return ObjectChangeResponse(
             objectCreateResult.id,
             objectCreateResult.name,
             objectCreateResult.description,
@@ -133,7 +133,7 @@ class ObjectService(
         )
     }
 
-    fun update(request: ObjectUpdateRequest, username: String): ObjectUpdateResponse {
+    fun update(request: ObjectUpdateRequest, username: String): ObjectChangeResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
 
@@ -150,7 +150,7 @@ class ObjectService(
             ObjectResult(objectVertex, subjectVertex)
         }
 
-        return ObjectUpdateResponse(
+        return ObjectChangeResponse(
             objectUpdateResult.id,
             objectUpdateResult.name,
             objectUpdateResult.description,
@@ -239,7 +239,7 @@ class ObjectService(
         this.parentValue
     )
 
-    fun create(request: ValueCreateRequest, username: String): ValueCreateResponse {
+    fun create(request: ValueCreateRequest, username: String): ValueChangeResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         val valueCreateResult = transaction(db) {
@@ -256,7 +256,7 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return ValueCreateResponse(
+        return ValueChangeResponse(
             valueCreateResult.id,
             valueCreateResult.valueDto,
             valueCreateResult.description,
@@ -268,7 +268,7 @@ class ObjectService(
         )
     }
 
-    fun update(request: ValueUpdateRequest, username: String): ValueUpdateResponse {
+    fun update(request: ValueUpdateRequest, username: String): ValueChangeResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
         val valueUpdateResult = transaction(db) {
@@ -283,7 +283,7 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return ValueUpdateResponse(
+        return ValueChangeResponse(
             valueUpdateResult.id,
             valueUpdateResult.valueDto,
             valueUpdateResult.description,

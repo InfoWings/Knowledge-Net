@@ -1,6 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
@@ -25,7 +25,7 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @GetMapping("{id}/viewdetails")
-    fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectResponse {
+    fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectViewResponse {
         val username = principal.name
         logger.debug("Get objects request by $username")
         return objectService.getDetailedObject(id)
@@ -39,14 +39,14 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("create")
-    fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectCreateResponse {
+    fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectChangeResponse {
         val username = principal.name
         logger.debug("New object create request: $request by $username")
         return objectService.create(request, username)
     }
 
     @PostMapping("update")
-    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
+    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectChangeResponse {
         val username = principal.name
         logger.debug("Object ${request.id} update request: $request by $username")
         return objectService.update(request, username)
@@ -67,7 +67,7 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("createValue")
-    fun createObjectValue(@RequestBody requestDTO: ValueCreateRequestDTO, principal: Principal): ValueCreateResponse {
+    fun createObjectValue(@RequestBody requestDTO: ValueCreateRequestDTO, principal: Principal): ValueChangeResponse {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("New object property value create request: $requestDTO by $username")
@@ -75,7 +75,7 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("updateValue")
-    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
+    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueChangeResponse {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("Object property value update request: $requestDTO by $username")

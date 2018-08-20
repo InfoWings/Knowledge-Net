@@ -287,7 +287,7 @@ class ObjectHistoryTest {
         val propertyRequest: PropertyCreateRequest,
         val valueId: String,
         val propertyId: String,
-        val objectCreateResponse: ObjectCreateResponse,
+        val objectCreateResponse: ObjectChangeResponse,
         val propertyFacts: List<HistoryFact>,
         val valueFacts: List<HistoryFact>,
         val states: List<ObjectHistory>
@@ -1784,7 +1784,7 @@ class ObjectHistoryTest {
 
     private fun valueEvents(events: Set<HistoryFact>) = eventsByClass(events, OBJECT_PROPERTY_VALUE_CLASS)
 
-    private fun createObject(name: String, description: String = "obj descr"): ObjectCreateResponse {
+    private fun createObject(name: String, description: String = "obj descr"): ObjectChangeResponse {
         val request = ObjectCreateRequest(name, description, subject.id)
         return objectService.create(request, "user")
     }

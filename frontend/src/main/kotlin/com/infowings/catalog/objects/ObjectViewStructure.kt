@@ -28,13 +28,13 @@ data class ObjectPropertyViewModel(
     val aspect: AspectData,
     val values: List<ObjectPropertyValueViewModel>
 ) {
-    constructor(objectProperty: DetailedObjectPropertyResponse) : this(
-        objectProperty.id,
-        objectProperty.name,
-        PropertyCardinality.valueOf(objectProperty.cardinality),
-        objectProperty.description,
-        objectProperty.aspect,
-        objectProperty.values.map(::ObjectPropertyValueViewModel)
+    constructor(objectPropertyView: DetailedObjectPropertyViewResponse) : this(
+        objectPropertyView.id,
+        objectPropertyView.name,
+        PropertyCardinality.valueOf(objectPropertyView.cardinality),
+        objectPropertyView.description,
+        objectPropertyView.aspect,
+        objectPropertyView.values.map(::ObjectPropertyValueViewModel)
     )
 }
 
@@ -46,11 +46,11 @@ data class ObjectPropertyValueViewModel(
     var expanded: Boolean = false
 ) {
 
-    constructor(objectPropertyValue: RootValueResponse) : this(
-        id = objectPropertyValue.id,
-        value = objectPropertyValue.value.toData(),
-        description = objectPropertyValue.description,
-        valueGroups = objectPropertyValue.children.groupBy { it.aspectProperty }.toList().map {
+    constructor(objectPropertyValueDetailed: DetailedRootValueViewResponse) : this(
+        id = objectPropertyValueDetailed.id,
+        value = objectPropertyValueDetailed.value.toData(),
+        description = objectPropertyValueDetailed.description,
+        valueGroups = objectPropertyValueDetailed.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
                 it.second.map(::AspectPropertyValueViewModel)
@@ -80,7 +80,7 @@ data class AspectPropertyValueViewModel(
     var expanded: Boolean = false
 ) {
 
-    constructor(propertyValue: ValueResponse) : this(
+    constructor(propertyValue: DetailedValueViewResponse) : this(
         id = propertyValue.id,
         value = propertyValue.value.toData(),
         description = propertyValue.description,
@@ -136,7 +136,7 @@ data class AspectPropertyViewModel(
     )
 }
 
-fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObjectResponse>) =
+fun List<ObjectGetResponse>.toLazyView(detailedObjectsView: Map<String, DetailedObjectViewResponse>) =
     this.map {
         ObjectLazyViewModel(
             it.id,
@@ -144,13 +144,13 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjects: Map<String, DetailedObje
             it.description,
             it.subjectName,
             it.propertiesCount,
-            detailedObjects[it.id]?.objectProperties?.map(::ObjectPropertyViewModel)
+            detailedObjectsView[it.id]?.objectPropertyViews?.map(::ObjectPropertyViewModel)
         )
     }
 
-fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, DetailedObjectResponse>) =
+fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, DetailedObjectViewResponse>) =
     this.map {
-        if (detailedObjects[it.id] == null) {
+        if (detailedObjectsView[it.id] == null) {
             ObjectLazyViewModel(
                 it.id,
                 it.name,
@@ -160,14 +160,14 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjects: Map<String, Detailed
                 expanded = it.expanded
             )
         } else {
-            val detailedObject = detailedObjects[it.id] ?: error("Should never happened")
+            val detailedObject = detailedObjectsView[it.id] ?: error("Should never happened")
             ObjectLazyViewModel(
                 detailedObject.id,
                 detailedObject.name,
                 detailedObject.description,
                 detailedObject.subjectName,
                 detailedObject.propertiesCount,
-                it.objectProperties ?: detailedObject.objectProperties.map(::ObjectPropertyViewModel),
+                it.objectProperties ?: detailedObject.objectPropertyViews.map(::ObjectPropertyViewModel),
                 it.expanded
             ).also { newObject ->
                 if (it.expandAllFlag) {

@@ -152,12 +152,12 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createRootValue(value: Int = 0): ValueCreateResponse {
+    private fun createRootValue(value: Int = 0): ValueChangeResponse {
         val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }
 
-    private fun createNullRootValue(): ValueCreateResponse {
+    private fun createNullRootValue(): ValueChangeResponse {
         val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.NullValue, null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }

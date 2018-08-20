@@ -119,13 +119,17 @@ class ObjectServiceFetchTest {
     fun fetchDetailedObject() {
         val detailedObject = objectService.getDetailedObject(detailedObjectId!!)
         assertThat("Fetched object has the same id", detailedObject.id, Matchers.`is`(detailedObjectId))
-        assertThat("Fetched object has one property", detailedObject.objectProperties.size, Matchers.`is`(1))
+        assertThat("Fetched object has one property", detailedObject.objectPropertyViews.size, Matchers.`is`(1))
         assertThat(
             "Fetched object property has associated aspect with name \"ObjectServiceFetchTest - Dimensions\"",
-            detailedObject.objectProperties[0].aspect.name,
+            detailedObject.objectPropertyViews[0].aspect.name,
             Matchers.`is`("ObjectServiceFetchTest - Dimensions")
         )
-        assertThat("Fetched object has three values associated with dimensions", detailedObject.objectProperties[0].values[0].children.size, Matchers.`is`(3))
+        assertThat(
+            "Fetched object has three values associated with dimensions",
+            detailedObject.objectPropertyViews[0].values[0].children.size,
+            Matchers.`is`(3)
+        )
     }
 
 }
