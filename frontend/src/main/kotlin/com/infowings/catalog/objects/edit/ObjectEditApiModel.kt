@@ -86,6 +86,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 ObjectValueData.NullValue.toDTO(),
                 null,
                 null,
+                null,
                 createPropertyResponse.rootValue.version,
                 emptyList()
             )
@@ -211,6 +212,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = response.value,
+            measureName = response.measureName,
             description = response.description,
             propertyId = response.aspectPropertyId,
             version = response.version,

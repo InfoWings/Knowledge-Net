@@ -110,7 +110,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     value = value,
                     description = description,
                     objectPropertyId = objectPropertyId,
-                    measureId = null,
+                    measureName = null,
                     aspectPropertyId = aspectPropertyId,
                     parentValueId = parentValueId
                 )
@@ -124,6 +124,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 ValueUpdateRequest(
                     valueId = valueId,
                     value = value,
+                    measureName = null,
                     description = description,
                     version = version
                 )

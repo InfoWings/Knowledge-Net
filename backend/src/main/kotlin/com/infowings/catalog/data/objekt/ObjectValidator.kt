@@ -185,7 +185,7 @@ class MainObjectValidator(
             throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
         }
 
-        val measureVertex = request.measureId?.let { measureService.findById(it) }
+        val measureVertex = request.measureName?.let { measureService.findMeasure(it) }
 
         val measure = (measureVertex?.toMeasure() ?: when (request.parentValueId) {
             null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
@@ -235,7 +235,15 @@ class MainObjectValidator(
 
         val parentValueVertex = valueVertex.parentValue
 
-        val measure = (valueVertex.measure?.toMeasure() ?: when (parentValueVertex) {
+        val currentValueMeasureVertex = valueVertex.measure
+
+        val valueMeasureVertex = when {
+            request.measureName == null -> currentValueMeasureVertex
+            request.measureName != currentValueMeasureVertex?.toMeasure()?.name -> measureService.findMeasure(request.measureName)
+            else -> currentValueMeasureVertex
+        }
+
+        val measure = (valueMeasureVertex?.toMeasure() ?: when (parentValueVertex) {
             null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
             else -> aspectPropertyVertex?.associatedAspect ?: throw IllegalArgumentException("No aspect property id for non-root value")
         }.measure) as? Measure<DecimalNumber>

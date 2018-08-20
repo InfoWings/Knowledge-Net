@@ -10,6 +10,7 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 
@@ -75,6 +76,7 @@ class ObjectService(
                         ValueTruncated (
                             it.id,
                             it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+                            it.measure?.toMeasure()?.name,
                             it.description,
                             it.aspectProperty?.id,
                             it.version,
@@ -259,13 +261,13 @@ class ObjectService(
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
         this,
         this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-        this.measure?.id,
+        this.measure?.toMeasure()?.symbol,
         this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
         this.aspectProperty,
         this.parentValue
     )
 
-    private fun ValueResult.toResponse() = ValueChangeResponse(id, valueDto, description, measureId, Reference(objectPropertyId, objectPropertyVersion),
+    private fun ValueResult.toResponse() = ValueChangeResponse(id, valueDto, description, measureSymbol, Reference(objectPropertyId, objectPropertyVersion),
         aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version
     )
 

@@ -41,6 +41,7 @@ data class ObjectPropertyViewModel(
 data class ObjectPropertyValueViewModel(
     val id: String,
     val value: ObjectValueData,
+    val measureSymbol: String?,
     val description: String?,
     val valueGroups: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
@@ -49,6 +50,7 @@ data class ObjectPropertyValueViewModel(
     constructor(objectPropertyValueDetailed: DetailedRootValueViewResponse) : this(
         id = objectPropertyValueDetailed.id,
         value = objectPropertyValueDetailed.value.toData(),
+        measureSymbol = objectPropertyValueDetailed.measureSymbol,
         description = objectPropertyValueDetailed.description,
         valueGroups = objectPropertyValueDetailed.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
@@ -75,6 +77,7 @@ data class AspectPropertyValueGroupViewModel(
 data class AspectPropertyValueViewModel(
     val id: String,
     val value: ObjectValueData,
+    val measureSymbol: String?,
     val description: String?,
     val children: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
@@ -83,6 +86,7 @@ data class AspectPropertyValueViewModel(
     constructor(propertyValue: DetailedValueViewResponse) : this(
         id = propertyValue.id,
         value = propertyValue.value.toData(),
+        measureSymbol = propertyValue.measureSymbol,
         description = propertyValue.description,
         children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(

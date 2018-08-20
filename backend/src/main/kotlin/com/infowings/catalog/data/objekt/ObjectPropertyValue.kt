@@ -122,7 +122,7 @@ data class ObjectPropertyValue(
 data class ValueResult(
     private val valueVertex: ObjectPropertyValueVertex,
     val valueDto: ValueDTO,
-    val measureId: String?,
+    val measureSymbol: String?,
     private val objectProperty: ObjectPropertyVertex,
     private val aspectProperty: AspectPropertyVertex?,
     private val parentValue: ObjectPropertyValueVertex?
