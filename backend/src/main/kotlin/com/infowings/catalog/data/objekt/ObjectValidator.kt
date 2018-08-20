@@ -1,8 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.LinkValueData
-import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
@@ -10,6 +8,7 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORecordId
@@ -172,8 +171,7 @@ class MainObjectValidator(
         }
 
         val aspectPropertyVertex = request.aspectPropertyId?.let {
-            aspectDao.findProperty(it)
-                    ?: throw AspectPropertyDoesNotExist(it)
+            aspectDao.findProperty(it) ?: throw AspectPropertyDoesNotExist(it)
         }
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
@@ -182,16 +180,27 @@ class MainObjectValidator(
             aspectPropertyVertex?.let { aspectDao.baseType(it) }
         else objectPropertyVertex.let { objectDaoService.baseType(it) }
 
-        val baseType = btStr?.let { BaseType.restoreBaseType(it) }
-        if (!request.value.assignableTo(baseType!!)) {
+        val baseType = btStr?.let { BaseType.restoreBaseType(it) } ?: throw IllegalStateException("Associated aspect has no base type")
+        if (!request.value.assignableTo(baseType)) {
             throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
         }
 
-        val dataValue = request.value
+        val measureVertex = request.measureId?.let { measureService.findById(it) }
+
+        val measure = (measureVertex?.toMeasure() ?: when (request.parentValueId) {
+            null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
+            else -> aspectPropertyVertex?.associatedAspect ?: throw IllegalArgumentException("No aspect property id for non-root value")
+        }.measure) as? Measure<DecimalNumber>
+
+        val dataValue = if (request.value is ObjectValueData.DecimalValue && measure != null) {
+            val valueRepresentation = BigDecimal(request.value.valueRepr)
+            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(valueRepresentation)).value.toString())
+        } else {
+            request.value
+        }
 
         val value = getObjectValueFromData(dataValue)
 
-        val measureVertex = request.measureId?.let { measureService.findById(it) }
 
         return ValueWriteInfo(value, request.description, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
@@ -226,7 +235,17 @@ class MainObjectValidator(
 
         val parentValueVertex = valueVertex.parentValue
 
-        val dataValue = request.value
+        val measure = (valueVertex.measure?.toMeasure() ?: when (parentValueVertex) {
+            null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
+            else -> aspectPropertyVertex?.associatedAspect ?: throw IllegalArgumentException("No aspect property id for non-root value")
+        }.measure) as? Measure<DecimalNumber>
+
+        val dataValue = if (request.value is ObjectValueData.DecimalValue && measure != null) {
+            val valueRepresentation = BigDecimal(request.value.valueRepr)
+            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(valueRepresentation)).value.toString())
+        } else {
+            request.value
+        }
 
         val value = getObjectValueFromData(dataValue)
 

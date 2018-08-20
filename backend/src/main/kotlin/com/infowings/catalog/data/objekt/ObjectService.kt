@@ -74,7 +74,7 @@ class ObjectService(
                     val values = it.values.map {
                         ValueTruncated (
                             it.id,
-                            it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                            it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
                             it.description,
                             it.aspectProperty?.id,
                             it.version,
@@ -258,7 +258,7 @@ class ObjectService(
 
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
         this,
-        this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+        this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
         this.measure?.id,
         this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
         this.aspectProperty,

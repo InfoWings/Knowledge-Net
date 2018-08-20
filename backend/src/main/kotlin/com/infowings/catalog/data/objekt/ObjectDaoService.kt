@@ -105,7 +105,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             return@transaction rootPropertyValues.map { rootValue ->
                 DetailedRootValueViewResponse(
                     rootValue.id,
-                    rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.toObjectPropertyValue().calculateObjectValueData().toDTO(),
                     rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
                 )
@@ -117,7 +117,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         val aspect = aspectProperty.associatedAspect
         return DetailedValueViewResponse(
             this.id,
-            this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
             this.description,
             AspectPropertyDataExtended(
                 aspectProperty.id,
