@@ -116,6 +116,7 @@ class ObjectServiceFetchTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun fetchDetailedObject() {
         val detailedObject = objectService.getDetailedObject(detailedObjectId!!)
         assertThat("Fetched object has the same id", detailedObject.id, Matchers.`is`(detailedObjectId))
