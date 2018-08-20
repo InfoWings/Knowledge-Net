@@ -123,14 +123,7 @@ class ObjectService(
             ObjectResult(objectVertex, objectVertex.subject ?: throw IllegalStateException("Object was created without subject"))
         }
 
-        return ObjectChangeResponse(
-            objectCreateResult.id,
-            objectCreateResult.name,
-            objectCreateResult.description,
-            objectCreateResult.subjectId,
-            objectCreateResult.subjectName,
-            objectCreateResult.version
-        )
+        return objectCreateResult.toResponse()
     }
 
     fun update(request: ObjectUpdateRequest, username: String): ObjectChangeResponse {
@@ -150,15 +143,10 @@ class ObjectService(
             ObjectResult(objectVertex, subjectVertex)
         }
 
-        return ObjectChangeResponse(
-            objectUpdateResult.id,
-            objectUpdateResult.name,
-            objectUpdateResult.description,
-            objectUpdateResult.subjectId,
-            objectUpdateResult.subjectName,
-            objectUpdateResult.version
-        )
+        return objectUpdateResult.toResponse()
     }
+
+    private fun ObjectResult.toResponse() = ObjectChangeResponse(id, name, description, subjectId, subjectName, version)
 
     fun create(request: PropertyCreateRequest, username: String): PropertyCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -230,15 +218,6 @@ class ObjectService(
         )
     }
 
-    private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
-        this,
-        this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
-        this.measure?.id,
-        this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
-        this.aspectProperty,
-        this.parentValue
-    )
-
     fun create(request: ValueCreateRequest, username: String): ValueChangeResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
@@ -256,16 +235,7 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return ValueChangeResponse(
-            valueCreateResult.id,
-            valueCreateResult.valueDto,
-            valueCreateResult.description,
-            valueCreateResult.measureId,
-            Reference(valueCreateResult.objectPropertyId, valueCreateResult.objectPropertyVersion),
-            valueCreateResult.aspectPropertyId,
-            valueCreateResult.parentValueId?.let { id -> valueCreateResult.parentValueVersion?.let { version -> Reference(id, version) } },
-            valueCreateResult.version
-        )
+        return valueCreateResult.toResponse()
     }
 
     fun update(request: ValueUpdateRequest, username: String): ValueChangeResponse {
@@ -283,17 +253,21 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return ValueChangeResponse(
-            valueUpdateResult.id,
-            valueUpdateResult.valueDto,
-            valueUpdateResult.description,
-            valueUpdateResult.measureId,
-            Reference(valueUpdateResult.objectPropertyId, valueUpdateResult.objectPropertyVersion),
-            valueUpdateResult.aspectPropertyId,
-            valueUpdateResult.parentValueId?.let { id -> valueUpdateResult.parentValueVersion?.let { version -> Reference(id, version) } },
-            valueUpdateResult.version
-        )
+        return valueUpdateResult.toResponse()
     }
+
+    private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
+        this,
+        this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+        this.measure?.id,
+        this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
+        this.aspectProperty,
+        this.parentValue
+    )
+
+    private fun ValueResult.toResponse() = ValueChangeResponse(id, valueDto, description, measureId, Reference(objectPropertyId, objectPropertyVersion),
+        aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version
+    )
 
     private data class DeleteValueContext(
         val root: ObjectPropertyValueVertex,
