@@ -263,7 +263,7 @@ class MainObjectValidator(
             objectPropertyVertex,
             aspectPropertyVertex,
             parentValueVertex,
-            valueVertex.measure
+            valueMeasureVertex
         )
     }
 

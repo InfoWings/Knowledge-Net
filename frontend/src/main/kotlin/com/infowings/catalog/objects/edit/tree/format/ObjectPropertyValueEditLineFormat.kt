@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.MeasureMeasureGroupMap
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
@@ -10,6 +11,7 @@ import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
+import com.infowings.catalog.objects.edit.tree.inputs.valueMeasureSelect
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -60,9 +62,15 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 disabled = props.valueDisabled
             )
             props.aspectMeasure?.let {
-                span(classes = "property-value__aspect-measure") {
-                    +it.symbol
-                }
+                valueMeasureSelect(
+                    measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}"),
+                    currentMeasure = props.valueMeasure,
+                    defaultMeasure = it,
+                    onMeasureSelected = { measure ->
+                        props.onValueMeasureNameChanged(measure?.name)
+                    },
+                    disabled = props.valueDisabled
+                )
             }
         }
         if (props.valueDisabled) {
@@ -104,10 +112,12 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var subjectName: String?
     var referenceBookId: String?
     var value: ObjectValueData?
+    var valueMeasure: Measure<*>?
     var valueDescription: String?
     var onValueDescriptionChanged: (String) -> Unit
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
+    var onValueMeasureNameChanged: (String?) -> Unit
     var onSaveValue: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onCancelValue: (() -> Unit)?

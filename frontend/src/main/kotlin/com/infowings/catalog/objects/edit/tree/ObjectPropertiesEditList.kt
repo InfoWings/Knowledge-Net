@@ -1,6 +1,8 @@
 package com.infowings.catalog.objects.edit.tree
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
@@ -71,6 +73,7 @@ fun RBuilder.objectPropertiesEditList(
                                             null,
                                             ObjectValueData.NullValue,
                                             null,
+                                            null,
                                             false,
                                             mutableListOf()
                                         ))
@@ -81,6 +84,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 ObjectValueData.NullValue,
+                                                null,
                                                 null,
                                                 false,
                                                 mutableListOf()
@@ -132,11 +136,12 @@ fun RBuilder.objectPropertiesEditList(
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
                                     editModel.createValue(
-                                        value.value ?: error("value should not be null"),
-                                        value.description,
-                                        propertyId,
-                                        null,
-                                        null
+                                        ValueCreateRequest(
+                                            value.value ?: error("value should not be null"),
+                                            value.description,
+                                            propertyId,
+                                            value.measureName
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -144,10 +149,13 @@ fun RBuilder.objectPropertiesEditList(
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        value.value ?: error("Value should not be null"),
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) should have non null version")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            value.value ?: error("Value should not be null"),
+                                            value.measureName,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) should have non null version")
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -166,6 +174,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 property.aspect?.defaultValue(),
+                                                null,
                                                 null,
                                                 false,
                                                 mutableListOf()
@@ -224,10 +233,13 @@ fun RBuilder.objectPropertiesEditList(
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        ObjectValueData.NullValue,
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) should have non null id")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            ObjectValueData.NullValue,
+                                            null,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) should have non null id")
+                                        )
                                     )
                                 }
                             }
@@ -363,6 +375,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
                         value = props.rootValue.value
+                        valueMeasure = props.rootValue.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.rootValue.description
                         onPropertyNameUpdate = if (props.editContext.currentContext == null) {
                             {
@@ -415,6 +428,24 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                             {
                                 props.onValueUpdate {
                                     value = it
+                                }
+                            }
+                        }
+                        onValueMeasureNameChanged = if (props.editContext.currentContext == null) {
+                            {
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.rootValue.id ?: error("Root value should have id != null in order to edit")
+                                    )
+                                )
+                                props.onValueUpdate {
+                                    measureName = it
+                                }
+                            }
+                        } else {
+                            {
+                                props.onValueUpdate {
+                                    measureName = it
                                 }
                             }
                         }

@@ -1,7 +1,6 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
@@ -23,8 +22,8 @@ interface ObjectTreeEditModel {
     fun createProperty(propertyEditModel: ObjectPropertyEditModel)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?)
-    fun updateValue(valueId: String, value: ObjectValueData, description: String?, version: Int)
+    fun createValue(valueCreateRequest: ValueCreateRequest)
+    fun updateValue(valueUpdateRequest: ValueUpdateRequest)
     fun deleteValue(valueId: String)
 }
 
@@ -103,32 +102,15 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         deleteEntity { force -> props.apiModel.deleteObjectProperty(propertyId, force) }
     }
 
-    override fun createValue(value: ObjectValueData, description: String?, objectPropertyId: String, parentValueId: String?, aspectPropertyId: String?) {
+    override fun createValue(valueCreateRequest: ValueCreateRequest) {
         launch {
-            props.apiModel.submitObjectValue(
-                ValueCreateRequest(
-                    value = value,
-                    description = description,
-                    objectPropertyId = objectPropertyId,
-                    measureName = null,
-                    aspectPropertyId = aspectPropertyId,
-                    parentValueId = parentValueId
-                )
-            )
+            props.apiModel.submitObjectValue(valueCreateRequest)
         }
     }
 
-    override fun updateValue(valueId: String, value: ObjectValueData, description: String?, version: Int) {
+    override fun updateValue(valueUpdateRequest: ValueUpdateRequest) {
         launch {
-            props.apiModel.editObjectValue(
-                ValueUpdateRequest(
-                    valueId = valueId,
-                    value = value,
-                    measureName = null,
-                    description = description,
-                    version = version
-                )
-            )
+            props.apiModel.editObjectValue(valueUpdateRequest)
         }
     }
 

@@ -261,13 +261,14 @@ class ObjectService(
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
         this,
         this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-        this.measure?.toMeasure()?.symbol,
+        this.measure?.toMeasure()?.name,
         this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
         this.aspectProperty,
         this.parentValue
     )
 
-    private fun ValueResult.toResponse() = ValueChangeResponse(id, valueDto, description, measureSymbol, Reference(objectPropertyId, objectPropertyVersion),
+    private fun ValueResult.toResponse() = ValueChangeResponse(
+        id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),
         aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version
     )
 

@@ -251,14 +251,24 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             version = response.objectProperty.version,
             rootValues = this.rootValues.map {
                 when {
-                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.id -> it.copy(
+                        value = response.value,
+                        measureName = response.measureName,
+                        version = response.version,
+                        description = response.description
+                    )
                     it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
                     else -> it
                 }
             },
             valueDescriptors = this.valueDescriptors.map {
                 when {
-                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.id -> it.copy(
+                        value = response.value,
+                        measureName = response.measureName,
+                        version = response.version,
+                        description = response.description
+                    )
                     it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
                     else -> it
                 }
