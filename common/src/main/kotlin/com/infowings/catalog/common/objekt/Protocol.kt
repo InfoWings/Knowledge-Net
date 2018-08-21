@@ -11,8 +11,7 @@ import kotlinx.serialization.Serializable
 data class ObjectCreateRequest(
     val name: String,
     val description: String?,
-    val subjectId: String,
-    val subjectVersion: Int?
+    val subjectId: String
 )
 
 @Serializable
@@ -21,7 +20,7 @@ data class ObjectUpdateRequest(
     val name: String,
     val description: String?,
     val subjectId: String,
-    val subjectVersion: Int?
+    val version: Int
 )
 
 @Serializable
@@ -34,9 +33,10 @@ data class PropertyCreateRequest(
 
 @Serializable
 data class PropertyUpdateRequest(
-    val objectPropertyId: String,
+    val id: String,
     val name: String?,
-    val description: String?
+    val description: String?,
+    val version: Int
 )
 
 data class ValueCreateRequest(
@@ -91,33 +91,82 @@ data class ValueCreateRequestDTO(
     )
 }
 
-data class ValueUpdateRequest(val valueId: String, val value: ObjectValueData, val description: String?) {
-    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), description)
+data class ValueUpdateRequest(
+    val valueId: String,
+    val value: ObjectValueData,
+    val description: String?,
+    val version: Int
+) {
+    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), description, version)
 }
 
 @Serializable
 data class ValueUpdateRequestDTO(
     val valueId: String,
     val value: ValueDTO,
-    val description: String?
+    val description: String?,
+    val version: Int
 ) {
-    fun toRequest() = ValueUpdateRequest(value = value.toData(), valueId = valueId, description = description)
+    fun toRequest() = ValueUpdateRequest(valueId, value.toData(), description, version)
 }
 
 @Serializable
-data class ObjectCreateResponse(val id: String)
+data class ObjectChangeResponse(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectId: String,
+    val subjectName: String,
+    val version: Int
+)
 
 @Serializable
-data class ObjectUpdateResponse(val id: String)
+data class PropertyCreateResponse(
+    val id: String,
+    val obj: Reference,
+    val rootValue: Reference,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
 
 @Serializable
-data class PropertyCreateResponse(val id: String)
+data class PropertyUpdateResponse(
+    val id: String,
+    val obj: Reference,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
 
 @Serializable
-data class PropertyUpdateResponse(val id: String)
+data class PropertyDeleteResponse(
+    val id: String,
+    val obj: Reference,
+    val name: String?,
+    val description: String?,
+    val version: Int
+)
 
 @Serializable
-data class ValueCreateResponse(val id: String)
+data class ValueChangeResponse(
+    val id: String,
+    val value: ValueDTO,
+    val description: String?,
+    val measureId: String?,
+    val objectProperty: Reference,
+    val aspectPropertyId: String?,
+    val parentValue: Reference?,
+    val version: Int
+)
 
 @Serializable
-data class ValueUpdateResponse(val id: String)
+data class ValueDeleteResponse(
+    val deletedValues: List<String>,
+    val markedValues: List<String>,
+    val objectProperty: Reference,
+    val parentValue: Reference?
+)
+
+@Serializable
+data class Reference(val id: String, val version: Int)

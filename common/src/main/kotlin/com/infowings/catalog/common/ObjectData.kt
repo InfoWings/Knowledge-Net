@@ -17,40 +17,40 @@ data class ObjectGetResponse(
 )
 
 @Serializable
-data class DetailedObjectResponse(
+data class DetailedObjectViewResponse(
     val id: String,
     val name: String,
     val description: String?,
     val subjectName: String,
     val propertiesCount: Int,
-    val objectProperties: List<DetailedObjectPropertyResponse>
+    val objectPropertyViews: List<DetailedObjectPropertyViewResponse>
 )
 
 @Serializable
-data class DetailedObjectPropertyResponse(
+data class DetailedObjectPropertyViewResponse(
     val id: String,
     val name: String?,
     val description: String?,
     val aspect: AspectData,
     val cardinality: String,
-    val values: List<RootValueResponse>
+    val values: List<DetailedRootValueViewResponse>
 )
 
 @Serializable
-data class RootValueResponse(
+data class DetailedRootValueViewResponse(
     val id: String,
     val value: ValueDTO,
     val description: String?,
-    val children: List<ValueResponse>
+    val children: List<DetailedValueViewResponse>
 )
 
 @Serializable
-data class ValueResponse(
+data class DetailedValueViewResponse(
     val id: String,
     val value: ValueDTO,
     val description: String?,
     val aspectProperty: AspectPropertyDataExtended,
-    val children: List<ValueResponse>
+    val children: List<DetailedValueViewResponse>
 )
 
 @Serializable
@@ -60,6 +60,7 @@ data class ObjectEditDetailsResponse(
     val description: String?,
     val subjectName: String,
     val subjectId: String,
+    val version: Int,
     val properties: List<ObjectPropertyEditDetailsResponse>
 )
 
@@ -68,6 +69,7 @@ data class ObjectPropertyEditDetailsResponse(
     val id: String,
     val name: String?,
     val description: String?,
+    val version: Int,
     val rootValues: List<ValueTruncated>,
     val valueDescriptors: List<ValueTruncated>,
     val aspectDescriptor: AspectTree
@@ -79,5 +81,6 @@ data class ValueTruncated(
     val value: ValueDTO,
     val description: String?,
     val propertyId: String?,
+    val version: Int,
     val childrenIds: List<String>
 )

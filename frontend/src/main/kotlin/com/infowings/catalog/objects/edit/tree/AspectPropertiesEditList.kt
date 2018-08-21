@@ -84,7 +84,12 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, value.value ?: error("No value to submit"), value.description)
+                                    editModel.updateValue(
+                                        value.id,
+                                        value.value ?: error("No value to submit"),
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                    )
                                     editContext.setContext(null)
                                 }
                             }
@@ -142,17 +147,22 @@ fun RBuilder.aspectPropertiesEditList(
                         this.onRemoveValue = when {
                             value.id != null && valueGroup.values.size > 1 && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, objectPropertyId)
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.updateValue(value.id, objectPropertyId, ObjectValueData.NullValue, value.description)
+                                    editModel.updateValue(
+                                        value.id,
+                                        ObjectValueData.NullValue,
+                                        value.description,
+                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                    )
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    editModel.deleteValue(value.id, objectPropertyId)
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             else -> null

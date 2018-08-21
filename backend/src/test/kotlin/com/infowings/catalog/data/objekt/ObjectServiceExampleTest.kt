@@ -28,8 +28,6 @@ class ObjectServiceExampleTest {
     @Autowired
     private lateinit var db: OrientDatabase
     @Autowired
-    private lateinit var dao: ObjectDaoService
-    @Autowired
     private lateinit var subjectService: SubjectService
     @Autowired
     private lateinit var aspectService: AspectService
@@ -129,143 +127,138 @@ class ObjectServiceExampleTest {
         val subjectSaturn = subjectService.createSubject(subjectData, username)
 
 
-        val objectRequest = ObjectCreateRequest("ЛИГП-10", "some descr", subjectSaturn.id, subjectSaturn.version)
-        val createdObjectId = objectService.create(objectRequest, username)
+        val objectRequest = ObjectCreateRequest("ЛИГП-10", "some descr", subjectSaturn.id)
+        val createObjectResponse = objectService.create(objectRequest, username)
 
 
         val propertyRequest = PropertyCreateRequest(
-            objectId = createdObjectId, name = "name", description = null,
+            objectId = createObjectResponse.id, name = "name", description = null,
             aspectId = aspectChargeCharacteristic.idStrict()
         )
-        val createdPropertyId: String = objectService.create(propertyRequest, username)
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
 
-        val topValueRequest = ValueCreateRequest(ObjectValueData.NullValue, null, createdPropertyId)
-        val topValueId = objectService.create(topValueRequest, username).id?.toString()
+        val topValueId = propertyCreateResponse.rootValue.id
 
         val refValue11Data = LinkValueData.DomainElement(refBookItemIds[0])
         val value11Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue11Data),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
             parentValueId = topValueId
         )
-        val createdValue11 = objectService.create(value11Request, username)
+        val valueCreateResponse11 = objectService.create(value11Request, username)
 
         val refValue12Data = LinkValueData.DomainElement(refBookItemIds[1])
         val value12Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue12Data),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
             parentValueId = topValueId
         )
-        val createdValue12 = objectService.create(value12Request, username)
+        val valueCreateResponse12 = objectService.create(value12Request, username)
 
         val refValue13Data = LinkValueData.DomainElement(refBookItemIds[2])
         val value13Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue13Data),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectChargeCharacteristic.properties[0].id,
             measureId = null,
             parentValueId = topValueId
         )
-        val createdValue13 = objectService.create(value13Request, username)
+        val valueCreateResponse13 = objectService.create(value13Request, username)
 
         val value111Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("3.0"),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
-            parentValueId = createdValue11.id.toString(),
+            parentValueId = valueCreateResponse11.id,
             measureId = null
         )
-        val createdValue111 = objectService.create(value111Request, username)
+        objectService.create(value111Request, username)
 
         val value112Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(75, null),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
-            parentValueId = createdValue11.id.toString(),
+            parentValueId = valueCreateResponse11.id,
             measureId = null
         )
-        val createdValue112 = objectService.create(value112Request, username)
+        objectService.create(value112Request, username)
 
         val ampereMeasure = measureService.findMeasure("Ampere")
 
         val value121Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.8"),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
-            parentValueId = createdValue12.id.toString(),
+            parentValueId = valueCreateResponse12.id,
             measureId = ampereMeasure?.id
         )
-        val createdValue121 = objectService.create(value121Request, username)
+        objectService.create(value121Request, username)
 
         val value131Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("1.2"),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectStage1.idStrict()),
-            parentValueId = createdValue13.id.toString(),
+            parentValueId = valueCreateResponse13.id,
             measureId = ampereMeasure?.id
         )
-        val createdValue131 = objectService.create(value131Request, username)
+        objectService.create(value131Request, username)
 
         val value132Request = ValueCreateRequest(
             value = ObjectValueData.DecimalValue("0.3"),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectStage2.idStrict()),
-            parentValueId = createdValue13.id.toString(),
+            parentValueId = valueCreateResponse13.id,
             measureId = ampereMeasure?.id
         )
-        val createdValue132 = objectService.create(value132Request, username)
+        objectService.create(value132Request, username)
 
         val value133Request = ValueCreateRequest(
             value = ObjectValueData.IntegerValue(45, null),
             description = null,
-            objectPropertyId = createdPropertyId,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = chargeModeProperty(aspectMaxTempr.idStrict()),
-            parentValueId = createdValue13.id.toString(),
+            parentValueId = valueCreateResponse13.id,
             measureId = null
         )
-        val createdValue133 = objectService.create(value133Request, username)
+        objectService.create(value133Request, username)
 
-        if (createdObjectId == null) {
-            fail("id of saved object is null")
-        } else {
-            val foundObject = objectService.findById(createdObjectId)
+        val foundObject = objectService.findById(createObjectResponse.id)
 
-            assertEquals(objectRequest.name, foundObject.name, "name is incorrect")
+        assertEquals(objectRequest.name, foundObject.name, "name is incorrect")
 
-            transaction(db) {
-                assertEquals(1, foundObject.properties.size, "1 property is expected")
-            }
+        transaction(db) {
+            assertEquals(1, foundObject.properties.size, "1 property is expected")
+        }
 
-            val foundObjectProperty = transaction(db) {
-                foundObject.properties.first()
-            }
+        val foundObjectProperty = transaction(db) {
+            foundObject.properties.first()
+        }
 
-            transaction(db) {
-                assertEquals(10, foundObjectProperty.values.size, "9 properties are expected")
+        transaction(db) {
+            assertEquals(10, foundObjectProperty.values.size, "9 properties are expected")
 
-                foundObjectProperty.values.forEach {
-                    val property = it.objectProperty
-                    if (property == null) {
-                        fail("object property is null for value with id ${it.id}")
-                    } else {
-                        assertEquals(foundObjectProperty.id, property.id, "")
-                    }
+            foundObjectProperty.values.forEach {
+                val property = it.objectProperty
+                if (property == null) {
+                    fail("object property is null for value with id ${it.id}")
+                } else {
+                    assertEquals(foundObjectProperty.id, property.id, "")
                 }
             }
-
-            assertEquals(propertyRequest.name, foundObjectProperty.name, "property name is unexpecxted")
         }
+
+        assertEquals(propertyRequest.name, foundObjectProperty.name, "property name is unexpecxted")
     }
 }

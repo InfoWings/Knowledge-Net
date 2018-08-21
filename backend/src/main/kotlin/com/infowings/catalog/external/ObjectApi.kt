@@ -1,12 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
-import com.infowings.catalog.common.BadRequestCode
-import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
-import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
@@ -28,7 +25,7 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @GetMapping("{id}/viewdetails")
-    fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectResponse {
+    fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectViewResponse {
         val username = principal.name
         logger.debug("Get objects request by $username")
         return objectService.getDetailedObject(id)
@@ -42,58 +39,54 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @PostMapping("create")
-    fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectCreateResponse {
+    fun createObject(@RequestBody request: ObjectCreateRequest, principal: Principal): ObjectChangeResponse {
         val username = principal.name
         logger.debug("New object create request: $request by $username")
-        val result = objectService.create(request, username)
-        return ObjectCreateResponse(result)
+        return objectService.create(request, username)
     }
 
     @PostMapping("update")
-    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectUpdateResponse {
+    fun updateObject(@RequestBody request: ObjectUpdateRequest, principal: Principal): ObjectChangeResponse {
         val username = principal.name
         logger.debug("Object ${request.id} update request: $request by $username")
-        val result = objectService.update(request, username)
-        return ObjectUpdateResponse(result)
+        return objectService.update(request, username)
     }
 
     @PostMapping("createProperty")
     fun createObjectProperty(@RequestBody request: PropertyCreateRequest, principal: Principal): PropertyCreateResponse {
         val username = principal.name
         logger.debug("Object property update request: $request by $username")
-        return PropertyCreateResponse(objectService.create(request, username))
+        return objectService.create(request, username)
     }
 
     @PostMapping("updateProperty")
-    fun createObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
+    fun updateObjectProperty(@RequestBody request: PropertyUpdateRequest, principal: Principal): PropertyUpdateResponse {
         val username = principal.name
         logger.debug("Object property update request: $request by $username")
-        return PropertyUpdateResponse(objectService.update(request, username))
+        return objectService.update(request, username)
     }
 
     @PostMapping("createValue")
-    fun createObjectValue(@RequestBody requestDTO: ValueCreateRequestDTO, principal: Principal): ValueCreateResponse {
+    fun createObjectValue(@RequestBody requestDTO: ValueCreateRequestDTO, principal: Principal): ValueChangeResponse {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("New object property value create request: $requestDTO by $username")
-        val result: ObjectPropertyValue = objectService.create(request, username)
-        return ValueCreateResponse(result.id.toString())
+        return objectService.create(request, username)
     }
 
     @PostMapping("updateValue")
-    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueUpdateResponse {
+    fun updateObjectValue(@RequestBody requestDTO: ValueUpdateRequestDTO, principal: Principal): ValueChangeResponse {
         val username = principal.name
         val request = requestDTO.toRequest()
         logger.debug("Object property value update request: $requestDTO by $username")
-        val result: ObjectPropertyValue = objectService.update(request, username)
-        return ValueUpdateResponse(result.id.toString())
+        return objectService.update(request, username)
     }
 
     @DeleteMapping("value/{id}")
-    fun deleteValue(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+    fun deleteValue(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal): ValueDeleteResponse {
         val username = principal.name
         logger.debug("Object value delete request: $id by $username")
-        if (force) {
+        return if (force) {
             objectService.softDeleteValue(id, username)
         } else {
             objectService.deleteValue(id, username)
@@ -101,10 +94,10 @@ class ObjectApi(val objectService: ObjectService) {
     }
 
     @DeleteMapping("property/{id}")
-    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal) {
+    fun deleteProperty(@PathVariable id: String, @RequestParam("force") force: Boolean, principal: Principal): PropertyDeleteResponse {
         val username = principal.name
         logger.debug("Object property delete request: $id by $username")
-        if (force) {
+        return if (force) {
             objectService.softDeleteProperty(id, username)
         } else {
             objectService.deleteProperty(id, username)

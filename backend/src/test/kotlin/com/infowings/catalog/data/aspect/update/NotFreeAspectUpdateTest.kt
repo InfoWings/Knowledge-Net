@@ -1,14 +1,11 @@
 package com.infowings.catalog.data.aspect.update
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectModificationException
 import com.infowings.catalog.data.aspect.AspectPropertyModificationException
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.randomName
 import org.junit.Assert
@@ -22,6 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 class NotFreeAspectUpdateTest {
     private val username = "admin"
 
@@ -35,7 +33,7 @@ class NotFreeAspectUpdateTest {
     private lateinit var aspectLinkedOtherAspect: AspectData
     private lateinit var aspectWithObjectProperty: AspectData
     private lateinit var aspectWithValue: AspectData
-    private lateinit var objectPropertyId: String
+    private lateinit var propertyCreateResponse: PropertyCreateResponse
 
     @BeforeEach
     fun init() {
@@ -53,14 +51,14 @@ class NotFreeAspectUpdateTest {
     @Test
     fun testChangeBaseTypeHasValue() {
         createRootValue(125)
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
         }
     }
 
     @Test
     fun testChangeBaseTypePropHasValue() {
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithValue.copy(measure = null, baseType = BaseType.Text.name), username)
         }
     }
@@ -76,7 +74,7 @@ class NotFreeAspectUpdateTest {
 
     @Test
     fun testChangeAspectMeasureOtherGroupPropHasValue() {
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithValue.copy(measure = Litre.name), username)
         }
     }
@@ -84,7 +82,7 @@ class NotFreeAspectUpdateTest {
     @Test
     fun testChangeAspectMeasureOtherGroupHasValue() {
         createRootValue(125)
-        assertThrows<AspectModificationException>() {
+        assertThrows<AspectModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
         }
     }
@@ -99,7 +97,7 @@ class NotFreeAspectUpdateTest {
     fun testEditPropertyHasValue() {
         val otherAspect = aspectService.save(AspectData(name = "testEditPropertyHasValue-other", measure = Metre.name), username)
         val newProperty = aspectWithObjectProperty.properties[0].copy(aspectId = otherAspect.idStrict())
-        assertThrows<AspectPropertyModificationException>() {
+        assertThrows<AspectPropertyModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(properties = listOf(newProperty, aspectWithObjectProperty.properties[1])), username)
         }
     }
@@ -136,10 +134,10 @@ class NotFreeAspectUpdateTest {
         aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = randomName(), description = null), username)
-        val obj = objectService.create(ObjectCreateRequest(randomName(), null, subject.id, subject.version), username)
-        objectPropertyId = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
+        val objCreateResponse = objectService.create(ObjectCreateRequest(randomName(), null, subject.id), username)
+        propertyCreateResponse = objectService.create(PropertyCreateRequest(objCreateResponse.id, "prop", null, aspectWithObjectProperty.id!!), username)
         val rootValue = createNullRootValue()
-        createChildValue(aspectPropertyId = aspectWithObjectProperty.properties[0].id, parentId = rootValue.id.toString())
+        createChildValue(aspectPropertyId = aspectWithObjectProperty.properties[0].id, parentId = rootValue.id)
 
         aspectWithObjectProperty = aspectService.findById(aspectWithObjectProperty.id!!)
         aspectWithValue = aspectService.findById(aspectWithValue.id!!)
@@ -154,20 +152,20 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createRootValue(value: Int = 123): ObjectPropertyValue {
-        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), null, objectPropertyId)
+    private fun createRootValue(value: Int = 0): ValueChangeResponse {
+        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }
 
-    private fun createNullRootValue(): ObjectPropertyValue {
-        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.NullValue, null, objectPropertyId)
+    private fun createNullRootValue(): ValueChangeResponse {
+        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.NullValue, null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }
 
     private fun createChildValue(aspectPropertyId: String, parentId: String, value: Int = 124) {
         val objPropertyValueRequest = ValueCreateRequest(
             value = ObjectValueData.DecimalValue(value.toString()),
-            description = null, objectPropertyId = objectPropertyId,
+            description = null, objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectPropertyId,
             measureId = null,
             parentValueId = parentId

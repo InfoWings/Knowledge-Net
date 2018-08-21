@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectService
@@ -23,9 +24,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = [MasterCatalog::class])
+@Suppress("UnsafeCallOnNullableType")
 class ReferenceBookLinkedTest {
-    @Autowired
-    private lateinit var dao: ReferenceBookDao
     @Autowired
     private lateinit var aspectService: AspectService
     @Autowired
@@ -47,7 +47,7 @@ class ReferenceBookLinkedTest {
     }
 
     @get:Rule
-    val thrown = ExpectedException.none()
+    val thrown: ExpectedException = ExpectedException.none()
 
     @Test
     fun updateLinkedReferenceBookItem() {
@@ -154,24 +154,22 @@ class ReferenceBookLinkedTest {
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = randomName(), description = null), username)
-        val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val objProperty = objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
-        val objPropertyRootValueRequest = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("123.1"),
-            description = null,
-            objectPropertyId = objProperty,
-            aspectPropertyId = null,
-            measureId = null,
-            parentValueId = null
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
+        val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectWithObjectProperty.id!!), username)
+        val objPropertyRootValueRequest = ValueUpdateRequest(
+            propertyCreateResponse.rootValue.id,
+            ObjectValueData.DecimalValue("123.1"),
+            null,
+            propertyCreateResponse.rootValue.version
         )
-        val rootValue = objectService.create(objPropertyRootValueRequest, username)
+        val rootValueUpdateResponse = objectService.update(objPropertyRootValueRequest, username)
         val objPropertyValueRequest = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking)),
             description = null,
-            objectPropertyId = objProperty,
+            objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectWithObjectProperty.properties[0].id,
             measureId = null,
-            parentValueId = rootValue.id.toString()
+            parentValueId = rootValueUpdateResponse.id
         )
         objectService.create(objPropertyValueRequest, username)
         refBook = referenceBookService.getReferenceBook(refBook.aspectId)

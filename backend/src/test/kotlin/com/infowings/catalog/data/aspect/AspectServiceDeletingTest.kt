@@ -27,6 +27,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 class AspectServiceDeletingTest {
     private val username = "admin"
 
@@ -141,9 +142,9 @@ class AspectServiceDeletingTest {
         val aspect2 = aspectService.save(initialAspectData("testDeleteAspectWithObjectValue-ASPECT-2"), username)
 
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
-        val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
-        val objValue = objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propId), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
+        val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
+        objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propertyCreateResponse.id), username)
 
         assertThrows<AspectHasLinkedEntitiesException> {
             aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
@@ -192,7 +193,7 @@ class AspectServiceDeletingTest {
         }
 
         val found: OVertex = database.getVertexById(aspectId) ?: throw IllegalStateException("Aspect should exist")
-        assertNull("Aspect not deleted", found!!.getProperty<String>("deleted"))
+        assertNull("Aspect not deleted", found.getProperty<String>("deleted"))
 
         aspect = aspectService.findById(aspectId)
         aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
@@ -227,8 +228,8 @@ class AspectServiceDeletingTest {
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
         val subject = subjectService.createSubject(SubjectData(name = "testDeleteHasValueSubject", description = null), username)
-        val obj = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        objectService.create(PropertyCreateRequest(obj, "prop", null, aspectWithObjectProperty.id!!), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
+        objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectWithObjectProperty.id!!), username)
 
 
         assertThrows<AspectHasLinkedEntitiesException> {
@@ -300,10 +301,12 @@ class AspectServiceDeletingTest {
         val aspectId = aspect.idStrict()
 
         val subject = subjectService.createSubject(SubjectData(name = "testDeleteAspectPropertyWithObjectValue-subject", description = null), username)
-        val objectId = objectService.create(ObjectCreateRequest("obj", null, subject.id, subject.version), username)
-        val propId = objectService.create(PropertyCreateRequest(objectId, "prop", null, aspectId), username)
-        val objValue =
-            objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), null, propId), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
+        val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
+        objectService.create(
+            ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), null, propertyCreateResponse.id),
+            username
+        )
 
         val current = aspectService.findById(initial.idStrict())
 

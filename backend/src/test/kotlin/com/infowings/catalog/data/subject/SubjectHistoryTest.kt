@@ -4,12 +4,10 @@ import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.SUBJECT_CLASS
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -29,12 +27,6 @@ class SubjectHistoryTest {
 
     @Autowired
     lateinit var subjectService: SubjectService
-
-    @Autowired
-    private lateinit var aspectService: AspectService
-
-    @Autowired
-    private lateinit var suggestionService: SuggestionService
 
     @Autowired
     private lateinit var historyService: HistoryService
