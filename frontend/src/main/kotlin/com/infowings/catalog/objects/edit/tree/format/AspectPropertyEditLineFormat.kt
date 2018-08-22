@@ -44,15 +44,22 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 disabled = props.disabled
             )
             props.aspectMeasure?.let {
-                valueMeasureSelect(
-                    measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}"),
-                    defaultMeasure = it,
-                    currentMeasure = props.valueMeasure,
-                    onMeasureSelected = { measure ->
-                        props.onMeasureNameChanged(measure?.name)
-                    },
-                    disabled = props.disabled
-                )
+                val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
+                if (measureGroup.measureList.size == 1) {
+                    span(classes = "aspect-property__property-measure") {
+                        +it.symbol
+                    }
+                } else {
+                    valueMeasureSelect(
+                        measureGroup = measureGroup,
+                        defaultMeasure = it,
+                        currentMeasure = props.valueMeasure,
+                        onMeasureSelected = { measure ->
+                            props.onMeasureNameChanged(measure?.name)
+                        },
+                        disabled = props.disabled
+                    )
+                }
             }
         }
         if (props.disabled) {

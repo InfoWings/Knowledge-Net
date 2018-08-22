@@ -62,15 +62,22 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 disabled = props.valueDisabled
             )
             props.aspectMeasure?.let {
-                valueMeasureSelect(
-                    measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}"),
-                    currentMeasure = props.valueMeasure,
-                    defaultMeasure = it,
-                    onMeasureSelected = { measure ->
-                        props.onValueMeasureNameChanged(measure?.name)
-                    },
-                    disabled = props.valueDisabled
-                )
+                val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
+                if (measureGroup.measureList.size == 1) {
+                    span(classes = "property-value__aspect-measure") {
+                        +it.symbol
+                    }
+                } else {
+                    valueMeasureSelect(
+                        measureGroup = measureGroup,
+                        currentMeasure = props.valueMeasure,
+                        defaultMeasure = it,
+                        onMeasureSelected = { measure ->
+                            props.onValueMeasureNameChanged(measure?.name)
+                        },
+                        disabled = props.valueDisabled
+                    )
+                }
             }
         }
         if (props.valueDisabled) {

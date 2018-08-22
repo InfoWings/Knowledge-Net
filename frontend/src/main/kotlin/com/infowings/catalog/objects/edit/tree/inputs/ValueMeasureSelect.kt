@@ -20,19 +20,13 @@ private fun valueMeasureOption(measure: Measure<*>): ValueMeasureOption = jsObje
 }
 
 val valueMeasureSelectComponent = rFunction<ValueMeasureSelectComponentProps>("ValueMeasureSelectComponent") { props ->
-    val allOptions = (props.measureGroup.measureList.map(::valueMeasureOption) + jsObject<ValueMeasureOption> {
-        label = "Default (${props.defaultMeasure.symbol})"
-        measure = null
-    }).toTypedArray()
+    val allOptions = props.measureGroup.measureList.map(::valueMeasureOption).toTypedArray()
     commonSelect<ValueMeasureOption> {
         attrs {
             className = "value-measure-select"
             val currentMeasure = props.currentMeasure
             value = when (currentMeasure) {
-                null -> jsObject {
-                    label = "Default (${props.defaultMeasure.symbol})"
-                    measure = null
-                }
+                null -> valueMeasureOption(props.defaultMeasure)
                 else -> valueMeasureOption(currentMeasure)
             }
             labelKey = "label"

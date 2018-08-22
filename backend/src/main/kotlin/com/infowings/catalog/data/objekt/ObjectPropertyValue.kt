@@ -112,7 +112,7 @@ data class ObjectPropertyValue(
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
             val targetMeasure = measure as Measure<DecimalNumber>
-            ObjectValueData.DecimalValue(targetMeasure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).value.toString())
+            ObjectValueData.DecimalValue(targetMeasure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).value.stripTrailingZeros().toString())
         } else {
             targetValue
         }
