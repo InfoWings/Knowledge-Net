@@ -2,6 +2,7 @@ package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.data.subject.SubjectVertex
+import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
@@ -19,6 +20,26 @@ data class Objekt(
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>
 )
+
+data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
+    val id: String
+        get() = objectVertex.id
+
+    val name: String
+        get() = objectVertex.name
+
+    val description: String?
+        get() = objectVertex.description
+
+    val subjectId: String
+        get() = subjectVertex.id
+
+    val subjectName: String
+        get() = subjectVertex.name
+
+    val version: Int
+        get() = objectVertex.version
+}
 
 data class ObjectTruncated(
     val id: ORID,

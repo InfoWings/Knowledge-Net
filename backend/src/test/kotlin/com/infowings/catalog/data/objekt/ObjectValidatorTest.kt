@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -13,24 +12,24 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
 import junit.framework.Assert.fail
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@Suppress("StringLiteralDuplication")
 class ObjectValidatorTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -62,29 +61,29 @@ class ObjectValidatorTest {
 
     private val username = "admin"
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         validator = TrimmingObjectValidator(MainObjectValidator(objectService, subjectService, measureService, refBookService, dao, aspectDao))
-        subject = subjectService.createSubject(SubjectData(name = "subjectName", description = "descr"), username)
-        aspect = aspectService.save(AspectData(name = "aspectName", description = "aspectDescr", baseType = BaseType.Text.name), username)
-        aspectInt = aspectService.save(AspectData(name = "aspectNameInt", description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
+        aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
+        aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
 
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
-            "",
-            "complex",
-            Kilometre.name,
-            null,
-            BaseType.Decimal.name,
-            listOf(property)
+            id = "",
+            name = randomName(),
+            measure = Kilometre.name,
+            domain = null,
+            baseType = BaseType.Decimal.name,
+            properties = listOf(property)
         )
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
 
     @Test
-    fun objectValidatorTest() {
-        val request = ObjectCreateRequest("objectValidatorTestName", "object descr", subject.id, subject.version)
+    fun `Object validator success`() {
+        val request = ObjectCreateRequest("objectValidatorTestName", "object descr", subject.id)
 
         val createInfo = validator.checkedForCreation(request)
 
@@ -96,12 +95,11 @@ class ObjectValidatorTest {
 
 
     @Test
-    fun objectValidatorAbsentSubjectTest() {
+    fun `Object validator when subject is missing`() {
         val request = ObjectCreateRequest(
             "objectValidatorAbsentSubjectTestName",
             "object descr",
-            createNonExistentSubjectKey(),
-            null
+            createNonExistentSubjectKey()
         )
 
         try {
@@ -115,8 +113,8 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectValidatorEmptyObjectNameTest() {
-        val request = ObjectCreateRequest("", "object descr", subject.id, subject.version)
+    fun `Object validator when object name is empty`() {
+        val request = ObjectCreateRequest("", "object descr", subject.id)
 
         try {
             validator.checkedForCreation(request)
@@ -128,9 +126,9 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectPropertyValidatorTest() {
+    fun `Object property validator success`() {
         val objectRequest =
-            ObjectCreateRequest("objectPropertyValidatorTestName", "object descr", subject.id, subject.version)
+            ObjectCreateRequest("objectPropertyValidatorTestName", "object descr", subject.id)
         val objectVertex = createObject(objectRequest)
 
         val propertyRequest = PropertyCreateRequest(
@@ -145,15 +143,14 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectPropertyAbsentObjectValidatorTest() {
+    fun `Object property validator when object is missing`() {
         val objectRequest =
             ObjectCreateRequest(
                 "objectPropertyAbsentObjectValidatorTestName",
                 "object descr",
-                subject.id,
-                subject.version
+                subject.id
             )
-        val objectVertex = createObject(objectRequest)
+        createObject(objectRequest)
 
         val propertyRequest = PropertyCreateRequest(
             name = "prop_objectPropertyValidatorTestName",
@@ -172,13 +169,12 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectPropertyAbsentAspectValidatorTest() {
+    fun `Object property validator when aspect is missing`() {
         val objectRequest =
             ObjectCreateRequest(
                 "objectPropertyAbsentAspectValidatorTestName",
                 "object descr",
-                subject.id,
-                subject.version
+                subject.id
             )
         val objectVertex = createObject(objectRequest)
 
@@ -226,9 +222,9 @@ class ObjectValidatorTest {
     */
 
     @Test
-    fun objectValueValidatorSimpleIntTest() {
+    fun `Object value validator simple int success`() {
         val objectRequest =
-            ObjectCreateRequest("objectValueValidatorTestSimpleIntName", "object descr", subject.id, subject.version)
+            ObjectCreateRequest("objectValueValidatorTestSimpleIntName", "object descr", subject.id)
         val createdObject = createObject(objectRequest)
 
         val propertyRequest = PropertyCreateRequest(
@@ -246,10 +242,10 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectValueValidatorSimpleIntWithRangeTest() {
+    fun `Object value validator int with range success`() {
         val objectRequest = ObjectCreateRequest(
             "objectValueValidatorTestSimpleIntWithRangeName",
-            "object descr", subject.id, subject.version
+            "object descr", subject.id
         )
         val createdObject = createObject(objectRequest)
 
@@ -270,9 +266,9 @@ class ObjectValidatorTest {
 
 
     @Test
-    fun objectValueValidatorSimpleStrTest() {
+    fun `Object value validator simple string success`() {
         val objectRequest =
-            ObjectCreateRequest("objectValueValidatorTestSimpleStrName", "object descr", subject.id, subject.version)
+            ObjectCreateRequest("objectValueValidatorTestSimpleStrName", "object descr", subject.id)
         val createdObject = createObject(objectRequest)
 
         val propertyRequest = PropertyCreateRequest(
@@ -291,16 +287,16 @@ class ObjectValidatorTest {
     }
 
     @Test
-    fun objectSecondPropertyValidatorTest() {
+    fun `Object property validator creating second property success`() {
         val objectRequest =
-            ObjectCreateRequest("objectSecondPropertyValidatorTestName", "object descr", subject.id, subject.version)
+            ObjectCreateRequest("objectSecondPropertyValidatorTestName", "object descr", subject.id)
         val objectVertex = createObject(objectRequest)
 
         val propertyRequest1 = PropertyCreateRequest(
             name = "1:prop_objectSecondPropertyValidatorTestName",
             description = null, objectId = objectVertex.id, aspectId = aspect.idStrict()
         )
-        val propertyVertex = createObjectProperty(propertyRequest1)
+        createObjectProperty(propertyRequest1)
 
         val propertyRequest2 = PropertyCreateRequest(
             name = "2:prop_objectSecondPropertyValidatorTestName",

@@ -1,23 +1,20 @@
 package com.infowings.catalog.data.subject
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import com.infowings.catalog.randomName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class SubjectDaoTest {
     private val username = "admin"
 
@@ -30,16 +27,9 @@ class SubjectDaoTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-
-    @Before
-    fun initTestData() {
-    }
-
     @Test
     fun testSubjectsByIdsOne() {
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
-
+        val subject = subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
         val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(subject.id))
 
         assertEquals(1, subjectVertices.size)
@@ -61,8 +51,7 @@ class SubjectDaoTest {
         )
         val aspectId = created.id ?: throw IllegalStateException("aspect id is null")
 
-        val subject =
-            subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
+        subjectService.createSubject(SubjectData(name = randomName(), description = "some description"), username)
 
         val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(aspectId))
 
@@ -71,10 +60,8 @@ class SubjectDaoTest {
 
     @Test
     fun testSubjectsByIdsTwo() {
-        val subject1 =
-            subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
-        val subject2 =
-            subjectService.createSubject(SubjectData(name = "subj2", description = null), username)
+        val subject1 = subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
+        val subject2 = subjectService.createSubject(SubjectData(name = "subj2", description = null), username)
 
         val subjectVertices: List<SubjectVertex> = subjectDao.findStr(listOf(subject1.id, subject2.id))
 

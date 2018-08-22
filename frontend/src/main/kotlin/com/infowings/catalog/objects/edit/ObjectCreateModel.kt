@@ -35,7 +35,7 @@ class ObjectCreateModelComponent : RComponent<ObjectCreateModelComponent.Props, 
         val trimmedName = state.name.trim()
         val subjectId = state.subject?.id ?: error("Can not create object without aspect")
         launch {
-            props.api.submitObject(ObjectCreateRequest(trimmedName, null, subjectId, null))
+            props.api.submitObject(ObjectCreateRequest(trimmedName, null, subjectId))
         }
     }
 

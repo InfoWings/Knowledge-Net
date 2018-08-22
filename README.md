@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/InfoWings/Knowledge-Net.svg?branch=master)](https://travis-ci.com/InfoWings/Knowledge-Net)
+
 # Knowledge EcoSystem
 
 [Описание системы в confluence](https://iwings.atlassian.net/wiki/spaces/CHR/pages/219381761/Knowledge+Master+catalogue+-+product+requirements)

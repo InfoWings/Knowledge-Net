@@ -10,15 +10,14 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.not
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.time.LocalDateTime
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SubjectApiTest : AbstractMvcTest() {
 
     @Autowired

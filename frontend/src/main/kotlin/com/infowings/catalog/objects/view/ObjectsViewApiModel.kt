@@ -1,6 +1,6 @@
 package com.infowings.catalog.objects.view
 
-import com.infowings.catalog.common.DetailedObjectResponse
+import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.objects.getAllObjects
 import com.infowings.catalog.objects.getDetailedObject
@@ -14,7 +14,7 @@ interface ObjectsViewApiModel {
 
 interface ObjectsViewApiConsumerProps : RProps {
     var objects: List<ObjectGetResponse>
-    var detailedObjects: Map<String, DetailedObjectResponse>
+    var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     var objectApiModel: ObjectsViewApiModel
 }
 
@@ -23,7 +23,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
 
     override fun State.init() {
         objects = emptyList()
-        detailedObjects = emptyMap()
+        detailedObjectsView = emptyMap()
     }
 
     override fun componentDidMount() = fetchAll()
@@ -34,7 +34,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
         launch {
             val detailedObjectResponse = getDetailedObject(id)
             setState {
-                detailedObjects += id to detailedObjectResponse
+                detailedObjectsView += id to detailedObjectResponse
             }
         }
     }
@@ -52,7 +52,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
         objectsViewModel {
             attrs {
                 objects = state.objects
-                detailedObjects = state.detailedObjects
+                detailedObjectsView = state.detailedObjectsView
                 objectApiModel = this@ObjectsViewApiModelComponent
             }
         }
@@ -60,7 +60,7 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
 
     interface State : RState {
         var objects: List<ObjectGetResponse>
-        var detailedObjects: Map<String, DetailedObjectResponse>
+        var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     }
 }
 

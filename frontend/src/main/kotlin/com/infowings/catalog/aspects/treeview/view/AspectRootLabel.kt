@@ -13,7 +13,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
         if (props.aspect.hasContentToDisplay()) {
             aspectLabel(
                 className = className,
-                aspectName = props.aspect.name ?: "",
+                aspectName = props.aspect.name,
                 aspectMeasure = props.aspect.measure ?: "",
                 aspectDomain = props.aspect.domain ?: "",
                 aspectBaseType = props.aspect.baseType ?: "",
@@ -36,7 +36,7 @@ class AspectRootLabel : RComponent<AspectRootLabel.Props, RState>() {
 }
 
 private fun AspectData.hasContentToDisplay() =
-    !this.name.isNullOrEmpty()
+    !this.name.isEmpty()
             || !this.measure.isNullOrEmpty()
             || !this.domain.isNullOrEmpty()
             || !this.baseType.isNullOrEmpty()

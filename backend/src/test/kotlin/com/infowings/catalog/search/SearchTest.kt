@@ -1,21 +1,19 @@
 package com.infowings.catalog.search
 
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.loggerFor
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -25,12 +23,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 private val logger = loggerFor<SearchTest>()
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class SearchTest {
     private val username = "admin"
 
@@ -43,15 +41,14 @@ class SearchTest {
     @Autowired
     lateinit var aspectDaoService: AspectDaoService
 
-
     @Autowired
-    private val wac: WebApplicationContext? = null
+    lateinit var wac: WebApplicationContext
 
     private lateinit var mockMvc: MockMvc
 
     private val authorities = user("admin").authorities(SimpleGrantedAuthority("ADMIN"))
 
-    @Before
+    @BeforeEach
     fun setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
@@ -114,8 +111,8 @@ class SearchTest {
             findInGroups = true
         )
 
-        assertEquals("Square meter", result.measureNames.first())
-        assertEquals("Area", result.measureGroupNames.first())
+        assertTrue(result.measureNames.contains("Square meter"))
+        assertTrue(result.measureGroupNames.contains("Area"))
     }
 
     @Test

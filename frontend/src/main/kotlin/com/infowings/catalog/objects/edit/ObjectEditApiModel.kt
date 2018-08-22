@@ -17,10 +17,10 @@ interface ObjectEditApiModel {
     suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
     suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
-    suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest)
+    suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest)
     suspend fun deleteObject(force: Boolean = false)
     suspend fun deleteObjectProperty(id: String, force: Boolean = false)
-    suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean = false)
+    suspend fun deleteObjectValue(id: String, force: Boolean = false)
 }
 
 class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props, ObjectEditApiModelComponent.State>(),
@@ -42,14 +42,15 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String) {
         try {
-            updateObject(objectUpdateRequest) // TODO: trim everything?
+            val updateResponse = updateObject(objectUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    name = objectUpdateRequest.name,
-                    subjectId = objectUpdateRequest.subjectId,
-                    subjectName = subjectName,
-                    description = objectUpdateRequest.description
+                    name = updateResponse.name,
+                    subjectId = updateResponse.subjectId,
+                    subjectName = updateResponse.subjectName,
+                    description = updateResponse.description,
+                    version = updateResponse.version
                 )
                 lastApiError = null
             }
@@ -80,15 +81,25 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         try {
             val createPropertyResponse = createProperty(propertyCreateRequest)
             val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
+            val defaultRootValue = ValueTruncated(
+                createPropertyResponse.rootValue.id,
+                ObjectValueData.NullValue.toDTO(),
+                null,
+                null,
+                createPropertyResponse.rootValue.version,
+                emptyList()
+            )
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
+                    version = createPropertyResponse.obj.version,
                     properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
                         createPropertyResponse.id,
-                        propertyCreateRequest.name,
-                        propertyCreateRequest.description,
-                        emptyList(),
-                        emptyList(),
+                        createPropertyResponse.name,
+                        createPropertyResponse.description,
+                        createPropertyResponse.version,
+                        listOf(defaultRootValue),
+                        listOf(defaultRootValue),
                         treeAspectResponse
                     )
                 )
@@ -107,9 +118,10 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
+                    version = editPropertyResponse.obj.version,
                     properties = editedObject.properties.mapOn(
                         { it.id == editPropertyResponse.id },
-                        { it.copy(name = propertyUpdateRequest.name, description = propertyUpdateRequest.description) }
+                        { it.copy(name = editPropertyResponse.name, description = editPropertyResponse.description, version = editPropertyResponse.version) }
                     )
                 )
                 lastApiError = null
@@ -123,11 +135,12 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     override suspend fun deleteObjectProperty(id: String, force: Boolean) {
         try {
-            deleteProperty(id, force)
+            val propertyDeleteResponse = deleteProperty(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.filterNot { it.id == id }
+                    version = propertyDeleteResponse.obj.version,
+                    properties = editedObject.properties.filterNot { it.id == propertyDeleteResponse.id }
                 )
                 lastApiError = null
             }
@@ -145,8 +158,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == valueCreateRequest.objectPropertyId },
-                        { it.addValue(valueCreateRequest, valueCreateResponse) })
+                        { it.id == valueCreateResponse.objectProperty.id },
+                        { it.addValue(valueCreateResponse) }
+                    )
                 )
                 lastApiError = null
             }
@@ -157,15 +171,15 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun editObjectValue(propertyId: String, valueUpdateRequest: ValueUpdateRequest) {
+    override suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {
         try {
             val valueEditResponse = updateValue(valueUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
-                        { it.id == propertyId },
-                        { it.editValue(valueEditResponse.id, valueUpdateRequest.value, valueUpdateRequest.description) })
+                        { it.id == valueEditResponse.objectProperty.id },
+                        { it.editValue(valueEditResponse) })
                 )
                 lastApiError = null
             }
@@ -177,13 +191,13 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     }
 
-    override suspend fun deleteObjectValue(propertyId: String, id: String, force: Boolean) {
+    override suspend fun deleteObjectValue(id: String, force: Boolean) {
         try {
-            deleteValue(id, force)
+            val valueDeleteResponse = deleteValue(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.mapOn({ it.id == propertyId }, { it.deleteValue(id) })
+                    properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
                 )
             }
         } catch (exception: ServerException) {
@@ -193,33 +207,36 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.addValue(request: ValueCreateRequest, response: ValueCreateResponse): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.addValue(response: ValueChangeResponse): ObjectPropertyEditDetailsResponse {
         val valueDescriptor = ValueTruncated(
             id = response.id,
-            value = request.value.toDTO(),
-            description = request.description,
-            propertyId = request.aspectPropertyId,
+            value = response.value,
+            description = response.description,
+            propertyId = response.aspectPropertyId,
+            version = response.version,
             childrenIds = emptyList()
         )
-        return if (request.aspectPropertyId == null) {
+        return if (response.aspectPropertyId == null) {
             this.copy(
                 rootValues = this.rootValues + valueDescriptor,
                 valueDescriptors = this.valueDescriptors + valueDescriptor
             )
         } else {
-            val parentValueId = request.parentValueId ?: error("Parent value should be null when aspectPropertyId is not null")
-            val parentDescriptor = valueDescriptors.find { it.id == parentValueId } ?: error("Value descriptors should contain parent value")
-            val newParentDescriptor = parentDescriptor.copy(childrenIds = parentDescriptor.childrenIds + response.id)
+            val parentValue = response.parentValue ?: error("Parent value should be null when aspectPropertyId is not null")
+            val parentDescriptor = valueDescriptors.find { it.id == parentValue.id } ?: error("Value descriptors should contain parent value")
+            val newParentDescriptor = parentDescriptor.copy(version = parentValue.version, childrenIds = parentDescriptor.childrenIds + response.id)
 
             when {
                 newParentDescriptor.propertyId == null -> {
                     this.copy(
+                        version = response.objectProperty.version,
                         rootValues = this.rootValues.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor),
                         valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
                 else -> {
                     this.copy(
+                        version = response.objectProperty.version,
                         valueDescriptors = this.valueDescriptors.replaceBy({ it.id == newParentDescriptor.id }, newParentDescriptor) + valueDescriptor
                     )
                 }
@@ -227,30 +244,54 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private fun ObjectPropertyEditDetailsResponse.editValue(valueId: String, value: ObjectValueData, description: String?): ObjectPropertyEditDetailsResponse {
+    private fun ObjectPropertyEditDetailsResponse.editValue(response: ValueChangeResponse): ObjectPropertyEditDetailsResponse {
         return this.copy(
-            rootValues = this.rootValues.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) }),
-            valueDescriptors = this.valueDescriptors.mapOn({ it.id == valueId }, { it.copy(value = value.toDTO(), description = description) })
+            version = response.objectProperty.version,
+            rootValues = this.rootValues.map {
+                when {
+                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
+                    else -> it
+                }
+            },
+            valueDescriptors = this.valueDescriptors.map {
+                when {
+                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
+                    else -> it
+                }
+            }
         )
     }
 
-    private fun ObjectPropertyEditDetailsResponse.deleteValue(valueId: String): ObjectPropertyEditDetailsResponse {
-        val hasParentValue = this.rootValues.find { it.id == valueId } == null
-
-        return if (hasParentValue) {
-            val parentValue = this.valueDescriptors.find { it.childrenIds.contains(valueId) } ?: error("Parent value should exist")
-            val changedParentValue = parentValue.copy(childrenIds = parentValue.childrenIds.filterNot { it == valueId })
-
-            this.copy(
-                rootValues = this.rootValues.replaceBy({ it.id == changedParentValue.id }, changedParentValue),
-                valueDescriptors = this.valueDescriptors.replaceBy({ it.id == changedParentValue.id }, changedParentValue).filterNot { it.id == valueId }
-            )
-        } else {
-            this.copy(
-                rootValues = this.rootValues.filterNot { it.id == valueId },
-                valueDescriptors = this.valueDescriptors.filterNot { it.id == valueId }
-            )
-        }
+    private fun ObjectPropertyEditDetailsResponse.deleteValues(valueDeleteResponse: ValueDeleteResponse, valueId: String): ObjectPropertyEditDetailsResponse {
+        return this.copy(
+            version = valueDeleteResponse.objectProperty.version,
+            rootValues = this.rootValues.asSequence()
+                .filterNot { valueDeleteResponse.deletedValues.contains(it.id) || valueDeleteResponse.markedValues.contains(it.id) }
+                .map { rootValue ->
+                    when {
+                        rootValue.id == valueDeleteResponse.parentValue?.id ->
+                            rootValue.copy(
+                                version = valueDeleteResponse.parentValue.version,
+                                childrenIds = rootValue.childrenIds.filterNot { it == valueId }
+                            )
+                        else -> rootValue
+                    }
+                }.filterNotNull().toList(),
+            valueDescriptors = this.valueDescriptors.asSequence()
+                .filterNot { valueDeleteResponse.deletedValues.contains(it.id) || valueDeleteResponse.markedValues.contains(it.id) }
+                .map { value ->
+                    when {
+                        value.id == valueDeleteResponse.parentValue?.id ->
+                            value.copy(
+                                version = valueDeleteResponse.parentValue.version,
+                                childrenIds = value.childrenIds.filterNot { it == valueId }
+                            )
+                        else -> value
+                    }
+                }.toList()
+        )
     }
 
     override fun RBuilder.render() {

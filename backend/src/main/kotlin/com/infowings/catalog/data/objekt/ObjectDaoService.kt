@@ -99,11 +99,11 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<RootValueResponse> =
+    fun getPropertyValues(propertyVertex: ObjectPropertyVertex): List<DetailedRootValueViewResponse> =
         transaction(db) {
             val rootPropertyValues = propertyVertex.values.filter { it.aspectProperty == null }
             return@transaction rootPropertyValues.map { rootValue ->
-                RootValueResponse(
+                DetailedRootValueViewResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
                     rootValue.description,
@@ -112,10 +112,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
         }
 
-    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): ValueResponse {
+    private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedValueViewResponse {
         val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
         val aspect = aspectProperty.associatedAspect
-        return ValueResponse(
+        return DetailedValueViewResponse(
             this.id,
             this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
             this.description,
@@ -237,6 +237,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 }
                 ScalarTypeTag.REF_BOOK_ITEM -> {
                     vertex.getEdges(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).forEach { it.delete<OEdge>() }
+                }
+                ScalarTypeTag.NULL -> {
                 }
             }
 
@@ -406,6 +408,12 @@ class ObjectAlreadyExists(name: String) : ObjectException("object with name $nam
 class ObjectPropertyNotFoundException(id: String) : ObjectException("object property not found. id: $id")
 class ObjectPropertyAlreadyExistException(name: String?, objectId: String, aspectId: String) :
     ObjectException("object property with name $name and aspect $aspectId already exists in object $objectId")
+
+class ObjectConcurrentEditException(id: String, name: String, subjectName: String?) :
+    ObjectException("Object $name ($subjectName) with id = $id is already modified")
+
+class ObjectPropertyConcurrentEditException(id: String, name: String?) : ObjectException("Object property $name with id = $id is already modified")
+class ObjectPropertyValueConcurrentModificationException(id: String) : ObjectException("Object property value with id = $id is already modified")
 
 class ObjectPropertyValueNotFoundException(id: String) : ObjectException("object property value not found. id: $id")
 class ObjectWithoutSubjectException(id: String) : ObjectException("Object vertex $id has no subject")

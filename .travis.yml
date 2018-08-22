@@ -1,0 +1,17 @@
+language: java
+install: ./gradlew assemble
+script:
+- travis_wait ./gradlew check
+- travis_wait ./gradlew codeCoverageReport
+before_cache:
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+  - $HOME/.gradle/caches/
+  - $HOME/.gradle/wrapper/
+  - $HOME/frontend/node_modules/
+after_success:
+- bash <(curl -s https://codecov.io/bash) -t 5afb1257-baa4-4faa-9b91-7054bc394123
+- wget https://github.com/codacy/codacy-coverage-reporter/releases/download/4.0.2/codacy-coverage-reporter-4.0.2-assembly.jar
+- java -jar codacy-coverage-reporter-4.0.2-assembly.jar report -l Kotlin -r build/reports/jacoco/report.xml -t 9b89e61214804564afdd8921d4c515d6

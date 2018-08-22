@@ -1,29 +1,27 @@
 package com.infowings.catalog.data.subject
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.assertGreater
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
-import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.search.SuggestionService
 import com.infowings.catalog.storage.SUBJECT_CLASS
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class SubjectHistoryTest {
     private val username = "admin"
 
@@ -31,22 +29,17 @@ class SubjectHistoryTest {
     lateinit var subjectService: SubjectService
 
     @Autowired
-    private lateinit var aspectService: AspectService
-
-    @Autowired
-    private lateinit var suggestionService: SuggestionService
-
-    @Autowired
     private lateinit var historyService: HistoryService
 
     private lateinit var historyProvider: SubjectHistoryProvider
 
-    @Before
+    @BeforeEach
     fun initTestData() {
         historyProvider = SubjectHistoryProvider(historyService)
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryEmpty() {
         val subjectHistory: List<HistorySnapshot> = historyProvider.getAllHistory()
 
@@ -55,6 +48,7 @@ class SubjectHistoryTest {
 
 
     @Test
+    @Disabled
     fun testSubjectHistoryCreate() {
         val subject =
             subjectService.createSubject(SubjectData(name = "subj", description = "some description"), username)
@@ -68,6 +62,7 @@ class SubjectHistoryTest {
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryCreateTwice() {
         val subject1 =
             subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)
@@ -87,6 +82,7 @@ class SubjectHistoryTest {
     }
 
     @Test
+    @Disabled
     fun testSubjectHistoryUpdate() {
         val subject1 =
             subjectService.createSubject(SubjectData(name = "subj1", description = "some description-1"), username)

@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.measure
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.LengthGroup
 import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.common.PressureGroup
@@ -13,17 +12,14 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.session
 import com.orientechnologies.orient.core.record.ODirection
 import org.junit.Assert.assertTrue
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 class DatabaseMeasureTest {
 
     @Autowired
@@ -45,8 +41,9 @@ class DatabaseMeasureTest {
             val baseVertex = measureService.findMeasure(it.base.name)
             val groupVertex = measureService.findMeasureGroup(it.name)
             assertTrue("${it.name} base measure must exist", baseVertex != null)
-            assertTrue("${it.name} base measure must be linked with ${it.name} group",
-                    baseVertex!!.getVertices(ODirection.BOTH, MEASURE_BASE_AND_GROUP_EDGE).contains(groupVertex!!)
+            assertTrue(
+                "${it.name} base measure must be linked with ${it.name} group",
+                baseVertex!!.getVertices(ODirection.BOTH, MEASURE_BASE_AND_GROUP_EDGE).contains(groupVertex!!)
             )
         }
     }
@@ -57,8 +54,9 @@ class DatabaseMeasureTest {
             val baseVertex = measureService.findMeasure(group.base.name)
             group.measureList.forEach { measure ->
                 assertTrue("Measure $measure must exist", measureService.findMeasure(measure.name) != null)
-                assertTrue("Measure ${measure.name} must be linked with ${group.base.name}",
-                        measureService.findMeasure(measure.name)!!.getVertices(ODirection.OUT, MEASURE_BASE_EDGE).contains(baseVertex!!)
+                assertTrue(
+                    "Measure ${measure.name} must be linked with ${group.base.name}",
+                    measureService.findMeasure(measure.name)!!.getVertices(ODirection.OUT, MEASURE_BASE_EDGE).contains(baseVertex!!)
                 )
             }
         }
@@ -69,8 +67,9 @@ class DatabaseMeasureTest {
     fun measureDirectDependencies() = session(database) {
         val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name)
         val speedGroupVertex = measureService.findMeasureGroup(SpeedGroup.name)
-        assertTrue("Length group must be linked with Speed group",
-                lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(speedGroupVertex!!)
+        assertTrue(
+            "Length group must be linked with Speed group",
+            lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(speedGroupVertex!!)
         )
     }
 
@@ -79,12 +78,13 @@ class DatabaseMeasureTest {
     fun measureTransitiveDependencies() = session(database) {
         val lengthGroupVertex = measureService.findMeasureGroup(LengthGroup.name)
         val pressureGroupVertex = measureService.findMeasureGroup(PressureGroup.name)
-        assertTrue("Length group must not be linked with Pressure group directly",
-                !lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(pressureGroupVertex!!)
+        assertTrue(
+            "Length group must not be linked with Pressure group directly",
+            !lengthGroupVertex!!.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).contains(pressureGroupVertex!!)
         )
         assertTrue("Length group must be linked by another vertex with Pressure group",
-                lengthGroupVertex.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).flatMap { it.getVertices(ODirection.BOTH) }
-                        .contains(pressureGroupVertex)
+            lengthGroupVertex.getVertices(ODirection.BOTH, MEASURE_GROUP_EDGE).flatMap { it.getVertices(ODirection.BOTH) }
+                .contains(pressureGroupVertex)
         )
     }
 }

@@ -19,6 +19,7 @@ class ReferenceBookItemViewModel(
     val id: String,
     val value: String,
     val description: String?,
+    val deleted: Boolean,
     val children: List<ReferenceBookItemViewModel>,
     var isExpanded: Boolean = false
 )
@@ -42,5 +43,6 @@ fun ReferenceBookItem.toSelectViewModel(): ReferenceBookItemViewModel = Referenc
     id = this.id,
     value = this.value,
     description = this.description,
+    deleted = this.deleted,
     children = this.children.map { it.toSelectViewModel() }
 )

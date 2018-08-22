@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
@@ -9,16 +8,16 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
-@RunWith(SpringJUnit4ClassRunner::class)
-@SpringBootTest(classes = [MasterCatalog::class])
+@ExtendWith(SpringExtension::class)
+@SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ObjectServiceFetchTest {
     @Autowired
@@ -33,17 +32,20 @@ class ObjectServiceFetchTest {
     private val username = "admin"
     private var detailedObjectId: String? = null
 
-    @Before
+    @BeforeEach
     fun initTestData() {
-        val knetSubject = subjectService.createSubject(SubjectData(name = "Knowledge Net", description = null), username)
-        val reflexiaSubject = subjectService.createSubject(SubjectData(name = "Reflexia", description = null), username)
+        val knetSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Knowledge Net", description = null), username)
+        val reflexiaSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Reflexia", description = null), username)
 
-        val heightAspect = aspectService.save(AspectData(name = "Height", measure = Metre.name, baseType = BaseType.Decimal.name), username)
-        val widthAspect = aspectService.save(AspectData(name = "Width", measure = Metre.name, baseType = BaseType.Decimal.name), username)
-        val depthAspect = aspectService.save(AspectData(name = "Depth", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val heightAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Height", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val widthAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Width", measure = Metre.name, baseType = BaseType.Decimal.name), username)
+        val depthAspect =
+            aspectService.save(AspectData(name = "ObjectServiceFetchTest - Depth", measure = Metre.name, baseType = BaseType.Decimal.name), username)
         val dimensionsAspect = aspectService.save(
             AspectData(
-                name = "Dimensions",
+                name = "ObjectServiceFetchTest - Dimensions",
                 baseType = BaseType.Text.name,
                 properties = listOf(
                     AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = heightAspect.idStrict()),
@@ -53,20 +55,21 @@ class ObjectServiceFetchTest {
             ), username
         )
 
-        val boxV1Id = objectService.create(
-            ObjectCreateRequest(name = "Box V1", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version),
+        val boxV1CreateResponse = objectService.create(
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Box V1", description = null, subjectId = knetSubject.id),
             username
         )
-        val boxDimensionPropertyId = objectService.create(PropertyCreateRequest(boxV1Id, "", null, dimensionsAspect.idStrict()), username)
-        val boxDimensionValue = objectService.create(ValueCreateRequest(ObjectValueData.NullValue, null, boxDimensionPropertyId), username)
+        val boxDimensionPropertyCreateResponse =
+            objectService.create(PropertyCreateRequest(boxV1CreateResponse.id, "", null, dimensionsAspect.idStrict()), username)
+        val boxDimensionValueId = boxDimensionPropertyCreateResponse.rootValue.id
         objectService.create(
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[0].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
@@ -74,10 +77,10 @@ class ObjectServiceFetchTest {
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[1].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
@@ -85,22 +88,22 @@ class ObjectServiceFetchTest {
             ValueCreateRequest(
                 ObjectValueData.DecimalValue("42"),
                 null,
-                boxDimensionPropertyId,
+                boxDimensionPropertyCreateResponse.id,
                 null,
                 dimensionsAspect.properties[2].id,
-                boxDimensionValue.id.toString()
+                boxDimensionValueId
             ),
             username
         )
-        detailedObjectId = boxV1Id
+        detailedObjectId = boxV1CreateResponse.id
 
         objectService.create(
-            ObjectCreateRequest(name = "Box V2", description = null, subjectId = knetSubject.id, subjectVersion = knetSubject.version + 1),
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Box V2", description = null, subjectId = knetSubject.id),
             username
         )
 
         objectService.create(
-            ObjectCreateRequest(name = "Tube V1", description = null, subjectId = reflexiaSubject.id, subjectVersion = reflexiaSubject.version),
+            ObjectCreateRequest(name = "ObjectServiceFetchTest - Tube V1", description = null, subjectId = reflexiaSubject.id),
             username
         )
     }
@@ -113,16 +116,21 @@ class ObjectServiceFetchTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun fetchDetailedObject() {
         val detailedObject = objectService.getDetailedObject(detailedObjectId!!)
         assertThat("Fetched object has the same id", detailedObject.id, Matchers.`is`(detailedObjectId))
-        assertThat("Fetched object has one property", detailedObject.objectProperties.size, Matchers.`is`(1))
+        assertThat("Fetched object has one property", detailedObject.objectPropertyViews.size, Matchers.`is`(1))
         assertThat(
-            "Fetched object property has associated aspect with name \"Dimensions\"",
-            detailedObject.objectProperties[0].aspect.name,
-            Matchers.`is`("Dimensions")
+            "Fetched object property has associated aspect with name \"ObjectServiceFetchTest - Dimensions\"",
+            detailedObject.objectPropertyViews[0].aspect.name,
+            Matchers.`is`("ObjectServiceFetchTest - Dimensions")
         )
-        assertThat("Fetched object has three values associated with dimensions", detailedObject.objectProperties[0].values[0].children.size, Matchers.`is`(3))
+        assertThat(
+            "Fetched object has three values associated with dimensions",
+            detailedObject.objectPropertyViews[0].values[0].children.size,
+            Matchers.`is`(3)
+        )
     }
 
 }
