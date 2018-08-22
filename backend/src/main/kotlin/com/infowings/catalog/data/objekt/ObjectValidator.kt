@@ -8,7 +8,6 @@ import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectPropertyDoesNotExist
 import com.infowings.catalog.data.reference.book.ReferenceBookService
-import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORecordId
@@ -176,31 +175,23 @@ class MainObjectValidator(
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
 
-        val btStr = if (request.parentValueId != null)
-            aspectPropertyVertex?.let { aspectDao.baseType(it) }
-        else objectPropertyVertex.let { objectDaoService.baseType(it) }
-
-        val baseType = btStr?.let { BaseType.restoreBaseType(it) } ?: throw IllegalStateException("Associated aspect has no base type")
-        if (!request.value.assignableTo(baseType)) {
-            throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
+        val valueAspectVertex = when (aspectPropertyVertex) {
+            null -> objectPropertyVertex.aspect ?: throw IllegalArgumentException("Object property has no reference to aspect")
+            else -> aspectPropertyVertex.associatedAspect
         }
 
-        val measureVertex = request.measureName?.let { measureService.findMeasure(it) }
+        val btStr = valueAspectVertex.baseType ?: throw IllegalStateException("Associated aspect has no base type")
+        validateValueAssignableToBaseType(btStr, request.value)
 
-        val measure = (measureVertex?.toMeasure() ?: when (request.parentValueId) {
-            null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
-            else -> aspectPropertyVertex?.associatedAspect ?: throw IllegalArgumentException("No aspect property id for non-root value")
-        }.measure) as? Measure<DecimalNumber>
+        val defaultMeasureGroup =
+            valueAspectVertex.measureName?.let { MeasureMeasureGroupMap[it] ?: throw IllegalStateException("No measure group for measure $it") }
 
-        val dataValue = if (request.value is ObjectValueData.DecimalValue && measure != null) {
-            val valueRepresentation = BigDecimal(request.value.valueRepr)
-            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(valueRepresentation)).value.toString())
-        } else {
-            request.value
-        }
+        val measure = validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
+
+        val dataValue = recalculateValueAccordingToMeasure(request.value, measure)
 
         val value = getObjectValueFromData(dataValue)
-
 
         return ValueWriteInfo(value, request.description, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
@@ -211,49 +202,35 @@ class MainObjectValidator(
 
         val objectPropertyVertex = objectService.findPropertyById(objPropertyVertex.id)
         val aspectPropertyVertex = valueVertex.aspectProperty
+        val parentValueVertex = valueVertex.parentValue
 
         if (valueVertex.version != request.version) {
             throw ObjectPropertyValueConcurrentModificationException(valueVertex.id)
         }
 
-        if (aspectPropertyVertex == null && valueVertex.parentValue != null) {
+        if (aspectPropertyVertex == null && parentValueVertex != null) {
             throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked Aspect")
         }
 
-        if (aspectPropertyVertex != null && valueVertex.parentValue == null) {
+        if (aspectPropertyVertex != null && parentValueVertex == null) {
             throw IllegalArgumentException("There is aspect property ${aspectPropertyVertex.id} for root value")
         }
 
-        val btStr = if (valueVertex.parentValue != null)
-            aspectPropertyVertex?.let { aspectDao.baseType(it) }
-        else objectPropertyVertex.let { objectDaoService.baseType(it) }
-
-        val baseType = btStr?.let { BaseType.restoreBaseType(it) }
-        if (!request.value.assignableTo(baseType!!)) {
-            throw IllegalArgumentException("Value ${request.value} is not compatible with type $baseType")
+        val valueAspectVertex = when (aspectPropertyVertex) {
+            null -> objectPropertyVertex.aspect ?: throw IllegalArgumentException("Object property has no reference to aspect")
+            else -> aspectPropertyVertex.associatedAspect
         }
 
-        val parentValueVertex = valueVertex.parentValue
+        val btStr = valueAspectVertex.baseType ?: throw IllegalStateException("Associated aspect has no base type")
+        validateValueAssignableToBaseType(btStr, request.value)
 
-        val currentValueMeasureVertex = valueVertex.measure
+        val defaultMeasureGroup =
+            valueAspectVertex.measureName?.let { MeasureMeasureGroupMap[it] ?: throw IllegalStateException("No measure group for measure $it") }
 
-        val valueMeasureVertex = when {
-            request.measureName == null -> currentValueMeasureVertex
-            request.measureName != currentValueMeasureVertex?.toMeasure()?.name -> measureService.findMeasure(request.measureName)
-            else -> currentValueMeasureVertex
-        }
+        val measure = validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
 
-        val measure = (valueMeasureVertex?.toMeasure() ?: when (parentValueVertex) {
-            null -> objectPropertyVertex.aspect ?: throw IllegalStateException("Object property has no reference to aspect")
-            else -> aspectPropertyVertex?.associatedAspect ?: throw IllegalArgumentException("No aspect property id for non-root value")
-        }.measure) as? Measure<DecimalNumber>
-
-        val dataValue = if (request.value is ObjectValueData.DecimalValue && measure != null) {
-            val valueRepresentation = BigDecimal(request.value.valueRepr)
-            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(valueRepresentation)).value.toString())
-        } else {
-            request.value
-        }
+        val dataValue = recalculateValueAccordingToMeasure(request.value, measure)
 
         val value = getObjectValueFromData(dataValue)
 
@@ -263,8 +240,40 @@ class MainObjectValidator(
             objectPropertyVertex,
             aspectPropertyVertex,
             parentValueVertex,
-            valueMeasureVertex
+            measureVertex
         )
+    }
+
+    private fun recalculateValueAccordingToMeasure(originalValue: ObjectValueData, measure: Measure<DecimalNumber>?) =
+        if (originalValue is ObjectValueData.DecimalValue && measure != null) {
+            val valueRepresentation = BigDecimal(originalValue.valueRepr)
+            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(valueRepresentation)).value.toString())
+        } else {
+            originalValue
+        }
+
+    private fun validateMeasureInRequest(measureGroup: MeasureGroup<*>?, requestMeasureName: String?): Measure<DecimalNumber>? {
+        val measure = when {
+            measureGroup != null && requestMeasureName != null -> {
+                measureGroup.elementGroupMap[requestMeasureName]
+                        ?: throw IllegalArgumentException("Measure group for value (${measureGroup.name}) does not have measure $requestMeasureName")
+            }
+            measureGroup != null && requestMeasureName == null -> {
+                throw IllegalArgumentException("Measure group for value is specified (${measureGroup.name}) but no measure is specified in request")
+            }
+            measureGroup == null && requestMeasureName != null -> {
+                throw IllegalArgumentException("Measure group for value not specified but request specifies measure $requestMeasureName")
+            }
+            else -> null
+        }
+        return measure as? Measure<DecimalNumber>
+    }
+
+    private fun validateValueAssignableToBaseType(baseTypeString: String, value: ObjectValueData) {
+        val baseType = BaseType.restoreBaseType(baseTypeString)
+        if (!value.assignableTo(baseType)) {
+            throw IllegalArgumentException("Value $value is not compatible with type $baseType")
+        }
     }
 
     private fun getObjectValueFromData(dataValue: ObjectValueData): ObjectValue = when (dataValue) {

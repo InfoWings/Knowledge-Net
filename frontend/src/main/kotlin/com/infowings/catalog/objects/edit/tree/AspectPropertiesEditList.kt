@@ -39,7 +39,7 @@ fun RBuilder.aspectPropertiesEditList(
                     attrs {
                         this.aspectProperty = aspectProperty
                         this.onCreateValue = if (editContext.currentContext == null) {
-                            { valueData ->
+                            { valueData, measureName ->
                                 editContext.setContext(EditNewChildContextModel)
                                 onAddValueGroup(
                                     AspectPropertyValueGroupEditModel(
@@ -47,7 +47,8 @@ fun RBuilder.aspectPropertiesEditList(
                                         values = mutableListOf(
                                             AspectPropertyValueEditModel(
                                                 id = null,
-                                                value = valueData
+                                                value = valueData,
+                                                measureName = measureName
                                             )
                                         )
                                     )
@@ -134,6 +135,7 @@ fun RBuilder.aspectPropertiesEditList(
                                     editContext.setContext(EditExistingContextModel(value.id))
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = aspectProperty.aspect.defaultValue()
+                                        values[valueIndex].measureName = aspectProperty.aspect.measure
                                     }
                                 }
                             }
@@ -144,7 +146,8 @@ fun RBuilder.aspectPropertiesEditList(
                                         values.add(
                                             AspectPropertyValueEditModel(
                                                 id = null,
-                                                value = aspectProperty.aspect.defaultValue()
+                                                value = aspectProperty.aspect.defaultValue(),
+                                                measureName = aspectProperty.aspect.measure
                                             )
                                         )
                                     }
@@ -204,9 +207,9 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                         cardinality = props.aspectProperty.cardinality
                         onCreateValue = props.onCreateValue?.let { onCreateValue ->
                             if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
-                                { onCreateValue(ObjectValueData.NullValue) }
+                                { onCreateValue(ObjectValueData.NullValue, null) }
                             } else {
-                                { onCreateValue(props.aspectProperty.aspect.defaultValue()) }
+                                { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
                             }
                         }
                     }
@@ -218,7 +221,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 
 interface AspectPropertyValueCreateNodeProps : RProps {
     var aspectProperty: AspectPropertyTree
-    var onCreateValue: ((ObjectValueData?) -> Unit)?
+    var onCreateValue: ((value: ObjectValueData?, measureName: String?) -> Unit)?
 }
 
 val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("AspectPropertyValueEditNode") { props ->

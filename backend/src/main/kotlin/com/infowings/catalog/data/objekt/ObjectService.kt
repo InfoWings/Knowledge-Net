@@ -76,7 +76,7 @@ class ObjectService(
                         ValueTruncated (
                             it.id,
                             it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-                            it.measure?.toMeasure()?.name,
+                            it.explicitMeasure(),
                             it.description,
                             it.aspectProperty?.id,
                             it.version,
@@ -261,11 +261,14 @@ class ObjectService(
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
         this,
         this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-        this.measure?.toMeasure()?.name,
+        this.explicitMeasure(),
         this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
         this.aspectProperty,
         this.parentValue
     )
+
+    private fun ObjectPropertyValueVertex.explicitMeasure() =
+        this.measure?.toMeasure()?.name ?: this.aspectProperty?.associatedAspect?.measureName ?: this.objectProperty?.aspect?.measureName
 
     private fun ValueResult.toResponse() = ValueChangeResponse(
         id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),

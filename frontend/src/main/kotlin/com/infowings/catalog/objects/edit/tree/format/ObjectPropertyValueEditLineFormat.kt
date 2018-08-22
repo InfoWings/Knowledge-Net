@@ -70,8 +70,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 } else {
                     valueMeasureSelect(
                         measureGroup = measureGroup,
-                        currentMeasure = props.valueMeasure,
-                        defaultMeasure = it,
+                        currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure ->
                             props.onValueMeasureNameChanged(measure?.name)
                         },

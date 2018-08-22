@@ -24,11 +24,7 @@ val valueMeasureSelectComponent = rFunction<ValueMeasureSelectComponentProps>("V
     commonSelect<ValueMeasureOption> {
         attrs {
             className = "value-measure-select"
-            val currentMeasure = props.currentMeasure
-            value = when (currentMeasure) {
-                null -> valueMeasureOption(props.defaultMeasure)
-                else -> valueMeasureOption(currentMeasure)
-            }
+            value = valueMeasureOption(props.currentMeasure)
             labelKey = "label"
             valueKey = "label"
             onChange = { props.onMeasureSelected(it.measure) }
@@ -41,23 +37,20 @@ val valueMeasureSelectComponent = rFunction<ValueMeasureSelectComponentProps>("V
 
 interface ValueMeasureSelectComponentProps : RProps {
     var measureGroup: MeasureGroup<*>
-    var currentMeasure: Measure<*>?
-    var defaultMeasure: Measure<*>
+    var currentMeasure: Measure<*>
     var onMeasureSelected: (Measure<*>?) -> Unit
     var disabled: Boolean
 }
 
 fun RBuilder.valueMeasureSelect(
     measureGroup: MeasureGroup<*>,
-    currentMeasure: Measure<*>?,
-    defaultMeasure: Measure<*>,
+    currentMeasure: Measure<*>,
     onMeasureSelected: (Measure<*>?) -> Unit,
     disabled: Boolean
 ) = valueMeasureSelectComponent {
     attrs {
         this.measureGroup = measureGroup
         this.currentMeasure = currentMeasure
-        this.defaultMeasure = defaultMeasure
         this.onMeasureSelected = onMeasureSelected
         this.disabled = disabled
     }

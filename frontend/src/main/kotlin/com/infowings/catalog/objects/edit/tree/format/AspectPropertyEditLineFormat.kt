@@ -52,8 +52,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 } else {
                     valueMeasureSelect(
                         measureGroup = measureGroup,
-                        defaultMeasure = it,
-                        currentMeasure = props.valueMeasure,
+                        currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure ->
                             props.onMeasureNameChanged(measure?.name)
                         },

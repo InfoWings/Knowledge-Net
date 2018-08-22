@@ -174,7 +174,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 property.aspect?.defaultValue(),
-                                                null,
+                                                property.aspect?.measure,
                                                 null,
                                                 false,
                                                 mutableListOf()
