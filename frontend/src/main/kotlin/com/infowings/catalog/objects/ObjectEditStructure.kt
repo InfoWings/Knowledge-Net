@@ -37,7 +37,7 @@ data class ObjectPropertyEditModel(
     var description: String? = null,
     var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
-    var expanded: Boolean = false
+    var expanded: Boolean = true
 ) {
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
         response.id,
@@ -84,7 +84,7 @@ data class ObjectPropertyValueEditModel(
     var value: ObjectValueData? = null,
     var measureName: String? = null,
     var description: String? = null,
-    var expanded: Boolean = false,
+    var expanded: Boolean = true,
     var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
 
@@ -169,7 +169,7 @@ data class AspectPropertyValueEditModel(
     var value: ObjectValueData? = null,
     var measureName: String? = null,
     var description: String? = null,
-    var expanded: Boolean = false,
+    var expanded: Boolean = true,
     var children: MutableList<AspectPropertyValueGroupEditModel> = mutableListOf()
 ) {
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(

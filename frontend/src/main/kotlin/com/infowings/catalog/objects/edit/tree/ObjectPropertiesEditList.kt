@@ -184,13 +184,13 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                             value.value == ObjectValueData.NullValue && !(property.aspect?.deleted ?: true) &&
-                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) || (value.id != null && currentEditContextModel == EditExistingContextModel(
-                                        value.id
-                                    ))) -> {
+                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) ||
+                                            (value.id != null && currentEditContextModel == EditExistingContextModel(value.id))) -> {
                                 {
                                     updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value =
-                                                property.aspect?.defaultValue()
+                                        val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
+                                        targetValue.value = property.aspect?.defaultValue()
+                                        targetValue.measureName = property.aspect?.measure
                                     }
                                 }
                             }
@@ -198,7 +198,9 @@ fun RBuilder.objectPropertiesEditList(
                                 {
                                     editContext.setContext(EditExistingContextModel(value.id ?: error("value should have id != null")))
                                     updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = property.aspect?.defaultValue()
+                                        val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
+                                        targetValue.value = property.aspect?.defaultValue()
+                                        targetValue.measureName = property.aspect?.measure
                                     }
                                 }
                             }
