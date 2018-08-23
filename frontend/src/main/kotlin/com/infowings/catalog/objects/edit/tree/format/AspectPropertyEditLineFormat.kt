@@ -52,9 +52,10 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 } else {
                     valueMeasureSelect(
                         measureGroup = measureGroup,
+                        stringValueRepresentation = (props.value as ObjectValueData.DecimalValue).valueRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
-                        onMeasureSelected = { measure ->
-                            props.onMeasureNameChanged(measure?.name)
+                        onMeasureSelected = { measure, stringValueRepresentation ->
+                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))
                         },
                         disabled = props.disabled
                     )
@@ -100,7 +101,7 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var value: ObjectValueData?
     var valueMeasure: Measure<*>?
     var onChange: (ObjectValueData) -> Unit
-    var onMeasureNameChanged: (String?) -> Unit
+    var onMeasureNameChanged: (String?, ObjectValueData) -> Unit
     var valueDescription: String?
     var onDescriptionChange: (String) -> Unit
     var conformsToCardinality: Boolean

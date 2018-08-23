@@ -432,20 +432,22 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                             }
                         }
                         onValueMeasureNameChanged = if (props.editContext.currentContext == null) {
-                            {
+                            { newMeasureName, objectValueData ->
                                 props.editContext.setContext(
                                     EditExistingContextModel(
                                         props.rootValue.id ?: error("Root value should have id != null in order to edit")
                                     )
                                 )
                                 props.onValueUpdate {
-                                    measureName = it
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         } else {
-                            {
+                            { newMeasureName, objectValueData ->
                                 props.onValueUpdate {
-                                    measureName = it
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         }

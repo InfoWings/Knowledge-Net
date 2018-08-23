@@ -150,3 +150,6 @@ data class ValueDeleteResponse(
 
 @Serializable
 data class Reference(val id: String, val version: Int)
+
+@Serializable
+data class ValueRecalculationResponse(val targetMeasure: String, val value: String)

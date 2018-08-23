@@ -95,6 +95,21 @@
   }
 }
 
+.recalculate-window {
+  width: 30rem;
+  padding: 1.5rem;
+
+  &__header {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__buttons {
+    display: flex;
+    justify-content: space-around
+  }
+}
+
 .property-aspect-type {
   margin-right: 1rem;
 }

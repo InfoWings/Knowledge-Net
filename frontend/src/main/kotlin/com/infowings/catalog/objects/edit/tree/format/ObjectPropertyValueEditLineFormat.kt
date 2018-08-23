@@ -70,9 +70,10 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 } else {
                     valueMeasureSelect(
                         measureGroup = measureGroup,
+                        stringValueRepresentation = (props.value as ObjectValueData.DecimalValue).valueRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
-                        onMeasureSelected = { measure ->
-                            props.onValueMeasureNameChanged(measure?.name)
+                        onMeasureSelected = { measure, stringValueRepresentation ->
+                            props.onValueMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))
                         },
                         disabled = props.valueDisabled
                     )
@@ -123,7 +124,7 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onValueDescriptionChanged: (String) -> Unit
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
-    var onValueMeasureNameChanged: (String?) -> Unit
+    var onValueMeasureNameChanged: (String, ObjectValueData) -> Unit
     var onSaveValue: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onCancelValue: (() -> Unit)?

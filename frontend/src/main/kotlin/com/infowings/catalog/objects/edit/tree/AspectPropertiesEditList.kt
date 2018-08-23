@@ -267,20 +267,22 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                             }
                         }
                         onMeasureNameChanged = if (props.editContext.currentContext == null) {
-                            {
+                            { newMeasureName, objectValueData ->
                                 props.editContext.setContext(
                                     EditExistingContextModel(
                                         props.value.id ?: error("Value should have id != null in order to be edited")
                                     )
                                 )
                                 props.onUpdate {
-                                    measureName = it
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         } else {
-                            {
+                            { newMeasureName, objectValueData ->
                                 props.onUpdate {
-                                    measureName = it
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         }

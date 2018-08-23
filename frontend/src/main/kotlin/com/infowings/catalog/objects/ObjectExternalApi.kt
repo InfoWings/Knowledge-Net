@@ -43,3 +43,6 @@ suspend fun deleteProperty(id: String, force: Boolean): PropertyDeleteResponse =
 
 suspend fun deleteValue(id: String, force: Boolean): ValueDeleteResponse =
     JSON.parse(delete("/api/objects/value/${encodeURIComponent(id)}?force=$force"))
+
+suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: String): ValueRecalculationResponse =
+    JSON.parse(get("/api/objects/recalculateValue?from=${encodeURIComponent(fromMeasure)}&to=${encodeURIComponent(toMeasure)}&value=${encodeURIComponent(value)}"))

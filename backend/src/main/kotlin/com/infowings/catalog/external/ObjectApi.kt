@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 import java.security.Principal
 
 @RestController
@@ -22,6 +23,21 @@ class ObjectApi(val objectService: ObjectService) {
         val username = principal.name
         logger.debug("Get objects request by $username")
         return ObjectsResponse(objectService.fetch().map { it.toResponse() })
+    }
+
+    @GetMapping("recalculateValue")
+    fun recalculateValue(
+        @RequestParam("from", required = true) fromMeasure: String,
+        @RequestParam("to", required = true) toMeasure: String,
+        @RequestParam("value", required = true) value: String,
+        principal: Principal
+    ): ValueRecalculationResponse {
+        val username = principal.name
+        logger.debug("Recalculate value request by $username")
+        return ValueRecalculationResponse(
+            targetMeasure = toMeasure,
+            value = objectService.recalculateValue(fromMeasure, toMeasure, BigDecimal(value)).stripTrailingZeros().toPlainString()
+        )
     }
 
     @GetMapping("{id}/viewdetails")

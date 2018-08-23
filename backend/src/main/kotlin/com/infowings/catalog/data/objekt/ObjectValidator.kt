@@ -255,7 +255,7 @@ class MainObjectValidator(
     private fun validateMeasureInRequest(measureGroup: MeasureGroup<*>?, requestMeasureName: String?): Measure<DecimalNumber>? {
         val measure = when {
             measureGroup != null && requestMeasureName != null -> {
-                measureGroup.elementGroupMap[requestMeasureName]
+                measureGroup.measureList.find { it.name == requestMeasureName }
                         ?: throw IllegalArgumentException("Measure group for value (${measureGroup.name}) does not have measure $requestMeasureName")
             }
             measureGroup != null && requestMeasureName == null -> {

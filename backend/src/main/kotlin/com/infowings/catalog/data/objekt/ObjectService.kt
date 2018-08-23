@@ -13,6 +13,7 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
+import java.math.BigDecimal
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -267,8 +268,18 @@ class ObjectService(
         this.parentValue
     )
 
-    private fun ObjectPropertyValueVertex.explicitMeasure() =
-        this.measure?.toMeasure()?.name ?: this.aspectProperty?.associatedAspect?.measureName ?: this.objectProperty?.aspect?.measureName
+    private fun ObjectPropertyValueVertex.explicitMeasure(): String? {
+        val currentMeasure = this.measure?.toMeasure()?.name
+        return if (currentMeasure == null) {
+            val aspectProperty = this.aspectProperty
+            when (aspectProperty) {
+                null -> this.objectProperty?.aspect?.measureName
+                else -> aspectProperty.associatedAspect.measureName
+            }
+        } else {
+            currentMeasure
+        }
+    }
 
     private fun ValueResult.toResponse() = ValueChangeResponse(
         id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),
@@ -553,6 +564,22 @@ class ObjectService(
         deleteObject(id, username, ::removeOrMark)
     }
 
+    fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: BigDecimal): BigDecimal {
+        val fromMeasure = (GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist")) as Measure<DecimalNumber>
+        val toMeasure = (GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist")) as Measure<DecimalNumber>
+
+        val fromMeasureGroup =
+            MeasureMeasureGroupMap[fromMeasure.name] ?: throw IllegalStateException("Measure ${fromMeasure.name} does not belong to any measure group")
+        val toMeasureGroup =
+            MeasureMeasureGroupMap[toMeasure.name] ?: throw IllegalStateException("Measure ${toMeasure.name} does not belong to any measure group")
+
+        if (fromMeasureGroup.name != toMeasureGroup.name) {
+            throw RecalculationException("Measures $fromMeasureStr and $toMeasureStr belong to different measure groups")
+        }
+
+        return toMeasure.fromBase(fromMeasure.toBase(DecimalNumber(value))).value
+    }
+
 
     // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
     fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {
@@ -566,3 +593,5 @@ class ObjectService(
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
+
+class RecalculationException(message: String) : IllegalArgumentException(message)
