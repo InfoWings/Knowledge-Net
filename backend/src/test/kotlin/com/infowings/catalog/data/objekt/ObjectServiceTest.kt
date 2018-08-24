@@ -132,7 +132,7 @@ class ObjectServiceTest {
             value = ObjectValueData.StringValue("Text Value"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
-            measureId = null,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
             parentValueId = defaultRootValueId
         )
@@ -179,6 +179,7 @@ class ObjectServiceTest {
         val valueRequest = ValueUpdateRequest(
             valueId = propertyCreateResponse.rootValue.id,
             value = ObjectValueData.StringValue(strValue),
+            measureName = null,
             description = null,
             version = propertyCreateResponse.rootValue.version
         )
@@ -360,7 +361,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, null, propertyCreateResponse.rootValue.version)
         val rootValueUpdateResponse = objectService.update(valueRequest, username)
 
         objectService.deleteObject(objectCreateResponse.id, username)
@@ -383,7 +384,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, null, propertyCreateResponse.rootValue.version)
         val rootValueUpdateResponse = objectService.update(valueRequest, username)
 
         objectService.softDeleteObject(objectCreateResponse.id, username)
@@ -408,6 +409,7 @@ class ObjectServiceTest {
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse.rootValue.version
         )
@@ -435,6 +437,7 @@ class ObjectServiceTest {
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse.version
         )
@@ -467,6 +470,7 @@ class ObjectServiceTest {
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.Object(objectCreateResponse1.id)),
             null,
+            null,
             propertyCreateResponse.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest, username)
@@ -498,6 +502,7 @@ class ObjectServiceTest {
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
             null,
+            null,
             propertyCreateResponse.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest, username)
@@ -520,7 +525,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, null, propertyCreateResponse.rootValue.version)
         val rootValueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(ObjectValueData.StringValue("234"), null, propertyCreateResponse.id)
@@ -546,7 +551,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("123"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(ObjectValueData.StringValue("234"), null, propertyCreateResponse.id)
@@ -573,12 +578,22 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.DecimalValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(
+                propertyCreateResponse.rootValue.id,
+                ObjectValueData.DecimalValue("123"),
+                Kilometre.name,
+                null,
+                propertyCreateResponse.rootValue.version
+            )
         val rootValueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("hello"), description = null, objectPropertyId = propertyCreateResponse.id,
-            measureId = null, aspectPropertyId = complexAspect.properties[0].id, parentValueId = rootValueUpdateResponse.id
+            ObjectValueData.StringValue("hello"),
+            null,
+            propertyCreateResponse.id,
+            null,
+            complexAspect.properties[0].id,
+            rootValueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -603,12 +618,22 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.DecimalValue("123"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(
+                propertyCreateResponse.rootValue.id,
+                ObjectValueData.DecimalValue("123"),
+                Kilometre.name,
+                null,
+                propertyCreateResponse.rootValue.version
+            )
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.StringValue("hello"), description = null, objectPropertyId = propertyCreateResponse.id,
-            measureId = null, aspectPropertyId = complexAspect.properties[0].id, parentValueId = valueUpdateResponse.id
+            ObjectValueData.StringValue("hello"),
+            null,
+            propertyCreateResponse.id,
+            null,
+            complexAspect.properties[0].id,
+            valueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -700,7 +725,7 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(ObjectValueData.StringValue("hello2"), null, propertyCreateResponse.id)
@@ -738,7 +763,7 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(ObjectValueData.StringValue("hello2"), null, propertyCreateResponse.id)
@@ -776,16 +801,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -820,16 +845,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -867,6 +892,7 @@ class ObjectServiceTest {
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse.rootValue.version
         )
@@ -906,6 +932,7 @@ class ObjectServiceTest {
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse.rootValue.version
         )
@@ -951,6 +978,7 @@ class ObjectServiceTest {
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse1.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
+            null,
             null,
             propertyCreateResponse1.rootValue.version
         )
@@ -1000,6 +1028,7 @@ class ObjectServiceTest {
             propertyCreateResponse1.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
             null,
+            null,
             propertyCreateResponse1.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest1, username)
@@ -1029,7 +1058,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest, username)
 
         val createdProperty = objectService.findPropertyById(propertyCreateResponse.id)
@@ -1065,7 +1094,7 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest, username)
 
         val createdProperty = objectService.findPropertyById(propertyCreateResponse.id)
@@ -1104,6 +1133,7 @@ class ObjectServiceTest {
             propertyCreateResponse.rootValue.id,
             ObjectValueData.StringValue("hello1"),
             null,
+            null,
             propertyCreateResponse.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest, username)
@@ -1112,9 +1142,9 @@ class ObjectServiceTest {
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueChildRequest, username)
 
@@ -1151,16 +1181,16 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest, username)
 
         val valueChildRequest = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueChildRequest, username)
 
@@ -1197,16 +1227,16 @@ class ObjectServiceTest {
         val propertyCreateResponse = objectService.create(propertyRequest, username)
 
         val valueRequest =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue("hello1"), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest, username)
 
         val valueChildRequest = ValueCreateRequest(
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueChildRequest, username)
 
@@ -1248,6 +1278,7 @@ class ObjectServiceTest {
             propertyCreateResponse.rootValue.id,
             ObjectValueData.StringValue("hello1"),
             null,
+            null,
             propertyCreateResponse.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest, username)
@@ -1256,9 +1287,9 @@ class ObjectServiceTest {
             value = ObjectValueData.StringValue("hello2"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val childValueCreateResponse = objectService.create(valueChildRequest, username)
 
@@ -1302,16 +1333,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue(""), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue(""), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[1].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1347,16 +1378,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue(""), null, propertyCreateResponse.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse.rootValue.id, ObjectValueData.StringValue(""), null, null, propertyCreateResponse.rootValue.version)
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[1].id,
-            parentValueId = valueUpdateResponse.id,
-            measureId = null
+            parentValueId = valueUpdateResponse.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1393,6 +1424,7 @@ class ObjectServiceTest {
             propertyCreateResponse1.rootValue.id,
             ObjectValueData.StringValue("1111"),
             null,
+            null,
             propertyCreateResponse1.rootValue.version
         )
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
@@ -1401,9 +1433,9 @@ class ObjectServiceTest {
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1417,6 +1449,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1456,16 +1489,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1479,6 +1512,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1515,16 +1549,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1538,6 +1572,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1578,16 +1613,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1601,6 +1636,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1637,16 +1673,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1660,6 +1696,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1698,16 +1735,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1721,6 +1758,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1756,16 +1794,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1779,6 +1817,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1818,16 +1857,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1841,6 +1880,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1882,16 +1922,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1905,6 +1945,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -1950,16 +1991,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -1973,6 +2014,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )
@@ -2012,16 +2054,16 @@ class ObjectServiceTest {
         }
 
         val valueRequest1 =
-            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, propertyCreateResponse1.rootValue.version)
+            ValueUpdateRequest(propertyCreateResponse1.rootValue.id, ObjectValueData.StringValue("1111"), null, null, propertyCreateResponse1.rootValue.version)
         val valueUpdateResponse1 = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
             value = ObjectValueData.StringValue("222"),
             description = null,
             objectPropertyId = propertyCreateResponse1.id,
+            measureName = null,
             aspectPropertyId = complexAspect.properties[0].id,
-            parentValueId = valueUpdateResponse1.id,
-            measureId = null
+            parentValueId = valueUpdateResponse1.id
         )
         val valueCreateResponse = objectService.create(valueRequest2, username)
 
@@ -2035,6 +2077,7 @@ class ObjectServiceTest {
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
             ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            null,
             null,
             propertyCreateResponse2.rootValue.version
         )

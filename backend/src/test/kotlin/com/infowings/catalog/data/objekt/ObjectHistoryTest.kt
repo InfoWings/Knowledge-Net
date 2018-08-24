@@ -297,8 +297,7 @@ class ObjectHistoryTest {
         objectName: String,
         objectDescription: String,
         value: ObjectValueData,
-        aspectId: String,
-        measureId: String? = null
+        aspectId: String
     ): PreparedValueInfo {
         val objectCreateResponse = createObject(objectName, objectDescription)
 
@@ -307,7 +306,7 @@ class ObjectHistoryTest {
 
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueUpdateRequest(propertyCreateResponse.rootValue.id, value, null, propertyCreateResponse.rootValue.version)
+        val valueRequest = ValueUpdateRequest(propertyCreateResponse.rootValue.id, value, null, null, propertyCreateResponse.rootValue.version)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
@@ -338,7 +337,7 @@ class ObjectHistoryTest {
     private fun prepareAnotherValue(prepared: PreparedValueInfo, value: ObjectValueData): PreparedValueInfo {
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest(value = value, description = null, objectPropertyId = prepared.propertyId)
+        val valueRequest = ValueCreateRequest(value, null, prepared.propertyId)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
         val statesBefore = historyProvider.getAllHistory()
@@ -368,10 +367,7 @@ class ObjectHistoryTest {
     private fun prepareChildValue(prepared: PreparedValueInfo, aspectPropertyId: String?, value: ObjectValueData): PreparedValueInfo {
         val factsBefore: Set<HistoryFact> = historyService.getAll().toSet()
 
-        val valueRequest = ValueCreateRequest(
-            value = value, description = null, objectPropertyId = prepared.propertyId,
-            parentValueId = prepared.valueId, aspectPropertyId = aspectPropertyId, measureId = null
-        )
+        val valueRequest = ValueCreateRequest(value, null, prepared.propertyId, null, aspectPropertyId, prepared.valueId)
 
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
@@ -1683,8 +1679,7 @@ class ObjectHistoryTest {
         val objectDescription = "object description"
 
         val prepared = prepareValue(
-            objectName = testName, objectDescription = objectDescription, value = ObjectValueData.StringValue(value),
-            aspectId = aspect.idStrict(), measureId = measure.id
+            objectName = testName, objectDescription = objectDescription, value = ObjectValueData.StringValue(value), aspectId = aspect.idStrict()
         )
         val valueFacts = prepared.valueFacts
 

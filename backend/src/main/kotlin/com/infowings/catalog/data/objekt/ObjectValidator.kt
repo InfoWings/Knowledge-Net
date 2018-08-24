@@ -186,7 +186,11 @@ class MainObjectValidator(
         val defaultMeasureGroup =
             valueAspectVertex.measureName?.let { MeasureMeasureGroupMap[it] ?: throw IllegalStateException("No measure group for measure $it") }
 
-        val measure = validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        val measure = if (request.value == ObjectValueData.NullValue) {
+            if (request.measureName == null) null else throw IllegalArgumentException("Value in request is NullValue, but measure is ${request.measureName}")
+        } else {
+            validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        }
         val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
 
         val dataValue = recalculateValueAccordingToMeasure(request.value, measure)
@@ -227,7 +231,12 @@ class MainObjectValidator(
         val defaultMeasureGroup =
             valueAspectVertex.measureName?.let { MeasureMeasureGroupMap[it] ?: throw IllegalStateException("No measure group for measure $it") }
 
-        val measure = validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        val measure = if (request.value == ObjectValueData.NullValue) {
+            if (request.measureName == null) null else throw IllegalArgumentException("Value in request is NullValue, but measure is ${request.measureName}")
+        } else {
+            validateMeasureInRequest(defaultMeasureGroup, request.measureName)
+        }
+
         val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
 
         val dataValue = recalculateValueAccordingToMeasure(request.value, measure)
@@ -252,6 +261,7 @@ class MainObjectValidator(
             originalValue
         }
 
+    @Suppress("UNCHECKED_CAST")
     private fun validateMeasureInRequest(measureGroup: MeasureGroup<*>?, requestMeasureName: String?): Measure<DecimalNumber>? {
         val measure = when {
             measureGroup != null && requestMeasureName != null -> {
