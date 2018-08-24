@@ -564,6 +564,7 @@ class ObjectService(
         deleteObject(id, username, ::removeOrMark)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: BigDecimal): BigDecimal {
         val fromMeasure = (GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist")) as Measure<DecimalNumber>
         val toMeasure = (GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist")) as Measure<DecimalNumber>

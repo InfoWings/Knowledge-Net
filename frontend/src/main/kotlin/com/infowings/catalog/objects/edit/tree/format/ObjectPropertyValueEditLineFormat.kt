@@ -53,11 +53,12 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         props.onCancelProperty?.let {
             cancelButtonComponent(it, "pt-small")
         }
-        if (props.value != ObjectValueData.NullValue) {
+        val value = props.value
+        if (value != ObjectValueData.NullValue) {
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
-                value = props.value,
+                value = value,
                 onChange = props.onValueUpdate,
                 disabled = props.valueDisabled
             )
@@ -70,7 +71,8 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 } else {
                     valueMeasureSelect(
                         measureGroup = measureGroup,
-                        stringValueRepresentation = (props.value as ObjectValueData.DecimalValue).valueRepr,
+                        stringValueRepresentation = (value as? ObjectValueData.DecimalValue)?.valueRepr
+                                ?: error("Value has non-decimal type and has non-null measure"),
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure, stringValueRepresentation ->
                             props.onValueMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))

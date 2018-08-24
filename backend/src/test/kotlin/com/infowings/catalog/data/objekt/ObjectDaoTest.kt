@@ -27,6 +27,7 @@ import kotlin.test.fail
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("MagicNumber", "StringLiteralDuplication")
 class ObjectDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase

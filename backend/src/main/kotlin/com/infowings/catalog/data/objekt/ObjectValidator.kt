@@ -264,16 +264,13 @@ class MainObjectValidator(
     @Suppress("UNCHECKED_CAST")
     private fun validateMeasureInRequest(measureGroup: MeasureGroup<*>?, requestMeasureName: String?): Measure<DecimalNumber>? {
         val measure = when {
-            measureGroup != null && requestMeasureName != null -> {
+            measureGroup != null && requestMeasureName != null ->
                 measureGroup.measureList.find { it.name == requestMeasureName }
                         ?: throw IllegalArgumentException("Measure group for value (${measureGroup.name}) does not have measure $requestMeasureName")
-            }
-            measureGroup != null && requestMeasureName == null -> {
+            measureGroup != null && requestMeasureName == null ->
                 throw IllegalArgumentException("Measure group for value is specified (${measureGroup.name}) but no measure is specified in request")
-            }
-            measureGroup == null && requestMeasureName != null -> {
+            measureGroup == null && requestMeasureName != null ->
                 throw IllegalArgumentException("Measure group for value not specified but request specifies measure $requestMeasureName")
-            }
             else -> null
         }
         return measure as? Measure<DecimalNumber>

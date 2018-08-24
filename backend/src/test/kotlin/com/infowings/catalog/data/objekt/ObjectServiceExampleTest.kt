@@ -18,7 +18,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
-
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
 class ObjectServiceExampleTest {
