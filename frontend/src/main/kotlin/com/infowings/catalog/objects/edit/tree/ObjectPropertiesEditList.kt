@@ -261,7 +261,7 @@ fun RBuilder.objectPropertiesEditList(
 }
 
 private fun isValueBeingEdited(valueId: String?, editContextModel: EditContextModel?) =
-    (valueId == null && editContextModel == EditNewChildContextModel) || (valueId != null && editContextModel == EditExistingContextModel(valueId))
+    valueId == null && editContextModel == EditNewChildContextModel || valueId != null && editContextModel == EditExistingContextModel(valueId)
 
 val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPropertyEditNode") { props ->
     controlledTreeNode {
