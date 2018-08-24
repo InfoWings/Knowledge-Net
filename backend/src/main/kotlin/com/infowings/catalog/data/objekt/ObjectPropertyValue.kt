@@ -102,6 +102,7 @@ data class ObjectPropertyValue(
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
 ) {
+    @Suppress("UNCHECKED_CAST")
     fun calculateObjectValueData(): ObjectValueData {
         val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
             null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
