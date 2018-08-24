@@ -6,10 +6,7 @@ import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
-import com.infowings.catalog.objects.edit.EditContext
-import com.infowings.catalog.objects.edit.EditExistingContextModel
-import com.infowings.catalog.objects.edit.EditNewChildContextModel
-import com.infowings.catalog.objects.edit.ObjectTreeEditModel
+import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
 import react.RBuilder
@@ -184,8 +181,7 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                             value.value == ObjectValueData.NullValue && !(property.aspect?.deleted ?: true) &&
-                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) ||
-                                            (value.id != null && currentEditContextModel == EditExistingContextModel(value.id))) -> {
+                                    isValueBeingEdited(value.id, currentEditContextModel) -> {
                                 {
                                     updater(propertyIndex) {
                                         val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
@@ -263,6 +259,9 @@ fun RBuilder.objectPropertiesEditList(
         }
     }
 }
+
+private fun isValueBeingEdited(valueId: String?, editContextModel: EditContextModel?) =
+    (valueId == null && editContextModel == EditNewChildContextModel) || (valueId != null && editContextModel == EditExistingContextModel(valueId))
 
 val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPropertyEditNode") { props ->
     controlledTreeNode {
