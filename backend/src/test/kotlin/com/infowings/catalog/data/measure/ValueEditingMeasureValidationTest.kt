@@ -28,6 +28,7 @@ import org.springframework.web.util.NestedServletException
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 class ValueEditingMeasureValidationTest {
 
     @Autowired
