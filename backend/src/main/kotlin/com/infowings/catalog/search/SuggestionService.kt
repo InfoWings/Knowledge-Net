@@ -51,7 +51,7 @@ class SuggestionService(
         val text = textOrAllWildcard(commonParam?.text)
         return session(database) {
             findMeasureInDb(measureGroupName, text).mapNotNull { it.toMeasure() }
-                .toMutableList()
+                .toMutableList<Measure<*>>()
                 .addAnExactMatchToTheBeginning(commonParam)
                 .addMeasureDescSuggestion(text, MEASURE_VERTEX)
                 .distinct()

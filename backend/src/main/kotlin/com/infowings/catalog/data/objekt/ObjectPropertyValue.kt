@@ -102,7 +102,6 @@ data class ObjectPropertyValue(
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
 ) {
-    @Suppress("UNCHECKED_CAST")
     fun calculateObjectValueData(): ObjectValueData {
         val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
             null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
@@ -112,8 +111,7 @@ data class ObjectPropertyValue(
         val targetValue = value.toObjectValueData()
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
-            val targetMeasure = measure as Measure<DecimalNumber>
-            ObjectValueData.DecimalValue(targetMeasure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).value.stripTrailingZeros().toString())
+            ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())
         } else {
             targetValue
         }

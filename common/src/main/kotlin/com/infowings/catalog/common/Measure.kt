@@ -126,6 +126,9 @@ expect class DecimalNumber(value: String) {
     operator fun plus(other: DecimalNumber): DecimalNumber
     operator fun div(other: DecimalNumber): DecimalNumber
     fun pow(other: DecimalNumber): DecimalNumber
+
+    fun toPlainString(): String
+    override fun toString(): String
 }
 
 expect fun log10(num: DecimalNumber): DecimalNumber
@@ -177,6 +180,9 @@ class MeasureGroup<T>(
     val description: String? = MeasureGroupDesc[name]
 ) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
+
+    fun getMeasure(measureName: String): Measure<T> = measureList.find { it.name == measureName }
+            ?: throw IllegalStateException("No such measure ($measureName) in measure group ${this.name}")
 }
 
 
@@ -412,7 +418,7 @@ val Euro = createDecimalMeasure("Euro", "€", "1.0")
 val EuroMoneyGroup = MeasureGroup("Euro Money Group", listOf(CentEuropean, Euro), Euro)
 
 /** Global */
-val MeasureGroupMap = setOf<MeasureGroup<*>>(
+val MeasureGroupMap = setOf(
     LengthGroup,
     SpeedGroup,
     AreaGroup,

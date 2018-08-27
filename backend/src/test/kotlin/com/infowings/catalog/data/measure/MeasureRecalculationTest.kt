@@ -28,7 +28,7 @@ class MeasureRecalculationTest {
         val metreValue = "10"
         val expectedYardValue = "10.936133"
 
-        val resultYardValue = objectService.recalculateValue(Metre.name, Yard.name, BigDecimal(metreValue))
+        val resultYardValue = objectService.recalculateValue(Metre.name, Yard.name, DecimalNumber(metreValue))
         resultYardValue should beRelativelyEqualTo(expectedYardValue)
     }
 
@@ -37,7 +37,7 @@ class MeasureRecalculationTest {
         val yardValue = "10"
         val expectedMetreValue = "9.144"
 
-        val resultMetreValue = objectService.recalculateValue(Yard.name, Metre.name, BigDecimal(yardValue))
+        val resultMetreValue = objectService.recalculateValue(Yard.name, Metre.name, DecimalNumber(yardValue))
         resultMetreValue should beRelativelyEqualTo(expectedMetreValue)
     }
 
@@ -46,7 +46,7 @@ class MeasureRecalculationTest {
         val celsiusValue = "37.7"
         val expectedFahrenheitValue = "99.86"
 
-        val resultFahrenheitValue = objectService.recalculateValue(Celsius.name, Fahrenheit.name, BigDecimal(celsiusValue))
+        val resultFahrenheitValue = objectService.recalculateValue(Celsius.name, Fahrenheit.name, DecimalNumber(celsiusValue))
         resultFahrenheitValue should beRelativelyEqualTo(expectedFahrenheitValue)
     }
 
@@ -55,7 +55,7 @@ class MeasureRecalculationTest {
         val fahrenheitValue = "88.42"
         val expectedCelsiusValue = "31.344444"
 
-        val resultCelsiusValue = objectService.recalculateValue(Fahrenheit.name, Celsius.name, BigDecimal(fahrenheitValue))
+        val resultCelsiusValue = objectService.recalculateValue(Fahrenheit.name, Celsius.name, DecimalNumber(fahrenheitValue))
         resultCelsiusValue should beRelativelyEqualTo(expectedCelsiusValue)
     }
 
@@ -64,7 +64,7 @@ class MeasureRecalculationTest {
         val yardValue = "50.8"
         val expectedInchValue = "1828.8"
 
-        val resultInchValue = objectService.recalculateValue(Yard.name, Inch.name, BigDecimal(yardValue))
+        val resultInchValue = objectService.recalculateValue(Yard.name, Inch.name, DecimalNumber(yardValue))
         resultInchValue should beRelativelyEqualTo(expectedInchValue)
     }
 
@@ -73,7 +73,7 @@ class MeasureRecalculationTest {
         val inchValue = "50.8"
         val expectedYardValue = "1.411111"
 
-        val resultYardValue = objectService.recalculateValue(Inch.name, Yard.name, BigDecimal(inchValue))
+        val resultYardValue = objectService.recalculateValue(Inch.name, Yard.name, DecimalNumber(inchValue))
         resultYardValue should beRelativelyEqualTo(expectedYardValue)
     }
 
@@ -82,7 +82,7 @@ class MeasureRecalculationTest {
         val celsiusValue = "36.6"
 
         shouldThrow<RecalculationException> {
-            objectService.recalculateValue(Celsius.name, Yard.name, BigDecimal(celsiusValue))
+            objectService.recalculateValue(Celsius.name, Yard.name, DecimalNumber(celsiusValue))
         }
     }
 
@@ -90,16 +90,17 @@ class MeasureRecalculationTest {
 
 const val allowedRelativeDelta = "0.0001"
 
-class BigDecimalRelativelyEqualMatcher(relativeDelta: BigDecimal, private val targetValue: BigDecimal) : Matcher<BigDecimal> {
+class DecimalNumberRelativelyEqualMatcher(relativeDelta: BigDecimal, private val targetValue: BigDecimal) : Matcher<DecimalNumber> {
 
     private val relativeDeltaAbs: BigDecimal = relativeDelta.abs()
 
     constructor(relativeDelta: String, targetValue: String) : this(BigDecimal(relativeDelta), BigDecimal(targetValue))
 
-    override fun test(value: BigDecimal): Result {
-        val absoluteDelta = value.abs().multiply(relativeDeltaAbs)
-        val upperBound = value.plus(absoluteDelta)
-        val lowerBound = value.minus(absoluteDelta)
+    override fun test(value: DecimalNumber): Result {
+        val bigDecimalValue = value.value
+        val absoluteDelta = bigDecimalValue.abs().multiply(relativeDeltaAbs)
+        val upperBound = bigDecimalValue.plus(absoluteDelta)
+        val lowerBound = bigDecimalValue.minus(absoluteDelta)
         return Result(
             targetValue in lowerBound..upperBound,
             "$targetValue is not in allowed bounds [$lowerBound .. $upperBound] of $value",
@@ -110,5 +111,5 @@ class BigDecimalRelativelyEqualMatcher(relativeDelta: BigDecimal, private val ta
 }
 
 fun relativelyEqualWithDelta(relativeDelta: String) = { targetValue: String ->
-    BigDecimalRelativelyEqualMatcher(relativeDelta, targetValue)
+    DecimalNumberRelativelyEqualMatcher(relativeDelta, targetValue)
 }

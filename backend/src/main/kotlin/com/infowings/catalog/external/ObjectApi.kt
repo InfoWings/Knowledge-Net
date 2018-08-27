@@ -1,5 +1,6 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.DecimalNumber
 import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
@@ -10,7 +11,6 @@ import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.math.BigDecimal
 import java.security.Principal
 
 @RestController
@@ -36,7 +36,7 @@ class ObjectApi(val objectService: ObjectService) {
         logger.debug("Recalculate value request by $username")
         return ValueRecalculationResponse(
             targetMeasure = toMeasure,
-            value = objectService.recalculateValue(fromMeasure, toMeasure, BigDecimal(value)).stripTrailingZeros().toPlainString()
+            value = objectService.recalculateValue(fromMeasure, toMeasure, DecimalNumber(value)).toPlainString()
         )
     }
 

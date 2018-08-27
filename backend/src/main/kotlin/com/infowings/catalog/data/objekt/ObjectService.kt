@@ -13,7 +13,6 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
-import java.math.BigDecimal
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -271,11 +270,8 @@ class ObjectService(
     private fun ObjectPropertyValueVertex.explicitMeasure(): String? {
         val currentMeasure = this.measure?.toMeasure()?.name
         return if (currentMeasure == null) {
-            val aspectProperty = this.aspectProperty
-            when (aspectProperty) {
-                null -> this.objectProperty?.aspect?.measureName
-                else -> aspectProperty.associatedAspect.measureName
-            }
+            val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
+            aspect?.measureName
         } else {
             currentMeasure
         }
@@ -564,21 +560,18 @@ class ObjectService(
         deleteObject(id, username, ::removeOrMark)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: BigDecimal): BigDecimal {
-        val fromMeasure = (GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist")) as Measure<DecimalNumber>
-        val toMeasure = (GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist")) as Measure<DecimalNumber>
+    fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: DecimalNumber): DecimalNumber {
+        val fromMeasure = (GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist"))
+        val toMeasure = (GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist"))
 
-        val fromMeasureGroup =
-            MeasureMeasureGroupMap[fromMeasure.name] ?: throw IllegalStateException("Measure ${fromMeasure.name} does not belong to any measure group")
-        val toMeasureGroup =
-            MeasureMeasureGroupMap[toMeasure.name] ?: throw IllegalStateException("Measure ${toMeasure.name} does not belong to any measure group")
+        val fromMeasureGroup = MeasureMeasureGroupMap.getValue(fromMeasure.name)
+        val toMeasureGroup = MeasureMeasureGroupMap.getValue(toMeasure.name)
 
         if (fromMeasureGroup.name != toMeasureGroup.name) {
             throw RecalculationException("Measures $fromMeasureStr and $toMeasureStr belong to different measure groups")
         }
 
-        return toMeasure.fromBase(fromMeasure.toBase(DecimalNumber(value))).value
+        return toMeasure.fromBase(fromMeasure.toBase(value))
     }
 
 
