@@ -1,8 +1,8 @@
 package com.infowings.catalog.auth.user
 
+import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.USER_CLASS
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNull
 import org.junit.jupiter.api.BeforeEach
@@ -14,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class UserDaoTest {
     @Autowired
     private lateinit var db: OrientDatabase
@@ -33,12 +34,12 @@ class UserDaoTest {
     @BeforeEach
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
-        db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
+  //      db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
 
         userVertex = userDao.createUserVertex()
         userVertex.username = username
         userVertex.password = "qwerty123"
-        userVertex.role = "someRole"
+        userVertex.role = UserRole.POWERED_USER.toString()
         userDao.saveUserVertex(userVertex)
     }
 
@@ -72,9 +73,13 @@ class UserDaoTest {
         val anotherUserVertex = userDao.createUserVertex()
         anotherUserVertex.username = "another"
         anotherUserVertex.password = "123456"
-        anotherUserVertex.role = "anotherRole"
+        anotherUserVertex.role = UserRole.USER.toString()
         userDao.saveUserVertex(anotherUserVertex)
 
-        assertEquals(setOf(userVertex, anotherUserVertex), userDao.getAllUserVertices())
+        val allVertices = userDao.getAllUserVertices()
+        assert(allVertices.size >= 2)
+        assertEquals(allVertices.filter { it.username == "another"}, listOf(anotherUserVertex))
+        assertEquals(allVertices.filter { it.username == username}, listOf(userVertex))
     }
+
 }

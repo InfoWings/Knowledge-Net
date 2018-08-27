@@ -13,9 +13,10 @@ import com.orientechnologies.orient.core.record.OVertex
 import hasIncomingEdges
 
 fun OVertex.toReferenceBookItemVertex(): ReferenceBookItemVertex {
-    checkClass(OrientClass.REFBOOK_ITEM)
+    this.checkClass(OrientClass.REFBOOK_ITEM)
     return ReferenceBookItemVertex(this)
 }
+
 
 const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"

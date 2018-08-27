@@ -4,7 +4,6 @@ import com.infowings.catalog.common.User
 import com.infowings.catalog.common.UserRole
 import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.USER_CLASS
 import io.kotlintest.shouldBe
 import junit.framework.TestCase.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
 class UserServiceTest {
-
     @Autowired
     private lateinit var db: OrientDatabase
 
@@ -33,7 +31,7 @@ class UserServiceTest {
     @BeforeEach
     fun setUp() {
         // necessary to remove users created by initUsers method in OrientDatabaseInitializer class
-        db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
+        //db.command("TRUNCATE CLASS $USER_CLASS UNSAFE") {}
     }
 
     @Test
@@ -113,7 +111,10 @@ class UserServiceTest {
         userService.createUser(user)
         val anotherUser = anotherUser()
         userService.createUser(anotherUser)
-        userService.getAllUsers() shouldBe setOf(user, anotherUser)
+        val newUsers: Set<User> = setOf(user, anotherUser)
+        val all: Set<User> = userService.getAllUsers().toSet()
+        val filtered = userService.getAllUsers().toSet().intersect(newUsers)
+        filtered shouldBe newUsers
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
@@ -24,9 +25,11 @@ class AspectDaoFilterTest {
     @Autowired
     lateinit var aspectService: AspectService
 
+    val heightAspectName = "Height${UUID.randomUUID()}"
+
     @BeforeEach
     fun saveAspectTree() {
-        var heightAspectData = AspectData(null, "Height", Metre.name, null, null)
+        var heightAspectData = AspectData(null, heightAspectName, Metre.name, null, null)
         heightAspectData = aspectService.save(heightAspectData, username)
         var widthAspectData = AspectData(null, "Width", Metre.name, null, null)
         widthAspectData = aspectService.save(widthAspectData, username)
@@ -43,7 +46,7 @@ class AspectDaoFilterTest {
 
     @Test
     fun retrieveAspectsByQuery() {
-        val foundAspects = aspectDao.findTransitiveByNameQuery("Hei")
+        val foundAspects = aspectDao.findTransitiveByNameQuery(heightAspectName.take(10))
         assertThat("Retrieved set contains 2 aspects", foundAspects.size, Is.`is`(2))
     }
 

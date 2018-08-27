@@ -222,6 +222,9 @@ class OrientDatabase(
         return@session it.getRecord<OVertex>(ORecordId(id))
     }
 
+    fun <T> getVertexById(id: String, convert: (OVertex) -> T): T? = session(database = this) {
+        return@session getVertexById(id)?.let { convert(it) }
+    }
 
     operator fun get(id: String): OVertex = getVertexById(id) ?: throw VertexNotFound(id)
 
