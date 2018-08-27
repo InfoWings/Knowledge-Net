@@ -4,6 +4,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
 import com.infowings.catalog.data.aspect.OpenDomain
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -105,7 +106,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
             return@transaction rootPropertyValues.map { rootValue ->
                 DetailedRootValueViewResponse(
                     rootValue.id,
-                    rootValue.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                    rootValue.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+                    rootValue.measure?.toMeasure()?.symbol,
                     rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
                 )
@@ -117,7 +119,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
         val aspect = aspectProperty.associatedAspect
         return DetailedValueViewResponse(
             this.id,
-            this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+            this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+            this.measure?.toMeasure()?.symbol,
             this.description,
             AspectPropertyDataExtended(
                 aspectProperty.id,

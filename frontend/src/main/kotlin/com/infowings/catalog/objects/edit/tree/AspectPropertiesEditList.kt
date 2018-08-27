@@ -1,6 +1,8 @@
 package com.infowings.catalog.objects.edit.tree
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
@@ -37,7 +39,7 @@ fun RBuilder.aspectPropertiesEditList(
                     attrs {
                         this.aspectProperty = aspectProperty
                         this.onCreateValue = if (editContext.currentContext == null) {
-                            { valueData ->
+                            { valueData, measureName ->
                                 editContext.setContext(EditNewChildContextModel)
                                 onAddValueGroup(
                                     AspectPropertyValueGroupEditModel(
@@ -45,7 +47,8 @@ fun RBuilder.aspectPropertiesEditList(
                                         values = mutableListOf(
                                             AspectPropertyValueEditModel(
                                                 id = null,
-                                                value = valueData
+                                                value = valueData,
+                                                measureName = measureName
                                             )
                                         )
                                     )
@@ -73,11 +76,14 @@ fun RBuilder.aspectPropertiesEditList(
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
                                     editModel.createValue(
-                                        value.value ?: error("No value to submit"),
-                                        value.description,
-                                        objectPropertyId,
-                                        parentValueId,
-                                        aspectProperty.id
+                                        ValueCreateRequest(
+                                            value.value ?: error("No value to submit"),
+                                            value.description,
+                                            objectPropertyId,
+                                            value.measureName,
+                                            aspectProperty.id,
+                                            parentValueId
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -85,10 +91,13 @@ fun RBuilder.aspectPropertiesEditList(
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        value.value ?: error("No value to submit"),
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            value.value ?: error("No value to submit"),
+                                            value.measureName,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) has no version")
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -126,6 +135,7 @@ fun RBuilder.aspectPropertiesEditList(
                                     editContext.setContext(EditExistingContextModel(value.id))
                                     onUpdate(valueGroupIndex) {
                                         values[valueIndex].value = aspectProperty.aspect.defaultValue()
+                                        values[valueIndex].measureName = aspectProperty.aspect.measure
                                     }
                                 }
                             }
@@ -136,7 +146,8 @@ fun RBuilder.aspectPropertiesEditList(
                                         values.add(
                                             AspectPropertyValueEditModel(
                                                 id = null,
-                                                value = aspectProperty.aspect.defaultValue()
+                                                value = aspectProperty.aspect.defaultValue(),
+                                                measureName = aspectProperty.aspect.measure
                                             )
                                         )
                                     }
@@ -153,10 +164,14 @@ fun RBuilder.aspectPropertiesEditList(
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        ObjectValueData.NullValue,
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) has no version")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            ObjectValueData.NullValue,
+                                            null,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) has no version")
+                                        )
+
                                     )
                                 }
                             }
@@ -192,9 +207,9 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                         cardinality = props.aspectProperty.cardinality
                         onCreateValue = props.onCreateValue?.let { onCreateValue ->
                             if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
-                                { onCreateValue(ObjectValueData.NullValue) }
+                                { onCreateValue(ObjectValueData.NullValue, null) }
                             } else {
-                                { onCreateValue(props.aspectProperty.aspect.defaultValue()) }
+                                { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
                             }
                         }
                     }
@@ -206,7 +221,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 
 interface AspectPropertyValueCreateNodeProps : RProps {
     var aspectProperty: AspectPropertyTree
-    var onCreateValue: ((ObjectValueData?) -> Unit)?
+    var onCreateValue: ((value: ObjectValueData?, measureName: String?) -> Unit)?
 }
 
 val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("AspectPropertyValueEditNode") { props ->
@@ -231,6 +246,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         value = props.value.value
+                        valueMeasure = props.value.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.value.description
                         onChange = if (props.editContext.currentContext == null) {
                             {
@@ -247,6 +263,26 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                             {
                                 props.onUpdate {
                                     value = it
+                                }
+                            }
+                        }
+                        onMeasureNameChanged = if (props.editContext.currentContext == null) {
+                            { newMeasureName, objectValueData ->
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.value.id ?: error("Value should have id != null in order to be edited")
+                                    )
+                                )
+                                props.onUpdate {
+                                    measureName = newMeasureName
+                                    value = objectValueData
+                                }
+                            }
+                        } else {
+                            { newMeasureName, objectValueData ->
+                                props.onUpdate {
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         }

@@ -1,13 +1,11 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.LinkValueData
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.Range
-import com.infowings.catalog.common.ValueDTO
+import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
@@ -103,12 +101,27 @@ data class ObjectPropertyValue(
     val aspectProperty: AspectPropertyVertex?,
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
-)
+) {
+    fun calculateObjectValueData(): ObjectValueData {
+        val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
+            null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
+            else -> aspectProperty.associatedAspect
+        }.measure
+
+        val targetValue = value.toObjectValueData()
+
+        return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
+            ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())
+        } else {
+            targetValue
+        }
+    }
+}
 
 data class ValueResult(
     private val valueVertex: ObjectPropertyValueVertex,
     val valueDto: ValueDTO,
-    val measureId: String?,
+    val measureName: String?,
     private val objectProperty: ObjectPropertyVertex,
     private val aspectProperty: AspectPropertyVertex?,
     private val parentValue: ObjectPropertyValueVertex?

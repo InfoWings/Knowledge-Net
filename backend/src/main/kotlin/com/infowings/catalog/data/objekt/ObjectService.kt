@@ -10,6 +10,7 @@ import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 
@@ -74,7 +75,8 @@ class ObjectService(
                     val values = it.values.map {
                         ValueTruncated (
                             it.id,
-                            it.toObjectPropertyValue().value.toObjectValueData().toDTO(),
+                            it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+                            it.explicitMeasure(),
                             it.description,
                             it.aspectProperty?.id,
                             it.version,
@@ -258,14 +260,25 @@ class ObjectService(
 
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(
         this,
-        this.toObjectPropertyValue().value.toObjectValueData().toDTO(),
-        this.measure?.id,
+        this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+        this.explicitMeasure(),
         this.objectProperty ?: throw IllegalStateException("Object value was created without reference to object property"),
         this.aspectProperty,
         this.parentValue
     )
 
-    private fun ValueResult.toResponse() = ValueChangeResponse(id, valueDto, description, measureId, Reference(objectPropertyId, objectPropertyVersion),
+    private fun ObjectPropertyValueVertex.explicitMeasure(): String? {
+        val currentMeasure = this.measure?.toMeasure()?.name
+        return if (currentMeasure == null) {
+            val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
+            aspect?.measureName
+        } else {
+            currentMeasure
+        }
+    }
+
+    private fun ValueResult.toResponse() = ValueChangeResponse(
+        id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),
         aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version
     )
 
@@ -547,6 +560,20 @@ class ObjectService(
         deleteObject(id, username, ::removeOrMark)
     }
 
+    fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: DecimalNumber): DecimalNumber {
+        val fromMeasure = GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist")
+        val toMeasure = GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist")
+
+        val fromMeasureGroup = MeasureMeasureGroupMap.getValue(fromMeasure.name)
+        val toMeasureGroup = MeasureMeasureGroupMap.getValue(toMeasure.name)
+
+        if (fromMeasureGroup.name != toMeasureGroup.name) {
+            throw RecalculationException("Measures $fromMeasureStr and $toMeasureStr belong to different measure groups")
+        }
+
+        return toMeasure.fromBase(fromMeasure.toBase(value))
+    }
+
 
     // Можно и отдельной sql но свойст не должно быть настолько запредельное количество, чтобы ударило по performance
     fun findPropertyByObjectAndAspect(objectId: String, aspectId: String): List<ObjectPropertyVertex> = transaction(db) {
@@ -560,3 +587,5 @@ class ObjectService(
     fun findPropertyValueById(id: String): ObjectPropertyValueVertex =
         dao.getObjectPropertyValueVertex(id) ?: throw ObjectPropertyValueNotFoundException(id)
 }
+
+class RecalculationException(message: String) : IllegalArgumentException(message)

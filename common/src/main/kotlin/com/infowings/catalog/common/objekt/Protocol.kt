@@ -43,33 +43,11 @@ data class ValueCreateRequest(
     val value: ObjectValueData,
     val description: String?,
     val objectPropertyId: String,
-    val measureId: String?,
-    val aspectPropertyId: String?,
-    val parentValueId: String?
+    val measureName: String? = null,
+    val aspectPropertyId: String? = null,
+    val parentValueId: String? = null
 ) {
-    constructor(value: ObjectValueData, description: String?, objectPropertyId: String) : this(value, description, objectPropertyId, null, null, null)
-
-    constructor(value: ObjectValueData, description: String?, objectPropertyId: String, measureId: String) : this(
-        value,
-        description,
-        objectPropertyId,
-        measureId,
-        null,
-        null
-    )
-
-    fun toDTO() = ValueCreateRequestDTO(value.toDTO(), description, objectPropertyId, measureId, aspectPropertyId, parentValueId)
-
-    companion object {
-        fun root(value: ObjectValueData, description: String?, objectPropertyId: String, measureId: String? = null) = ValueCreateRequest(
-            value = value,
-            description = description,
-            objectPropertyId = objectPropertyId,
-            measureId = measureId,
-            aspectPropertyId = null,
-            parentValueId = null
-        )
-    }
+    fun toDTO() = ValueCreateRequestDTO(value.toDTO(), description, objectPropertyId, measureName, aspectPropertyId, parentValueId)
 }
 
 @Serializable
@@ -77,7 +55,7 @@ data class ValueCreateRequestDTO(
     val value: ValueDTO,
     val description: String?,
     val objectPropertyId: String,
-    val measureId: String?,
+    val measureName: String?,
     val aspectPropertyId: String?,
     val parentValueId: String?
 ) {
@@ -87,27 +65,29 @@ data class ValueCreateRequestDTO(
         objectPropertyId = objectPropertyId,
         aspectPropertyId = aspectPropertyId,
         parentValueId = parentValueId,
-        measureId = measureId
+        measureName = measureName
     )
 }
 
 data class ValueUpdateRequest(
     val valueId: String,
     val value: ObjectValueData,
+    val measureName: String?,
     val description: String?,
     val version: Int
 ) {
-    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), description, version)
+    fun toDTO() = ValueUpdateRequestDTO(valueId, value.toDTO(), measureName, description, version)
 }
 
 @Serializable
 data class ValueUpdateRequestDTO(
     val valueId: String,
     val value: ValueDTO,
+    val measureName: String?,
     val description: String?,
     val version: Int
 ) {
-    fun toRequest() = ValueUpdateRequest(valueId, value.toData(), description, version)
+    fun toRequest() = ValueUpdateRequest(valueId, value.toData(), measureName, description, version)
 }
 
 @Serializable
@@ -153,7 +133,7 @@ data class ValueChangeResponse(
     val id: String,
     val value: ValueDTO,
     val description: String?,
-    val measureId: String?,
+    val measureName: String?,
     val objectProperty: Reference,
     val aspectPropertyId: String?,
     val parentValue: Reference?,
@@ -170,3 +150,6 @@ data class ValueDeleteResponse(
 
 @Serializable
 data class Reference(val id: String, val version: Int)
+
+@Serializable
+data class ValueRecalculationResponse(val targetMeasure: String, val value: String)

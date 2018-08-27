@@ -50,7 +50,7 @@ class NotFreeAspectUpdateTest {
 
     @Test
     fun testChangeBaseTypeHasValue() {
-        createRootValue(125)
+        createRootValue(125, Kilometre.name)
         assertThrows<AspectModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(measure = null, baseType = BaseType.Text.name), username)
         }
@@ -81,7 +81,7 @@ class NotFreeAspectUpdateTest {
 
     @Test
     fun testChangeAspectMeasureOtherGroupHasValue() {
-        createRootValue(125)
+        createRootValue(125, Kilometre.name)
         assertThrows<AspectModificationException> {
             aspectService.save(aspectWithObjectProperty.copy(measure = Litre.name), username)
         }
@@ -152,13 +152,13 @@ class NotFreeAspectUpdateTest {
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)
     }
 
-    private fun createRootValue(value: Int = 0): ValueChangeResponse {
-        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id)
+    private fun createRootValue(value: Int, measureName: String?): ValueChangeResponse {
+        val objPropertyValueRequest = ValueCreateRequest(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id, measureName)
         return objectService.create(objPropertyValueRequest, username)
     }
 
     private fun createNullRootValue(): ValueChangeResponse {
-        val objPropertyValueRequest = ValueCreateRequest.root(ObjectValueData.NullValue, null, propertyCreateResponse.id)
+        val objPropertyValueRequest = ValueCreateRequest(ObjectValueData.NullValue, null, propertyCreateResponse.id)
         return objectService.create(objPropertyValueRequest, username)
     }
 
@@ -167,7 +167,7 @@ class NotFreeAspectUpdateTest {
             value = ObjectValueData.DecimalValue(value.toString()),
             description = null, objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectPropertyId,
-            measureId = null,
+            measureName = Second.name,
             parentValueId = parentId
         )
         objectService.create(objPropertyValueRequest, username)

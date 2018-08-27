@@ -1,5 +1,6 @@
 package com.infowings.catalog.external
 
+import com.infowings.catalog.common.DecimalNumber
 import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
@@ -22,6 +23,21 @@ class ObjectApi(val objectService: ObjectService) {
         val username = principal.name
         logger.debug("Get objects request by $username")
         return ObjectsResponse(objectService.fetch().map { it.toResponse() })
+    }
+
+    @GetMapping("recalculateValue")
+    fun recalculateValue(
+        @RequestParam("from", required = true) fromMeasure: String,
+        @RequestParam("to", required = true) toMeasure: String,
+        @RequestParam("value", required = true) value: String,
+        principal: Principal
+    ): ValueRecalculationResponse {
+        val username = principal.name
+        logger.debug("Recalculate value request by $username")
+        return ValueRecalculationResponse(
+            targetMeasure = toMeasure,
+            value = objectService.recalculateValue(fromMeasure, toMeasure, DecimalNumber(value)).toPlainString()
+        )
     }
 
     @GetMapping("{id}/viewdetails")

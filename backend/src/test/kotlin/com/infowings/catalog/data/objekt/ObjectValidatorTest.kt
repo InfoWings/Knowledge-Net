@@ -16,7 +16,6 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.impl.OVertexDocument
-import junit.framework.Assert.fail
 import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
-
+import kotlin.test.fail
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
@@ -234,11 +233,15 @@ class ObjectValidatorTest {
         val savedProperty = createObjectProperty(propertyRequest)
         val scalarValue = ObjectValueData.IntegerValue(123, null)
         val valueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = savedProperty.id)
-        val objectValue = validator.checkedForCreation(valueRequest)
 
-        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
-        assertEquals(valueRequest.aspectPropertyId, objectValue.aspectProperty?.id, "root characteristics must be equal")
-        assertEquals(valueRequest.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        transaction(db) {
+            val objectValue = validator.checkedForCreation(valueRequest)
+
+            assertEquals(scalarValue, objectValue.value.toObjectValueData(), "values must be equal")
+            assertEquals(valueRequest.aspectPropertyId, objectValue.aspectProperty?.id, "root characteristics must be equal")
+            assertEquals(valueRequest.objectPropertyId, objectValue.objectProperty.id, "root characteristics must be equal")
+        }
+
     }
 
     @Test
@@ -257,11 +260,14 @@ class ObjectValidatorTest {
         val createdProperty = createObjectProperty(propertyRequest)
 
         val scalarValue = ObjectValueData.IntegerValue(123, null)
-        val valueData = ValueCreateRequest.root(scalarValue, null, createdProperty.id)
-        val objectValue = validator.checkedForCreation(valueData)
+        val valueData = ValueCreateRequest(scalarValue, null, createdProperty.id)
 
-        assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
-        assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
+        transaction(db) {
+            val objectValue = validator.checkedForCreation(valueData)
+
+            assertEquals(scalarValue, objectValue.value.toObjectValueData(), "scalar values must be equal")
+            assertEquals(valueData.objectPropertyId, objectValue.objectProperty.id, "object properties must be equal")
+        }
     }
 
 
@@ -279,11 +285,14 @@ class ObjectValidatorTest {
 
         val scalarValue = ObjectValueData.StringValue("string-value")
         val valueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = createdProperty.id)
-        val valueInfo = validator.checkedForCreation(valueRequest)
 
-        assertEquals(scalarValue, valueInfo.value.toObjectValueData(), "values must be equal")
-        assertEquals(valueRequest.aspectPropertyId, valueInfo.aspectProperty?.id, "aspect properties must be equal")
-        assertEquals(valueRequest.objectPropertyId, valueInfo.objectProperty.id, "object properties must be equal")
+        transaction(db) {
+            val valueInfo = validator.checkedForCreation(valueRequest)
+
+            assertEquals(scalarValue, valueInfo.value.toObjectValueData(), "values must be equal")
+            assertEquals(valueRequest.aspectPropertyId, valueInfo.aspectProperty?.id, "aspect properties must be equal")
+            assertEquals(valueRequest.objectPropertyId, valueInfo.objectProperty.id, "object properties must be equal")
+        }
     }
 
     @Test
@@ -303,11 +312,13 @@ class ObjectValidatorTest {
             description = null, objectId = objectVertex.id, aspectId = complexAspect.idStrict()
         )
 
-        val propertyInfo = validator.checkedForCreation(propertyRequest2)
+        transaction(db) {
+            val propertyInfo = validator.checkedForCreation(propertyRequest2)
 
-        assertEquals(propertyRequest2.name, propertyInfo.name, "names must be equal")
-        assertEquals(propertyRequest2.objectId, propertyInfo.objekt.id, "object id must keep the same")
-        assertEquals(propertyRequest2.aspectId, propertyInfo.aspect.id, "aspect id must keep the same")
+            assertEquals(propertyRequest2.name, propertyInfo.name, "names must be equal")
+            assertEquals(propertyRequest2.objectId, propertyInfo.objekt.id, "object id must keep the same")
+            assertEquals(propertyRequest2.aspectId, propertyInfo.aspect.id, "aspect id must keep the same")
+        }
     }
 
 
