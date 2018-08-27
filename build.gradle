@@ -1,5 +1,5 @@
 group = 'cyber'
-version = '12-SNAPSHOT'
+version = '12'
 
 buildscript {
 
