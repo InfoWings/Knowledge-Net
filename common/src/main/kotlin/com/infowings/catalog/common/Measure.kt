@@ -1,3 +1,4 @@
+@file:Suppress("StringLiteralDuplication")
 package com.infowings.catalog.common
 
 val MeasureDesc: Map<String, String> = mapOf(
@@ -115,6 +116,7 @@ val MeasureGroupDesc: Map<String, String> = mapOf(
     "Euro Money Group" to ""
 )
 
+@Suppress("UnusedPrivateMember")
 expect class DecimalNumber(value: String) {
     constructor(value: Int)
     constructor(value: Double)
