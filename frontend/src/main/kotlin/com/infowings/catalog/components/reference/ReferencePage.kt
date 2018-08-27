@@ -3,6 +3,7 @@ package com.infowings.catalog.components.reference
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.layout.header
 import com.infowings.catalog.subjects.getSubjectByName
+import com.infowings.catalog.utils.decodeURIComponent
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.toMap
 import kotlinx.coroutines.experimental.launch
@@ -19,7 +20,7 @@ class ReferencePage : RComponent<RouteSuppliedProps, ReferencePage.State>() {
         }
 
         launch {
-            val subject = getSubjectByName(props.match.params.toMap()["subjectName"]!!)
+            val subject = getSubjectByName(decodeURIComponent(props.match.params.toMap()["subjectName"]!!))
             setState {
                 this.subject = subject
                 loading = false
