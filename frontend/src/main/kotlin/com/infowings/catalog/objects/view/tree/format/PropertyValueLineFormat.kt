@@ -19,6 +19,9 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
         span(classes = "text-bold object-property-value-line__aspect-name") {
             +props.aspectName
         }
+        span(classes = "object-property-value-line__aspect-subject-name") {
+            +"(${props.subjectName ?: "Global"})"
+        }
         props.propertyDescription?.let {
             if (it.isNotBlank()) {
                 descriptionComponent(
@@ -53,6 +56,7 @@ interface ObjectPropertyValueLineFormatProps : RProps {
     var value: ObjectValueData
     var valueDescription: String?
     var measureSymbol: String?
+    var subjectName: String?
 }
 
 val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps>("AspectPropertyValueLineFormat") { props ->
@@ -66,6 +70,9 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
         }
         span(classes = "text-bold object-property-value-line__aspect-name") {
             +props.aspectName
+        }
+        span(classes = "object-property-value-line__aspect-subject-name") {
+            +"(${props.subjectName ?: "Global"})"
         }
         valueFormat(props.value)
         props.measureSymbol?.let {
@@ -92,4 +99,5 @@ interface AspectPropertyValueLineFormatProps : RProps {
     var value: ObjectValueData
     var valueDescription: String?
     var measureSymbol: String?
+    var subjectName: String?
 }

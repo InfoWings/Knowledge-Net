@@ -1,6 +1,5 @@
 package com.infowings.catalog.objects.view.tree
 
-import com.infowings.catalog.common.GlobalMeasureMap
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.objects.ObjectPropertyViewModel
@@ -26,9 +25,8 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
                         propertyDescription = props.property.description
                         value = props.value.value
                         valueDescription = props.value.description
-                        measureSymbol = props.value.measureSymbol ?: props.property.aspect.measure?.let {
-                            (GlobalMeasureMap[it] ?: error("No measure $it")).symbol
-                        }
+                        measureSymbol = props.value.measureSymbol
+                        subjectName = props.property.aspect.subjectName
                     }
                 }
             }!!
