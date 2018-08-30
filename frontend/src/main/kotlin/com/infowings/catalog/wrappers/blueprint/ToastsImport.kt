@@ -2,9 +2,8 @@
 
 package com.infowings.catalog.wrappers.blueprint
 
-import react.RClass
-import react.RProps
-import react.ReactElement
+import org.w3c.dom.HTMLElement
+import react.*
 
 external val Toast: RClass<ToastProps>
 
@@ -18,7 +17,13 @@ external interface ToastProps : RProps {
     var timeout: Int
 }
 
-external val Toaster: RClass<ToasterProps>
+external class Toaster : Component<ToasterProps, RState> {
+    override fun render(): dynamic
+
+    companion object {
+        fun create(toasterProps: ToasterProps, container: HTMLElement = definedExternally): StaticToaster
+    }
+}
 
 external interface ToasterProps : RProps {
     var autoFocus: Boolean
@@ -26,4 +31,11 @@ external interface ToasterProps : RProps {
     var className: String
     var position: Position
     var usePortal: Boolean
+}
+
+external interface StaticToaster {
+    fun clear()
+    fun dismiss(key: String)
+    fun getToasts(): Array<ToastProps>
+    fun show(toast: ToastProps, key: String?): String
 }

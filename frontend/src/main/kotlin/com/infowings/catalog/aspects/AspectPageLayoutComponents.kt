@@ -96,7 +96,7 @@ fun RBuilder.aspectPageOverlay(
     onDismissErrorMessage: (message: String) -> Unit
 ) {
     unsafeChangesWindow(isUnsafeSelection, onCloseUnsafeSelection)
-    Toaster {
+    child(Toaster::class) {
         attrs {
             position = Position.TOP_RIGHT
         }
