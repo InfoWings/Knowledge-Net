@@ -4,18 +4,18 @@
   max-width: 120rem;
   margin: 3rem auto;
 
-  &--line-icon {
+  &__line-icon {
     height: 1.6rem;
     width: 1.6rem;
     fill: $color-icon-default;
     margin-right: .4rem;
 
-    &__clickable:hover {
+    &--clickable:hover {
       fill: $color-icon-hover;
     }
   }
 
-  &--add-to-list-icon {
+  &__add-to-list-icon {
     height: 1.5rem;
     width: 1.5rem;
     fill: $color-icon-default;
@@ -26,7 +26,7 @@
     }
   }
 
-  &--delete-icon {
+  &__delete-icon {
     height: 1.5rem;
     width: 1.5rem;
     fill: $color-icon-default;
@@ -37,12 +37,12 @@
     }
   }
 
-  &--label {
+  &__label {
     display: inline-block;
     cursor: pointer;
     padding: .2em 0;
 
-    &__selected {
+    &--selected {
       background-color: #c2e2ed;
       border-radius: 2px;
     }
@@ -56,16 +56,16 @@
     }
   }
 
-  &--item {
+  &__item {
     display: flex;
     align-items: center;
   }
 
-  &--label-name {
+  &__label-name {
     font-weight: 600;
   }
 
-  &--label-item {
+  &__label-item {
     color: $color-text-dark-grey;
 
     &-name {
@@ -74,7 +74,7 @@
     }
   }
 
-  &--description {
+  &__description {
     height: 1.75rem;
     width: 1.75rem;
     margin-left: 1rem;

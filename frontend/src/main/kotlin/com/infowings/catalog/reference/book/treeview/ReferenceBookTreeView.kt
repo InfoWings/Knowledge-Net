@@ -37,13 +37,14 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
     override fun RBuilder.render() {
         div(classes = "book-tree-view") {
             props.rowDataList
-                .map { (aspectId, aspectName, book) ->
+                .map { (aspectId, aspectName, subjectName, book) ->
                     if (book != null) {
                         referenceBookNode {
                             attrs {
                                 this.aspectId = aspectId
                                 this.aspectName = aspectName
                                 this.book = book
+                                this.subjectName = subjectName
                                 selected = aspectName == state.selectedAspectName
                                 startUpdatingBook = ::startUpdatingBook
                                 updateBook = props.updateBook
@@ -59,6 +60,7 @@ class ReferenceBookTreeView(props: ReferenceBookApiReceiverProps) :
                                 selected = aspectName == state.selectedAspectName
                                 this.aspectId = aspectId
                                 this.aspectName = aspectName
+                                this.subjectName = subjectName
                                 startCreatingBook = ::startCreatingBook
                                 createBook = props.createBook
                             }

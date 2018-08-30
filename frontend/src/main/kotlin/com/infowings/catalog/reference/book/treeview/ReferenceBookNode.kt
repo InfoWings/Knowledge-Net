@@ -77,10 +77,11 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
             attrs {
                 expanded = state.creatingBookItem
                 treeNodeContent = buildElement {
-                    div(classes = "book-tree-view--book") {
+                    div(classes = "book-tree-view__book") {
                         referenceBookLabel {
                             attrs {
                                 aspectName = props.aspectName
+                                subjectName = props.subjectName
                                 book = props.book
                                 startUpdatingBook = props.startUpdatingBook
                                 updateBook = props.updateBook
@@ -89,7 +90,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
                         }
 
                         descriptionComponent(
-                            className = "book-tree-view--description",
+                            className = "book-tree-view__description",
                             description = props.book.description,
                             onNewDescriptionConfirmed = {
                                 launch {
@@ -101,13 +102,13 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
                             onEditStarted = null
                         )
 
-                        addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                        addToListIcon(classes = "book-tree-view__add-to-list-icon") {
                             attrs {
                                 onClickFunction = ::startCreatingBookItem
                             }
                         }
 
-                        ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
+                        ripIcon("book-tree-view__delete-icon book-tree-view__delete-icon--red") {
                             attrs {
                                 onClickFunction = ::handleDeleteClick
                             }
@@ -159,6 +160,7 @@ class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.
         var aspectId: String
         var aspectName: String
         var book: ReferenceBook
+        var subjectName: String?
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit
         var updateBook: suspend (ReferenceBook) -> Unit
