@@ -14,7 +14,6 @@ import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 
-
 interface AspectService {
     fun save(aspectData: AspectData, username: String): AspectData
     fun remove(aspectData: AspectData, username: String, force: Boolean = false)
@@ -211,9 +210,7 @@ class DefaultAspectService(
                     historyService.storeFact(propertySoftDeleteFact)
                     aspectDaoService.fakeRemove(aspectPropertyVertex)
                 }
-                aspectPropertyIsLinked && !force -> {
-                    throw AspectPropertyIsLinkedByValue(aspectPropertyVertex.id)
-                }
+                aspectPropertyIsLinked && !force -> throw AspectPropertyIsLinkedByValue(aspectPropertyVertex.id)
                 else -> {
                     val aspectSnapshot = parentAspectVertex.currentSnapshot()
 

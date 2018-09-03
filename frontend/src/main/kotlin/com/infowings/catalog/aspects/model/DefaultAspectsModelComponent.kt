@@ -209,9 +209,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         else -> false
     }
 
-    private fun State.isSelectedAspectHasChanges(): Boolean {
-        return selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
-    }
+    private fun State.isSelectedAspectHasChanges() =
+        selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
 
     private fun State.isEmptyPropertySelected() =
         selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData
