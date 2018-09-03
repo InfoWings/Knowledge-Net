@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -11,11 +12,13 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
 
 
 interface AspectService {
     fun save(aspectData: AspectData, username: String): AspectData
     fun remove(aspectData: AspectData, username: String, force: Boolean = false)
+    fun removeProperty(aspectPropertyId: String, username: String, force: Boolean = false): AspectPropertyDeleteResponse
     fun findByName(name: String): Set<AspectData>
     fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
     fun findById(id: String): AspectData
@@ -183,6 +186,57 @@ class DefaultAspectService(
             }
         }
     }
+
+    /**
+     * Removes [AspectPropertyVertex] if it is not linked.
+     * Marks [AspectPropertyVertex] as removed if it is linked and [force] is true.
+     * @param aspectPropertyId [AspectPropertyVertex.id] of corresponding [AspectPropertyVertex]
+     * @param force Flag that allows to mark [AspectPropertyVertex] as removed by setting its [AspectPropertyVertex.deleted] flag to true if
+     * [AspectPropertyVertex] is linked
+     */
+    override fun removeProperty(aspectPropertyId: String, username: String, force: Boolean): AspectPropertyDeleteResponse {
+        val removePropertyResult = transaction(db) {
+            val userVertex = userService.findUserVertexByUsername(username)
+            val historyContext = HistoryContext(userVertex)
+
+            val aspectPropertyVertex = aspectDaoService.findProperty(aspectPropertyId) ?: throw AspectPropertyDoesNotExist(aspectPropertyId)
+            val aspectPropertyIsLinked = aspectPropertyVertex.isLinkedBy()
+
+            val parentAspectVertex = aspectPropertyVertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()
+            val childAspectVertex = aspectPropertyVertex.associatedAspect
+
+            when {
+                aspectPropertyIsLinked && force -> {
+                    val propertySoftDeleteFact = aspectPropertyVertex.toSoftDeleteFact(historyContext)
+                    historyService.storeFact(propertySoftDeleteFact)
+                    aspectDaoService.fakeRemove(aspectPropertyVertex)
+                }
+                aspectPropertyIsLinked && !force -> {
+                    throw AspectPropertyIsLinkedByValue(aspectPropertyVertex.id)
+                }
+                else -> {
+                    val aspectSnapshot = parentAspectVertex.currentSnapshot()
+
+                    val propertyDeleteFact = aspectPropertyVertex.toDeleteFact(historyContext)
+                    historyService.storeFact(propertyDeleteFact)
+                    aspectDaoService.remove(aspectPropertyVertex)
+
+                    historyService.storeFact(parentAspectVertex.toUpdateFact(historyContext, aspectSnapshot))
+                }
+            }
+            AspectPropertyDeleteResult(aspectPropertyVertex, parentAspectVertex, childAspectVertex)
+        }
+
+        return removePropertyResult.toResponse()
+    }
+
+    private fun AspectPropertyDeleteResult.toResponse() = AspectPropertyDeleteResponse(
+        this.aspectPropertyVertex.id,
+        PropertyCardinality.valueOf(this.aspectPropertyVertex.cardinality),
+        this.aspectPropertyVertex.name,
+        Reference(this.parentAspectVertex.id, this.parentAspectVertex.version),
+        Reference(this.childAspectVertex.id, this.childAspectVertex.version)
+    )
 
     /**
      * Search [AspectData] by it's name
@@ -402,5 +456,7 @@ class AspectCyclicDependencyException(cyclicIds: List<String>) :
 class AspectNameCannotBeNull : AspectException()
 class AspectHasLinkedEntitiesException(val id: String) : AspectException("Some entities refer to aspect $id")
 class AspectInconsistentStateException(message: String) : AspectException(message)
+
+class AspectPropertyIsLinkedByValue(val id: String) : AspectException("Aspect property with id $id is linked by value")
 
 class AspectEmptyChangeException : AspectException()

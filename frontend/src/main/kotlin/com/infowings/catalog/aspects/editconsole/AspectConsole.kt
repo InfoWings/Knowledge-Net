@@ -5,7 +5,6 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.emptyAspectPropertyData
 import kotlinext.js.require
-import kotlinx.coroutines.experimental.launch
 import react.*
 
 interface AspectEditConsoleModel {
@@ -62,7 +61,7 @@ interface AspectPropertyEditConsoleModel {
      * Save currently edited [AspectPropertyData] as deleted and switch to editing next available [AspectPropertyData]
      * if such exist or to parent [AspectData] otherwise
      */
-    fun deleteProperty()
+    suspend fun deleteProperty(force: Boolean)
 }
 
 /**
@@ -128,10 +127,8 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
         props.aspectsModel.deleteAspect(force)
     }
 
-    override fun deleteProperty() {
-        launch {
-            props.aspectsModel.deleteAspectProperty()
-        }
+    override suspend fun deleteProperty(force: Boolean) {
+        props.aspectsModel.deleteAspectProperty(force)
     }
 
     override fun discardChanges() {

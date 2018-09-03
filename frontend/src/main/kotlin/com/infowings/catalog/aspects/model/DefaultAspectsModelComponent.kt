@@ -149,22 +149,27 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         }
     }
 
-    override suspend fun deleteAspectProperty() {
+    override suspend fun deleteAspectProperty(force: Boolean) {
         tryMakeApiCall {
             val selectedPropertyIndex =
                 state.selectedAspectPropertyIndex ?: error("Aspect Property should be selected in order to be deleted")
-            val deletedAspectProperty = state.selectedAspect.properties[selectedPropertyIndex].copy(deleted = true)
+            val aspectPropertyId = state.selectedAspect.properties[selectedPropertyIndex].id
 
-            val updatedAspect = props.onAspectUpdate(
-                state.selectedAspect.updatePropertyAtIndex(
-                    selectedPropertyIndex,
-                    deletedAspectProperty
-                )
-            )
-
-            setState {
-                selectedAspect = updatedAspect
-                selectedAspectPropertyIndex = null
+            if (aspectPropertyId == "") {
+                setState {
+                    selectedAspect =
+                            selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
+                    selectedAspectPropertyIndex = null
+                }
+            } else {
+                val parentAspectReference = props.onAspectPropertyDelete(aspectPropertyId, force)
+                setState {
+                    selectedAspect = selectedAspect.copy(
+                        version = parentAspectReference.version,
+                        properties = selectedAspect.properties.filterNot { it.id == aspectPropertyId }
+                    )
+                    selectedAspectPropertyIndex = null
+                }
             }
         }
     }
@@ -204,8 +209,11 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         else -> false
     }
 
-    private fun State.isSelectedAspectHasChanges() =
-        selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
+    private fun State.isSelectedAspectHasChanges(): Boolean {
+        console.log(this.selectedAspect)
+        console.log(props.aspectContext[selectedAspect.id])
+        return selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
+    }
 
     private fun State.isEmptyPropertySelected() =
         selectedAspectPropertyIndex != null && selectedAspect.properties[selectedAspectPropertyIndex!!] == emptyAspectPropertyData

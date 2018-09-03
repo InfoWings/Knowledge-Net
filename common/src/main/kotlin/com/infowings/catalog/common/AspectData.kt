@@ -1,5 +1,6 @@
 package com.infowings.catalog.common
 
+import com.infowings.catalog.common.objekt.Reference
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -92,6 +93,15 @@ data class AspectPropertyTree(
     val name: String?,
     val aspect: AspectTree,
     val deleted: Boolean
+)
+
+@Serializable
+data class AspectPropertyDeleteResponse(
+    val id: String,
+    val cardinality: PropertyCardinality,
+    val name: String?,
+    val parentAspect: Reference,
+    val childAspect: Reference
 )
 
 /** Helpful extensions */

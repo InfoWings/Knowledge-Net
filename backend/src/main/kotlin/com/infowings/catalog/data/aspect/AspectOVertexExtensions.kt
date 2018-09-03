@@ -272,7 +272,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         }
 
     val associatedAspect: AspectVertex
-        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
 

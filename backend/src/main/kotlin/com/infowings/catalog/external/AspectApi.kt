@@ -73,6 +73,13 @@ class AspectApi(val aspectService: AspectService) {
         aspectService.remove(aspect, username, true)
     }
 
+    @DeleteMapping("property/{id}")
+    fun removeAspectProperty(@PathVariable id: String, @RequestParam force: Boolean, principal: Principal): AspectPropertyDeleteResponse {
+        val username = principal.name
+        logger.debug("Remove aspect property request: $id by $username")
+        return aspectService.removeProperty(id, username, force)
+    }
+
     @ExceptionHandler(AspectException::class)
     fun handleAspectException(exception: AspectException): ResponseEntity<String> {
         logger.error(exception.toString(), exception)
@@ -155,6 +162,15 @@ class AspectApi(val aspectService: AspectService) {
                         BadRequest(
                             BadRequestCode.NEED_CONFIRMATION,
                             "Attempt to remove aspect that has linked entities pointed to it"
+                        )
+                    )
+                )
+            is AspectPropertyIsLinkedByValue -> ResponseEntity.badRequest()
+                .body(
+                    JSON.stringify(
+                        BadRequest(
+                            BadRequestCode.NEED_CONFIRMATION,
+                            "Attempt to remove aspect property that is linked by other entities"
                         )
                     )
                 )
