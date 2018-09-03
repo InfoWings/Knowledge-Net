@@ -210,8 +210,6 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     }
 
     private fun State.isSelectedAspectHasChanges(): Boolean {
-        console.log(this.selectedAspect)
-        console.log(props.aspectContext[selectedAspect.id])
         return selectedAspect != props.aspectContext[selectedAspect.id] && selectedAspect != emptyAspectData
     }
 

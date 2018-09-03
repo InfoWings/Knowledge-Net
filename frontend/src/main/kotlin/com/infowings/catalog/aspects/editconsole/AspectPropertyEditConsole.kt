@@ -60,9 +60,6 @@ class AspectPropertyEditConsole(props: Props) :
         launch {
             try {
                 props.propertyEditConsoleModel.deleteProperty(force)
-                setState {
-                    confirmation = false
-                }
             } catch (ex: AspectBadRequestException) {
                 if (ex.exceptionInfo.code == BadRequestCode.NEED_CONFIRMATION) setState {
                     confirmation = true
