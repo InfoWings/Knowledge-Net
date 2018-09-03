@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.util.*
 import kotlin.test.assertEquals
 
 
@@ -53,7 +54,7 @@ class AspectServiceSavingTest {
     @Test
     fun testAddAspectTrim() {
         val aspectBase =
-            aspectService.save(AspectData("", "AspectBase", Kilometre.name, null, Decimal.name, emptyList()), username)
+            aspectService.save(AspectData("", "AspectBase${UUID.randomUUID()}", Kilometre.name, null, Decimal.name, emptyList()), username)
         val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.idStrict(), PropertyCardinality.INFINITY.name, null)
         val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
         val createAspect: AspectData = aspectService.save(ad, username)

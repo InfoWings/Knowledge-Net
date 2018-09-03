@@ -9,6 +9,10 @@ fun <T> assertGreater(a: Comparable<T>, b: T) {
     assertTrue(a > b, "$a > $b")
 }
 
+fun <T> assertNotLess(a: Comparable<T>, b: T) {
+    assertTrue(a >= b, "$a > $b")
+}
+
 fun randomName() = UUID.randomUUID().toString()
 
 fun List<AspectHistory>.forAspect(aspect: AspectData) =

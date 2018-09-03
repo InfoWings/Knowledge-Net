@@ -11,6 +11,7 @@ import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.storage.OrientClass
 import com.orientechnologies.orient.core.id.ORecordId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -62,7 +63,7 @@ class AspectDaoTest {
 
         val aspectDetails = details.getValue(aspectId)
 
-        val aspectEvents = historyService.allTimeline().filter { it.event.entityId == aspectId }
+        val aspectEvents = historyService.allTimeline(OrientClass.ASPECT.extName).filter { it.event.entityId == aspectId }
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
@@ -93,7 +94,7 @@ class AspectDaoTest {
         assertEquals(emptyList(), details1.propertyIds)
         assertEquals(emptyList(), details2.propertyIds)
 
-        val allEvents = historyService.allTimeline()
+        val allEvents = historyService.allTimeline(OrientClass.ASPECT.extName)
         val events1 = allEvents.filter { it.event.entityId == aspectId1 }
         val events2 = allEvents.filter { it.event.entityId == aspectId2 }
 
@@ -119,7 +120,7 @@ class AspectDaoTest {
         assertEquals(null, details1.refBookName)
         assertEquals(emptyList(), details1.propertyIds)
 
-        val allEvents = historyService.allTimeline()
+        val allEvents = historyService.allTimeline(OrientClass.ASPECT.extName)
         val events1 = allEvents.filter { it.event.entityId == aspectId1 }
         assertEquals(events1.first().event.timestamp, details1.lastChange.toEpochMilli())
     }

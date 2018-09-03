@@ -244,11 +244,18 @@ class ObjectService(
         val valueUpdateResult = transaction(db) {
             var valueVertex = findPropertyValueById(request.valueId)
             val valueInfo: ValueWriteInfo = validator.checkedForUpdating(valueVertex, request)
+            val prevProperty = valueInfo.objectProperty.currentSnapshot()
+
             val before = valueVertex.currentSnapshot()
 
             valueVertex = dao.saveObjectValue(valueVertex, valueInfo)
 
+            val newCardinality = valueInfo.objectProperty.cardinality
+
             historyService.storeFact(valueVertex.toUpdateFact(context, before))
+            if (valueInfo.objectProperty.cardinality.toString() != prevProperty.data["cardinality"]) {
+                historyService.storeFact(valueInfo.objectProperty.toUpdateFact(context, prevProperty))
+            }
 
             valueVertex.toValueResult()
         }

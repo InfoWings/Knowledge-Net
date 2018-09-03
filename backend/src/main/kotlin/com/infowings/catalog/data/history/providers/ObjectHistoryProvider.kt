@@ -16,10 +16,7 @@ import com.infowings.catalog.data.history.ObjectHistoryInfo
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
-import com.infowings.catalog.storage.OBJECT_CLASS
-import com.infowings.catalog.storage.OBJECT_PROPERTY_CLASS
-import com.infowings.catalog.storage.OBJECT_PROPERTY_VALUE_CLASS
-import com.infowings.catalog.storage.id
+import com.infowings.catalog.storage.*
 
 const val HISTORY_ENTITY_OBJECT = "Object"
 
@@ -127,7 +124,7 @@ class ObjectHistoryProvider(
     private fun propertyAdd(createFact: HistoryFact, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val propertyId = createFact.event.entityId
         val objectId = createFact.payload.addedLinks.getValue("object")[0].toString()
-        val objekt = state.objects.getValue(objectId)
+        val objekt = state.objects[objectId]
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
         val aspectId = createFact.payload.addedLinks.getValue("aspect")[0].toString()
         val aspectName = aspectNameById[aspectId] ?: "???"
@@ -140,10 +137,7 @@ class ObjectHistoryProvider(
 
         val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = createFact.payload.addedLinks.filter { it.key != "object" }.map { (key, ids) ->
-            FieldDelta(
-                "link_$key", "",
-                ids.joinToString(separator = ":") { it.toString() }
-            )
+            FieldDelta("link_$key", "", ids.joinToString(separator = ":") { it.toString() })
         }
 
         state.objectIds[propertyId] = objectId
@@ -151,27 +145,31 @@ class ObjectHistoryProvider(
 
         val event = HistoryEventData(
             username = "", type = EventType.UPDATE, entityClass = "", timestamp = -1,
-            version = state.versions.getValue(objectId), entityId = createFact.event.entityId, sessionId = ""
+            version = objectId.let { state.versions[it] } ?: 0, entityId = createFact.event.entityId, sessionId = ""
         )
 
         return ObjectHistory(
             event = event,
-            info = objekt.snapshot.data.getValue("name"),
+            info = objekt?.snapshot?.data?.getValue("name") ?: "?",
             deleted = false,
-            fullData = ObjectHistoryInfo.Companion.BriefState(objekt, newProperty, null).toData(),
+            fullData = ObjectHistoryInfo.Companion.BriefState(
+                objekt ?: ObjectHistoryInfo.Companion.Objekt("", MutableSnapshot(), ""),
+                newProperty,
+                null
+            ).toData(),
             changes = dataDeltas + linkDeltas
         )
     }
 
-    private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>): ObjectHistory {
+    private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>, prev: ObjectHistory? = null): ObjectHistory {
         val valueId = createFact.event.entityId
         val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
-        val objectId = state.objectIds.getValue(propertyId)
-        val objekt = state.objects.getValue(objectId)
-        val property = state.properties.getValue(propertyId)
-        val newCardinality = updateFacts.find { it.event.entityClass == OBJECT_PROPERTY_CLASS }
-                ?.let { it.payload.data["cardinality"] }
-        if (newCardinality != null) {
+
+        val objectId = state.objectIds[propertyId]
+        val objekt = objectId?.let { state.objects[it] }
+        val property = state.properties[propertyId]
+        val newCardinality = updateFacts.find { it.event.entityClass == OBJECT_PROPERTY_CLASS }?.let { it.payload.data["cardinality"] }
+        if (newCardinality != null && property != null) {
             property.snapshot.data["cardinality"] = newCardinality
         }
 
@@ -234,15 +232,127 @@ class ObjectHistoryProvider(
 
         val event = HistoryEventData(
             username = "", type = EventType.UPDATE, entityClass = "", timestamp = -1,
-            version = state.versions.getValue(objectId), entityId = createFact.event.entityId, sessionId = ""
+            version = objectId?.let { state.versions[it] } ?: 0, entityId = createFact.event.entityId, sessionId = ""
         )
 
         return ObjectHistory(
             event = event,
-            info = objekt.snapshot.data.getValue("name"),
+            info = objekt?.snapshot?.data?.getValue("name") ?: "?",
             deleted = false,
-            fullData = ObjectHistoryInfo.Companion.BriefState(objekt, property, newValue).toData(),
+            fullData = ObjectHistoryInfo.Companion.BriefState(
+                objekt ?: ObjectHistoryInfo.Companion.Objekt("", MutableSnapshot(), ""),
+                property,
+                newValue
+            ).toData(),
+            changes = prev?.changes.orEmpty() + dataDeltas + linkDeltas
+        )
+    }
+
+    private fun valueUpdate(updateFact: HistoryFact, state: ObjectState): ObjectHistory {
+        val valueId = updateFact.event.entityId
+        val propertyId = state.values[valueId]?.snapshot?.links.orEmpty()["objectProperty"]?.firstOrNull()?.toString()
+        val objectId = state.objectIds[propertyId]
+        val objekt = objectId?.let { state.objects.getValue(it) }
+        val property = state.properties[propertyId]
+
+        fun nameById(key: String, getter: (String) -> String?): String? =
+            updateFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
+
+        val aspectPropertyName = nameById("aspectProperty") {
+            aspectService.findPropertyById(it).name
+        }
+        val subjectName = nameById("refValueSubject") {
+            subjectService.findById(it)?.name
+        }
+        val objectName = nameById("refValueObject") {
+            state.objects[it]?.snapshot?.data?.get("name")
+        }
+        val objectPropertyRefName = nameById("refValueObjectProperty") {
+            state.properties[it]?.snapshot?.data?.get("name")
+        }
+        val objectValueRefName = updateFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
+        val domainElement = nameById("refValueDomainElement") {
+            refBookService.itemName(it)
+        }
+        val aspectRefName = nameById("refValueAspect") {
+            aspectService.findById(it).name
+        }
+        val aspectPropertyRefName = nameById("refValueAspectProperty") {
+            aspectService.findPropertyById(it).name
+        }
+        val measureName = nameById("measure") {
+            measureService.name(it)
+        }
+
+        val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
+
+        initial.apply(updateFact.payload)
+
+        val newValue = ObjectHistoryInfo.Companion.Value(
+            id = valueId, snapshot = initial,
+            subjectName = subjectName,
+            objectName = objectName,
+            objectPropertyRefName = objectPropertyRefName,
+            objectValueRefName = objectValueRefName,
+            domainElement = domainElement,
+            measureName = measureName,
+            aspectRefName = aspectRefName,
+            aspectPropertyRefName = aspectPropertyRefName,
+            aspectPropertyName = aspectPropertyName
+        )
+
+        val dataDeltas = updateFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
+        val linkDeltas = updateFact.payload.addedLinks.filter { it.key != "objectProperty" }.map { (key, ids) ->
+            FieldDelta(
+                "link_$key", "",
+                ids.joinToString(separator = ":") { it.toString() }
+            )
+        }
+
+        propertyId?.also { state.propertyIds[valueId] = it }
+
+        state.values[valueId] = newValue
+
+        val event = HistoryEventData(
+            username = "", type = EventType.UPDATE, entityClass = "", timestamp = -1,
+            version = objectId?.let { state.versions[it] } ?: 0, entityId = updateFact.event.entityId, sessionId = ""
+        )
+
+        return ObjectHistory(
+            event = event,
+            info = objekt?.snapshot?.data?.getValue("name") ?: "",
+            deleted = false,
+            fullData = ObjectHistoryInfo.Companion.BriefState(
+                objekt ?: ObjectHistoryInfo.Companion.Objekt("", MutableSnapshot(), ""),
+                property,
+                newValue
+            ).toData(),
             changes = dataDeltas + linkDeltas
+        )
+    }
+
+    private fun propertyUpdate(updateFact: HistoryFact, state: ObjectState, prev: ObjectHistory?): ObjectHistory {
+        val propertyId = updateFact.event.entityId
+        val objectId = state.objectIds[updateFact.event.entityId]
+        val objekt = state.objects[objectId]
+        val property = state.properties[propertyId]
+
+        val dataDeltas = updateFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
+        val linkDeltas = updateFact.payload.addedLinks.filter { it.key != "object" }.map { (key, ids) ->
+            FieldDelta("link_$key", "", ids.joinToString(separator = ":") { it.toString() })
+        }
+
+        property?.snapshot?.apply(updateFact.payload)
+
+        return ObjectHistory(
+            event = updateFact.event,
+            info = objekt?.snapshot?.data?.getValue("name") ?: "?",
+            deleted = false,
+            fullData = ObjectHistoryInfo.Companion.BriefState(
+                objekt ?: ObjectHistoryInfo.Companion.Objekt("", MutableSnapshot(), ""),
+                property, null
+            ).toData().copy(value = prev?.fullData?.value),
+            changes = prev?.changes.orEmpty() + dataDeltas + linkDeltas
         )
     }
 
@@ -259,27 +369,54 @@ class ObjectHistoryProvider(
     private fun sessionToChange(sessionFacts: List<HistoryFact>, state: ObjectState, aspectNameById: Map<String, String>): ObjectHistory {
         val byType = sessionFacts.groupBy { it.event.type }
         val createFacts = byType[EventType.CREATE]
+        val updateFacts = byType[EventType.UPDATE]
 
-        return if (createFacts != null) {
-            val createFact = createFacts.first()
-
-            when (createFact.event.entityClass) {
-                OBJECT_CLASS -> {
-                    objectCreate(createFact, state)
-                }
-                OBJECT_PROPERTY_CLASS -> {
-                    propertyAdd(createFact, state, aspectNameById)
-                }
-                OBJECT_PROPERTY_VALUE_CLASS -> {
-                    valueAdd(createFact, state, byType[EventType.UPDATE].orEmpty())
-                }
-                else ->
-                    placeHolder(createFact)
+        return when {
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_CLASS -> {
+                objectCreate(createFacts.first(), state)
             }
-        } else {
-            val fact = sessionFacts.first()
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_CLASS -> {
+                propertyAdd(createFacts.first(), state, aspectNameById)
+            }
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_VALUE_CLASS -> {
+                valueAdd(createFacts.first(), state, byType[EventType.UPDATE].orEmpty())
+            }
+            createFacts?.size == 2 && createFacts.map { it.event.entityClass }.toSet() == setOf(OBJECT_PROPERTY_VALUE_CLASS, OBJECT_PROPERTY_CLASS) -> {
+                val valueCreate = createFacts.filter { it.event.entityClass == OrientClass.OBJECT_VALUE.extName }
+                val propertyCreate = createFacts.filter { it.event.entityClass == OrientClass.OBJECT_PROPERTY.extName }
+                val propertyUpdate = updateFacts?.filter { it.event.entityClass == OrientClass.OBJECT_PROPERTY.extName }
 
-            placeHolder(fact)
+                val res = propertyAdd(propertyCreate.first(), state, aspectNameById)
+                valueAdd(valueCreate.first(), state, propertyUpdate.orEmpty(), res)
+                res
+            }
+
+            sessionFacts.map { it.event.type }.toSet() == setOf(EventType.UPDATE) -> {
+                var result: ObjectHistory? = null
+                val factsByClass = sessionFacts.groupBy { it.event.entityClass }
+                val sortedFacts =
+                    listOf(OrientClass.OBJECT_VALUE, OrientClass.OBJECT_PROPERTY, OrientClass.OBJECT).flatMap { factsByClass[it.extName].orEmpty() }
+                sortedFacts.forEach { updateFact ->
+                    result = when (updateFact.event.entityClass) {
+                        OBJECT_CLASS -> {
+                            placeHolder(updateFact)
+                        }
+                        OBJECT_PROPERTY_CLASS -> {
+                            propertyUpdate(updateFact, state, result)
+                        }
+                        OBJECT_PROPERTY_VALUE_CLASS -> {
+                            valueUpdate(updateFact, state)
+                        }
+                        else ->
+                            placeHolder(updateFact)
+                    }
+                }
+                result!!
+            }
+            else -> {
+                val fact = sessionFacts.first()
+                placeHolder(fact)
+            }
         }
     }
 

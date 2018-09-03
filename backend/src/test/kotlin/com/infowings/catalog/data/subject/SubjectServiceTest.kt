@@ -12,7 +12,6 @@ import com.infowings.catalog.search.SuggestionService
 import io.kotlintest.shouldBe
 import org.hamcrest.core.Is
 import org.junit.Assert
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,7 +22,6 @@ import kotlin.test.assertEquals
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-@Disabled
 class SubjectServiceTest {
     private val username = "admin"
 
@@ -82,19 +80,18 @@ class SubjectServiceTest {
     }
 
     @Test
-    @Disabled
     fun testAddAspectsAfterRemoveSameSubject() {
-        val subject = createTestSubject("TestSubjectUpdate")
+        val subject = createTestSubject("TestAddAspectsAfterRemoveSameSubject")
         val ad1 = createTestAspect(subject = subject.toSubjectData())
         aspectService.remove(aspectService.save(ad1, username), username)
 
         val ad2 = createTestAspect(subject = subject.toSubjectData())
         aspectService.save(ad2, username)
 
-        val aspects = aspectService.findByName("aspect")
+        val aspects = aspectService.findByName(ad2.name)
         Assert.assertThat(
             "aspect should be saved",
-            aspectService.findByName("aspect").firstOrNull(),
+            aspects.firstOrNull(),
             Is.`is`(aspects.first())
         )
     }
@@ -107,7 +104,7 @@ class SubjectServiceTest {
          *       aspect
          */
         val name = randomName()
-        val subject = createTestSubject("TestSubjectUpdate")
+        val subject = createTestSubject("TestAddAspectsAfterRemoveForce")
         val aspect = aspectService.save(createTestAspect(name = name, subject = subject.toSubjectData()), username)
         val level1Property = AspectPropertyData("", "p_level1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         aspectService.save(
