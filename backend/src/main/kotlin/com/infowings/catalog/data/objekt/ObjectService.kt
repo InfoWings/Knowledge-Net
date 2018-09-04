@@ -252,8 +252,6 @@ class ObjectService(
 
             valueVertex = dao.saveObjectValue(valueVertex, valueInfo)
 
-            val newCardinality = valueInfo.objectProperty.cardinality
-
             historyService.storeFact(valueVertex.toUpdateFact(context, before))
             if (valueInfo.objectProperty.cardinality.toString() != prevProperty.data["cardinality"]) {
                 historyService.storeFact(valueInfo.objectProperty.toUpdateFact(context, prevProperty))
