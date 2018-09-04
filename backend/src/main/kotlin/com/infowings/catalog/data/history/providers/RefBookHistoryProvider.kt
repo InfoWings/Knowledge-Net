@@ -217,27 +217,22 @@ class RefBookHistoryProvider(
                     refBookItemEdit(updateFact, state)
                 }
             }
-            else -> {
-                RefBookHistory(
-                    event = HistoryEventData(
-                        username = "", timestamp = -1,
-                        version = 0,
-                        type = EventType.UPDATE,
-                        entityId = "???",
-                        entityClass = HISTORY_ENTITY_REFBOOK,
-                        sessionId = ""
-                    ),
-                    info = "???",
-                    deleted = false,
-                    fullData = RefBookHistoryData.Companion.BriefState(
-                        RefBookHistoryData.Companion.Header(
-                            id = "???", name = "???",
-                            aspectName = "???", aspectId = "", description = ""
-                        ), null
-                    ),
+            else -> RefBookHistory(
+                event = HistoryEventData(
+                    username = "", timestamp = -1,
+                    version = 0,
+                    type = EventType.UPDATE,
+                    entityId = "???",
+                    entityClass = HISTORY_ENTITY_REFBOOK,
+                    sessionId = ""
+                ),
+                info = "???",
+                deleted = false,
+                fullData = RefBookHistoryData.Companion.BriefState(
+                    RefBookHistoryData.Companion.Header(id = "???", name = "???", aspectName = "???", aspectId = "", description = ""), null),
                     changes = emptyList()
                 )
-            }
+
         }
     }
 
