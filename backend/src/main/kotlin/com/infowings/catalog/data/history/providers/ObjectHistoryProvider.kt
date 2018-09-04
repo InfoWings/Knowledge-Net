@@ -161,6 +161,47 @@ class ObjectHistoryProvider(
         )
     }
 
+    private fun HistoryFact.nameById(key: String, getter: (String) -> String?): String? = payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
+
+    private fun HistoryFact.value(state: ObjectState, snapshot: MutableSnapshot): ObjectHistoryInfo.Companion.Value {
+        val aspectPropertyName = nameById("aspectProperty") {
+            try {
+                aspectService.findPropertyById(it).name
+            } catch (exception: Exception) {
+                logger.debug(exception.toString())
+                null
+            }
+        }
+        val subjectName = nameById("refValueSubject") { subjectService.findById(it)?.name }
+        val objectName = nameById("refValueObject") { state.objects[it]?.snapshot?.data?.get("name") }
+        val objectPropertyRefName = nameById("refValueObjectProperty") { state.properties[it]?.snapshot?.data?.get("name") }
+        val objectValueRefName = payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
+        val domainElement = nameById("refValueDomainElement") {
+            try {
+                refBookService.itemName(it)
+            } catch (exception: Exception) {
+                logger.debug(exception.toString())
+                null
+            }
+        }
+        val aspectRefName = nameById("refValueAspect") { aspectService.findById(it).name }
+        val aspectPropertyRefName = nameById("refValueAspectProperty") { aspectService.findPropertyById(it).name }
+        val measureName = nameById("measure") { measureService.name(it) }
+
+        return ObjectHistoryInfo.Companion.Value(
+            id = event.entityId, snapshot = snapshot,
+            subjectName = subjectName,
+            objectName = objectName,
+            objectPropertyRefName = objectPropertyRefName,
+            objectValueRefName = objectValueRefName,
+            domainElement = domainElement,
+            measureName = measureName,
+            aspectRefName = aspectRefName,
+            aspectPropertyRefName = aspectPropertyRefName,
+            aspectPropertyName = aspectPropertyName
+        )
+    }
+
     private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>, prev: ObjectHistory? = null): ObjectHistory {
         val valueId = createFact.event.entityId
         val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
@@ -173,61 +214,11 @@ class ObjectHistoryProvider(
             property.snapshot.data["cardinality"] = newCardinality
         }
 
-        fun nameById(key: String, getter: (String) -> String?): String? =
-            createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
-
-        val aspectPropertyName = nameById("aspectProperty") {
-            try {
-                aspectService.findPropertyById(it).name
-            } catch (exception: Exception) {
-                logger.debug(exception.toString())
-                null
-            }
-        }
-        val subjectName = nameById("refValueSubject") {
-            subjectService.findById(it)?.name
-        }
-        val objectName = nameById("refValueObject") {
-            state.objects[it]?.snapshot?.data?.get("name")
-        }
-        val objectPropertyRefName = nameById("refValueObjectProperty") {
-            state.properties[it]?.snapshot?.data?.get("name")
-        }
-        val objectValueRefName = createFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
-        val domainElement = nameById("refValueDomainElement") {
-            try {
-                refBookService.itemName(it)
-            } catch (exception: Exception) {
-                logger.debug(exception.toString())
-                null
-            }
-        }
-        val aspectRefName = nameById("refValueAspect") {
-            aspectService.findById(it).name
-        }
-        val aspectPropertyRefName = nameById("refValueAspectProperty") {
-            aspectService.findPropertyById(it).name
-        }
-        val measureName = nameById("measure") {
-            measureService.name(it)
-        }
-
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
 
         initial.apply(createFact.payload)
 
-        val newValue = ObjectHistoryInfo.Companion.Value(
-            id = valueId, snapshot = initial,
-            subjectName = subjectName,
-            objectName = objectName,
-            objectPropertyRefName = objectPropertyRefName,
-            objectValueRefName = objectValueRefName,
-            domainElement = domainElement,
-            measureName = measureName,
-            aspectRefName = aspectRefName,
-            aspectPropertyRefName = aspectPropertyRefName,
-            aspectPropertyName = aspectPropertyName
-        )
+        val newValue = createFact.value(state, initial)
 
         val dataDeltas = createFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = createFact.payload.addedLinks.filter { it.key != "objectProperty" }.map { (key, ids) ->
@@ -265,51 +256,11 @@ class ObjectHistoryProvider(
         val objekt = objectId?.let { state.objects.getValue(it) }
         val property = state.properties[propertyId]
 
-        fun nameById(key: String, getter: (String) -> String?): String? =
-            updateFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
-
-        val aspectPropertyName = nameById("aspectProperty") {
-            aspectService.findPropertyById(it).name
-        }
-        val subjectName = nameById("refValueSubject") {
-            subjectService.findById(it)?.name
-        }
-        val objectName = nameById("refValueObject") {
-            state.objects[it]?.snapshot?.data?.get("name")
-        }
-        val objectPropertyRefName = nameById("refValueObjectProperty") {
-            state.properties[it]?.snapshot?.data?.get("name")
-        }
-        val objectValueRefName = updateFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
-        val domainElement = nameById("refValueDomainElement") {
-            refBookService.itemName(it)
-        }
-        val aspectRefName = nameById("refValueAspect") {
-            aspectService.findById(it).name
-        }
-        val aspectPropertyRefName = nameById("refValueAspectProperty") {
-            aspectService.findPropertyById(it).name
-        }
-        val measureName = nameById("measure") {
-            measureService.name(it)
-        }
-
         val initial = MutableSnapshot(mutableMapOf(), mutableMapOf())
 
         initial.apply(updateFact.payload)
 
-        val newValue = ObjectHistoryInfo.Companion.Value(
-            id = valueId, snapshot = initial,
-            subjectName = subjectName,
-            objectName = objectName,
-            objectPropertyRefName = objectPropertyRefName,
-            objectValueRefName = objectValueRefName,
-            domainElement = domainElement,
-            measureName = measureName,
-            aspectRefName = aspectRefName,
-            aspectPropertyRefName = aspectPropertyRefName,
-            aspectPropertyName = aspectPropertyName
-        )
+        val newValue = updateFact.value(state, initial)
 
         val dataDeltas = updateFact.payload.data.map { (key, value) -> FieldDelta(key, "", value) }
         val linkDeltas = updateFact.payload.addedLinks.filter { it.key != "objectProperty" }.map { (key, ids) ->
