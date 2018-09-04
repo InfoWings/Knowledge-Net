@@ -17,6 +17,7 @@ external interface ToastProps : RProps {
     var timeout: Int
 }
 
+@Suppress("UnusedPrivateMember")
 external class Toaster : Component<ToasterProps, RState> {
     override fun render(): dynamic
 

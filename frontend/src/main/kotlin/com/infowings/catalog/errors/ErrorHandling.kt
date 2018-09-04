@@ -15,6 +15,7 @@ val errorToaster = Toaster.create(jsObject {
     position = Position.TOP_RIGHT
 })
 
+@Suppress("MagicNumber")
 fun showError(apiException: ApiException) {
     errorToaster.show(jsObject {
         icon = "warning-sign"
