@@ -1,72 +1,26 @@
 package com.infowings.catalog.data.aspect
 
+import com.infowings.catalog.AbstractMvcTest
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectChangeResponse
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
-import com.infowings.catalog.storage.OrientClass
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.transaction
 import io.kotlintest.shouldBe
 import kotlinx.serialization.json.JSON
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
-import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@ExtendWith(SpringExtension::class)
-@SpringBootTest
-@Suppress("UnsafeCallOnNullableType")
-class AspectPropertyDeletingTest {
+@Suppress("UnsafeCallOnNullableType", "StringLiteralDuplication", "MagicNumber")
+class AspectPropertyDeletingTest : AbstractMvcTest() {
 
-    @Autowired
-    lateinit var db: OrientDatabase
-
-    @Autowired
-    lateinit var webApplicationContext: WebApplicationContext
-
-    private lateinit var mockMvc: MockMvc
-
-    private val authorities = SecurityMockMvcRequestPostProcessors.user("admin").authorities(SimpleGrantedAuthority("ADMIN"))
-
-    private fun tearDownAllVertices() {
-        transaction(db) {
-            db.command("DELETE VERTEX ${OrientClass.ASPECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.ASPECT_PROPERTY.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.SUBJECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT_PROPERTY.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT_VALUE.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.REFBOOK_ITEM.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_ADD_LINK.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_ELEMENT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_EVENT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_REMOVE_LINK.extName}") {}
-        }
-    }
-
-    private fun setUpMockMvc() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
-            .build()
-    }
-
-    private fun setUpCommonData() {
+    @BeforeEach
+    fun setUpCommonData() {
         val knetSubject: SubjectData
         val subjectDataRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/subject/create")
@@ -138,13 +92,6 @@ class AspectPropertyDeletingTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JSON.stringify(PropertyCreateRequest(objectBoxCreateResponse.id, null, null, aspectDimensions.id!!)))
         ).andReturn()
-    }
-
-    @BeforeEach
-    fun cleanDatabaseBeforeTest() {
-        tearDownAllVertices()
-        setUpMockMvc()
-        setUpCommonData()
     }
 
     @Test
