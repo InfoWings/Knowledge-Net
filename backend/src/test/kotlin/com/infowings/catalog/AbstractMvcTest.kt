@@ -23,6 +23,7 @@ import org.springframework.web.context.WebApplicationContext
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 abstract class AbstractMvcTest {
 
     @Autowired
