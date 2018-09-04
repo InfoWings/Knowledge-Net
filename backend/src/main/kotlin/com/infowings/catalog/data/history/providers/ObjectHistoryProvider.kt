@@ -13,6 +13,7 @@ import com.infowings.catalog.data.history.HistoryFact
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.ObjectHistoryInfo
+import com.infowings.catalog.data.objekt.ObjectValueField
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -204,7 +205,7 @@ class ObjectHistoryProvider(
 
     private fun valueAdd(createFact: HistoryFact, state: ObjectState, updateFacts: List<HistoryFact>, prev: ObjectHistory? = null): ObjectHistory {
         val valueId = createFact.event.entityId
-        val propertyId = createFact.payload.addedLinks.getValue("objectProperty")[0].toString()
+        val propertyId = createFact.payload.addedLinks.getValue(ObjectValueField.LINK_OBJECT_PROPERTY.extName)[0].toString()
 
         val objectId = state.objectIds[propertyId]
         val objekt = objectId?.let { state.objects[it] }
@@ -333,15 +334,12 @@ class ObjectHistoryProvider(
         val updateFacts = byType[EventType.UPDATE]
 
         return when {
-            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_CLASS -> {
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_CLASS ->
                 objectCreate(createFacts.first(), state)
-            }
-            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_CLASS -> {
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_CLASS ->
                 propertyAdd(createFacts.first(), state, aspectNameById)
-            }
-            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_VALUE_CLASS -> {
+            createFacts?.size == 1 && createFacts.first().event.entityClass == OBJECT_PROPERTY_VALUE_CLASS ->
                 valueAdd(createFacts.first(), state, byType[EventType.UPDATE].orEmpty())
-            }
             createFacts?.size == 2 && createFacts.map { it.event.entityClass }.toSet() == setOf(OBJECT_PROPERTY_VALUE_CLASS, OBJECT_PROPERTY_CLASS) -> {
                 val valueCreate = createFacts.filter { it.event.entityClass == OrientClass.OBJECT_VALUE.extName }
                 val propertyCreate = createFacts.filter { it.event.entityClass == OrientClass.OBJECT_PROPERTY.extName }
@@ -372,7 +370,7 @@ class ObjectHistoryProvider(
                             placeHolder(updateFact)
                     }
                 }
-                result!!
+                result ?: throw IllegalStateException("result is null")
             }
             else -> {
                 val fact = sessionFacts.first()
