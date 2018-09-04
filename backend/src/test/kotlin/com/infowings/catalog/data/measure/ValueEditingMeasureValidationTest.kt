@@ -5,10 +5,9 @@ import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
-import io.kotlintest.should
+import io.kotlintest.matchers.types.shouldBeTypeOf
 import io.kotlintest.shouldThrow
 import kotlinx.serialization.json.JSON
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -46,12 +45,29 @@ class ValueEditingMeasureValidationTest {
     private lateinit var tubeObject: ObjectChangeResponse
     private lateinit var tubeObjectHeightProperty: PropertyCreateResponse
 
-    @BeforeEach
-    fun initializeData() {
+    private fun initializeMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
+    }
 
+    private fun tearDownAllVertices() {
+        transaction(db) {
+            db.command("DELETE VERTEX ${OrientClass.ASPECT.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.ASPECT_PROPERTY.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.SUBJECT.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.OBJECT.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.OBJECT_PROPERTY.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.OBJECT_VALUE.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.REFBOOK_ITEM.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.HISTORY_ADD_LINK.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.HISTORY_ELEMENT.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.HISTORY_EVENT.extName}") {}
+            db.command("DELETE VERTEX ${OrientClass.HISTORY_REMOVE_LINK.extName}") {}
+        }
+    }
+
+    private fun initializeData() {
         val subjectDataRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/subject/create")
                 .with(authorities)
@@ -86,6 +102,13 @@ class ValueEditingMeasureValidationTest {
         tubeObject = tubeObject.copy(version = tubeObjectHeightProperty.obj.version)
     }
 
+    @BeforeEach
+    fun refreshDatabase() {
+        initializeMockMvc()
+        tearDownAllVertices()
+        initializeData()
+    }
+
     @Test
     fun `Create value that requires measure without measure triggers exception`() {
         val exception = shouldThrow<NestedServletException> {
@@ -106,7 +129,7 @@ class ValueEditingMeasureValidationTest {
                     )
             )
         }
-        exception.cause should { it != null && it is IllegalArgumentException }
+        exception.cause.shouldBeTypeOf<IllegalArgumentException>()
     }
 
     @Test
@@ -129,25 +152,9 @@ class ValueEditingMeasureValidationTest {
                     )
             )
         }
-        exception.cause should { it != null && it is IllegalArgumentException }
+        exception.cause.shouldBeTypeOf<IllegalStateException>()
     }
 
-    @AfterEach
-    fun tearDownAllVertices() {
-        transaction(db) {
-            db.command("DELETE VERTEX ${OrientClass.ASPECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.ASPECT_PROPERTY.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.SUBJECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT_PROPERTY.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.OBJECT_VALUE.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.REFBOOK_ITEM.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_ADD_LINK.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_ELEMENT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_EVENT.extName}") {}
-            db.command("DELETE VERTEX ${OrientClass.HISTORY_REMOVE_LINK.extName}") {}
 
-        }
-    }
 
 }
