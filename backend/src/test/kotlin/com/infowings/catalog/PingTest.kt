@@ -270,6 +270,7 @@ class PingTest {
                 propertyCreateResponse.rootValue.id,
                 ObjectValueData.StringValue("hello"),
                 null,
+                null,
                 propertyCreateResponse.rootValue.version
             ), username
         )

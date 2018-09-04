@@ -1,15 +1,13 @@
 package com.infowings.catalog.objects.edit.tree.format
 
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.Measure
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.common.*
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
+import com.infowings.catalog.objects.edit.tree.inputs.valueMeasureSelect
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -46,8 +44,22 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 disabled = props.disabled
             )
             props.aspectMeasure?.let {
-                span(classes = "aspect-property__property-measure") {
-                    +it.symbol
+                val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
+                if (measureGroup.measureList.size == 1) {
+                    span(classes = "aspect-property__property-measure") {
+                        +it.symbol
+                    }
+                } else {
+                    valueMeasureSelect(
+                        measureGroup = measureGroup,
+                        stringValueRepresentation = (value as? ObjectValueData.DecimalValue)?.valueRepr
+                                ?: error("Value has non-decimal type and has non-null measure"),
+                        currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
+                        onMeasureSelected = { measure, stringValueRepresentation ->
+                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))
+                        },
+                        disabled = props.disabled
+                    )
                 }
             }
         }
@@ -88,7 +100,9 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var subjectName: String?
     var recommendedCardinality: PropertyCardinality
     var value: ObjectValueData?
+    var valueMeasure: Measure<*>?
     var onChange: (ObjectValueData) -> Unit
+    var onMeasureNameChanged: (String?, ObjectValueData) -> Unit
     var valueDescription: String?
     var onDescriptionChange: (String) -> Unit
     var conformsToCardinality: Boolean

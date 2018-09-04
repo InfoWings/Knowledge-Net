@@ -156,6 +156,7 @@ class ReferenceBookLinkedTest {
         val objPropertyRootValueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
             ObjectValueData.DecimalValue("123.1"),
+            Kilometre.name,
             null,
             propertyCreateResponse.rootValue.version
         )
@@ -164,8 +165,8 @@ class ReferenceBookLinkedTest {
             value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking)),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
+            measureName = null,
             aspectPropertyId = aspectWithObjectProperty.properties[0].id,
-            measureId = null,
             parentValueId = rootValueUpdateResponse.id
         )
         objectService.create(objPropertyValueRequest, username)

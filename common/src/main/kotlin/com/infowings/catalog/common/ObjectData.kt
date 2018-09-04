@@ -40,6 +40,7 @@ data class DetailedObjectPropertyViewResponse(
 data class DetailedRootValueViewResponse(
     val id: String,
     val value: ValueDTO,
+    val measureSymbol: String?,
     val description: String?,
     val children: List<DetailedValueViewResponse>
 )
@@ -48,6 +49,7 @@ data class DetailedRootValueViewResponse(
 data class DetailedValueViewResponse(
     val id: String,
     val value: ValueDTO,
+    val measureSymbol: String?,
     val description: String?,
     val aspectProperty: AspectPropertyDataExtended,
     val children: List<DetailedValueViewResponse>
@@ -79,6 +81,7 @@ data class ObjectPropertyEditDetailsResponse(
 data class ValueTruncated(
     val id: String,
     val value: ValueDTO,
+    val measureName: String?,
     val description: String?,
     val propertyId: String?,
     val version: Int,

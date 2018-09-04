@@ -67,7 +67,7 @@ class ObjectServiceFetchTest {
                 ObjectValueData.DecimalValue("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
-                null,
+                Metre.name,
                 dimensionsAspect.properties[0].id,
                 boxDimensionValueId
             ),
@@ -78,7 +78,7 @@ class ObjectServiceFetchTest {
                 ObjectValueData.DecimalValue("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
-                null,
+                Metre.name,
                 dimensionsAspect.properties[1].id,
                 boxDimensionValueId
             ),
@@ -89,7 +89,7 @@ class ObjectServiceFetchTest {
                 ObjectValueData.DecimalValue("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
-                null,
+                Metre.name,
                 dimensionsAspect.properties[2].id,
                 boxDimensionValueId
             ),

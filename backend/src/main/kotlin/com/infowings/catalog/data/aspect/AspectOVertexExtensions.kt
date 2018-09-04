@@ -77,13 +77,16 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             vertex["baseType"] = value
         }
 
+    val baseTypeStrict: String
+        get() = baseType ?: throw IllegalStateException("Aspect vertex $this does not have base type")
+
     var name: String
         get() = vertex[ATTR_NAME]
         set(value) {
             vertex[ATTR_NAME] = value
         }
 
-    val measure: Measure<*>?
+    val measure: Measure<DecimalNumber>?
         get() = GlobalMeasureMap[measureName]
 
     var measureName: String?

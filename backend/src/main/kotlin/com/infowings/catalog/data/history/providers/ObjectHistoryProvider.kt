@@ -177,7 +177,12 @@ class ObjectHistoryProvider(
             createFact.payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
         val aspectPropertyName = nameById("aspectProperty") {
-            aspectService.findPropertyById(it).name
+            try {
+                aspectService.findPropertyById(it).name
+            } catch (exception: Exception) {
+                logger.debug(exception.toString())
+                null
+            }
         }
         val subjectName = nameById("refValueSubject") {
             subjectService.findById(it)?.name
@@ -190,7 +195,12 @@ class ObjectHistoryProvider(
         }
         val objectValueRefName = createFact.payload.addedLinks["refValueObjectValue"]?.first()?.toString() ?: "???"
         val domainElement = nameById("refValueDomainElement") {
-            refBookService.itemName(it)
+            try {
+                refBookService.itemName(it)
+            } catch (exception: Exception) {
+                logger.debug(exception.toString())
+                null
+            }
         }
         val aspectRefName = nameById("refValueAspect") {
             aspectService.findById(it).name

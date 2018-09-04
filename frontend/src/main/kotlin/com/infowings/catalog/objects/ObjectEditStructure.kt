@@ -37,7 +37,7 @@ data class ObjectPropertyEditModel(
     var description: String? = null,
     var aspect: AspectTree? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
-    var expanded: Boolean = false
+    var expanded: Boolean = true
 ) {
     constructor(response: ObjectPropertyEditDetailsResponse) : this(
         response.id,
@@ -82,8 +82,9 @@ data class ObjectPropertyValueEditModel(
     val id: String? = null,
     var version: Int? = null,
     var value: ObjectValueData? = null,
+    var measureName: String? = null,
     var description: String? = null,
-    var expanded: Boolean = false,
+    var expanded: Boolean = true,
     var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
 
@@ -91,32 +92,34 @@ data class ObjectPropertyValueEditModel(
         id = value.id,
         version = value.version,
         value = value.value.toData(),
+        measureName = value.measureName,
         description = value.description,
         valueGroups = value.childrenIds
-                .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
-                .sortedBy { it.propertyId }
-                .foldRight(mutableListOf<AspectPropertyValueGroupEditModel>()) { childValue, propertyGroups ->
-                    when {
-                        propertyGroups.isEmpty() -> {
-                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
-                            propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
-                            propertyGroups
-                        }
-                        propertyGroups.last().propertyId == childValue.propertyId -> {
-                            propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
-                            propertyGroups
-                        }
-                        else -> {
-                            propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
-                            propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
-                            propertyGroups
-                        }
+            .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
+            .sortedBy { it.propertyId }
+            .foldRight(mutableListOf<AspectPropertyValueGroupEditModel>()) { childValue, propertyGroups ->
+                when {
+                    propertyGroups.isEmpty() -> {
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
+                        propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
+                        propertyGroups
+                    }
+                    propertyGroups.last().propertyId == childValue.propertyId -> {
+                        propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
+                        propertyGroups
+                    }
+                    else -> {
+                        propertyGroups.add(AspectPropertyValueGroupEditModel(childValue.propertyId ?: error("Value received from server has no id")))
+                        propertyGroups.last().values.add(AspectPropertyValueEditModel(childValue, valueMap))
+                        propertyGroups
                     }
                 }
+            }
     )
 
     fun mergeWith(value: ValueTruncated, valueMap: Map<String, ValueTruncated>): ObjectPropertyValueEditModel {
         this.value = value.value.toData()
+        this.measureName = value.measureName
         this.version = value.version
         val existingValuesMap = this.valueGroups.flatMap { it.values }.associateBy { it.id }
         valueGroups = value.childrenIds
@@ -144,7 +147,10 @@ data class ObjectPropertyValueEditModel(
     }
 }
 
-fun MutableList<ObjectPropertyValueEditModel>.mergeWith(rootValues: List<ValueTruncated>, valueMap: Map<String, ValueTruncated>): MutableList<ObjectPropertyValueEditModel> {
+fun MutableList<ObjectPropertyValueEditModel>.mergeWith(
+    rootValues: List<ValueTruncated>,
+    valueMap: Map<String, ValueTruncated>
+): MutableList<ObjectPropertyValueEditModel> {
     val existingValues = this.associateBy { it.id }
     return rootValues.map {
         if (existingValues.containsKey(it.id)) {
@@ -164,14 +170,16 @@ data class AspectPropertyValueEditModel(
     val id: String? = null,
     var version: Int? = null,
     var value: ObjectValueData? = null,
+    var measureName: String? = null,
     var description: String? = null,
-    var expanded: Boolean = false,
+    var expanded: Boolean = true,
     var children: MutableList<AspectPropertyValueGroupEditModel> = mutableListOf()
 ) {
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
         version = value.version,
         value = value.value.toData(),
+        measureName = value.measureName,
         description = value.description,
         children = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
@@ -202,6 +210,7 @@ fun AspectPropertyValueEditModel?.mergeWith(value: ValueTruncated, valueMap: Map
         AspectPropertyValueEditModel(value, valueMap)
     else {
         this.value = value.value.toData()
+        this.measureName = value.measureName
         this.version = value.version
         val existingValuesMap = this.children.flatMap { it.values }.associateBy { it.id }
         this.children = value.childrenIds

@@ -1,13 +1,12 @@
 package com.infowings.catalog.objects.edit.tree
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.ValueCreateRequest
+import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
-import com.infowings.catalog.objects.edit.EditContext
-import com.infowings.catalog.objects.edit.EditExistingContextModel
-import com.infowings.catalog.objects.edit.EditNewChildContextModel
-import com.infowings.catalog.objects.edit.ObjectTreeEditModel
+import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
 import react.RBuilder
@@ -66,14 +65,17 @@ fun RBuilder.objectPropertiesEditList(
 
                                 when {
                                     currentValues == null -> {
-                                        this.values = mutableListOf(ObjectPropertyValueEditModel(
-                                            null,
-                                            null,
-                                            ObjectValueData.NullValue,
-                                            null,
-                                            false,
-                                            mutableListOf()
-                                        ))
+                                        this.values = mutableListOf(
+                                            ObjectPropertyValueEditModel(
+                                                null,
+                                                null,
+                                                ObjectValueData.NullValue,
+                                                null,
+                                                null,
+                                                false,
+                                                mutableListOf()
+                                            )
+                                        )
                                     }
                                     currentValues.isEmpty() -> {
                                         currentValues.add(
@@ -81,6 +83,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 ObjectValueData.NullValue,
+                                                null,
                                                 null,
                                                 false,
                                                 mutableListOf()
@@ -132,11 +135,12 @@ fun RBuilder.objectPropertiesEditList(
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
                                     editModel.createValue(
-                                        value.value ?: error("value should not be null"),
-                                        value.description,
-                                        propertyId,
-                                        null,
-                                        null
+                                        ValueCreateRequest(
+                                            value.value ?: error("value should not be null"),
+                                            value.description,
+                                            propertyId,
+                                            value.measureName
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -144,10 +148,13 @@ fun RBuilder.objectPropertiesEditList(
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        value.value ?: error("Value should not be null"),
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) should have non null version")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            value.value ?: error("Value should not be null"),
+                                            value.measureName,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) should have non null version")
+                                        )
                                     )
                                     editContext.setContext(null)
                                 }
@@ -166,6 +173,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 property.aspect?.defaultValue(),
+                                                property.aspect?.measure,
                                                 null,
                                                 false,
                                                 mutableListOf()
@@ -175,13 +183,12 @@ fun RBuilder.objectPropertiesEditList(
                                 }
                             }
                             value.value == ObjectValueData.NullValue && !(property.aspect?.deleted ?: true) &&
-                                    ((value.id == null && currentEditContextModel == EditNewChildContextModel) || (value.id != null && currentEditContextModel == EditExistingContextModel(
-                                        value.id
-                                    ))) -> {
+                                    isValueBeingEdited(value.id, currentEditContextModel) -> {
                                 {
                                     updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value =
-                                                property.aspect?.defaultValue()
+                                        val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
+                                        targetValue.value = property.aspect?.defaultValue()
+                                        targetValue.measureName = property.aspect?.measure
                                     }
                                 }
                             }
@@ -189,7 +196,9 @@ fun RBuilder.objectPropertiesEditList(
                                 {
                                     editContext.setContext(EditExistingContextModel(value.id ?: error("value should have id != null")))
                                     updater(propertyIndex) {
-                                        (values ?: error("Must not be able to update value if there is no value"))[valueIndex].value = property.aspect?.defaultValue()
+                                        val targetValue = (values ?: error("Must not be able to update value if there is no value"))[valueIndex]
+                                        targetValue.value = property.aspect?.defaultValue()
+                                        targetValue.measureName = property.aspect?.measure
                                     }
                                 }
                             }
@@ -224,10 +233,13 @@ fun RBuilder.objectPropertiesEditList(
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
                                     editModel.updateValue(
-                                        value.id,
-                                        ObjectValueData.NullValue,
-                                        value.description,
-                                        value.version ?: error("Value with id (${value.id}) should have non null id")
+                                        ValueUpdateRequest(
+                                            value.id,
+                                            ObjectValueData.NullValue,
+                                            null,
+                                            value.description,
+                                            value.version ?: error("Value with id (${value.id}) should have non null id")
+                                        )
                                     )
                                 }
                             }
@@ -249,6 +261,9 @@ fun RBuilder.objectPropertiesEditList(
         }
     }
 }
+
+private fun isValueBeingEdited(valueId: String?, editContextModel: EditContextModel?) =
+    valueId == null && editContextModel == EditNewChildContextModel || valueId != null && editContextModel == EditExistingContextModel(valueId)
 
 val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPropertyEditNode") { props ->
     controlledTreeNode {
@@ -358,11 +373,13 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         propertyName = props.property.name
                         propertyDescription = props.property.description
                         aspectName = aspect.name
-                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
+                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?:
+                                throw IllegalStateException("Aspect can not infer its base type")
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
                         value = props.rootValue.value
+                        valueMeasure = props.rootValue.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.rootValue.description
                         onPropertyNameUpdate = if (props.editContext.currentContext == null) {
                             {
@@ -415,6 +432,26 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                             {
                                 props.onValueUpdate {
                                     value = it
+                                }
+                            }
+                        }
+                        onValueMeasureNameChanged = if (props.editContext.currentContext == null) {
+                            { newMeasureName, objectValueData ->
+                                props.editContext.setContext(
+                                    EditExistingContextModel(
+                                        props.rootValue.id ?: error("Root value should have id != null in order to edit")
+                                    )
+                                )
+                                props.onValueUpdate {
+                                    measureName = newMeasureName
+                                    value = objectValueData
+                                }
+                            }
+                        } else {
+                            { newMeasureName, objectValueData ->
+                                props.onValueUpdate {
+                                    measureName = newMeasureName
+                                    value = objectValueData
                                 }
                             }
                         }
@@ -499,6 +536,7 @@ interface ObjectPropertyValueEditNodeProps : RProps {
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {
-    val baseType = baseType?.let { BaseType.valueOf(it) } ?: measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type: ${this}")
+    val baseType = baseType?.let { BaseType.valueOf(it) } ?: measure?.let { GlobalMeasureMap[it]?.baseType }
+    ?: throw IllegalStateException("Aspect can not infer its base type: ${this}")
     return baseType.defaultValue()
 }

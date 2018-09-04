@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.edit.tree.format
 
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.Measure
+import com.infowings.catalog.common.MeasureMeasureGroupMap
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
@@ -10,6 +11,7 @@ import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
+import com.infowings.catalog.objects.edit.tree.inputs.valueMeasureSelect
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -51,17 +53,32 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         props.onCancelProperty?.let {
             cancelButtonComponent(it, "pt-small")
         }
-        if (props.value != ObjectValueData.NullValue) {
+        val value = props.value
+        if (value != ObjectValueData.NullValue) {
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
-                value = props.value,
+                value = value,
                 onChange = props.onValueUpdate,
                 disabled = props.valueDisabled
             )
             props.aspectMeasure?.let {
-                span(classes = "property-value__aspect-measure") {
-                    +it.symbol
+                val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
+                if (measureGroup.measureList.size == 1) {
+                    span(classes = "property-value__aspect-measure") {
+                        +it.symbol
+                    }
+                } else {
+                    valueMeasureSelect(
+                        measureGroup = measureGroup,
+                        stringValueRepresentation = (value as? ObjectValueData.DecimalValue)?.valueRepr
+                                ?: error("Value has non-decimal type and has non-null measure"),
+                        currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
+                        onMeasureSelected = { measure, stringValueRepresentation ->
+                            props.onValueMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))
+                        },
+                        disabled = props.valueDisabled
+                    )
                 }
             }
         }
@@ -104,10 +121,12 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var subjectName: String?
     var referenceBookId: String?
     var value: ObjectValueData?
+    var valueMeasure: Measure<*>?
     var valueDescription: String?
     var onValueDescriptionChanged: (String) -> Unit
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
+    var onValueMeasureNameChanged: (String, ObjectValueData) -> Unit
     var onSaveValue: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onCancelValue: (() -> Unit)?

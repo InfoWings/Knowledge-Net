@@ -86,6 +86,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 ObjectValueData.NullValue.toDTO(),
                 null,
                 null,
+                null,
                 createPropertyResponse.rootValue.version,
                 emptyList()
             )
@@ -211,6 +212,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         val valueDescriptor = ValueTruncated(
             id = response.id,
             value = response.value,
+            measureName = response.measureName,
             description = response.description,
             propertyId = response.aspectPropertyId,
             version = response.version,
@@ -249,14 +251,24 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             version = response.objectProperty.version,
             rootValues = this.rootValues.map {
                 when {
-                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.id -> it.copy(
+                        value = response.value,
+                        measureName = response.measureName,
+                        version = response.version,
+                        description = response.description
+                    )
                     it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
                     else -> it
                 }
             },
             valueDescriptors = this.valueDescriptors.map {
                 when {
-                    it.id == response.id -> it.copy(value = response.value, version = response.version, description = response.description)
+                    it.id == response.id -> it.copy(
+                        value = response.value,
+                        measureName = response.measureName,
+                        version = response.version,
+                        description = response.description
+                    )
                     it.id == response.parentValue?.id -> it.copy(version = response.parentValue.version)
                     else -> it
                 }

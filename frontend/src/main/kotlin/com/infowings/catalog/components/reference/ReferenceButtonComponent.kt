@@ -1,6 +1,7 @@
 package com.infowings.catalog.components.reference
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.utils.linkIcon
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -11,7 +12,7 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceButtonComponent() : RComponent<ReferenceButtonComponent.Props, ReferenceButtonComponent.State>() {
+class ReferenceButtonComponent : RComponent<ReferenceButtonComponent.Props, ReferenceButtonComponent.State>() {
 
     companion object {
         init {
@@ -24,9 +25,9 @@ class ReferenceButtonComponent() : RComponent<ReferenceButtonComponent.Props, Re
     }
 
     fun onClick(event: MouseEvent) {
-        event.stopPropagation();
-        event.preventDefault();
-        props.history.push("/subjects/reference/${props.subject.name}")
+        event.stopPropagation()
+        event.preventDefault()
+        props.history.push("/subjects/reference/${encodeURIComponent(props.subject.name)}")
     }
 
     override fun RBuilder.render() {

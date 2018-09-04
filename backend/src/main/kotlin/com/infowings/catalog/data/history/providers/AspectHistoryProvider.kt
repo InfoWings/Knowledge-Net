@@ -43,7 +43,11 @@ private data class AggregationContext(
 }
 
 private fun DataAware.cardinalityLabel() = this.dataItem(AspectPropertyField.CARDINALITY.name)?.let {
-    PropertyCardinality.valueOf(it).label
+    try {
+        PropertyCardinality.valueOf(it).label
+    } catch (exception: IllegalArgumentException) {
+        null
+    }
 }
 
 private fun DataAware.toAspectPropertyData(id: String) = AspectPropertyData(
