@@ -252,7 +252,7 @@ class ObjectService(
 
             valueVertex = dao.saveObjectValue(valueVertex, valueInfo)
 
-                                                                                                                                            historyService.storeFact(valueVertex.toUpdateFact(context, before))
+            historyService.storeFact(valueVertex.toUpdateFact(context, before))
             if (valueInfo.objectProperty.cardinality.toString() != prevProperty.data["cardinality"]) {
                 historyService.storeFact(valueInfo.objectProperty.toUpdateFact(context, prevProperty))
             }
@@ -353,7 +353,7 @@ class ObjectService(
             val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
             val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
 
-            val idsToKeep = valuesToKeep.map {it.id}.toSet()
+            val idsToKeep = valuesToKeep.map { it.id }.toSet()
             val valuesToDelete = context.values.filterNot { idsToKeep.contains(it.id) }
 
             valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }

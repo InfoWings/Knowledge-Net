@@ -11,6 +11,8 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.external.PingApi
 import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientEdge
+import io.kotlintest.matchers.beGreaterThan
+import io.kotlintest.should
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -58,8 +60,8 @@ class PingTest {
         assertEquals(0, status.dbMetrics.counts[OrientClass.OBJECT_PROPERTY.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.OBJECT_VALUE.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.REFBOOK_ITEM.extName])
-        assertGreater(status.dbMetrics.counts[OrientClass.MEASURE.extName]!!, 0)
-        assertGreater(status.dbMetrics.counts[OrientClass.MEASURE_GROUP.extName]!!, 0)
+        status.dbMetrics.counts.getValue(OrientClass.MEASURE.extName) should beGreaterThan(0)
+        status.dbMetrics.counts.getValue(OrientClass.MEASURE_GROUP.extName) should beGreaterThan(0)
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_EVENT.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(0, status.dbMetrics.counts[OrientClass.HISTORY_ADD_LINK.extName])

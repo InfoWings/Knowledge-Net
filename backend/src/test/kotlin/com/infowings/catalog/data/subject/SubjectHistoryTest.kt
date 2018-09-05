@@ -1,7 +1,5 @@
 package com.infowings.catalog.data.subject
 
-import com.infowings.catalog.assertGreater
-import com.infowings.catalog.assertNotLess
 import com.infowings.catalog.common.EventType
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
@@ -10,6 +8,8 @@ import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.toSubjectData
 import com.infowings.catalog.storage.SUBJECT_CLASS
+import io.kotlintest.matchers.beGreaterThanOrEqualTo
+import io.kotlintest.should
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -80,7 +80,7 @@ class SubjectHistoryTest {
         val snapshot1 = subjectHistory[0]
         val snapshot2 = subjectHistory[1]
 
-        assertGreater(snapshot1.event.timestamp, snapshot2.event.timestamp)
+        snapshot1.event.timestamp should beGreaterThanOrEqualTo(snapshot2.event.timestamp)
         assertEquals(1, snapshot1.event.version, "version must be 1")
         assertEquals(1, snapshot2.event.version, "version must be 1")
     }
@@ -98,7 +98,7 @@ class SubjectHistoryTest {
         val snapshot1 = subjectHistory[0]
         val snapshot2 = subjectHistory[1]
 
-        assertNotLess(snapshot1.event.timestamp, snapshot2.event.timestamp)
+        snapshot1.event.timestamp should beGreaterThanOrEqualTo(snapshot2.event.timestamp)
         assertEquals(2, snapshot1.event.version, "version must be 2")
         assertEquals(1, snapshot2.event.version, "version must be 1")
         assertEquals(EventType.UPDATE, snapshot1.event.type, "version must be 2")

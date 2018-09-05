@@ -1,7 +1,5 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.assertGreater
-import com.infowings.catalog.assertNotLess
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.history.HistoryDao
@@ -17,6 +15,9 @@ import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.transaction
+import io.kotlintest.matchers.beGreaterThan
+import io.kotlintest.matchers.beGreaterThanOrEqualTo
+import io.kotlintest.should
 import io.kotlintest.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -85,7 +86,8 @@ class AspectHistoryTest {
         assertEquals(ASPECT_CLASS, aspectHistoryElement.event.entityClass, "entity class is incorrect")
         assertEquals(aspect.id, aspectHistoryElement.event.entityId, "entity id is incorrect")
         assertNotNull(aspectHistoryElement.event.sessionId, "session id must be non-null")
-        assertGreater(aspectHistoryElement.event.timestamp, 0)
+
+        aspectHistoryElement.event.timestamp should beGreaterThan(0L)
 
         assertEquals(3, aspectHistoryElement.changes.size)
         val changedFields = aspectHistoryElement.changes.groupBy { it.fieldName }
@@ -121,6 +123,7 @@ class AspectHistoryTest {
             ), username
         )
 
+        // quick workaround to make sure event are ordered properly (because now they are ordered by timestamp)
         Thread.sleep(10)
 
         val aspect2 = aspectService.save(
@@ -138,7 +141,7 @@ class AspectHistoryTest {
         val historyElement1 = aspectHistory[0]
         val historyElement2 = aspectHistory[1]
 
-        assertNotLess(historyElement1.event.timestamp, historyElement2.event.timestamp)
+        historyElement1.event.timestamp should beGreaterThanOrEqualTo(historyElement2.event.timestamp)
         aspectHistory.zip(listOf(aspect1, aspect2).reversed()).forEach {
             val historyElement = it.first
             val aspect = it.second
@@ -195,8 +198,8 @@ class AspectHistoryTest {
         val historyElement1 = aspectHistory[0]
         val historyElement2 = aspectHistory[1]
 
-        assertGreater(historyElement1.event.timestamp, historyElement2.event.timestamp)
-        assertGreater(historyElement1.event.version, historyElement2.event.version)
+        historyElement1.event.timestamp should beGreaterThanOrEqualTo(historyElement2.event.timestamp)
+        historyElement1.event.version should beGreaterThanOrEqualTo(historyElement2.event.version)
         assertNotEquals(historyElement1.event.sessionId, historyElement2.event.sessionId)
 
         assertEquals(1, historyElement1.changes.size)
@@ -425,7 +428,7 @@ class AspectHistoryTest {
 
         val history = historyProvider.getAllHistory().forAspect(aspect)
 
-        history.size shouldBe 1
+        history.size shouldBe  1
 
         val fact = history.first { it.fullData.aspectData.name == aspect.name }
         fact.changes.size shouldBe 4

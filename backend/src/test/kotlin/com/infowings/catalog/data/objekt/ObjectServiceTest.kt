@@ -2026,6 +2026,7 @@ class ObjectServiceTest {
             assertEquals(0, updatedObject.properties.size)
         }
     }
+
     @Test
     fun `Delete object which non-root value is externally linked`() {
         val objectName1 = "deleteObjectWithChildValueExternallyLinkedTest-object"

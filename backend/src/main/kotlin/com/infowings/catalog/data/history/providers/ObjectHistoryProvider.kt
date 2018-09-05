@@ -162,7 +162,8 @@ class ObjectHistoryProvider(
         )
     }
 
-    private fun HistoryFact.nameById(key: String, getter: (String) -> String?): String? = payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
+    private fun HistoryFact.nameById(key: String, getter: (String) -> String?): String? =
+        payload.addedLinks[key]?.first()?.toString()?.let { getter(it) ?: "???" }
 
     private fun HistoryFact.value(state: ObjectState, snapshot: MutableSnapshot): ObjectHistoryInfo.Companion.Value {
         val aspectPropertyName = nameById("aspectProperty") {
