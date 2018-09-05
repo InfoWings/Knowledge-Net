@@ -255,9 +255,8 @@ class MainObjectValidator(
 
     private fun validateMeasureInRequest(measureGroup: MeasureGroup<DecimalNumber>?, requestMeasureName: String?): Measure<DecimalNumber>? {
         return when {
-            measureGroup != null && requestMeasureName != null -> {
+            measureGroup != null && requestMeasureName != null ->
                 measureGroup.getMeasure(requestMeasureName)
-            }
             measureGroup != null && requestMeasureName == null ->
                 throw IllegalArgumentException("Measure group for value is specified (${measureGroup.name}) but no measure is specified in request")
             measureGroup == null && requestMeasureName != null ->
