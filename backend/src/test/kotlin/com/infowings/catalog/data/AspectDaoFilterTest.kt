@@ -45,6 +45,7 @@ class AspectDaoFilterTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun retrieveAspectsByQuery() {
         val foundAspects = aspectDao.findTransitiveByNameQuery(heightAspectName.take(10))
         assertThat("Retrieved set contains 2 aspects", foundAspects.size, Is.`is`(2))
