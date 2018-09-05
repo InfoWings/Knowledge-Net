@@ -164,7 +164,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
             }
         }
 
-        Toaster {
+        child(Toaster::class) {
             attrs {
                 position = Position.TOP_RIGHT
             }

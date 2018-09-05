@@ -90,25 +90,29 @@ private suspend fun authorizedRequest(method: String, url: String, body: dynamic
                 refreshTokenAndRepeatRequest(method, url, body)
             }
         }
-        NOT_MODIFIED -> throw NotModifiedException()
-        BAD_REQUEST -> throw BadRequestException(response.text().await())
-        else -> throw ServerException(response.text().await())
+        NOT_MODIFIED -> throw NotModifiedException(response.timestamp())
+        BAD_REQUEST -> throw BadRequestException(response.text().await(), response.timestamp())
+        else -> throw ServerException(response.text().await(), response.timestamp())
     }
 }
+
+private fun Response.timestamp() = this.headers.get("date")?.let { Date(it).getTime() }
+
+sealed class ApiException(override val message: String?, val timestamp: Double?) : RuntimeException(message)
 
 /**
  * Exception that represents unsuccessful response on http request to server,
  * except for 401(unauthorized) and 403(forbidden) cases
  */
-
-class ServerException(message: String) : RuntimeException(message)
+class ServerException(override val message: String, timestamp: Double?) : ApiException(message, timestamp)
 
 /**
  * Exception that contains message about what was wrong with request to server.
  */
-class BadRequestException(override val message: String) : RuntimeException(message)
+class BadRequestException(override val message: String, timestamp: Double?) : ApiException(message, timestamp)
 
-class NotModifiedException : RuntimeException()
+class NotModifiedException(timestamp: Double?) : ApiException(null, timestamp)
+
 
 private fun redirectToLoginPage() {
     removeAuthRole()
@@ -149,7 +153,7 @@ private suspend fun refreshTokenAndRepeatRequest(method: String, url: String, bo
             redirectToLoginPage()
             responseToRefresh
         }
-        else -> throw ServerException(responseToRefresh.text().await())
+        else -> throw ServerException(responseToRefresh.text().await(), responseToRefresh.timestamp())
     }
 }
 

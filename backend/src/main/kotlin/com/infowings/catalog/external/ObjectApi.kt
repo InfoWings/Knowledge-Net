@@ -134,7 +134,14 @@ class ObjectApi(val objectService: ObjectService) {
     @ExceptionHandler(ObjectException::class)
     fun handleObjectException(exception: ObjectException): ResponseEntity<String> {
         return when (exception) {
-            is ObjectIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+            is ObjectIsLinkedException -> ResponseEntity.badRequest().body(exception.message)
+            is ObjectAlreadyExists -> ResponseEntity.badRequest().body(exception.message)
+            is EmptyObjectCreateNameException -> ResponseEntity.badRequest().body(exception.message)
+            is EmptyObjectUpdateNameException -> ResponseEntity.badRequest().body(exception.message)
+            is ObjectPropertyAlreadyExistException -> ResponseEntity.badRequest().body(exception.message)
+            is ObjectConcurrentEditException -> ResponseEntity.badRequest().body(exception.message)
+            is ObjectPropertyConcurrentEditException -> ResponseEntity.badRequest().body(exception.message)
+            is ObjectPropertyValueConcurrentModificationException -> ResponseEntity.badRequest().body(exception.message)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${exception.message}")
         }
     }
