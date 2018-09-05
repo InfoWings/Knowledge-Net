@@ -211,15 +211,17 @@ class PingTest {
         assertEquals(0, metricsDelta.edgeCounts[OrientEdge.ASPECT_OF_OBJECT_PROPERTY.extName])
     }
 
+    private fun randomName(base: String) = "base${UUID.randomUUID()}"
+
     @Test
     @Suppress("MagicNumber")
     fun testPingWithObjectProperty() {
         val before = pingApi.status()
-        val subject = subjectService.createSubject(SubjectData.Initial("name${UUID.randomUUID()}"), username)
-        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj${UUID.randomUUID()}", null, subject.id), username)
-        val aspect = aspectService.save(AspectData("", "name${UUID.randomUUID()}", description = null, baseType = BaseType.Text.name), "admin")
+        val subject = subjectService.createSubject(SubjectData.Initial(randomName("name")), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest(randomName("obj"), null, subject.id), username)
+        val aspect = aspectService.save(AspectData("", randomName("name"), description = null, baseType = BaseType.Text.name), "admin")
         objectService.create(
-            PropertyCreateRequest(objectCreateResponse.id, "property${UUID.randomUUID()}", PropertyCardinality.ONE.name, aspect.idStrict()),
+            PropertyCreateRequest(objectCreateResponse.id, randomName("property"), PropertyCardinality.ONE.name, aspect.idStrict()),
             username
         )
 
@@ -257,9 +259,9 @@ class PingTest {
     @Suppress("MagicNumber")
     fun testPingWithObjectValue() {
         val before = pingApi.status()
-        val subject = subjectService.createSubject(SubjectData.Initial("name${UUID.randomUUID()}"), username)
-        val objectCreateResponse = objectService.create(ObjectCreateRequest("obj${UUID.randomUUID()}", null, subject.id), username)
-        val aspect = aspectService.save(AspectData("", "name${UUID.randomUUID()}", description = null, baseType = BaseType.Text.name), "admin")
+        val subject = subjectService.createSubject(SubjectData.Initial(randomName("name")), username)
+        val objectCreateResponse = objectService.create(ObjectCreateRequest(randomName("obj"), null, subject.id), username)
+        val aspect = aspectService.save(AspectData("", randomName("name"), description = null, baseType = BaseType.Text.name), "admin")
         val propertyCreateResponse =
             objectService.create(
                 PropertyCreateRequest(
