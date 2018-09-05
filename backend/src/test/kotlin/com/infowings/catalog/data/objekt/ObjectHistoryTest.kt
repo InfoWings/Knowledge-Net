@@ -781,6 +781,7 @@ class ObjectHistoryTest {
 
 
     @Test
+    @Suppress("MagicNumber")
     fun createValueIntPrecHistoryTest() {
         val testName = "createValueIntPrecHistoryTest"
         val intValue = 234
