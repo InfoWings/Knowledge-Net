@@ -112,7 +112,6 @@ class UserServiceTest {
         val anotherUser = anotherUser()
         userService.createUser(anotherUser)
         val newUsers: Set<User> = setOf(user, anotherUser)
-        val all: Set<User> = userService.getAllUsers().toSet()
         val filtered = userService.getAllUsers().toSet().intersect(newUsers)
         filtered shouldBe newUsers
     }

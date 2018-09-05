@@ -211,7 +211,7 @@ class PingTest {
         assertEquals(0, metricsDelta.edgeCounts[OrientEdge.ASPECT_OF_OBJECT_PROPERTY.extName])
     }
 
-    private fun randomName(base: String) = "base${UUID.randomUUID()}"
+    private fun randomName(base: String) = "$base${UUID.randomUUID()}"
 
     @Test
     @Suppress("MagicNumber")
