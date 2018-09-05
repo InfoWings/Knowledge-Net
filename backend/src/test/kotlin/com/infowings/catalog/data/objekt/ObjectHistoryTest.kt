@@ -1256,9 +1256,10 @@ class ObjectHistoryTest {
         assertEquals(null, propertyValue.measureName)
 
         // проверяем изменения
+        val propertyName = propertyC.name ?: throw IllegalStateException("name is not defined")
         checkValueCreateChanges(
             state.changes,
-            mapOf("typeTag" to ScalarTypeTag.ASPECT_PROPERTY.name, "refValueAspectProperty" to propertyC.name!!, "cardinality" to PropertyCardinality.ONE.name),
+            mapOf("typeTag" to ScalarTypeTag.ASPECT_PROPERTY.name, "refValueAspectProperty" to propertyName, "cardinality" to PropertyCardinality.ONE.name),
             prepared.propertyRequest.name
         )
     }

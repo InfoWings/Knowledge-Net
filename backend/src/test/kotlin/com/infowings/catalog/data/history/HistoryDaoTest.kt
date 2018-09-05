@@ -121,7 +121,7 @@ class HistoryDaoTest {
         }
 
         classes.minus(ASPECT_CLASS).forEach {
-            val nInitialEvents = initialEvents[it]!!.size
+            val nInitialEvents = initialEvents.getStrict(it).size
             val classEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, it)).drop(nInitialEvents + nInitialAspectEvents)
             assertEquals(1, classEvents.size, "class: $it")
         }
