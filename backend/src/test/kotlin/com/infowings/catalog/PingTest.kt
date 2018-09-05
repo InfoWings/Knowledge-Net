@@ -108,6 +108,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testStatusWithTwoAspect() {
         val before = pingApi.status()
         aspectService.save(AspectData("", "name-1-${UUID.randomUUID()}", description = null, baseType = BaseType.Text.name), "admin")
@@ -174,6 +175,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithObject() {
         val before = pingApi.status()
         val subject = subjectService.createSubject(SubjectData.Initial("name"), username)
@@ -210,6 +212,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithObjectProperty() {
         val before = pingApi.status()
         val subject = subjectService.createSubject(SubjectData.Initial("name${UUID.randomUUID()}"), username)
@@ -251,6 +254,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithObjectValue() {
         val before = pingApi.status()
         val subject = subjectService.createSubject(SubjectData.Initial("name${UUID.randomUUID()}"), username)
@@ -306,6 +310,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithAspectProperty() {
         val before = pingApi.status()
         val aspect1 = aspectService.save(AspectData("", "name1${UUID.randomUUID()}", description = null, baseType = BaseType.Text.name), "admin")
@@ -355,6 +360,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithRefBook() {
         val before = pingApi.status()
         val aspect1 = aspectService.save(AspectData("", "name1${UUID.randomUUID()}", description = null, baseType = BaseType.Text.name), "admin")
