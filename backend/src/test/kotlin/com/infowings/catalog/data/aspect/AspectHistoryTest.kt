@@ -107,6 +107,7 @@ class AspectHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testAspectHistoryCreateTwice() {
         val before: List<AspectHistory> = historyProvider.getAllHistory()
 
