@@ -3,12 +3,12 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.getStrict
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.storage.*
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,6 +21,7 @@ import kotlin.test.assertEquals
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class HistoryDaoTest {
+
     private val username = "admin"
 
     @Autowired
@@ -79,10 +80,17 @@ class HistoryDaoTest {
     }
 
     @Test
-    @Disabled
     fun testHistoryDaoAspect() {
         val aspectName = "testHistoryDaoAspect aspect"
         val aspectDescr = "aspect description"
+
+        val events0 = historyDao.getAllHistoryEventsByTime()
+
+        val initialEvents = classes.map {
+            it to historyDao.getAllHistoryEventsByTime(it)
+        }.toMap()
+
+
         val created = aspectService.save(
             AspectData(
                 id = "",
@@ -94,30 +102,39 @@ class HistoryDaoTest {
             ), username
         )
 
-        val events = historyDao.getAllHistoryEventsByTime()
-        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
-        val aspectEventsL = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS))
+        val nInitialAspectEvents = initialEvents.getStrict(ASPECT_CLASS).size
+
+        val events = historyDao.getAllHistoryEventsByTime().drop(events0.size)
+        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS).drop(nInitialAspectEvents)
+        val aspectEventsL = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS)).drop(nInitialAspectEvents)
 
         assertEquals(1, events.size)
         assertEquals(1, aspectEvents.size)
         assertEquals(1, aspectEventsL.size)
 
         classes.minus(ASPECT_CLASS).forEach {
-            val classEvents = historyDao.getAllHistoryEventsByTime(it)
-            val classEventsL = historyDao.getAllHistoryEventsByTime(listOf(it))
+            val nInitialEvents = initialEvents.getStrict(it).size
+            val classEvents = historyDao.getAllHistoryEventsByTime(it).drop(nInitialEvents)
+            val classEventsL = historyDao.getAllHistoryEventsByTime(listOf(it)).drop(nInitialEvents)
             assertEquals(0, classEvents.size, "class: $it")
             assertEquals(0, classEventsL.size, "class: $it")
         }
 
         classes.minus(ASPECT_CLASS).forEach {
-            val classEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, it))
+            val nInitialEvents = initialEvents.getStrict(it).size
+            val classEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, it)).drop(nInitialEvents + nInitialAspectEvents)
             assertEquals(1, classEvents.size, "class: $it")
         }
     }
 
     @Test
-    @Disabled
     fun testHistoryDaoRefBook() {
+        val events0 = historyDao.getAllHistoryEventsByTime()
+
+        val initialEvents = classes.map {
+            it to historyDao.getAllHistoryEventsByTime(it)
+        }.toMap()
+
         val aspectName = "testHistoryDaoRefBook aspect"
         val aspectDescr = "aspect description"
         val created = aspectService.save(
@@ -131,15 +148,18 @@ class HistoryDaoTest {
         val rbName = "rb"
         val refBook = refBookService.createReferenceBook(name = rbName, aspectId = aspectId, username = username)
 
-        val events = historyDao.getAllHistoryEventsByTime()
-        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS)
-        val refBookEvents = historyDao.getAllHistoryEventsByTime(REFERENCE_BOOK_ITEM_VERTEX)
+        val nAspectEvents = initialEvents.getStrict(ASPECT_CLASS).size
+        val nRefBookEvents = initialEvents.getStrict(REFERENCE_BOOK_ITEM_VERTEX).size
+
+        val events = historyDao.getAllHistoryEventsByTime().drop(events0.size)
+        val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS).drop(nAspectEvents)
+        val refBookEvents = historyDao.getAllHistoryEventsByTime(REFERENCE_BOOK_ITEM_VERTEX).drop(nRefBookEvents)
 
         assertEquals(3, events.size)
         assertEquals(2, aspectEvents.size)
         assertEquals(1, refBookEvents.size)
 
-        val aspectAndRefBookEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, REFERENCE_BOOK_ITEM_VERTEX))
+        val aspectAndRefBookEvents = historyDao.getAllHistoryEventsByTime(listOf(ASPECT_CLASS, REFERENCE_BOOK_ITEM_VERTEX)).drop(nAspectEvents + nRefBookEvents)
         assertEquals(3, aspectAndRefBookEvents.size)
     }
 }

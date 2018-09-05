@@ -58,6 +58,13 @@ class SubjectHistoryProvider(
             }
         }
 
-        return snapshots.sortedByDescending { it.event.timestamp }
+        return snapshots.sortedWith(SnapshotComparatorDesc)
     }
+}
+
+object SnapshotComparatorDesc : Comparator<HistorySnapshot> {
+    override fun compare(v1: HistorySnapshot, v2: HistorySnapshot): Int = if (v1.event.timestamp == v2.event.timestamp)
+        v2.event.version - v1.event.version
+    else
+        (v2.event.timestamp - v1.event.timestamp).toInt()
 }

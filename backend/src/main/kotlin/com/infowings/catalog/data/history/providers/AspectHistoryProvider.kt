@@ -287,6 +287,13 @@ class AspectHistoryProvider(
             }
         }
 
-        return events.sortedByDescending { it.event.timestamp }
+        return events.sortedWith(AspectComparatorDesc)
     }
+}
+
+object AspectComparatorDesc : Comparator<AspectHistory> {
+    override fun compare(v1: AspectHistory, v2: AspectHistory): Int = if (v1.event.timestamp == v2.event.timestamp)
+        v2.event.version - v1.event.version
+    else
+        (v2.event.timestamp - v1.event.timestamp).toInt()
 }

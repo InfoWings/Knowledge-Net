@@ -108,7 +108,7 @@ data class ObjectPropertyValue(
             else -> aspectProperty.associatedAspect
         }.measure
 
-        val targetValue = value.toObjectValueData()
+        val targetValue: ObjectValueData = value.toObjectValueData()
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
             ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())

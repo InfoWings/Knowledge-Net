@@ -12,7 +12,6 @@ import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -215,7 +214,9 @@ class ObjectServiceTest {
         assertTrue(found.deleted)
     }
 
-    private fun checkValuesSoftAbsence(ids: List<String>) = ids.forEach { checkValueSoftAbsence(it) }
+    private fun checkValuesSoftAbsence(ids: List<String>) {
+        ids.forEach { checkValueSoftAbsence(it) }
+    }
 
     private fun checkPropertyAbsence(id: String) = try {
         val found = objectService.findPropertyById(id)
@@ -1469,7 +1470,6 @@ class ObjectServiceTest {
     }
 
     @Test
-    @Disabled
     fun `Soft delete root value that is externally linked`() {
         val objectName = "softDeleteRootValueExternallyLinkedTest-object"
         val objectDescription = "object description"
@@ -1592,7 +1592,6 @@ class ObjectServiceTest {
     }
 
     @Test
-    @Disabled
     fun softDeleteChildValueExternallyLinkedTest() {
         val objectName = "softDeleteChildValueExternallyLinkedTest-object"
         val objectDescription = "object description"
@@ -1649,7 +1648,7 @@ class ObjectServiceTest {
             assertEquals(0, updatedProperty1.values.size)
         }
 
-        checkValuesSoftAbsence(listOf(valueUpdateResponse1.id, valueCreateResponse.id))
+        checkValuesSoftAbsence(listOf(valueCreateResponse.id))
     }
 
     @Test
@@ -2027,6 +2026,7 @@ class ObjectServiceTest {
             assertEquals(0, updatedObject.properties.size)
         }
     }
+
     @Test
     fun `Delete object which non-root value is externally linked`() {
         val objectName1 = "deleteObjectWithChildValueExternallyLinkedTest-object"

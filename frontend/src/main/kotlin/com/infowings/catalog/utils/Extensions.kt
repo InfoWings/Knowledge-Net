@@ -7,4 +7,3 @@ inline fun <T> List<T>.replaceBy(predicate: (T) -> Boolean, newItem: T) = this.m
 inline fun <T> List<T>.mapOn(predicate: (T) -> Boolean, mapFunction: (T) -> T) = this.map {
     if (predicate(it)) mapFunction(it) else it
 }
-

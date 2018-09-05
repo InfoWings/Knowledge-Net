@@ -217,26 +217,22 @@ class RefBookHistoryProvider(
                     refBookItemEdit(updateFact, state)
                 }
             }
-            else ->
-                RefBookHistory(
-                    event = HistoryEventData(
-                        username = "", timestamp = -1,
-                        version = 0,
-                        type = EventType.UPDATE,
-                        entityId = "???",
-                        entityClass = HISTORY_ENTITY_REFBOOK,
-                        sessionId = ""
-                    ),
-                    info = "???",
-                    deleted = false,
-                    fullData = RefBookHistoryData.Companion.BriefState(
-                        RefBookHistoryData.Companion.Header(
-                            id = "???", name = "???",
-                            aspectName = "???", aspectId = "", description = ""
-                        ), null
-                    ),
+            else -> RefBookHistory(
+                event = HistoryEventData(
+                    username = "", timestamp = -1,
+                    version = 0,
+                    type = EventType.UPDATE,
+                    entityId = "???",
+                    entityClass = HISTORY_ENTITY_REFBOOK,
+                    sessionId = ""
+                ),
+                info = "???",
+                deleted = false,
+                fullData = RefBookHistoryData.Companion.BriefState(
+                    RefBookHistoryData.Companion.Header(id = "???", name = "???", aspectName = "???", aspectId = "", description = ""), null),
                     changes = emptyList()
                 )
+
         }
     }
 
@@ -261,8 +257,11 @@ class RefBookHistoryProvider(
             val ch = try {
                 sessionToChange(sessionFacts, historyState, aspectNames)
             } catch (e: Exception) {
-                logger.warn("Failed to aggregate history for session ${sessionId}")
-                sessionFacts.forEach { logger.warn("fact: " + it) }
+                logger.warn("Failed to aggregate history for session $sessionId. Reason: $e")
+                e.stackTrace.forEach {
+                    logger.warn(it.toString())
+                }
+                sessionFacts.forEach { logger.warn("fact: $it") }
                 logger.warn("history state: $historyState")
 
                 RefBookHistory(sessionFacts.first().event, info = "", deleted = false,

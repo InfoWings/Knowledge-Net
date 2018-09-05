@@ -57,12 +57,12 @@ class RefBookHistoryTest {
     fun testRefBookCreateHistory() {
         val testName = "testRefBookCreateHistory"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = userName)
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val states: List<RefBookHistory> = statesAfter.dropLast(statesBefore.size)
@@ -132,14 +132,14 @@ class RefBookHistoryTest {
         val itemValue = "rbi-1"
         val itemDescription = "rbi-1 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         val itemId = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = itemValue, description = itemDescription), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -236,13 +236,13 @@ class RefBookHistoryTest {
         val itemValue2 = "rbi-2"
         val itemDescription2 = "rbi2 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
         val item2 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = itemValue2, description = itemDescription2), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -339,13 +339,13 @@ class RefBookHistoryTest {
         val itemValue2 = "rbi-2"
         val itemDescription2 = "rbi2 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
         val itemId2 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = itemId1, value = itemValue2, description = itemDescription2), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -444,14 +444,14 @@ class RefBookHistoryTest {
             ItemCreateRequest(parentId = refBook.id, value = itemValue1, description = itemDescription1), "admin"
         )
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         refBookService.editReferenceBookItem(
             LeafEditRequest(id = itemId, value = itemValue2, description = itemDescription2, version = 1), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -483,7 +483,6 @@ class RefBookHistoryTest {
         assertEquals(1, states.size, "History must contain 1 element about ref book")
         val state = states[0]
 
-
         // проверяем мета-данные
         assertEquals(userName, state.event.username)
         assertEquals(event.timestamp, state.event.timestamp)
@@ -498,7 +497,6 @@ class RefBookHistoryTest {
         assertEquals(refBook.description, state.fullData.header.description)
         assertEquals(aspect.id, state.fullData.header.aspectId)
         assertEquals(aspect.name, state.fullData.header.aspectName)
-
 
         // проверяем элемент
         assertNotNull(state.fullData.item)
@@ -527,14 +525,14 @@ class RefBookHistoryTest {
         val rbName2 = "SomeName"
         val rbDescription2 = "Some description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         refBookService.editRoot(
             RootEditRequest(aspectId = aspect.idStrict(), value = rbName2, description = rbDescription2, version = 1), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -565,7 +563,6 @@ class RefBookHistoryTest {
         assertEquals(1, states.size, "History must contain 1 element about ref book")
         val state = states[0]
 
-
         // проверяем мета-данные
         assertEquals(userName, state.event.username)
         assertEquals(event.timestamp, state.event.timestamp)
@@ -595,6 +592,8 @@ class RefBookHistoryTest {
     }
 
     private fun Set<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
-
     private fun Set<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
+
+    private fun List<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
+    private fun List<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
 }
