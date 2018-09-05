@@ -106,20 +106,18 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 DetailedRootValueViewResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-                    rootValue.explicitMeasureSymbol(),
+                    rootValue.getOrCalculateMeasureSymbol(),
                     rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
                 )
             }
         }
 
-    private fun ObjectPropertyValueVertex.explicitMeasureSymbol(): String? {
+    private fun ObjectPropertyValueVertex.getOrCalculateMeasureSymbol(): String? {
         val currentMeasureSymbol = this.measure?.toMeasure()?.symbol
-        return if (currentMeasureSymbol == null) {
+        return currentMeasureSymbol ?: run {
             val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
             aspect?.measure?.symbol
-        } else {
-            currentMeasureSymbol
         }
     }
 
@@ -129,7 +127,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return DetailedValueViewResponse(
             this.id,
             this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-            this.explicitMeasureSymbol(),
+            this.getOrCalculateMeasureSymbol(),
             this.description,
             AspectPropertyDataExtended(
                 aspectProperty.name,
