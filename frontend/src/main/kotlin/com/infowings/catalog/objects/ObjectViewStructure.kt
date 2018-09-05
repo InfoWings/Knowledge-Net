@@ -25,7 +25,7 @@ data class ObjectPropertyViewModel(
     val name: String?,
     val cardinality: PropertyCardinality,
     val description: String?,
-    val aspect: AspectData,
+    val aspect: AspectTruncated,
     val values: List<ObjectPropertyValueViewModel>
 ) {
     constructor(objectPropertyView: DetailedObjectPropertyViewResponse) : this(
@@ -105,37 +105,25 @@ data class AspectPropertyValueViewModel(
 }
 
 data class AspectPropertyViewModel(
-    val propertyId: String,
-    val aspectId: String,
-    val cardinality: PropertyCardinality,
     val roleName: String?,
     val aspectName: String,
-    val measure: String?,
     val baseType: String,
-    val domain: String,
-    val refBookName: String?
+    val refBookName: String?,
+    val subjectName: String?
 ) {
     constructor(aspectPropertyData: AspectPropertyDataExtended) : this(
-        aspectPropertyData.id,
-        aspectPropertyData.aspectId,
-        PropertyCardinality.valueOf(aspectPropertyData.cardinality),
         aspectPropertyData.name,
         aspectPropertyData.aspectName,
-        aspectPropertyData.aspectMeasure,
         aspectPropertyData.aspectBaseType,
-        aspectPropertyData.aspectDomain,
-        aspectPropertyData.refBookName
+        aspectPropertyData.refBookName,
+        aspectPropertyData.aspectSubjectName
     )
 
     fun toExtendedPropertyData() = AspectPropertyDataExtended(
-        id = propertyId,
         name = roleName ?: "",
-        cardinality = cardinality.name,
-        aspectId = aspectId,
         aspectName = aspectName,
-        aspectMeasure = measure,
-        aspectDomain = domain,
         aspectBaseType = baseType,
+        aspectSubjectName = subjectName,
         refBookName = refBookName
     )
 }

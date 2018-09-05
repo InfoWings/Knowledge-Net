@@ -60,14 +60,10 @@ data class AspectPropertyData(
 /** Data about AspectProperty together with data about relevant aspect */
 @Serializable
 data class AspectPropertyDataExtended(
-    val id: String,
     val name: String?,
-    val aspectId: String,
-    val cardinality: String,
     val aspectName: String,
-    val aspectMeasure: String?,
-    val aspectDomain: String,
     val aspectBaseType: String,
+    val aspectSubjectName: String?,
     val refBookName: String?
 )
 

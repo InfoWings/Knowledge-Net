@@ -6,6 +6,7 @@ import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
@@ -51,10 +52,24 @@ class ObjectService(
             propertyVertex.id,
             propertyVertex.name,
             propertyVertex.description,
-            propertyVertex.aspect?.toAspectData() ?: throw IllegalStateException("Object property ${propertyVertex.id} without aspect"),
+            propertyVertex.aspect.toAspectTruncated(),
             propertyVertex.cardinality.name,
             values
         )
+    }
+
+    private fun AspectVertex?.toAspectTruncated(): AspectTruncated {
+        if (this == null) {
+            throw NullPointerException("Aspect vertex is null")
+        } else {
+            return AspectTruncated(
+                this.id,
+                this.name,
+                this.baseTypeStrict,
+                this.referenceBookRootVertex?.name,
+                this.subject?.name
+            )
+        }
     }
 
     fun getDetailedObjectForEdit(id: String) =
