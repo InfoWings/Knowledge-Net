@@ -561,6 +561,7 @@ class ObjectHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun createValueDecimalHistoryTest() {
         val testName = "createValueDecimalHistoryTest"
         val value = "123.12"
