@@ -3,6 +3,7 @@ package com.infowings.catalog.data.history
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.getStrict
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
@@ -20,6 +21,7 @@ import kotlin.test.assertEquals
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS, methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 class HistoryDaoTest {
+
     private val username = "admin"
 
     @Autowired
@@ -100,7 +102,7 @@ class HistoryDaoTest {
             ), username
         )
 
-        val nInitialAspectEvents = initialEvents[ASPECT_CLASS]!!.size
+        val nInitialAspectEvents = initialEvents.getStrict(ASPECT_CLASS).size
 
         val events = historyDao.getAllHistoryEventsByTime().drop(events0.size)
         val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS).drop(nInitialAspectEvents)
@@ -111,7 +113,7 @@ class HistoryDaoTest {
         assertEquals(1, aspectEventsL.size)
 
         classes.minus(ASPECT_CLASS).forEach {
-            val nInitialEvents = initialEvents[it]!!.size
+            val nInitialEvents = initialEvents.getStrict(it).size
             val classEvents = historyDao.getAllHistoryEventsByTime(it).drop(nInitialEvents)
             val classEventsL = historyDao.getAllHistoryEventsByTime(listOf(it)).drop(nInitialEvents)
             assertEquals(0, classEvents.size, "class: $it")
@@ -146,8 +148,8 @@ class HistoryDaoTest {
         val rbName = "rb"
         val refBook = refBookService.createReferenceBook(name = rbName, aspectId = aspectId, username = username)
 
-        val nAspectEvents = initialEvents[ASPECT_CLASS]!!.size
-        val nRefBookEvents = initialEvents[REFERENCE_BOOK_ITEM_VERTEX]!!.size
+        val nAspectEvents = initialEvents.getStrict(ASPECT_CLASS).size
+        val nRefBookEvents = initialEvents.getStrict(REFERENCE_BOOK_ITEM_VERTEX).size
 
         val events = historyDao.getAllHistoryEventsByTime().drop(events0.size)
         val aspectEvents = historyDao.getAllHistoryEventsByTime(ASPECT_CLASS).drop(nAspectEvents)
