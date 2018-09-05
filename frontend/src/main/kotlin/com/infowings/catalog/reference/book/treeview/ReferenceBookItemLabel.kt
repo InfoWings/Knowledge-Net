@@ -58,7 +58,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-tree-view--label") {
+        div(classes = "book-tree-view__label") {
             attrs {
                 onClickFunction = ::startUpdatingBookItem
             }
@@ -71,7 +71,7 @@ class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, Referenc
                     }
                 }
             } else {
-                span(classes = "book-tree-view--label-item") {
+                span(classes = "book-tree-view__label-item") {
                     +props.bookItem.value
                 }
 

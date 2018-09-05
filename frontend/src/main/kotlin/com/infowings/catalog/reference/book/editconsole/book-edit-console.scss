@@ -2,23 +2,23 @@
   display: inline-block;
   margin-bottom: 0.4rem;
 
-  &--input-group {
+  &__input-group {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
   }
 
-  &--input-container {
+  &__input-container {
     flex: 0 1 35rem;
   }
 
-  &--input-label {
+  &__input-label {
     font-size: 1.2rem;
     margin-left: 2rem;
     margin-bottom: 0;
   }
 
-  &--input-wrapper {
+  &__input-wrapper {
     border-radius: 3px;
     background-color: #d6d6d6;
     line-height: 2rem;
@@ -30,7 +30,7 @@
     }
   }
 
-  &--input {
+  &__input {
     border: none;
     background-color: transparent;
     width: 100%;
@@ -39,7 +39,7 @@
       outline: none
     }
   }
-  &--error-message {
+  &__error-message {
     font-size: 1.4rem;
     color: maroon;
     white-space: nowrap;

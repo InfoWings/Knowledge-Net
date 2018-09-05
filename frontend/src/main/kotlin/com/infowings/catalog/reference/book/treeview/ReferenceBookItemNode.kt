@@ -73,7 +73,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
             attrs {
                 expanded = state.creatingBookItem
                 treeNodeContent = buildElement {
-                    div(classes = "book-tree-view--item") {
+                    div(classes = "book-tree-view__item") {
                         referenceBookItemLabel {
                             attrs {
                                 aspectId = props.aspectId
@@ -83,7 +83,7 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
                         }
 
                         descriptionComponent(
-                            className = "book-tree-view--description",
+                            className = "book-tree-view__description",
                             description = props.bookItem.description,
                             onNewDescriptionConfirmed = {
                                 launch {
@@ -97,13 +97,13 @@ class ReferenceBookItemNode : RComponent<ReferenceBookItemNode.Props, ReferenceB
                             onEditStarted = null
                         )
 
-                        addToListIcon(classes = "book-tree-view--add-to-list-icon") {
+                        addToListIcon(classes = "book-tree-view__add-to-list-icon") {
                             attrs {
                                 onClickFunction = ::startCreatingBookItem
                             }
                         }
 
-                        ripIcon("book-tree-view--delete-icon book-tree-view--delete-icon__red") {
+                        ripIcon("book-tree-view__delete-icon book-tree-view__delete-icon--red") {
                             attrs {
                                 onClickFunction = ::handleDeleteClick
                             }

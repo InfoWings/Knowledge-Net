@@ -86,7 +86,7 @@ class ReferenceBookItemEditConsole(props: Props) :
                             onKeyDownFunction = ::handleKeyDown
                             onBlurFunction = ::handleBlur
                         }
-                        div(classes = "book-edit-console--input-group") {
+                        div(classes = "book-edit-console__input-group") {
                             referenceBookItemValueInput {
                                 attrs {
                                     value = state.value
@@ -95,7 +95,7 @@ class ReferenceBookItemEditConsole(props: Props) :
                             }
                             val errorMessage = state.errorMessage
                             if (errorMessage != null) {
-                                span(classes = "book-edit-console--error-message") {
+                                span(classes = "book-edit-console__error-message") {
                                     +errorMessage
                                 }
                             }

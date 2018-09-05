@@ -18,9 +18,9 @@ class ReferenceBookNameInput : RComponent<ReferenceBookNameInput.Props, RState>(
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-edit-console--input-container") {
-            div(classes = "book-edit-console--input-wrapper") {
-                input(type = InputType.text, name = "book-name-input", classes = "book-edit-console--input") {
+        div(classes = "book-edit-console__input-container") {
+            div(classes = "book-edit-console__input-wrapper") {
+                input(type = InputType.text, name = "book-name-input", classes = "book-edit-console__input") {
                     attrs {
                         id = "book-name-input"
                         value = props.value ?: ""
