@@ -42,7 +42,8 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
                             baseTypeOption(BaseType.Boolean.name),
                             baseTypeOption(BaseType.Decimal.name),
                             baseTypeOption(BaseType.Integer.name),
-                            baseTypeOption(BaseType.Text.name)
+                            baseTypeOption(BaseType.Text.name),
+                            baseTypeOption(BaseType.Reference.name)
                         )
                     }
                 }
