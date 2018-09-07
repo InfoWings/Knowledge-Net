@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.guid
 
-
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
@@ -63,6 +62,6 @@ class GuidDaoTest {
 
     @Test
     fun testGuidDaoFind() {
-        val found = guidDao.find(listOfNotNull(baseAspect.guid))
+        guidDao.find(listOfNotNull(baseAspect.guid))
     }
 }

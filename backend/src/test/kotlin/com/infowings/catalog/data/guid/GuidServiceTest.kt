@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.guid
 
-
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectChangeResponse
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
@@ -71,20 +70,19 @@ class GuidServiceTest {
 
         subject = subjectService.createSubject(SubjectData.Initial(name = randomName("subject")), username)
 
-        val textAspect = aspectService.save(AspectData(id = "", name = randomName("aspect"), description = "description",
+        val textAspect = aspectService.save(AspectData(id = "", name = randomName("aspect"), description = "aspect description",
             version = 0, deleted = false, baseType = BaseType.Text.name), username)
 
         refBook = refBookService.createReferenceBook(randomName("refbook"), textAspect.idStrict(), username)
 
         objectChange = objectService.create(ObjectCreateRequest(randomName("object"), "description", subject.id), username)
 
-        propertyChange = objectService.create(PropertyCreateRequest(objectChange.id, randomName("object"), "description", baseAspect.idStrict()), username)
+        propertyChange = objectService.create(PropertyCreateRequest(objectChange.id, randomName("object"), "property description", baseAspect.idStrict()), username)
 
         rootValue = transaction (db) {
             objectService.findPropertyValueById(propertyChange.rootValue.id).toObjectPropertyValue()
         }
     }
-
 
     @Test
     fun testGuidMetadata() {
