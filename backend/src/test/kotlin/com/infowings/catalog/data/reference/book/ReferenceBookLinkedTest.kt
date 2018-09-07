@@ -11,12 +11,10 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.rules.ExpectedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -45,14 +43,11 @@ class ReferenceBookLinkedTest {
         refBook = referenceBookService.createReferenceBook("Example", leafAspect.id!!, username)
     }
 
-    @get:Rule
-    val thrown: ExpectedException = ExpectedException.none()
-
     @Test
     fun updateLinkedReferenceBookItem() {
         val childId = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
         addLinkToRefBookItem(childId)
-        val forUpdateItem = ReferenceBookItem(childId, "new", null, emptyList(), false, refBook.version)
+        val forUpdateItem = ReferenceBookItem(childId, "new", null, emptyList(), false, refBook.version, null)
         assertThrows<RefBookItemHasLinkedEntitiesException> {
             referenceBookService.updateReferenceBookItem(forUpdateItem, username)
         }
@@ -140,7 +135,8 @@ class ReferenceBookLinkedTest {
             null,
             emptyList(),
             false,
-            0
+            0,
+            null
         )
     }
 

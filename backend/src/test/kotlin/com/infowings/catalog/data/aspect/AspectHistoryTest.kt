@@ -89,9 +89,10 @@ class AspectHistoryTest {
 
         aspectHistoryElement.event.timestamp should beGreaterThan(0L)
 
-        assertEquals(3, aspectHistoryElement.changes.size)
+        assertEquals(4, aspectHistoryElement.changes.size)
         val changedFields = aspectHistoryElement.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+        val fields = setOf(AspectField.NAME, AspectField.BASE_TYPE, AspectField.DESCRIPTION, AspectField.GUID)
+        assertEquals(fields.map { it.view }.toSet(), changedFields.keys)
         val nameChange = changedFields.getValue("Name")[0]
         assertEquals(aspect.name, nameChange.after)
         assertEquals("", nameChange.before)
@@ -104,7 +105,7 @@ class AspectHistoryTest {
         val fact = transaction(db) {
             entityVertex.toFact()
         }
-        assertEquals(setOf(AspectField.NAME.name, AspectField.BASE_TYPE.name, AspectField.DESCRIPTION.name), fact.payload.data.keys)
+        assertEquals(fields.map { it.name }.toSet(), fact.payload.data.keys)
         assertEquals("aspect", fact.payload.data[AspectField.NAME.name])
     }
 
@@ -153,10 +154,10 @@ class AspectHistoryTest {
             )
             assertEquals(aspect.id, historyElement.event.entityId, "enity id must correspond with id of added aspect")
 
-            assertEquals(3, historyElement.changes.size, "history element: $historyElement")
+            assertEquals(4, historyElement.changes.size, "history element: $historyElement")
             assertEquals(0, historyElement.fullData.related.size, "history element: $historyElement")
             val changedFields = historyElement.changes.groupBy { it.fieldName }
-            assertEquals(setOf("Name", "Base type", "Description"), changedFields.keys)
+            assertEquals(setOf(AspectField.NAME, AspectField.BASE_TYPE, AspectField.DESCRIPTION, AspectField.GUID).map { it.view }.toSet(), changedFields.keys)
             val nameChange = changedFields.getValue("Name")[0]
             assertEquals(aspect.name, nameChange.after)
         }
@@ -294,7 +295,7 @@ class AspectHistoryTest {
         assertEquals(updateFact.event.sessionId, propertyFact.event.sessionId, "session ids must match")
 
         assertEquals(
-            setOf(AspectPropertyField.CARDINALITY.name, AspectPropertyField.NAME.name, AspectPropertyField.ASPECT.name),
+            setOf(AspectPropertyField.CARDINALITY.name, AspectPropertyField.NAME.name, AspectPropertyField.ASPECT.name, AspectPropertyField.GUID.name),
             propertyFact.payload.data.keys
         )
 
@@ -431,7 +432,7 @@ class AspectHistoryTest {
         history.size shouldBe  1
 
         val fact = history.first { it.fullData.aspectData.name == aspect.name }
-        fact.changes.size shouldBe 4
+        fact.changes.size shouldBe 5
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -7,7 +8,6 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
-import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.toObjectVertex(): ObjectVertex {
@@ -21,7 +21,8 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
-            "description" to asStringOrEmpty(description)
+            "description" to asStringOrEmpty(description),
+            "guid" to asStringOrEmpty(guid)
         ),
         links = mapOf(
             "subject" to listOfNotNull(subject?.identity),
@@ -42,8 +43,8 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
             vertex[ATTR_DESC] = value
         }
 
-    val outEdges: List<OEdge>
-        get() = vertex.getEdges(ODirection.OUT, OBJECT_SUBJECT_EDGE).toList()
+    val guid: String?
+        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_OBJECT.extName).firstOrNull()?.toGuidVertex()?.guid
 
 
     val subject: SubjectVertex?
@@ -56,6 +57,6 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
 
-        return Objekt(identity, name, description, currentSubject, properties)
+        return Objekt(identity, name, description, currentSubject, properties, guid)
     }
 }

@@ -5,6 +5,7 @@ import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asString
@@ -236,15 +237,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val refValueAspectProperty: AspectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectPropertyVertex()
 
-    val refValueRefBookItem: ReferenceBookItemVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
-
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
     val children: List<ObjectPropertyValueVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+
+    val guid: String?
+        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_VALUE.extName).firstOrNull()?.toGuidVertex()?.guid
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -281,7 +282,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         }
 
 
-        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)
+        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure, guid)
     }
 }
 

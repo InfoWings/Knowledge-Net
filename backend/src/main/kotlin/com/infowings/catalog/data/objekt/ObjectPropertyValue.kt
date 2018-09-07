@@ -100,7 +100,8 @@ data class ObjectPropertyValue(
     val objectProperty: ObjectPropertyVertex,
     val aspectProperty: AspectPropertyVertex?,
     val parentValue: ObjectPropertyValueVertex?,
-    val measure: OVertex?
+    val measure: OVertex?,
+    val guid: String?
 ) {
     fun calculateObjectValueData(): ObjectValueData {
         val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
@@ -149,6 +150,9 @@ data class ValueResult(
 
     val version: Int
         get() = valueVertex.version
+
+    val guid: String?
+        get() = valueVertex.guid
 }
 
 data class ValueDeleteResult(

@@ -79,7 +79,7 @@ class RefBookHistoryTest {
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
         val refBookPayload = refBookFacts.first().payload
-        assertEquals(setOf("value"), refBookPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "guid"), refBookPayload.data.keys, "keys must be correct")
         assertEquals(setOf("aspect"), refBookPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), refBookPayload.removedLinks.keys, "removed links must be correct")
 
@@ -114,13 +114,13 @@ class RefBookHistoryTest {
         assertEquals(null, state.fullData.item)
 
         // проверяем changes
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "Aspect"), byField.keys)
+        assertEquals(setOf("Name", "Aspect", "guid"), byField.keys)
         assertEquals(testName, byField.getValue("Name")[0].after)
 //        assertEquals(aspect.id, byField.getValue("link_aspect")[0].after)
         assertEquals(aspect.name, byField.getValue("Aspect")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
@@ -173,7 +173,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -215,12 +215,12 @@ class RefBookHistoryTest {
         assertEquals(itemDescription, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue, byField.getValue("Name")[0].after)
         assertEquals(itemDescription, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
@@ -276,7 +276,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -318,12 +318,12 @@ class RefBookHistoryTest {
         assertEquals(itemDescription2, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
@@ -377,7 +377,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -420,12 +420,12 @@ class RefBookHistoryTest {
         assertEquals(itemDescription2, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
@@ -592,7 +592,6 @@ class RefBookHistoryTest {
     }
 
     private fun Set<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
-    private fun Set<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
 
     private fun List<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
     private fun List<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)

@@ -141,9 +141,9 @@ class ObjectHistoryTest {
         assertEquals(null, state.fullData.value)
 
         // проверяем changes
-        assertEquals(3, state.changes.size)
+        assertEquals(4, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("name", "description", "subject"), byField.keys)
+        assertEquals(setOf("name", "description", "subject", "guid"), byField.keys)
         assertEquals(objectName, byField.getValue("name")[0].after)
         assertEquals(objectDescription, byField.getValue("description")[0].after)
         assertEquals(subject.name, byField.getValue("subject")[0].after)
@@ -195,7 +195,7 @@ class ObjectHistoryTest {
         assertEquals(EventType.CREATE, createFact.event.type, "event type must be correct")
 
         val createPayload = createFact.payload
-        assertEquals(setOf("name", "cardinality"), createPayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("name", "cardinality", "guid"), createPayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("aspect", "object"), createPayload.addedLinks.keys, "added links keys must be correct")
         assertEquals(propertyRequest.name, createPayload.data["name"], "name must be correct")
@@ -276,9 +276,9 @@ class ObjectHistoryTest {
         assertEquals(null, state.fullData.value)
 
         // проверяем изменения
-        assertEquals(3, state.changes.size)
+        assertEquals(4, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("name", "cardinality", "aspect"), byField.keys)
+        assertEquals(setOf("name", "cardinality", "aspect", "guid"), byField.keys)
         assertEquals(propertyName, byField.getValue("name")[0].after)
         assertEquals(PropertyCardinality.ZERO.name, byField.getValue("cardinality")[0].after)
         assertEquals(aspect.name, byField.getValue("aspect")[0].after)
@@ -1546,7 +1546,7 @@ class ObjectHistoryTest {
                 description = null,
                 children = emptyList(),
                 deleted = false,
-                version = 0
+                version = 0, guid = null
             ), "admin"
         )
 

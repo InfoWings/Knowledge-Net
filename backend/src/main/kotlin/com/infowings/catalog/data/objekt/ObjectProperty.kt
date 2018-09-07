@@ -1,29 +1,13 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
-
-/**
- * Object property data representation for use in backend context.
- * It can use Orient data structures but it is detached from database - updated to it does not lead to
- * updates in database
- */
-data class ObjectProperty(
-    val id: ORID?,
-    val name: String,
-    val cardinality: PropertyCardinality,
-    val objekt: ObjectVertex,
-    val aspect: AspectVertex,
-    val values: List<ObjectPropertyValueVertex>
-)
 
 data class PropertyCreateResult(
     private val propertyVertex: ObjectPropertyVertex,
@@ -53,6 +37,9 @@ data class PropertyCreateResult(
 
     val version: Int
         get() = propertyVertex.version
+
+    val guid: String?
+        get() = propertyVertex.guid
 }
 
 data class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {

@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -22,7 +23,8 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
         data = mapOf(
             "name" to asStringOrEmpty(name),
             "description" to asStringOrEmpty(description),
-            "cardinality" to asStringOrEmpty(cardinality)
+            "cardinality" to asStringOrEmpty(cardinality),
+            "guid" to asStringOrEmpty(guid)
         ),
         links = mapOf(
             "aspect" to listOfNotNull(aspect?.identity),
@@ -59,6 +61,9 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
             ODirection.IN,
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
         ).map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+
+    val guid: String?
+        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName).firstOrNull()?.toGuidVertex()?.guid
 
 }
 

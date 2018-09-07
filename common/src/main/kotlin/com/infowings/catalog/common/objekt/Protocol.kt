@@ -97,7 +97,8 @@ data class ObjectChangeResponse(
     val description: String?,
     val subjectId: String,
     val subjectName: String,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -107,7 +108,8 @@ data class PropertyCreateResponse(
     val rootValue: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -137,7 +139,8 @@ data class ValueChangeResponse(
     val objectProperty: Reference,
     val aspectPropertyId: String?,
     val parentValue: Reference?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable

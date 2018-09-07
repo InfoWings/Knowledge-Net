@@ -70,6 +70,7 @@ class SubjectHistoryTest {
 
         val subject1 =
             subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-1"), username)
+        Thread.sleep(10)
         val subject2 =
             subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-2"), username)
 
@@ -102,7 +103,7 @@ class SubjectHistoryTest {
         assertEquals(2, snapshot1.event.version, "version must be 2")
         assertEquals(1, snapshot2.event.version, "version must be 1")
         assertEquals(EventType.UPDATE, snapshot1.event.type, "version must be 2")
-        assertEquals(setOf("name", "description"), snapshot1.after.data.keys, "data keys must be correct")
+        assertEquals(setOf("name", "description", "guid"), snapshot1.after.data.keys, "data keys must be correct")
         assertEquals(subject2.name, snapshot1.after.data["name"], "name must be correct")
         assertEquals(subject2.description, snapshot1.after.data["description"], "description must be correct")
     }

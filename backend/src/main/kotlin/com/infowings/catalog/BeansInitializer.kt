@@ -9,6 +9,8 @@ import com.infowings.catalog.data.NormalizedSubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.DefaultAspectService
 import com.infowings.catalog.data.aspect.NormalizedAspectService
+import com.infowings.catalog.data.guid.GuidDaoService
+import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.providers.AspectHistoryProvider
@@ -55,13 +57,13 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean {
-            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref())
+            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref(), guidDao = ref())
             return@bean NormalizedReferenceBookService(innerRefBookService)
         }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
         bean { SubjectDao(db = ref()) }
         bean {
-            val innerSubjectService = DefaultSubjectService(db = ref(), dao = ref(), history = ref(), userService = ref())
+            val innerSubjectService = DefaultSubjectService(db = ref(), dao = ref(), guidDao = ref(), history = ref(), userService = ref())
             return@bean NormalizedSubjectService(innerSubjectService)
         }
         bean {
@@ -70,6 +72,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 aspectDaoService = ref(),
                 referenceBookService = ref(),
                 historyService = ref(),
+                guidDao = ref(),
                 userService = ref()
             )
             return@bean NormalizedAspectService(innerAspectService)
@@ -87,17 +90,11 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         }
         bean { SubjectHistoryProvider(historyService = ref()) }
         bean { ObjectDaoService(db = ref()) }
+        bean { GuidDaoService(db = ref()) }
+        bean { GuidService(db = ref(), dao = ref()) }
         bean {
-            ObjectService(
-                db = ref(),
-                dao = ref(),
-                subjectService = ref(),
-                userService = ref(),
-                aspectDao = ref(),
-                measureService = ref(),
-                refBookService = ref(),
-                historyService = ref()
-            )
+            ObjectService(db = ref(), dao = ref(), subjectService = ref(), userService = ref(), aspectDao = ref(), measureService = ref(), guidDao = ref(),
+                refBookService = ref(), historyService = ref())
         }
 
         bean {

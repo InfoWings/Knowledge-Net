@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.subject
 
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -22,7 +23,8 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
-            "description" to asStringOrEmpty(description)
+            "description" to asStringOrEmpty(description),
+            "guid" to asStringOrEmpty(guid)
         ),
         links = mapOf(
             "objects" to objects.map { it.identity }
@@ -50,6 +52,8 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     val objects: List<ObjectVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
 
+    val guid: String?
+        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_SUBJECT.extName).firstOrNull()?.toGuidVertex()?.guid
 
     fun linkedByAspects() = incomingEdges(ASPECT_SUBJECT_EDGE).map {
         val source = it.from.asVertex()

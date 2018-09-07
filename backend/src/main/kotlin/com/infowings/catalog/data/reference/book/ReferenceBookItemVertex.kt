@@ -4,6 +4,7 @@ import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -30,7 +31,8 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "value" to asStringOrEmpty(value),
-            "description" to asStringOrEmpty(description)
+            "description" to asStringOrEmpty(description),
+            "guid" to asStringOrEmpty(guid)
         ),
         links = mapOf(
             "children" to children.map { it.identity },
@@ -76,9 +78,12 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val parent: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, edgeName).firstOrNull()?.toReferenceBookItemVertex()
 
+    val guid: String?
+        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_REFBOOK_ITEM.extName).firstOrNull()?.toGuidVertex()?.guid
+
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }
-        return ReferenceBookItem(id, value, description, children, deleted, version)
+        return ReferenceBookItem(id, value, description, children, deleted, version, guid)
     }
 
     fun toNodeDescriptor(): RefBookNodeDescriptor =
