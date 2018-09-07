@@ -18,11 +18,21 @@ fun OVertex.toReferenceBookItemVertex(): ReferenceBookItemVertex {
     return ReferenceBookItemVertex(this)
 }
 
-
 const val ASPECT_REFERENCE_BOOK_EDGE = "AspectReferenceBookEdge"
 const val REFERENCE_BOOK_ITEM_VERTEX = "ReferenceBookItemVertex"
 const val REFERENCE_BOOK_CHILD_EDGE = "ReferenceBookChildEdge"
 const val REFERENCE_BOOK_ROOT_EDGE = "ReferenceBookRootEdge"
+
+enum class RefBookField(val extName: String) {
+    VALUE("value"),
+    DESCRIPTION("description"),
+    GUID("guid"),
+    DELETED("deleted"),
+    LINK_CHILDREN("children"),
+    LINK_ASPECT("aspect"),
+    LINK_PARENT("parent"),
+    LINK_ROOT("root"),
+}
 
 class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
@@ -30,15 +40,15 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "value" to asStringOrEmpty(value),
-            "description" to asStringOrEmpty(description),
-            "guid" to asStringOrEmpty(guid)
+            RefBookField.VALUE.extName to asStringOrEmpty(value),
+            RefBookField.DESCRIPTION.extName to asStringOrEmpty(description),
+            RefBookField.GUID.extName to asStringOrEmpty(guid)
         ),
         links = mapOf(
-            "children" to children.map { it.identity },
-            "aspect" to listOfNotNull(aspect).map { it.identity },
-            "parent" to listOfNotNull(parent).map { it.identity },
-            "root" to listOfNotNull(root).map { it.identity }
+            RefBookField.LINK_CHILDREN.extName to children.map { it.identity },
+            RefBookField.LINK_ASPECT.extName to listOfNotNull(aspect).map { it.identity },
+            RefBookField.LINK_PARENT.extName to listOfNotNull(parent).map { it.identity },
+            RefBookField.LINK_ROOT.extName to listOfNotNull(root).map { it.identity }
         )
     )
 
@@ -49,21 +59,21 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
             .firstOrNull()
 
     var value: String
-        get() = this["value"]
+        get() = this[RefBookField.VALUE.extName]
         set(value) {
-            this["value"] = value
+            this[RefBookField.VALUE.extName] = value
         }
 
     var description: String?
-        get() = this["description"]
+        get() = this[RefBookField.DESCRIPTION.extName]
         set(value) {
-            this["description"] = value
+            this[RefBookField.DESCRIPTION.extName] = value
         }
 
     var deleted: Boolean
-        get() = this["deleted"] ?: false
+        get() = this[RefBookField.DELETED.extName] ?: false
         set(value) {
-            this["deleted"] = value
+            this[RefBookField.DELETED.extName] = value
         }
 
     val children: List<ReferenceBookItemVertex>

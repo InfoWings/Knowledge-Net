@@ -416,6 +416,7 @@ class AspectHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testAspectHistoryWithSubject() {
         val subject = subjectService
             .createSubject(SubjectData(name = "subject-1", description = "subject description"), username)

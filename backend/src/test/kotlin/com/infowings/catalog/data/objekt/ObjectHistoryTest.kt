@@ -31,6 +31,8 @@ import kotlin.test.fail
 @Suppress("StringLiteralDuplication")
 class ObjectHistoryTest {
     @Autowired
+    private lateinit var db: OrientDatabase
+    @Autowired
     private lateinit var subjectService: SubjectService
     @Autowired
     private lateinit var aspectService: AspectService
@@ -79,6 +81,7 @@ class ObjectHistoryTest {
     private fun propertyOfComplex() = complexAspect.properties[0]
 
     @Test
+    @Suppress("MagicNumber")
     fun createObjectHistoryTest() {
         val factsBefore: List<HistoryFact> = historyService.allTimeline(
             listOf(OrientClass.OBJECT, OrientClass.SUBJECT).map { it.extName }
@@ -222,7 +225,7 @@ class ObjectHistoryTest {
         val valuePayload = valueFactsAdded.first().payload
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, valueEvent.entityClass, "class must be correct")
         assertEquals(EventType.CREATE, valueEvent.type, "event type must be correct")
-        assertEquals(setOf("typeTag"), valuePayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "guid"), valuePayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
 
         val valueToPropertyLinks = valuePayload.addedLinks["objectProperty"] ?: fail("unexpected absence of value links")
@@ -876,7 +879,7 @@ class ObjectHistoryTest {
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, childEvent.entityClass, "class must be correct")
         assertEquals(EventType.CREATE, childEvent.type, "event type must be correct")
 
-        assertEquals(setOf("typeTag", "strValue"), childPayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "strValue", "guid"), childPayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), childPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("objectProperty"), childPayload.addedLinks.keys, "added links keys must be correct")
 
@@ -929,9 +932,9 @@ class ObjectHistoryTest {
         assertEquals(null, propertyValue.measureName)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("typeTag", "strValue").map { prepared2.propertyRequest.name + ":" + it }.toSet(), byField.keys)
+        assertEquals(setOf("typeTag", "strValue", "guid").map { prepared2.propertyRequest.name + ":" + it }.toSet(), byField.keys)
         assertEquals(ScalarTypeTag.STRING.name, byField.getValue(prepared2.propertyRequest.name + ":typeTag")[0].after)
         assertEquals(value2, byField.getValue(prepared2.propertyRequest.name + ":strValue")[0].after)
         assertEquals(state.changes.map { "" }, state.changes.map { it.before })
@@ -964,7 +967,7 @@ class ObjectHistoryTest {
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, childEvent.entityClass, "class must be correct")
         assertEquals(EventType.CREATE, childEvent.type, "event type must be correct")
 
-        assertEquals(setOf("typeTag", "strValue"), childPayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "strValue", "guid"), childPayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), childPayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("objectProperty", "parentValue", "aspectProperty"), childPayload.addedLinks.keys, "added links keys must be correct")
 
@@ -1031,9 +1034,9 @@ class ObjectHistoryTest {
         assertEquals(null, propertyValue.measureName)
 
         // проверяем изменения
-        assertEquals(3, state.changes.size)
+        assertEquals(4, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("typeTag", "strValue", "aspectProperty").map { prepared2.propertyRequest.name + ":" + it }.toSet(), byField.keys)
+        assertEquals(setOf("typeTag", "strValue", "aspectProperty", "guid").map { prepared2.propertyRequest.name + ":" + it }.toSet(), byField.keys)
         assertEquals(ScalarTypeTag.STRING.name, byField.getValue(prepared2.propertyRequest.name + ":typeTag")[0].after)
         assertEquals(value2, byField.getValue(prepared2.propertyRequest.name + ":strValue")[0].after)
         assertEquals(state.changes.map { "" }, state.changes.map { it.before })
@@ -1654,7 +1657,7 @@ class ObjectHistoryTest {
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, valueEvent.entityClass, "class must be correct")
         assertEquals(EventType.CREATE, valueEvent.type, "event type must be correct")
 
-        assertEquals(setOf("typeTag", "decimalValue"), valuePayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "decimalValue", "guid"), valuePayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("objectProperty", "measure"), valuePayload.addedLinks.keys, "added links keys must be correct")
 
@@ -1710,10 +1713,12 @@ class ObjectHistoryTest {
         assertEquals(measure.name, propertyValue.measureName)
         assertEquals(null, propertyValue.precision)
 
+        val valueGuid = transaction(db) { db.getVertexById(prepared.valueId)?.toObjectPropertyValueVertex()?.guid ?: throw IllegalStateException() }
+
         // проверяем изменения
         checkValueCreateChanges(
             state.changes,
-            mapOf("typeTag" to ScalarTypeTag.DECIMAL.name, "decimalValue" to valueRepr, "measure" to measure.name),
+            mapOf("typeTag" to ScalarTypeTag.DECIMAL.name, "decimalValue" to valueRepr, "measure" to measure.name, "guid" to valueGuid),
             prepared.propertyRequest.name
         )
     }

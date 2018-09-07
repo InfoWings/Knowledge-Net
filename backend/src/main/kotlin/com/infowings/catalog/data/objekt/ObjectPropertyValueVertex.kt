@@ -84,6 +84,8 @@ enum class ObjectValueField(val extName: String) {
     INT_VALUE("intValue"),
     STR_VALUE("strValue"),
     DECIMAL_VALUE("decimalValue"),
+    GUID("guid"),
+
     LINK_OBJECT_PROPERTY("objectProperty"),
     LINK_ASPECT_PROPERTY("aspectProperty"),
     LINK_REF_OBJECT("refValueObject"),
@@ -109,7 +111,8 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ObjectValueField.PRECISION.extName to asStringOrEmpty(precision),
             ObjectValueField.INT_VALUE.extName to asStringOrEmpty(intValue),
             ObjectValueField.STR_VALUE.extName to asStringOrEmpty(strValue),
-            ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue)
+            ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue),
+            ObjectValueField.GUID.extName to asStringOrEmpty(guid)
         ),
         links = mapOf(
             ObjectValueField.LINK_OBJECT_PROPERTY.extName to listOfNotNull(objectProperty?.identity),

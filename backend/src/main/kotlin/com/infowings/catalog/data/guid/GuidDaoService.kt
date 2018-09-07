@@ -24,6 +24,7 @@ class GuidDaoService(private val db: OrientDatabase) {
             val res = db.createNewVertex(OrientClass.GUID.extName).toGuidVertex()
             res.guid = UUID.randomUUID().toString()
             val className = source.schemaType.get().name
+            logger.debug("assign guid ${res.guid} to vertex ${source.id} of class $className")
             source.addEdge(res, class2Edge[className] ?: throw IllegalStateException("Unexpected class name $className")).save<OEdge>()
             res.save<OVertex>()
             res

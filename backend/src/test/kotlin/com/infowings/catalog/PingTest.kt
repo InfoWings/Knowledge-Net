@@ -75,6 +75,7 @@ class PingTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testPingWithAspect() {
         val before = pingApi.status()
         aspectService.save(AspectData("", "name", description = null, baseType = BaseType.Text.name), "admin")
@@ -247,7 +248,7 @@ class PingTest {
         assertEquals(0, metricsDelta.counts[OrientClass.MEASURE.extName])
         assertEquals(0, metricsDelta.counts[OrientClass.MEASURE_GROUP.extName])
         assertEquals(8, metricsDelta.counts[OrientClass.HISTORY_EVENT.extName])
-        assertEquals(12, metricsDelta.counts[OrientClass.HISTORY_ELEMENT.extName])
+        assertEquals(13, metricsDelta.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(7, metricsDelta.counts[OrientClass.HISTORY_ADD_LINK.extName])
         assertEquals(0, metricsDelta.counts[OrientClass.HISTORY_REMOVE_LINK.extName])
 
@@ -303,7 +304,7 @@ class PingTest {
         assertEquals(0, metricsDelta.counts[OrientClass.MEASURE.extName])
         assertEquals(0, metricsDelta.counts[OrientClass.MEASURE_GROUP.extName])
         assertEquals(10, metricsDelta.counts[OrientClass.HISTORY_EVENT.extName])
-        assertEquals(15, metricsDelta.counts[OrientClass.HISTORY_ELEMENT.extName])
+        assertEquals(16, metricsDelta.counts[OrientClass.HISTORY_ELEMENT.extName])
         assertEquals(7, metricsDelta.counts[OrientClass.HISTORY_ADD_LINK.extName])
         assertEquals(0, metricsDelta.counts[OrientClass.HISTORY_REMOVE_LINK.extName])
 

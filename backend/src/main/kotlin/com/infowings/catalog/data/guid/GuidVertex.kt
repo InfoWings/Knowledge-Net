@@ -6,7 +6,6 @@ import com.infowings.catalog.storage.get
 import com.infowings.catalog.storage.set
 import com.orientechnologies.orient.core.record.OVertex
 
-
 fun OVertex.toGuidVertex(): GuidVertex {
     checkClass(OrientClass.GUID)
     return GuidVertex(this)
