@@ -20,10 +20,8 @@ buildscript {
 }
 
 ext {
-    kotlinx_html_version = 'latest-1.2.70-dev-990-675'
-    wrapper_react_version='16.4.1-pre.34-kotlin-1.2.51'
-    wrapper_extentions_version = '1.0.1-pre.34-kotlin-1.2.51'
-    wrapper_mocha_version = '3.0.1-pre.34-kotlin-1.2.51'
+    wrapper_react_version='16.4.2-pre.50-kotlin-1.2.61'
+    wrapper_extentions_version = '1.0.1-pre.50-kotlin-1.2.61'
 }
 
 node {
@@ -45,12 +43,9 @@ dependencies {
 
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
 
-    compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
-
     compile "org.jetbrains:kotlin-extensions:$wrapper_extentions_version"
     compile "org.jetbrains:kotlin-react:$wrapper_react_version"
     compile "org.jetbrains:kotlin-react-dom:$wrapper_react_version"
-    compile "org.jetbrains:kotlin-mocha:$wrapper_mocha_version"
 
 
     testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
