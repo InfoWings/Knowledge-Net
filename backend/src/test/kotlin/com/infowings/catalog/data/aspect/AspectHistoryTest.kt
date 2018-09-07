@@ -74,6 +74,7 @@ class AspectHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testAspectHistoryCreate() {
         /* Проверяем, что создание одного аспекта адекватно отражается в истории */
         val aspect = aspectService.save(

@@ -27,10 +27,10 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
 
     fun findAspects(guids: List<String>): List<AspectData> {
         return transaction(db) {
-            dao.find(guids).map { guidVertex ->
+            dao.find(guids).mapNotNull { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 if (vertex.vertexClass() == OrientClass.ASPECT.extName) vertex.toAspectVertex().toAspectData() else null
-            }.filterNotNull()
+            }
         }
     }
 
@@ -90,7 +90,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             val vertex = db.getVertexById(id) ?: throw IllegalStateException("no vertex of id $id")
             if (vertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName, OrientEdge.GUID_OF_OBJECT.extName,
-                OrientEdge.GUID_OF_ASPECT_PROPERTY.extName, OrientEdge.GUID_OF_ASPECT.extName).firstOrNull() != null) {
+                OrientEdge.GUID_OF_ASPECT_PROPERTY.extName, OrientEdge.GUID_OF_ASPECT.extName).singleOrNull() != null) {
                 throw IllegalStateException("guid is already defined")
             }
             val guidVertex = dao.newGuidVertex(vertex)

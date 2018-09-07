@@ -44,7 +44,7 @@ class GuidDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun vertex(guidVertex: GuidVertex): OVertex = guidVertex.getVertices(ODirection.IN).first()
+    fun vertex(guidVertex: GuidVertex): OVertex = guidVertex.getVertices(ODirection.IN).single()
 }
 
 private val logger = loggerFor<GuidDaoService>()

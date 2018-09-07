@@ -226,6 +226,7 @@ class RefBookHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookSecondItemCreateHistory() {
         val testName = "testRefBookSecondItemCreateHistory"
 
