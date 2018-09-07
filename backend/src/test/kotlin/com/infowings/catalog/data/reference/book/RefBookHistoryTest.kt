@@ -80,7 +80,7 @@ class RefBookHistoryTest {
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
         val refBookPayload = refBookFacts.first().payload
-        assertEquals(setOf("value", "guid"), refBookPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName), refBookPayload.data.keys, "keys must be correct")
         assertEquals(setOf("aspect"), refBookPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), refBookPayload.removedLinks.keys, "removed links must be correct")
 
@@ -125,6 +125,7 @@ class RefBookHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookItemCreateHistory() {
         val testName = "testRefBookItemCreateHistory"
 
@@ -174,7 +175,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName, RefBookField.DESCRIPTION.extName), createPayload.data.keys, "keys must be correct")
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 

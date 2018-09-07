@@ -60,6 +60,10 @@ class ObjectHistoryTest {
 
     @BeforeEach
     fun initTestData() {
+        transaction (db) {
+            it.command("delete vertex from HistoryEvent")
+        }
+
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
         rangeAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Range.name), username)
