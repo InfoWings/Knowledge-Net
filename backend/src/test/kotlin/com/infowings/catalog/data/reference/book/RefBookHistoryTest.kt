@@ -330,6 +330,7 @@ class RefBookHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookChildItemCreateHistory() {
         val testName = "testRefBookChildItemCreateHistory"
 

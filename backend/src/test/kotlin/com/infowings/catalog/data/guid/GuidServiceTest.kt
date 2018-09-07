@@ -200,43 +200,28 @@ class GuidServiceTest {
 
     @Test
     fun testSetGuid() {
-        val property = complexAspect.properties[0]
-
-        val aspectGuid = baseAspect.guid ?: throw IllegalStateException()
-        val aspectPropertyGuid = property.guid ?: throw IllegalStateException()
         val subjectGuid = subject.guid ?: throw IllegalStateException()
         val rbiGuid = refBook.guid ?: throw IllegalStateException()
         val objectGuid = objectChange.guid ?: throw IllegalStateException()
         val propertyGuid = propertyChange.guid ?: throw IllegalStateException()
 
-        val aspectId = baseAspect.idStrict()
-        val aspectPropertyId = property.id
         val subjectId = subject.id
         val rbiId = refBook.id
         val objectId = objectChange.id
         val propertyId = propertyChange.id
 
-        val aspectVertex = db.getVertexById(aspectId) ?: throw IllegalArgumentException()
-        val aspectPropertyVertex = db.getVertexById(aspectPropertyId) ?: throw IllegalArgumentException()
+
         val subjectVertex = db.getVertexById(subjectId) ?: throw IllegalArgumentException()
         val rbiVertex = db.getVertexById(rbiId) ?: throw IllegalArgumentException()
         val objectVertex = db.getVertexById(objectId) ?: throw IllegalArgumentException()
         val propertyVertex = db.getVertexById(propertyId) ?: throw IllegalArgumentException()
 
         transaction(db) {
-            aspectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_ASPECT.extName).forEach { it.delete<OEdge>() }
-            aspectPropertyVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_ASPECT_PROPERTY.extName).forEach { it.delete<OEdge>() }
             subjectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_SUBJECT.extName).forEach { it.delete<OEdge>() }
             rbiVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_REFBOOK_ITEM.extName).forEach { it.delete<OEdge>() }
             objectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT.extName).forEach { it.delete<OEdge>() }
             propertyVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName).forEach { it.delete<OEdge>() }
         }
-
-        val aspectMeta = guidService.setGuid(aspectId)
-        assertNotEquals(aspectGuid, aspectMeta.guid)
-
-        val aspectPropertyMeta = guidService.setGuid(aspectPropertyId)
-        assertNotEquals(aspectPropertyGuid, aspectPropertyMeta.guid)
 
         val subjectMeta = guidService.setGuid(subjectId)
         assertNotEquals(subjectGuid, subjectMeta.guid)
@@ -249,6 +234,31 @@ class GuidServiceTest {
 
         val propertyMeta = guidService.setGuid(propertyId)
         assertNotEquals(propertyGuid, propertyMeta.guid)
+    }
+
+    @Test
+    fun testSetGuidAspect() {
+        val property = complexAspect.properties[0]
+
+        val aspectGuid = baseAspect.guid ?: throw IllegalStateException()
+        val aspectPropertyGuid = property.guid ?: throw IllegalStateException()
+
+        val aspectId = baseAspect.idStrict()
+        val aspectPropertyId = property.id
+
+        val aspectVertex = db.getVertexById(aspectId) ?: throw IllegalArgumentException()
+        val aspectPropertyVertex = db.getVertexById(aspectPropertyId) ?: throw IllegalArgumentException()
+
+        transaction(db) {
+            aspectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_ASPECT.extName).forEach { it.delete<OEdge>() }
+            aspectPropertyVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_ASPECT_PROPERTY.extName).forEach { it.delete<OEdge>() }
+        }
+
+        val aspectMeta = guidService.setGuid(aspectId)
+        assertNotEquals(aspectGuid, aspectMeta.guid)
+
+        val aspectPropertyMeta = guidService.setGuid(aspectPropertyId)
+        assertNotEquals(aspectPropertyGuid, aspectPropertyMeta.guid)
 
         val aspects = guidService.findAspects(listOf(aspectMeta.guid))
         assertEquals(1, aspects.size)

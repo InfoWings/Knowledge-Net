@@ -248,7 +248,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
     val guid: String?
-        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_VALUE.extName).firstOrNull()?.toGuidVertex()?.guid
+        get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)

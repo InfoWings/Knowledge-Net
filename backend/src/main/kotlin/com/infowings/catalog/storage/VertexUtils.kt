@@ -1,5 +1,7 @@
 package com.infowings.catalog.storage
 
+import com.infowings.catalog.data.guid.toGuidVertex
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 fun OVertex.vertexClass(): String {
@@ -21,3 +23,5 @@ fun OVertex.checkClass(orientClass: OrientClass) {
 fun OVertex.checkClassAny(orientClasses: List<OrientClass>) {
     if (!orientClasses.any { this.ofClass(it) }) throw IllegalStateException("vertex with id ${this.id} is of class ${this.schemaType}")
 }
+
+fun OVertex.guid(edge: OrientEdge): String? = getVertices(ODirection.OUT, edge.extName).singleOrNull()?.toGuidVertex()?.guid

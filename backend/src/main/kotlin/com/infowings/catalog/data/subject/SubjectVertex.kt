@@ -53,7 +53,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
         get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
 
     val guid: String?
-        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_SUBJECT.extName).firstOrNull()?.toGuidVertex()?.guid
+        get() = guid(OrientEdge.GUID_OF_SUBJECT)
 
     fun linkedByAspects() = incomingEdges(ASPECT_SUBJECT_EDGE).map {
         val source = it.from.asVertex()

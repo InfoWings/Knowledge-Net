@@ -108,7 +108,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
 
     val guid: String?
-        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_ASPECT.extName).firstOrNull()?.toGuidVertex()?.guid
+        get() = guid(OrientEdge.GUID_OF_ASPECT)
 
     private val lastChange: Instant?
         get() {
@@ -279,7 +279,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         }
 
     val guid: String?
-        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_ASPECT_PROPERTY.extName).firstOrNull()?.toGuidVertex()?.guid
+        get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()

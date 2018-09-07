@@ -44,8 +44,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
         }
 
     val guid: String?
-        get() = getVertices(ODirection.OUT, OrientEdge.GUID_OF_OBJECT.extName).firstOrNull()?.toGuidVertex()?.guid
-
+        get() = guid(OrientEdge.GUID_OF_OBJECT)
 
     val subject: SubjectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()
