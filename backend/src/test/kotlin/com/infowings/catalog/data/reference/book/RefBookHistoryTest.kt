@@ -80,7 +80,7 @@ class RefBookHistoryTest {
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
         val refBookPayload = refBookFacts.first().payload
-        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName), refBookPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName), refBookPayload.data.keys)
         assertEquals(setOf("aspect"), refBookPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), refBookPayload.removedLinks.keys, "removed links must be correct")
 
@@ -167,7 +167,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления родителя
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
         val childrenLinks = updatePayload.addedLinks.getValue("children")
@@ -175,7 +175,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName, RefBookField.DESCRIPTION.extName), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName, RefBookField.DESCRIPTION.extName), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -269,7 +269,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
 
@@ -278,7 +278,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -370,7 +370,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
 
@@ -379,7 +379,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -472,7 +472,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта
         val payload = fact.payload
-        assertEquals(setOf("value", "description"), payload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description"), payload.data.keys)
         assertEquals(emptySet(), payload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), payload.removedLinks.keys, "removed links must be correct")
 
@@ -552,7 +552,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта
         val payload = fact.payload
-        assertEquals(setOf("value", "description"), payload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description"), payload.data.keys)
         assertEquals(emptySet(), payload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), payload.removedLinks.keys, "removed links must be correct")
 

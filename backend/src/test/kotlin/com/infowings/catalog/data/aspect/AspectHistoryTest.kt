@@ -19,6 +19,7 @@ import io.kotlintest.matchers.beGreaterThan
 import io.kotlintest.matchers.beGreaterThanOrEqualTo
 import io.kotlintest.should
 import io.kotlintest.shouldBe
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -59,6 +60,11 @@ class AspectHistoryTest {
 
     @Autowired
     private lateinit var db: OrientDatabase
+
+    @BeforeEach
+    fun initTestData() {
+        transaction(db) { it.command("delete vertex from HistoryEvent") }
+    }
 
     @Test
     fun testAspectHistoryEmpty() {

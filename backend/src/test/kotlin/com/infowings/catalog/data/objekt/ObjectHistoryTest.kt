@@ -320,14 +320,7 @@ class ObjectHistoryTest {
         val valueRequest = ValueUpdateRequest(propertyCreateResponse.rootValue.id, value, measureName, null, propertyCreateResponse.rootValue.version)
         val propertyFactsBefore = propertyEvents(factsBefore)
         val valueFactsBefore = valueEvents(factsBefore)
-        val statesBefore = try {
-            historyProvider.getAllHistory()
-        } catch (e: Exception) {
-            e.stackTrace.forEach {
-                println(it)
-            }
-            throw e
-        }
+        val statesBefore = historyProvider.getAllHistory()
 
         val valueUpdateResponse = objectService.update(valueRequest, username)
 
@@ -954,6 +947,7 @@ class ObjectHistoryTest {
 
 
     @Test
+    @Suppress("MagicNumber")
     fun createChildValueHistoryTest() {
         val testName = "createChildValueHistoryTest"
         val value1 = "hello"
