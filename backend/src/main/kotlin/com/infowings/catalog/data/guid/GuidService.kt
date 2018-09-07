@@ -1,26 +1,30 @@
 package com.infowings.catalog.data.guid
 
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.ReferenceBookItem
+import com.infowings.catalog.common.objekt.EntityClass
+import com.infowings.catalog.common.objekt.EntityMetadata
 import com.infowings.catalog.common.objekt.PropertyUpdateResponse
 import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.objekt.*
+import com.infowings.catalog.data.objekt.Objekt
+import com.infowings.catalog.data.objekt.toObjectPropertyVertex
+import com.infowings.catalog.data.objekt.toObjectVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 
-data class EntityMetadata(val guid: String, val entityClass: String, val id: String)
-
 class GuidService(private val db: OrientDatabase, private val dao: GuidDaoService) {
     fun metadata(guids: List<String>): List<EntityMetadata> {
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                EntityMetadata(guid = guidVertex.guid, entityClass = vertex.vertexClass(), id = vertex.id)
+                EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
             }
         }
     }
@@ -29,7 +33,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).mapNotNull { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.ASPECT.extName) vertex.toAspectVertex().toAspectData() else null
+                if (vertex.entityClass() == EntityClass.ASPECT) vertex.toAspectVertex().toAspectData() else null
             }
         }
     }
@@ -38,7 +42,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.ASPECT_PROPERTY.extName) vertex.toAspectPropertyVertex().toAspectPropertyData() else null
+                if (vertex.entityClass() == EntityClass.ASPECT_PROPERTY) vertex.toAspectPropertyVertex().toAspectPropertyData() else null
             }.filterNotNull()
         }
     }
@@ -47,7 +51,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.SUBJECT.extName) vertex.toSubjectVertex().toSubject() else null
+                if (vertex.entityClass() == EntityClass.SUBJECT) vertex.toSubjectVertex().toSubject() else null
             }.filterNotNull()
         }
     }
@@ -56,7 +60,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.REFBOOK_ITEM.extName) vertex.toReferenceBookItemVertex().toReferenceBookItem() else null
+                if (vertex.entityClass() == EntityClass.REFBOOK_ITEM) vertex.toReferenceBookItemVertex().toReferenceBookItem() else null
             }.filterNotNull()
         }
     }
@@ -65,7 +69,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.OBJECT.extName) vertex.toObjectVertex().toObjekt() else null
+                if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toObjekt() else null
             }.filterNotNull()
         }
     }
@@ -74,7 +78,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.vertexClass() == OrientClass.OBJECT_PROPERTY.extName) {
+                if (vertex.entityClass() == EntityClass.OBJECT_PROPERTY) {
                     val propertyVertex = vertex.toObjectPropertyVertex()
                     val objectVertex = propertyVertex.objekt ?: throw IllegalStateException()
                     PropertyUpdateResponse(propertyVertex.id, Reference(objectVertex.id, objectVertex.version),
@@ -94,8 +98,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                 throw IllegalStateException("guid is already defined")
             }
             val guidVertex = dao.newGuidVertex(vertex)
-            EntityMetadata(guid = guidVertex.guid, entityClass = vertex.vertexClass(), id = vertex.id)
+            EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
         }
     }
-
 }

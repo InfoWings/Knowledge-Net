@@ -4,7 +4,6 @@ import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty

@@ -1,10 +1,7 @@
 package com.infowings.catalog.data.guid
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.ObjectChangeResponse
-import com.infowings.catalog.common.objekt.ObjectCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateRequest
-import com.infowings.catalog.common.objekt.PropertyCreateResponse
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
@@ -12,7 +9,6 @@ import com.infowings.catalog.data.objekt.ObjectPropertyValue
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.randomName
-import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.OrientEdge
 import com.infowings.catalog.storage.transaction
@@ -29,6 +25,7 @@ import kotlin.test.assertNotEquals
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("LargeClass")
 class GuidServiceTest {
     private val username = "admin"
 
@@ -92,7 +89,7 @@ class GuidServiceTest {
             val meta = aspectMetas.first()
             assertEquals(meta.guid, baseAspect.guid)
             assertEquals(meta.id, baseAspect.id)
-            assertEquals(meta.entityClass, OrientClass.ASPECT.extName)
+            assertEquals(meta.entityClass, EntityClass.ASPECT)
         }
 
         val property = complexAspect.properties[0]
@@ -102,7 +99,7 @@ class GuidServiceTest {
             val meta = aspectPropertyMetas.first()
             assertEquals(meta.guid, property.guid)
             assertEquals(meta.id, property.id)
-            assertEquals(meta.entityClass, OrientClass.ASPECT_PROPERTY.extName)
+            assertEquals(meta.entityClass, EntityClass.ASPECT_PROPERTY)
         }
 
         val subjectMetas = guidService.metadata(listOfNotNull(subject.guid))
@@ -111,7 +108,7 @@ class GuidServiceTest {
             val meta = subjectMetas.first()
             assertEquals(meta.guid, subject.guid)
             assertEquals(meta.id, subject.id)
-            assertEquals(meta.entityClass, OrientClass.SUBJECT.extName)
+            assertEquals(meta.entityClass, EntityClass.SUBJECT)
         }
 
         val refBookMetas = guidService.metadata(listOfNotNull(refBook.guid))
@@ -120,7 +117,7 @@ class GuidServiceTest {
             val meta = refBookMetas.first()
             assertEquals(refBook.guid, meta.guid)
             assertEquals(refBook.id, meta.id)
-            assertEquals(OrientClass.REFBOOK_ITEM.extName, meta.entityClass)
+            assertEquals(EntityClass.REFBOOK_ITEM, meta.entityClass)
         }
 
         val objectMetas = guidService.metadata(listOfNotNull(objectChange.guid))
@@ -129,7 +126,7 @@ class GuidServiceTest {
             val meta = objectMetas.first()
             assertEquals(objectChange.guid, meta.guid)
             assertEquals(objectChange.id, meta.id)
-            assertEquals(OrientClass.OBJECT.extName, meta.entityClass)
+            assertEquals(EntityClass.OBJECT, meta.entityClass)
         }
 
         val objectPropertyMetas = guidService.metadata(listOfNotNull(propertyChange.guid))
@@ -138,7 +135,7 @@ class GuidServiceTest {
             val meta = objectPropertyMetas.first()
             assertEquals(propertyChange.guid, meta.guid)
             assertEquals(propertyChange.id, meta.id)
-            assertEquals(OrientClass.OBJECT_PROPERTY.extName, meta.entityClass)
+            assertEquals(EntityClass.OBJECT_PROPERTY, meta.entityClass)
         }
 
         val rootValueGuid = rootValue.guid ?: throw IllegalStateException()
@@ -148,7 +145,7 @@ class GuidServiceTest {
             val meta = objectValueMetas.first()
             assertEquals(rootValueGuid, meta.guid)
             assertEquals(propertyChange.rootValue.id, meta.id)
-            assertEquals(OrientClass.OBJECT_VALUE.extName, meta.entityClass)
+            assertEquals(EntityClass.OBJECT_VALUE, meta.entityClass)
         }
     }
 
@@ -200,31 +197,23 @@ class GuidServiceTest {
 
     @Test
     fun testSetGuid() {
-        val subjectGuid = subject.guid ?: throw IllegalStateException()
         val rbiGuid = refBook.guid ?: throw IllegalStateException()
         val objectGuid = objectChange.guid ?: throw IllegalStateException()
         val propertyGuid = propertyChange.guid ?: throw IllegalStateException()
 
-        val subjectId = subject.id
         val rbiId = refBook.id
         val objectId = objectChange.id
         val propertyId = propertyChange.id
 
-
-        val subjectVertex = db.getVertexById(subjectId) ?: throw IllegalArgumentException()
         val rbiVertex = db.getVertexById(rbiId) ?: throw IllegalArgumentException()
         val objectVertex = db.getVertexById(objectId) ?: throw IllegalArgumentException()
         val propertyVertex = db.getVertexById(propertyId) ?: throw IllegalArgumentException()
 
         transaction(db) {
-            subjectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_SUBJECT.extName).forEach { it.delete<OEdge>() }
             rbiVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_REFBOOK_ITEM.extName).forEach { it.delete<OEdge>() }
             objectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT.extName).forEach { it.delete<OEdge>() }
             propertyVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName).forEach { it.delete<OEdge>() }
         }
-
-        val subjectMeta = guidService.setGuid(subjectId)
-        assertNotEquals(subjectGuid, subjectMeta.guid)
 
         val rbiMeta = guidService.setGuid(rbiId)
         assertNotEquals(rbiGuid, rbiMeta.guid)
@@ -265,5 +254,21 @@ class GuidServiceTest {
         val foundAspect = aspects.first()
         assertEquals(aspectId, foundAspect.id)
         assertEquals(aspectMeta.guid, foundAspect.guid)
+    }
+
+    @Test
+    fun testSetGuidSubject() {
+        val subjectGuid = subject.guid ?: throw IllegalStateException()
+
+        val subjectId = subject.id
+
+        val subjectVertex = db.getVertexById(subjectId) ?: throw IllegalArgumentException()
+
+        transaction(db) {
+            subjectVertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_SUBJECT.extName).forEach { it.delete<OEdge>() }
+        }
+
+        val subjectMeta = guidService.setGuid(subjectId)
+        assertNotEquals(subjectGuid, subjectMeta.guid)
     }
 }

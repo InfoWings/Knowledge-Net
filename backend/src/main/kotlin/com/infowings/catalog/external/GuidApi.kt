@@ -1,6 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.data.guid.EntityMetadata
+import com.infowings.catalog.common.objekt.EntityMetadata
 import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.GetMapping

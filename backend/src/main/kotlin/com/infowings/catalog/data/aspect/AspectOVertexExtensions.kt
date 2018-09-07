@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.objekt.ObjectValue
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex

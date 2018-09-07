@@ -5,7 +5,6 @@ import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asString

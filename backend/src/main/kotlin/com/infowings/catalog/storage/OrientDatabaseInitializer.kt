@@ -31,7 +31,13 @@ enum class OrientClass(val extName: String) {
     HISTORY_ADD_LINK(HISTORY_ADD_LINK_CLASS),
     HISTORY_REMOVE_LINK(HISTORY_DROP_LINK_CLASS),
     USER(USER_CLASS),
-    GUID("Guid")
+    GUID("Guid");
+
+    companion object {
+        private val ext2Class = OrientClass.values().map { it.extName to it }.toMap()
+
+        fun fromExtName(extName: String): OrientClass = ext2Class.getValue(extName)
+    }
 }
 
 enum class OrientEdge(val extName: String) {

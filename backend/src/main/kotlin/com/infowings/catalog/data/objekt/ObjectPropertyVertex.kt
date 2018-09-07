@@ -3,7 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty

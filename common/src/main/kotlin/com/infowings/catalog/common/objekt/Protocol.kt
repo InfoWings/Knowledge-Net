@@ -156,3 +156,16 @@ data class Reference(val id: String, val version: Int)
 
 @Serializable
 data class ValueRecalculationResponse(val targetMeasure: String, val value: String)
+
+enum class EntityClass {
+    ASPECT,
+    ASPECT_PROPERTY,
+    SUBJECT,
+    OBJECT,
+    OBJECT_PROPERTY,
+    OBJECT_VALUE,
+    REFBOOK_ITEM
+}
+
+@Serializable
+data class EntityMetadata(val guid: String, val entityClass: EntityClass, val id: String)
