@@ -83,7 +83,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                     PropertyUpdateResponse(propertyVertex.id, Reference(objectVertex.id, objectVertex.version),
                         propertyVertex.name,
                         propertyVertex.description,
-                        propertyVertex.version)
+                        propertyVertex.version, propertyVertex.guid)
                 } else null
             }.filterNotNull()
         }

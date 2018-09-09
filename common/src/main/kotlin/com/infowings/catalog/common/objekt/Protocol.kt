@@ -118,7 +118,8 @@ data class PropertyUpdateResponse(
     val obj: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -127,7 +128,8 @@ data class PropertyDeleteResponse(
     val obj: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable

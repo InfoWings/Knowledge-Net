@@ -238,7 +238,8 @@ class ObjectService(
             Reference(propertyUpdateResult.objectId, propertyUpdateResult.objectVersion),
             propertyUpdateResult.name,
             propertyUpdateResult.description,
-            propertyUpdateResult.version
+            propertyUpdateResult.version,
+            propertyUpdateResult.guid
         )
     }
 
@@ -463,7 +464,8 @@ class ObjectService(
             Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
             propertyDeleteResult.name,
             propertyDeleteResult.description,
-            propertyDeleteResult.version
+            propertyDeleteResult.version,
+            propertyDeleteResult.guid
         )
     }
 
@@ -497,7 +499,8 @@ class ObjectService(
             Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
             propertyDeleteResult.name,
             propertyDeleteResult.description,
-            propertyDeleteResult.version
+            propertyDeleteResult.version,
+            propertyDeleteResult.guid
         )
     }
 

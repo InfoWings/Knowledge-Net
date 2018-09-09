@@ -205,6 +205,7 @@ class GuidServiceTest {
         }
     }
 
+    @Suppress("EmptyCatchBlock")
     private fun resetExistingId(id: String) {
         try {
             guidService.setGuid(id)
