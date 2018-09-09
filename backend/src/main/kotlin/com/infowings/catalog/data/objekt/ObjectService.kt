@@ -144,7 +144,7 @@ class ObjectService(
             ObjectResult(objectVertex, objectVertex.subject ?: throw IllegalStateException("Object was created without subject"))
         }
 
-        return transaction(db) { objectCreateResult.toResponse() }
+        return objectCreateResult.toResponse()
     }
 
     fun update(request: ObjectUpdateRequest, username: String): ObjectChangeResponse {
@@ -164,7 +164,7 @@ class ObjectService(
             ObjectResult(objectVertex, subjectVertex)
         }
 
-        return transaction(db) { objectUpdateResult.toResponse() }
+        return objectUpdateResult.toResponse()
     }
 
     private fun ObjectResult.toResponse() = ObjectChangeResponse(id, name, description, subjectId, subjectName, version, guid)
@@ -205,8 +205,7 @@ class ObjectService(
             )
         }
 
-        return transaction(db) {
-            PropertyCreateResponse(
+        return PropertyCreateResponse(
                 propertyCreateResult.id,
                 Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
                 Reference(propertyCreateResult.rootValueId, propertyCreateResult.rootValueVersion),
@@ -214,8 +213,7 @@ class ObjectService(
                 propertyCreateResult.description,
                 propertyCreateResult.version,
                 propertyCreateResult.guid
-            )
-        }
+        )
     }
 
     fun update(request: PropertyUpdateRequest, username: String): PropertyUpdateResponse {
@@ -262,7 +260,7 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return transaction(db) { valueCreateResult.toResponse() }
+        return valueCreateResult.toResponse()
     }
 
     fun update(request: ValueUpdateRequest, username: String): ValueChangeResponse {
@@ -285,7 +283,7 @@ class ObjectService(
             valueVertex.toValueResult()
         }
 
-        return transaction(db) { valueUpdateResult.toResponse() }
+        return valueUpdateResult.toResponse()
     }
 
     private fun ObjectPropertyValueVertex.toValueResult() = ValueResult(

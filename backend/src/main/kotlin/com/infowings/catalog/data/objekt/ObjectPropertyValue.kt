@@ -151,8 +151,10 @@ data class ValueResult(
     val version: Int
         get() = valueVertex.version
 
+    val guidValue = valueVertex.guid
+
     val guid: String?
-        get() = valueVertex.guid
+        get() = guidValue
 }
 
 data class ValueDeleteResult(

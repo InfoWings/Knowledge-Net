@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.fail
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
@@ -193,6 +194,24 @@ class GuidServiceTest {
             val found = objectProperties.first()
             assertEquals(propertyChange.id, found.id)
         }
+
+        val objectValues = guidService.findObjectValues(listOfNotNull(rootValue.guid))
+        transaction(db) {
+            assertEquals(1, objectValues.size)
+            val found = objectValues.first()
+            assertEquals(rootValue.guid, found.guid)
+            assertEquals(nullValueDto(), found.value)
+            assertEquals(baseAspect.name, found.aspectName)
+        }
+    }
+
+    private fun resetExistingId(id: String) {
+        try {
+            guidService.setGuid(id)
+            fail("No exception thrown")
+        } catch (e: IllegalStateException) {
+        }
+
     }
 
     @Test
@@ -254,6 +273,9 @@ class GuidServiceTest {
         val foundAspect = aspects.first()
         assertEquals(aspectId, foundAspect.id)
         assertEquals(aspectMeta.guid, foundAspect.guid)
+
+        resetExistingId(aspectId)
+        resetExistingId(aspectPropertyId)
     }
 
     @Test
@@ -270,5 +292,7 @@ class GuidServiceTest {
 
         val subjectMeta = guidService.setGuid(subjectId)
         assertNotEquals(subjectGuid, subjectMeta.guid)
+
+        resetExistingId(subjectId)
     }
 }

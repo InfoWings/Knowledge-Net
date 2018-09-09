@@ -38,8 +38,10 @@ data class PropertyCreateResult(
     val version: Int
         get() = propertyVertex.version
 
+    private val guidValue = propertyVertex.guid
+
     val guid: String?
-        get() = propertyVertex.guid
+        get() = guidValue
 }
 
 data class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {

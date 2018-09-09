@@ -152,6 +152,15 @@ data class ValueDeleteResponse(
 )
 
 @Serializable
+data class FoundValueResponse(
+    val guid: String?,
+    val value: ValueDTO,
+    val propertyName: String?,
+    val aspectName: String,
+    val measure: String?
+)
+
+@Serializable
 data class Reference(val id: String, val version: Int)
 
 @Serializable

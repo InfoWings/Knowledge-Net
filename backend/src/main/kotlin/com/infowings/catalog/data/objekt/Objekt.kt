@@ -41,8 +41,10 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
     val version: Int
         get() = objectVertex.version
 
+    private val guidValue = objectVertex.guid
+
     val guid: String?
-        get() = objectVertex.guid
+        get() = guidValue
 }
 
 data class ObjectTruncated(

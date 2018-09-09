@@ -3,14 +3,13 @@ package com.infowings.catalog.data.guid
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.objekt.EntityClass
-import com.infowings.catalog.common.objekt.EntityMetadata
-import com.infowings.catalog.common.objekt.PropertyUpdateResponse
-import com.infowings.catalog.common.objekt.Reference
+import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.common.toDTO
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.objekt.Objekt
+import com.infowings.catalog.data.objekt.toObjectPropertyValueVertex
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex
 import com.infowings.catalog.data.objekt.toObjectVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
@@ -90,11 +89,31 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         }
     }
 
+    fun findObjectValues(guids: List<String>): List<FoundValueResponse> {
+        return transaction(db) {
+            dao.find(guids).map { guidVertex ->
+                val vertex = dao.vertex(guidVertex)
+                if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
+                    val valueVertex = vertex.toObjectPropertyValueVertex()
+                    val propertyValue = valueVertex.toObjectPropertyValue()
+                    val propertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                    FoundValueResponse(
+                        valueVertex.guid,
+                        propertyValue.value.toObjectValueData().toDTO(),
+                        propertyVertex.name,
+                        propertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                        valueVertex.measure?.name
+                    )
+                } else null
+            }.filterNotNull()
+        }
+    }
+
     fun setGuid(id: String): EntityMetadata {
         return transaction(db) {
             val vertex = db.getVertexById(id) ?: throw IllegalStateException("no vertex of id $id")
-            if (vertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName, OrientEdge.GUID_OF_OBJECT.extName,
-                OrientEdge.GUID_OF_ASPECT_PROPERTY.extName, OrientEdge.GUID_OF_ASPECT.extName).singleOrNull() != null) {
+            if (vertex.getEdges(ODirection.OUT, OrientEdge.GUID_OF_OBJECT_PROPERTY.extName, OrientEdge.GUID_OF_OBJECT.extName, OrientEdge.GUID_OF_OBJECT_VALUE.extName,
+                OrientEdge.GUID_OF_ASPECT_PROPERTY.extName, OrientEdge.GUID_OF_ASPECT.extName, OrientEdge.GUID_OF_SUBJECT.extName, OrientEdge.GUID_OF_REFBOOK_ITEM.extName).singleOrNull() != null) {
                 throw IllegalStateException("guid is already defined")
             }
             val guidVertex = dao.newGuidVertex(vertex)
