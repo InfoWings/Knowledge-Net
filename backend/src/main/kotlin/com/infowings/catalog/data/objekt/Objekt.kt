@@ -50,11 +50,12 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
 data class ObjectTruncated(
     val id: ORID,
     val name: String,
+    val guid: String?,
     val description: String?,
     val subjectName: String,
     val objectPropertiesCount: Int
 ) {
-    fun toResponse() = ObjectGetResponse(id.toString(), name, description, subjectName, objectPropertiesCount)
+    fun toResponse() = ObjectGetResponse(id.toString(), name, guid, description, subjectName, objectPropertiesCount)
 }
 
 data class ObjectWriteInfo(val name: String, val description: String?, val subject: SubjectVertex)

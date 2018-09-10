@@ -41,6 +41,7 @@ class ObjectService(
             return@transaction DetailedObjectViewResponse(
                 objectVertex.id,
                 objectVertex.name,
+                objectVertex.guid,
                 objectVertex.description,
                 subjectVertex.name,
                 objectPropertyVertexes.size,
@@ -84,6 +85,7 @@ class ObjectService(
             return@transaction ObjectEditDetailsResponse(
                 objectVertex.id,
                 objectVertex.name,
+                objectVertex.guid,
                 objectVertex.description,
                 objectSubject.name,
                 objectSubject.id,
@@ -94,6 +96,7 @@ class ObjectService(
                         ValueTruncated(
                             it.id,
                             it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+                            it.guid,
                             it.explicitMeasure(),
                             it.description,
                             it.aspectProperty?.id,
@@ -208,7 +211,7 @@ class ObjectService(
         return PropertyCreateResponse(
                 propertyCreateResult.id,
                 Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
-                Reference(propertyCreateResult.rootValueId, propertyCreateResult.rootValueVersion),
+                GuidReference(propertyCreateResult.rootValueId, propertyCreateResult.guid, propertyCreateResult.rootValueVersion),
                 propertyCreateResult.name,
                 propertyCreateResult.description,
                 propertyCreateResult.version,

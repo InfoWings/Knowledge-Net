@@ -31,6 +31,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         transaction(db) {
             val query =
                 "SELECT @rid, name, description, " +
+                        "FIRST(OUT(${OrientEdge.GUID_OF_OBJECT.extName})).guid as guid" +
                         "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
                         "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS"
@@ -39,6 +40,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                     ObjectTruncated(
                         it.getProperty("@rid"),
                         it.getProperty("name"),
+                        it.getProperty("guid"),
                         it.getProperty("description"),
                         it.getProperty("subjectName"),
                         it.getProperty("objectPropertiesCount")
@@ -49,7 +51,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
 
-    fun getSubValues(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
+    private fun getSubValues(id: ORID): Set<ObjectPropertyValueVertex> = transaction(db) {
         db.query("SELECT FROM (TRAVERSE IN(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") FROM :id)", mapOf("id" to id)) {
             it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
         }
@@ -62,8 +64,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
             it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
         }
     }
-
-    fun valuesOfPropertiesStr(ids: List<String>): Set<ObjectPropertyValueVertex> = valuesOfProperties(ids.map { ORecordId(it) })
 
     fun valuesOfProperties(ids: List<ORID>): Set<ObjectPropertyValueVertex> = transaction(db) {
         db.query("select expand(in(\"$OBJECT_VALUE_OBJECT_PROPERTY_EDGE\")) from :ids", mapOf("ids" to ids)) {
@@ -106,6 +106,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 DetailedRootValueViewResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+                    rootValue.guid,
                     rootValue.getOrCalculateMeasureSymbol(),
                     rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
@@ -127,6 +128,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return DetailedValueViewResponse(
             this.id,
             this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
+            this.guid,
             this.getOrCalculateMeasureSymbol(),
             this.description,
             AspectPropertyDataExtended(
@@ -357,44 +359,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
         return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
             rs.map { it.toVertex().toObjectPropertyVertex() }.toList()
-        }
-    }
-
-    fun getValuesByObjectPropertyAndValue(objPropertyId: ORID, objectValue: ObjectValue): List<ObjectPropertyValueVertex> {
-
-        val sqlBuilder = objectSqlBuilder {
-            fromObjProp(objPropertyId) {
-                toObjValues {
-                    withoutDeleted()
-                    when (objectValue) {
-                        is ObjectValue.IntegerValue -> withIntValue(objectValue.value)
-                        is ObjectValue.DecimalValue -> withDecimalValue(objectValue.value)
-                        is ObjectValue.StringValue -> withStrValue(objectValue.value)
-                        is ObjectValue.RangeValue -> withRange(objectValue.range)
-                        is ObjectValue.BooleanValue -> withBooleanValue(objectValue.value)
-                        is ObjectValue.Link -> {
-                            val linkValue = objectValue.value
-                            when (linkValue) {
-                                is LinkValueVertex.Object -> withObjectLink(linkValue.vertex.identity)
-                                is LinkValueVertex.ObjectProperty -> withObjectPropertyLink(linkValue.vertex.identity)
-                                is LinkValueVertex.ObjectValue -> withObjectValueLink(linkValue.vertex.identity)
-                                is LinkValueVertex.Subject -> withSubjectLink(linkValue.vertex.identity)
-                                is LinkValueVertex.DomainElement -> withDomainElementLink(linkValue.vertex.identity)
-                                is LinkValueVertex.Aspect -> withAspectLink(linkValue.vertex.identity)
-                                is LinkValueVertex.AspectProperty -> withAspectPropertyLink(linkValue.vertex.identity)
-                            }
-                        }
-                        ObjectValue.NullValue -> withNullValue()
-                    }
-                }
-            }
-        }
-
-        logger.info("sql: ${sqlBuilder.sql}")
-        logger.info("params: ${sqlBuilder.params}")
-
-        return db.query(sqlBuilder.sql, sqlBuilder.params) { rs ->
-            rs.map { it.toVertex().toObjectPropertyValueVertex() }.toList()
         }
     }
 
