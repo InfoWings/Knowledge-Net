@@ -1,6 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.PropertyCreateResponse
 import com.infowings.catalog.common.objekt.PropertyDeleteResponse
 import com.infowings.catalog.common.objekt.PropertyUpdateResponse
