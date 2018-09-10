@@ -31,7 +31,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
             }
         }
         expandTreeButtonComponent(props.expandTree, "pt-small")
-        copyGuidButton("GUID()")
+        copyGuidButton(props.objectGuid)
         reactRouter.Link {
             attrs {
                 className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit pt-small"
@@ -45,6 +45,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
 interface ObjectLineFormatProps : RProps {
     var objectId: String
     var objectName: String
+    var objectGuid: String?
     var objectDescription: String?
     var subjectName: String
     var expandTree: () -> Unit

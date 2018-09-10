@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.guid.copyGuidButton
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -46,6 +47,7 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
                 )
             }
         }
+        copyGuidButton(props.valueGuid)
     }
 }
 
@@ -55,6 +57,7 @@ interface ObjectPropertyValueLineFormatProps : RProps {
     var aspectName: String
     var value: ObjectValueData
     var valueDescription: String?
+    var valueGuid: String?
     var measureSymbol: String?
     var subjectName: String?
 }
@@ -90,6 +93,7 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
                 )
             }
         }
+        copyGuidButton(props.valueGuid)
     }
 }
 
@@ -98,6 +102,7 @@ interface AspectPropertyValueLineFormatProps : RProps {
     var aspectName: String
     var value: ObjectValueData
     var valueDescription: String?
+    var valueGuid: String?
     var measureSymbol: String?
     var subjectName: String?
 }

@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 data class ObjectLazyViewModel(
     val id: String,
     val name: String,
+    val guid: String?,
     val description: String?,
     val subjectName: String,
     val objectPropertiesCount: Int,
@@ -43,6 +44,7 @@ data class ObjectPropertyValueViewModel(
     val value: ObjectValueData,
     val measureSymbol: String?,
     val description: String?,
+    val guid: String?,
     val valueGroups: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
 ) {
@@ -52,6 +54,7 @@ data class ObjectPropertyValueViewModel(
         value = objectPropertyValueDetailed.value.toData(),
         measureSymbol = objectPropertyValueDetailed.measureSymbol,
         description = objectPropertyValueDetailed.description,
+        guid = objectPropertyValueDetailed.guid,
         valueGroups = objectPropertyValueDetailed.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
@@ -79,6 +82,7 @@ data class AspectPropertyValueViewModel(
     val value: ObjectValueData,
     val measureSymbol: String?,
     val description: String?,
+    val guid: String?,
     val children: List<AspectPropertyValueGroupViewModel>,
     var expanded: Boolean = false
 ) {
@@ -88,6 +92,7 @@ data class AspectPropertyValueViewModel(
         value = propertyValue.value.toData(),
         measureSymbol = propertyValue.measureSymbol,
         description = propertyValue.description,
+        guid = propertyValue.guid,
         children = propertyValue.children.groupBy { it.aspectProperty }.toList().map {
             AspectPropertyValueGroupViewModel(
                 AspectPropertyViewModel(it.first),
@@ -133,6 +138,7 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjectsView: Map<String, Detailed
         ObjectLazyViewModel(
             it.id,
             it.name,
+            it.guid,
             it.description,
             it.subjectName,
             it.propertiesCount,
@@ -146,6 +152,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, Deta
             ObjectLazyViewModel(
                 it.id,
                 it.name,
+                it.guid,
                 it.description,
                 it.subjectName,
                 it.objectPropertiesCount,
@@ -156,6 +163,7 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, Deta
             ObjectLazyViewModel(
                 detailedObject.id,
                 detailedObject.name,
+                detailedObject.guid,
                 detailedObject.description,
                 detailedObject.subjectName,
                 detailedObject.propertiesCount,

@@ -11,6 +11,7 @@ data class ObjectsResponse(
 data class ObjectGetResponse(
     val id: String,
     val name: String,
+    val guid: String?,
     val description: String?,
     val subjectName: String,
     val propertiesCount: Int
@@ -20,6 +21,7 @@ data class ObjectGetResponse(
 data class DetailedObjectViewResponse(
     val id: String,
     val name: String,
+    val guid: String?,
     val description: String?,
     val subjectName: String,
     val propertiesCount: Int,
@@ -41,6 +43,7 @@ data class DetailedObjectPropertyViewResponse(
 data class DetailedRootValueViewResponse(
     val id: String,
     val value: ValueDTO,
+    val guid: String?,
     val measureSymbol: String?,
     val description: String?,
     val children: List<DetailedValueViewResponse>
@@ -50,6 +53,7 @@ data class DetailedRootValueViewResponse(
 data class DetailedValueViewResponse(
     val id: String,
     val value: ValueDTO,
+    val guid: String?,
     val measureSymbol: String?,
     val description: String?,
     val aspectProperty: AspectPropertyDataExtended,
@@ -60,6 +64,7 @@ data class DetailedValueViewResponse(
 data class ObjectEditDetailsResponse(
     val id: String,
     val name: String,
+    val guid: String?,
     val description: String?,
     val subjectName: String,
     val subjectId: String,
@@ -82,6 +87,7 @@ data class ObjectPropertyEditDetailsResponse(
 data class ValueTruncated(
     val id: String,
     val value: ValueDTO,
+    val guid: String?,
     val measureName: String?,
     val description: String?,
     val propertyId: String?,
