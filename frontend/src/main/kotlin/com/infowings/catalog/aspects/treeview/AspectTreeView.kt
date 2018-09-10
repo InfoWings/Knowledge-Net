@@ -132,7 +132,7 @@ class AspectNodeExpandedStateWrapper :
                 }!!
             }
 
-            if (props.aspect.properties.isNotEmpty() || (props.aspect.id == props.selectedAspectId && props.selectedPropertyIndex != null)) {
+            if (props.aspect.properties.filterNot { it.deleted }.isNotEmpty() || childPropertyIsSelected()) {
                 aspectProperties {
                     attrs {
                         this.aspect = props.aspect
@@ -147,6 +147,8 @@ class AspectNodeExpandedStateWrapper :
             }
         }
     }
+
+    private fun childPropertyIsSelected() = props.aspect.id == props.selectedAspectId && props.selectedPropertyIndex != null
 
     interface State : RState {
         var expandedSubtree: Boolean

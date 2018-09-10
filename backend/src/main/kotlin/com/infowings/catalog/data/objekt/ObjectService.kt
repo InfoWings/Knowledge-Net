@@ -170,8 +170,6 @@ class ObjectService(
         return objectUpdateResult.toResponse()
     }
 
-    private fun ObjectResult.toResponse() = ObjectChangeResponse(id, name, description, subjectId, subjectName, version, guid)
-
     fun create(request: PropertyCreateRequest, username: String): PropertyCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
@@ -208,15 +206,7 @@ class ObjectService(
             )
         }
 
-        return PropertyCreateResponse(
-                propertyCreateResult.id,
-                Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
-                GuidReference(propertyCreateResult.rootValueId, propertyCreateResult.guid, propertyCreateResult.rootValueVersion),
-                propertyCreateResult.name,
-                propertyCreateResult.description,
-                propertyCreateResult.version,
-                propertyCreateResult.guid
-        )
+        return propertyCreateResult.toResponse()
     }
 
     fun update(request: PropertyUpdateRequest, username: String): PropertyUpdateResponse {
@@ -236,14 +226,7 @@ class ObjectService(
             PropertyUpdateResult(propertyVertex, propertyVertex.objekt ?: throw IllegalStateException("Object property was created without object"))
         }
 
-        return PropertyUpdateResponse(
-            propertyUpdateResult.id,
-            Reference(propertyUpdateResult.objectId, propertyUpdateResult.objectVersion),
-            propertyUpdateResult.name,
-            propertyUpdateResult.description,
-            propertyUpdateResult.version,
-            propertyUpdateResult.guid
-        )
+        return propertyUpdateResult.toResponse()
     }
 
     fun create(request: ValueCreateRequest, username: String): ValueChangeResponse {
@@ -309,11 +292,6 @@ class ObjectService(
         }
     }
 
-    private fun ValueResult.toResponse() = ValueChangeResponse(
-        id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),
-        aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version, guid
-    )
-
     private data class DeleteValueContext(
         val root: ObjectPropertyValueVertex,
         val values: Set<ObjectPropertyValueVertex>,
@@ -356,19 +334,7 @@ class ObjectService(
             )
         }
 
-        return ValueDeleteResponse(
-            valueDeleteResult.deletedValueIds,
-            valueDeleteResult.markedValueIds,
-            Reference(valueDeleteResult.propertyId, valueDeleteResult.propertyVersion),
-            valueDeleteResult.parentValueId?.let { parentId ->
-                valueDeleteResult.parentValueVersion?.let { parentVersion ->
-                    Reference(
-                        parentId,
-                        parentVersion
-                    )
-                }
-            }
-        )
+        return valueDeleteResult.toResponse()
     }
 
     fun softDeleteValue(id: String, username: String): ValueDeleteResponse {
@@ -399,19 +365,7 @@ class ObjectService(
             )
         }
 
-        return ValueDeleteResponse(
-            valueDeleteResult.deletedValueIds,
-            valueDeleteResult.markedValueIds,
-            Reference(valueDeleteResult.propertyId, valueDeleteResult.propertyVersion),
-            valueDeleteResult.parentValueId?.let { parentId ->
-                valueDeleteResult.parentValueVersion?.let { parentVersion ->
-                    Reference(
-                        parentId,
-                        parentVersion
-                    )
-                }
-            }
-        )
+        return valueDeleteResult.toResponse()
     }
 
     private data class DeletePropertyContext(
@@ -462,14 +416,7 @@ class ObjectService(
             PropertyDeleteResult(context.propVertex, ownerObject)
         }
 
-        return PropertyDeleteResponse(
-            propertyDeleteResult.id,
-            Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
-            propertyDeleteResult.name,
-            propertyDeleteResult.description,
-            propertyDeleteResult.version,
-            propertyDeleteResult.guid
-        )
+        return propertyDeleteResult.toResponse()
     }
 
     fun softDeleteProperty(id: String, username: String): PropertyDeleteResponse {
@@ -497,14 +444,7 @@ class ObjectService(
             PropertyDeleteResult(context.propVertex, ownerObject)
         }
 
-        return PropertyDeleteResponse(
-            propertyDeleteResult.id,
-            Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
-            propertyDeleteResult.name,
-            propertyDeleteResult.description,
-            propertyDeleteResult.version,
-            propertyDeleteResult.guid
-        )
+        return propertyDeleteResult.toResponse()
     }
 
     private data class DeleteObjectContext(

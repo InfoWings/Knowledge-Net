@@ -3,6 +3,7 @@ package com.infowings.catalog.aspects
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.NotModifiedException
 import com.infowings.catalog.utils.ServerException
@@ -10,7 +11,6 @@ import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -26,6 +26,7 @@ interface AspectApiReceiverProps : RProps {
     var onAspectUpdate: suspend (changedAspect: AspectData) -> AspectData
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
+    var onAspectPropertyDelete: suspend (propertyId: String, force: Boolean) -> Reference
     var onOrderByChanged: (List<AspectOrderBy>) -> Unit
     var onSearchQueryChanged: (String) -> Unit
     var refreshAspects: () -> Unit
@@ -74,11 +75,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private fun fetchAspects(updateContext: Boolean = false, refreshOperation: Boolean = false) {
         launch {
             try {
-                val response = async { getAllAspects(state.orderBy, state.searchQuery) }.await()
-                //
-                val response2 = getAllAspects(state.orderBy, state.searchQuery)
-                val response3 = getAllAspects(state.orderBy, state.searchQuery)
-                val response4 = getAllAspects(state.orderBy, state.searchQuery)
+                val response = getAllAspects(state.orderBy, state.searchQuery)
                 setState {
                     data = response.aspects
                     if (updateContext) {
@@ -208,6 +205,37 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         return deletedAspect.id ?: error("Aspect delete request returned AspectData with id == null")
     }
 
+    private suspend fun handleDeleteAspectProperty(propertyId: String, force: Boolean = false): Reference {
+        val aspectPropertyDeleteResponse = try {
+            removeAspectProperty(propertyId, force)
+        } catch (e: BadRequestException) {
+            throw AspectBadRequestException(JSON.parse(e.message))
+        }
+
+        setState {
+            val parentAspect = context.getValue(aspectPropertyDeleteResponse.parentAspect.id)
+            val childAspect = context.getValue(aspectPropertyDeleteResponse.childAspect.id)
+
+            val modifiedParentAspect = parentAspect.copy(
+                version = aspectPropertyDeleteResponse.parentAspect.version,
+                properties = parentAspect.properties.filterNot { it.id == aspectPropertyDeleteResponse.id }
+            )
+            val modifiedChildAspect = childAspect.copy(version = aspectPropertyDeleteResponse.childAspect.version)
+
+            data = data.map { aspect ->
+                when {
+                    aspect.id == aspectPropertyDeleteResponse.parentAspect.id -> modifiedParentAspect
+                    aspect.id == aspectPropertyDeleteResponse.childAspect.id -> modifiedChildAspect
+                    else -> aspect
+                }
+            }
+            context[aspectPropertyDeleteResponse.parentAspect.id] = modifiedParentAspect
+            context[aspectPropertyDeleteResponse.childAspect.id] = modifiedChildAspect
+        }
+
+        return aspectPropertyDeleteResponse.parentAspect
+    }
+
     override fun RBuilder.render() {
         if (!state.serverError) {
             child(props.apiReceiverComponent) {
@@ -217,6 +245,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     loading = state.loading
                     onAspectCreate = { handleCreateNewAspect(it) }
                     onAspectUpdate = { handleUpdateAspect(it) }
+                    onAspectPropertyDelete = { id, force -> handleDeleteAspectProperty(id, force) }
                     refreshAspect = ::refreshAspect
                     onAspectDelete = { aspect, force -> handleDeleteAspect(aspect, force) }
                     onOrderByChanged = this@AspectApiMiddleware::setAspectsOrderBy

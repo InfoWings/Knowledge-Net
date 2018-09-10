@@ -4,6 +4,9 @@ import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.storage.OrientClass
+import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.transaction
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,23 +23,47 @@ import org.springframework.web.context.WebApplicationContext
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnsafeCallOnNullableType")
 abstract class AbstractMvcTest {
+
+    @Autowired
+    private lateinit var orientDatabase: OrientDatabase
 
     @Autowired
     private lateinit var wac: WebApplicationContext
 
     protected lateinit var mockMvc: MockMvc
 
-    protected val authorities = user("admin").authorities(SimpleGrantedAuthority("ADMIN"))
+    protected val authorities = user("admin").authorities(SimpleGrantedAuthority("ADMIN"))!!
 
     @BeforeEach
-    fun setup() {
+    fun setupMvcAndDatabase() {
+        setupMockMvc()
+        cleanupDatabase()
+    }
+
+    private fun setupMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .alwaysDo<DefaultMockMvcBuilder>(MockMvcResultHandlers.print())
             .build()
     }
 
+    private fun cleanupDatabase() {
+        transaction(orientDatabase) {
+            orientDatabase.command("DELETE VERTEX ${OrientClass.ASPECT.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.ASPECT_PROPERTY.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.SUBJECT.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.OBJECT.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.OBJECT_PROPERTY.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.OBJECT_VALUE.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.REFBOOK_ITEM.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.HISTORY_ADD_LINK.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.HISTORY_ELEMENT.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.HISTORY_EVENT.extName}") {}
+            orientDatabase.command("DELETE VERTEX ${OrientClass.HISTORY_REMOVE_LINK.extName}") {}
+        }
+    }
 }
 
 fun createTestAspect(

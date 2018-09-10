@@ -112,7 +112,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) :
                 }!!
             }
 
-            if (childAspect != null && childAspect.properties.isNotEmpty()) {
+            if (childAspect != null && childAspect.properties.filterNot { it.deleted }.isNotEmpty()) {
                 aspectProperties {
                     attrs {
                         aspect = childAspect

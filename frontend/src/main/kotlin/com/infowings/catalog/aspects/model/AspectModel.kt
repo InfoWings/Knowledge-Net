@@ -63,5 +63,5 @@ interface AspectsModel {
      */
     suspend fun deleteAspect(force: Boolean)
 
-    suspend fun deleteAspectProperty()
+    suspend fun deleteAspectProperty(force: Boolean)
 }
