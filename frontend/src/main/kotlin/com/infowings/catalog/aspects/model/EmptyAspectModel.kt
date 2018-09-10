@@ -29,7 +29,7 @@ class EmptyAspectModelComponent : RComponent<EmptyAspectModelComponent.Props, Em
 
     override suspend fun deleteAspect(force: Boolean) {}
 
-    override suspend fun deleteAspectProperty() {}
+    override suspend fun deleteAspectProperty(force: Boolean) {}
 
     override fun EmptyAspectModelComponent.State.init() {
         data = emptyList()

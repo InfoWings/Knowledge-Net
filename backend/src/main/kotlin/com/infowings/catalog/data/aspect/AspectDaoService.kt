@@ -314,7 +314,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val baseQuery = if (id != null) selectWithNameDifferentId else selectWithName
 
         val q = if (subjectId == null) {
-            baseQuery
+            "$baseQuery and OUT(\"$ASPECT_SUBJECT_EDGE\").size() = 0"
         } else {
             "$baseQuery and (@rid in (select out.@rid from $ASPECT_SUBJECT_EDGE WHERE in.@rid = :subjectId))"
         }

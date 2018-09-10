@@ -1,6 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.utils.delete
 import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
@@ -25,6 +26,9 @@ suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/a
 suspend fun updateAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/update", JSON.stringify(body)))
 
 suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.stringify(body))
+
+suspend fun removeAspectProperty(id: String, force: Boolean = false): AspectPropertyDeleteResponse =
+    JSON.parse(delete("/api/aspect/property/${encodeURIComponent(id)}?force=$force"))
 
 suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(body))
 
