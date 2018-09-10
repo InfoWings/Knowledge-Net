@@ -2,9 +2,11 @@ package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
+import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.Alert
 import com.infowings.catalog.wrappers.blueprint.Intent
@@ -37,7 +39,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
 
     override fun componentWillReceiveProps(nextProps: Props) {
         nextProps.lastApiError?.let {
-            console.log(it)
+            showError(it)
         }
         setState {
             if (nextProps.serverView.id == viewModel.id) {
@@ -179,7 +181,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     interface Props : RProps {
         var serverView: ObjectEditDetailsResponse
         var apiModel: ObjectEditApiModel
-        var lastApiError: String?
+        var lastApiError: ApiException?
     }
 
     data class EntityDeleteInfo(val message: String, val continuation: () -> Unit)

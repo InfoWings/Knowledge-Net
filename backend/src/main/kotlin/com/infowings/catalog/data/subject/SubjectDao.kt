@@ -19,7 +19,8 @@ fun SubjectVertex.toSubject(): Subject =
         name = this.name,
         version = this.version,
         description = this.description,
-        deleted = this.deleted
+        deleted = this.deleted,
+        guid = this.guid
     )
 
 class SubjectDao(private val db: OrientDatabase) {

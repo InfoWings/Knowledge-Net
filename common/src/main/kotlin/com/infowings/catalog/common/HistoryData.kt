@@ -95,6 +95,10 @@ enum class AspectField {
     DESCRIPTION {
         override val view: String
             get() = "Description"
+    },
+    GUID {
+        override val view: String
+            get() = "guid"
     };
 
     abstract val view: String
@@ -107,7 +111,7 @@ enum class AspectField {
 }
 
 enum class AspectPropertyField {
-    NAME, CARDINALITY, ASPECT, DESCRIPTION;
+    NAME, CARDINALITY, ASPECT, DESCRIPTION, GUID;
 }
 
 @Serializable
@@ -139,4 +143,4 @@ class ObjectHistoryList(val history: List<ObjectHistory>)
 class SubjectHistoryList(val history: List<SubjectHistory>)
 
 @Serializable
-class EntityHistory(val id: String, val timeline: List<HistorySnapshotData>)
+class EntityHistory(val id: String)

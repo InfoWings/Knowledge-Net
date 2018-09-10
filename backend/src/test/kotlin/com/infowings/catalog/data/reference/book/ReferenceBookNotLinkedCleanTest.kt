@@ -80,7 +80,8 @@ class ReferenceBookNotLinkedCleanTest {
             null,
             emptyList(),
             false,
-            0
+            0,
+            null
         )
     }
 

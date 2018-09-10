@@ -4,7 +4,7 @@ import com.infowings.catalog.aspects.getAspectTree
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
-import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.mapOn
 import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.reactRouter
@@ -41,7 +41,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String) {
-        try {
+        tryRequest {
             val updateResponse = updateObject(objectUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -54,15 +54,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun deleteObject(force: Boolean) {
-        try {
+        tryRequest {
             val editedObject = state.editedObject ?: error("Object is not yet loaded")
             deleteObject(editedObject.id, force)
             setState {
@@ -70,15 +66,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 this.deleted = true
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest) {
-        try {
+        tryRequest {
             val createPropertyResponse = createProperty(propertyCreateRequest)
             val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
             val defaultRootValue = ValueTruncated(
@@ -106,15 +98,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest) {
-        try {
+        tryRequest {
             val editPropertyResponse = updateProperty(propertyUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -127,15 +115,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun deleteObjectProperty(id: String, force: Boolean) {
-        try {
+        tryRequest {
             val propertyDeleteResponse = deleteProperty(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -145,15 +129,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest) {
-        try {
+        tryRequest {
             val valueCreateResponse = createValue(valueCreateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -165,15 +145,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
     }
 
     override suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {
-        try {
+        tryRequest {
             val valueEditResponse = updateValue(valueUpdateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -184,26 +160,28 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
-        } catch (exception: ServerException) {
-            setState {
-                lastApiError = exception.message
-            }
         }
-
     }
 
     override suspend fun deleteObjectValue(id: String, force: Boolean) {
-        try {
+        tryRequest {
             val valueDeleteResponse = deleteValue(id, force)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
                 )
+                lastApiError = null
             }
-        } catch (exception: ServerException) {
+        }
+    }
+
+    private inline fun tryRequest(block: () -> Unit) {
+        try {
+            block()
+        } catch (apiException: ApiException) {
             setState {
-                lastApiError = exception.message
+                lastApiError = apiException
             }
         }
     }
@@ -328,7 +306,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     interface State : RState {
         var editedObject: ObjectEditDetailsResponse?
-        var lastApiError: String?
+        var lastApiError: ApiException?
         var deleted: Boolean
     }
 

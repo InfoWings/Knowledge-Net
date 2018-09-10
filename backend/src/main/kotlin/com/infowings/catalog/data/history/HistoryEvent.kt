@@ -122,7 +122,7 @@ data class Snapshot(
 ) : DataAware {
     constructor() : this(emptyMap(), emptyMap())
 
-    constructor(data: SnapshotData) : this(data.data, data.links.mapValues { it.value.map{ ORecordId(it) } })
+    constructor(data: SnapshotData) : this(data.data, data.links.mapValues { it.value.map { ORecordId(it) } })
 
     override fun dataItem(key: String): String? = data[key]
 
@@ -171,7 +171,7 @@ data class HistorySnapshot(
     val event: HistoryEventData,
     val before: Snapshot,
     val after: Snapshot,
-    val diff: DiffPayload
+    private val diff: DiffPayload
 ) {
     fun toData(): HistorySnapshotData = HistorySnapshotData(
         event = event,
@@ -239,7 +239,7 @@ class RefBookHistoryInfo {
             )
         }
 
-        data class BriefState(val header: Header, val item: Item?) {
+        data class BriefState(private val header: Header, private val item: Item?) {
             fun toData() = RefBookHistoryData.Companion.BriefState(header.toData(), item?.toData())
         }
     }
@@ -254,9 +254,9 @@ class ObjectHistoryInfo {
         ) {
             fun toData() = ObjectHistoryData.Companion.Objekt(
                 id = id,
-                name = snapshot.data.getValue("name"),
+                name = snapshot.data["name"] ?: "???",
                 description = snapshot.data["description"],
-                subjectId = snapshot.links.getValue("subject").first().toString(),
+                subjectId = snapshot.links["subject"]?.firstOrNull()?.toString() ?: "???",
                 subjectName = subjectName
             )
 
@@ -317,7 +317,7 @@ class ObjectHistoryInfo {
                 }
                 return ObjectHistoryData.Companion.Value(
                     id = id,
-                    typeTag = snapshot.data.getValue("typeTag"),
+                    typeTag = snapshot.data["typeTag"] ?: "???",
                     repr = repr,
                     precision = snapshot.data["precision"],
                     measureName = measureName,

@@ -3,6 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.subject.SubjectDao
@@ -16,7 +17,8 @@ interface SubjectService {
     fun findById(id: String): SubjectVertex?
     fun findDataById(id: String): SubjectData?
     fun findDataByIdStrict(id: String): SubjectData
-    fun findByIdStrict(id: String): SubjectVertex
+    fun findByIdStrict(id: String): Subject
+    fun findVertexByIdStrict(id: String): SubjectVertex
     fun findByName(name: String): SubjectData?
     fun createSubject(sd: SubjectData, username: String): Subject
     fun updateSubject(subjectData: SubjectData, username: String): Subject
@@ -32,6 +34,7 @@ class NormalizedSubjectService(private val innerService: SubjectService) : Subje
 class DefaultSubjectService(
     private val db: OrientDatabase,
     private val dao: SubjectDao,
+    private val guidDao: GuidDaoService,
     private val history: HistoryService,
     private val userService: UserService
 ) : SubjectService {
@@ -45,10 +48,14 @@ class DefaultSubjectService(
     }
 
     override fun findDataByIdStrict(id: String): SubjectData = transaction (db) {
-        dao.findByIdStrict(id)?.toSubject()?.toSubjectData()
+        dao.findByIdStrict(id).toSubject().toSubjectData()
     }
 
-    override fun findByIdStrict(id: String): SubjectVertex = dao.findByIdStrict(id)
+    override fun findByIdStrict(id: String): Subject = transaction (db) {
+        dao.findByIdStrict(id).toSubject()
+    }
+
+    override fun findVertexByIdStrict(id: String): SubjectVertex = dao.findByIdStrict(id)
 
     override fun findByName(name: String): SubjectData? = dao.findByName(name)?.toSubject()?.toSubjectData()
 
@@ -57,11 +64,12 @@ class DefaultSubjectService(
 
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
+            guidDao.newGuidVertex(vertex)
             history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
 
-        return vertex.toSubject()
+        return transaction(db) { vertex.toSubject() }
     }
 
     override fun updateSubject(subjectData: SubjectData, username: String): Subject {
@@ -86,7 +94,7 @@ class DefaultSubjectService(
             }
         }
 
-        return resultVertex.toSubject()
+        return transaction(db) { resultVertex.toSubject() }
     }
 
     override fun remove(subjectData: SubjectData, username: String, force: Boolean) {

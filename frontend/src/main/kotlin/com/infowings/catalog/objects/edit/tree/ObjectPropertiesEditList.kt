@@ -65,15 +65,17 @@ fun RBuilder.objectPropertiesEditList(
 
                                 when {
                                     currentValues == null -> {
-                                        this.values = mutableListOf(ObjectPropertyValueEditModel(
-                                            null,
-                                            null,
-                                            ObjectValueData.NullValue,
-                                            null,
-                                            null,
-                                            false,
-                                            mutableListOf()
-                                        ))
+                                        this.values = mutableListOf(
+                                            ObjectPropertyValueEditModel(
+                                                null,
+                                                null,
+                                                ObjectValueData.NullValue,
+                                                null,
+                                                null,
+                                                false,
+                                                mutableListOf()
+                                            )
+                                        )
                                     }
                                     currentValues.isEmpty() -> {
                                         currentValues.add(
@@ -371,7 +373,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         propertyName = props.property.name
                         propertyDescription = props.property.description
                         aspectName = aspect.name
-                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type")
+                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?:
+                                throw IllegalStateException("Aspect can not infer its base type")
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
@@ -533,6 +536,7 @@ interface ObjectPropertyValueEditNodeProps : RProps {
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {
-    val baseType = baseType?.let { BaseType.valueOf(it) } ?: measure?.let { GlobalMeasureMap[it]?.baseType } ?: throw IllegalStateException("Aspect can not infer its base type: ${this}")
+    val baseType = baseType?.let { BaseType.valueOf(it) } ?: measure?.let { GlobalMeasureMap[it]?.baseType }
+    ?: throw IllegalStateException("Aspect can not infer its base type: ${this}")
     return baseType.defaultValue()
 }

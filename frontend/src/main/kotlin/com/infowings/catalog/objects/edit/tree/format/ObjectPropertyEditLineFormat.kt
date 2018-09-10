@@ -24,7 +24,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
         )
         propertyAspect(
             value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, it.subjectName) },
-            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name)) },
+            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name, subjectName = it.subject)) },
             disabled = props.disabled || props.onAddValue != null // If onAddValue exists, it means the property has id.
             // API does not allow editing aspect, so it is better to just disable the option.
         )

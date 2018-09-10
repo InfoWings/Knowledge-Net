@@ -37,12 +37,15 @@ class ReferenceBookLabel : RComponent<ReferenceBookLabel.Props, ReferenceBookLab
     }
 
     override fun RBuilder.render() {
-        div(classes = "book-tree-view--label${if (props.selected) " book-tree-view--label__selected" else ""}") {
+        div(classes = "book-tree-view__label${if (props.selected) " book-tree-view__label--selected" else ""}") {
             attrs {
                 onClickFunction = ::startUpdatingBook
             }
-            span(classes = "book-tree-view--label-name") {
+            span(classes = "book-tree-view__label-name") {
                 +props.aspectName
+            }
+            span(classes = "book-tree-view__subject-name") {
+                +"(${props.subjectName ?: "Global"})"
             }
             +":"
             if (props.selected && state.updatingBook) {
@@ -54,7 +57,7 @@ class ReferenceBookLabel : RComponent<ReferenceBookLabel.Props, ReferenceBookLab
                     }
                 }
             } else {
-                span(classes = "book-tree-view--label-name") {
+                span(classes = "book-tree-view__label-name") {
                     +props.book.name
                 }
             }
@@ -63,6 +66,7 @@ class ReferenceBookLabel : RComponent<ReferenceBookLabel.Props, ReferenceBookLab
 
     interface Props : RProps {
         var aspectName: String
+        var subjectName: String?
         var book: ReferenceBook
         var selected: Boolean
         var startUpdatingBook: (aspectName: String) -> Unit

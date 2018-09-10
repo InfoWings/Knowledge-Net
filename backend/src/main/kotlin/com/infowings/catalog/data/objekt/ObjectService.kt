@@ -6,6 +6,8 @@ import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
+import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
@@ -21,6 +23,7 @@ class ObjectService(
     private val aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
+    private val guidDao: GuidDaoService,
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
@@ -51,10 +54,25 @@ class ObjectService(
             propertyVertex.id,
             propertyVertex.name,
             propertyVertex.description,
-            propertyVertex.aspect?.toAspectData() ?: throw IllegalStateException("Object property ${propertyVertex.id} without aspect"),
+            propertyVertex.aspect.toAspectTruncated(),
             propertyVertex.cardinality.name,
+            propertyVertex.guid,
             values
         )
+    }
+
+    private fun AspectVertex?.toAspectTruncated(): AspectTruncated {
+        if (this == null) {
+            throw NullPointerException("Aspect vertex is null")
+        } else {
+            return AspectTruncated(
+                this.id,
+                this.name,
+                this.baseTypeStrict,
+                this.referenceBookRootVertex?.name,
+                this.subject?.name
+            )
+        }
     }
 
     fun getDetailedObjectForEdit(id: String) =
@@ -73,7 +91,7 @@ class ObjectService(
                 objectProperties.map {
                     //TODO: #168 Maybe performance bottleneck
                     val values = it.values.map {
-                        ValueTruncated (
+                        ValueTruncated(
                             it.id,
                             it.toObjectPropertyValue().calculateObjectValueData().toDTO(),
                             it.explicitMeasure(),
@@ -120,6 +138,7 @@ class ObjectService(
             val createdObject = objectVertex.toObjekt()
 
             historyService.storeFact(createdObject.subject.toUpdateFact(context, subjectBefore))
+            guidDao.newGuidVertex(objectVertex)
             historyService.storeFact(objectVertex.toCreateFact(context))
 
             ObjectResult(objectVertex, objectVertex.subject ?: throw IllegalStateException("Object was created without subject"))
@@ -148,7 +167,7 @@ class ObjectService(
         return objectUpdateResult.toResponse()
     }
 
-    private fun ObjectResult.toResponse() = ObjectChangeResponse(id, name, description, subjectId, subjectName, version)
+    private fun ObjectResult.toResponse() = ObjectChangeResponse(id, name, description, subjectId, subjectName, version, guid)
 
     fun create(request: PropertyCreateRequest, username: String): PropertyCreateResponse {
         val userVertex = userService.findUserVertexByUsername(username)
@@ -160,6 +179,7 @@ class ObjectService(
             val objectBefore = propertyInfo.objekt.currentSnapshot()
             val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(dao.newObjectPropertyVertex(), propertyInfo, emptyList())
 
+            guidDao.newGuidVertex(propertyVertex)
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 
@@ -175,6 +195,7 @@ class ObjectService(
             val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
 
             historyService.storeFact(propertyVertex.toUpdateFact(context, propertyBefore))
+            guidDao.newGuidVertex(propertyValueVertex)
             historyService.storeFact(propertyValueVertex.toCreateFact(context))
 
             PropertyCreateResult(
@@ -185,12 +206,13 @@ class ObjectService(
         }
 
         return PropertyCreateResponse(
-            propertyCreateResult.id,
-            Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
-            Reference(propertyCreateResult.rootValueId, propertyCreateResult.rootValueVersion),
-            propertyCreateResult.name,
-            propertyCreateResult.description,
-            propertyCreateResult.version
+                propertyCreateResult.id,
+                Reference(propertyCreateResult.objectId, propertyCreateResult.objectVersion),
+                Reference(propertyCreateResult.rootValueId, propertyCreateResult.rootValueVersion),
+                propertyCreateResult.name,
+                propertyCreateResult.description,
+                propertyCreateResult.version,
+                propertyCreateResult.guid
         )
     }
 
@@ -216,7 +238,8 @@ class ObjectService(
             Reference(propertyUpdateResult.objectId, propertyUpdateResult.objectVersion),
             propertyUpdateResult.name,
             propertyUpdateResult.description,
-            propertyUpdateResult.version
+            propertyUpdateResult.version,
+            propertyUpdateResult.guid
         )
     }
 
@@ -232,6 +255,7 @@ class ObjectService(
                 val newVertex = dao.newObjectValueVertex()
                 dao.saveObjectValue(newVertex, valueInfo)
             }
+            guidDao.newGuidVertex(valueVertex)
             historyService.storeFact(valueVertex.toCreateFact(context))
 
             valueVertex.toValueResult()
@@ -246,11 +270,16 @@ class ObjectService(
         val valueUpdateResult = transaction(db) {
             var valueVertex = findPropertyValueById(request.valueId)
             val valueInfo: ValueWriteInfo = validator.checkedForUpdating(valueVertex, request)
+            val prevProperty = valueInfo.objectProperty.currentSnapshot()
+
             val before = valueVertex.currentSnapshot()
 
             valueVertex = dao.saveObjectValue(valueVertex, valueInfo)
 
             historyService.storeFact(valueVertex.toUpdateFact(context, before))
+            if (valueInfo.objectProperty.cardinality.toString() != prevProperty.data["cardinality"]) {
+                historyService.storeFact(valueInfo.objectProperty.toUpdateFact(context, prevProperty))
+            }
 
             valueVertex.toValueResult()
         }
@@ -279,7 +308,7 @@ class ObjectService(
 
     private fun ValueResult.toResponse() = ValueChangeResponse(
         id, valueDto, description, measureName, Reference(objectPropertyId, objectPropertyVersion),
-        aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version
+        aspectPropertyId, parentValueId?.let { id -> parentValueVersion?.let { version -> Reference(id, version) } }, version, guid
     )
 
     private data class DeleteValueContext(
@@ -348,7 +377,8 @@ class ObjectService(
             val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
             val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
 
-            val valuesToDelete = context.values - valuesToKeep
+            val idsToKeep = valuesToKeep.map { it.id }.toSet()
+            val valuesToDelete = context.values.filterNot { idsToKeep.contains(it.id) }
 
             valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
             valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
@@ -434,7 +464,8 @@ class ObjectService(
             Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
             propertyDeleteResult.name,
             propertyDeleteResult.description,
-            propertyDeleteResult.version
+            propertyDeleteResult.version,
+            propertyDeleteResult.guid
         )
     }
 
@@ -443,7 +474,7 @@ class ObjectService(
             val rootValues = context.values.filter { it.parentValue == null }
             val ownerObject = context.propVertex.objekt ?: throw IllegalStateException("Object property does not have a reference to owner object")
 
-            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map {it.identity}.toSet())
+            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map { it.identity }.toSet())
 
             val valuesToDelete = context.values - valuesToKeep
 
@@ -468,7 +499,8 @@ class ObjectService(
             Reference(propertyDeleteResult.objectId, propertyDeleteResult.objectVersion),
             propertyDeleteResult.name,
             propertyDeleteResult.description,
-            propertyDeleteResult.version
+            propertyDeleteResult.version,
+            propertyDeleteResult.guid
         )
     }
 
@@ -533,7 +565,7 @@ class ObjectService(
         fun removeOrMark(context: DeleteObjectContext) {
             val rootValues = context.values.filter { it.parentValue == null }
 
-            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map {it.identity}.toSet())
+            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map { it.identity }.toSet())
             val propertiesToKeep = context.properties.filter { context.propertyBlockers.contains(it.identity) }.toSet() +
                     valuesToKeep.map { it.objectProperty ?: throw IllegalStateException("no property for value ${it.identity}") }
 

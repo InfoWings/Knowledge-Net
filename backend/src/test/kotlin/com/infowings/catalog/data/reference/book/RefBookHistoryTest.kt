@@ -54,15 +54,16 @@ class RefBookHistoryTest {
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookCreateHistory() {
         val testName = "testRefBookCreateHistory"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         val refBook = refBookService.createReferenceBook(name = testName, aspectId = aspect.idStrict(), username = userName)
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val states: List<RefBookHistory> = statesAfter.dropLast(statesBefore.size)
@@ -79,7 +80,7 @@ class RefBookHistoryTest {
         // проверяем содержательную часть факта
         // сначала - ключи data/addedLinks/removedLinks
         val refBookPayload = refBookFacts.first().payload
-        assertEquals(setOf("value"), refBookPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName), refBookPayload.data.keys)
         assertEquals(setOf("aspect"), refBookPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), refBookPayload.removedLinks.keys, "removed links must be correct")
 
@@ -114,16 +115,17 @@ class RefBookHistoryTest {
         assertEquals(null, state.fullData.item)
 
         // проверяем changes
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "Aspect"), byField.keys)
+        assertEquals(setOf("Name", "Aspect", "guid"), byField.keys)
         assertEquals(testName, byField.getValue("Name")[0].after)
 //        assertEquals(aspect.id, byField.getValue("link_aspect")[0].after)
         assertEquals(aspect.name, byField.getValue("Aspect")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookItemCreateHistory() {
         val testName = "testRefBookItemCreateHistory"
 
@@ -132,14 +134,14 @@ class RefBookHistoryTest {
         val itemValue = "rbi-1"
         val itemDescription = "rbi-1 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         val itemId = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = itemValue, description = itemDescription), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -165,7 +167,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления родителя
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
         val childrenLinks = updatePayload.addedLinks.getValue("children")
@@ -173,7 +175,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf(RefBookField.VALUE.extName, RefBookField.GUID.extName, RefBookField.DESCRIPTION.extName), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -215,15 +217,16 @@ class RefBookHistoryTest {
         assertEquals(itemDescription, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue, byField.getValue("Name")[0].after)
         assertEquals(itemDescription, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookSecondItemCreateHistory() {
         val testName = "testRefBookSecondItemCreateHistory"
 
@@ -236,13 +239,13 @@ class RefBookHistoryTest {
         val itemValue2 = "rbi-2"
         val itemDescription2 = "rbi2 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
         val item2 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = refBook.id, value = itemValue2, description = itemDescription2), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -267,7 +270,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
 
@@ -276,7 +279,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -318,15 +321,16 @@ class RefBookHistoryTest {
         assertEquals(itemDescription2, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
+    @Suppress("MagicNumber")
     fun testRefBookChildItemCreateHistory() {
         val testName = "testRefBookChildItemCreateHistory"
 
@@ -339,13 +343,13 @@ class RefBookHistoryTest {
         val itemValue2 = "rbi-2"
         val itemDescription2 = "rbi2 description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
         val itemId2 = refBookService.addReferenceBookItem(
             ItemCreateRequest(parentId = itemId1, value = itemValue2, description = itemDescription2), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -368,7 +372,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта обновления элемента
         val updatePayload = updateFact.payload
-        assertEquals(emptySet(), updatePayload.data.keys, "keys must be correct")
+        assertEquals(emptySet(), updatePayload.data.keys)
         assertEquals(setOf("children"), updatePayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), updatePayload.removedLinks.keys, "removed links must be correct")
 
@@ -377,7 +381,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта создания элемента
         val createPayload = createFact.payload
-        assertEquals(setOf("value", "description"), createPayload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description", "guid"), createPayload.data.keys)
         assertEquals(setOf("parent", "root"), createPayload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), createPayload.removedLinks.keys, "removed links must be correct")
 
@@ -420,12 +424,12 @@ class RefBookHistoryTest {
         assertEquals(itemDescription2, item.description)
 
         // проверяем изменения
-        assertEquals(2, state.changes.size)
+        assertEquals(3, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("Name", "description"), byField.keys)
+        assertEquals(setOf("Name", "description", "guid"), byField.keys)
         assertEquals(itemValue2, byField.getValue("Name")[0].after)
         assertEquals(itemDescription2, byField.getValue("description")[0].after)
-        assertEquals(listOf("", ""), state.changes.map { it.before })
+        assertEquals(listOf("", "", ""), state.changes.map { it.before })
     }
 
     @Test
@@ -444,14 +448,14 @@ class RefBookHistoryTest {
             ItemCreateRequest(parentId = refBook.id, value = itemValue1, description = itemDescription1), "admin"
         )
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         refBookService.editReferenceBookItem(
             LeafEditRequest(id = itemId, value = itemValue2, description = itemDescription2, version = 1), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -470,7 +474,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта
         val payload = fact.payload
-        assertEquals(setOf("value", "description"), payload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description"), payload.data.keys)
         assertEquals(emptySet(), payload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), payload.removedLinks.keys, "removed links must be correct")
 
@@ -482,7 +486,6 @@ class RefBookHistoryTest {
         // ровно одно новое состояние
         assertEquals(1, states.size, "History must contain 1 element about ref book")
         val state = states[0]
-
 
         // проверяем мета-данные
         assertEquals(userName, state.event.username)
@@ -498,7 +501,6 @@ class RefBookHistoryTest {
         assertEquals(refBook.description, state.fullData.header.description)
         assertEquals(aspect.id, state.fullData.header.aspectId)
         assertEquals(aspect.name, state.fullData.header.aspectName)
-
 
         // проверяем элемент
         assertNotNull(state.fullData.item)
@@ -527,14 +529,14 @@ class RefBookHistoryTest {
         val rbName2 = "SomeName"
         val rbDescription2 = "Some description"
 
-        val historyBefore = historyService.getAll()
+        val historyBefore = historyService.allTimeline()
         val statesBefore = historyProvider.getAllHistory()
 
         refBookService.editRoot(
             RootEditRequest(aspectId = aspect.idStrict(), value = rbName2, description = rbDescription2, version = 1), "admin"
         )
 
-        val historyAfter = historyService.getAll()
+        val historyAfter = historyService.allTimeline()
         val statesAfter = historyProvider.getAllHistory()
 
         val facts = historyAfter - historyBefore
@@ -552,7 +554,7 @@ class RefBookHistoryTest {
 
         // проверяем содержание факта
         val payload = fact.payload
-        assertEquals(setOf("value", "description"), payload.data.keys, "keys must be correct")
+        assertEquals(setOf("value", "description"), payload.data.keys)
         assertEquals(emptySet(), payload.addedLinks.keys, "added links must be correct")
         assertEquals(emptySet(), payload.removedLinks.keys, "removed links must be correct")
 
@@ -564,7 +566,6 @@ class RefBookHistoryTest {
         // ровно одно новое состояние
         assertEquals(1, states.size, "History must contain 1 element about ref book")
         val state = states[0]
-
 
         // проверяем мета-данные
         assertEquals(userName, state.event.username)
@@ -596,5 +597,6 @@ class RefBookHistoryTest {
 
     private fun Set<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
 
-    private fun Set<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
+    private fun List<HistoryFact>.factsByEntity(entity: String) = this.filter { it.event.entityClass == entity }
+    private fun List<HistoryFact>.refBookFacts() = factsByEntity(REFERENCE_BOOK_ITEM_VERTEX)
 }

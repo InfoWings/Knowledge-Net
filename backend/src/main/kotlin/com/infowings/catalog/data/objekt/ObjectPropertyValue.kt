@@ -100,7 +100,8 @@ data class ObjectPropertyValue(
     val objectProperty: ObjectPropertyVertex,
     val aspectProperty: AspectPropertyVertex?,
     val parentValue: ObjectPropertyValueVertex?,
-    val measure: OVertex?
+    val measure: OVertex?,
+    val guid: String?
 ) {
     fun calculateObjectValueData(): ObjectValueData {
         val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
@@ -108,7 +109,7 @@ data class ObjectPropertyValue(
             else -> aspectProperty.associatedAspect
         }.measure
 
-        val targetValue = value.toObjectValueData()
+        val targetValue: ObjectValueData = value.toObjectValueData()
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
             ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())
@@ -149,6 +150,11 @@ data class ValueResult(
 
     val version: Int
         get() = valueVertex.version
+
+    val guidValue = valueVertex.guid
+
+    val guid: String?
+        get() = guidValue
 }
 
 data class ValueDeleteResult(

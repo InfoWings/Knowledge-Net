@@ -42,12 +42,15 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
         treeNode {
             attrs {
                 treeNodeContent = buildElement {
-                    div(classes = "book-tree-view--label${if (selected) " book-tree-view--label__selected" else ""}") {
+                    div(classes = "book-tree-view__label${if (selected) " book-tree-view__label__selected" else ""}") {
                         attrs {
                             onClickFunction = ::startCreatingBook
                         }
-                        span(classes = "book-tree-view--label-name") {
+                        span(classes = "book-tree-view__label-name") {
                             +props.aspectName
+                        }
+                        span(classes = "book-tree-view__subject-name") {
+                            +"(${props.subjectName ?: "Global"})"
                         }
                         +":"
                         if (state.creatingBook && selected) {
@@ -60,14 +63,15 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
                                         null,
                                         emptyList(),
                                         false,
-                                        0
+                                        0,
+                                        null
                                     )
                                     onCancel = ::cancelCreatingBook
                                     onSubmit = { handleCreateBook(it) }
                                 }
                             }
                         } else {
-                            span(classes = "book-tree-view--empty") {
+                            span(classes = "book-tree-view__empty") {
                                 +"(Add Reference Book ...)"
                             }
                         }
@@ -80,6 +84,7 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
     interface Props : RProps {
         var aspectId: String
         var aspectName: String
+        var subjectName: String?
         var selected: Boolean
         var startCreatingBook: (selectedAspectName: String) -> Unit
         var createBook: suspend (ReferenceBook) -> Unit

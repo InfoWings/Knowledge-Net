@@ -6,6 +6,7 @@ import com.infowings.catalog.common.HistorySnapshotData
 import com.infowings.catalog.common.SnapshotData
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
+import com.infowings.catalog.storage.OrientClass
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
@@ -21,22 +22,6 @@ class HistoryService(
 ) {
     // пока такой наивный кеш. Словим OOME - переделаем
     private val cache = ConcurrentHashMap<String, HistoryFact>()
-
-    fun getAll(): Set<HistoryFact> = logTime(logger, "all history facts collection") {
-        transaction(db) {
-            val events = logTime(logger, "basic collecting of events") { historyDao.getAllHistoryEvents() }
-            logger.info("${events.size} history events")
-            return@transaction events.map { it.toFact() }.toSet()
-        }
-    }
-
-    fun allTimeline(): List<HistoryFact> = logTime(logger, "history timeline collection") {
-        transaction(db) {
-            val events = logTime(logger, "basic collecting of timed events") { historyDao.getAllHistoryEventsByTime() }
-            logger.info("${events.size} timeline events")
-            return@transaction events.map { it.toFact() }
-        }
-    }
 
     fun entityTimeline(id: String): List<HistoryFact> = logTime(logger, "history timeline for entity collection") {
         transaction(db) {
@@ -92,6 +77,8 @@ class HistoryService(
             }
         }
     }
+
+    fun allTimeline(): List<HistoryFact> = allTimeline(OrientClass.values().map { it.extName })
 
     fun storeFact(fact: HistoryFactWrite): HistoryEventVertex = transaction(db) {
         val historyEventVertex = fact.newHistoryEventVertex()

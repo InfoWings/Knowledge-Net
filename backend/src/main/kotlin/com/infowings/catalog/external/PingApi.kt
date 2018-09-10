@@ -6,7 +6,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-data class DbMetrics(val counts: Map<String, Int>, val indexCounts: Map<String, Int>, val edgeCounts: Map<String, Int>)
+data class DbMetrics(val counts: Map<String, Int>, val indexCounts: Map<String, Int>, val edgeCounts: Map<String, Int>) {
+    private fun Map<String, Int>.diff(other: Map<String, Int>): Map<String, Int> = other.map { entry ->
+        entry.key to (entry.value - this.getOrDefault(entry.key, 0))
+    }.toMap()
+
+    fun diff(other: DbMetrics): DbMetrics = DbMetrics(counts.diff(other.counts), indexCounts.diff(other.indexCounts), edgeCounts.diff(other.edgeCounts))
+}
 
 data class PingResponse(val pong: String, val details: String = "")
 
@@ -52,7 +58,7 @@ class PingApi(val db: OrientDatabase) {
             val indexedKeys = counts.keys.intersect(indicesByClass.keys)
 
             val indexCounts = indexedKeys.map {
-                indicesByClass.getValue(it).mapNotNull { index ->
+                indicesByClass.getValue(it).map { index ->
                     index.name to db.countVertices(index.name)
                 }
             }.flatten().toMap()

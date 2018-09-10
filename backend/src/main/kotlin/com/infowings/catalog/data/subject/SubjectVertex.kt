@@ -22,7 +22,8 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
             "name" to asStringOrEmpty(name),
-            "description" to asStringOrEmpty(description)
+            "description" to asStringOrEmpty(description),
+            "guid" to asStringOrEmpty(guid)
         ),
         links = mapOf(
             "objects" to objects.map { it.identity }
@@ -50,6 +51,8 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     val objects: List<ObjectVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
 
+    val guid: String?
+        get() = guid(OrientEdge.GUID_OF_SUBJECT)
 
     fun linkedByAspects() = incomingEdges(ASPECT_SUBJECT_EDGE).map {
         val source = it.from.asVertex()

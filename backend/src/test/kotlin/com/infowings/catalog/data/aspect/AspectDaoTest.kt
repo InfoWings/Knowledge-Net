@@ -8,9 +8,12 @@ import com.infowings.catalog.common.BaseType.Text
 import com.infowings.catalog.common.Kilometre
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.randomName
+import com.infowings.catalog.storage.OrientClass
 import com.orientechnologies.orient.core.id.ORecordId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,6 +42,9 @@ class AspectDaoTest {
     @Autowired
     lateinit var historyService: HistoryService
 
+    @Autowired
+    lateinit var guidDao: GuidDaoService
+
     @Test
     fun testFindAspectsByIdsOne() {
         val aspect =
@@ -62,7 +68,7 @@ class AspectDaoTest {
 
         val aspectDetails = details.getValue(aspectId)
 
-        val aspectEvents = historyService.allTimeline().filter { it.event.entityId == aspectId }
+        val aspectEvents = historyService.allTimeline(OrientClass.ASPECT.extName).filter { it.event.entityId == aspectId }
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
@@ -93,7 +99,7 @@ class AspectDaoTest {
         assertEquals(emptyList(), details1.propertyIds)
         assertEquals(emptyList(), details2.propertyIds)
 
-        val allEvents = historyService.allTimeline()
+        val allEvents = historyService.allTimeline(OrientClass.ASPECT.extName)
         val events1 = allEvents.filter { it.event.entityId == aspectId1 }
         val events2 = allEvents.filter { it.event.entityId == aspectId2 }
 
@@ -119,7 +125,7 @@ class AspectDaoTest {
         assertEquals(null, details1.refBookName)
         assertEquals(emptyList(), details1.propertyIds)
 
-        val allEvents = historyService.allTimeline()
+        val allEvents = historyService.allTimeline(OrientClass.ASPECT.extName)
         val events1 = allEvents.filter { it.event.entityId == aspectId1 }
         assertEquals(events1.first().event.timestamp, details1.lastChange.toEpochMilli())
     }
@@ -176,5 +182,11 @@ class AspectDaoTest {
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
+    }
+
+    @Test
+    fun testGuidDaoUnique() {
+        val aspect = aspectService.save(AspectData(name = randomName("aspect"), description = "some description", baseType = BaseType.Text.name), username)
+        guidDao.find(listOfNotNull(aspect.guid))
     }
 }

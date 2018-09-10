@@ -23,6 +23,7 @@ private val changeNamesConvert = mapOf(
     AspectField.BASE_TYPE.name to "Base type",
     AspectField.DESCRIPTION.name to "Description",
     AspectField.MEASURE.name to "Measure",
+    AspectField.GUID.name to AspectField.GUID.view,
     AspectField.SUBJECT to "Subject",
     AspectField.REFERENCE_BOOK to "Reference book"
 )
@@ -287,6 +288,13 @@ class AspectHistoryProvider(
             }
         }
 
-        return events.sortedByDescending { it.event.timestamp }
+        return events.sortedWith(AspectComparatorDesc)
     }
+}
+
+object AspectComparatorDesc : Comparator<AspectHistory> {
+    override fun compare(v1: AspectHistory, v2: AspectHistory): Int = if (v1.event.timestamp == v2.event.timestamp)
+        v2.event.version - v1.event.version
+    else
+        (v2.event.timestamp - v1.event.timestamp).toInt()
 }

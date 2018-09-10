@@ -50,15 +50,17 @@ class TrimmingObjectValidator(private val objectValidator: ObjectValidator) : Ob
     }
 
     override fun checkedForCreation(request: PropertyCreateRequest): PropertyWriteInfo {
+        val requestName = request.name
         return objectValidator.checkedForCreation(
-            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
+            request.copy(name = if (requestName == null || requestName.isBlank()) null else requestName.trim())
         )
     }
 
     override fun checkedForUpdating(propertyVertex: ObjectPropertyVertex, request: PropertyUpdateRequest): PropertyWriteInfo {
+        val requestName = request.name
         return objectValidator.checkedForUpdating(
             propertyVertex,
-            request.copy(name = if (request.name == null || request.name.isBlank()) null else request.name.trim())
+            request.copy(name = if (requestName == null || requestName.isBlank()) null else requestName.trim())
         )
     }
 
@@ -73,7 +75,7 @@ class MainObjectValidator(
     private val aspectDao: AspectDaoService
 ) : ObjectValidator {
     override fun checkedForCreation(request: ObjectCreateRequest): ObjectWriteInfo {
-        val subjectVertex = subjectService.findByIdStrict(request.subjectId)
+        val subjectVertex = subjectService.findVertexByIdStrict(request.subjectId)
 
         objectDaoService.getObjectVertexesByNameAndSubject(request.name, subjectVertex.identity).let {
             if (it.isNotEmpty()) {
@@ -97,7 +99,7 @@ class MainObjectValidator(
         val currentSubjectVertex = objectVertex.subject
         val currentSubjectId = currentSubjectVertex?.id ?: throw ObjectWithoutSubjectException(objectVertex.id)
 
-        val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findByIdStrict(request.subjectId)
+        val newSubjectVertex = if (currentSubjectId == request.subjectId) currentSubjectVertex else subjectService.findVertexByIdStrict(request.subjectId)
         val newSubjectId = newSubjectVertex.identity
 
         //check version (Maybe try to #load() or #reload() if supplied version is bigger than existing)
@@ -277,7 +279,7 @@ class MainObjectValidator(
             val refValueVertex = dataValue.value.let {
                 when (it) {
                     is LinkValueData.Subject ->
-                        LinkValueVertex.Subject(subjectService.findByIdStrict(it.id))
+                        LinkValueVertex.Subject(subjectService.findVertexByIdStrict(it.id))
                     is LinkValueData.Object ->
                         LinkValueVertex.Object(objectService.findById(it.id))
                     is LinkValueData.ObjectProperty ->
