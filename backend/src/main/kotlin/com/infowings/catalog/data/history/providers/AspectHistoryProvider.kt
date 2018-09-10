@@ -23,6 +23,7 @@ private val changeNamesConvert = mapOf(
     AspectField.BASE_TYPE.name to "Base type",
     AspectField.DESCRIPTION.name to "Description",
     AspectField.MEASURE.name to "Measure",
+    AspectField.GUID.name to AspectField.GUID.view,
     AspectField.SUBJECT to "Subject",
     AspectField.REFERENCE_BOOK to "Reference book"
 )

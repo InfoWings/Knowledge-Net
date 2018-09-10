@@ -18,7 +18,8 @@ data class Objekt(
     val name: String,
     val description: String?,
     val subject: SubjectVertex,
-    val properties: List<ObjectPropertyVertex>
+    val properties: List<ObjectPropertyVertex>,
+    val guid: String?
 )
 
 data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
@@ -39,6 +40,11 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
 
     val version: Int
         get() = objectVertex.version
+
+    private val guidValue = objectVertex.guid
+
+    val guid: String?
+        get() = guidValue
 }
 
 data class ObjectTruncated(

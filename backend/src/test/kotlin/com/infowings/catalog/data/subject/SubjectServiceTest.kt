@@ -9,6 +9,7 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.search.CommonSuggestionParam
 import com.infowings.catalog.search.SubjectSuggestionParam
 import com.infowings.catalog.search.SuggestionService
+import com.infowings.catalog.storage.OrientDatabase
 import io.kotlintest.shouldBe
 import org.hamcrest.core.Is
 import org.junit.Assert
@@ -33,6 +34,9 @@ class SubjectServiceTest {
 
     @Autowired
     private lateinit var suggestionService: SuggestionService
+
+    @Autowired
+    lateinit var db: OrientDatabase
 
     @Test
     fun testAddAspectsSameNameSameSubject() {
@@ -223,7 +227,7 @@ class SubjectServiceTest {
 
     @Test
     fun testUpdateSameData() {
-        val created = createTestSubject("testSubject")
+        val created = createTestSubject(randomName("testSubject"))
         try {
             subjectService.updateSubject(created.toSubjectData(), username)
         } catch (e: SubjectEmptyChangeException) {
@@ -234,9 +238,10 @@ class SubjectServiceTest {
 
     @Test
     fun testCreateSubjectWithSpaces() {
-        subjectService.createSubject(SubjectData(name = "testSubject", description = ""), username)
+        val name = randomName("testSubject")
+        subjectService.createSubject(SubjectData(name = name, description = ""), username)
         assertThrows<SubjectWithNameAlreadyExist> {
-            subjectService.createSubject(SubjectData(name = "testSubject ", description = ""), username)
+            subjectService.createSubject(SubjectData(name = "$name ", description = ""), username)
         }
     }
 
@@ -297,5 +302,5 @@ fun createTestSubject(
     }
     aspectNames.map { createTestAspect(it, aspectService, subject) }
 
-    return subjectService.findByIdStrict(subject.id).toSubject()
+    return subjectService.findByIdStrict(subject.id)
 }

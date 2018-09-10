@@ -83,6 +83,8 @@ enum class ObjectValueField(val extName: String) {
     INT_VALUE("intValue"),
     STR_VALUE("strValue"),
     DECIMAL_VALUE("decimalValue"),
+    GUID("guid"),
+
     LINK_OBJECT_PROPERTY("objectProperty"),
     LINK_ASPECT_PROPERTY("aspectProperty"),
     LINK_REF_OBJECT("refValueObject"),
@@ -108,7 +110,8 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ObjectValueField.PRECISION.extName to asStringOrEmpty(precision),
             ObjectValueField.INT_VALUE.extName to asStringOrEmpty(intValue),
             ObjectValueField.STR_VALUE.extName to asStringOrEmpty(strValue),
-            ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue)
+            ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue),
+            ObjectValueField.GUID.extName to asStringOrEmpty(guid)
         ),
         links = mapOf(
             ObjectValueField.LINK_OBJECT_PROPERTY.extName to listOfNotNull(objectProperty?.identity),
@@ -236,15 +239,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val refValueAspectProperty: AspectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectPropertyVertex()
 
-    val refValueRefBookItem: ReferenceBookItemVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
-
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
     val children: List<ObjectPropertyValueVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+
+    val guid: String?
+        get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -281,7 +284,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         }
 
 
-        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)
+        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure, guid)
     }
 }
 

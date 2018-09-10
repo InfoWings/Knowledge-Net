@@ -176,6 +176,7 @@ class OrientDatabase(
             .initUsers(users)
             .initReferenceBooks()
             .initObject()
+            .initGuid()
             .initMeasures()
             .initSearchMeasure() // this call should be latest
     }
