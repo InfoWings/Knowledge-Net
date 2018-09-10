@@ -8,7 +8,8 @@ data class Subject(
     val name: String,
     val version: Int,
     val description: String?,
-    val deleted: Boolean
+    val deleted: Boolean,
+    val guid: String?
 )
 
 fun Subject.toSubjectData() = SubjectData(
@@ -16,5 +17,6 @@ fun Subject.toSubjectData() = SubjectData(
     name = this.name,
     version = this.version,
     description = this.description,
-    deleted = this.deleted
+    deleted = this.deleted,
+    guid = this.guid
 )

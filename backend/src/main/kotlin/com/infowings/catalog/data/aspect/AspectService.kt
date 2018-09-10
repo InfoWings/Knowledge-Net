@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -40,6 +41,7 @@ class DefaultAspectService(
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
     private val referenceBookService: ReferenceBookService,
+    private val guidDao: GuidDaoService,
     private val userService: UserService
 ) : AspectService {
 
@@ -97,6 +99,7 @@ class DefaultAspectService(
         context: HistoryContext
     ): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, context)
+        guidDao.newGuidVertex(res)
         historyService.storeFact(aspectVertex.toCreateFact(context))
         return res
     }
@@ -127,7 +130,7 @@ class DefaultAspectService(
             }*/
 
             val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else {
-                if (aspectVertex.toAspectData() == aspectData) {
+                if (aspectVertex.toAspectData().copy(guid = "") == aspectData.copy(guid = "")) {
                     throw AspectEmptyChangeException()
                 }
                 this::updateFinish
@@ -294,7 +297,7 @@ class DefaultAspectService(
 
     override fun findTreeById(id: String): AspectTree = transaction(db) { aspectDaoService.getAspectTreeById(ORecordId(id)) }
 
-    override fun findPropertyById(id: String) = findPropertyVertexById(id).toAspectPropertyData()
+    override fun findPropertyById(id: String) = transaction(db) { findPropertyVertexById(id).toAspectPropertyData() }
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.findProperty(id)
             ?: throw AspectPropertyDoesNotExist(id)
@@ -396,6 +399,7 @@ class DefaultAspectService(
     ): HistoryFactWrite {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
+            guidDao.newGuidVertex(vertex)
             vertex.toCreateFact(context)
         } else {
             val previous = vertex.currentSnapshot()

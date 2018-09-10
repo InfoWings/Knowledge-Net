@@ -10,7 +10,8 @@ data class ReferenceBook(
     val description: String?,
     val children: List<ReferenceBookItem>,
     val deleted: Boolean,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -20,7 +21,8 @@ data class ReferenceBookItem(
     val description: String?,
     val children: List<ReferenceBookItem>,
     val deleted: Boolean,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable

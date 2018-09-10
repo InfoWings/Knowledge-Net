@@ -3,7 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
-import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -107,12 +106,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 DetailedRootValueViewResponse(
                     rootValue.id,
                     rootValue.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-                    rootValue.measure?.toMeasure()?.symbol,
+                    rootValue.getOrCalculateMeasureSymbol(),
                     rootValue.description,
                     rootValue.children.map { it.toDetailedAspectPropertyValueResponse() }
                 )
             }
         }
+
+    private fun ObjectPropertyValueVertex.getOrCalculateMeasureSymbol(): String? {
+        val currentMeasureSymbol = this.measure?.toMeasure()?.symbol
+        return currentMeasureSymbol ?: run {
+            val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
+            aspect?.measure?.symbol
+        }
+    }
 
     private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedValueViewResponse {
         val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")
@@ -120,17 +127,13 @@ class ObjectDaoService(private val db: OrientDatabase) {
         return DetailedValueViewResponse(
             this.id,
             this.toObjectPropertyValue().calculateObjectValueData().toDTO(),
-            this.measure?.toMeasure()?.symbol,
+            this.getOrCalculateMeasureSymbol(),
             this.description,
             AspectPropertyDataExtended(
-                aspectProperty.id,
                 aspectProperty.name,
-                aspect.id,
-                aspectProperty.cardinality,
                 aspect.name,
-                aspect.measure?.name,
-                OpenDomain(BaseType.restoreBaseType(aspect.baseType)).toString(),
                 aspect.baseType ?: throw IllegalStateException("Aspect with id ${aspect.id} has no associated base type"),
+                aspect.subject?.name,
                 aspect.referenceBookRootVertex?.name
             ),
             this.children.map { it.toDetailedAspectPropertyValueResponse() }

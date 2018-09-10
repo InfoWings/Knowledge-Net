@@ -1,4 +1,5 @@
 @file:Suppress("StringLiteralDuplication")
+
 package com.infowings.catalog.common
 
 val MeasureDesc: Map<String, String> = mapOf(
@@ -181,8 +182,10 @@ class MeasureGroup<T>(
 ) {
     val elementGroupMap = measureList.map { it.name to base }.toMap()
 
-    fun getMeasure(measureName: String): Measure<T> = measureList.find { it.name == measureName }
-            ?: throw IllegalStateException("No such measure ($measureName) in measure group ${this.name}")
+    fun getMeasure(measureName: String): Measure<T> {
+        return measureList.find { it.name == measureName }
+                ?: throw IllegalStateException("No such measure ($measureName) in measure group ${this.name}")
+    }
 }
 
 

@@ -49,7 +49,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             AspectField.NAME.name to asStringOrEmpty(name),
             AspectField.MEASURE.name to asStringOrEmpty(measure),
             AspectField.BASE_TYPE.name to asStringOrEmpty(baseType),
-            AspectField.DESCRIPTION.name to asStringOrEmpty(description)
+            AspectField.DESCRIPTION.name to asStringOrEmpty(description),
+            AspectField.GUID.name to asStringOrEmpty(guid)
         ),
         links = mapOf(
             AspectField.PROPERTY to properties.map { it.identity },
@@ -103,6 +104,10 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
 
     val subject: Subject?
         get() = subjectVertex?.toSubject()
+
+
+    val guid: String?
+        get() = guid(OrientEdge.GUID_OF_ASPECT)
 
     private val lastChange: Instant?
         get() {
@@ -181,7 +186,8 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
             deleted = deleted,
             description = description,
             lastChangeTimestamp = lastChange?.epochSecond,
-            refBookName = refBookValue
+            refBookName = refBookValue,
+            guid = guid
         )
     }
 
@@ -233,13 +239,13 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             AspectPropertyField.NAME.name to asStringOrEmpty(name),
             AspectPropertyField.ASPECT.name to asStringOrEmpty(aspect),
             AspectPropertyField.CARDINALITY.name to asStringOrEmpty(cardinality),
-            AspectPropertyField.DESCRIPTION.name to asStringOrEmpty(description)
+            AspectPropertyField.DESCRIPTION.name to asStringOrEmpty(description),
+            AspectPropertyField.GUID.name to asStringOrEmpty(guid)
         ),
         links = emptyMap()
     )
 
-    fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, cardinality, description, version, deleted)
+    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, cardinality, description, version, deleted, guid)
 
     var name: String?
         get() = vertex["name"]
@@ -270,6 +276,9 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         set(value) {
             vertex[ATTR_DESC] = value
         }
+
+    val guid: String?
+        get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()

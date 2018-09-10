@@ -9,25 +9,10 @@ import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
-
-/**
- * Object property data representation for use in backend context.
- * It can use Orient data structures but it is detached from database - updated to it does not lead to
- * updates in database
- */
-data class ObjectProperty(
-    val id: ORID?,
-    val name: String,
-    val cardinality: PropertyCardinality,
-    val objekt: ObjectVertex,
-    val aspect: AspectVertex,
-    val values: List<ObjectPropertyValueVertex>
-)
 
 data class PropertyCreateResult(
     private val propertyVertex: ObjectPropertyVertex,
@@ -35,35 +20,44 @@ data class PropertyCreateResult(
     private val rootValueVertex: ObjectPropertyValueVertex
 ) {
 
+    private val guidValue = propertyVertex.guid
+
     fun toResponse() = PropertyCreateResponse(
         propertyVertex.id,
         Reference(objectVertex.id, objectVertex.version),
         Reference(rootValueVertex.id, rootValueVertex.version),
         propertyVertex.name,
         propertyVertex.description,
-        propertyVertex.version
+        propertyVertex.version,
+        guidValue
     )
 }
 
 data class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+
+    private val guidValue = propertyVertex.guid
 
     fun toResponse() = PropertyUpdateResponse(
         propertyVertex.id,
         Reference(objectVertex.id, objectVertex.version),
         propertyVertex.name,
         propertyVertex.description,
-        propertyVertex.version
+        propertyVertex.version,
+        guidValue
     )
 }
 
 data class PropertyDeleteResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
+
+    private val guidValue = propertyVertex.guid
 
     fun toResponse() = PropertyDeleteResponse(
         propertyVertex.id,
         Reference(objectVertex.id, objectVertex.version),
         propertyVertex.name,
         propertyVertex.description,
-        propertyVertex.version
+        propertyVertex.version,
+        guidValue
     )
 }
 

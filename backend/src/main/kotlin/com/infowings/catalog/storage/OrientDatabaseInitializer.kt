@@ -30,7 +30,14 @@ enum class OrientClass(val extName: String) {
     HISTORY_ELEMENT(HISTORY_ELEMENT_CLASS),
     HISTORY_ADD_LINK(HISTORY_ADD_LINK_CLASS),
     HISTORY_REMOVE_LINK(HISTORY_DROP_LINK_CLASS),
-    USER(USER_CLASS)
+    USER(USER_CLASS),
+    GUID("Guid");
+
+    companion object {
+        private val ext2Class = OrientClass.values().map { it.extName to it }.toMap()
+
+        fun fromExtName(extName: String): OrientClass = ext2Class.getValue(extName)
+    }
 }
 
 enum class OrientEdge(val extName: String) {
@@ -47,6 +54,13 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
+    GUID_OF_ASPECT("GuidOfAspectEdge"),
+    GUID_OF_ASPECT_PROPERTY("GuidOfAspectPropertyEdge"),
+    GUID_OF_SUBJECT("GuidOfSubjectEdge"),
+    GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
+    GUID_OF_OBJECT("GuidOfObjectEdge"),
+    GUID_OF_OBJECT_PROPERTY("GuidOfObjectPropertyEdge"),
+    GUID_OF_OBJECT_VALUE("GuidOfObjectValueEdge"),
 }
 
 
@@ -154,6 +168,17 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, HISTORY_ELEMENT_EDGE)
         initEdge(session, HISTORY_ADD_LINK_EDGE)
         initEdge(session, HISTORY_DROP_LINK_EDGE)
+
+        return@session this
+    }
+
+    fun initGuid(): OrientDatabaseInitializer = session(database) { session ->
+        initVertex(session, OrientClass.GUID.extName)
+
+        listOf(OrientEdge.GUID_OF_ASPECT, OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
+            OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE).forEach {
+            initEdge(session, it.extName)
+        }
 
         return@session this
     }

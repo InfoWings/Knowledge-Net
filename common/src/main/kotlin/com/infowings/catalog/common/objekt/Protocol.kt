@@ -97,7 +97,8 @@ data class ObjectChangeResponse(
     val description: String?,
     val subjectId: String,
     val subjectName: String,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -107,7 +108,8 @@ data class PropertyCreateResponse(
     val rootValue: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -116,7 +118,8 @@ data class PropertyUpdateResponse(
     val obj: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -125,7 +128,8 @@ data class PropertyDeleteResponse(
     val obj: Reference,
     val name: String?,
     val description: String?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -137,7 +141,8 @@ data class ValueChangeResponse(
     val objectProperty: Reference,
     val aspectPropertyId: String?,
     val parentValue: Reference?,
-    val version: Int
+    val version: Int,
+    val guid: String?
 )
 
 @Serializable
@@ -149,7 +154,29 @@ data class ValueDeleteResponse(
 )
 
 @Serializable
+data class FoundValueResponse(
+    val guid: String?,
+    val value: ValueDTO,
+    val propertyName: String?,
+    val aspectName: String,
+    val measure: String?
+)
+
+@Serializable
 data class Reference(val id: String, val version: Int)
 
 @Serializable
 data class ValueRecalculationResponse(val targetMeasure: String, val value: String)
+
+enum class EntityClass {
+    ASPECT,
+    ASPECT_PROPERTY,
+    SUBJECT,
+    OBJECT,
+    OBJECT_PROPERTY,
+    OBJECT_VALUE,
+    REFBOOK_ITEM
+}
+
+@Serializable
+data class EntityMetadata(val guid: String, val entityClass: EntityClass, val id: String)

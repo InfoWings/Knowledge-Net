@@ -1,7 +1,9 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.edit.create.objectCreateForm
+import com.infowings.catalog.utils.ApiException
 import kotlinx.coroutines.experimental.launch
 import react.*
 
@@ -21,6 +23,12 @@ class ObjectCreateModelComponent : RComponent<ObjectCreateModelComponent.Props, 
     override fun State.init() {
         name = ""
         subject = null
+    }
+
+    override fun componentWillReceiveProps(nextProps: Props) {
+        nextProps.lastApiError?.let {
+            showError(it)
+        }
     }
 
     private fun updateName(name: String) = setState {
@@ -55,6 +63,7 @@ class ObjectCreateModelComponent : RComponent<ObjectCreateModelComponent.Props, 
 
     interface Props : RProps {
         var api: ObjectCreateApiModel
+        var lastApiError: ApiException?
     }
 
     interface State : RState {

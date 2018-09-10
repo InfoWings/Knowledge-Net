@@ -31,8 +31,9 @@ data class DetailedObjectPropertyViewResponse(
     val id: String,
     val name: String?,
     val description: String?,
-    val aspect: AspectData,
+    val aspect: AspectTruncated,
     val cardinality: String,
+    val guid: String?,
     val values: List<DetailedRootValueViewResponse>
 )
 
@@ -86,4 +87,13 @@ data class ValueTruncated(
     val propertyId: String?,
     val version: Int,
     val childrenIds: List<String>
+)
+
+@Serializable
+data class AspectTruncated(
+    val id: String,
+    val name: String,
+    val baseType: String,
+    val referenceBookName: String?,
+    val subjectName: String?
 )

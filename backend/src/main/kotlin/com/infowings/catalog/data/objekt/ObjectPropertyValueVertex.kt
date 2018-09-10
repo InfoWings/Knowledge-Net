@@ -75,32 +75,57 @@ fun ObjectValue.tag() = when (this) {
 
 val tagByInt: Map<Int, ScalarTypeTag> = ScalarTypeTag.values().map { it.code to it }.toMap()
 
+enum class ObjectValueField(val extName: String) {
+    DESCRIPTION("description"),
+    TYPE_TAG("typeTag"),
+    RANGE("range"),
+    PRECISION("precision"),
+    INT_VALUE("intValue"),
+    STR_VALUE("strValue"),
+    DECIMAL_VALUE("decimalValue"),
+    GUID("guid"),
+
+    LINK_OBJECT_PROPERTY("objectProperty"),
+    LINK_ASPECT_PROPERTY("aspectProperty"),
+    LINK_REF_OBJECT("refValueObject"),
+    LINK_REF_OBJECT_PROPERTY("refValueObjectProperty"),
+    LINK_REF_OBJECT_VALUE("refValueObjectValue"),
+    LINK_REF_ASPECT("refValueAspect"),
+    LINK_REF_ASPECT_PROPERTY("refValueAspectProperty"),
+    LINK_REF_SUBJECT("refValueSubject"),
+    LINK_REF_DOMAIN_ELEMENT("refValueDomainElement"),
+    LINK_MEASURE("measure"),
+    LINK_PARENT_VALUE("parentValue"),
+    LINK_CHILDREN("children"),
+}
+
 class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_VALUE_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
         data = mapOf(
-            "description" to asStringOrEmpty(description),
-            "typeTag" to asStringOrEmpty(typeTag),
-            "range" to range?.asString().orEmpty(),
-            "precision" to asStringOrEmpty(precision),
-            "intValue" to asStringOrEmpty(intValue),
-            "strValue" to asStringOrEmpty(strValue),
-            "decimalValue" to asStringOrEmpty(decimalValue)
+            ObjectValueField.DESCRIPTION.extName to asStringOrEmpty(description),
+            ObjectValueField.TYPE_TAG.extName to asStringOrEmpty(typeTag),
+            ObjectValueField.RANGE.extName to range?.asString().orEmpty(),
+            ObjectValueField.PRECISION.extName to asStringOrEmpty(precision),
+            ObjectValueField.INT_VALUE.extName to asStringOrEmpty(intValue),
+            ObjectValueField.STR_VALUE.extName to asStringOrEmpty(strValue),
+            ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue),
+            ObjectValueField.GUID.extName to asStringOrEmpty(guid)
         ),
         links = mapOf(
-            "objectProperty" to listOfNotNull(objectProperty?.identity),
-            "aspectProperty" to listOfNotNull(aspectProperty?.identity),
-            "refValueObject" to listOfNotNull(refValueObject?.identity),
-            "refValueObjectProperty" to listOfNotNull(refValueObjectProperty?.identity),
-            "refValueObjectValue" to listOfNotNull(refValueObjectValue?.identity),
-            "refValueAspect" to listOfNotNull(refValueAspect?.identity),
-            "refValueAspectProperty" to listOfNotNull(refValueAspectProperty?.identity),
-            "refValueSubject" to listOfNotNull(refValueSubject?.identity),
-            "refValueDomainElement" to listOfNotNull(refValueDomainElement?.identity),
-            "measure" to listOfNotNull(measure?.identity),
-            "parentValue" to listOfNotNull(parentValue?.identity),
-            "children" to childrenValues.orEmpty().map { it.identity }
+            ObjectValueField.LINK_OBJECT_PROPERTY.extName to listOfNotNull(objectProperty?.identity),
+            ObjectValueField.LINK_ASPECT_PROPERTY.extName to listOfNotNull(aspectProperty?.identity),
+            ObjectValueField.LINK_REF_OBJECT.extName to listOfNotNull(refValueObject?.identity),
+            ObjectValueField.LINK_REF_OBJECT_PROPERTY.extName to listOfNotNull(refValueObjectProperty?.identity),
+            ObjectValueField.LINK_REF_OBJECT_VALUE.extName to listOfNotNull(refValueObjectValue?.identity),
+            ObjectValueField.LINK_REF_ASPECT.extName to listOfNotNull(refValueAspect?.identity),
+            ObjectValueField.LINK_REF_ASPECT_PROPERTY.extName to listOfNotNull(refValueAspectProperty?.identity),
+            ObjectValueField.LINK_REF_SUBJECT.extName to listOfNotNull(refValueSubject?.identity),
+            ObjectValueField.LINK_REF_DOMAIN_ELEMENT.extName to listOfNotNull(refValueDomainElement?.identity),
+            ObjectValueField.LINK_MEASURE.extName to listOfNotNull(measure?.identity),
+            ObjectValueField.LINK_PARENT_VALUE.extName to listOfNotNull(parentValue?.identity),
+            ObjectValueField.LINK_CHILDREN.extName to childrenValues.orEmpty().map { it.identity }
         )
     )
 
@@ -214,15 +239,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val refValueAspectProperty: AspectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectPropertyVertex()
 
-    val refValueRefBookItem: ReferenceBookItemVertex?
-        get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE).firstOrNull()?.toReferenceBookItemVertex()
-
     val measure: OVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_MEASURE_EDGE).firstOrNull()
 
     val children: List<ObjectPropertyValueVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
+
+    val guid: String?
+        get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
@@ -259,7 +284,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         }
 
 
-        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure)
+        return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure, guid)
     }
 }
 

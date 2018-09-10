@@ -17,7 +17,6 @@ import org.hamcrest.Matchers
 import org.hamcrest.core.Is
 import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -177,7 +176,6 @@ class AspectServiceDeletingTest {
     }
 
     @Test
-    @Disabled
     fun testDeleteLinkedByAspect() {
         var aspect = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
         var aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
@@ -199,7 +197,8 @@ class AspectServiceDeletingTest {
         aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
 
         aspectService.remove(aspect, username, true)
-        val found2 = database.getVertexById(aspectId)?.toAspectVertex()
+
+        val found2 = database.getVertexById(aspectId) { it.toAspectVertex() }
         assertNotNull("Aspect exists in db", found2)
         assertTrue("Aspect deleted", found2!!.deleted)
     }

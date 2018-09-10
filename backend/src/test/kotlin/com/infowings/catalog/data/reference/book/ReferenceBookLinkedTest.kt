@@ -11,13 +11,10 @@ import com.infowings.catalog.data.aspect.AspectService
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.randomName
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.rules.ExpectedException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -46,14 +43,11 @@ class ReferenceBookLinkedTest {
         refBook = referenceBookService.createReferenceBook("Example", leafAspect.id!!, username)
     }
 
-    @get:Rule
-    val thrown: ExpectedException = ExpectedException.none()
-
     @Test
     fun updateLinkedReferenceBookItem() {
         val childId = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
         addLinkToRefBookItem(childId)
-        val forUpdateItem = ReferenceBookItem(childId, "new", null, emptyList(), false, refBook.version)
+        val forUpdateItem = ReferenceBookItem(childId, "new", null, emptyList(), false, refBook.version, null)
         assertThrows<RefBookItemHasLinkedEntitiesException> {
             referenceBookService.updateReferenceBookItem(forUpdateItem, username)
         }
@@ -104,21 +98,19 @@ class ReferenceBookLinkedTest {
     }
 
     @Test
-    @Disabled
     fun removeLinkedItem() {
-        val child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("child"), username)
+        val child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("removeLinkedItem_child"), username)
         addLinkToRefBookItem(child)
         assertThrows<RefBookItemHasLinkedEntitiesException> {
             referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username)
         }
 
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(child), username, true)
-        val deleted = referenceBookService.getReferenceBook(child)
+        val deleted = referenceBookService.getReferenceBookItem(child)
         Assert.assertTrue("deleted book item must have deleted flag", deleted.deleted)
     }
 
     @Test
-    @Disabled
     fun removeParentLinkedItem() {
         val layer1Child = referenceBookService.addReferenceBookItem(refBook.id, createReferenceBookItem("layer1_child1"), username)
         val layer2Child = referenceBookService.addReferenceBookItem(layer1Child, createReferenceBookItem("layer2_child1"), username)
@@ -129,10 +121,10 @@ class ReferenceBookLinkedTest {
         }
         referenceBookService.removeReferenceBookItem(referenceBookService.getReferenceBookItem(layer1Child), username, true)
 
-        val deletedParent = referenceBookService.getReferenceBook(layer1Child)
+        val deletedParent = referenceBookService.getReferenceBookItem(layer1Child)
         Assert.assertTrue("deleted parent book item must have deleted flag", deletedParent.deleted)
 
-        val deletedChild = referenceBookService.getReferenceBook(layer2Child)
+        val deletedChild = referenceBookService.getReferenceBookItem(layer2Child)
         Assert.assertTrue("deleted child book item must have deleted flag", deletedChild.deleted)
     }
 
@@ -143,7 +135,8 @@ class ReferenceBookLinkedTest {
             null,
             emptyList(),
             false,
-            0
+            0,
+            null
         )
     }
 

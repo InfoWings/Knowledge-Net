@@ -19,10 +19,13 @@ data class Objekt(
     val name: String,
     val description: String?,
     val subject: SubjectVertex,
-    val properties: List<ObjectPropertyVertex>
+    val properties: List<ObjectPropertyVertex>,
+    val guid: String?
 )
 
 data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
+
+    private val guidValue = objectVertex.guid
 
     fun toResponse() = ObjectChangeResponse(
         objectVertex.id,
@@ -30,7 +33,8 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
         objectVertex.description,
         subjectVertex.id,
         subjectVertex.name,
-        objectVertex.version
+        objectVertex.version,
+        guidValue
     )
 }
 

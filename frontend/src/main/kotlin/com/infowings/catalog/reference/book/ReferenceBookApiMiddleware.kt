@@ -50,7 +50,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 .map {
                     val aspectId = it.id ?: ""
                     val book = if (it.id != null) aspectIdToBookMap[aspectId] else null
-                    RowData(aspectId, it.name, book)
+                    RowData(aspectId, it.name, it.subject?.name, book)
                 }
 
             setState {
@@ -194,4 +194,4 @@ fun RBuilder.referenceBookApiMiddleware(apiReceiverComponent: KClass<out RCompon
         }
     }
 
-data class RowData(val aspectId: String, val aspectName: String, val book: ReferenceBook?)
+data class RowData(val aspectId: String, val aspectName: String, val subjectName: String?, val book: ReferenceBook?)

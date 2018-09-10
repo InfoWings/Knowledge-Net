@@ -35,7 +35,8 @@ data class AspectData(
     val deleted: Boolean = false,
     val description: String? = null,
     val lastChangeTimestamp: Long? = null,
-    val refBookName: String? = null
+    val refBookName: String? = null,
+    val guid: String? = null
 ) {
     operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
 
@@ -50,7 +51,8 @@ data class AspectPropertyData(
     val cardinality: String,
     val description: String?,
     val version: Int = 0,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val guid: String? = null
 ) {
     companion object {
         fun Initial(name: String, description: String?, aspectId: String, cardinality: String) =
@@ -61,14 +63,10 @@ data class AspectPropertyData(
 /** Data about AspectProperty together with data about relevant aspect */
 @Serializable
 data class AspectPropertyDataExtended(
-    val id: String,
     val name: String?,
-    val aspectId: String,
-    val cardinality: String,
     val aspectName: String,
-    val aspectMeasure: String?,
-    val aspectDomain: String,
     val aspectBaseType: String,
+    val aspectSubjectName: String?,
     val refBookName: String?
 )
 
