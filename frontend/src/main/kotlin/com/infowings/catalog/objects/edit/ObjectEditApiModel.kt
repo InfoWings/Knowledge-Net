@@ -76,6 +76,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             val defaultRootValue = ValueTruncated(
                 createPropertyResponse.rootValue.id,
                 ObjectValueData.NullValue.toDTO(),
+                createPropertyResponse.rootValue.guid,
                 null,
                 null,
                 null,
@@ -192,6 +193,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
             value = response.value,
             measureName = response.measureName,
             description = response.description,
+            guid = response.guid,
             propertyId = response.aspectPropertyId,
             version = response.version,
             childrenIds = emptyList()
