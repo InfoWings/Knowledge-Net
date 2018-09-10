@@ -1,6 +1,9 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.common.objekt.Reference
+import com.infowings.catalog.common.objekt.ValueChangeResponse
+import com.infowings.catalog.common.objekt.ValueDeleteResponse
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
@@ -103,7 +106,7 @@ data class ObjectPropertyValue(
     val measure: OVertex?
 ) {
     fun calculateObjectValueData(): ObjectValueData {
-        val measure = this.measure?.toMeasure() ?: when (aspectProperty) {
+        val measure = measure?.toMeasure() ?: when (aspectProperty) {
             null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
             else -> aspectProperty.associatedAspect
         }.measure
@@ -126,29 +129,17 @@ data class ValueResult(
     private val aspectProperty: AspectPropertyVertex?,
     private val parentValue: ObjectPropertyValueVertex?
 ) {
-    val id: String
-        get() = valueVertex.id
 
-    val description: String?
-        get() = valueVertex.description
-
-    val objectPropertyId: String
-        get() = objectProperty.id
-
-    val objectPropertyVersion: Int
-        get() = objectProperty.version
-
-    val aspectPropertyId: String?
-        get() = aspectProperty?.id
-
-    val parentValueId: String?
-        get() = parentValue?.id
-
-    val parentValueVersion: Int?
-        get() = parentValue?.version
-
-    val version: Int
-        get() = valueVertex.version
+    fun toResponse() = ValueChangeResponse(
+        valueVertex.id,
+        valueDto,
+        valueVertex.description,
+        measureName,
+        Reference(objectProperty.id, objectProperty.version),
+        aspectProperty?.id,
+        parentValue?.id?.let { id -> parentValue.version.let { version -> Reference(id, version) } },
+        valueVertex.version
+    )
 }
 
 data class ValueDeleteResult(
@@ -157,21 +148,18 @@ data class ValueDeleteResult(
     private val property: ObjectPropertyVertex,
     private val parentValue: ObjectPropertyValueVertex?
 ) {
-    val deletedValueIds: List<String>
-        get() = deletedValues.map { it.id }
 
-    val markedValueIds: List<String>
-        get() = markedValues.map { it.id }
-
-    val propertyId: String
-        get() = property.id
-
-    val propertyVersion: Int
-        get() = property.version
-
-    val parentValueId: String?
-        get() = parentValue?.id
-
-    val parentValueVersion: Int?
-        get() = parentValue?.version
+    fun toResponse() = ValueDeleteResponse(
+        deletedValues.map { it.id },
+        markedValues.map { it.id },
+        Reference(property.id, property.version),
+        parentValue?.id?.let { parentId ->
+            parentValue.version.let { parentVersion ->
+                Reference(
+                    parentId,
+                    parentVersion
+                )
+            }
+        }
+    )
 }

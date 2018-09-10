@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -226,14 +225,6 @@ class DefaultAspectService(
 
         return removePropertyResult.toResponse()
     }
-
-    private fun AspectPropertyDeleteResult.toResponse() = AspectPropertyDeleteResponse(
-        this.aspectPropertyVertex.id,
-        PropertyCardinality.valueOf(this.aspectPropertyVertex.cardinality),
-        this.aspectPropertyVertex.name,
-        Reference(this.parentAspectVertex.id, this.parentAspectVertex.version),
-        Reference(this.childAspectVertex.id, this.childAspectVertex.version)
-    )
 
     /**
      * Search [AspectData] by it's name
