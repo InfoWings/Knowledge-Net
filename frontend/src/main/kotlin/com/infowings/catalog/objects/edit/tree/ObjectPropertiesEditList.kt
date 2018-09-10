@@ -72,6 +72,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 ObjectValueData.NullValue,
                                                 null,
                                                 null,
+                                                null,
                                                 false,
                                                 mutableListOf()
                                             )
@@ -83,6 +84,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 null,
                                                 ObjectValueData.NullValue,
+                                                null,
                                                 null,
                                                 null,
                                                 false,
@@ -174,6 +176,7 @@ fun RBuilder.objectPropertiesEditList(
                                                 null,
                                                 property.aspect?.defaultValue(),
                                                 property.aspect?.measure,
+                                                null,
                                                 null,
                                                 false,
                                                 mutableListOf()
@@ -381,6 +384,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         value = props.rootValue.value
                         valueMeasure = props.rootValue.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.rootValue.description
+                        valueGuid = props.rootValue.guid
                         onPropertyNameUpdate = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(

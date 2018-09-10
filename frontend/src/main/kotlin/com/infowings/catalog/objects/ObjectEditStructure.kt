@@ -9,6 +9,7 @@ data class ObjectEditViewModel(
     var name: String,
     var subject: SubjectTruncated,
     var description: String?,
+    var guid: String?,
     var properties: MutableList<ObjectPropertyEditModel>,
     var expanded: Boolean = true
 ) {
@@ -18,6 +19,7 @@ data class ObjectEditViewModel(
         response.name,
         SubjectTruncated(response.subjectId, response.subjectName),
         response.description,
+        response.guid,
         response.properties.map(::ObjectPropertyEditModel).toMutableList()
     )
 
@@ -26,6 +28,7 @@ data class ObjectEditViewModel(
         version = response.version
         subject = SubjectTruncated(response.subjectId, response.subjectName)
         description = response.description
+        guid = response.guid
         properties = properties.mergeWith(response.properties)
     }
 }
@@ -84,6 +87,7 @@ data class ObjectPropertyValueEditModel(
     var value: ObjectValueData? = null,
     var measureName: String? = null,
     var description: String? = null,
+    var guid: String? = null,
     var expanded: Boolean = true,
     var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
@@ -94,6 +98,7 @@ data class ObjectPropertyValueEditModel(
         value = value.value.toData(),
         measureName = value.measureName,
         description = value.description,
+        guid = value.guid,
         valueGroups = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
             .sortedBy { it.propertyId }
@@ -121,6 +126,7 @@ data class ObjectPropertyValueEditModel(
         this.value = value.value.toData()
         this.measureName = value.measureName
         this.version = value.version
+        this.guid = value.guid
         val existingValuesMap = this.valueGroups.flatMap { it.values }.associateBy { it.id }
         valueGroups = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
@@ -172,6 +178,7 @@ data class AspectPropertyValueEditModel(
     var value: ObjectValueData? = null,
     var measureName: String? = null,
     var description: String? = null,
+    var guid: String? = null,
     var expanded: Boolean = true,
     var children: MutableList<AspectPropertyValueGroupEditModel> = mutableListOf()
 ) {
@@ -181,6 +188,7 @@ data class AspectPropertyValueEditModel(
         value = value.value.toData(),
         measureName = value.measureName,
         description = value.description,
+        guid = value.guid,
         children = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
             .sortedBy { it.propertyId }
@@ -212,6 +220,7 @@ fun AspectPropertyValueEditModel?.mergeWith(value: ValueTruncated, valueMap: Map
         this.value = value.value.toData()
         this.measureName = value.measureName
         this.version = value.version
+        this.guid = value.guid
         val existingValuesMap = this.children.flatMap { it.values }.associateBy { it.id }
         this.children = value.childrenIds
             .map { valueMap[it] ?: error("Child value does not exist in supplied list of values") }
