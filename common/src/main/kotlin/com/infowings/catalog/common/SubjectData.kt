@@ -13,7 +13,8 @@ data class SubjectData(
     val name: String,
     override val version: Int = 0,
     val description: String?,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val guid: String? = null
 ) : VersionAware {
     companion object {
         fun Initial(name: String, desctription: String? = null) = SubjectData(id = "", name = name, version = 0, description = desctription, deleted = false)

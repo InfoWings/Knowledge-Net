@@ -1,19 +1,22 @@
 package com.infowings.catalog.aspects.editconsole
 
+import com.infowings.catalog.aspects.AspectBadRequestException
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyAspect
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyCardinality
 import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNameInput
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import kotlinx.coroutines.experimental.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.div
 
 class AspectPropertyEditConsole(props: Props) :
-    RComponent<AspectPropertyEditConsole.Props, RState>(props) {
+    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -53,6 +56,17 @@ class AspectPropertyEditConsole(props: Props) :
         }
     }
 
+    private fun tryDelete(force: Boolean) {
+        launch {
+            try {
+                props.propertyEditConsoleModel.deleteProperty(force)
+            } catch (ex: AspectBadRequestException) {
+                if (ex.exceptionInfo.code == BadRequestCode.NEED_CONFIRMATION) setState {
+                    confirmation = true
+                }
+            }
+        }
+    }
 
     private fun handlePropertyNameChanged(name: String) {
         props.propertyEditConsoleModel.updateAspectProperty(
@@ -128,10 +142,23 @@ class AspectPropertyEditConsole(props: Props) :
                     onSubmitClick = ::trySubmitParentAspect,
                     onCancelClick = props.propertyEditConsoleModel::discardChanges,
                     onAddToListClick = ::switchToNextProperty,
-                    onDeleteClick = props.propertyEditConsoleModel::deleteProperty
+                    onDeleteClick = { tryDelete(false) }
                 )
             }
         }
+
+        forceRemoveConfirmWindow {
+            attrs {
+                onConfirm = { tryDelete(true) }
+                onCancel = { setState { confirmation = false } }
+                isOpen = state.confirmation
+                message = "Aspect property has linked entities."
+            }
+        }
+    }
+
+    interface State : RState {
+        var confirmation: Boolean
     }
 
     interface Props : RProps {

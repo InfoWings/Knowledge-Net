@@ -63,7 +63,8 @@ class ReferenceBookEmptyNode : RComponent<ReferenceBookEmptyNode.Props, Referenc
                                         null,
                                         emptyList(),
                                         false,
-                                        0
+                                        0,
+                                        null
                                     )
                                     onCancel = ::cancelCreatingBook
                                     onSubmit = { handleCreateBook(it) }

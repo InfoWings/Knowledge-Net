@@ -84,7 +84,7 @@ class ObjectServiceExampleTest {
 
         val refBook = refBookService.createReferenceBook("Режимы заряда", aspectChargeMode.idStrict(), username)
         val refBookItemIds = listOf("Ускоренный", "Номинальный", "Глубокий").map {
-            val item = ReferenceBookItem(aspectChargeMode.idStrict(), it, "descr of $it", emptyList(), false, 0)
+            val item = ReferenceBookItem(aspectChargeMode.idStrict(), it, "descr of $it", emptyList(), false, 0, null)
             refBookService.addReferenceBookItem(refBook.id, item, "admin")
         }
         refBookService.getReferenceBook(aspectChargeMode.idStrict())

@@ -8,6 +8,7 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -70,6 +71,7 @@ class NormalizedReferenceBookService(private val innerService: ReferenceBookServ
 class DefaultReferenceBookService(
     val db: OrientDatabase,
     private val dao: ReferenceBookDao,
+    private val guidDao: GuidDaoService,
     val historyService: HistoryService,
     private val userService: UserService
 ) : ReferenceBookService {
@@ -125,7 +127,7 @@ class DefaultReferenceBookService(
     override fun createReferenceBook(name: String, aspectId: String, username: String): ReferenceBook {
         val userVertex = userService.findUserVertexByUsername(username)
 
-        return transaction(db) {
+        val vertex = transaction(db) {
             logger.debug("Creating ReferenceBook name: $name aspectId: $aspectId by $username")
             val context = HistoryContext(userVertex)
 
@@ -146,18 +148,21 @@ class DefaultReferenceBookService(
             aspectVertex.save<OVertex>()
 
             val savedRootVertex = rootVertex.save<OVertex>().toReferenceBookItemVertex()
+            guidDao.newGuidVertex(savedRootVertex)
             historyService.storeFact(savedRootVertex.toCreateFact(context))
             historyService.storeFact(aspectVertex.toUpdateFact(context, aspectBefore))
 
             return@transaction savedRootVertex
-        }.toNewRoot(aspectId)
+        }
+
+        return transaction(db) { vertex.toNewRoot(aspectId) }
     }
 
     override fun editRoot(request: RootEditRequest, username: String) {
         updateReferenceBook(
             ReferenceBook(
                 aspectId = request.aspectId, id = "", name = request.value,
-                description = request.description, version = request.version, children = emptyList(), deleted = false
+                description = request.description, version = request.version, children = emptyList(), deleted = false, guid = null
             ), username
         )
     }
@@ -274,7 +279,7 @@ class DefaultReferenceBookService(
             description = request.description,
             children = emptyList(),
             deleted = false,
-            version = 0
+            version = 0, guid = null
         ), username
     )
 
@@ -310,7 +315,7 @@ class DefaultReferenceBookService(
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
-
+            guidDao.newGuidVertex(savedItemVertex)
             historyService.storeFact(savedItemVertex.toCreateFact(context))
             historyService.storeFact(updateFact)
 
@@ -326,7 +331,7 @@ class DefaultReferenceBookService(
                 description = request.description,
                 children = emptyList(),
                 deleted = false,
-                version = request.version
+                version = request.version, guid = null
             ), username, force
         )
     }
@@ -454,7 +459,7 @@ class DefaultReferenceBookService(
         description = description,
         children = children,
         deleted = deleted,
-        version = version
+        version = version, guid = null
     )
 
     private fun ReferenceBookItemVertex.toReferenceBook(aspectId: String) = ReferenceBook(
@@ -464,7 +469,8 @@ class DefaultReferenceBookService(
         description = description,
         children = toReferenceBookItem().children,
         deleted = deleted,
-        version = version
+        version = version,
+        guid = guid
     )
 
     private fun ReferenceBookItemVertex.toNewRoot(aspectId: String) = ReferenceBook(
@@ -474,7 +480,8 @@ class DefaultReferenceBookService(
         description = description,
         children = emptyList(),
         deleted = deleted,
-        version = version
+        version = version,
+        guid = guid
     )
 
     private fun AspectVertex.validateForRemoved() =

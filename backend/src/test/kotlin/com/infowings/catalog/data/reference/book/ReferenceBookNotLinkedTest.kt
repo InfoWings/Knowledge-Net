@@ -336,7 +336,7 @@ class ReferenceBookNotLinkedTest {
 
         val itemId = referenceBookService.addReferenceBookItem(
             refBook.id,
-            ReferenceBookItem(id = "", version = 0, value = " val  ", description = " d   ", deleted = false, children = emptyList()),
+            ReferenceBookItem(id = "", version = 0, value = " val  ", description = " d   ", deleted = false, children = emptyList(), guid = null),
             username
         )
 
@@ -367,7 +367,8 @@ class ReferenceBookNotLinkedTest {
             null,
             emptyList(),
             false,
-            0
+            0,
+            null
         )
     }
 
@@ -378,7 +379,8 @@ class ReferenceBookNotLinkedTest {
             null,
             emptyList(),
             false,
-            version
+            version,
+            null
         ),
         username
     )

@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.ObjectGetResponse
+import com.infowings.catalog.common.objekt.ObjectChangeResponse
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORID
@@ -18,27 +19,23 @@ data class Objekt(
     val name: String,
     val description: String?,
     val subject: SubjectVertex,
-    val properties: List<ObjectPropertyVertex>
+    val properties: List<ObjectPropertyVertex>,
+    val guid: String?
 )
 
 data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
-    val id: String
-        get() = objectVertex.id
 
-    val name: String
-        get() = objectVertex.name
+    private val guidValue = objectVertex.guid
 
-    val description: String?
-        get() = objectVertex.description
-
-    val subjectId: String
-        get() = subjectVertex.id
-
-    val subjectName: String
-        get() = subjectVertex.name
-
-    val version: Int
-        get() = objectVertex.version
+    fun toResponse() = ObjectChangeResponse(
+        objectVertex.id,
+        objectVertex.name,
+        objectVertex.description,
+        subjectVertex.id,
+        subjectVertex.name,
+        objectVertex.version,
+        guidValue
+    )
 }
 
 data class ObjectTruncated(

@@ -33,6 +33,7 @@ data class DetailedObjectPropertyViewResponse(
     val description: String?,
     val aspect: AspectTruncated,
     val cardinality: String,
+    val guid: String?,
     val values: List<DetailedRootValueViewResponse>
 )
 

@@ -1,98 +1,63 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.PropertyCardinality
+import com.infowings.catalog.common.objekt.PropertyCreateResponse
+import com.infowings.catalog.common.objekt.PropertyDeleteResponse
+import com.infowings.catalog.common.objekt.PropertyUpdateResponse
+import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.description
 import com.infowings.catalog.storage.id
-import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 /* Про ссылки на vertex-классы - см. комментарий в ObkectPropertyValue.kt */
-
-/**
- * Object property data representation for use in backend context.
- * It can use Orient data structures but it is detached from database - updated to it does not lead to
- * updates in database
- */
-data class ObjectProperty(
-    val id: ORID?,
-    val name: String,
-    val cardinality: PropertyCardinality,
-    val objekt: ObjectVertex,
-    val aspect: AspectVertex,
-    val values: List<ObjectPropertyValueVertex>
-)
 
 data class PropertyCreateResult(
     private val propertyVertex: ObjectPropertyVertex,
     private val objectVertex: ObjectVertex,
     private val rootValueVertex: ObjectPropertyValueVertex
 ) {
-    val id: String
-        get() = propertyVertex.id
 
-    val objectId: String
-        get() = objectVertex.id
+    private val guidValue = propertyVertex.guid
 
-    val objectVersion: Int
-        get() = objectVertex.version
-
-    val rootValueId: String
-        get() = rootValueVertex.id
-
-    val rootValueVersion: Int
-        get() = rootValueVertex.version
-
-    val name: String?
-        get() = propertyVertex.name
-
-    val description: String?
-        get() = propertyVertex.description
-
-    val version: Int
-        get() = propertyVertex.version
+    fun toResponse() = PropertyCreateResponse(
+        propertyVertex.id,
+        Reference(objectVertex.id, objectVertex.version),
+        Reference(rootValueVertex.id, rootValueVertex.version),
+        propertyVertex.name,
+        propertyVertex.description,
+        propertyVertex.version,
+        guidValue
+    )
 }
 
 data class PropertyUpdateResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
-    val id: String
-        get() = propertyVertex.id
 
-    val objectId: String
-        get() = objectVertex.id
+    private val guidValue = propertyVertex.guid
 
-    val objectVersion: Int
-        get() = objectVertex.version
-
-    val name: String?
-        get() = propertyVertex.name
-
-    val description: String?
-        get() = propertyVertex.description
-
-    val version: Int
-        get() = propertyVertex.version
+    fun toResponse() = PropertyUpdateResponse(
+        propertyVertex.id,
+        Reference(objectVertex.id, objectVertex.version),
+        propertyVertex.name,
+        propertyVertex.description,
+        propertyVertex.version,
+        guidValue
+    )
 }
 
 data class PropertyDeleteResult(private val propertyVertex: ObjectPropertyVertex, private val objectVertex: ObjectVertex) {
-    val id: String
-        get() = propertyVertex.id
 
-    val objectId: String
-        get() = objectVertex.id
+    private val guidValue = propertyVertex.guid
 
-    val objectVersion: Int
-        get() = objectVertex.version
-
-    val name: String?
-        get() = propertyVertex.name
-
-    val description: String?
-        get() = propertyVertex.description
-
-    val version: Int
-        get() = propertyVertex.version
+    fun toResponse() = PropertyDeleteResponse(
+        propertyVertex.id,
+        Reference(objectVertex.id, objectVertex.version),
+        propertyVertex.name,
+        propertyVertex.description,
+        propertyVertex.version,
+        guidValue
+    )
 }
 
 data class PropertyWriteInfo(

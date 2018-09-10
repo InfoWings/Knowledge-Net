@@ -1,5 +1,6 @@
 package com.infowings.catalog.common
 
+import com.infowings.catalog.common.objekt.Reference
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -34,7 +35,8 @@ data class AspectData(
     val deleted: Boolean = false,
     val description: String? = null,
     val lastChangeTimestamp: Long? = null,
-    val refBookName: String? = null
+    val refBookName: String? = null,
+    val guid: String? = null
 ) {
     operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
 
@@ -49,7 +51,8 @@ data class AspectPropertyData(
     val cardinality: String,
     val description: String?,
     val version: Int = 0,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val guid: String? = null
 ) {
     companion object {
         fun Initial(name: String, description: String?, aspectId: String, cardinality: String) =
@@ -88,6 +91,15 @@ data class AspectPropertyTree(
     val name: String?,
     val aspect: AspectTree,
     val deleted: Boolean
+)
+
+@Serializable
+data class AspectPropertyDeleteResponse(
+    val id: String,
+    val cardinality: PropertyCardinality,
+    val name: String?,
+    val parentAspect: Reference,
+    val childAspect: Reference
 )
 
 /** Helpful extensions */

@@ -9,7 +9,6 @@ import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
-import com.infowings.catalog.data.history.MutableSnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.loggerFor
 import org.slf4j.Logger
@@ -91,7 +90,7 @@ class HistoryApi(
         return logTime(logger, "entity history") {
             val timeline = historyService.entityTimeline(id)
 
-            return@logTime EntityHistory(id, historyService.asSnapshots(timeline, SnapshotData.empty))
+            return@logTime EntityHistory(id)
         }
     }
 }

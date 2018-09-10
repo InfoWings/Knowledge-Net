@@ -8,9 +8,11 @@ import com.infowings.catalog.common.BaseType.Text
 import com.infowings.catalog.common.Kilometre
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.SubjectService
+import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toSubjectData
+import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientClass
 import com.orientechnologies.orient.core.id.ORecordId
 import org.junit.jupiter.api.Test
@@ -39,6 +41,9 @@ class AspectDaoTest {
 
     @Autowired
     lateinit var historyService: HistoryService
+
+    @Autowired
+    lateinit var guidDao: GuidDaoService
 
     @Test
     fun testFindAspectsByIdsOne() {
@@ -177,5 +182,11 @@ class AspectDaoTest {
 
         assertEquals(null, aspectDetails.subject)
         assertEquals(null, aspectDetails.refBookName)
+    }
+
+    @Test
+    fun testGuidDaoUnique() {
+        val aspect = aspectService.save(AspectData(name = randomName("aspect"), description = "some description", baseType = BaseType.Text.name), username)
+        guidDao.find(listOfNotNull(aspect.guid))
     }
 }
