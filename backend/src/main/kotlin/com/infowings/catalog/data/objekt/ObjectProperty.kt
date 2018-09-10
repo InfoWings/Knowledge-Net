@@ -16,12 +16,13 @@ data class PropertyCreateResult(
     private val rootValueVertex: ObjectPropertyValueVertex
 ) {
 
+    private val rootValueGuid = rootValueVertex.guid
     private val guidValue = propertyVertex.guid
 
     fun toResponse() = PropertyCreateResponse(
         propertyVertex.id,
         Reference(objectVertex.id, objectVertex.version),
-        GuidReference(rootValueVertex.id, rootValueVertex.guid, rootValueVertex.version),
+        GuidReference(rootValueVertex.id, rootValueGuid, rootValueVertex.version),
         propertyVertex.name,
         propertyVertex.description,
         propertyVertex.version,

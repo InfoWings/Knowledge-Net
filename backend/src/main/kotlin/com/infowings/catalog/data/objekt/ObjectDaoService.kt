@@ -31,9 +31,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
         transaction(db) {
             val query =
                 "SELECT @rid, name, description, " +
-                        "FIRST(OUT(${OrientEdge.GUID_OF_OBJECT.extName})).guid as guid" +
-                        "FIRST(OUT($OBJECT_SUBJECT_EDGE)).name as subjectName, " +
-                        "IN($OBJECT_OBJECT_PROPERTY_EDGE).size() as objectPropertiesCount " +
+                        "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
+                        "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
+                        "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS"
             return@transaction db.query(query) {
                 it.map {
