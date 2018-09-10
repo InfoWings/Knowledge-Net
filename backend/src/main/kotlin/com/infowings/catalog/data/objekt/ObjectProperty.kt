@@ -1,9 +1,6 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.objekt.PropertyCreateResponse
-import com.infowings.catalog.common.objekt.PropertyDeleteResponse
-import com.infowings.catalog.common.objekt.PropertyUpdateResponse
-import com.infowings.catalog.common.objekt.Reference
+import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.storage.description
@@ -24,7 +21,7 @@ data class PropertyCreateResult(
     fun toResponse() = PropertyCreateResponse(
         propertyVertex.id,
         Reference(objectVertex.id, objectVertex.version),
-        Reference(rootValueVertex.id, rootValueVertex.version),
+        GuidReference(rootValueVertex.id, rootValueVertex.guid, rootValueVertex.version),
         propertyVertex.name,
         propertyVertex.description,
         propertyVertex.version,
