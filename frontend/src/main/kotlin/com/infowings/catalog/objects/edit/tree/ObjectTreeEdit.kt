@@ -80,6 +80,7 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                         }
                                     }
                                 }
+                                guid = props.objectTree.guid
                                 onCreateNewProperty = if (editContextModel == null) {
                                     {
                                         props.editContext.setContext(EditNewChildContextModel)

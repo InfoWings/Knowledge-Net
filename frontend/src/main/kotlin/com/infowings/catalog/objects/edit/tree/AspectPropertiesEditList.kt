@@ -248,6 +248,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         value = props.value.value
                         valueMeasure = props.value.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.value.description
+                        valueGuid = props.value.guid
                         onChange = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(

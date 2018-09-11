@@ -4,6 +4,7 @@ import com.infowings.catalog.components.additem.addPropertyButton
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.guid.copyGuidButton
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.SubjectTruncated
 import com.infowings.catalog.objects.edit.tree.inputs.name
@@ -45,6 +46,7 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
                 onEditStarted = null
             )
         }
+        copyGuidButton(props.guid)
         props.onUpdateObject?.let {
             submitButtonComponent(it)
         }
@@ -64,6 +66,7 @@ interface ObjectEditLineFormatProps : RProps {
     var name: String
     var subject: SubjectTruncated
     var description: String?
+    var guid: String?
     var onNameChanged: (String) -> Unit
     var onSubjectChanged: (SubjectTruncated) -> Unit
     var onDescriptionChanged: (String) -> Unit

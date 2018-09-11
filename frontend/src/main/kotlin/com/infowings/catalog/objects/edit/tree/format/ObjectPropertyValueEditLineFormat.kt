@@ -8,6 +8,7 @@ import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.guid.copyGuidButton
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
@@ -95,6 +96,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                 onEditStarted = null
             )
         }
+        copyGuidButton(props.valueGuid)
         props.onAddValue?.let {
             plusButtonComponent(it, "pt-small")
         }
@@ -123,6 +125,7 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var value: ObjectValueData?
     var valueMeasure: Measure<*>?
     var valueDescription: String?
+    var valueGuid: String?
     var onValueDescriptionChanged: (String) -> Unit
     var onPropertyNameUpdate: (String) -> Unit
     var onValueUpdate: (ObjectValueData) -> Unit
