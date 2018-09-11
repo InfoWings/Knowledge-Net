@@ -23,7 +23,8 @@ import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
-class GuidService(
+@Suppress("TooManyFunctions")
+class GuidService(  
     private val db: OrientDatabase,
     private val dao: GuidDaoService,
     private val userService: UserService,
@@ -173,4 +174,5 @@ private val edgesWithGuid: List<OrientEdge> = listOf(
 
 private val logger = loggerFor<GuidService>()
 
+@Suppress("SpreadOperator")
 private fun OVertex.hasGuidEdge() = getEdges(ODirection.OUT, *edgesWithGuid.map { it.extName }.toTypedArray()).firstOrNull() != null
