@@ -3,10 +3,8 @@ package com.infowings.catalog.external
 import com.infowings.catalog.common.objekt.EntityMetadata
 import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.loggerFor
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.security.Principal
 
 
 @RestController
@@ -17,6 +15,12 @@ class GuidApi(val guidService: GuidService) {
     fun getMetaById(@PathVariable guid: String): EntityMetadata {
         logger.debug("Get aspect by guid: $guid")
         return guidService.metadata(listOf(guid)).first()
+    }
+
+    @PostMapping("/set/{id}")
+    fun setGuid(@PathVariable id: String, principal: Principal): EntityMetadata {
+        logger.debug("Set guid for $id")
+        return guidService.setGuid(id, principal.name)
     }
 }
 

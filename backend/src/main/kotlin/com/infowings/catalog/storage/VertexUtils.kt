@@ -1,8 +1,17 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.common.objekt.EntityClass
+import com.infowings.catalog.data.aspect.toAspectPropertyVertex
+import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.guid.toGuidVertex
+import com.infowings.catalog.data.history.HistoryAware
+import com.infowings.catalog.data.objekt.toObjectPropertyValueVertex
+import com.infowings.catalog.data.objekt.toObjectPropertyVertex
+import com.infowings.catalog.data.objekt.toObjectVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
+import com.infowings.catalog.data.subject.toSubjectVertex
 import com.orientechnologies.orient.core.record.ODirection
+import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 
 
@@ -16,11 +25,28 @@ private val orient2Entity = mapOf(
     OrientClass.REFBOOK_ITEM to EntityClass.REFBOOK_ITEM
 )
 
-fun OVertex.entityClass(): EntityClass {
+fun OVertex.asHistoryAware(): HistoryAware = when (orientClass()) {
+    OrientClass.ASPECT -> toAspectVertex()
+    OrientClass.ASPECT_PROPERTY -> toAspectPropertyVertex()
+    OrientClass.OBJECT -> toObjectVertex()
+    OrientClass.OBJECT_PROPERTY -> toObjectPropertyVertex()
+    OrientClass.OBJECT_VALUE -> toObjectPropertyValueVertex()
+    OrientClass.SUBJECT -> toSubjectVertex()
+    OrientClass.REFBOOK_ITEM -> toReferenceBookItemVertex()
+    else -> throw IllegalStateException("Unknown class")
+
+}
+
+fun OVertex.deleteOutEdges(edgeClass: OrientEdge) = getEdges(ODirection.OUT, edgeClass.extName).forEach { it.delete<OEdge>() }
+
+
+fun OVertex.orientClass(): OrientClass {
     return if (this.schemaType.isPresent) {
-        orient2Entity.getValue(OrientClass.fromExtName(this.schemaType.get().name))
+        OrientClass.fromExtName(this.schemaType.get().name)
     } else throw IllegalStateException("No schema type")
 }
+
+fun OVertex.entityClass(): EntityClass = orient2Entity.getValue(orientClass())
 
 fun OVertex.ofClass(orientClass: OrientClass): Boolean {
     return if (this.schemaType.isPresent) {

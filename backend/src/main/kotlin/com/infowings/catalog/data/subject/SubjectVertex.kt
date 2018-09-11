@@ -16,6 +16,14 @@ fun OVertex.toSubjectVertex(): SubjectVertex {
     return SubjectVertex(this)
 }
 
+enum class SubjectField(val extName: String) {
+    DESCRIPTION("name"),
+    TYPE_TAG("description"),
+    GUID("guid"),
+
+    LINK_OBJECTS("objects"),
+}
+
 class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
     override val entityClass = SUBJECT_CLASS
 
