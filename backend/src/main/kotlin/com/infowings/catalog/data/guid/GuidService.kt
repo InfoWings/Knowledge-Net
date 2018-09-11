@@ -120,8 +120,6 @@ class GuidService(
         }
     }
 
-    private fun OVertex.hasGuidEdge() = getEdges(ODirection.OUT, *edgesWithGuid.map { it.extName }.toTypedArray()).firstOrNull() != null
-
     fun setGuid(id: String, username: String): EntityMetadata {
         val userVertex = userService.findUserVertexByUsername(username)
         val context = HistoryContext(userVertex)
@@ -151,7 +149,10 @@ class GuidService(
         return idsToSet.map { setGuid(it, username) }
     }
 
-    init {
+    init { setGuidsAll() }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun setGuidsAll() {
         edgesWithGuid.forEach {
             try {
                 val result = this.setGuids(dao.edge2Class.getValue(it), "admin")
@@ -171,3 +172,5 @@ private val edgesWithGuid: List<OrientEdge> = listOf(
 )
 
 private val logger = loggerFor<GuidService>()
+
+private fun OVertex.hasGuidEdge() = getEdges(ODirection.OUT, *edgesWithGuid.map { it.extName }.toTypedArray()).firstOrNull() != null
