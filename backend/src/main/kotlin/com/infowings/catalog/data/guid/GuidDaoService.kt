@@ -8,7 +8,7 @@ import com.orientechnologies.orient.core.record.OVertex
 import java.util.*
 
 class GuidDaoService(private val db: OrientDatabase) {
-    private val class2Edge = listOf(
+    private val classEdgePairs = listOf(
         OrientClass.ASPECT to OrientEdge.GUID_OF_ASPECT,
         OrientClass.ASPECT_PROPERTY to OrientEdge.GUID_OF_ASPECT_PROPERTY,
         OrientClass.SUBJECT to OrientEdge.GUID_OF_SUBJECT,
@@ -16,7 +16,11 @@ class GuidDaoService(private val db: OrientDatabase) {
         OrientClass.OBJECT to OrientEdge.GUID_OF_OBJECT,
         OrientClass.OBJECT_PROPERTY to OrientEdge.GUID_OF_OBJECT_PROPERTY,
         OrientClass.OBJECT_VALUE to OrientEdge.GUID_OF_OBJECT_VALUE
-    ).map { it.first.extName to it.second.extName }.toMap()
+    )
+
+    private val class2EdgeNames = classEdgePairs.map { it.first.extName to it.second.extName }.toMap()
+    val edge2Class: Map<OrientEdge, OrientClass> = classEdgePairs.map { it.second to it.first }.toMap()
+
 
 
     fun newGuidVertex(source: OVertex): GuidVertex {
@@ -25,7 +29,7 @@ class GuidDaoService(private val db: OrientDatabase) {
             res.guid = UUID.randomUUID().toString()
             val className = source.schemaType.get().name
             logger.debug("assign guid ${res.guid} to vertex ${source.id} of class $className")
-            source.addEdge(res, class2Edge[className] ?: throw IllegalStateException("Unexpected class name $className")).save<OEdge>()
+            source.addEdge(res, class2EdgeNames[className] ?: throw IllegalStateException("Unexpected class name $className")).save<OEdge>()
             res.save<OVertex>()
             res
         }

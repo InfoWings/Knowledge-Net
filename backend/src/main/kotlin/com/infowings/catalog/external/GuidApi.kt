@@ -5,10 +5,8 @@ import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
 import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.loggerFor
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.security.Principal
 
 
 @RestController
@@ -43,6 +41,12 @@ class GuidApi(val guidService: GuidService) {
     fun getBriefValueById(@PathVariable id: String): BriefValueViewResponse {
         logger.debug("Get brief value view by id: $id")
         return guidService.findObjectValueById(id)
+    }
+
+    @PostMapping("/set/{id}")
+    fun setGuid(@PathVariable id: String, principal: Principal): EntityMetadata {
+        logger.debug("Set guid for $id")
+        return guidService.setGuid(id, principal.name)
     }
 }
 
