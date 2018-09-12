@@ -126,14 +126,25 @@ class GuidService(
                 if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                     val valueVertex = vertex.toObjectPropertyValueVertex()
                     val propertyValue = valueVertex.toObjectPropertyValue()
-                    val propertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
-                    BriefValueViewResponse(
-                        valueVertex.guid,
-                        propertyValue.value.toObjectValueData().toDTO(),
-                        propertyVertex.name,
-                        propertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                        valueVertex.measure?.name
-                    )
+                    val aspectPropertyVertex = valueVertex.aspectProperty
+                    aspectPropertyVertex?.let {
+                        BriefValueViewResponse(
+                            valueVertex.guid,
+                            propertyValue.value.toObjectValueData().toDTO(),
+                            it.name,
+                            it.associatedAspect.name,
+                            valueVertex.measure?.name
+                        )
+                    } ?: run {
+                        val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                        BriefValueViewResponse(
+                            valueVertex.guid,
+                            propertyValue.value.toObjectValueData().toDTO(),
+                            objectPropertyVertex.name,
+                            objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                            valueVertex.measure?.name
+                        )
+                    }
                 } else null
             }.singleOrNull() ?: throw EntityNotFoundException("No value is found by guid: $guid")
         }
@@ -145,14 +156,25 @@ class GuidService(
             if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                 val valueVertex = vertex.toObjectPropertyValueVertex()
                 val propertyValue = valueVertex.toObjectPropertyValue()
-                val propertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
-                BriefValueViewResponse(
-                    valueVertex.guid,
-                    propertyValue.value.toObjectValueData().toDTO(),
-                    propertyVertex.name,
-                    propertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                    valueVertex.measure?.name
-                )
+                val aspectPropertyVertex = valueVertex.aspectProperty
+                aspectPropertyVertex?.let {
+                    BriefValueViewResponse(
+                        valueVertex.guid,
+                        propertyValue.value.toObjectValueData().toDTO(),
+                        it.name,
+                        it.associatedAspect.name,
+                        valueVertex.measure?.name
+                    )
+                } ?: run {
+                    val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                    BriefValueViewResponse(
+                        valueVertex.guid,
+                        propertyValue.value.toObjectValueData().toDTO(),
+                        objectPropertyVertex.name,
+                        objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                        valueVertex.measure?.name
+                    )
+                }
             } else throw EntityNotFoundException("No value is found by id: $id")
         }
     }
