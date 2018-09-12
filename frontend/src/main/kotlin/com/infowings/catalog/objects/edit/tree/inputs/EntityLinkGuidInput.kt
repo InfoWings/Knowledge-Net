@@ -164,7 +164,17 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
                     setState {
                         editState = EditState.SHOWING
                     }
-                    props.onUpdate(LinkValueData.Object(entityMeta.id))
+                    props.onUpdate(
+                        when (entityMeta.entityClass) {
+                            EntityClass.OBJECT -> LinkValueData.Object(entityMeta.id)
+                            EntityClass.OBJECT_VALUE -> LinkValueData.ObjectValue(entityMeta.id)
+                            EntityClass.ASPECT -> LinkValueData.Aspect(entityMeta.id)
+                            EntityClass.ASPECT_PROPERTY -> LinkValueData.AspectProperty(entityMeta.id)
+                            EntityClass.OBJECT_PROPERTY -> LinkValueData.ObjectProperty(entityMeta.id)
+                            EntityClass.REFBOOK_ITEM -> LinkValueData.RefBookItem(entityMeta.id)
+                            EntityClass.SUBJECT -> LinkValueData.Subject(entityMeta.id)
+                        }
+                    )
                 } catch (e: ApiException) {
                     showError(e)
                     setState {
