@@ -1,7 +1,11 @@
 package com.infowings.catalog.data.guid
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.common.guid.EntityClass
+import com.infowings.catalog.common.objekt.ObjectChangeResponse
+import com.infowings.catalog.common.objekt.ObjectCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateRequest
+import com.infowings.catalog.common.objekt.PropertyCreateResponse
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
@@ -181,11 +185,9 @@ class GuidServiceTest {
             assertEquals(refBook.id, found.id)
         }
 
-        val objects = guidService.findObjects(listOfNotNull(objectChange.guid))
+        val objectBrief = guidService.findObject(objectChange.guid!!)
         transaction(db) {
-            assertEquals(1, objects.size)
-            val found = objects.first()
-            assertEquals(objectChange.id, found.id?.toString())
+            assertEquals(objectChange.name, objectBrief.name)
         }
 
         val objectProperties = guidService.findObjectProperties(listOfNotNull(propertyChange.guid))
@@ -195,13 +197,11 @@ class GuidServiceTest {
             assertEquals(propertyChange.id, found.id)
         }
 
-        val objectValues = guidService.findObjectValues(listOfNotNull(rootValue.guid))
+        val objectValueBrief = guidService.findObjectValue(rootValue.guid!!)
         transaction(db) {
-            assertEquals(1, objectValues.size)
-            val found = objectValues.first()
-            assertEquals(rootValue.guid, found.guid)
-            assertEquals(nullValueDto(), found.value)
-            assertEquals(baseAspect.name, found.aspectName)
+            assertEquals(rootValue.guid, objectValueBrief.guid)
+            assertEquals(nullValueDto(), objectValueBrief.value)
+            assertEquals(baseAspect.name, objectValueBrief.aspectName)
         }
     }
 

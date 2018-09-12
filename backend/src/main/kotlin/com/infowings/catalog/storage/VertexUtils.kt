@@ -1,6 +1,6 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.common.objekt.EntityClass
+import com.infowings.catalog.common.guid.EntityClass
 import com.infowings.catalog.data.guid.toGuidVertex
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex

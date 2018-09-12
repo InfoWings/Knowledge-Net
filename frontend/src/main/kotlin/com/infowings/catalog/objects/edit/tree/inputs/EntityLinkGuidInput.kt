@@ -1,10 +1,19 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.guid.BriefObjectViewResponse
+import com.infowings.catalog.common.guid.BriefValueViewResponse
+import com.infowings.catalog.common.guid.EntityClass
+import com.infowings.catalog.common.guid.EntityMetadata
+import com.infowings.catalog.common.toData
 import com.infowings.catalog.errors.showError
+import com.infowings.catalog.objects.getObjectBrief
+import com.infowings.catalog.objects.getValueBrief
+import com.infowings.catalog.objects.loadEntityMetadata
+import com.infowings.catalog.objects.view.tree.format.valueFormat
 import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.Spinner
-import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.INPUT
 import kotlinx.html.InputType
@@ -37,7 +46,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     override fun State.init(props: EntityLinkGuidInput.Props) {
         editState = if (props.guid == null) EditState.SHOWING else EditState.LOADING
         newGuid = props.guid
-        briefView = null
+        briefInfo = null
     }
 
     override fun componentDidMount() {
@@ -81,18 +90,27 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun handleChange(event: Event) {}
-
-    private suspend fun loadMeta(guid: String): String {
-        delay(500)
-        return "Object"
+    private fun handleChange(event: Event) {
+        event.stopPropagation()
+        event.preventDefault()
     }
 
-    private suspend fun loadEntityBrief(entityType: String, guid: String) {
-        delay(500)
+    private suspend fun loadMeta(guid: String): EntityMetadata {
+        return loadEntityMetadata(guid)
+    }
+
+    private suspend fun loadEntityBrief(entityType: EntityClass, guid: String) {
+        val briefEntityInfo = briefInfoGetters[entityType]?.invoke(guid) ?: run {
+            showError(BadRequestException("Entity type $entityType is not supported", null))
+            setState {
+                editState = EditState.SHOWING
+                newGuid = props.guid
+                briefInfo = null
+            }
+            TODO("Support EntityType: $entityType")
+        }
         setState {
-            briefView = "Object (My new Object) [Some Subject]"
+            briefInfo = briefEntityInfo
         }
     }
 
@@ -105,11 +123,11 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
             launch {
                 try {
                     val entityMeta = loadMeta(it)
-                    loadEntityBrief(entityMeta, it)
+                    loadEntityBrief(entityMeta.entityClass, it)
                     setState {
                         editState = EditState.SHOWING
                     }
-                    props.onUpdate(LinkValueData.Object(it))
+                    props.onUpdate(LinkValueData.Object(entityMeta.id))
                 } catch (e: ApiException) {
                     showError(e)
                     setState {
@@ -150,12 +168,12 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
 
     private fun RBuilder.renderSpan() {
         span {
-            state.briefView?.let {
+            state.briefInfo?.let {
                 attrs {
-                    classes = setOf("value-entity-guid--full")
+                    classes = setOf("value-entity-guid--full entity-brief-info")
                     onClickFunction = this@EntityLinkGuidInput::handleSpanClick
                 }
-                +it
+                it.render(this)
             } ?: run {
                 attrs {
                     classes = if (state.newGuid == null) setOf("value-entity-guid--empty") else setOf("value-entity-guid--unsuccessful")
@@ -187,7 +205,51 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     interface State : RState {
         var editState: EditState
         var newGuid: String?
-        var briefView: String?
+        var briefInfo: EntityBriefInfo?
+    }
+}
+
+private val briefInfoGetters: Map<EntityClass, BriefInfoGetter> = mapOf(
+    EntityClass.OBJECT to { guid -> ObjectBriefInfo(getObjectBrief(guid)) },
+    EntityClass.OBJECT_VALUE to { guid -> ValueBriefInfo(getValueBrief(guid)) }
+)
+
+private typealias BriefInfoGetter = suspend (String) -> EntityBriefInfo
+
+sealed class EntityBriefInfo {
+    fun render(builder: RBuilder) = builder.render()
+    abstract fun RBuilder.render()
+}
+
+private data class ObjectBriefInfo(val data: BriefObjectViewResponse) : EntityBriefInfo() {
+    override fun RBuilder.render() {
+        span(classes = "entity-brief-info__object-name") {
+            +data.name
+        }
+        span(classes = "entity-brief-info__object-subject") {
+            +"(${data.subjectName ?: "Global"})"
+        }
+    }
+}
+
+private data class ValueBriefInfo(val data: BriefValueViewResponse) : EntityBriefInfo() {
+    override fun RBuilder.render() {
+        data.propertyName?.let {
+            span(classes = "entity-brief-info__value-property-name") {
+                +it
+            }
+        }
+        span(classes = "entity-brief-info__value-aspect-name") {
+            +data.aspectName
+        }
+        span(classes = "entity-brief-info__value") {
+            valueFormat(data.value.toData())
+        }
+        data.measure?.let {
+            span(classes = "entity-brief-info__value-measure") {
+                +it
+            }
+        }
     }
 }
 
