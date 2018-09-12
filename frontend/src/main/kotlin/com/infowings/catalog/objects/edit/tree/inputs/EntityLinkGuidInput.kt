@@ -90,7 +90,13 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         event.preventDefault()
     }
 
-    private suspend fun loadMeta(guid: String): EntityMetadata = loadEntityMetadata(guid)
+    private suspend fun loadMeta(guid: String): EntityMetadata {
+        val entityMeta = loadEntityMetadata(guid)
+        setState {
+            valueMeta = entityMeta
+        }
+        return entityMeta
+    }
 
     private suspend fun loadEntityBrief(entityMetadata: EntityMetadata) {
         val briefEntityInfo = briefInfoGetters[entityMetadata.entityClass]?.invoke(entityMetadata.guid) ?: run {
@@ -149,6 +155,20 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         }
     }
 
+    private fun invokeOnUpdate(entityMetadata: EntityMetadata) {
+        props.onUpdate(
+            when (entityMetadata.entityClass) {
+                EntityClass.OBJECT -> LinkValueData.Object(entityMetadata.id)
+                EntityClass.OBJECT_VALUE -> LinkValueData.ObjectValue(entityMetadata.id)
+                EntityClass.ASPECT -> LinkValueData.Aspect(entityMetadata.id)
+                EntityClass.ASPECT_PROPERTY -> LinkValueData.AspectProperty(entityMetadata.id)
+                EntityClass.OBJECT_PROPERTY -> LinkValueData.ObjectProperty(entityMetadata.id)
+                EntityClass.REFBOOK_ITEM -> LinkValueData.RefBookItem(entityMetadata.id)
+                EntityClass.SUBJECT -> LinkValueData.Subject(entityMetadata.id)
+            }
+        )
+    }
+
     private fun loadBriefView(guid: String?) {
         guid?.let {
             setState {
@@ -157,24 +177,11 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
             launch {
                 try {
                     val entityMeta = loadMeta(it)
-                    setState {
-                        valueMeta = entityMeta
-                    }
                     loadEntityBrief(entityMeta)
                     setState {
                         editState = EditState.SHOWING
                     }
-                    props.onUpdate(
-                        when (entityMeta.entityClass) {
-                            EntityClass.OBJECT -> LinkValueData.Object(entityMeta.id)
-                            EntityClass.OBJECT_VALUE -> LinkValueData.ObjectValue(entityMeta.id)
-                            EntityClass.ASPECT -> LinkValueData.Aspect(entityMeta.id)
-                            EntityClass.ASPECT_PROPERTY -> LinkValueData.AspectProperty(entityMeta.id)
-                            EntityClass.OBJECT_PROPERTY -> LinkValueData.ObjectProperty(entityMeta.id)
-                            EntityClass.REFBOOK_ITEM -> LinkValueData.RefBookItem(entityMeta.id)
-                            EntityClass.SUBJECT -> LinkValueData.Subject(entityMeta.id)
-                        }
-                    )
+                    invokeOnUpdate(entityMeta)
                 } catch (e: ApiException) {
                     showError(e)
                     setState {
