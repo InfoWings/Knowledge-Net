@@ -25,6 +25,7 @@ val aspectPropertyValueViewNode = rFunction<AspectPropertyValueViewNodeProps>("A
                         aspectName = props.aspectProperty.aspectName
                         value = props.value.value
                         valueDescription = props.value.description
+                        valueGuid = props.value.guid
                         measureSymbol = props.value.measureSymbol
                         subjectName = props.aspectProperty.subjectName
                     }

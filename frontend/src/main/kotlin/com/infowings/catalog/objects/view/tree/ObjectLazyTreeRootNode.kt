@@ -5,7 +5,9 @@ import com.infowings.catalog.objects.ObjectLazyViewModel
 import com.infowings.catalog.objects.view.ObjectsLazyModel
 import com.infowings.catalog.objects.view.tree.format.loadingStub
 import com.infowings.catalog.objects.view.tree.format.objectLineFormat
-import react.*
+import react.RProps
+import react.buildElement
+import react.rFunction
 
 val objectLazyTreeRootNode = rFunction<ObjectLazyTreeRootNodeProps>("ObjectLazyTreeRootNode") { props ->
     controlledTreeNode {
@@ -25,6 +27,7 @@ val objectLazyTreeRootNode = rFunction<ObjectLazyTreeRootNodeProps>("ObjectLazyT
                     attrs {
                         objectId = props.objectView.id
                         objectName = props.objectView.name
+                        objectGuid = props.objectView.guid
                         objectDescription = props.objectView.description
                         subjectName = props.objectView.subjectName
                         expandTree = {

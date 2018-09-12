@@ -5,6 +5,7 @@ import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.plusButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.components.guid.copyGuidButton
 import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import com.infowings.catalog.objects.edit.tree.inputs.valueMeasureSelect
@@ -76,6 +77,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 onEditStarted = null
             )
         }
+        copyGuidButton(props.valueGuid)
         props.onSubmit?.let {
             submitButtonComponent(it, "pt-small")
         }
@@ -101,6 +103,7 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var recommendedCardinality: PropertyCardinality
     var value: ObjectValueData?
     var valueMeasure: Measure<*>?
+    var valueGuid: String?
     var onChange: (ObjectValueData) -> Unit
     var onMeasureNameChanged: (String?, ObjectValueData) -> Unit
     var valueDescription: String?

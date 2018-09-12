@@ -105,7 +105,7 @@ data class ObjectChangeResponse(
 data class PropertyCreateResponse(
     val id: String,
     val obj: Reference,
-    val rootValue: Reference,
+    val rootValue: GuidReference,
     val name: String?,
     val description: String?,
     val version: Int,
@@ -155,6 +155,9 @@ data class ValueDeleteResponse(
 
 @Serializable
 data class Reference(val id: String, val version: Int)
+
+@Serializable
+data class GuidReference(val id: String, val guid: String?, val version: Int)
 
 @Serializable
 data class ValueRecalculationResponse(val targetMeasure: String, val value: String)
