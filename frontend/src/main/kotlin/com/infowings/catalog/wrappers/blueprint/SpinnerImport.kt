@@ -1,4 +1,5 @@
 @file:JsModule("@blueprintjs/core")
+@file:Suppress("MatchingDeclarationName")
 
 package com.infowings.catalog.wrappers.blueprint
 

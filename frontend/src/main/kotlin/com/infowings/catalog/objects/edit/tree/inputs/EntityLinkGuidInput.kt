@@ -29,6 +29,7 @@ private const val UNSUCCESSFUL_ENTITY_RETRIEVAL_PLACEHOLDER = "Could not retriev
 private const val KEY_ENTER = 13
 private const val KEY_ESCAPE = 27
 
+@Suppress("TooManyFunctions", "NotImplementedDeclaration")
 class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityLinkGuidInput.Props, EntityLinkGuidInput.State>(props) {
 
     companion object {
@@ -89,9 +90,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         event.preventDefault()
     }
 
-    private suspend fun loadMeta(guid: String): EntityMetadata {
-        return loadEntityMetadata(guid)
-    }
+    private suspend fun loadMeta(guid: String): EntityMetadata = loadEntityMetadata(guid)
 
     private suspend fun loadEntityBrief(entityMetadata: EntityMetadata) {
         val briefEntityInfo = briefInfoGetters[entityMetadata.entityClass]?.invoke(entityMetadata.guid) ?: run {
@@ -216,7 +215,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
                     classes = if (state.valueMeta == null) setOf("value-entity-guid--empty") else setOf("value-entity-guid--unsuccessful")
                     onClickFunction = this@EntityLinkGuidInput::handleSpanClick
                 }
-                +(if (state.valueMeta == null) EMPTY_GUID_VALUE_PLACEHOLDER else UNSUCCESSFUL_ENTITY_RETRIEVAL_PLACEHOLDER)
+                +if (state.valueMeta == null) EMPTY_GUID_VALUE_PLACEHOLDER else UNSUCCESSFUL_ENTITY_RETRIEVAL_PLACEHOLDER
             }
         }
     }

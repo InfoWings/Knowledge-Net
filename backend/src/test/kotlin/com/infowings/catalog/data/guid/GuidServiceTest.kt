@@ -30,7 +30,7 @@ import kotlin.test.fail
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-@Suppress("LargeClass")
+@Suppress("LargeClass", "UnsafeCallOnNullableType")
 class GuidServiceTest {
     private val username = "admin"
 

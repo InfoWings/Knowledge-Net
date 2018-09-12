@@ -47,6 +47,7 @@ fun RBuilder.propertyValue(
     }
 }
 
+@Suppress("NotImplementedDeclaration")
 private val ObjectValueData.asStringValue
     get() = when(this) {
         is ObjectValueData.NullValue -> null
@@ -63,7 +64,4 @@ private val ObjectValueData.asStringValue
         else -> throw IllegalArgumentException("$this is not representable by string")
     }
 
-//private inline fun <reified T : LinkValueData> onChangeForLinkOfType(onChange: (ObjectValueData) -> Unit): (String) -> Unit {
-//
-//}
 
