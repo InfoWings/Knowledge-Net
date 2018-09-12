@@ -179,6 +179,8 @@ class OrientDatabase(
             .initGuid()
             .initMeasures()
             .initSearchMeasure() // this call should be latest
+
+
     }
 
     @PreDestroy
