@@ -1,16 +1,10 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
 import com.infowings.catalog.common.LinkValueData
-import com.infowings.catalog.common.guid.BriefObjectViewResponse
-import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityClass
 import com.infowings.catalog.common.guid.EntityMetadata
-import com.infowings.catalog.common.toData
 import com.infowings.catalog.errors.showError
-import com.infowings.catalog.objects.getObjectBrief
-import com.infowings.catalog.objects.getValueBrief
-import com.infowings.catalog.objects.loadEntityMetadata
-import com.infowings.catalog.objects.view.tree.format.valueFormat
+import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.Spinner
@@ -44,18 +38,18 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 
     override fun State.init(props: EntityLinkGuidInput.Props) {
-        editState = if (props.guid == null) EditState.SHOWING else EditState.LOADING
-        newGuid = props.guid
+        editState = if (props.value == null) EditState.SHOWING else EditState.LOADING
+        valueMeta = null
         briefInfo = null
     }
 
     override fun componentDidMount() {
-        loadBriefView(state.newGuid)
+        loadBriefViewById(props.value)
     }
 
     override fun componentDidUpdate(prevProps: Props, prevState: State, snapshot: Any) {
-        if (props.guid != prevProps.guid && props.guid != state.newGuid) {
-            loadBriefView(props.guid)
+        if (props.value != prevProps.value && props.value?.id != state.valueMeta?.id) {
+            loadBriefViewById(props.value)
         }
     }
 
@@ -99,18 +93,60 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         return loadEntityMetadata(guid)
     }
 
-    private suspend fun loadEntityBrief(entityType: EntityClass, guid: String) {
-        val briefEntityInfo = briefInfoGetters[entityType]?.invoke(guid) ?: run {
-            showError(BadRequestException("Entity type $entityType is not supported", null))
+    private suspend fun loadEntityBrief(entityMetadata: EntityMetadata) {
+        val briefEntityInfo = briefInfoGetters[entityMetadata.entityClass]?.invoke(entityMetadata.guid) ?: run {
+            showError(BadRequestException("Entity type ${entityMetadata.entityClass} is not supported", null))
             setState {
                 editState = EditState.SHOWING
-                newGuid = props.guid
                 briefInfo = null
             }
-            TODO("Support EntityType: $entityType")
+            TODO("Support EntityType: ${entityMetadata.entityClass}")
         }
         setState {
             briefInfo = briefEntityInfo
+        }
+    }
+
+    private suspend fun loadEntityBriefById(linkValueData: LinkValueData) {
+        val briefEntityInfo = when (linkValueData) {
+            is LinkValueData.Object -> ObjectBriefInfo(getObjectBriefById(linkValueData.id))
+            is LinkValueData.ObjectValue -> ValueBriefInfo(getValueBriefById(linkValueData.id))
+            else -> {
+                showError(BadRequestException("Entity for link value $linkValueData is not yet supported", null))
+                setState {
+                    editState = EditState.SHOWING
+                    briefInfo = null
+                    valueMeta = null
+                }
+                TODO("Support type: $linkValueData")
+            }
+        }
+        setState {
+            briefInfo = briefEntityInfo
+        }
+    }
+
+    private fun loadBriefViewById(id: LinkValueData?) {
+        id?.let {
+            launch {
+                try {
+                    loadEntityBriefById(it)
+                    setState {
+                        editState = EditState.SHOWING
+                    }
+                } catch (e: ApiException) {
+                    showError(e)
+                    setState {
+                        editState = EditState.SHOWING
+                    }
+                }
+            }
+        } ?: run {
+            setState {
+                editState = EditState.SHOWING
+                valueMeta = null
+                briefInfo = null
+            }
         }
     }
 
@@ -118,12 +154,14 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         guid?.let {
             setState {
                 editState = EditState.LOADING
-                newGuid = guid
             }
             launch {
                 try {
                     val entityMeta = loadMeta(it)
-                    loadEntityBrief(entityMeta.entityClass, it)
+                    setState {
+                        valueMeta = entityMeta
+                    }
+                    loadEntityBrief(entityMeta)
                     setState {
                         editState = EditState.SHOWING
                     }
@@ -132,14 +170,13 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
                     showError(e)
                     setState {
                         editState = EditState.SHOWING
-                        newGuid = props.guid
                     }
                 }
             }
         } ?: run {
             setState {
                 editState = EditState.SHOWING
-                newGuid = null
+                valueMeta = null
             }
         }
     }
@@ -176,10 +213,10 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
                 it.render(this)
             } ?: run {
                 attrs {
-                    classes = if (state.newGuid == null) setOf("value-entity-guid--empty") else setOf("value-entity-guid--unsuccessful")
+                    classes = if (state.valueMeta == null) setOf("value-entity-guid--empty") else setOf("value-entity-guid--unsuccessful")
                     onClickFunction = this@EntityLinkGuidInput::handleSpanClick
                 }
-                +(if (state.newGuid == null) EMPTY_GUID_VALUE_PLACEHOLDER else UNSUCCESSFUL_ENTITY_RETRIEVAL_PLACEHOLDER)
+                +(if (state.valueMeta == null) EMPTY_GUID_VALUE_PLACEHOLDER else UNSUCCESSFUL_ENTITY_RETRIEVAL_PLACEHOLDER)
             }
         }
     }
@@ -197,14 +234,14 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 
     interface Props : RProps {
-        var guid: String?
+        var value: LinkValueData?
         var onUpdate: (LinkValueData?) -> Unit
         var disabled: Boolean
     }
 
     interface State : RState {
         var editState: EditState
-        var newGuid: String?
+        var valueMeta: EntityMetadata?
         var briefInfo: EntityBriefInfo?
     }
 }
@@ -215,43 +252,6 @@ private val briefInfoGetters: Map<EntityClass, BriefInfoGetter> = mapOf(
 )
 
 private typealias BriefInfoGetter = suspend (String) -> EntityBriefInfo
-
-sealed class EntityBriefInfo {
-    fun render(builder: RBuilder) = builder.render()
-    abstract fun RBuilder.render()
-}
-
-private data class ObjectBriefInfo(val data: BriefObjectViewResponse) : EntityBriefInfo() {
-    override fun RBuilder.render() {
-        span(classes = "entity-brief-info__object-name") {
-            +data.name
-        }
-        span(classes = "entity-brief-info__object-subject") {
-            +"(${data.subjectName ?: "Global"})"
-        }
-    }
-}
-
-private data class ValueBriefInfo(val data: BriefValueViewResponse) : EntityBriefInfo() {
-    override fun RBuilder.render() {
-        data.propertyName?.let {
-            span(classes = "entity-brief-info__value-property-name") {
-                +it
-            }
-        }
-        span(classes = "entity-brief-info__value-aspect-name") {
-            +data.aspectName
-        }
-        span(classes = "entity-brief-info__value") {
-            valueFormat(data.value.toData())
-        }
-        data.measure?.let {
-            span(classes = "entity-brief-info__value-measure") {
-                +it
-            }
-        }
-    }
-}
 
 private fun DataTransfer.withPlainText(handler: (String?) -> Unit) {
     for (i in 0 until this.items.length) {

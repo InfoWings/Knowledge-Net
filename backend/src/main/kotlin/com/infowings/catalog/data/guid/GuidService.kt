@@ -78,6 +78,14 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         }
     }
 
+    fun findObjectById(id: String): BriefObjectViewResponse {
+        return transaction(db) {
+            val vertex = dao.findById(id)
+            if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toBriefViewResponse()
+            else throw EntityNotFoundException("No object is found by id: $id")
+        }
+    }
+
     private fun ObjectVertex.toBriefViewResponse() = BriefObjectViewResponse(
         name,
         subject?.name
@@ -116,6 +124,24 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                     )
                 } else null
             }.singleOrNull() ?: throw EntityNotFoundException("No value is found by guid: $guid")
+        }
+    }
+
+    fun findObjectValueById(id: String): BriefValueViewResponse {
+        return transaction(db) {
+            val vertex = dao.findById(id)
+            if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
+                val valueVertex = vertex.toObjectPropertyValueVertex()
+                val propertyValue = valueVertex.toObjectPropertyValue()
+                val propertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                BriefValueViewResponse(
+                    valueVertex.guid,
+                    propertyValue.value.toObjectValueData().toDTO(),
+                    propertyVertex.name,
+                    propertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                    valueVertex.measure?.name
+                )
+            } else throw EntityNotFoundException("No value is found by id: $id")
         }
     }
 

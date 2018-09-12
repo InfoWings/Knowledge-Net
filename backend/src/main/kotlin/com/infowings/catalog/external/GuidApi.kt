@@ -15,22 +15,34 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/guid")
 class GuidApi(val guidService: GuidService) {
 
-    @GetMapping("/meta/{id}")
-    fun getMetaById(@PathVariable guid: String): EntityMetadata {
+    @GetMapping("/meta/{guid}")
+    fun getMetaByGuid(@PathVariable guid: String): EntityMetadata {
         logger.debug("Get entity metadata by guid: $guid")
         return guidService.metadata(listOf(guid)).single()
     }
 
-    @GetMapping("/brief/object/{id}")
+    @GetMapping("/brief/object/{guid}")
     fun getBriefObjectByGuid(@PathVariable guid: String): BriefObjectViewResponse {
         logger.debug("Get brief object view by guid: $guid")
         return guidService.findObject(guid)
     }
 
-    @GetMapping("/brief/value/{id}")
+    @GetMapping("/brief/value/{guid}")
     fun getBriefValueByGuid(@PathVariable guid: String): BriefValueViewResponse {
         logger.debug("Get brief value view by guid: $guid")
         return guidService.findObjectValue(guid)
+    }
+
+    @GetMapping("/brief/object/id/{id}")
+    fun getBriefObjectById(@PathVariable id: String): BriefObjectViewResponse {
+        logger.debug("Get brief object view by id: $id")
+        return guidService.findObjectById(id)
+    }
+
+    @GetMapping("/brief/value/id/{id}")
+    fun getBriefValueById(@PathVariable id: String): BriefValueViewResponse {
+        logger.debug("Get brief value view by id: $id")
+        return guidService.findObjectValueById(id)
     }
 }
 

@@ -58,3 +58,9 @@ suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
 
 suspend fun getValueBrief(guid: String): BriefValueViewResponse =
         JSON.parse(get("/api/giud/brief/value/$guid"))
+
+suspend fun getObjectBriefById(id: String): BriefObjectViewResponse =
+        JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+
+suspend fun getValueBriefById(id: String): BriefValueViewResponse =
+        JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))

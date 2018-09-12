@@ -21,7 +21,7 @@ fun RBuilder.propertyValue(
             disabled
         )
         baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue, disabled) { onChange(ObjectValueData.StringValue(it)) }
-        baseType == BaseType.Reference -> entityLinkInput((value as? ObjectValueData.Link)?.asStringValue, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
+        baseType == BaseType.Reference -> entityLinkInput((value as? ObjectValueData.Link)?.value, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
         baseType == BaseType.Integer -> integerInput((value as? ObjectValueData.IntegerValue)?.asStringValue, disabled) {
             onChange(
                 ObjectValueData.IntegerValue(

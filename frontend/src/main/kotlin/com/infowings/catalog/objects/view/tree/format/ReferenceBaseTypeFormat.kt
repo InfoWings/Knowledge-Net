@@ -1,7 +1,12 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.errors.showError
+import com.infowings.catalog.objects.*
+import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.Spinner
+import kotlinx.coroutines.experimental.launch
 import kotlinx.html.classes
 import react.*
 import react.dom.span
@@ -15,13 +20,31 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
     }
 
     override fun componentDidMount() {
-        loadBriefView(props.value)
+        launch {
+            try {
+                loadBriefView(props.value)
+            } catch (apiException: ApiException) {
+                showError(apiException)
+                setState {
+                    briefInfo = null
+                    loading = false
+                }
+            }
+        }
     }
 
-    private fun loadBriefView(value: LinkValueData) {
-        when (value) {
-            is LinkValueData.Object -> setState { briefView = "Object" }
-            is LinkValueData.ObjectValue -> setState { briefView = "ObjectValue" }
+    private suspend fun loadBriefView(value: LinkValueData) {
+        val briefEntityInfo = when (value) {
+            is LinkValueData.Object -> ObjectBriefInfo(getObjectBriefById(value.id))
+            is LinkValueData.ObjectValue -> ValueBriefInfo(getValueBriefById(value.id))
+            else -> {
+                showError(BadRequestException("Link value $value is not yet supported", null))
+                null
+            }
+        }
+        setState {
+            briefInfo = briefEntityInfo
+            loading = false
         }
     }
 
@@ -42,11 +65,11 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
 
     private fun RBuilder.renderSpan() {
         span {
-            state.briefView?.let {
+            state.briefInfo?.let {
                 attrs {
-                    classes = setOf("object-property-value-line__link-value--loaded")
+                    classes = setOf("object-property-value-line__link-value--loaded entity-brief-info")
                 }
-                +it
+                it.render(this)
             } ?: run {
                 attrs {
                     classes = setOf("object-property-value-line__link-value--error")
@@ -62,7 +85,7 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
 
     interface State : RState {
         var loading: Boolean
-        var briefView: String?
+        var briefInfo: EntityBriefInfo?
     }
 }
 

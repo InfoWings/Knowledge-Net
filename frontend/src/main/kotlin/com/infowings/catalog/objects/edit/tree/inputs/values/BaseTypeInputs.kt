@@ -60,9 +60,9 @@ fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefB
     }
 }
 
-fun RBuilder.entityLinkInput(value: String?, onUpdate: (LinkValueData?) -> Unit, disabled: Boolean = false) = entityLinkGuidInput {
+fun RBuilder.entityLinkInput(value: LinkValueData?, onUpdate: (LinkValueData?) -> Unit, disabled: Boolean = false) = entityLinkGuidInput {
     attrs {
-        this.guid = value
+        this.value = value
         this.onUpdate = onUpdate
         this.disabled = disabled
     }

@@ -44,6 +44,10 @@ class GuidDaoService(private val db: OrientDatabase) {
         }
     }
 
+    fun findById(id: String): OVertex {
+        return transaction(db) { db[id] }
+    }
+
     fun vertex(guidVertex: GuidVertex): OVertex = guidVertex.getVertices(ODirection.IN).single()
 }
 
