@@ -1,7 +1,6 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.user.UserProperties
-import com.infowings.catalog.auth.user.Users
+//import com.infowings.catalog.auth.user.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -78,8 +77,7 @@ class OrientDatabase(
     val database: String,
     username: String,
     password: String,
-    val testMode: Boolean,
-    userProperties: UserProperties
+    val testMode: Boolean
 ) {
     private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
 
@@ -152,28 +150,13 @@ class OrientDatabase(
             orientDB.create(database, ODatabaseType.MEMORY)
         }
 
-        val users = try {
-            val users = userProperties.toUsers()
-            if (users.isEmpty()) {
-                logger.info("no custom user settings found. Use default ones")
-                Users.toList()
-            } else {
-                users
-            }
-        } catch (e: IllegalArgumentException) {
-            logger.warn("Ill-formed users configuration: $e")
-            logger.warn("Going to use default settings instead")
-
-            Users.toList()
-        }
-
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
             .initSubject()
             .initSearch()
             .initHistory()
-            .initUsers(users)
+            .initUsers()
             .initReferenceBooks()
             .initObject()
             .initGuid()

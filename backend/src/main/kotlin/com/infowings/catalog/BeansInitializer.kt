@@ -1,6 +1,7 @@
 package com.infowings.catalog
 
 import com.infowings.catalog.auth.user.UserDao
+import com.infowings.catalog.auth.user.UserInitApplicationListener
 import com.infowings.catalog.auth.user.UserProperties
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.data.DefaultSubjectService
@@ -98,14 +99,12 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         }
 
         bean {
-            env.systemProperties
             OrientDatabase(
                 url = env["orient.url"],
                 database = env["orient.database"],
                 username = env["orient.user"],
                 password = env["orient.password"],
-                testMode = env["orient.mode.test"].toBoolean(),
-                userProperties = ref()
+                testMode = env["orient.mode.test"].toBoolean()
             )
         }
 
@@ -115,5 +114,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 seconds = env.getProperty("orient.heartbeat.timeout")?.toInt() ?: DEFAULT_HEART_BEAT__TIMEOUT
             )
         }
+
+        bean { UserInitApplicationListener() }
     }.initialize(ctx)
 }
