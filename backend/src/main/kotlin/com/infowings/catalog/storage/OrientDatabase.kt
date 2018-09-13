@@ -1,6 +1,5 @@
 package com.infowings.catalog.storage
 
-//import com.infowings.catalog.auth.user.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -134,14 +133,12 @@ class OrientDatabase(
      */
 
     fun reOpenPool(from: Versioned<ODatabasePool>): Versioned<ODatabasePool> =
-        dbPool.accumulateAndGet(from, { current, given ->
+        dbPool.accumulateAndGet(from) { current, given ->
             if (current.version == given.version) {
                 current.entity.close()
                 Versioned(createDbPool(), current.version + 1)
             } else current
-        })
-
-    private val logger = loggerFor<OrientDatabase>()
+        }
 
     init {
 
@@ -249,7 +246,6 @@ class OrientDatabase(
 
     fun removeIndex(classType: String, indexName: String) = session(this) { session ->
         val oClass = session.getClass(classType)
-        val index = oClass.getClassIndex(indexName)
         if (oClass.getClassIndex(indexName) != null) {
             session.command("drop index $indexName")
         }
