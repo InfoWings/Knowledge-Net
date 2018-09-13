@@ -32,5 +32,5 @@ fun BaseType.defaultValue(): ObjectValueData? =
         is BaseType.Decimal -> ObjectValueData.DecimalValue("0")
         is BaseType.Boolean -> ObjectValueData.BooleanValue(false)
         is BaseType.Range -> ObjectValueData.RangeValue(Range(0, 1))
-        is BaseType.Reference -> ObjectValueData.NullValue
+        is BaseType.Reference -> null
     }

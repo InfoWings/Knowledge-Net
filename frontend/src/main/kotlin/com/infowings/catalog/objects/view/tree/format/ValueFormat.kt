@@ -14,6 +14,7 @@ fun RBuilder.valueFormat(value: ObjectValueData) {
         is ObjectValueData.IntegerValue -> span(classes = "object-property-value-line__value") { +value.value.toString() }
         is ObjectValueData.Link -> when (value.value) {
             is LinkValueData.DomainElement -> domainElementReferenceFormat(value.value.id)
+            else -> referenceBaseTypeFormat(value.value)
         }
     }
 }

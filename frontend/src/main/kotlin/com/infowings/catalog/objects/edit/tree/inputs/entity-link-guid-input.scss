@@ -1,0 +1,36 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+
+.value-entity-guid {
+  &--full {
+    color: $pt-text-color;
+    border: 1px solid white;
+    border-radius: 2px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $pt-divider-black;
+    }
+  }
+
+  &--empty {
+    color: $pt-text-color-muted;
+    border: 1px solid white;
+    border-radius: 2px;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $pt-divider-black;
+    }
+  }
+
+  &--unsuccessful {
+      color: $pt-intent-danger;
+      border: 1px solid white;
+      border-radius: 2px;
+      cursor: pointer;
+
+      &:hover {
+        border-color: $pt-divider-black;
+      }
+    }
+}

@@ -1,5 +1,7 @@
 package com.infowings.catalog.objects.edit.tree.inputs.values
 
+import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.objects.edit.tree.inputs.entityLinkGuidInput
 import com.infowings.catalog.objects.edit.tree.inputs.referenceBookInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.NumericInput
@@ -53,6 +55,14 @@ fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefB
     attrs {
         this.itemId = value
         this.refBookId = aspectRefBookId
+        this.onUpdate = onUpdate
+        this.disabled = disabled
+    }
+}
+
+fun RBuilder.entityLinkInput(value: LinkValueData?, onUpdate: (LinkValueData?) -> Unit, disabled: Boolean = false) = entityLinkGuidInput {
+    attrs {
+        this.value = value
         this.onUpdate = onUpdate
         this.disabled = disabled
     }

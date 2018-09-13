@@ -4,14 +4,19 @@ import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.common.ReferenceBookItem
-import com.infowings.catalog.common.objekt.*
+import com.infowings.catalog.common.guid.BriefObjectViewResponse
+import com.infowings.catalog.common.guid.BriefValueViewResponse
+import com.infowings.catalog.common.guid.EntityClass
+import com.infowings.catalog.common.guid.EntityMetadata
+import com.infowings.catalog.common.objekt.PropertyUpdateResponse
+import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.common.toDTO
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
-import com.infowings.catalog.data.objekt.Objekt
+import com.infowings.catalog.data.objekt.ObjectVertex
 import com.infowings.catalog.data.objekt.toObjectPropertyValueVertex
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex
 import com.infowings.catalog.data.objekt.toObjectVertex
@@ -24,7 +29,7 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 
 @Suppress("TooManyFunctions")
-class GuidService(  
+class GuidService(
     private val db: OrientDatabase,
     private val dao: GuidDaoService,
     private val userService: UserService,
@@ -74,14 +79,27 @@ class GuidService(
         }
     }
 
-    fun findObjects(guids: List<String>): List<Objekt> {
+    fun findObject(guid: String): BriefObjectViewResponse {
         return transaction(db) {
-            dao.find(guids).mapNotNull { guidVertex ->
+            dao.find(listOf(guid)).mapNotNull { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
-                if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toObjekt() else null
-            }
+                if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toBriefViewResponse() else null
+            }.singleOrNull() ?: throw EntityNotFoundException("No object is found by guid: $guid")
         }
     }
+
+    fun findObjectById(id: String): BriefObjectViewResponse {
+        return transaction(db) {
+            val vertex = dao.findById(id)
+            if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toBriefViewResponse()
+            else throw EntityNotFoundException("No object is found by id: $id")
+        }
+    }
+
+    private fun ObjectVertex.toBriefViewResponse() = BriefObjectViewResponse(
+        name,
+        subject?.name
+    )
 
     fun findObjectProperties(guids: List<String>): List<PropertyUpdateResponse> {
         return transaction(db) {
@@ -101,23 +119,63 @@ class GuidService(
         }
     }
 
-    fun findObjectValues(guids: List<String>): List<FoundValueResponse> {
+    fun findObjectValue(guid: String): BriefValueViewResponse {
         return transaction(db) {
-            dao.find(guids).mapNotNull { guidVertex ->
+            dao.find(listOf(guid)).mapNotNull { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                     val valueVertex = vertex.toObjectPropertyValueVertex()
                     val propertyValue = valueVertex.toObjectPropertyValue()
-                    val propertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
-                    FoundValueResponse(
+                    val aspectPropertyVertex = valueVertex.aspectProperty
+                    aspectPropertyVertex?.let {
+                        BriefValueViewResponse(
+                            valueVertex.guid,
+                            propertyValue.value.toObjectValueData().toDTO(),
+                            it.name,
+                            it.associatedAspect.name,
+                            valueVertex.measure?.name
+                        )
+                    } ?: run {
+                        val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                        BriefValueViewResponse(
+                            valueVertex.guid,
+                            propertyValue.value.toObjectValueData().toDTO(),
+                            objectPropertyVertex.name,
+                            objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                            valueVertex.measure?.name
+                        )
+                    }
+                } else null
+            }.singleOrNull() ?: throw EntityNotFoundException("No value is found by guid: $guid")
+        }
+    }
+
+    fun findObjectValueById(id: String): BriefValueViewResponse {
+        return transaction(db) {
+            val vertex = dao.findById(id)
+            if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
+                val valueVertex = vertex.toObjectPropertyValueVertex()
+                val propertyValue = valueVertex.toObjectPropertyValue()
+                val aspectPropertyVertex = valueVertex.aspectProperty
+                aspectPropertyVertex?.let {
+                    BriefValueViewResponse(
                         valueVertex.guid,
                         propertyValue.value.toObjectValueData().toDTO(),
-                        propertyVertex.name,
-                        propertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                        it.name,
+                        it.associatedAspect.name,
                         valueVertex.measure?.name
                     )
-                } else null
-            }
+                } ?: run {
+                    val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
+                    BriefValueViewResponse(
+                        valueVertex.guid,
+                        propertyValue.value.toObjectValueData().toDTO(),
+                        objectPropertyVertex.name,
+                        objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
+                        valueVertex.measure?.name
+                    )
+                }
+            } else throw EntityNotFoundException("No value is found by id: $id")
         }
     }
 
@@ -176,3 +234,7 @@ private val logger = loggerFor<GuidService>()
 
 @Suppress("SpreadOperator")
 private fun OVertex.hasGuidEdge() = getEdges(ODirection.OUT, *edgesWithGuid.map { it.extName }.toTypedArray()).firstOrNull() != null
+
+sealed class GuidApiException(override val message: String) : RuntimeException(message)
+
+class EntityNotFoundException(message: String) : GuidApiException(message)

@@ -15,15 +15,19 @@ val errorToaster = Toaster.create(jsObject {
     position = Position.TOP_RIGHT
 })
 
-@Suppress("MagicNumber")
 fun showError(apiException: ApiException) {
-    errorToaster.show(jsObject {
-        icon = "warning-sign"
-        intent = Intent.DANGER
-        message = apiException.toastMessage()
-        timeout = 9000
-    }, apiException.timestamp?.toString())
+    errorToaster.show(
+        jsObject {
+            icon = "warning-sign"
+            intent = Intent.DANGER
+            message = apiException.toastMessage()
+            timeout = DEFAULT_TIMEOUT_MILLISECONDS
+        },
+        apiException.timestamp?.toString()
+    )
 }
+
+private const val DEFAULT_TIMEOUT_MILLISECONDS = 9000
 
 private fun ApiException.toastMessage(): ReactElement {
     return when (this) {

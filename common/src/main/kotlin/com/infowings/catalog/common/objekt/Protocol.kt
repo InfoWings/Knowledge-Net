@@ -154,15 +154,6 @@ data class ValueDeleteResponse(
 )
 
 @Serializable
-data class FoundValueResponse(
-    val guid: String?,
-    val value: ValueDTO,
-    val propertyName: String?,
-    val aspectName: String,
-    val measure: String?
-)
-
-@Serializable
 data class Reference(val id: String, val version: Int)
 
 @Serializable
@@ -171,15 +162,3 @@ data class GuidReference(val id: String, val guid: String?, val version: Int)
 @Serializable
 data class ValueRecalculationResponse(val targetMeasure: String, val value: String)
 
-enum class EntityClass {
-    ASPECT,
-    ASPECT_PROPERTY,
-    SUBJECT,
-    OBJECT,
-    OBJECT_PROPERTY,
-    OBJECT_VALUE,
-    REFBOOK_ITEM
-}
-
-@Serializable
-data class EntityMetadata(val guid: String, val entityClass: EntityClass, val id: String)
