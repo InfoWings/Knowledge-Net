@@ -55,6 +55,7 @@ data class ValueDTO(
     val tag: String,
     val stringValue: String?,
     val intValue: Int?,
+    val intUpb: Int?,
     val range: Range?,
     val precision: Int?,
     val vertexId: String?,
