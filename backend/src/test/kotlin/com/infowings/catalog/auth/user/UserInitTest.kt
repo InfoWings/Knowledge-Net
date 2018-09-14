@@ -44,7 +44,7 @@ class UserInitTest : AbstractDatabaseTest() {
     @Test
     fun `Database initializer should add new user if it is not present in database`() {
         val username = "notAdmin"
-        val password = "notAdmin"
+        val password = "notAdminPassword"
         val role = "ADMIN"
 
         val userProperties = UserProperties().apply {
