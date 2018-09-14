@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 
+@Suppress("UnsafeCallOnNullableType")
 class UserInitTest : AbstractDatabaseTest() {
 
     @Autowired

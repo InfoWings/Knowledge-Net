@@ -11,7 +11,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
-class AbstractDatabaseTest {
+abstract class AbstractDatabaseTest {
 
     @Autowired
     protected lateinit var orientDatabase: OrientDatabase
