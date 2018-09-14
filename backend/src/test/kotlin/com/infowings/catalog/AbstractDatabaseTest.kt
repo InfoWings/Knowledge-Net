@@ -11,6 +11,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Suppress("UnnecessaryAbstractClass")
 abstract class AbstractDatabaseTest {
 
     @Autowired
