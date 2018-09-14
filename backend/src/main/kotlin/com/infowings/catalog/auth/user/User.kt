@@ -32,7 +32,6 @@ class UserDatabaseInitializer(private val database: OrientDatabase, private val 
                         role = userData.role
                     }
                 } ?: run {
-                    logger.info("Initializing new user: $userData")
                     userDao.createUserVertex().apply {
                         username = userData.username
                         password = userData.password
@@ -47,14 +46,19 @@ class UserDatabaseInitializer(private val database: OrientDatabase, private val 
     }
 
     private fun validateUserProperty(userConfig: UserConfig): UserData? {
-        return if (userConfig.username.isNotBlank() && userConfig.password.isNotBlank() && allowedRoles.contains(userConfig.role)) {
-            val validUserData = UserData(userConfig.username, userConfig.password, userConfig.role)
-            logger.info("Valid user data for initialization: $validUserData")
-            validUserData
-        } else null
+        val userData = UserData(userConfig.username, userConfig.password, userConfig.role)
+        return if (userData.username.isNotBlank() && userData.password.isNotBlank() && allowedRoles.contains(userData.role)) {
+            logger.info("Valid user data for initialization: ${userData.safeToString()}")
+            userData
+        } else {
+            logger.warn("Invalid user data for initialization: ${userData.safeToString()}")
+            null
+        }
     }
 
-    private data class UserData(val username: String, val password: String, val role: String)
+    private data class UserData(val username: String, val password: String, val role: String) {
+        fun safeToString() = "UserData(username = \"$username\", role = \"$role\")"
+    }
 }
 
 private val logger = loggerFor<UserInitApplicationListener>()
