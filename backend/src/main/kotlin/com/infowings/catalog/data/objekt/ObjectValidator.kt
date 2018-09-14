@@ -12,6 +12,7 @@ import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
 /* По опыту предыдущих сущностей, концепция валидатора модифицирована:
@@ -160,6 +161,17 @@ class MainObjectValidator(
         return PropertyWriteInfo(request.name, request.description, objectVertex, aspectVertex)
     }
 
+    private fun createValue(
+        aspectPropertyVertex: AspectPropertyVertex?,
+        objectPropertyVertex: ObjectPropertyVertex, value: ObjectValueData, measureName: String?
+    ): Pair<ObjectValue, OVertex?> {
+        val measure = validateBaseTypeAndMeasure(aspectPropertyVertex, objectPropertyVertex, value, measureName)
+        val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
+
+        return Pair(recalculateObjectValueFromData(value, measure), measureVertex)
+
+    }
+
     override fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
         logger.info("checking value for creation: $request")
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
@@ -178,10 +190,7 @@ class MainObjectValidator(
 
         val parentValueVertex = request.parentValueId?.let { objectService.findPropertyValueById(it) }
 
-        val measure = validateBaseTypeAndMeasure(aspectPropertyVertex, objectPropertyVertex, request.value, request.measureName)
-        val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
-
-        val value = recalculateObjectValueFromData(request.value, measure)
+        val (value, measureVertex) = createValue(aspectPropertyVertex, objectPropertyVertex, request.value, request.measureName)
 
         return ValueWriteInfo(value, request.description, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
@@ -206,19 +215,9 @@ class MainObjectValidator(
             throw IllegalArgumentException("There is aspect property ${aspectPropertyVertex.id} for root value")
         }
 
-        val measure = validateBaseTypeAndMeasure(aspectPropertyVertex, objectPropertyVertex, request.value, request.measureName)
-        val measureVertex = measure?.let { measureService.findMeasure(it.name) ?: throw IllegalStateException("No vertex for measure ${it.name}") }
+        val (value, measureVertex) = createValue(aspectPropertyVertex, objectPropertyVertex, request.value, request.measureName)
 
-        val value = recalculateObjectValueFromData(request.value, measure)
-
-        return ValueWriteInfo(
-            value,
-            request.description,
-            objectPropertyVertex,
-            aspectPropertyVertex,
-            parentValueVertex,
-            measureVertex
-        )
+        return ValueWriteInfo(value, request.description, objectPropertyVertex, aspectPropertyVertex, parentValueVertex, measureVertex)
     }
 
     private fun validateBaseTypeAndMeasure(
@@ -299,7 +298,7 @@ class MainObjectValidator(
             ObjectValue.Link(refValueVertex)
         }
         is ObjectValueData.IntegerValue ->
-            ObjectValue.IntegerValue(dataValue.value, dataValue.precision)
+            ObjectValue.IntegerValue(dataValue.value, dataValue.upb, dataValue.precision)
         is ObjectValueData.StringValue ->
             ObjectValue.StringValue(dataValue.value)
         is ObjectValueData.BooleanValue ->

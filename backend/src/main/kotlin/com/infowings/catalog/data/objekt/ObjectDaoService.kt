@@ -257,6 +257,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         when (objectValue) {
             is ObjectValue.IntegerValue -> {
                 vertex.intValue = objectValue.value
+                vertex.intUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
                 vertex.precision = objectValue.precision
             }
             is ObjectValue.DecimalValue -> {

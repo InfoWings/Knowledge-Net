@@ -9,7 +9,9 @@ data class Range(val left: Int, val right: Int)
 sealed class ObjectValueData {
     abstract fun assignableTo(baseType: BaseType): Boolean
 
-    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData() {
+    data class IntegerValue(val value: Int, val upb: Int, val precision: Int?) : ObjectValueData() {
+        constructor(value: Int, precision: Int?) : this(value, value, precision)
+
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Integer.name
     }
 

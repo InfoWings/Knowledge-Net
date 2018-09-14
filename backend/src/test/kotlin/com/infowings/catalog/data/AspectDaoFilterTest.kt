@@ -3,6 +3,7 @@ package com.infowings.catalog.data
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectService
+import com.infowings.catalog.randomName
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.BeforeEach
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
@@ -25,16 +25,16 @@ class AspectDaoFilterTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-    val heightAspectName = "Height${UUID.randomUUID()}"
+    val heightAspectName = randomName("Height")
 
     @BeforeEach
     fun saveAspectTree() {
         var heightAspectData = AspectData(null, heightAspectName, Metre.name, null, null)
         heightAspectData = aspectService.save(heightAspectData, username)
-        var widthAspectData = AspectData(null, "Width", Metre.name, null, null)
+        var widthAspectData = AspectData(null, randomName("Width"), Metre.name, null, null)
         widthAspectData = aspectService.save(widthAspectData, username)
         val dimensionAspectData = AspectData(
-            null, "Dimensions", null, null, BaseType.Text.name, properties = listOf(
+            null, randomName("Dimensions"), null, null, BaseType.Text.name, properties = listOf(
                 AspectPropertyData("", "", heightAspectData.id!!, PropertyCardinality.ONE.name, ""),
                 AspectPropertyData("", "", widthAspectData.id!!, PropertyCardinality.ONE.name, "")
             )

@@ -42,6 +42,7 @@ class ObjectServiceTest {
     private lateinit var complexAspect: AspectData
 
     private val username = "admin"
+    private val sampleDescription = "object description"
 
     @BeforeEach
     fun initTestData() {
@@ -56,16 +57,22 @@ class ObjectServiceTest {
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
+    private fun createObject(request: ObjectCreateRequest) = objectService.create(request, username)
+    private fun newObject(name: String, subjectId: String) = createObject(ObjectCreateRequest(name, sampleDescription, subjectId))
+    private fun newObject(name: String) = newObject(name, subject.id)
+    private fun newObject() = newObject(randomName(), subject.id)
+
+
     @Test
     fun `Create object`() {
-        val request = ObjectCreateRequest("createObjectTestName", "object descr", subject.id)
-        val objectCreateResponse = objectService.create(request, "user")
+        val name = randomName()
+        val objectCreateResponse = newObject(name)
 
         val objectVertex = objectService.findById(objectCreateResponse.id)
-        assertEquals(request.name, objectVertex.name, "names must be equal")
-        assertEquals(request.description, objectVertex.description, "descriptions must be equal")
+        assertEquals(name, objectVertex.name, "names must be equal")
+        assertEquals(sampleDescription, objectVertex.description, "descriptions must be equal")
         transaction(db) {
-            assertEquals(request.subjectId, objectVertex.subject?.id, "subjects must be equal")
+            assertEquals(subject.id, objectVertex.subject?.id, "subjects must be equal")
         }
     }
 

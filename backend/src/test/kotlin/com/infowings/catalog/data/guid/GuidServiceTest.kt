@@ -208,7 +208,7 @@ class GuidServiceTest {
         val objectValueBrief = guidService.findObjectValue(rootValue.guid!!)
         transaction(db) {
             assertEquals(rootValue.guid, objectValueBrief.guid)
-            assertEquals(nullValueDto(), objectValueBrief.value)
+            assertEquals(ValueDTO.nullValue(), objectValueBrief.value)
             assertEquals(baseAspect.name, objectValueBrief.aspectName)
         }
     }

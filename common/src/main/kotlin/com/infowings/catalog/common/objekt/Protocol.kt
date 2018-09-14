@@ -39,6 +39,7 @@ data class PropertyUpdateRequest(
     val version: Int
 )
 
+
 data class ValueCreateRequest(
     val value: ObjectValueData,
     val description: String?,
