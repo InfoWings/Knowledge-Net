@@ -57,7 +57,9 @@ class DefaultSubjectService(
 
     override fun findVertexByIdStrict(id: String): SubjectVertex = dao.findByIdStrict(id)
 
-    override fun findByName(name: String): SubjectData? = dao.findByName(name)?.toSubject()?.toSubjectData()
+    override fun findByName(name: String): SubjectData? = transaction(db) {
+        dao.findByName(name)?.toSubject()?.toSubjectData()
+    }
 
     override fun createSubject(sd: SubjectData, username: String): Subject {
         val userVertex = userService.findUserVertexByUsername(username)

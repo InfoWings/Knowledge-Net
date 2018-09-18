@@ -262,6 +262,17 @@ class SubjectServiceTest {
         assertEquals("description", res.description, "Description should be saved without around spaces")
     }
 
+    @Test
+    fun testFindSubjectByName() {
+        val subjectName = randomName()
+        val subject = createTestSubject(subjectName)
+
+        val foundSubject = subjectService.findByName(subjectName)
+
+        assertEquals(subject.id, foundSubject?.id)
+    }
+
+
     private fun createTestSubject(
         name: String,
         aspectNames: List<String> = listOf("TestSubjectAspect"),
