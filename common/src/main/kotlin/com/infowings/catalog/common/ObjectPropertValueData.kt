@@ -8,31 +8,31 @@ data class Range(val left: Int, val right: Int)
  */
 sealed class ObjectValueData {
     abstract fun assignableTo(baseType: BaseType): Boolean
-    abstract fun isLink(): Boolean
+    abstract fun link(): Link?
 
     data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Integer.name
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 
     data class BooleanValue(val value: Boolean) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Boolean.name
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 
     data class StringValue(val value: String) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Text.name
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 
     data class RangeValue(val range: Range) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Range.name
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 
     data class DecimalValue(val valueRepr: String) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Decimal.name
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 
     data class Link(val value: LinkValueData) : ObjectValueData() {
@@ -41,12 +41,12 @@ sealed class ObjectValueData {
             else -> baseType.name == BaseType.Reference.name
         }
 
-        override fun isLink(): Boolean = true
+        override fun link(): Link? = this
     }
 
     object NullValue : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = true
-        override fun isLink(): Boolean = false
+        override fun link(): Link? = null
     }
 }
 

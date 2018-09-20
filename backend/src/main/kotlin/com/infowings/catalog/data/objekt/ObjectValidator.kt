@@ -163,13 +163,13 @@ class MainObjectValidator(
     override fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
         logger.info("checking value for creation: $request")
 
-        if (request.value.isLink()) {
-            val linkValue = (request.value as ObjectValueData.Link).value
+        val linkValue = request.value.link()?.value
 
+        if (linkValue != null) {
             if (linkValue.isObjectValue()) {
                 val targetValue = objectService.findPropertyValueById(linkValue.id).toObjectPropertyValue()
 
-                if (targetValue.value.toObjectValueData().isLink()) {
+                if (targetValue.value.toObjectValueData().link() != null) {
                     throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
                 }
             }
@@ -204,13 +204,12 @@ class MainObjectValidator(
         val objPropertyVertex = valueVertex.objectProperty
                 ?: throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked ObjectProperty")
 
-        if (request.value.isLink()) {
-            val linkValue = (request.value as ObjectValueData.Link).value
-
+        val linkValue = request.value.link()?.value
+        if (linkValue != null) {
             if (linkValue.isObjectValue()) {
                 val targetValue = objectService.findPropertyValueById(linkValue.id).toObjectPropertyValue()
 
-                if (targetValue.value.toObjectValueData().isLink()) {
+                if (targetValue.value.toObjectValueData().link() != null) {
                     throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
                 }
             }

@@ -21,7 +21,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 import kotlin.test.assertEquals
 
-
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
 @Suppress("StringLiteralDuplication")
