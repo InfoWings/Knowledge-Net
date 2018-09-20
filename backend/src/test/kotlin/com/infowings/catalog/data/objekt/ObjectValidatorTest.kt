@@ -325,6 +325,7 @@ class ObjectValidatorTest {
     }
 
     @Test
+    @Suppress("EmptyCatchBlock")
     fun `Object value with reference to another reference value`() {
         val objectChange = ObjectBuilder(objectService)
             .name(randomName())
