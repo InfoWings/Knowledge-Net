@@ -33,7 +33,8 @@ class GuidService(
     private val db: OrientDatabase,
     private val dao: GuidDaoService,
     private val userService: UserService,
-    private val historyService: HistoryService) {
+    private val historyService: HistoryService
+) {
     fun metadata(guids: List<String>): List<EntityMetadata> {
         return transaction(db) {
             dao.find(guids).map { guidVertex ->
@@ -127,22 +128,23 @@ class GuidService(
                     val valueVertex = vertex.toObjectPropertyValueVertex()
                     val propertyValue = valueVertex.toObjectPropertyValue()
                     val aspectPropertyVertex = valueVertex.aspectProperty
+                    val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
                     aspectPropertyVertex?.let {
                         BriefValueViewResponse(
                             valueVertex.guid,
-                            propertyValue.value.toObjectValueData().toDTO(),
+                            propertyValue.calculateObjectValueData().toDTO(),
                             it.name,
                             it.associatedAspect.name,
-                            valueVertex.measure?.name
+                            measureSymbol
                         )
                     } ?: run {
                         val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
                         BriefValueViewResponse(
                             valueVertex.guid,
-                            propertyValue.value.toObjectValueData().toDTO(),
+                            propertyValue.calculateObjectValueData().toDTO(),
                             objectPropertyVertex.name,
                             objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                            valueVertex.measure?.name
+                            measureSymbol
                         )
                     }
                 } else null
@@ -157,22 +159,23 @@ class GuidService(
                 val valueVertex = vertex.toObjectPropertyValueVertex()
                 val propertyValue = valueVertex.toObjectPropertyValue()
                 val aspectPropertyVertex = valueVertex.aspectProperty
+                val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
                 aspectPropertyVertex?.let {
                     BriefValueViewResponse(
                         valueVertex.guid,
-                        propertyValue.value.toObjectValueData().toDTO(),
+                        propertyValue.calculateObjectValueData().toDTO(),
                         it.name,
                         it.associatedAspect.name,
-                        valueVertex.measure?.name
+                        measureSymbol
                     )
                 } ?: run {
                     val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
                     BriefValueViewResponse(
                         valueVertex.guid,
-                        propertyValue.value.toObjectValueData().toDTO(),
+                        propertyValue.calculateObjectValueData().toDTO(),
                         objectPropertyVertex.name,
                         objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                        valueVertex.measure?.name
+                        measureSymbol
                     )
                 }
             } else throw EntityNotFoundException("No value is found by id: $id")
@@ -208,7 +211,9 @@ class GuidService(
         return idsToSet.map { setGuid(it, username) }
     }
 
-    init { setGuidsAll() }
+    init {
+        setGuidsAll()
+    }
 
     @Suppress("TooGenericExceptionCaught")
     private fun setGuidsAll() {
@@ -216,7 +221,7 @@ class GuidService(
             try {
                 val result = this.setGuids(dao.edge2Class.getValue(it), "admin")
                 logger.info("results of setting $it")
-                result.forEach {  metaInfo -> logger.info(metaInfo.toString()) }
+                result.forEach { metaInfo -> logger.info(metaInfo.toString()) }
             } catch (e: RuntimeException) {
                 logger.warn("exception during setting of guids for $it")
             }
