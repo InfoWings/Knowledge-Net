@@ -1,8 +1,11 @@
 package com.infowings.catalog.objects.edit.tree.inputs.values
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.objects.edit.tree.inputs.entityLinkGuidInput
+import com.infowings.catalog.objects.edit.tree.inputs.rangedDecimalInput
 import com.infowings.catalog.objects.edit.tree.inputs.referenceBookInput
+import com.infowings.catalog.objects.edit.tree.inputs.rangedNumericInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.NumericInput
 import com.infowings.catalog.wrappers.blueprint.Switch
@@ -59,6 +62,25 @@ fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefB
         this.disabled = disabled
     }
 }
+
+fun RBuilder.rangedNumericInput(value: ObjectValueData.IntegerValue, onUpdate: (Int, Int) -> Unit, disabled: Boolean) = rangedNumericInput {
+    attrs {
+        this.lwb = value.value
+        this.upb = value.upb
+        this.onUpdate = onUpdate
+        this.disabled = disabled
+    }
+}
+
+fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String) -> Unit, disabled: Boolean) = rangedDecimalInput {
+    attrs {
+        this.lwb = value.valueRepr
+        this.upb = (value.valueRepr.toFloat() + 0.1).toString()
+        this.onUpdate = onUpdate
+        this.disabled = disabled
+    }
+}
+
 
 fun RBuilder.entityLinkInput(value: LinkValueData?, onUpdate: (LinkValueData?) -> Unit, disabled: Boolean = false) = entityLinkGuidInput {
     attrs {

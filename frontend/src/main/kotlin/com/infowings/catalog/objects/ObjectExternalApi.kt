@@ -15,9 +15,19 @@ import kotlinx.serialization.json.JSON
 
 suspend fun getAllObjects(): ObjectsResponse = JSON.parse(get("/api/objects"))
 
-suspend fun getDetailedObject(id: String): DetailedObjectViewResponse = JSON.parse(get("/api/objects/${encodeURIComponent(id)}/viewdetails"))
+suspend fun getDetailedObject(id: String): DetailedObjectViewResponse {
+    println("GDO")
+    val data = get("/api/objects/${encodeURIComponent(id)}/viewdetails")
+    println("got data")
+    println("data: $data")
+    val res: DetailedObjectViewResponse = JSON.parse(data)
+    println("res: $res")
+    return res
+}
 
-suspend fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse = JSON.parse(get("/api/objects/${encodeURIComponent(id)}/editdetails"))
+suspend fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse {
+    return JSON.parse(get("/api/objects/${encodeURIComponent(id)}/editdetails"))
+}
 
 suspend fun createObject(request: ObjectCreateRequest): ObjectChangeResponse =
     JSON.parse(post("/api/objects/create", JSON.stringify(request)))
@@ -34,8 +44,10 @@ suspend fun updateObject(request: ObjectUpdateRequest): ObjectChangeResponse =
 suspend fun updateProperty(request: PropertyUpdateRequest): PropertyUpdateResponse =
     JSON.parse(post("/api/objects/updateProperty", JSON.stringify(request)))
 
-suspend fun updateValue(request: ValueUpdateRequest): ValueChangeResponse =
-    JSON.parse(post("/api/objects/updateValue", JSON.stringify(request.toDTO())))
+suspend fun updateValue(request: ValueUpdateRequest): ValueChangeResponse {
+    println("UPDV REQ: $request")
+    return JSON.parse(post("/api/objects/updateValue", JSON.stringify(request.toDTO())))
+}
 
 suspend fun deleteObject(id: String, force: Boolean) {
     delete("/api/objects/object/${encodeURIComponent(id)}?force=$force")
