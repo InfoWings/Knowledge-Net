@@ -24,6 +24,7 @@ fun OVertex.toObjectPropertyValueVertex(): ObjectPropertyValueVertex {
 }
 
 const val INT_TYPE_PROPERTY = "int"
+const val INT_TYPE_UPB_PROPERTY = "intUpb"
 const val DECIMAL_TYPE_PROPERTY = "decimal"
 const val STR_TYPE_PROPERTY = "str"
 const val RANGE_TYPE_PROPERTY = "range"
@@ -81,6 +82,7 @@ enum class ObjectValueField(val extName: String) {
     RANGE("range"),
     PRECISION("precision"),
     INT_VALUE("intValue"),
+    INT_UPB("intUpb"),
     STR_VALUE("strValue"),
     DECIMAL_VALUE("decimalValue"),
     GUID("guid"),
@@ -109,6 +111,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ObjectValueField.RANGE.extName to range?.asString().orEmpty(),
             ObjectValueField.PRECISION.extName to asStringOrEmpty(precision),
             ObjectValueField.INT_VALUE.extName to asStringOrEmpty(intValue),
+            ObjectValueField.INT_UPB.extName to asStringOrEmpty(intUpb),
             ObjectValueField.STR_VALUE.extName to asStringOrEmpty(strValue),
             ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue),
             ObjectValueField.GUID.extName to asStringOrEmpty(guid)
@@ -143,6 +146,13 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         set(value) {
             vertex[INT_TYPE_PROPERTY] = value
         }
+
+    var intUpb: Int?
+        get() = vertex[INT_TYPE_UPB_PROPERTY]
+        set(value) {
+            vertex[INT_TYPE_UPB_PROPERTY] = value
+        }
+
     private val intValueStrict: Int
         get() = intValue ?: throw IntValueNotDefinedException(id)
 
@@ -273,7 +283,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
                     refValueAspectProperty ?: throw AspectPropertyVertexNotDefinedException(id)
                 )
             )
-            ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, precision)
+            ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, intUpb, precision)
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
             ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)

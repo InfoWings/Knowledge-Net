@@ -61,8 +61,12 @@ sealed class LinkValueVertex {
    Часть подтипов совсем такие же, как в Object, но Decimal и Link отличаются
  */
 sealed class ObjectValue {
-    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.IntegerValue(value, precision)
+    data class IntegerValue(val value: Int, val upb: Int, val precision: Int?) : ObjectValue() {
+        constructor(value: Int, precision: Int?) : this(value, value, precision)
+
+        constructor(value: Int, upb: Int?, precision: Int?) : this(value, upb ?: value, precision)
+
+        override fun toObjectValueData() = ObjectValueData.IntegerValue(value, upb, precision)
     }
 
     data class BooleanValue(val value: Boolean) : ObjectValue() {
