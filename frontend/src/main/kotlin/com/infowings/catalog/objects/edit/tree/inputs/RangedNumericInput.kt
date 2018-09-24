@@ -19,20 +19,36 @@ class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNum
     private fun changeLowerBoundary(v: Number, v2: String) {
         val newLwb = v.toInt()
         val oldLwb = state.lwb
-        setState {
-            lwb = newLwb
+
+        if (newLwb == oldLwb) return
+
+        if (newLwb < state.upb ?: Int.MAX_VALUE) {
+            setState {
+                lwb = newLwb
+            }
+            val upb = state.upb
+            props.onUpdate(newLwb, upb ?: newLwb)
+        } else {
+            val upb = state.upb
+            props.onUpdate(state.lwb, upb ?: state.lwb)
+
         }
-        val upb = state.upb
-        if (newLwb != oldLwb) props.onUpdate(newLwb, upb ?: newLwb)
     }
 
     private fun changeUpperBoundary(v: Number, v2: String) {
         val newUpb = v.toInt()
         val oldUpb = state.upb
-        setState {
-            upb = newUpb
+
+        if (newUpb == oldUpb) return
+
+        if (newUpb > state.lwb) {
+            setState {
+                upb = newUpb
+            }
+            props.onUpdate(state.lwb, newUpb)
+        } else {
+            props.onUpdate(state.lwb, state.upb ?: state.lwb)
         }
-        if (newUpb != oldUpb) props.onUpdate(state.lwb, newUpb)
     }
 
     override fun RBuilder.render() {

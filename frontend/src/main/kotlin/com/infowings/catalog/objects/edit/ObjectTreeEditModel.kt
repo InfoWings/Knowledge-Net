@@ -111,7 +111,6 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun updateValue(valueUpdateRequest: ValueUpdateRequest) {
-        println("UPDATE VALUE: $valueUpdateRequest, ${valueUpdateRequest.value}")
         launch {
             props.apiModel.editObjectValue(valueUpdateRequest)
         }

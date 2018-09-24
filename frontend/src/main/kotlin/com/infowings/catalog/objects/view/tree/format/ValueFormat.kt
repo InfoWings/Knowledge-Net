@@ -8,10 +8,20 @@ import react.dom.span
 fun RBuilder.valueFormat(value: ObjectValueData) {
     when (value) {
         is ObjectValueData.NullValue -> return
-        is ObjectValueData.DecimalValue -> span(classes = "object-property-value-line__value") { +value.valueRepr }
+        is ObjectValueData.DecimalValue -> span(classes = "object-property-value-line__value") {
+            +value.valueRepr
+            if (value.upbRepr != value.valueRepr) {
+                +(" : " + value.upbRepr)
+            }
+        }
         is ObjectValueData.StringValue -> span(classes = "object-property-value-line__value") { +value.value }
         is ObjectValueData.BooleanValue -> booleanValueFormat(value.value)
-        is ObjectValueData.IntegerValue -> span(classes = "object-property-value-line__value") { +value.value.toString() }
+        is ObjectValueData.IntegerValue -> span(classes = "object-property-value-line__value") {
+            +value.value.toString()
+            if (value.upb != value.value) {
+                +(" : " + value.upb)
+            }
+        }
         is ObjectValueData.Link -> when (value.value) {
             is LinkValueData.DomainElement -> domainElementReferenceFormat(value.value.id)
             else -> referenceBaseTypeFormat(value.value)

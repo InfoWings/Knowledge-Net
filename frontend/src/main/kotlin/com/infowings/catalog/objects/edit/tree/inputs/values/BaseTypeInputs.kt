@@ -75,7 +75,7 @@ fun RBuilder.rangedNumericInput(value: ObjectValueData.IntegerValue, onUpdate: (
 fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String) -> Unit, disabled: Boolean) = rangedDecimalInput {
     attrs {
         this.lwb = value.valueRepr
-        this.upb = (value.valueRepr.toFloat() + 0.1).toString()
+        this.upb = value.upbRepr
         this.onUpdate = onUpdate
         this.disabled = disabled
     }

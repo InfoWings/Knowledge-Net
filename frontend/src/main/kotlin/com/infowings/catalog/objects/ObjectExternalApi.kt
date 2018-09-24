@@ -16,13 +16,8 @@ import kotlinx.serialization.json.JSON
 suspend fun getAllObjects(): ObjectsResponse = JSON.parse(get("/api/objects"))
 
 suspend fun getDetailedObject(id: String): DetailedObjectViewResponse {
-    println("GDO")
     val data = get("/api/objects/${encodeURIComponent(id)}/viewdetails")
-    println("got data")
-    println("data: $data")
-    val res: DetailedObjectViewResponse = JSON.parse(data)
-    println("res: $res")
-    return res
+    return JSON.parse(data)
 }
 
 suspend fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse {
@@ -45,7 +40,6 @@ suspend fun updateProperty(request: PropertyUpdateRequest): PropertyUpdateRespon
     JSON.parse(post("/api/objects/updateProperty", JSON.stringify(request)))
 
 suspend fun updateValue(request: ValueUpdateRequest): ValueChangeResponse {
-    println("UPDV REQ: $request")
     return JSON.parse(post("/api/objects/updateValue", JSON.stringify(request.toDTO())))
 }
 
@@ -63,16 +57,16 @@ suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: Stri
     JSON.parse(get("/api/objects/recalculateValue?from=${encodeURIComponent(fromMeasure)}&to=${encodeURIComponent(toMeasure)}&value=${encodeURIComponent(value)}"))
 
 suspend fun loadEntityMetadata(guid: String): EntityMetadata =
-        JSON.parse(get("/api/guid/meta/$guid"))
+    JSON.parse(get("/api/guid/meta/$guid"))
 
 suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
-        JSON.parse(get("/api/guid/brief/object/$guid"))
+    JSON.parse(get("/api/guid/brief/object/$guid"))
 
 suspend fun getValueBrief(guid: String): BriefValueViewResponse =
-        JSON.parse(get("/api/guid/brief/value/$guid"))
+    JSON.parse(get("/api/guid/brief/value/$guid"))
 
 suspend fun getObjectBriefById(id: String): BriefObjectViewResponse =
-        JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+    JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
 
 suspend fun getValueBriefById(id: String): BriefValueViewResponse =
-        JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))
+    JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))

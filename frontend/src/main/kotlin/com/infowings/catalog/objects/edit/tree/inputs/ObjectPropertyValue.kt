@@ -13,8 +13,6 @@ fun RBuilder.propertyValue(
     onChange: (ObjectValueData) -> Unit,
     disabled: Boolean = false
 ) {
-    println("BT: " + baseType.name)
-
     when {
         baseType == BaseType.Text && referenceBookId != null -> refBookInput(
             if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
@@ -26,22 +24,18 @@ fun RBuilder.propertyValue(
         baseType == BaseType.Reference -> {
             entityLinkInput((value as? ObjectValueData.Link)?.value, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
         }
-        baseType ==  BaseType.Integer -> {
-            rangedNumericInput(value as ObjectValueData.IntegerValue, {lwb, upb ->
+        baseType == BaseType.Integer -> {
+            rangedNumericInput(value as ObjectValueData.IntegerValue, { lwb, upb ->
                 onChange(ObjectValueData.IntegerValue(lwb, upb, null))
             }, false)
         }
 
-        /*
-        baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue, disabled) {
-            onChange(ObjectValueData.DecimalValue(it, it))
+        baseType == BaseType.Decimal -> {
+            val decValue = value as ObjectValueData.DecimalValue
+            rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr), { lwb, upb ->
+                onChange(ObjectValueData.DecimalValue(lwb, upb))
+            }, disabled)
         }
-        */
-
-        baseType == BaseType.Decimal -> rangedDecimalInput(ObjectValueData.DecimalValue("321.1234"), {lwb, upb ->
-            println("ONCH: $lwb, $upb")
-            onChange(ObjectValueData.DecimalValue(lwb))
-        }, disabled)
 
         baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue, disabled) {
             onChange(
@@ -69,5 +63,3 @@ private val ObjectValueData.asStringValue
         }
         else -> throw IllegalArgumentException("$this is not representable by string")
     }
-
-
