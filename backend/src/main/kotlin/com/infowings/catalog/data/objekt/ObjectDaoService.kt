@@ -3,7 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
-import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -113,14 +112,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 )
             }
         }
-
-    private fun ObjectPropertyValueVertex.getOrCalculateMeasureSymbol(): String? {
-        val currentMeasureSymbol = this.measure?.toMeasure()?.symbol
-        return currentMeasureSymbol ?: run {
-            val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
-            aspect?.measure?.symbol
-        }
-    }
 
     private fun ObjectPropertyValueVertex.toDetailedAspectPropertyValueResponse(): DetailedValueViewResponse {
         val aspectProperty = this.aspectProperty ?: throw IllegalStateException("Object property with id ${this.id} has no associated aspect")

@@ -58,6 +58,8 @@ class ObjectValidatorTest {
 
     private lateinit var complexAspect: AspectData
 
+    private lateinit var aspectRef: AspectData
+
     private val username = "admin"
 
     @BeforeEach
@@ -66,6 +68,7 @@ class ObjectValidatorTest {
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
         aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        aspectRef = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Reference.name), username)
 
         val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
@@ -321,6 +324,41 @@ class ObjectValidatorTest {
         }
     }
 
+    @Test
+    @Suppress("EmptyCatchBlock")
+    fun `Object value with reference to another reference value`() {
+        val objectChange = ObjectBuilder(objectService)
+            .name(randomName())
+            .description("object descr")
+            .subject(subject)
+            .build()
+
+        val propertyRequest1 = PropertyCreateRequest(name = randomName("1"), description = null, objectId = objectChange.id, aspectId = aspect.idStrict())
+        val property1 = createObjectProperty(propertyRequest1)
+
+        val propertyRequest2 = PropertyCreateRequest(name = randomName("2"), description = null, objectId = objectChange.id, aspectId = aspectRef.idStrict())
+        val property2 = createObjectProperty(propertyRequest2)
+
+        val scalarValue = ObjectValueData.StringValue("string-value")
+        val scalarValueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = property1.id)
+        val scalarValueVertex = createObjectValue(scalarValueRequest)
+
+        val refValue = ObjectValueData.Link(LinkValueData.ObjectValue(scalarValueVertex.id))
+        val refValueRequest = ValueCreateRequest(value = refValue, description = null, objectPropertyId = property2.id)
+        val refValueVertex = createObjectValue(refValueRequest)
+
+        val refValue2 = ObjectValueData.Link(LinkValueData.ObjectValue(refValueVertex.id))
+        val refValueRequest2 = ValueCreateRequest(value = refValue2, description = null, objectPropertyId = property2.id)
+
+        transaction(db) {
+            try {
+                validator.checkedForCreation(refValueRequest2)
+                fail("Nothing thrown")
+            } catch (e: IllegalStateException) {
+            }
+        }
+    }
+
 
     private fun createObject(info: ObjectWriteInfo): ObjectVertex = transaction(db) {
         val newVertex = dao.newObjectVertex()
@@ -340,6 +378,16 @@ class ObjectValidatorTest {
     private fun createObjectProperty(propertyRequest: PropertyCreateRequest): ObjectPropertyVertex {
         val info: PropertyWriteInfo = validator.checkedForCreation(propertyRequest)
         return createObjectProperty(info)
+    }
+
+    private fun createObjectValue(valueWriteInfo: ValueWriteInfo): ObjectPropertyValueVertex = transaction(db) {
+        val newValueVertex = dao.newObjectValueVertex()
+        return@transaction dao.saveObjectValue(newValueVertex, valueWriteInfo)
+    }
+
+    private fun createObjectValue(valueRequest: ValueCreateRequest): ObjectPropertyValueVertex {
+        val info: ValueWriteInfo = transaction(db) { validator.checkedForCreation(valueRequest) }
+        return createObjectValue(info)
     }
 
     private fun createNonExistentKey(type: String): String {

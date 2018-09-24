@@ -1,7 +1,5 @@
 package com.infowings.catalog.storage
 
-import com.infowings.catalog.auth.user.UserProperties
-import com.infowings.catalog.auth.user.Users
 import com.infowings.catalog.loggerFor
 import com.orientechnologies.common.io.OIOException
 import com.orientechnologies.orient.core.db.*
@@ -78,8 +76,7 @@ class OrientDatabase(
     val database: String,
     username: String,
     password: String,
-    val testMode: Boolean,
-    userProperties: UserProperties
+    val testMode: Boolean
 ) {
     private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
 
@@ -136,14 +133,12 @@ class OrientDatabase(
      */
 
     fun reOpenPool(from: Versioned<ODatabasePool>): Versioned<ODatabasePool> =
-        dbPool.accumulateAndGet(from, { current, given ->
+        dbPool.accumulateAndGet(from) { current, given ->
             if (current.version == given.version) {
                 current.entity.close()
                 Versioned(createDbPool(), current.version + 1)
             } else current
-        })
-
-    private val logger = loggerFor<OrientDatabase>()
+        }
 
     init {
 
@@ -152,28 +147,13 @@ class OrientDatabase(
             orientDB.create(database, ODatabaseType.MEMORY)
         }
 
-        val users = try {
-            val users = userProperties.toUsers()
-            if (users.isEmpty()) {
-                logger.info("no custom user settings found. Use default ones")
-                Users.toList()
-            } else {
-                users
-            }
-        } catch (e: IllegalArgumentException) {
-            logger.warn("Ill-formed users configuration: $e")
-            logger.warn("Going to use default settings instead")
-
-            Users.toList()
-        }
-
         // создаем необходимые классы
         OrientDatabaseInitializer(this)
             .initAspects()
             .initSubject()
             .initSearch()
             .initHistory()
-            .initUsers(users)
+            .initUsers()
             .initReferenceBooks()
             .initObject()
             .initGuid()
@@ -266,7 +246,6 @@ class OrientDatabase(
 
     fun removeIndex(classType: String, indexName: String) = session(this) { session ->
         val oClass = session.getClass(classType)
-        val index = oClass.getClassIndex(indexName)
         if (oClass.getClassIndex(indexName) != null) {
             session.command("drop index $indexName")
         }

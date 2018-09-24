@@ -174,6 +174,18 @@ class MainObjectValidator(
 
     override fun checkedForCreation(request: ValueCreateRequest): ValueWriteInfo {
         logger.info("checking value for creation: $request")
+
+        val linkValue = request.value.link()?.value
+        linkValue?.let {
+            if (it.isObjectValue()) {
+                val targetValue = objectService.findPropertyValueById(it.id).toObjectPropertyValue()
+
+                if (targetValue.value.toObjectValueData().link() != null) {
+                    throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
+                }
+            }
+        }
+
         val objectPropertyVertex = objectService.findPropertyById(request.objectPropertyId)
 
         if (request.parentValueId != null && request.aspectPropertyId == null) {
@@ -198,6 +210,17 @@ class MainObjectValidator(
     override fun checkedForUpdating(valueVertex: ObjectPropertyValueVertex, request: ValueUpdateRequest): ValueWriteInfo {
         val objPropertyVertex = valueVertex.objectProperty
                 ?: throw IllegalStateException("ObjectPropertyValue ${valueVertex.id} has no linked ObjectProperty")
+
+        val linkValue = request.value.link()?.value
+        linkValue?.let {
+            if (it.isObjectValue()) {
+                val targetValue = objectService.findPropertyValueById(it.id).toObjectPropertyValue()
+
+                if (targetValue.value.toObjectValueData().link() != null) {
+                    throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
+                }
+            }
+        }
 
         val objectPropertyVertex = objectService.findPropertyById(objPropertyVertex.id)
         val aspectPropertyVertex = valueVertex.aspectProperty

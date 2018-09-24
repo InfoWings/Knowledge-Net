@@ -13,6 +13,7 @@ import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
 import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubjectVertex
+import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
@@ -307,6 +308,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
 
         return ObjectPropertyValue(identity, value, currentProperty, currentAspectProperty, parentValue, measure, guid)
     }
+
+    fun getOrCalculateMeasureSymbol(): String? {
+        val currentMeasureSymbol = this.measure?.toMeasure()?.symbol
+        return currentMeasureSymbol ?: run {
+            val aspect = this.aspectProperty?.associatedAspect ?: this.objectProperty?.aspect
+            aspect?.measure?.symbol
+        }
+    }
+
 }
 
 abstract class ObjectValueException(message: String) : Exception(message)

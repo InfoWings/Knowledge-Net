@@ -40,7 +40,7 @@ class AspectDaoFilterTest {
             )
         )
         aspectService.save(dimensionAspectData, username)
-        val chargeAspectData = AspectData(null, "Charge", Ampere.name, null, null)
+        val chargeAspectData = AspectData(null, randomName("Charge"), Ampere.name, null, null)
         aspectService.save(chargeAspectData, username)
     }
 
