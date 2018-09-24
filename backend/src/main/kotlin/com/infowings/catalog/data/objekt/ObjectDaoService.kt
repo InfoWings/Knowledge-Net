@@ -209,6 +209,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
         vertex: ObjectPropertyValueVertex,
         valueInfo: ValueWriteInfo
     ): ObjectPropertyValueVertex = transaction(db) {
+        logger.debug("saving object value by info $valueInfo")
+
         vertex.description = valueInfo.description
         val newTypeTag = valueInfo.value.tag()
 
@@ -216,9 +218,13 @@ class ObjectDaoService(private val db: OrientDatabase) {
             when (vertex.typeTag) {
                 ScalarTypeTag.INTEGER -> {
                     vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
+                    vertex.removeProperty<Int>(INT_TYPE_UPB_PROPERTY)
                     vertex.removeProperty<Int>(PRECISION_PROPERTY)
                 }
-                ScalarTypeTag.DECIMAL -> vertex.removeProperty<BigDecimal>(DECIMAL_TYPE_PROPERTY)
+                ScalarTypeTag.DECIMAL -> {
+                    vertex.removeProperty<BigDecimal>(DECIMAL_TYPE_PROPERTY)
+                    vertex.removeProperty<Int>(DECIMAL_TYPE_UPB_PROPERTY)
+                }
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
                 ScalarTypeTag.BOOLEAN -> vertex.removeProperty<Boolean>(BOOL_TYPE_PROPERTY)
@@ -262,6 +268,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             }
             is ObjectValue.DecimalValue -> {
                 vertex.decimalValue = objectValue.value
+                vertex.decimalUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value

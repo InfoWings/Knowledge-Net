@@ -60,7 +60,7 @@ class ObjectHistoryTest {
 
     @BeforeEach
     fun initTestData() {
-        transaction (db) {
+        transaction(db) {
             it.command("delete vertex from HistoryEvent")
         }
 
@@ -576,7 +576,7 @@ class ObjectHistoryTest {
         val valueRepr = "1.2312E+5"
         val objectDescription = "object description"
 
-        val prepared = prepareValue(testName, objectDescription, ObjectValueData.DecimalValue(value), complexAspect.idStrict(), Kilometre.name)
+        val prepared = prepareValue(testName, objectDescription, ObjectValueData.DecimalValue.single(value), complexAspect.idStrict(), Kilometre.name)
         val valueFacts = prepared.valueFacts
 
         assertEquals(1, valueFacts.size, "exactly one object property event must appear")
@@ -1652,7 +1652,7 @@ class ObjectHistoryTest {
         val objectDescription = "object description"
 
         val prepared = prepareNewValue(
-            objectName = testName, objectDescription = objectDescription, value = ObjectValueData.DecimalValue(value),
+            objectName = testName, objectDescription = objectDescription, value = ObjectValueData.DecimalValue.single(value),
             aspectId = complexAspect.idStrict(), measureId = measure.name
         )
         val valueFacts = prepared.valueFacts

@@ -27,8 +27,12 @@ sealed class ObjectValueData {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Range.name
     }
 
-    data class DecimalValue(val valueRepr: String) : ObjectValueData() {
+    data class DecimalValue(val valueRepr: String, val upbRepr: String) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Decimal.name
+
+        companion object {
+            fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr)
+        }
     }
 
     data class Link(val value: LinkValueData) : ObjectValueData() {

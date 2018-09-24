@@ -153,7 +153,7 @@ class NotFreeAspectUpdateTest {
     }
 
     private fun createRootValue(value: Int, measureName: String?): ValueChangeResponse {
-        val objPropertyValueRequest = ValueCreateRequest(ObjectValueData.DecimalValue(value.toString()), null, propertyCreateResponse.id, measureName)
+        val objPropertyValueRequest = ValueCreateRequest(ObjectValueData.DecimalValue.single(value.toString()), null, propertyCreateResponse.id, measureName)
         return objectService.create(objPropertyValueRequest, username)
     }
 
@@ -164,7 +164,7 @@ class NotFreeAspectUpdateTest {
 
     private fun createChildValue(aspectPropertyId: String, parentId: String, value: Int = 124) {
         val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue(value.toString()),
+            value = ObjectValueData.DecimalValue.single(value.toString()),
             description = null, objectPropertyId = propertyCreateResponse.id,
             aspectPropertyId = aspectPropertyId,
             measureName = Second.name,

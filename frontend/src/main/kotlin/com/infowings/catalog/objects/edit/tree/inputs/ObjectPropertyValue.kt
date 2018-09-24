@@ -31,11 +31,7 @@ fun RBuilder.propertyValue(
             )
         }
         baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue, disabled) {
-            onChange(
-                ObjectValueData.DecimalValue(
-                    it
-                )
-            )
+            onChange(ObjectValueData.DecimalValue(it, it))
         }
         baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue, disabled) {
             onChange(
@@ -49,13 +45,13 @@ fun RBuilder.propertyValue(
 
 @Suppress("NotImplementedDeclaration")
 private val ObjectValueData.asStringValue
-    get() = when(this) {
+    get() = when (this) {
         is ObjectValueData.NullValue -> null
         is ObjectValueData.StringValue -> this.value
         is ObjectValueData.BooleanValue -> this.value.toString()
         is ObjectValueData.IntegerValue -> this.value.toString()
         is ObjectValueData.DecimalValue -> this.valueRepr
-        is ObjectValueData.Link -> when(this.value) {
+        is ObjectValueData.Link -> when (this.value) {
             is LinkValueData.DomainElement -> this.value.id
             is LinkValueData.Object -> this.value.id
             is LinkValueData.ObjectValue -> this.value.id

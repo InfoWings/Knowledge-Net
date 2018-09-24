@@ -40,6 +40,7 @@ class ObjectServiceTest {
     private lateinit var aspect: AspectData
     private lateinit var referenceAspect: AspectData
     private lateinit var complexAspect: AspectData
+    private lateinit var aspectInt: AspectData
 
     private val username = "admin"
     private val sampleDescription = "object description"
@@ -48,6 +49,7 @@ class ObjectServiceTest {
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
+        aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
@@ -201,6 +203,80 @@ class ObjectServiceTest {
                     "object property must point to parent property"
                 )
                 assertTrue(rootValueUpdateResponse.parentValue == null)
+            }
+            else ->
+                fail("value must be string")
+        }
+
+    }
+
+    @Test
+    fun `Create ranged integer value`() {
+        val objectRequest =
+            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyRequest = PropertyCreateRequest(
+            name = randomName(),
+            description = null,
+            objectId = objectCreateResponse.id, aspectId = aspectInt.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val lwb = 2
+        val upb = 5
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(lwb, upb, null),
+            description = null,
+            measureName = null,
+            objectPropertyId = propertyCreateResponse.id
+        )
+        val response = objectService.create(valueRequest, username)
+
+        val objectValue = response.value.toData()
+
+        when (objectValue) {
+            is ObjectValueData.IntegerValue -> {
+                assertEquals(lwb, objectValue.value)
+                assertEquals(upb, objectValue.upb)
+            }
+            else ->
+                fail("value must be string")
+        }
+
+    }
+
+    @Test
+    fun `Create ranged decimal value`() {
+        val objectRequest =
+            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyRequest = PropertyCreateRequest(
+            name = randomName(),
+            description = null,
+            objectId = objectCreateResponse.id, aspectId = complexAspect.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val lwb = "123.45"
+        val upb = "234.56"
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.DecimalValue(lwb, upb),
+            description = null,
+            measureName = Millimetre.name,
+            objectPropertyId = propertyCreateResponse.id
+        )
+        val response = objectService.create(valueRequest, username)
+
+        val objectValue = response.value.toData()
+
+        when (objectValue) {
+            is ObjectValueData.DecimalValue -> {
+                assertEquals(lwb, objectValue.valueRepr)
+                assertEquals(upb, objectValue.upbRepr)
             }
             else ->
                 fail("value must be string")
@@ -588,7 +664,7 @@ class ObjectServiceTest {
         val valueRequest1 =
             ValueUpdateRequest(
                 propertyCreateResponse.rootValue.id,
-                ObjectValueData.DecimalValue("123"),
+                ObjectValueData.DecimalValue.single("123"),
                 Kilometre.name,
                 null,
                 propertyCreateResponse.rootValue.version
@@ -628,7 +704,7 @@ class ObjectServiceTest {
         val valueRequest1 =
             ValueUpdateRequest(
                 propertyCreateResponse.rootValue.id,
-                ObjectValueData.DecimalValue("123"),
+                ObjectValueData.DecimalValue.single("123"),
                 Kilometre.name,
                 null,
                 propertyCreateResponse.rootValue.version
@@ -1019,6 +1095,7 @@ class ObjectServiceTest {
             objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
         )
         val propertyCreateResponse1 = objectService.create(propertyRequest1, username)
+
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
@@ -2104,3 +2181,4 @@ class ObjectServiceTest {
     }
 
 }
+

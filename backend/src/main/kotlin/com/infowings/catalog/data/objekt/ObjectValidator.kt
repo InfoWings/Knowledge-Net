@@ -249,7 +249,10 @@ class MainObjectValidator(
 
     private fun recalculateValueAccordingToMeasure(originalValue: ObjectValueData, measure: Measure<DecimalNumber>?) =
         if (originalValue is ObjectValueData.DecimalValue && measure != null) {
-            ObjectValueData.DecimalValue(measure.toBase(DecimalNumber(originalValue.valueRepr)).toString())
+            ObjectValueData.DecimalValue(
+                measure.toBase(DecimalNumber(originalValue.valueRepr)).toString(),
+                measure.toBase(DecimalNumber(originalValue.upbRepr)).toString()
+            )
         } else {
             originalValue
         }
@@ -306,7 +309,7 @@ class MainObjectValidator(
         is ObjectValueData.RangeValue ->
             ObjectValue.RangeValue(dataValue.range)
         is ObjectValueData.DecimalValue ->
-            ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr))
+            ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr), BigDecimal(dataValue.upbRepr))
         is ObjectValueData.NullValue ->
             ObjectValue.NullValue
     }

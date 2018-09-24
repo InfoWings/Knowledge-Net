@@ -26,6 +26,7 @@ fun OVertex.toObjectPropertyValueVertex(): ObjectPropertyValueVertex {
 const val INT_TYPE_PROPERTY = "int"
 const val INT_TYPE_UPB_PROPERTY = "intUpb"
 const val DECIMAL_TYPE_PROPERTY = "decimal"
+const val DECIMAL_TYPE_UPB_PROPERTY = "decimalUpb"
 const val STR_TYPE_PROPERTY = "str"
 const val RANGE_TYPE_PROPERTY = "range"
 const val PRECISION_PROPERTY = "precision"
@@ -85,6 +86,7 @@ enum class ObjectValueField(val extName: String) {
     INT_UPB("intUpb"),
     STR_VALUE("strValue"),
     DECIMAL_VALUE("decimalValue"),
+    DECIMAL_UPB("decimalUpb"),
     GUID("guid"),
 
     LINK_OBJECT_PROPERTY("objectProperty"),
@@ -114,6 +116,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ObjectValueField.INT_UPB.extName to asStringOrEmpty(intUpb),
             ObjectValueField.STR_VALUE.extName to asStringOrEmpty(strValue),
             ObjectValueField.DECIMAL_VALUE.extName to asStringOrEmpty(decimalValue),
+            ObjectValueField.DECIMAL_UPB.extName to asStringOrEmpty(decimalUpb),
             ObjectValueField.GUID.extName to asStringOrEmpty(guid)
         ),
         links = mapOf(
@@ -206,6 +209,14 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     private val decimalValueStrict: BigDecimal
         get() = decimalValue ?: throw DecimalValueNotDefinedException(id)
 
+    var decimalUpb: BigDecimal?
+        get() = vertex[DECIMAL_TYPE_UPB_PROPERTY]
+        set(value) {
+            vertex[DECIMAL_TYPE_UPB_PROPERTY] = value
+        }
+
+    private val decimalUpbStrict: BigDecimal
+        get() = decimalUpb ?: throw DecimalValueNotDefinedException(id)
 
     var precision: Int?
         get() = vertex[PRECISION_PROPERTY]
@@ -286,7 +297,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, intUpb, precision)
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
-            ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue(decimalValueStrict)
+            ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue.instance(decimalValueStrict, decimalUpb)
             ScalarTypeTag.BOOLEAN -> ObjectValue.BooleanValue(booleanValueStrict)
             ScalarTypeTag.NULL -> ObjectValue.NullValue
             else ->

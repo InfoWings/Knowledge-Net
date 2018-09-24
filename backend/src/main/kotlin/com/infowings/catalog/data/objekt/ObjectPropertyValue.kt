@@ -81,8 +81,12 @@ sealed class ObjectValue {
         override fun toObjectValueData() = ObjectValueData.RangeValue(range)
     }
 
-    data class DecimalValue(val value: BigDecimal) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString())
+    data class DecimalValue(val value: BigDecimal, val upb: BigDecimal) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString(), upb.toString())
+
+        companion object {
+            fun instance(value: BigDecimal, upb: BigDecimal?) = DecimalValue(value, upb ?: value)
+        }
     }
 
     data class Link(val value: LinkValueVertex) : ObjectValue() {
@@ -119,7 +123,10 @@ data class ObjectPropertyValue(
         val targetValue: ObjectValueData = value.toObjectValueData()
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
-            ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())
+            ObjectValueData.DecimalValue(
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString(),
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toString()
+            )
         } else {
             targetValue
         }
@@ -128,7 +135,7 @@ data class ObjectPropertyValue(
 
 data class ValueResult(
     private val valueVertex: ObjectPropertyValueVertex,
-    val valueDto: ValueDTO,
+    private val valueDto: ValueDTO,
     val measureName: String?,
     private val objectProperty: ObjectPropertyVertex,
     private val aspectProperty: AspectPropertyVertex?,

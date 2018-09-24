@@ -56,6 +56,7 @@ data class ValueDTO(
     val stringValue: String? = null,
     val intValue: Int? = null,
     val intUpb: Int? = null,
+    val decUpbRepr: String? = null,
     val range: Range? = null,
     val precision: Int? = null,
     val vertexId: String? = null,
@@ -67,7 +68,7 @@ data class ValueDTO(
         fun string(value: String) = ValueDTO(ValueDTOTags.STRING.name, stringValue = value)
         fun nullValue() = ValueDTO(ValueDTOTags.NULL.name)
         fun boolean(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, booleanValue = value)
-        fun decimal(valueRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, stringValue = valueRepr)
+        fun decimalRange(valueRepr: String, upbRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, stringValue = valueRepr, decUpbRepr = upbRepr)
         fun integerRange(lwb: Int, upb: Int, precision: Int?) = ValueDTO(ValueDTOTags.INTEGER.name, intValue = lwb, intUpb = upb, precision = precision)
         fun subject(id: String) = link(ValueDTOTags.SUBJECT.name, id)
         fun objekt(id: String) = link(ValueDTOTags.OBJECT.name, id)
@@ -84,7 +85,7 @@ data class ValueDTO(
 /* Конвертеры */
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
     is ObjectValueData.IntegerValue -> ValueDTO.integerRange(value, upb, precision)
-    is ObjectValueData.DecimalValue -> ValueDTO.decimal(valueRepr)
+    is ObjectValueData.DecimalValue -> ValueDTO.decimalRange(valueRepr, upbRepr)
     is ObjectValueData.BooleanValue -> ValueDTO.boolean(value)
     is ObjectValueData.StringValue -> ValueDTO.string(value)
     is ObjectValueData.RangeValue -> ValueDTO.range(range)
@@ -110,11 +111,11 @@ fun ValueDTO.booleanStrict(): Boolean = booleanValue ?: throw IllegalStateExcept
 fun ValueDTO.decimalStrict(): String = stringValue ?: throw IllegalStateException("decimal value representation is absent")
 
 fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
-    ValueDTOTags.INTEGER -> ObjectValueData.IntegerValue(intStrict(), intStrict(), precision)
+    ValueDTOTags.INTEGER -> ObjectValueData.IntegerValue(intStrict(), intUpb ?: intStrict(), precision)
     ValueDTOTags.STRING -> ObjectValueData.StringValue(stringStrict())
     ValueDTOTags.BOOLEAN -> ObjectValueData.BooleanValue(booleanStrict())
     ValueDTOTags.RANGE -> ObjectValueData.RangeValue(rangeStrict())
-    ValueDTOTags.DECIMAL -> ObjectValueData.DecimalValue(decimalStrict())
+    ValueDTOTags.DECIMAL -> ObjectValueData.DecimalValue(decimalStrict(), decUpbRepr ?: decimalStrict())
     ValueDTOTags.OBJECT -> ObjectValueData.Link(LinkValueData.Object(idStrict()))
     ValueDTOTags.OBJECT_PROPERTY -> ObjectValueData.Link(LinkValueData.ObjectProperty(idStrict()))
     ValueDTOTags.OBJECT_VALUE -> ObjectValueData.Link(LinkValueData.ObjectValue(idStrict()))

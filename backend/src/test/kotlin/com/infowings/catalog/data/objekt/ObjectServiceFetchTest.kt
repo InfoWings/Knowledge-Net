@@ -64,7 +64,7 @@ class ObjectServiceFetchTest {
         val boxDimensionValueId = boxDimensionPropertyCreateResponse.rootValue.id
         objectService.create(
             ValueCreateRequest(
-                ObjectValueData.DecimalValue("42"),
+                ObjectValueData.DecimalValue.single("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
                 Metre.name,
@@ -75,7 +75,7 @@ class ObjectServiceFetchTest {
         )
         objectService.create(
             ValueCreateRequest(
-                ObjectValueData.DecimalValue("42"),
+                ObjectValueData.DecimalValue.single("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
                 Metre.name,
@@ -86,7 +86,7 @@ class ObjectServiceFetchTest {
         )
         objectService.create(
             ValueCreateRequest(
-                ObjectValueData.DecimalValue("42"),
+                ObjectValueData.DecimalValue.single("42"),
                 null,
                 boxDimensionPropertyCreateResponse.id,
                 Metre.name,
