@@ -383,38 +383,43 @@ class ObjectHistoryProvider(
     private val objectVertices = setOf(OBJECT_CLASS, OBJECT_PROPERTY_CLASS, OBJECT_PROPERTY_VALUE_CLASS)
 
     fun getAllHistory(): List<ObjectHistory> {
-        val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
-            historyService.allTimeline(objectVertices.toList())
+        try {
+            val objectFacts = logTime(com.infowings.catalog.data.history.providers.logger, "extracting new timeline for object history") {
+                historyService.allTimeline(objectVertices.toList())
+            }
+
+            val factsByEntity = objectFacts.groupBy { it.event.entityClass }
+            val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
+            val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
+
+            val aspectLinks = propertyFacts.map { it.payload.linksOfType("aspect") }.flatten().toSet()
+
+            val aspectPropertyLinks = valueFacts.map { it.payload.linksOfType("aspectProperty") }.flatten().toSet()
+
+            val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
+
+            val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
+
+            val factsBySession = objectFacts.groupBy { it.event.sessionId }
+
+            val historyState = ObjectState()
+
+            return factsBySession.map { (sessionId, sessionFacts) ->
+                val ch: ObjectHistory = sessionToChange(sessionFacts, historyState, aspectNames)
+                val timestamps = sessionFacts.map { it.event.timestamp }
+                val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
+                val newEvent = ch.event.copy(
+                    username = sessionFacts.first().event.username,
+                    timestamp = sessionTimestamp,
+                    entityClass = HISTORY_ENTITY_OBJECT, sessionId = sessionId
+                )
+                ch.copy(event = newEvent,
+                    changes = ch.changes.flatMap { transformDelta(it, ch.fullData) })
+            }.reversed()
+        } catch (e: Exception) {
+            logger.error("Caught exception during object history collection: $e, ${e.stackTrace.toList()}")
+            return emptyList()
         }
-
-        val factsByEntity = objectFacts.groupBy { it.event.entityClass }
-        val propertyFacts = factsByEntity[OBJECT_PROPERTY_CLASS].orEmpty()
-        val valueFacts = factsByEntity[OBJECT_PROPERTY_VALUE_CLASS].orEmpty()
-
-        val aspectLinks = propertyFacts.map { it.payload.linksOfType("aspect") }.flatten().toSet()
-
-        val aspectPropertyLinks = valueFacts.map { it.payload.linksOfType("aspectProperty") }.flatten().toSet()
-
-        val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
-
-        val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
-
-        val factsBySession = objectFacts.groupBy { it.event.sessionId }
-
-        val historyState = ObjectState()
-
-        return factsBySession.map { (sessionId, sessionFacts) ->
-            val ch: ObjectHistory = sessionToChange(sessionFacts, historyState, aspectNames)
-            val timestamps = sessionFacts.map { it.event.timestamp }
-            val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
-            val newEvent = ch.event.copy(
-                username = sessionFacts.first().event.username,
-                timestamp = sessionTimestamp,
-                entityClass = HISTORY_ENTITY_OBJECT, sessionId = sessionId
-            )
-            ch.copy(event = newEvent,
-                changes = ch.changes.flatMap { transformDelta(it, ch.fullData) })
-        }.reversed()
     }
 }
 
