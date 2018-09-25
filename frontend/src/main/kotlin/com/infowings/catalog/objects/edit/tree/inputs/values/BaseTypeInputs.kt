@@ -4,10 +4,9 @@ import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.objects.edit.tree.inputs.entityLinkGuidInput
 import com.infowings.catalog.objects.edit.tree.inputs.rangedDecimalInput
-import com.infowings.catalog.objects.edit.tree.inputs.referenceBookInput
 import com.infowings.catalog.objects.edit.tree.inputs.rangedNumericInput
+import com.infowings.catalog.objects.edit.tree.inputs.referenceBookInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
-import com.infowings.catalog.wrappers.blueprint.NumericInput
 import com.infowings.catalog.wrappers.blueprint.Switch
 import org.w3c.dom.HTMLInputElement
 import react.RBuilder
@@ -22,6 +21,7 @@ fun RBuilder.textInput(value: String?, disabled: Boolean, onUpdate: (String) -> 
     }
 }
 
+/*
 fun RBuilder.integerInput(value: String?, disabled: Boolean, onUpdate: (String) -> Unit) = NumericInput {
     attrs {
         this.value = value ?: "0"
@@ -40,6 +40,7 @@ fun RBuilder.decimalInput(value: String?, disabled: Boolean, onUpdate: (String) 
         this.disabled = disabled
     }
 }
+*/
 
 fun RBuilder.booleanInput(value: String?, disabled: Boolean, onUpdate: (String) -> Unit) = Switch {
     attrs {

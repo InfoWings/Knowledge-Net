@@ -8,6 +8,7 @@ import kotlin.math.pow
 
 class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDecimalInput.Props, RangedDecimalInput.State>(props) {
     override fun State.init(props: Props) {
+        println("init. prop disabled: ${props.disabled}")
         lwb = props.lwb
         if (props.lwb != props.upb) {
             upb = props.upb
@@ -67,23 +68,26 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         }
     }
 
-    private fun Props.step(): Double {
+    private fun step(): Double {
         val stepLwb = 1 * 10.0.pow(-state.lwb.decimalDigits())
         val stepUpb = 1 * 10.0.pow(-(state.upb?.decimalDigits() ?: 0))
 
-        return minOf(stepLwb, stepUpb)
+        return maxOf(minOf(stepLwb, stepUpb), 0.0001)
     }
 
     override fun RBuilder.render() {
         val buttonName = "Switch to ${if (state.upb != null) "value" else "range"}"
 
-        val step = props.step()
+        val step = step()
+        //println("RENDER step: $step")
+        val toDisable = props.disabled
+        //println("to disable: " + toDisable)
 
         ButtonGroup {
             Button {
                 attrs {
                     className = "pt-minimal"
-                    disabled = false
+                    disabled = toDisable ?: false
                     onClick = {
                         val stateUpb = state.upb
                         if (stateUpb == null) {
@@ -115,7 +119,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                 this.stepSize = step
                 this.onValueChange = this@RangedDecimalInput::changeLowerBoundary
 
-                this.disabled = disabled
+                this.disabled = toDisable ?: false
             }
         }
 
@@ -127,7 +131,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                     this.minorStepSize = 2.0 * step
                     this.stepSize = step
                     this.onValueChange = this@RangedDecimalInput::changeUpperBoundary
-                    this.disabled = disabled
+                    this.disabled = toDisable ?: false
                 }
             }
         }
