@@ -85,6 +85,7 @@ class AspectHistoryTest {
             ), username
         )
 
+
         val aspectHistory: List<AspectHistory> = historyProvider.getAllHistory()
 
         assertEquals(1, aspectHistory.size, "History must contain 1 element")

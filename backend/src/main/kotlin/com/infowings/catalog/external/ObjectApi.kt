@@ -44,7 +44,9 @@ class ObjectApi(val objectService: ObjectService) {
     fun getDetailedObject(@PathVariable("id", required = true) id: String, principal: Principal): DetailedObjectViewResponse {
         val username = principal.name
         logger.debug("Get objects request by $username")
-        return objectService.getDetailedObject(id)
+        val res = objectService.getDetailedObject(id)
+        logger.debug("viewdetails for id $id result: " + res)
+        return res
     }
 
     @GetMapping("{id}/editdetails")
