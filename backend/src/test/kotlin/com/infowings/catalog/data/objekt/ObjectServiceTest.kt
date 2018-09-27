@@ -1979,7 +1979,7 @@ class ObjectServiceTest {
 
 
     @Test
-    fun `Delete object which root value is externally linked`() {
+    fun `Delete object whose root value is externally linked`() {
         val objectName1 = "deleteObjectWithRootValueExternallyLinkedTest-object"
         val objectDescription1 = "object description"
         val objectRequest1 =
@@ -2180,5 +2180,55 @@ class ObjectServiceTest {
         }
     }
 
-}
+    @Test
+    fun `Delete object with internally linked value`() {
+        val objectName = randomName()
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
 
+        val propertyNameDec = "dec_prop"
+
+        val propertyRequestDec = PropertyCreateRequest(
+            name = propertyNameDec, description = null,
+            objectId = objectCreateResponse.id, aspectId = complexAspect.idStrict()
+        )
+        val propertyCreateResponseDec = objectService.create(propertyRequestDec, username)
+
+        val valueRequestDec = ValueUpdateRequest(
+            valueId = propertyCreateResponseDec.rootValue.id,
+            value = ObjectValueData.DecimalValue.single("12.12"),
+            measureName = Millimetre.name,
+            description = null,
+            version = propertyCreateResponseDec.rootValue.version
+        )
+        val valueUpdateResponseDec = objectService.update(valueRequestDec, username)
+
+        val propertyNameLink = "link_prop"
+
+        val propertyRequestLink = PropertyCreateRequest(
+            name = propertyNameLink, description = null,
+            objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
+        )
+        val propertyCreateResponseLink = objectService.create(propertyRequestLink, username)
+
+        val valueRequestLink = ValueUpdateRequest(
+            valueId = propertyCreateResponseLink.rootValue.id,
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id)),
+            measureName = null,
+            description = null,
+            version = propertyCreateResponseLink.rootValue.version
+        )
+        val valueUpdateResponseLink = objectService.update(valueRequestLink, username)
+
+        objectService.deleteObject(objectCreateResponse.id, username)
+
+        try {
+            objectService.findById(objectCreateResponse.id)
+            fail("Nothing thrown")
+        } catch (e: ObjectNotFoundException) {
+        }
+    }
+
+}

@@ -465,9 +465,16 @@ class ObjectService(
             val properties = dao.propertiesOfObject(id)
 
             val values = dao.valuesOfProperties(properties.map { it.identity })
+            val valueIds = values.map { it.identity }
 
-            val valueBlockers = dao.linkedFrom(values.map { it.identity }.toSet(), setOf(OBJECT_VALUE_REF_OBJECT_VALUE_EDGE))
-            val propertyBlockers = dao.linkedFrom(properties.map { it.identity }.toSet(), setOf(OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE))
+            val valueBlockers = dao.linkedFrom(values.map { it.identity }.toSet(), setOf(OBJECT_VALUE_REF_OBJECT_VALUE_EDGE)).mapValues {
+                it.value.minus(valueIds)
+            }.filterValues { !it.isEmpty() }
+
+            val propertyBlockers = dao.linkedFrom(properties.map { it.identity }.toSet(), setOf(OBJECT_VALUE_REF_OBJECT_PROPERTY_EDGE)).mapValues {
+                it.value.minus(valueIds)
+            }.filterValues { !it.isEmpty() }
+
             val objLinks = dao.linkedFrom(setOf(objVertex.identity), setOf(OBJECT_VALUE_OBJECT_EDGE))
             val objLinksExt = objLinks.mapValues { it.value.minus(values) }.filterValues { it.isNotEmpty() }
             val objIsLinked = objLinksExt.isNotEmpty()
