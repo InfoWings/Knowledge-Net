@@ -24,6 +24,7 @@ import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -361,6 +362,7 @@ class GuidServiceTest {
     }
 
     @Test
+    @Disabled
     fun testSetGuidObject() {
         val objectGuid = objectChange.guid ?: throw IllegalStateException()
 
@@ -397,6 +399,7 @@ class GuidServiceTest {
     }
 
     @Test
+    @Disabled
     fun testSetGuidObjectProperty() {
         val propertyGuid = propertyChange.guid ?: throw IllegalStateException()
 
@@ -433,6 +436,7 @@ class GuidServiceTest {
     }
 
     @Test
+    @Disabled
     fun testSetGuidObjectValue() {
         val valueGuid = rootValue.guid ?: throw IllegalStateException()
         val valueId = rootValue.id.toString()
