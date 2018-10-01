@@ -8,11 +8,11 @@ module.exports = {
         filename: "bundle.js"
     },
     resolve: {
-      modules: [
-        path.resolve(__dirname, "node_modules"),
+        modules: [
+            path.resolve(__dirname, "node_modules"),
             path.resolve(__dirname, "build/kotlin-js-min/main/"),
-        path.resolve(__dirname, "build/web")
-      ]
+            path.resolve(__dirname, "build/web")
+        ]
     },
     module: {
         rules: [
@@ -22,12 +22,12 @@ module.exports = {
                 enforce: "pre"
             },
             {
-              test: /\.(png|jpg|gif|svg|eot|woff|ttf)$/,
-              loader: "file-loader"
+                test: /\.(png|jpg|gif|svg|eot|woff|ttf)$/,
+                loader: "file-loader"
             },
             {
-              test: /\.(s*)css$/,
-              use: ["style-loader", "css-loader", "sass-loader"]
+                test: /\.(s*)css$/,
+                use: ["style-loader", "css-loader", "sass-loader"]
             }
         ]
     }
