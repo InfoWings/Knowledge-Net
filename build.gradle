@@ -1,4 +1,4 @@
-group = 'cyber'
+group = 'knowledge-net'
 version = '13'
 
 buildscript {
