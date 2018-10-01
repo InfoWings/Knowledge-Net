@@ -1,0 +1,78 @@
+apply plugin: 'kotlin-platform-jvm'
+apply plugin: 'kotlinx-serialization'
+apply plugin: 'maven-publish'
+
+buildscript {
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlin_version"
+    }
+}
+
+version = "1.0"
+
+dependencies {
+    expectedBy project(":common")
+    
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+
+    compile group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwt_version"
+
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4"
+    compile group: 'org.springframework', name: 'spring-web', version: '5.1.0.RELEASE'
+    
+    testCompile "org.jetbrains.kotlin:kotlin-test"
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+    testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.9'
+
+    testCompile "org.junit.jupiter:junit-jupiter-engine:$junit"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junit"
+
+}
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+test {
+    useJUnitPlatform()
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'com.infowings.catalog'
+            artifactId 'api'
+
+            from components.java
+            // this is needed because expectedBy dependency appears as a module dependency
+            pom.withXml {
+                Node pomNode = asNode()
+                pomNode.dependencies.'*'.findAll() {
+                    it.artifactId.text() == 'common'
+                }.each() {
+                    it.parent().remove(it)
+                }
+            }
+        }
+    }
+    
+}
