@@ -32,7 +32,9 @@ allprojects {
     apply plugin: 'kotlinx-serialization'
     apply plugin: 'java'
     apply plugin: 'maven'
-    apply plugin: "jacoco"
+    //seems like current jacoco cannot support kotlin common modules and fails when more than 1 module uses common(same class appears twice).
+    //disable it for now
+//    apply plugin: "jacoco"
 
     repositories {
         mavenCentral()
