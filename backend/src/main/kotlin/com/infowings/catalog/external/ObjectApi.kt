@@ -158,7 +158,7 @@ class ObjectApi(val objectService: ObjectService) {
     fun handleObjectPropertyException(exception: ObjectPropertyException): ResponseEntity<String> {
         logger.info("property exception handler $exception...")
         return when (exception) {
-            is ObjectPropertyIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+            is ObjectPropertyIsLinkedException -> ResponseEntity.badRequest().body(exception.message)
         }
     }
 
