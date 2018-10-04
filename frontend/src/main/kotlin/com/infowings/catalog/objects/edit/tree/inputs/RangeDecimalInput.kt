@@ -8,7 +8,6 @@ import kotlin.math.pow
 
 class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDecimalInput.Props, RangedDecimalInput.State>(props) {
     override fun State.init(props: Props) {
-        println("init. prop disabled: ${props.disabled}")
         lwb = props.lwb
         if (props.lwb != props.upb) {
             upb = props.upb
@@ -79,9 +78,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         val buttonName = "Switch to ${if (state.upb != null) "value" else "range"}"
 
         val step = step()
-        //println("RENDER step: $step")
         val toDisable = props.disabled
-        //println("to disable: " + toDisable)
 
         ButtonGroup {
             Button {

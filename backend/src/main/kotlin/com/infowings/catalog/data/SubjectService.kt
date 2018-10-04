@@ -1,7 +1,6 @@
 package com.infowings.catalog.data
 
 import com.infowings.catalog.auth.user.UserService
-import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
@@ -10,6 +9,7 @@ import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 
 interface SubjectService {
@@ -43,15 +43,15 @@ class DefaultSubjectService(
 
     override fun findById(id: String): SubjectVertex? = dao.findById(id)
 
-    override fun findDataById(id: String): SubjectData = transaction (db) {
+    override fun findDataById(id: String): SubjectData = transaction(db) {
         dao.findById(id)?.toSubject()?.toSubjectData() ?: throw SubjectNotFoundException("No subject with id $id")
     }
 
-    override fun findDataByIdStrict(id: String): SubjectData = transaction (db) {
+    override fun findDataByIdStrict(id: String): SubjectData = transaction(db) {
         dao.findByIdStrict(id).toSubject().toSubjectData()
     }
 
-    override fun findByIdStrict(id: String): Subject = transaction (db) {
+    override fun findByIdStrict(id: String): Subject = transaction(db) {
         dao.findByIdStrict(id).toSubject()
     }
 
@@ -113,14 +113,17 @@ class DefaultSubjectService(
             //}
 
             val linkedByAspects = vertex.linkedByAspects()
+            val linkedByObjects = vertex.linkedByObjects()
+
+            val isLinked = linkedByAspects.isNotEmpty() || linkedByObjects.isNotEmpty()
 
             when {
-                linkedByAspects.isNotEmpty() && force -> {
+                isLinked && force -> {
                     history.storeFact(vertex.toSoftDeleteFact(HistoryContext(userVertex)))
                     dao.softRemove(vertex)
                 }
-                linkedByAspects.isNotEmpty() -> {
-                    throw SubjectIsLinkedByAspect(subjectData, linkedByAspects.first().toAspectData())
+                isLinked -> {
+                    throw SubjectIsLinked(subjectData, linkedByAspects.map { it.guid ?: it.id }, linkedByObjects.map { it.guid ?: it.id })
                 }
 
                 else -> {
@@ -142,7 +145,7 @@ class SubjectNotFoundException(val id: String) : SubjectException("Subject with 
 class SubjectConcurrentModificationException(expected: Int, real: Int) :
     SubjectException("Found version $real instead of $expected")
 
-class SubjectIsLinkedByAspect(val subject: SubjectData, val aspect: AspectData) :
-    SubjectException("Subject ${subject.id} is linked by ${aspect.id}")
+class SubjectIsLinked(val subject: SubjectData, val aspectGuids: List<String>, val objectGuids: List<String>) :
+    SubjectException("Subject ${subject.id} is linked by aspects $aspectGuids and/or objects $objectGuids")
 
 class SubjectEmptyChangeException : SubjectException("such subject already exists")

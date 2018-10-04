@@ -219,7 +219,7 @@ class SubjectServiceTest {
         try {
             subjectService.remove(toRemove.toSubjectData(), username, force = false)
             Assert.fail("Nothing is thrown")
-        } catch (e: SubjectIsLinkedByAspect) {
+        } catch (e: SubjectIsLinked) {
         } catch (e: Throwable) {
             Assert.fail("Unexpected error is thrown: $e")
         }
