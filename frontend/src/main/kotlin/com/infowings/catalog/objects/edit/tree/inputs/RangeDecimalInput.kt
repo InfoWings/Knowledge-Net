@@ -8,7 +8,6 @@ import kotlin.math.pow
 
 class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDecimalInput.Props, RangedDecimalInput.State>(props) {
     override fun State.init(props: Props) {
-        println("init. prop disabled: ${props.disabled}")
         lwb = props.lwb
         if (props.lwb != props.upb) {
             upb = props.upb

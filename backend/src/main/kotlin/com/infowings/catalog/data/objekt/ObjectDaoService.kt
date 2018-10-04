@@ -33,7 +33,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
                         "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
                         "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
-                        "FROM $OBJECT_CLASS"
+                        "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
             return@transaction db.query(query) {
                 it.map {
                     ObjectTruncated(

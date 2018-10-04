@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.mapOn
 import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.reactRouter
@@ -58,14 +59,25 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun deleteObject(force: Boolean) {
-        tryRequest {
+        val toRethrow = tryRequest {
             val editedObject = state.editedObject ?: error("Object is not yet loaded")
-            deleteObject(editedObject.id, force)
-            setState {
-                this.editedObject = null
-                this.deleted = true
-                lastApiError = null
+
+            try {
+                deleteObject(editedObject.id, force)
+                setState {
+                    this.editedObject = null
+                    this.deleted = true
+                    lastApiError = null
+                }
+
+                null
+            } catch (badRequestException: BadRequestException) {
+                badRequestException
             }
+        }
+
+        toRethrow?.let {
+            throw it
         }
     }
 
@@ -177,13 +189,14 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    private inline fun tryRequest(block: () -> Unit) {
+    private inline fun <T> tryRequest(block: () -> T): T? {
         try {
-            block()
+            return block()
         } catch (apiException: ApiException) {
             setState {
                 lastApiError = apiException
             }
+            return null
         }
     }
 

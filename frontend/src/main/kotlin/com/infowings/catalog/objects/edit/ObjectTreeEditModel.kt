@@ -70,7 +70,9 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
     }
 
     override fun deleteObject() {
-        deleteEntity { force -> props.apiModel.deleteObject(force) }
+        deleteEntity { force ->
+            props.apiModel.deleteObject(force)
+        }
     }
 
     override fun createProperty(propertyEditModel: ObjectPropertyEditModel) {
