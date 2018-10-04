@@ -5,7 +5,6 @@ import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.data.*
-import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.loggerFor
 import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
@@ -104,7 +103,7 @@ class SubjectApi(val subjectService: SubjectService) {
                         )
                     )
                 )
-            is SubjectIsLinkedByAspect -> {
+            is SubjectIsLinked -> {
                 ResponseEntity.badRequest().body(
                     JSON.stringify(
                         BadRequest(

@@ -3,6 +3,7 @@ package com.infowings.catalog.data.aspect
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.objekt.DeletableVertex
 import com.infowings.catalog.data.objekt.ObjectValue
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
@@ -39,7 +40,7 @@ fun OVertex.isJustCreated() = this.identity.isNew
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
  * by vertex means simple delegating OVertex calls to property [vertex]
  * */
-class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
     override val entityClass = ASPECT_CLASS
 
     private val logger = loggerFor<AspectVertex>()
@@ -94,12 +95,6 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, OVertex by verte
         get() = vertex["measure"]
         set(value) {
             vertex["measure"] = value
-        }
-
-    var deleted: Boolean
-        get() = vertex["deleted"] ?: false
-        set(value) {
-            vertex["deleted"] = value
         }
 
     val subject: Subject?

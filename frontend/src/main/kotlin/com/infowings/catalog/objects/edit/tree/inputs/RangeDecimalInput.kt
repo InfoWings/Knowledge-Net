@@ -78,9 +78,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         val buttonName = "Switch to ${if (state.upb != null) "value" else "range"}"
 
         val step = step()
-        //println("RENDER step: $step")
         val toDisable = props.disabled
-        //println("to disable: " + toDisable)
 
         ButtonGroup {
             Button {

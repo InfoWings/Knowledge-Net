@@ -12,7 +12,11 @@ data class ObjectCreateRequest(
     val name: String,
     val description: String?,
     val subjectId: String
-)
+) {
+    companion object {
+        fun simple(name: String, subjectId: String) = ObjectCreateRequest(name, null, subjectId)
+    }
+}
 
 @Serializable
 data class ObjectUpdateRequest(

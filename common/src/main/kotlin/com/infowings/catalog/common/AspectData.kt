@@ -41,6 +41,10 @@ data class AspectData(
     operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
 
     fun idStrict(): String = id ?: throw IllegalStateException("No id for aspect $this")
+
+    companion object {
+        fun initial(name: String) = AspectData(name = name)
+    }
 }
 
 @Serializable
