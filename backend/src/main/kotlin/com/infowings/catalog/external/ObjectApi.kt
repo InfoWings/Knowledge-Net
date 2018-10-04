@@ -45,7 +45,7 @@ class ObjectApi(val objectService: ObjectService) {
         val username = principal.name
         logger.debug("Get objects request by $username")
         val res = objectService.getDetailedObject(id)
-        logger.debug("viewdetails for id $id result: " + res)
+        logger.debug("viewdetails for id $id result: $res")
         return res
     }
 
@@ -107,7 +107,12 @@ class ObjectApi(val objectService: ObjectService) {
         return if (force) {
             objectService.softDeleteValue(id, username)
         } else {
-            objectService.deleteValue(id, username)
+            try {
+                objectService.deleteValue(id, username)
+            } catch (e: Throwable) {
+                logger.info("thrown $e")
+                throw e
+            }
         }
     }
 
@@ -135,6 +140,7 @@ class ObjectApi(val objectService: ObjectService) {
 
     @ExceptionHandler(ObjectException::class)
     fun handleObjectException(exception: ObjectException): ResponseEntity<String> {
+        logger.info("object exception handler $exception...")
         return when (exception) {
             is ObjectIsLinkedException -> ResponseEntity.badRequest().body(exception.message)
             is ObjectAlreadyExists -> ResponseEntity.badRequest().body(exception.message)
@@ -150,6 +156,7 @@ class ObjectApi(val objectService: ObjectService) {
 
     @ExceptionHandler(ObjectPropertyException::class)
     fun handleObjectPropertyException(exception: ObjectPropertyException): ResponseEntity<String> {
+        logger.info("property exception handler $exception...")
         return when (exception) {
             is ObjectPropertyIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
         }
@@ -157,8 +164,9 @@ class ObjectApi(val objectService: ObjectService) {
 
     @ExceptionHandler(ObjectValueException::class)
     fun handleObjectValueException(exception: ObjectValueException): ResponseEntity<String> {
+        logger.debug("value exception handler $exception...")
         return when (exception) {
-            is ObjectValueIsLinkedException -> ResponseEntity.badRequest().body(JSON.stringify(exception))
+            is ObjectValueIsLinkedException -> ResponseEntity.badRequest().body(exception.message)
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${exception.message}")
         }
     }

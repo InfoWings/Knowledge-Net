@@ -41,6 +41,7 @@ class ObjectServiceTest {
     private lateinit var referenceAspect: AspectData
     private lateinit var complexAspect: AspectData
     private lateinit var aspectInt: AspectData
+    private lateinit var aspectDec: AspectData
 
     private val username = "admin"
     private val sampleDescription = "object description"
@@ -50,6 +51,7 @@ class ObjectServiceTest {
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
         aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        aspectDec = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Decimal.name), username)
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
@@ -2231,4 +2233,56 @@ class ObjectServiceTest {
         }
     }
 
+
+    @Test
+    fun `Delete referenced value`() {
+        val objectName = randomName("object")
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName, description = null,
+            objectId = objectCreateResponse.id, aspectId = aspectDec.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueUpdateRequest(
+            propertyCreateResponse.rootValue.id,
+            ObjectValueData.DecimalValue.single("123"),
+            null,
+            null,
+            propertyCreateResponse.rootValue.version
+        )
+        val valueUpdateResponse = objectService.update(valueRequest, username)
+
+
+        val propertyRequestRef = PropertyCreateRequest(
+            name = propertyName, description = null,
+            objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
+        )
+        val propertyCreateResponseRef = objectService.create(propertyRequestRef, username)
+
+        val valueRequestRef = ValueUpdateRequest(
+            propertyCreateResponseRef.rootValue.id,
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            null,
+            null,
+            propertyCreateResponseRef.rootValue.version
+        )
+        val valueUpdateResponseRef = objectService.update(valueRequestRef, username)
+
+        try {
+            objectService.deleteValue(valueUpdateResponse.id, username)
+            fail("nothing is thrown")
+        } catch (e: ObjectValueIsLinkedException) {
+        }
+
+        objectService.softDeleteValue(valueUpdateResponse.id, username)
+
+        checkValueSoftAbsence(valueUpdateResponse.id)
+    }
 }

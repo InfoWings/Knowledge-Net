@@ -13,6 +13,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toMeasure
+import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 
@@ -314,6 +315,7 @@ class ObjectService(
     }
 
     fun deleteValue(id: String, username: String): ValueDeleteResponse {
+        logger.debug("delete value with id $id")
         val valueDeleteResult = deleteValue(id, username) { context ->
             if (context.valueBlockers.isNotEmpty()) {
                 throw ObjectValueIsLinkedException(context.valueBlockers.map { it.toString() }.toList())
@@ -338,6 +340,7 @@ class ObjectService(
     }
 
     fun softDeleteValue(id: String, username: String): ValueDeleteResponse {
+        logger.debug("soft delete value with id $id")
         val valueDeleteResult = deleteValue(id, username) { context ->
             val blockerIds = context.valueBlockers.keys.toSet()
             val rootSet = setOf(context.root.identity)
@@ -571,3 +574,5 @@ class ObjectService(
 }
 
 class RecalculationException(message: String) : IllegalArgumentException(message)
+
+private val logger = loggerFor<ObjectService>()

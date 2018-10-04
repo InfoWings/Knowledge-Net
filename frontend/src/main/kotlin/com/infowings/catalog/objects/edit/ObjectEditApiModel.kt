@@ -177,15 +177,25 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun deleteObjectValue(id: String, force: Boolean) {
-        tryRequest {
-            val valueDeleteResponse = deleteValue(id, force)
-            setState {
-                val editedObject = this.editedObject ?: error("Object is not yet loaded")
-                this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
-                )
-                lastApiError = null
+        val toRethrow = tryRequest {
+            try {
+                val valueDeleteResponse = deleteValue(id, force)
+                setState {
+                    val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                    this.editedObject = editedObject.copy(
+                        properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
+                    )
+                    lastApiError = null
+                }
+
+                null
+            } catch (badRequestException: BadRequestException) {
+                badRequestException
             }
+        }
+
+        toRethrow?.let {
+            throw it
         }
     }
 
