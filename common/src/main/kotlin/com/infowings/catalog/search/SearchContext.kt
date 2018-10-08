@@ -48,3 +48,7 @@ data class AspectSuggestionParam(
 data class SubjectSuggestionParam(
     var aspectText: String? = null
 )
+
+data class ObjectSuggestionParam(
+    var aspectText: String? = null
+)

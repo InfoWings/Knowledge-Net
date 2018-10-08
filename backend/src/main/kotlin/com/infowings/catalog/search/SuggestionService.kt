@@ -5,6 +5,8 @@ import com.infowings.catalog.data.*
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
 import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.objekt.ObjectTruncated
+import com.infowings.catalog.data.objekt.toObjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
@@ -247,4 +249,64 @@ class SuggestionService(
     private val lqa = "lqa"
     private val noCycle =
         "@rid not in (select @rid from (traverse in(\"$ASPECT_ASPECT_PROPERTY_EDGE\").in() FROM :$aspectRecord))"
+
+
+    fun findObject(
+        commonParam: CommonSuggestionParam?,
+        objectParam: ObjectSuggestionParam
+    ): List<ObjectGetResponse> = session(database) {
+        val found = findObjectInDb(commonParam, objectParam)
+        val result = found.mapNotNull {
+            val objVertex = it.toObjectVertex()
+            ObjectTruncated(
+                id = objVertex.identity, name = objVertex.name, description = objVertex.description, guid = objVertex.guid,
+                subjectName = objVertex.subject?.name ?: "", objectPropertiesCount = 0
+            ).toResponse()
+        }.toMutableList()
+        //.addSubjectDescSuggestion(commonParam)
+
+        result
+    }
+
+    /*
+    private fun MutableList<SubjectData>.addSubjectDescSuggestion(commonParam: CommonSuggestionParam?): MutableList<SubjectData> {
+        if (this.size < maxResultSize) {
+            this.addAll(
+                descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
+                    .mapNotNull { it.toSubjectVertex().toSubject().toSubjectData() })
+        }
+        return this
+    }
+    */
+
+    private fun findObjectInDb(
+        commonParam: CommonSuggestionParam?,
+        objectParam: ObjectSuggestionParam?
+    ): Sequence<OVertex> {
+        val q = "SELECT FROM $OBJECT_CLASS WHERE SEARCH_INDEX(${luceneIdx(
+            OBJECT_CLASS,
+            ATTR_NAME
+        )}, :$lq) = true AND $notDeletedSql"
+
+        /*
+        val aspectFilter = if (objectParam?.aspectText.isNullOrBlank()) {
+            ""
+        } else {
+            " AND @rid IN (SELECT expand(out($ASPECT_SUBJECT_EDGE)).@rid FROM Aspect WHERE SEARCH_INDEX(${luceneIdx(
+                ASPECT_CLASS,
+                ATTR_NAME
+            )}, :$lqa) = true)"
+        }
+        */
+
+        return database.query(
+            q /*+ aspectFilter */,
+            mapOf(
+                lq to luceneQuery(textOrAllWildcard(commonParam?.text)),
+                lqa to luceneQuery(textOrAllWildcard(objectParam?.aspectText))
+            )
+        ) {
+            it.mapNotNull { it.toVertexOrNull() }
+        }
+    }
 }

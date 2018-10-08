@@ -124,6 +124,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (session.getClass(OBJECT_CLASS) == null) {
             val vertexClass = session.createVertexClass(OBJECT_CLASS)
             vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+            vertexClass.createProperty(ATTR_DESC, OType.STRING)
             initIgnoreCaseIndex(OBJECT_CLASS)
         }
         initEdge(session, OBJECT_SUBJECT_EDGE)
@@ -169,8 +170,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initGuid(): OrientDatabaseInitializer = session(database) { session ->
         initVertex(session, OrientClass.GUID.extName)
 
-        listOf(OrientEdge.GUID_OF_ASPECT, OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
-            OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE).forEach {
+        listOf(
+            OrientEdge.GUID_OF_ASPECT, OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
+            OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
+        ).forEach {
             initEdge(session, it.extName)
         }
 
@@ -237,6 +240,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initSearch(): OrientDatabaseInitializer {
         initLuceneIndex(ASPECT_CLASS)
         initLuceneIndex(SUBJECT_CLASS)
+        initLuceneIndex(OBJECT_CLASS)
         return this
     }
 

@@ -5,6 +5,28 @@
   margin: 3rem auto;
 }
 
+.object-header {
+
+  position: relative;
+
+  &__sort-search {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  &__text-filters {
+    display: flex;
+    align-items: start
+  }
+
+  &__refresh {
+    position: absolute;
+    top: 0;
+    right: -5rem;
+  }
+}
+
 .object-line {
 
   display: flex;

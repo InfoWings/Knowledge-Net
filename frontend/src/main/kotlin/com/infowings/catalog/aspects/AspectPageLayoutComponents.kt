@@ -45,6 +45,7 @@ fun RBuilder.aspectPageHeader(
                     onChange = setFilterSubjects
                 }
             }
+
             aspectExcludeFilterComponent {
                 attrs {
                     selectedAspects = filter.excludedAspects

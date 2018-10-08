@@ -17,6 +17,7 @@ data class ObjectGetResponse(
     val propertiesCount: Int
 )
 
+
 @Serializable
 data class DetailedObjectViewResponse(
     val id: String,
@@ -27,6 +28,9 @@ data class DetailedObjectViewResponse(
     val propertiesCount: Int,
     val objectPropertyViews: List<DetailedObjectPropertyViewResponse>
 )
+
+@Serializable
+data class ObjectsList(val objects: List<ObjectGetResponse>)
 
 @Serializable
 data class DetailedObjectPropertyViewResponse(
