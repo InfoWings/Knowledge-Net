@@ -157,7 +157,8 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                     attrs {
                         className = "subjects-list--name"
                         defaultValue = ""
-                        placeholder = "Click to enter new subject"
+                        placeholder = "" +
+                                "Click to enter new subject"
                         onConfirm = { updateSubjectName(it, emptySubjectData) }
                     }
                 }

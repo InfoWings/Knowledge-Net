@@ -1,13 +1,14 @@
 package com.infowings.catalog.objects.view
 
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.objects.ObjectLazyViewModel
+import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.filter.objectExcludeFilterComponent
 import com.infowings.catalog.objects.filter.objectSubjectFilterComponent
-import com.infowings.catalog.objects.mergeDetails
-import com.infowings.catalog.objects.toLazyView
 import com.infowings.catalog.objects.view.tree.objectLazyTreeView
+import com.infowings.catalog.utils.ServerException
+import com.infowings.catalog.wrappers.blueprint.Button
+import kotlinx.coroutines.experimental.launch
 import react.*
 import react.dom.div
 
@@ -36,6 +37,46 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
         }
     }
 
+    private fun refreshObjects() {
+        val oldByGuid = state.objects.filter { it.guid != null }.map { it.guid to it }.toMap()
+
+        val withDetails = oldByGuid.filter { it.value.objectProperties != null }.keys
+
+        launch {
+            try {
+                val response = getAllObjects().objects
+
+                val freshByGuid = response.filter { it.guid != null }.map { it.guid to it }.toMap()
+
+                val detailsNeeded = response.filter {
+                    if (oldByGuid.containsKey(it.guid)) {
+                        val viewModel = oldByGuid[it.guid] ?: throw IllegalStateException("no view model")
+                        viewModel.objectProperties != null
+                    } else false
+                }
+
+                val freshDetails = detailsNeeded.map { it.id to getDetailedObject(it.id) }.toMap()
+
+                val enriched = response.toLazyView(freshDetails).map {
+                    val viewModel = oldByGuid[it.guid]
+                    if (viewModel == null) {
+                        it
+                    } else {
+                        it.copy(expanded = viewModel.expanded, expandAllFlag = viewModel.expandAllFlag)
+                    }
+                }
+
+                setState {
+                    objects = enriched
+                }
+            } catch (exception: ServerException) {
+                println("something wrong: $exception")
+            }
+
+        }
+
+    }
+
     override fun requestDetailed(id: String) {
         props.objectApiModel.fetchDetailedObject(id)
     }
@@ -46,6 +87,7 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
     override fun RBuilder.render() {
         div(classes = "object-header__text-filters") {
+
             objectSubjectFilterComponent {
                 attrs {
                     subjectsFilter = state.filterBySubject.subjects
@@ -63,7 +105,19 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                     }
                 }
             }
+
+            div("object-header__refresh") {
+                Button {
+                    attrs {
+                        icon = "refresh"
+                        onClick = {
+                            refreshObjects()
+                        }
+                    }
+                }
+            }
         }
+
 
         val subjectNames = state.filterBySubject.subjects.mapNotNull { it?.name }.toSet()
         val excludedGuids = state.filterBySubject.excluded.mapNotNull { it.guid }.toSet()

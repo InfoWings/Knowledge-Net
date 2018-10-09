@@ -18,12 +18,12 @@
   &__text-filters {
     display: flex;
     align-items: start
+
   }
 
   &__refresh {
-    position: absolute;
-    top: 0;
-    right: -5rem;
+    display: flex;
+    align-items: start
   }
 }
 
