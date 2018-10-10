@@ -1,10 +1,13 @@
 package com.infowings.catalog.objects.edit.tree.inputs.values
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.objects.edit.tree.inputs.entityLinkGuidInput
+import com.infowings.catalog.objects.edit.tree.inputs.rangedDecimalInput
+import com.infowings.catalog.objects.edit.tree.inputs.rangedNumericInput
 import com.infowings.catalog.objects.edit.tree.inputs.referenceBookInput
 import com.infowings.catalog.wrappers.blueprint.EditableText
-import com.infowings.catalog.wrappers.blueprint.NumericInput
 import com.infowings.catalog.wrappers.blueprint.Switch
 import org.w3c.dom.HTMLInputElement
 import react.RBuilder
@@ -19,6 +22,7 @@ fun RBuilder.textInput(value: String?, disabled: Boolean, onUpdate: (String) -> 
     }
 }
 
+/*
 fun RBuilder.integerInput(value: String?, disabled: Boolean, onUpdate: (String) -> Unit) = NumericInput {
     attrs {
         this.value = value ?: "0"
@@ -37,6 +41,7 @@ fun RBuilder.decimalInput(value: String?, disabled: Boolean, onUpdate: (String) 
         this.disabled = disabled
     }
 }
+*/
 
 fun RBuilder.booleanInput(value: String?, disabled: Boolean, onUpdate: (String) -> Unit) = Switch {
     attrs {
@@ -59,6 +64,27 @@ fun RBuilder.refBookInput(value: String?, onUpdate: (String) -> Unit, aspectRefB
         this.disabled = disabled
     }
 }
+
+fun RBuilder.rangedNumericInput(value: ObjectValueData.IntegerValue, onUpdate: (Int, Int) -> Unit, disabled: Boolean) = rangedNumericInput {
+    attrs {
+        this.lwb = value.value
+        this.upb = value.upb
+        this.onUpdate = onUpdate
+        this.disabled = disabled
+    }
+}
+
+fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String, Int) -> Unit, disabled: Boolean) = rangedDecimalInput {
+    attrs {
+        this.lwb = value.valueRepr
+        this.upb = value.upbRepr
+        this.leftInfinity = RangeFlagConstants.LEFT_INF.bitmask.and(value.rangeFlags) != 0
+        this.rightInfinity = RangeFlagConstants.RIGHT_INF.bitmask.and(value.rangeFlags) != 0
+        this.onUpdate = onUpdate
+        this.disabled = disabled
+    }
+}
+
 
 fun RBuilder.entityLinkInput(value: LinkValueData?, onUpdate: (LinkValueData?) -> Unit, disabled: Boolean = false) = entityLinkGuidInput {
     attrs {

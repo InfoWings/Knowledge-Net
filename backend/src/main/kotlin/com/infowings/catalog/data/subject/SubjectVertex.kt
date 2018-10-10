@@ -62,7 +62,22 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_SUBJECT)
 
-    fun linkedByAspects() = incomingEdges(ASPECT_SUBJECT_EDGE).map {
+    private fun linkedBy(edge: OrientEdge, sourceClass: OrientClass) = incomingEdges(edge.extName).map {
+        val source = it.from.asVertex()
+        val vertex = if (source.isPresent) source.get() else
+            throw InternalError("Source of ${edge.extName} is not vertex")
+        val classOpt = vertex.schemaType
+        val vertexClass = if (classOpt.isPresent) classOpt.get() else
+            throw InternalError("Source of ${edge.extName} has no type")
+
+        if (vertexClass.name == sourceClass.extName) {
+            vertex
+        } else throw InternalError("Source of ${edge.extName} is not aspect vertex")
+    }
+
+    fun linkedByObjects() = linkedBy(OrientEdge.SUBJECT_OF_OBJECT, OrientClass.OBJECT).map { it.toObjectVertex() }.filterNot { it.deleted }
+
+    fun linkedByAspects() = linkedBy(OrientEdge.SUBJECT_OF_ASPECT, OrientClass.ASPECT).map { it.toAspectVertex() }.filterNot { it.deleted } /*incomingEdges(ASPECT_SUBJECT_EDGE).map {
         val source = it.from.asVertex()
         val vertex = if (source.isPresent) source.get() else
             throw InternalError("Source of $ASPECT_SUBJECT_EDGE is not vertex")
@@ -75,5 +90,5 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
         } else throw InternalError("Source of $ASPECT_SUBJECT_EDGE is not aspect vertex")
 
         aspectVertex
-    }.filterNot { it.deleted }
+    }.filterNot { it.deleted } */
 }

@@ -51,13 +51,16 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                         +it.symbol
                     }
                 } else {
+                    val decimal = value as? ObjectValueData.DecimalValue
+                    val valueRepr = decimal?.valueRepr ?: error("Value has non-decimal type and has non-null measure")
+                    val upbRepr = decimal.upbRepr
+
                     valueMeasureSelect(
                         measureGroup = measureGroup,
-                        stringValueRepresentation = (value as? ObjectValueData.DecimalValue)?.valueRepr
-                                ?: error("Value has non-decimal type and has non-null measure"),
+                        stringValueRepresentation = valueRepr, upbValueRepresentation = upbRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
-                        onMeasureSelected = { measure, stringValueRepresentation ->
-                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation))
+                        onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
+                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, 0))
                         },
                         disabled = props.disabled
                     )

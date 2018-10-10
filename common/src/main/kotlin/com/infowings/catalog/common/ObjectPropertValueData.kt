@@ -10,7 +10,9 @@ sealed class ObjectValueData {
     abstract fun assignableTo(baseType: BaseType): Boolean
     abstract fun link(): Link?
 
-    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValueData() {
+    data class IntegerValue(val value: Int, val upb: Int, val precision: Int?) : ObjectValueData() {
+        constructor(value: Int, precision: Int?) : this(value, value, precision)
+
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Integer.name
         override fun link(): Link? = null
     }
@@ -30,8 +32,12 @@ sealed class ObjectValueData {
         override fun link(): Link? = null
     }
 
-    data class DecimalValue(val valueRepr: String) : ObjectValueData() {
+    data class DecimalValue(val valueRepr: String, val upbRepr: String, val rangeFlags: Int) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Decimal.name
+
+        companion object {
+            fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr, 0)
+        }
         override fun link(): Link? = null
     }
 

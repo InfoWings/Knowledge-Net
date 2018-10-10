@@ -40,13 +40,18 @@ class ObjectServiceTest {
     private lateinit var aspect: AspectData
     private lateinit var referenceAspect: AspectData
     private lateinit var complexAspect: AspectData
+    private lateinit var aspectInt: AspectData
+    private lateinit var aspectDec: AspectData
 
     private val username = "admin"
+    private val sampleDescription = "object description"
 
     @BeforeEach
     fun initTestData() {
         subject = subjectService.createSubject(SubjectData(name = randomName(), description = "descr"), username)
         aspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Text.name), username)
+        aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
+        aspectDec = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Decimal.name), username)
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
@@ -56,16 +61,22 @@ class ObjectServiceTest {
         complexAspect = aspectService.save(complexAspectData, username)
     }
 
+    private fun createObject(request: ObjectCreateRequest) = objectService.create(request, username)
+    private fun newObject(name: String, subjectId: String) = createObject(ObjectCreateRequest(name, sampleDescription, subjectId))
+    private fun newObject(name: String) = newObject(name, subject.id)
+    private fun newObject() = newObject(randomName(), subject.id)
+
+
     @Test
     fun `Create object`() {
-        val request = ObjectCreateRequest("createObjectTestName", "object descr", subject.id)
-        val objectCreateResponse = objectService.create(request, "user")
+        val name = randomName()
+        val objectCreateResponse = newObject(name)
 
         val objectVertex = objectService.findById(objectCreateResponse.id)
-        assertEquals(request.name, objectVertex.name, "names must be equal")
-        assertEquals(request.description, objectVertex.description, "descriptions must be equal")
+        assertEquals(name, objectVertex.name, "names must be equal")
+        assertEquals(sampleDescription, objectVertex.description, "descriptions must be equal")
         transaction(db) {
-            assertEquals(request.subjectId, objectVertex.subject?.id, "subjects must be equal")
+            assertEquals(subject.id, objectVertex.subject?.id, "subjects must be equal")
         }
     }
 
@@ -194,6 +205,80 @@ class ObjectServiceTest {
                     "object property must point to parent property"
                 )
                 assertTrue(rootValueUpdateResponse.parentValue == null)
+            }
+            else ->
+                fail("value must be string")
+        }
+
+    }
+
+    @Test
+    fun `Create ranged integer value`() {
+        val objectRequest =
+            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyRequest = PropertyCreateRequest(
+            name = randomName(),
+            description = null,
+            objectId = objectCreateResponse.id, aspectId = aspectInt.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val lwb = 2
+        val upb = 5
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.IntegerValue(lwb, upb, null),
+            description = null,
+            measureName = null,
+            objectPropertyId = propertyCreateResponse.id
+        )
+        val response = objectService.create(valueRequest, username)
+
+        val objectValue = response.value.toData()
+
+        when (objectValue) {
+            is ObjectValueData.IntegerValue -> {
+                assertEquals(lwb, objectValue.value)
+                assertEquals(upb, objectValue.upb)
+            }
+            else ->
+                fail("value must be string")
+        }
+
+    }
+
+    @Test
+    fun `Create ranged decimal value`() {
+        val objectRequest =
+            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyRequest = PropertyCreateRequest(
+            name = randomName(),
+            description = null,
+            objectId = objectCreateResponse.id, aspectId = complexAspect.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val lwb = "123.45"
+        val upb = "234.56"
+
+        val valueRequest = ValueCreateRequest(
+            value = ObjectValueData.DecimalValue(lwb, upb, 0),
+            description = null,
+            measureName = Millimetre.name,
+            objectPropertyId = propertyCreateResponse.id
+        )
+        val response = objectService.create(valueRequest, username)
+
+        val objectValue = response.value.toData()
+
+        when (objectValue) {
+            is ObjectValueData.DecimalValue -> {
+                assertEquals(lwb, objectValue.valueRepr)
+                assertEquals(upb, objectValue.upbRepr)
             }
             else ->
                 fail("value must be string")
@@ -581,7 +666,7 @@ class ObjectServiceTest {
         val valueRequest1 =
             ValueUpdateRequest(
                 propertyCreateResponse.rootValue.id,
-                ObjectValueData.DecimalValue("123"),
+                ObjectValueData.DecimalValue.single("123"),
                 Kilometre.name,
                 null,
                 propertyCreateResponse.rootValue.version
@@ -621,7 +706,7 @@ class ObjectServiceTest {
         val valueRequest1 =
             ValueUpdateRequest(
                 propertyCreateResponse.rootValue.id,
-                ObjectValueData.DecimalValue("123"),
+                ObjectValueData.DecimalValue.single("123"),
                 Kilometre.name,
                 null,
                 propertyCreateResponse.rootValue.version
@@ -1012,6 +1097,7 @@ class ObjectServiceTest {
             objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
         )
         val propertyCreateResponse1 = objectService.create(propertyRequest1, username)
+
 
         val propertyName2 = "prop2_$objectName"
         val propertyRequest2 = PropertyCreateRequest(
@@ -1895,7 +1981,7 @@ class ObjectServiceTest {
 
 
     @Test
-    fun `Delete object which root value is externally linked`() {
+    fun `Delete object whose root value is externally linked`() {
         val objectName1 = "deleteObjectWithRootValueExternallyLinkedTest-object"
         val objectDescription1 = "object description"
         val objectRequest1 =
@@ -2096,4 +2182,107 @@ class ObjectServiceTest {
         }
     }
 
+    @Test
+    fun `Delete object with internally linked value`() {
+        val objectName = randomName()
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyNameDec = "dec_prop"
+
+        val propertyRequestDec = PropertyCreateRequest(
+            name = propertyNameDec, description = null,
+            objectId = objectCreateResponse.id, aspectId = complexAspect.idStrict()
+        )
+        val propertyCreateResponseDec = objectService.create(propertyRequestDec, username)
+
+        val valueRequestDec = ValueUpdateRequest(
+            valueId = propertyCreateResponseDec.rootValue.id,
+            value = ObjectValueData.DecimalValue.single("12.12"),
+            measureName = Millimetre.name,
+            description = null,
+            version = propertyCreateResponseDec.rootValue.version
+        )
+        val valueUpdateResponseDec = objectService.update(valueRequestDec, username)
+
+        val propertyNameLink = "link_prop"
+
+        val propertyRequestLink = PropertyCreateRequest(
+            name = propertyNameLink, description = null,
+            objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
+        )
+        val propertyCreateResponseLink = objectService.create(propertyRequestLink, username)
+
+        val valueRequestLink = ValueUpdateRequest(
+            valueId = propertyCreateResponseLink.rootValue.id,
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id)),
+            measureName = null,
+            description = null,
+            version = propertyCreateResponseLink.rootValue.version
+        )
+        val valueUpdateResponseLink = objectService.update(valueRequestLink, username)
+
+        objectService.deleteObject(objectCreateResponse.id, username)
+
+        try {
+            objectService.findById(objectCreateResponse.id)
+            fail("Nothing thrown")
+        } catch (e: ObjectNotFoundException) {
+        }
+    }
+
+
+    @Test
+    fun `Delete referenced value`() {
+        val objectName = randomName("object")
+        val objectDescription = "object description"
+        val objectRequest =
+            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectCreateResponse = objectService.create(objectRequest, "user")
+
+        val propertyName = "prop_$objectName"
+
+        val propertyRequest = PropertyCreateRequest(
+            name = propertyName, description = null,
+            objectId = objectCreateResponse.id, aspectId = aspectDec.idStrict()
+        )
+        val propertyCreateResponse = objectService.create(propertyRequest, username)
+
+        val valueRequest = ValueUpdateRequest(
+            propertyCreateResponse.rootValue.id,
+            ObjectValueData.DecimalValue.single("123"),
+            null,
+            null,
+            propertyCreateResponse.rootValue.version
+        )
+        val valueUpdateResponse = objectService.update(valueRequest, username)
+
+
+        val propertyRequestRef = PropertyCreateRequest(
+            name = propertyName, description = null,
+            objectId = objectCreateResponse.id, aspectId = referenceAspect.idStrict()
+        )
+        val propertyCreateResponseRef = objectService.create(propertyRequestRef, username)
+
+        val valueRequestRef = ValueUpdateRequest(
+            propertyCreateResponseRef.rootValue.id,
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            null,
+            null,
+            propertyCreateResponseRef.rootValue.version
+        )
+        val valueUpdateResponseRef = objectService.update(valueRequestRef, username)
+
+        try {
+            objectService.deleteValue(valueUpdateResponse.id, username)
+            fail("nothing is thrown")
+        } catch (e: ObjectValueIsLinkedException) {
+        }
+
+        objectService.softDeleteValue(valueUpdateResponse.id, username)
+
+        checkValueSoftAbsence(valueUpdateResponse.id)
+    }
 }

@@ -151,7 +151,7 @@ class ReferenceBookLinkedTest {
         val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectWithObjectProperty.id!!), username)
         val objPropertyRootValueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.DecimalValue("123.1"),
+            ObjectValueData.DecimalValue.single("123.1"),
             Kilometre.name,
             null,
             propertyCreateResponse.rootValue.version
