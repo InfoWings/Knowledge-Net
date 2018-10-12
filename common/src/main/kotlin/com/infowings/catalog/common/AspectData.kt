@@ -4,22 +4,12 @@ import com.infowings.catalog.common.objekt.Reference
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AspectsList(
-    val aspects: List<AspectData> = emptyList()
-)
+data class AspectsList(val aspects: List<AspectData> = emptyList())
 
-enum class PropertyCardinality {
-    ZERO {
-        override val label = "Group"
-    },
-    ONE {
-        override val label = "0..1"
-    },
-    INFINITY {
-        override val label = "0..∞"
-    };
-
-    abstract val label: String
+enum class PropertyCardinality(val label: String) {
+    ZERO("Group"),
+    ONE("0..1"),
+    INFINITY("0..∞")
 }
 
 @Serializable

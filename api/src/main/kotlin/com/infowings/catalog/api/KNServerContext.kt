@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
@@ -106,9 +107,12 @@ private fun encodeURIComponent(path: String): String = URI(null, null, path, nul
 
 internal class RequestBuilder(path: String, private val context: KNServerContext) {
     private val uriBuilder = UriComponentsBuilder.fromUriString(path)
+    private var body: String? = null
 
     fun parameter(name: String, param: Any?): RequestBuilder = build { uriBuilder.queryParam(name, param) }
     fun parameter(name: String, param: List<*>): RequestBuilder = build { uriBuilder.queryParam(name, *param.toTypedArray()) }
+    inline fun <reified T : Any> body(value: T): RequestBuilder = build { body = JSON.stringify(value) }
+    fun path(value: String): RequestBuilder = build { uriBuilder.path("/$value") }
 
     private fun build(block: () -> Unit): RequestBuilder {
         block()
@@ -118,15 +122,42 @@ internal class RequestBuilder(path: String, private val context: KNServerContext
     inline fun <reified T> get(): T = execute(HttpMethod.GET)
     inline fun <reified T> post(): T = execute(HttpMethod.POST)
 
+    inline fun <reified T> postOrNull(): T? =
+        try {
+            post()
+        } catch (e: Exception) {
+            logger.warn(e.message, e)
+            null
+        }
+
+    inline fun <reified T> getOrNull(): T? =
+        try {
+            get()
+        } catch (e: Exception) {
+            logger.warn(e.message, e)
+            null
+        }
+
     private inline fun <reified T> execute(httpMethod: HttpMethod): T {
         val headers = HttpHeaders().apply {
             set("Cookie", context.loginContext.authHeader)
         }
 
+        val body = this.body
+        val httpEntity = when (body) {
+            null -> HttpEntity(null, headers)
+            else -> {
+                headers.contentType = MediaType.APPLICATION_JSON_UTF8;
+                HttpEntity(body, headers)
+            }
+        }
+
+        val uriString = uriBuilder.build().toUriString()
+        logger.debug("$httpMethod $uriString")
         val response = context.restTemplate.exchange(
-            uriBuilder.build().toUriString(),
+            uriString,
             httpMethod,
-            HttpEntity<T>(null, headers),
+            httpEntity,
             T::class.java
         )
         return response.body ?: throw ServiceUnavailable

@@ -222,8 +222,7 @@ class ObjectDaoTest {
 
     @Test
     fun savePropertySimpleStrValueTest() {
-        val objectRequest =
-            ObjectCreateRequest("savePropertySimpleStrValueTest", sampleDescription, subject.id)
+        val objectRequest = ObjectCreateRequest("savePropertySimpleStrValueTest", sampleDescription, subject.id)
         val createdObject = createObject(objectRequest)
         val propertyRequest = PropertyCreateRequest(
             objectId = createdObject.id,

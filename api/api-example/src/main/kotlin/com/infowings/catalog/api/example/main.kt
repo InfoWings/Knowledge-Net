@@ -14,5 +14,6 @@ fun main(args: Array<String>) {
 
 
     val api = KnowledgeNet(server, port, user, password)
-    api.aspectApi.getAspects().aspects.forEach { println(it) }
+//    api.aspectApi.getAspects().aspects.forEach { println(it) }
+    api.aspectApi.getAspects(query = "Размеры").aspects.forEach { println(it) }
 }
