@@ -62,18 +62,20 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(
-                    AspectData(
-                        name = "Dimensions",
-                        measure = Millimetre.name,
-                        baseType = BaseType.Decimal.name,
-                        properties = listOf(
-                            AspectPropertyData("", null, aspectHeight.id!!, PropertyCardinality.ONE.name, null),
-                            AspectPropertyData("", null, aspectWidth.id!!, PropertyCardinality.ONE.name, null),
-                            AspectPropertyData("", null, aspectDepth.id!!, PropertyCardinality.ONE.name, null)
+                .content(
+                    JSON.stringify(
+                        AspectData(
+                            name = "Dimensions",
+                            measure = Millimetre.name,
+                            baseType = BaseType.Decimal.name,
+                            properties = listOf(
+                                AspectPropertyData("", null, aspectHeight.id!!, PropertyCardinality.ONE.name, null),
+                                AspectPropertyData("", null, aspectWidth.id!!, PropertyCardinality.ONE.name, null),
+                                AspectPropertyData("", null, aspectDepth.id!!, PropertyCardinality.ONE.name, null)
+                            )
                         )
                     )
-                ))
+                )
         ).andReturn()
         aspectDimensions = JSON.parse(aspectDimensionsRequestResult.response.contentAsString)
 
@@ -110,11 +112,11 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
 
         assertAll(
             "Delete response contains correct structure",
-            { propertyHeightDeleteResponse.id               shouldBe aspectPropertyHeight.id },
+            { propertyHeightDeleteResponse.id shouldBe aspectPropertyHeight.id },
             { propertyHeightDeleteResponse.cardinality.name shouldBe aspectPropertyHeight.cardinality },
-            { propertyHeightDeleteResponse.name             shouldBe aspectPropertyHeight.name },
-            { propertyHeightDeleteResponse.parentAspect.id  shouldBe aspectDimensions.id },
-            { propertyHeightDeleteResponse.childAspect.id   shouldBe aspectHeight.id }
+            { propertyHeightDeleteResponse.name shouldBe aspectPropertyHeight.name },
+            { propertyHeightDeleteResponse.parentAspect.id shouldBe aspectDimensions.id },
+            { propertyHeightDeleteResponse.childAspect.id shouldBe aspectHeight.id }
         )
     }
 
@@ -136,7 +138,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
         val newAspectWidth = newAspectList.find { it.name == "Width" }!!
         val newAspectDepth = newAspectList.find { it.name == "Depth" }!!
 
-        assertAll (
+        assertAll(
             "Dimensions aspect after property deletion should not contain deleted property",
             { newAspectDimensions.properties.size shouldBe 2 },
             { assertNotNull(newAspectDimensions.properties.find { it.aspectId == newAspectWidth.id }) },
@@ -185,11 +187,11 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
 
         assertAll(
             "Delete response contains correct structure",
-            { deleteHeightPropertyResponse.id              shouldBe aspectPropertyHeight.id },
-            { deleteHeightPropertyResponse.cardinality     shouldBe aspectPropertyHeight.cardinality },
-            { deleteHeightPropertyResponse.name            shouldBe aspectPropertyHeight.name },
+            { deleteHeightPropertyResponse.id shouldBe aspectPropertyHeight.id },
+            { deleteHeightPropertyResponse.cardinality shouldBe aspectPropertyHeight.cardinality },
+            { deleteHeightPropertyResponse.name shouldBe aspectPropertyHeight.name },
             { deleteHeightPropertyResponse.parentAspect.id shouldBe boxDimensionsValueAspectId },
-            { deleteHeightPropertyResponse.childAspect.id  shouldBe aspectPropertyHeight.aspect.id }
+            { deleteHeightPropertyResponse.childAspect.id shouldBe aspectPropertyHeight.aspect.id }
         )
     }
 
@@ -222,16 +224,18 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.post("/api/objects/createValue")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(
-                    ValueCreateRequest(
-                        ObjectValueData.DecimalValue("42.5"),
-                        null,
-                        objectPropertyId,
-                        Millimetre.name,
-                        aspectPropertyId,
-                        parentValueId
-                    ).toDTO()
-                ))
+                .content(
+                    JSON.stringify(
+                        ValueCreateRequest(
+                            ObjectValueData.DecimalValue.single("42.5"),
+                            null,
+                            objectPropertyId,
+                            Millimetre.name,
+                            aspectPropertyId,
+                            parentValueId
+                        ).toDTO()
+                    )
+                )
         )
     }
 }

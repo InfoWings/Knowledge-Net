@@ -229,57 +229,66 @@ class RefBookHistoryProvider(
                 info = "???",
                 deleted = false,
                 fullData = RefBookHistoryData.Companion.BriefState(
-                    RefBookHistoryData.Companion.Header(id = "???", name = "???", aspectName = "???", aspectId = "", description = ""), null),
-                    changes = emptyList()
-                )
+                    RefBookHistoryData.Companion.Header(id = "???", name = "???", aspectName = "???", aspectId = "", description = ""), null
+                ),
+                changes = emptyList()
+            )
 
         }
     }
 
     fun getAllHistory(): List<RefBookHistory> {
-        val rbFacts = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
+        try {
+            val rbFacts = historyService.allTimeline(REFERENCE_BOOK_ITEM_VERTEX)
 
-        logger.info("found ${rbFacts.size} reference book facts")
+            logger.info("found ${rbFacts.size} reference book facts")
 
-        val factsBySession = rbFacts.groupBy { it.event.sessionId }
+            val factsBySession = rbFacts.groupBy { it.event.sessionId }
 
-        val aspectIds = rbFacts.flatMap { fact ->
-            fact.payload.linksOfType("aspect")
-        }.toSet()
+            val aspectIds = rbFacts.flatMap { fact ->
+                fact.payload.linksOfType("aspect")
+            }.toSet()
 
-        val aspectNames = logTime(logger, "extract aspect names") {
-            aspectDao.findAspectsByIds(aspectIds.toList()).groupBy { it.id }.mapValues { it.value.first().name }
-        }
-
-        val historyState = RefBookState()
-
-        return factsBySession.map { (sessionId, sessionFacts) ->
-            val ch = try {
-                sessionToChange(sessionFacts, historyState, aspectNames)
-            } catch (e: Exception) {
-                logger.warn("Failed to aggregate history for session $sessionId. Reason: $e")
-                e.stackTrace.forEach {
-                    logger.warn(it.toString())
-                }
-                sessionFacts.forEach { logger.warn("fact: $it") }
-                logger.warn("history state: $historyState")
-
-                RefBookHistory(sessionFacts.first().event, info = "", deleted = false,
-                    fullData = RefBookHistoryData.Companion.BriefState(
-                        RefBookHistoryData.Companion.Header("", "", null, "", ""),
-                        RefBookHistoryData.Companion.Item("", "", null)),
-                    changes = emptyList(),
-                    problem = "Thrown: $e")
+            val aspectNames = logTime(logger, "extract aspect names") {
+                aspectDao.findAspectsByIds(aspectIds.toList()).groupBy { it.id }.mapValues { it.value.first().name }
             }
-            val timestamps = sessionFacts.map { it.event.timestamp }
-            val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
-            val newEvent = ch.event.copy(
-                username = sessionFacts.first().event.username,
-                timestamp = sessionTimestamp, sessionId = sessionId
-            )
-            ch.copy(event = newEvent,
-                changes = ch.changes.flatMap { transformDelta(it, aspectNames) })
-        }.reversed()
+
+            val historyState = RefBookState()
+
+            return factsBySession.map { (sessionId, sessionFacts) ->
+                val ch = try {
+                    sessionToChange(sessionFacts, historyState, aspectNames)
+                } catch (e: Exception) {
+                    logger.warn("Failed to aggregate history for session $sessionId. Reason: $e")
+                    e.stackTrace.forEach {
+                        logger.warn(it.toString())
+                    }
+                    sessionFacts.forEach { logger.warn("fact: $it") }
+                    logger.warn("history state: $historyState")
+
+                    RefBookHistory(
+                        sessionFacts.first().event, info = "", deleted = false,
+                        fullData = RefBookHistoryData.Companion.BriefState(
+                            RefBookHistoryData.Companion.Header("", "", null, "", ""),
+                            RefBookHistoryData.Companion.Item("", "", null)
+                        ),
+                        changes = emptyList(),
+                        problem = "Thrown: $e"
+                    )
+                }
+                val timestamps = sessionFacts.map { it.event.timestamp }
+                val sessionTimestamp = timestamps.max() ?: throw IllegalStateException("no facts in session")
+                val newEvent = ch.event.copy(
+                    username = sessionFacts.first().event.username,
+                    timestamp = sessionTimestamp, sessionId = sessionId
+                )
+                ch.copy(event = newEvent,
+                    changes = ch.changes.flatMap { transformDelta(it, aspectNames) })
+            }.reversed()
+        } catch (e: Exception) {
+            logger.error("Caught exception during ref books history collection: $e, ${e.stackTrace.toList()}")
+            return emptyList()
+        }
     }
 }
 

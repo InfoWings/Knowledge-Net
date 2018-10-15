@@ -61,8 +61,12 @@ sealed class LinkValueVertex {
    Часть подтипов совсем такие же, как в Object, но Decimal и Link отличаются
  */
 sealed class ObjectValue {
-    data class IntegerValue(val value: Int, val precision: Int?) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.IntegerValue(value, precision)
+    data class IntegerValue(val value: Int, val upb: Int, val precision: Int?) : ObjectValue() {
+        constructor(value: Int, precision: Int?) : this(value, value, precision)
+
+        constructor(value: Int, upb: Int?, precision: Int?) : this(value, upb ?: value, precision)
+
+        override fun toObjectValueData() = ObjectValueData.IntegerValue(value, upb, precision)
     }
 
     data class BooleanValue(val value: Boolean) : ObjectValue() {
@@ -77,8 +81,12 @@ sealed class ObjectValue {
         override fun toObjectValueData() = ObjectValueData.RangeValue(range)
     }
 
-    data class DecimalValue(val value: BigDecimal) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString())
+    data class DecimalValue(val value: BigDecimal, val upb: BigDecimal) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString(), upb.toString())
+
+        companion object {
+            fun instance(value: BigDecimal, upb: BigDecimal?) = DecimalValue(value, upb ?: value)
+        }
     }
 
     data class Link(val value: LinkValueVertex) : ObjectValue() {
@@ -115,7 +123,10 @@ data class ObjectPropertyValue(
         val targetValue: ObjectValueData = value.toObjectValueData()
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
-            ObjectValueData.DecimalValue(measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString())
+            ObjectValueData.DecimalValue(
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString(),
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toString()
+            )
         } else {
             targetValue
         }
@@ -124,7 +135,7 @@ data class ObjectPropertyValue(
 
 data class ValueResult(
     private val valueVertex: ObjectPropertyValueVertex,
-    val valueDto: ValueDTO,
+    private val valueDto: ValueDTO,
     val measureName: String?,
     private val objectProperty: ObjectPropertyVertex,
     private val aspectProperty: AspectPropertyVertex?,

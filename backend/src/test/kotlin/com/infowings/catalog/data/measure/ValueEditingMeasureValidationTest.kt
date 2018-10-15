@@ -67,7 +67,7 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
                         JSON.stringify(
                             ValueUpdateRequest(
                                 tubeObjectHeightProperty.rootValue.id,
-                                ObjectValueData.DecimalValue("42"),
+                                ObjectValueData.DecimalValue.single("42"),
                                 null,
                                 null,
                                 tubeObjectHeightProperty.rootValue.version
@@ -90,7 +90,7 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
                         JSON.stringify(
                             ValueUpdateRequest(
                                 tubeObjectHeightProperty.rootValue.id,
-                                ObjectValueData.DecimalValue("42"),
+                                ObjectValueData.DecimalValue.single("42"),
                                 Ampere.name,
                                 null,
                                 tubeObjectHeightProperty.rootValue.version
@@ -101,7 +101,6 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
         }
         exception.cause.shouldBeTypeOf<IllegalStateException>()
     }
-
 
 
 }

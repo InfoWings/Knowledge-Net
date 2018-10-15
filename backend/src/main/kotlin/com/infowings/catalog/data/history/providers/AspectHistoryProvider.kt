@@ -11,6 +11,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.ASPECT_CLASS
 import com.infowings.catalog.storage.ASPECT_PROPERTY_CLASS
 import com.infowings.catalog.storage.id
+import kotlin.math.sign
 
 private val logger = loggerFor<AspectHistoryProvider>()
 
@@ -184,111 +185,115 @@ class AspectHistoryProvider(
     private val aspectService: AspectService
 ) {
     fun getAllHistory(): List<AspectHistory> {
-        val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
+        try {
+            val bothFacts = historyService.allTimeline(listOf(ASPECT_CLASS, ASPECT_PROPERTY_CLASS))
 
-        val factsByClass = bothFacts.groupBy { it.event.entityClass }
-        val aspectFacts = factsByClass[ASPECT_CLASS].orEmpty()
-        val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
-        val propertyFacts = factsByClass[ASPECT_PROPERTY_CLASS].orEmpty()
-        val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
-        val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
+            val factsByClass = bothFacts.groupBy { it.event.entityClass }
+            val aspectFacts = factsByClass[ASPECT_CLASS].orEmpty()
+            val aspectFactsByEntity = aspectFacts.groupBy { it.event.entityId }
+            val propertyFacts = factsByClass[ASPECT_PROPERTY_CLASS].orEmpty()
+            val propertyFactsBySession = propertyFacts.groupBy { it.event.sessionId }
+            val propertySnapshots = propertyFacts.map { it.event.entityId to MutableSnapshot() }.toMap()
 
-        val refBookIds = aspectFacts.linksOfType(AspectField.REFERENCE_BOOK)
+            val refBookIds = aspectFacts.linksOfType(AspectField.REFERENCE_BOOK)
 
-        val refBookNames = logTime(logger, "extracting ref book names") {
-            refBookDao.find(refBookIds.toList()).groupBy { it.id }.mapValues { it.value.first().value }
-        }
-
-        val subjectIds = aspectFacts.linksOfType(AspectField.SUBJECT)
-
-        val subjectById = logTime(logger, "extracting subjects") {
-            subjectDao.find(subjectIds.toList()).groupBy { it.id }.mapValues { (_, elems) ->
-                val subjectVertex = elems.first()
-                SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = subjectVertex.description, version = subjectVertex.version)
+            val refBookNames = logTime(logger, "extracting ref book names") {
+                refBookDao.find(refBookIds.toList()).groupBy { it.id }.mapValues { it.value.first().value }
             }
-        }
 
-        val aspectIds = propertyFacts.mapNotNull { fact ->
-            fact.payload.data[AspectPropertyField.ASPECT.name]
-        }.toSet()
+            val subjectIds = aspectFacts.linksOfType(AspectField.SUBJECT)
 
-        val aspectsData = aspectService.getAspectsWithDeleted(aspectIds.toList())
-        val aspectsById: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
-
-        val events = logTime(logger, "processing aspect event groups") {
-            aspectFactsByEntity.values.flatMap { aspectFacts ->
-                val snapshot = MutableSnapshot()
-
-                val versionList = listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.immutable(), emptyMap())) + aspectFacts.map { aspectFact ->
-                    if (!aspectFact.event.type.isDelete()) {
-                        snapshot.apply(aspectFact.payload)
-                        val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
-                        propertyFacts?.forEach { propertyFact ->
-                            propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
-                            propertySnapshots[propertyFact.event.entityId]?.data?.set("_version", propertyFact.event.version.toString())
-                        }
-                    }
-
-                    val baseType = snapshot.data[AspectField.BASE_TYPE.name]
-
-                    val properties = (snapshot.links[AspectField.PROPERTY]?.toSet() ?: emptySet()).map {
-                        val propId = it.toString()
-                        val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
-                        propSnapshot.toAspectPropertyData(propId)
-                    }
-
-                    val refBookName = snapshot.resolvedLink(AspectField.REFERENCE_BOOK) {
-                        refBookNames[it] ?: "???"
-                    }
-                    val subject = snapshot.resolvedLink(AspectField.SUBJECT) {
-                        subjectById[it] ?: removedSubject
-                    }
-
-                    val aspectData = snapshot.toAspectData(properties, aspectFact.event, refBookName, subject)
-
-                    val propertySnapshotsById = properties.map { property ->
-                        val propertySnapshot = propertySnapshots[property.id] ?: MutableSnapshot()
-                        property.id to propertySnapshot.immutable()
-                    }.toMap()
-
-                    DataWithSnapshot(aspectData, snapshot.immutable(), propertySnapshotsById)
+            val subjectById = logTime(logger, "extracting subjects") {
+                subjectDao.find(subjectIds.toList()).groupBy { it.id }.mapValues { (_, elems) ->
+                    val subjectVertex = elems.first()
+                    SubjectData(id = subjectVertex.id, name = subjectVertex.name, description = subjectVertex.description, version = subjectVertex.version)
                 }
+            }
 
-                return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
-                    versionList.zipWithNext().zip(aspectFacts)
-                        .map { (versionsPair, aspectFact) ->
-                            val (before, after) = versionsPair
+            val aspectIds = propertyFacts.mapNotNull { fact ->
+                fact.payload.data[AspectPropertyField.ASPECT.name]
+            }.toSet()
 
-                            val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId] ?: emptyList()).groupBy { it.event.type }
+            val aspectsData = aspectService.getAspectsWithDeleted(aspectIds.toList())
+            val aspectsById: Map<String, AspectData> = aspectsData.map { it.id!! to it }.toMap()
 
-                            val context = AggregationContext(aspectsById, subjectById, refBookNames, before)
+            val events = logTime(logger, "processing aspect event groups") {
+                aspectFactsByEntity.values.flatMap { aspectFacts ->
+                    val snapshot = MutableSnapshot()
 
-                            val propertyDeltas = propertyDeltaCreators.flatMap { (eventType, deltaCreator) ->
-                                propertyFactsByType[eventType].orEmpty().mapNotNull { deltaCreator(it, context) }
+                    val versionList =
+                        listOf(DataWithSnapshot(AspectData(id = null, name = ""), snapshot.immutable(), emptyMap())) + aspectFacts.map { aspectFact ->
+                            if (!aspectFact.event.type.isDelete()) {
+                                snapshot.apply(aspectFact.payload)
+                                val propertyFacts = propertyFactsBySession[aspectFact.event.sessionId]
+                                propertyFacts?.forEach { propertyFact ->
+                                    propertySnapshots[propertyFact.event.entityId]?.apply(propertyFact.payload)
+                                    propertySnapshots[propertyFact.event.entityId]?.data?.set("_version", propertyFact.event.version.toString())
+                                }
                             }
 
-                            val linksSplit: Split = aspectFact.payload.classifyLinks()
+                            val properties = (snapshot.links[AspectField.PROPERTY]?.toSet() ?: emptySet()).map {
+                                val propId = it.toString()
+                                val propSnapshot = propertySnapshots[propId] ?: MutableSnapshot()
+                                propSnapshot.toAspectPropertyData(propId)
+                            }
 
-                            val replacedLinksDeltas = linksSplit.changed.mapNotNull { DeltaProducers.changeLink(it, aspectFact, context) }
-                            val addedLinksDeltas = linksSplit.added.mapNotNull { DeltaProducers.addLink(it, aspectFact, context) }
-                            val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, aspectFact, context) }
-                            val dataDeltas = aspectFact.payload.data.mapNotNull { DeltaProducers.data(it.key, aspectFact, context) }
+                            val refBookName = snapshot.resolvedLink(AspectField.REFERENCE_BOOK) {
+                                refBookNames[it] ?: "???"
+                            }
+                            val subject = snapshot.resolvedLink(AspectField.SUBJECT) {
+                                subjectById[it] ?: removedSubject
+                            }
 
-                            val deltas = dataDeltas + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas
+                            val aspectData = snapshot.toAspectData(properties, aspectFact.event, refBookName, subject)
 
-                            AspectHistory(
-                                aspectFact.event,
-                                after.data.name,
-                                after.data.deleted,
-                                AspectDataView(after.data, after.data.properties.map { aspectsById[it.aspectId] ?: removedAspect(it.aspectId) }),
-                                if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas
-                            )
+                            val propertySnapshotsById = properties.map { property ->
+                                val propertySnapshot = propertySnapshots[property.id] ?: MutableSnapshot()
+                                property.id to propertySnapshot.immutable()
+                            }.toMap()
+
+                            DataWithSnapshot(aspectData, snapshot.immutable(), propertySnapshotsById)
                         }
+
+                    return@flatMap logTime(logger, "aspect diffs creation for aspect ${aspectFacts.firstOrNull()?.event?.entityId}") {
+                        versionList.zipWithNext().zip(aspectFacts)
+                            .map { (versionsPair, aspectFact) ->
+                                val (before, after) = versionsPair
+
+                                val propertyFactsByType = (propertyFactsBySession[aspectFact.event.sessionId] ?: emptyList()).groupBy { it.event.type }
+
+                                val context = AggregationContext(aspectsById, subjectById, refBookNames, before)
+
+                                val propertyDeltas = propertyDeltaCreators.flatMap { (eventType, deltaCreator) ->
+                                    propertyFactsByType[eventType].orEmpty().mapNotNull { deltaCreator(it, context) }
+                                }
+
+                                val linksSplit: Split = aspectFact.payload.classifyLinks()
+
+                                val replacedLinksDeltas = linksSplit.changed.mapNotNull { DeltaProducers.changeLink(it, aspectFact, context) }
+                                val addedLinksDeltas = linksSplit.added.mapNotNull { DeltaProducers.addLink(it, aspectFact, context) }
+                                val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, aspectFact, context) }
+                                val dataDeltas = aspectFact.payload.data.mapNotNull { DeltaProducers.data(it.key, aspectFact, context) }
+
+                                val deltas = dataDeltas + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas
+
+                                AspectHistory(
+                                    aspectFact.event,
+                                    after.data.name,
+                                    after.data.deleted,
+                                    AspectDataView(after.data, after.data.properties.map { aspectsById[it.aspectId] ?: removedAspect(it.aspectId) }),
+                                    if (aspectFact.event.type.isDelete()) deltas.filterNot { it.fieldName in setOf("Subject", "Reference book") } else deltas
+                                )
+                            }
+                    }
                 }
             }
-        }
 
-        return events.sortedWith(AspectComparatorDesc)
+            return events.sortedWith(AspectComparatorDesc)
+        } catch (e: Exception) {
+            logger.error("Caught exception during aspect history collection: $e, ${e.stackTrace.toList()}")
+            return emptyList()
+        }
     }
 }
 
@@ -296,5 +301,5 @@ object AspectComparatorDesc : Comparator<AspectHistory> {
     override fun compare(v1: AspectHistory, v2: AspectHistory): Int = if (v1.event.timestamp == v2.event.timestamp)
         v2.event.version - v1.event.version
     else
-        (v2.event.timestamp - v1.event.timestamp).toInt()
+        (v2.event.timestamp - v1.event.timestamp).sign
 }

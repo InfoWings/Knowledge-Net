@@ -21,22 +21,22 @@ fun RBuilder.propertyValue(
             disabled
         )
         baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue, disabled) { onChange(ObjectValueData.StringValue(it)) }
-        baseType == BaseType.Reference -> entityLinkInput((value as? ObjectValueData.Link)?.value, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
-        baseType == BaseType.Integer -> integerInput((value as? ObjectValueData.IntegerValue)?.asStringValue, disabled) {
-            onChange(
-                ObjectValueData.IntegerValue(
-                    it.toInt(),
-                    null
-                )
-            )
+        baseType == BaseType.Reference -> {
+            entityLinkInput((value as? ObjectValueData.Link)?.value, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
         }
-        baseType == BaseType.Decimal -> decimalInput((value as? ObjectValueData.DecimalValue)?.asStringValue, disabled) {
-            onChange(
-                ObjectValueData.DecimalValue(
-                    it
-                )
-            )
+        baseType == BaseType.Integer -> {
+            rangedNumericInput(value as ObjectValueData.IntegerValue, { lwb, upb ->
+                onChange(ObjectValueData.IntegerValue(lwb, upb, null))
+            }, false)
         }
+
+        baseType == BaseType.Decimal -> {
+            val decValue = value as ObjectValueData.DecimalValue
+            rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr), { lwb, upb ->
+                onChange(ObjectValueData.DecimalValue(lwb, upb))
+            }, disabled)
+        }
+
         baseType == BaseType.Boolean -> booleanInput((value as? ObjectValueData.BooleanValue)?.asStringValue, disabled) {
             onChange(
                 ObjectValueData.BooleanValue(
@@ -49,13 +49,13 @@ fun RBuilder.propertyValue(
 
 @Suppress("NotImplementedDeclaration")
 private val ObjectValueData.asStringValue
-    get() = when(this) {
+    get() = when (this) {
         is ObjectValueData.NullValue -> null
         is ObjectValueData.StringValue -> this.value
         is ObjectValueData.BooleanValue -> this.value.toString()
         is ObjectValueData.IntegerValue -> this.value.toString()
         is ObjectValueData.DecimalValue -> this.valueRepr
-        is ObjectValueData.Link -> when(this.value) {
+        is ObjectValueData.Link -> when (this.value) {
             is LinkValueData.DomainElement -> this.value.id
             is LinkValueData.Object -> this.value.id
             is LinkValueData.ObjectValue -> this.value.id
@@ -63,5 +63,3 @@ private val ObjectValueData.asStringValue
         }
         else -> throw IllegalArgumentException("$this is not representable by string")
     }
-
-
