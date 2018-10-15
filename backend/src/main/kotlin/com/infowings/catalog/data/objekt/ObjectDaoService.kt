@@ -35,23 +35,17 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
             return@transaction db.query(query) {
-                it.mapNotNull {
-                    try {
-                        ObjectTruncated(
-                            it.getProperty("@rid"),
-                            it.getProperty("name"),
-                            it.getProperty("guid"),
-                            it.getProperty("description"),
-                            it.getProperty("subjectName"),
-                            it.getProperty("objectPropertiesCount")
-                        )
-                    } catch (e: IllegalStateException) {
-                        val rid: ORID = it.getProperty("@rid")
-                        logger.error("unexpected state of object $rid: $e. Drop it")
-                        null
-                    }
-                }
-            }.toList()
+                it.map {
+                    ObjectTruncated(
+                        it.getProperty("@rid"),
+                        it.getProperty("name"),
+                        it.getProperty("guid"),
+                        it.getProperty("description"),
+                        it.getProperty("subjectName"),
+                        it.getProperty("objectPropertiesCount")
+                    )
+                }.toList()
+            }
         }
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
