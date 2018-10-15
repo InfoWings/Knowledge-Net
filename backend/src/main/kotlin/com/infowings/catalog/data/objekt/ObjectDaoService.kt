@@ -44,8 +44,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         it.getProperty("subjectName"),
                         it.getProperty("objectPropertiesCount")
                     )
-                }
-            }.toList()
+                }.toList()
+            }
         }
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
