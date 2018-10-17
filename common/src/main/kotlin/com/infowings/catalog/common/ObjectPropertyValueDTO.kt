@@ -51,7 +51,9 @@ enum class ValueDTOTags {
 
 public enum class RangeFlagConstants(val bitmask: Int) {
     LEFT_INF(1),
-    RIGHT_INF(2)
+    RIGHT_INF(2);
+
+    fun isSet(flags: Int) = bitmask.and(flags) != 0
 }
 
 /* json-представление скалярного значения. */

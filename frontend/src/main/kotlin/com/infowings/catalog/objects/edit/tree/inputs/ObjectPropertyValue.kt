@@ -3,8 +3,10 @@ package com.infowings.catalog.objects.edit.tree.inputs
 import com.infowings.catalog.common.BaseType
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.objects.edit.tree.inputs.values.*
 import react.RBuilder
+import react.ReactElement
 
 fun RBuilder.propertyValue(
     baseType: BaseType,
@@ -12,7 +14,7 @@ fun RBuilder.propertyValue(
     value: ObjectValueData?,
     onChange: (ObjectValueData) -> Unit,
     disabled: Boolean = false
-) {
+): ReactElement? =
     when {
         baseType == BaseType.Text && referenceBookId != null -> refBookInput(
             if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
@@ -33,7 +35,13 @@ fun RBuilder.propertyValue(
         baseType == BaseType.Decimal -> {
             val decValue = value as ObjectValueData.DecimalValue
             rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr, decValue.rangeFlags), { lwb, upb, rangeFlags ->
-                onChange(ObjectValueData.DecimalValue(lwb, upb, rangeFlags))
+                val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
+                val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
+
+                val leftInfinity = rangeFlags.and(leftFlag) != 0
+                val rightInfinity = rangeFlags.and(rightFlag) != 0
+
+                onChange(ObjectValueData.DecimalValue(if (leftInfinity) "0" else lwb, if (rightInfinity) "0" else upb, rangeFlags))
             }, disabled)
         }
 
@@ -44,8 +52,10 @@ fun RBuilder.propertyValue(
                 )
             )
         }
+
+        else -> null
     }
-}
+
 
 @Suppress("NotImplementedDeclaration")
 private val ObjectValueData.asStringValue

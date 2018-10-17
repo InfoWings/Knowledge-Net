@@ -4,11 +4,17 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
+import com.infowings.catalog.errors.errorToaster
+import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
+import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.wrappers.blueprint.Intent
+import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinext.js.jsObject
 import react.RBuilder
 import react.RProps
 import react.buildElement
@@ -442,6 +448,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         }
                         onValueMeasureNameChanged = if (props.editContext.currentContext == null) {
                             { newMeasureName, objectValueData ->
+
                                 props.editContext.setContext(
                                     EditExistingContextModel(
                                         props.rootValue.id ?: error("Root value should have id != null in order to edit")

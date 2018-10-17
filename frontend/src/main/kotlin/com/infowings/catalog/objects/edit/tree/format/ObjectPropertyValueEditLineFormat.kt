@@ -79,7 +79,8 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                         stringValueRepresentation = valueRepr, upbValueRepresentation = upbRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
-                            props.onValueMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, 0))
+                            props.onValueMeasureNameChanged(measure.name,
+                                ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, decimal.rangeFlags))
                         },
                         disabled = props.valueDisabled
                     )
