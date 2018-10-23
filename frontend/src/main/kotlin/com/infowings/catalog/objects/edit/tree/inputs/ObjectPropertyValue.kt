@@ -13,8 +13,10 @@ fun RBuilder.propertyValue(
     onChange: (ObjectValueData) -> Unit,
     disabled: Boolean = false
 ) {
+    val stringValue = value as? ObjectValueData.StringValue
+    println("baseType: ${baseType.name}, value: $value, string value: $stringValue, rbi: $referenceBookId")
     when {
-        baseType == BaseType.Text && referenceBookId != null -> refBookInput(
+        baseType == BaseType.Text && referenceBookId != null && stringValue?.value ?: "" == "" -> refBookInput(
             if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
             { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it))) },
             referenceBookId,
