@@ -76,10 +76,10 @@ fun RBuilder.rangedNumericInput(value: ObjectValueData.IntegerValue, onUpdate: (
 
 fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String, Int) -> Unit, disabled: Boolean) = rangedDecimalInput {
     attrs {
-        this.lwb = value.valueRepr
-        this.upb = value.upbRepr
-        this.leftInfinity = RangeFlagConstants.LEFT_INF.bitmask.and(value.rangeFlags) != 0
-        this.rightInfinity = RangeFlagConstants.RIGHT_INF.bitmask.and(value.rangeFlags) != 0
+        this.lwb = if (RangeFlagConstants.LEFT_INF.isSet(value.rangeFlags)) "" else value.valueRepr
+        this.upb = if (RangeFlagConstants.RIGHT_INF.isSet(value.rangeFlags)) "" else value.upbRepr
+        this.leftInfinity = RangeFlagConstants.LEFT_INF.isSet(value.rangeFlags)
+        this.rightInfinity = RangeFlagConstants.RIGHT_INF.isSet(value.rangeFlags)
         this.onUpdate = onUpdate
         this.disabled = disabled
     }

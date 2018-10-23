@@ -59,6 +59,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
+                referenceBookNameSoft = props.referenceBookNameSoft,
                 value = value,
                 onChange = props.onValueUpdate,
                 disabled = props.valueDisabled
@@ -79,7 +80,10 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                         stringValueRepresentation = valueRepr, upbValueRepresentation = upbRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
-                            props.onValueMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, 0))
+                            props.onValueMeasureNameChanged(
+                                measure.name,
+                                ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, decimal.rangeFlags)
+                            )
                         },
                         disabled = props.valueDisabled
                     )
@@ -125,6 +129,7 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var aspectMeasure: Measure<*>?
     var subjectName: String?
     var referenceBookId: String?
+    var referenceBookNameSoft: String?
     var value: ObjectValueData?
     var valueMeasure: Measure<*>?
     var valueDescription: String?

@@ -88,6 +88,11 @@ class ReferenceBookApi(val referenceBookService: ReferenceBookService) {
         referenceBookService.removeReferenceBookItem(bookItem, principal.name, true)
     }
 
+    @GetMapping("item/{id}")
+    fun getItemById(@PathVariable(value = "id") itemId: String): ReferenceBookItem {
+        return referenceBookService.getReferenceBookItem(itemId).copy(children = emptyList())
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleException(e: Exception): ResponseEntity<String> {
         return when (e) {

@@ -17,7 +17,7 @@ private class AspectVertexHolder(val vertex: AspectVertex) : AspectHolder() {
     fun verifyNext(propertyVertex: AspectPropertyVertex) {
         val incomingAspectEdge = propertyVertex.getEdges(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first()
         val edgeId = incomingAspectEdge.identity
-        val isAspectPropertyHasOutgoingPropertyLikeInAspect =  vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).any {
+        val isAspectPropertyHasOutgoingPropertyLikeInAspect = vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).any {
             it.identity == edgeId
         }
         if (!isAspectPropertyHasOutgoingPropertyLikeInAspect) {
@@ -103,7 +103,8 @@ class AspectTreeBuilder {
                                 propertyVertex.id,
                                 PropertyCardinality.valueOf(propertyVertex.cardinality),
                                 propertyVertex.name,
-                                completedAspectsCache[outgoingPropertyVertexId] ?: throw IllegalStateException("Ashects cache should contain completed aspects"),
+                                completedAspectsCache[outgoingPropertyVertexId]
+                                        ?: throw IllegalStateException("Ashects cache should contain completed aspects"),
                                 propertyVertex.deleted
                             )
                         )
@@ -119,7 +120,8 @@ class AspectTreeBuilder {
      * Tries to build complete immutable [AspectTree] structure from vertexes, supplied earlier.
      */
     fun buildAspectTree(): AspectTree {
-        val firstInAspectState = if (aspectTraversalState.size == 1) aspectTraversalState.peekFirst() else throw IllegalStateException("Aspect tree is not yet completed")
+        val firstInAspectState =
+            if (aspectTraversalState.size == 1) aspectTraversalState.peekFirst() else throw IllegalStateException("Aspect tree is not yet completed")
         if (firstInAspectState != null && firstInAspectState is AspectVertexHolder && firstInAspectState.completedAspect != null) {
             return firstInAspectState.completedAspect ?: throw IllegalStateException("Completed aspect holder does not contain built aspect tree")
         } else {
@@ -147,7 +149,10 @@ class AspectTreeBuilder {
         when (lastVertexHolderInState) {
             is AspectPropertyVertexHolder -> throw IllegalStateException("Expected last vertex in state to be Aspect Property")
             is AspectVertexHolder -> {
-                val isReadyForReduce = lastVertexHolderInState.vertex.getEdges(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).count() == lastVertexHolderInState.properties.size && lastVertexHolderInState.properties.all {
+                val isReadyForReduce = lastVertexHolderInState.vertex.getEdges(
+                    ODirection.OUT,
+                    ASPECT_ASPECT_PROPERTY_EDGE
+                ).count() == lastVertexHolderInState.properties.size && lastVertexHolderInState.properties.all {
                     it.completedProperty != null
                 }
                 if (isReadyForReduce) {
@@ -162,6 +167,7 @@ class AspectTreeBuilder {
                         aspectVertex.baseType,
                         aspectVertex.baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                         aspectVertex.referenceBookRootVertex?.id,
+                        aspectVertex.referenceBookRootVertexSoft?.toReferenceBookItem()?.value,
                         aspectVertex.deleted,
                         lastVertexHolderInState.properties.map {
                             it.completedProperty ?: throw IllegalStateException("Completed flag is up while completed property is absent")

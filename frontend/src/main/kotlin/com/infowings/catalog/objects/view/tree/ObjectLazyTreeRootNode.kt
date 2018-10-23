@@ -75,4 +75,3 @@ interface ObjectLazyTreeRootNodeProps : RProps {
     var objectView: ObjectLazyViewModel
     var objectTreeModel: ObjectsLazyModel
 }
-

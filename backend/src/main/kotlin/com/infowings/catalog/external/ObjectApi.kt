@@ -7,7 +7,6 @@ import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
-import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -33,7 +32,7 @@ class ObjectApi(val objectService: ObjectService) {
         principal: Principal
     ): ValueRecalculationResponse {
         val username = principal.name
-        logger.debug("Recalculate value request by $username")
+        logger.debug("Recalculate value $value $fromMeasure -> $toMeasure request by $username")
         return ValueRecalculationResponse(
             targetMeasure = toMeasure,
             value = objectService.recalculateValue(fromMeasure, toMeasure, DecimalNumber(value)).toPlainString()

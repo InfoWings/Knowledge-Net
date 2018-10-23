@@ -285,7 +285,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
-    fun calcRangeFlags(): Int {
+    private fun calcRangeFlags(): Int {
         var result = 0
 
         if (leftInfinity) result += RangeFlagConstants.LEFT_INF.bitmask
@@ -307,11 +307,14 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             )
             ScalarTypeTag.OBJECT_VALUE -> ObjectValue.Link(LinkValueVertex.ObjectValue(refValueObjectValue ?: throw ObjectValueVertexNotDefinedException(id)))
             ScalarTypeTag.SUBJECT -> ObjectValue.Link(LinkValueVertex.Subject(refValueSubject ?: throw SubjectVertexNotDefinedException(id)))
-            ScalarTypeTag.DOMAIN_ELEMENT -> ObjectValue.Link(
-                LinkValueVertex.DomainElement(
-                    refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
+            ScalarTypeTag.DOMAIN_ELEMENT -> {
+                ObjectValue.Link(
+
+                    LinkValueVertex.DomainElement(
+                        refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
+                    )
                 )
-            )
+            }
             ScalarTypeTag.ASPECT -> ObjectValue.Link(LinkValueVertex.Aspect(refValueAspect ?: throw AspectVertexNotDefinedException(id)))
             ScalarTypeTag.ASPECT_PROPERTY -> ObjectValue.Link(
                 LinkValueVertex.AspectProperty(

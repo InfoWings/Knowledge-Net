@@ -40,6 +40,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.aspectReferenceBookId,
+                referenceBookNameSoft = "",
                 value = value,
                 onChange = props.onChange,
                 disabled = props.disabled

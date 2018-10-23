@@ -40,7 +40,9 @@ sealed class LinkValueVertex {
     }
 
     class DomainElement(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.DomainElement(vertex.id)
+        override fun toData(): LinkValueData {
+            return LinkValueData.DomainElement(vertex.id, vertex.value, vertex.root?.id)
+        }
     }
 
     class RefBookItem(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
@@ -115,6 +117,7 @@ data class ObjectPropertyValue(
     val guid: String?
 ) {
     fun calculateObjectValueData(): ObjectValueData {
+
         val measure = measure?.toMeasure() ?: when (aspectProperty) {
             null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
             else -> aspectProperty.associatedAspect
