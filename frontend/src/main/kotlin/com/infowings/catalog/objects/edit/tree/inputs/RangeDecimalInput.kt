@@ -13,6 +13,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
     override fun State.init(props: Props) {
         lwb = props.lwb
         upb = props.upb
+        isRange = !(props.lwb == props.upb)
         leftInfinity = props.leftInfinity
         rightInfinity = props.rightInfinity
         prevUpb = props.upb
@@ -24,7 +25,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         if (string.trim().isEmpty()) {
             // switch to infinity mode
 
-            if (props.rightInfinity) {
+            if (!isRangeMode() || state.rightInfinity) {
                 setState {
                     this.lwb = lwbPrev
                 }
@@ -48,7 +49,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                         leftInfinity = false
                         lwb = "0"
                     }
-                    props.onUpdate("0", props.upb, 0)
+                    props.onUpdate("0", "0", 0)
                 } else {
                     if (string.toDouble() < upbPrev.toDouble()) {
                         setState {
@@ -69,11 +70,11 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
             } else {
                 val oldString = props.lwb
 
-                if (props.rightInfinity || upbPrev == null || string.toDouble() < upbPrev.toDouble()) {
+                if (props.rightInfinity || !isRangeMode() || string.toDouble() < state.prevUpb.toDouble()) {
                     setState {
                         lwb = string
                     }
-                    if (string != oldString) props.onUpdate(string, upbPrev ?: string, calcRangeFlags())
+                    if (string != oldString) props.onUpdate(string, if (isRangeMode()) props.upb else string, calcRangeFlags())
                 } else {
                     setState {
                         lwb = lwbPrev
@@ -101,7 +102,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                 upb = ""
             }
             if (!prevInfinity) {
-                props.onUpdate(props.lwb, if (props.upb == null) props.lwb else string, calcRangeFlags(props.leftInfinity, true))
+                props.onUpdate(props.lwb, "", calcRangeFlags(props.leftInfinity, true))
             }
         } else {
             if (props.rightInfinity) {
@@ -153,18 +154,12 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         return result
     }
 
-    private fun step(): Double {
-        val stepLwb = 1 * 10.0.pow(-state.lwb.decimalDigits())
-        val stepUpb = 1 * 10.0.pow(-(state.upb?.decimalDigits() ?: 0))
-
-        return maxOf(minOf(stepLwb, stepUpb), 0.0001)
-    }
-
     private fun hasInfinity() = props.leftInfinity || props.rightInfinity
 
-    private fun isRangeMode() = props.upb != props.lwb || hasInfinity()
+    private fun isRangeMode() = state.isRange
 
     override fun RBuilder.render() {
+        println("render: ${props.lwb} - ${props.upb}")
         val buttonName = "Switch to ${if (isRangeMode()) "value" else "range"}"
 
         val step = 0.1
@@ -176,9 +171,11 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                     className = "pt-minimal"
                     disabled = toDisable ?: false
                     onClick = {
-                        val stateUpb = props.upb
-                        if (stateUpb == props.lwb) {
+                        println("is range: ${isRangeMode()}")
+                        if (!isRangeMode()) {
+                            println("value: ${props.lwb}")
                             val minUpb = props.lwb.smallDelta(up = true)
+                            println("minUpb: $minUpb")
                             val newUpb = when {
                                 state.prevUpb.trim().isEmpty() -> minUpb
                                 state.prevUpb.toDouble() > minUpb.toDouble() -> state.prevUpb
@@ -186,9 +183,11 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                             }
                             setState {
                                 upb = newUpb
+                                isRange = true
                             }
                             props.onUpdate(props.lwb, newUpb, 0)
                         } else {
+                            println("is range")
                             when {
                                 props.leftInfinity -> {
                                     setState {
@@ -197,6 +196,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                                         lwb = "0"
                                         leftInfinity = false
                                         rightInfinity = false
+                                        isRange = false
                                     }
                                     props.onUpdate("0", "0", 0)
                                 }
@@ -206,6 +206,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                                         upb = lwb
                                         leftInfinity = false
                                         rightInfinity = false
+                                        isRange = false
                                     }
                                     props.onUpdate(props.lwb, props.lwb, 0)
                                 }
@@ -213,6 +214,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                                     setState {
                                         prevUpb = props.upb
                                         upb = lwb
+                                        isRange = false
                                     }
                                     props.onUpdate(props.lwb, props.lwb, 0)
                                 }
@@ -233,20 +235,22 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                 this.stepSize = step
                 this.onValueChange = this@RangedDecimalInput::changeLowerBoundary
                 this.disabled = toDisable ?: false
+                placeholder = "Infinity"
             }
         }
 
         if (isRangeMode()) {
-             NumericInput {
-                 attrs {
-                     this.value = if (props.rightInfinity) "" else props.upb
-                     this.majorStepSize = 5.0 * step
-                     this.minorStepSize = 2.0 * step
-                     this.stepSize = step
-                     this.onValueChange =  this@RangedDecimalInput::changeUpperBoundary
-                     this.disabled = toDisable ?: false
-                 }
-             }
+            NumericInput {
+                attrs {
+                    this.value = if (props.rightInfinity) "" else props.upb
+                    this.majorStepSize = 5.0 * step
+                    this.minorStepSize = 2.0 * step
+                    this.stepSize = step
+                    this.onValueChange = this@RangedDecimalInput::changeUpperBoundary
+                    this.disabled = toDisable ?: false
+                    placeholder = "Infinity"
+                }
+            }
         }
     }
 
@@ -265,6 +269,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         var leftInfinity: Boolean
         var rightInfinity: Boolean
         var prevUpb: String
+        var isRange: Boolean
     }
 }
 
@@ -274,13 +279,20 @@ private fun Double.isNearToInt(): Boolean = isNear(this, this.roundToInt())
 
 private fun String.smallDelta(up: Boolean): String {
     val coeff = if (up) 1 else -1
+    println("small delta: $up, $this")
     val prec = decimalDigits()
+    println("small delta, prec: $prec")
 
     if (prec == 0) {
-        return (toDouble().roundToInt() + 1*coeff).toString()
+        return (toDouble().roundToInt() + 1 * coeff).toString()
     } else {
-        val v = ((toDouble() * (10.0.pow(prec))).roundToInt() + 1*coeff).toString()
-        return v.take(v.length - prec) + "." + v.drop(v.length - prec)
+        val v = ((toDouble() * (10.0.pow(prec))).roundToInt() + 1 * coeff).toString()
+        println("small delta, v: $v")
+        return when {
+            prec > v.length -> "0." + (1..(prec-v.length)).map { '0' }.joinToString("", "", "") + v
+            prec == v.length ->  "0." + v
+            else -> v.take(v.length - prec) + "." + v.drop(v.length - prec)
+        }
     }
 }
 
@@ -288,6 +300,9 @@ private fun String.decimalDigits(): Int {
     if (this.trim().isEmpty()) return 0
 
     val dbl = this.toDouble()
+
+    println("dd: $dbl")
+
     if (dbl.isNearToInt()) {
         return 0
     }

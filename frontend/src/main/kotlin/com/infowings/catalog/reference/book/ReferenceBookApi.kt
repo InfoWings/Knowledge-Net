@@ -35,6 +35,10 @@ internal suspend fun createReferenceBookItem(data: ReferenceBookItemData) {
     post("/api/book/item/create", JSON.stringify(data))
 }
 
+internal suspend fun getReferenceBookItem(id: String): ReferenceBookItem {
+    return JSON.parse(get("/api/book/item/${encodeURIComponent(id)}"))
+}
+
 internal suspend fun updateReferenceBookItem(bookItem: ReferenceBookItem) {
     post("/api/book/item/update", JSON.stringify(bookItem))
 }

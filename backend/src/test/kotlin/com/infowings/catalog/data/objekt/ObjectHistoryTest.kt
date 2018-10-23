@@ -1559,7 +1559,7 @@ class ObjectHistoryTest {
             ), "admin"
         )
 
-        val linkValue = ObjectValueData.Link(LinkValueData.DomainElement(rbiId))
+        val linkValue = ObjectValueData.Link(LinkValueData.DomainElement(rbiId, rbiValue, refBook.id))
 
         val prepared = prepareValue(testName, objectDescription, linkValue, aspect.idStrict())
 

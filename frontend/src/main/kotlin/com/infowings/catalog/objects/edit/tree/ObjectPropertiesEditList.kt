@@ -377,6 +377,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                     expanded = it
                 }
             }
+
             treeNodeContent = buildElement {
                 objectPropertyValueEditLineFormat {
                     attrs {
@@ -388,6 +389,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId
+                        referenceBookNameSoft = aspect.refBookNameSoft
                         value = props.rootValue.value
                         valueMeasure = props.rootValue.measureName?.let { GlobalMeasureMap[it] }
                         valueDescription = props.rootValue.description

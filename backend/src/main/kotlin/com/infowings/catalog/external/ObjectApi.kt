@@ -33,7 +33,7 @@ class ObjectApi(val objectService: ObjectService) {
         principal: Principal
     ): ValueRecalculationResponse {
         val username = principal.name
-        logger.debug("Recalculate value request by $username")
+        logger.debug("Recalculate value $value $fromMeasure -> $toMeasure request by $username")
         return ValueRecalculationResponse(
             targetMeasure = toMeasure,
             value = objectService.recalculateValue(fromMeasure, toMeasure, DecimalNumber(value)).toPlainString()

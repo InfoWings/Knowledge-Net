@@ -1,28 +1,43 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.LinkValueData
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.RangeFlagConstants
+import com.infowings.catalog.common.*
 import com.infowings.catalog.objects.edit.tree.inputs.values.*
+import com.infowings.catalog.reference.book.getReferenceBookItem
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import react.RBuilder
 import react.ReactElement
 
 fun RBuilder.propertyValue(
     baseType: BaseType,
     referenceBookId: String?,
+    referenceBookNameSoft: String?,
     value: ObjectValueData?,
     onChange: (ObjectValueData) -> Unit,
     disabled: Boolean = false
-): ReactElement? =
-    when {
-        baseType == BaseType.Text && referenceBookId != null -> refBookInput(
-            if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) value.value.id else null,
-            { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it))) },
-            referenceBookId,
-            disabled
-        )
-        baseType == BaseType.Text -> textInput((value as? ObjectValueData.StringValue)?.asStringValue, disabled) { onChange(ObjectValueData.StringValue(it)) }
+): ReactElement? {
+    println("BT: ${baseType.name}, rbi: refBookId: $referenceBookId, rbi: refBookNameSoft: $referenceBookNameSoft, value: $value, disabled: $disabled")
+
+    val domainElement = if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) {
+        value.value as? LinkValueData.DomainElement
+    } else null
+
+    return when {
+        baseType == BaseType.Text && referenceBookId != null && (referenceBookId == domainElement?.rootId || value == null ) -> {
+            refBookInput(
+                domainElement?.id,
+                { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it, "", referenceBookId))) },
+                referenceBookId,
+                disabled
+            )
+        }
+        baseType == BaseType.Text -> {
+            val textValue = if (domainElement != null) domainElement.value else (value as? ObjectValueData.StringValue)?.asStringValue
+            textInput(textValue, disabled) {
+                onChange(ObjectValueData.StringValue(it))
+            }
+        }
         baseType == BaseType.Reference -> {
             entityLinkInput((value as? ObjectValueData.Link)?.value, { it?.let { onChange(ObjectValueData.Link(it)) } }, disabled)
         }
@@ -55,6 +70,7 @@ fun RBuilder.propertyValue(
 
         else -> null
     }
+}
 
 
 @Suppress("NotImplementedDeclaration")

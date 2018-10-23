@@ -84,6 +84,7 @@ data class AspectTree(
     val baseType: String? = null,
     val domain: String? = null,
     val refBookId: String? = null,
+    val refBookNameSoft: String? = null,
     val deleted: Boolean = false,
     val properties: List<AspectPropertyTree> = emptyList()
 )
