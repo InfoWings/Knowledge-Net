@@ -2,11 +2,12 @@ package com.infowings.catalog.search
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
-import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.aspect.selectFromAspectWithoutDeleted
-import com.infowings.catalog.data.aspect.toAspectVertex
+import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.data.objekt.ObjectTruncated
 import com.infowings.catalog.data.objekt.toObjectVertex
+import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
+import com.infowings.catalog.data.reference.book.ReferenceBookItemVertex
+import com.infowings.catalog.data.reference.book.toReferenceBookItemVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
@@ -19,7 +20,8 @@ import notDeletedSql
  * Сервис поиска в OrientDB
  */
 class SuggestionService(
-    private val database: OrientDatabase
+    private val database: OrientDatabase,
+    private val aspectDao: AspectDaoService
 ) {
 
     private val maxResultSize = 20
@@ -66,6 +68,78 @@ class SuggestionService(
             this.addAll(descSuggestion(text, clazz).mapNotNull { it.toMeasure() })
         }
         return this
+    }
+
+
+    fun aspectHints(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        aspectParam: AspectSuggestionParam?
+    ): AspectsHints = session(database) {
+        fun AspectVertex.fullName() = "$name(${subject?.name ?: "Global"})"
+
+        val byName = findAspectInDb(context, commonParam, aspectParam)
+            .filterNotNull()
+            .toList().map { AspectHint(it.fullName(), it.description, null, null, null, null, null, null) }
+
+        val byDesc = commonParam?.text?.let { text ->
+            findAspectsByDesc(text)
+                .filterNotNull()
+                .toList().map { AspectHint(it.fullName(), it.description, null, null, null, null, null, null) }
+        } ?: emptyList()
+
+        val byRefBookItemValue = commonParam?.text?.let { text ->
+            findRefBookItemsByValue(text)
+                .mapNotNull { vertex ->
+                    val root = vertex.root ?: vertex
+                    root.aspect?.let { aspect ->
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null)
+                    }
+                }.toList()
+        } ?: emptyList()
+
+        val byRefBookItemDesc = commonParam?.text?.let { text ->
+            findRefBookItemsByDesc(text)
+                .mapNotNull { vertex ->
+                    val root = vertex.root ?: vertex
+                    root.aspect?.let { aspect ->
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null)
+                    }
+                }.toList()
+        } ?: emptyList()
+
+        val byProperty = commonParam?.text?.let { text ->
+            findAspectPropertyByNameWithAspect(text)
+                .mapNotNull { vertex ->
+                    aspectDao.find(vertex.aspect)?.let { aspect ->
+                        AspectHint(
+                            vertex.parentAspect.fullName(),
+                            vertex.parentAspect.description,
+                            null,
+                            null,
+                            vertex.name,
+                            vertex.description,
+                            aspect.fullName(),
+                            aspect.description
+                        )
+                    }
+                }.toList()
+        } ?: emptyList()
+
+        val keyGroups = listOf(byName, byProperty, byRefBookItemValue, byDesc).map { it.map { it.name }.toSet() }
+
+        val keyGroupsAcc = keyGroups.fold(listOf(emptySet())) { acc: List<Set<String?>>, second ->
+            val newSet = acc.last() + second
+            acc + listOf(newSet)
+        }
+
+
+        return@session AspectsHints.empty()
+            .copy(byAspectName = byName)
+            .copy(byProperty = byProperty.filterNot { keyGroupsAcc[1].contains(it.name) })
+            .copy(byRefBookValue = byRefBookItemValue.filterNot { keyGroupsAcc[2].contains(it.name) })
+            .copy(byAspectDesc = byDesc.filterNot { keyGroupsAcc[3].contains(it.name) })
+            .copy(byRefBookDesc = byRefBookItemDesc.filterNot { keyGroupsAcc[4].contains(it.name) })
     }
 
     fun findAspect(
@@ -215,6 +289,35 @@ class SuggestionService(
                 }
             }
         return res.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }
+    }
+
+    private fun findAspectsByDesc(text: String): Sequence<AspectVertex> {
+        val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_DESC)}, :$lq) = true"
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
+        return res.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }
+    }
+
+    private fun findRefBookItemsByValue(text: String): Sequence<ReferenceBookItemVertex> {
+        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
+                " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_VALUE)}, :$lq) = true"
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
+        return res.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
+    }
+
+    private fun findRefBookItemsByDesc(text: String): Sequence<ReferenceBookItemVertex> {
+        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
+                " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_DESC)}, :$lq) = true"
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
+        return res.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
+    }
+
+    private fun findAspectPropertyByNameWithAspect(text: String): Sequence<AspectPropertyVertex> {
+        val q = "SELECT FROM ${OrientClass.ASPECT_PROPERTY.extName} WHERE (deleted is null or deleted = false)" +
+                " AND SEARCH_INDEX(${luceneIdx(OrientClass.ASPECT_PROPERTY.extName, "name_with_aspect")}, :$lq) = true"
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
+        return res.mapNotNull {
+            it.toVertexOrNull()?.toAspectPropertyVertex()
+        }
     }
 
     private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text

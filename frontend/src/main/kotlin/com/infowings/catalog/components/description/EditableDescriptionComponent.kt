@@ -2,7 +2,6 @@ package com.infowings.catalog.components.description
 
 import com.infowings.catalog.wrappers.blueprint.EditableText
 import com.infowings.catalog.wrappers.blueprint.Popover
-import kotlinext.js.invoke
 import kotlinext.js.require
 import kotlinx.html.js.onKeyDownFunction
 import react.*
@@ -40,6 +39,7 @@ class EditableDescriptionComponent(props: Props) :
                         className = "description-input--editable-text"
                         multiline = true
                         minLines = 2
+                        maxLines = 5
                         isEditing = state.editing
                         value = state.value
                         onEdit = {
@@ -73,7 +73,7 @@ class EditableDescriptionComponent(props: Props) :
     override fun RBuilder.render() {
         Popover {
             attrs {
-                popoverClassName = "description-popover"
+                popoverClassName = "description2-popover"
                 content = buildElement { editableInput }
                 isOpen = state.opened
                 onInteraction = {

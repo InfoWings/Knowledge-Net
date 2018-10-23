@@ -1,9 +1,6 @@
 package com.infowings.catalog.search
 
-import com.infowings.catalog.common.AspectsList
-import com.infowings.catalog.common.ObjectsList
-import com.infowings.catalog.common.SuggestedMeasureData
-import com.infowings.catalog.common.SubjectsList
+import com.infowings.catalog.common.*
 import com.infowings.catalog.loggerFor
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -38,8 +35,18 @@ class SearchController(val suggestionService: SuggestionService) {
         commonParam: CommonSuggestionParam?,
         aspectParam: AspectSuggestionParam
     ): AspectsList {
-        logger.debug("measureSuggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
+        logger.debug("aspectAsuggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
         return AspectsList(suggestionService.findAspect(context, commonParam, aspectParam))
+    }
+
+    @GetMapping("/aspect/hint")
+    fun aspectHint(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        aspectParam: AspectSuggestionParam
+    ): AspectsHints {
+        logger.debug("aspectHints request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
+        return suggestionService.aspectHints(context, commonParam, aspectParam)
     }
 
     /**
