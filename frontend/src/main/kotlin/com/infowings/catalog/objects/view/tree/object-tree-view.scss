@@ -41,8 +41,13 @@
     margin-left: 1rem;
   }
 
-  &__subject {
-    margin: 0 1rem;
+  &__timestamp {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  &__name {
+    margin-right: 1rem;
   }
 
   &__edit-link {

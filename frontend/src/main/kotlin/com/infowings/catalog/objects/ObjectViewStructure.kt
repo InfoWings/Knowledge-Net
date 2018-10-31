@@ -11,7 +11,8 @@ data class ObjectLazyViewModel(
     val objectPropertiesCount: Int,
     val objectProperties: List<ObjectPropertyViewModel>? = null,
     var expanded: Boolean = false,
-    var expandAllFlag: Boolean = false
+    var expandAllFlag: Boolean = false,
+    val lastUpdated: Long?
 ) {
     fun expandAll() {
         expanded = true
@@ -142,7 +143,8 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjectsView: Map<String, Detailed
             it.description,
             it.subjectName,
             it.propertiesCount,
-            detailedObjectsView[it.id]?.objectPropertyViews?.map(::ObjectPropertyViewModel)
+            detailedObjectsView[it.id]?.objectPropertyViews?.map(::ObjectPropertyViewModel),
+            lastUpdated = it.lastUpdated
         )
     }
 
@@ -156,7 +158,8 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, Deta
                 it.description,
                 it.subjectName,
                 it.objectPropertiesCount,
-                expanded = it.expanded
+                expanded = it.expanded,
+                lastUpdated = it.lastUpdated
             )
         } else {
             val detailedObject = detailedObjectsView[it.id] ?: error("Should never happened")
@@ -168,7 +171,8 @@ fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, Deta
                 detailedObject.subjectName,
                 detailedObject.propertiesCount,
                 it.objectProperties ?: detailedObject.objectPropertyViews.map(::ObjectPropertyViewModel),
-                it.expanded
+                it.expanded,
+                lastUpdated = it.lastUpdated
             ).also { newObject ->
                 if (it.expandAllFlag) {
                     newObject.expandAll()

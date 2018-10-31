@@ -53,9 +53,12 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
         get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE)
             .map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
 
+    val lastUpdated: Long?
+        get() = 1111 // vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
+
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
 
-        return Objekt(identity, name, description, currentSubject, properties, guid)
+        return Objekt(identity, name, description, currentSubject, properties, guid, lastUpdated)
     }
 }

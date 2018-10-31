@@ -6,6 +6,7 @@ import react.RBuilder
 import react.dom.div
 import react.dom.span
 import kotlin.js.Date
+import com.infowings.catalog.common.tableFormat
 
 fun RBuilder.aspectLabel(
     className: String?,
@@ -51,16 +52,13 @@ fun RBuilder.aspectLabel(
     +" )"
     lastChangedTimestamp?.let {
         span(classes = "text-grey") {
+            println("timestamp: " + it)
             val date = Date(it * 1000)
-            +"${date.getDateWithPadding()}.${date.getMonthWithPadding()} at ${date.getHoursWithPadding()}:${date.getMinutesWithPadding()}"
+            +date.tableFormat()
         }
     }
 }
 
-private fun Date.getDateWithPadding() = this.getDate().toString().padStart(2, '0')
-private fun Date.getMonthWithPadding() = this.getMonth().inc().toString().padStart(2, '0')
-private fun Date.getHoursWithPadding() = this.getHours().toString().padStart(2, '0')
-private fun Date.getMinutesWithPadding() = this.getMinutes().toString().padStart(2, '0')
 
 fun RBuilder.placeholderAspectLabel(className: String?) =
     div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {

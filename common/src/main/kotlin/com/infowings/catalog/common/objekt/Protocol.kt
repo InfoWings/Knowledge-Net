@@ -103,7 +103,8 @@ data class ObjectChangeResponse(
     val subjectId: String,
     val subjectName: String,
     val version: Int,
-    val guid: String?
+    val guid: String?,
+    val lastUpdated: Long?
 )
 
 @Serializable

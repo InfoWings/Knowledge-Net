@@ -46,7 +46,9 @@ class ObjectService(
                 objectVertex.description,
                 subjectVertex.name,
                 objectPropertyVertexes.size,
-                objectPropertyVertexes.map(this::fetchPropertyValues)
+                objectPropertyVertexes.map(this::fetchPropertyValues),
+                lastUpdated = objectVertex.lastUpdated
+
             )
         }
 
