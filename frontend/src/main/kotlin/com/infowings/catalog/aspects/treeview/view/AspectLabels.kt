@@ -1,12 +1,12 @@
 package com.infowings.catalog.aspects.treeview.view
 
+import com.infowings.catalog.common.tableFormat
 import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
 import react.dom.div
 import react.dom.span
 import kotlin.js.Date
-import com.infowings.catalog.common.tableFormat
 
 fun RBuilder.aspectLabel(
     className: String?,
@@ -52,7 +52,6 @@ fun RBuilder.aspectLabel(
     +" )"
     lastChangedTimestamp?.let {
         span(classes = "text-grey") {
-            println("timestamp: " + it)
             val date = Date(it * 1000)
             +date.tableFormat()
         }
