@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
+import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -11,6 +12,7 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
+import java.time.Instant
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -28,6 +30,30 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
     fun getTruncatedObjects() =
         transaction(db) {
+
+            val queryTS =
+                "SELECT @rid, name, description, " +
+                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
+                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').in('${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}').out('$HISTORY_EDGE').timestamp) as lastValueTS," +
+                        " max(out('$HISTORY_EDGE').timestamp) as lastTS " +
+                        "FROM $OBJECT_CLASS group by @rid "
+            val tsById = db.query(queryTS) {
+                it.map {
+                    val id: ORID = it.getProperty("@rid")
+                    val propTS: Instant? = it.getProperty("lastPropTS")
+                    val objectTS: Instant? = it.getProperty("lastTS")
+                    val valueTS: Instant? = it.getProperty("lastValueTS")
+
+
+                    val latest = listOfNotNull(propTS, objectTS, valueTS).sorted().last()
+                    logger.info("TSSSSSS: $objectTS, $propTS $valueTS $latest $id")
+
+                    id.toString() to latest
+                }.toMap()
+            }
+
+            logger.info("tsById: $tsById")
+
             val query =
                 "SELECT @rid, name, description, " +
                         "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
@@ -35,21 +61,17 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
             return@transaction db.query(query) {
-                it.mapNotNull {
-                    try {
-                        ObjectTruncated(
-                            it.getProperty("@rid"),
-                            it.getProperty("name"),
-                            it.getProperty("guid"),
-                            it.getProperty("description"),
-                            it.getProperty("subjectName"),
-                            it.getProperty("objectPropertiesCount")
-                        )
-                    } catch (e: IllegalStateException) {
-                        val rid: ORID = it.getProperty("@rid")
-                        logger.error("unexpected state of object $rid: $e. Drop it")
-                        null
-                    }
+                it.map {
+                    val id: ORID = it.getProperty<ORID>("@rid")
+                    ObjectTruncated(
+                        id,
+                        it.getProperty("name"),
+                        it.getProperty("guid"),
+                        it.getProperty("description"),
+                        it.getProperty("subjectName") ?: "UNKNOWN",
+                        it.getProperty("objectPropertiesCount"),
+                        lastUpdated = tsById.get(id.toString())?.epochSecond
+                    )
                 }
             }.toList()
         }

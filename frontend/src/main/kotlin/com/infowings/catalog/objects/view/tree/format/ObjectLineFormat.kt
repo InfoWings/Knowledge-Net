@@ -1,5 +1,6 @@
 package com.infowings.catalog.objects.view.tree.format
 
+import com.infowings.catalog.common.tableFormat
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.guid.copyGuidButton
 import com.infowings.catalog.components.submit.expandTreeButtonComponent
@@ -9,6 +10,7 @@ import react.RProps
 import react.dom.div
 import react.dom.span
 import react.rFunction
+import kotlin.js.Date
 
 val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { props ->
     div(classes = "object-line") {
@@ -22,6 +24,14 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
             +props.subjectName
         }
         +")"
+
+        props.timestamp?.let {
+            span(classes = "object-line__timestamp") {
+                val date = Date(it * 1000)
+                +date.tableFormat()
+            }
+        }
+
         props.objectDescription?.let {
             if (it.isNotBlank()) {
                 descriptionComponent(
@@ -47,6 +57,7 @@ interface ObjectLineFormatProps : RProps {
     var objectName: String
     var objectGuid: String?
     var objectDescription: String?
+    var timestamp: Long?
     var subjectName: String
     var expandTree: () -> Unit
 }
