@@ -22,6 +22,8 @@ data class AspectsHints(
             byRefBookDesc = emptyList(), byRefBookValue = emptyList(), byProperty = emptyList()
         )
     }
+
+    fun defaultOrder() = byAspectName + byProperty + byRefBookValue + byAspectDesc + byRefBookDesc
 }
 
 enum class PropertyCardinality {
@@ -38,6 +40,10 @@ enum class PropertyCardinality {
     abstract val label: String
 }
 
+enum class AspectHintSource {
+    ASPECT_NAME, ASPECT_DESCRIPTION, REFBOOK_NAME, REFBOOK_DESCRIPTION, ASPECT_PROPERTY_WITH_ASPECT
+}
+
 @Serializable
 data class AspectHint(
     val name: String,
@@ -47,7 +53,10 @@ data class AspectHint(
     val propertyName: String?,
     val propertyDesc: String?,
     val subAspectName: String?,
-    val aspectName: String?
+    val aspectName: String?,
+    val subjectName: String?,
+    val guid: String,
+    val source: String
 )
 
 
@@ -70,6 +79,7 @@ data class AspectData(
     operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
 
     fun idStrict(): String = id ?: throw IllegalStateException("No id for aspect $this")
+    fun nameWithSubject(): String = "${name} ( ${subject?.name ?: "Global"} )"
 
     companion object {
         fun initial(name: String) = AspectData(name = name)

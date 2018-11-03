@@ -244,6 +244,8 @@ class DefaultAspectService(
                 it.toAspectPropertyData()
             }
         }
+        val guidById = transaction(db) { guidDao.ofAspects(ids) }
+        logger.info("guid by id: " + guidById)
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
@@ -255,7 +257,7 @@ class DefaultAspectService(
                     val id = aspectVertex.id
                     val details = detailsById[id]
                     val data = details?.let {
-                        aspectVertex.toAspectData(propsById, details)
+                        aspectVertex.toAspectData(propsById, guidById, details)
                     }
                     data ?: logger.warn("nothing found for aspect id $id")
                     data

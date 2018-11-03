@@ -80,12 +80,17 @@ class SuggestionService(
 
         val byName = findAspectInDb(context, commonParam, aspectParam)
             .filterNotNull()
-            .toList().map { AspectHint(it.fullName(), it.description, null, null, null, null, null, null) }
+            .toList().map { AspectHint(it.fullName(), it.description, null, null, null, null, null, null,
+                subjectName = it.subject?.name, guid = it.guid ?: "?", source = AspectHintSource.ASPECT_NAME.toString()) }
 
         val byDesc = commonParam?.text?.let { text ->
             findAspectsByDesc(text)
                 .filterNotNull()
-                .toList().map { AspectHint(it.fullName(), it.description, null, null, null, null, null, null) }
+                .toList().map {
+                    AspectHint(it.fullName(), it.description, null, null, null, null, null, null,
+                        subjectName = it.subject?.name, guid = it.guid ?: "?",
+                        source = AspectHintSource.ASPECT_DESCRIPTION.toString())
+                }
         } ?: emptyList()
 
         val byRefBookItemValue = commonParam?.text?.let { text ->
@@ -93,7 +98,9 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null)
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null,
+                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?",
+                            source = AspectHintSource.REFBOOK_NAME.toString())
                     }
                 }.toList()
         } ?: emptyList()
@@ -103,7 +110,9 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null)
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null,
+                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?",
+                            source = AspectHintSource.REFBOOK_DESCRIPTION.toString())
                     }
                 }.toList()
         } ?: emptyList()
@@ -120,7 +129,9 @@ class SuggestionService(
                             vertex.name,
                             vertex.description,
                             aspect.fullName(),
-                            aspect.description
+                            aspect.description,
+                            subjectName = vertex.parentAspect.subject?.name, guid = vertex.parentAspect.guid ?: "?",
+                            source = AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT.toString()
                         )
                     }
                 }.toList()

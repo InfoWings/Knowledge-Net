@@ -214,7 +214,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
     // может быть приемлемым при работе с одним аспектом
     fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
 
-    fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
+    fun toAspectData(properties: Map<String, AspectPropertyData>, guids: Map<String, String>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
             val propertyId = it.toString()
             val data: AspectPropertyData? = properties[propertyId]
@@ -224,7 +224,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
         val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
         return data.copy(
             properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
-            lastChangeTimestamp = details.lastChange.epochSecond
+            lastChangeTimestamp = details.lastChange.epochSecond, guid = guids[id]
         )
     }
 }

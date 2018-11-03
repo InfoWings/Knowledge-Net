@@ -10,6 +10,7 @@ import com.infowings.catalog.aspects.search.aspectSearchComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.AspectOrderBy
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.wrappers.blueprint.*
@@ -22,8 +23,9 @@ fun RBuilder.aspectPageHeader(
     onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
-    setFilterAspects: (List<AspectData>) -> Unit,
-    refreshAspects: () -> Unit
+    setFilterAspects: (List<AspectHint>) -> Unit,
+    refreshAspects: () -> Unit,
+    aspectByGuid: Map<String, AspectData>
 ) {
     div(classes = "aspect-tree-view__header aspect-header") {
         div(classes = "aspect-header__sort-search") {
@@ -48,7 +50,7 @@ fun RBuilder.aspectPageHeader(
 
             aspectExcludeFilterComponent {
                 attrs {
-                    selectedAspects = filter.excludedAspects
+                    selectedAspects = filter.excludedAspects.map { it.copy(name = aspectByGuid[it.guid]?.nameWithSubject() ?: it.name ) }
                     onChange = setFilterAspects
                 }
             }
