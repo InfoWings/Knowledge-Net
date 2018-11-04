@@ -45,7 +45,12 @@ suspend fun getSuggestedAspects(
 suspend fun getSuggestedMeasureData(query: String, findInGroups: Boolean = false): SuggestedMeasureData =
     JSON.parse(get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
 
-suspend fun getAspectHints(query: String): AspectsHints {
-    return JSON.parse(get("/api/search/aspect/hint?text=$query"))
+suspend fun getAspectHints(query: String,
+                           aspectId: String? = null,
+                           aspectPropertyId: String? = null
+): AspectsHints {
+    val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
+    val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
+    return JSON.parse(get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
 }
 

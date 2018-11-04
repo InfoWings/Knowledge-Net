@@ -74,7 +74,7 @@ class GuidServiceTest {
         val ad = AspectData("", randomName("base"), Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
-        val property = AspectPropertyData("", randomName("p"), baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", randomName("p"), baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData("", randomName("complex"), Kilometre.name, null, BaseType.Decimal.name, listOf(property))
         complexAspect = aspectService.save(ad2, username)

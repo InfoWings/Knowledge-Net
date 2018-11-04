@@ -35,8 +35,8 @@ class AspectDaoFilterTest {
         widthAspectData = aspectService.save(widthAspectData, username)
         val dimensionAspectData = AspectData(
             null, randomName("Dimensions"), null, null, BaseType.Text.name, properties = listOf(
-                AspectPropertyData("", "", heightAspectData.id!!, PropertyCardinality.ONE.name, ""),
-                AspectPropertyData("", "", widthAspectData.id!!, PropertyCardinality.ONE.name, "")
+                AspectPropertyData("", "", heightAspectData.idStrict(), heightAspectData.guid ?: "???", PropertyCardinality.ONE.name, ""),
+                AspectPropertyData("", "", widthAspectData.idStrict(), widthAspectData.guid ?: "???", PropertyCardinality.ONE.name, "")
             )
         )
         aspectService.save(dimensionAspectData, username)

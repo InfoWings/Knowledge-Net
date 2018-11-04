@@ -1,8 +1,13 @@
 package com.infowings.catalog.aspects.editconsole.aspectproperty
 
+import com.infowings.catalog.aspects.getAspectHints
 import com.infowings.catalog.aspects.getSuggestedAspects
+import com.infowings.catalog.aspects.listEntry
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectHint
+import com.infowings.catalog.common.AspectHintSource
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
@@ -12,24 +17,39 @@ import react.*
 import react.dom.div
 import react.dom.span
 
-interface AspectOption : SelectOption {
-    var aspectData: AspectData
+private interface AspectOption : SelectOption {
     var aspectLabel: String
+    var aspectEntry: ReactElement
+    var aspectHint: AspectHint
 }
 
-fun aspectOption(data: AspectData) = jsObject<AspectOption> {
-    aspectLabel = "${data.name} ${data.subject?.let { "(${it.name})" } ?: "(Global)"}"
-    aspectData = data
+private fun aspectOption(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.listEntry()
 }
+
+private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.name.asReactElement()
+}
+
 
 class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Props, RState>() {
-
+/*
     private fun handleSelectAspectOption(option: AspectOption) {
         props.onAspectSelected(option.aspectData)
     }
-
+*/
     override fun RBuilder.render() {
         val boundAspect = props.aspect
+
+        println("bound: " + boundAspect)
+
+        val selected = boundAspect?.let { aspectOptionSelected(AspectHint.byAspect(it, AspectHintSource.ASPECT_NAME)) }
+        val selectedArray = selected?.let { arrayOf(it) } ?: emptyArray()
+
         div(classes = "aspect-edit-console--aspect-property-input-container") {
             label(classes = "aspect-edit-console--input-label") {
                 +"Aspect"
@@ -38,32 +58,27 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                 asyncSelect<AspectOption> {
                     attrs {
                         className = "aspect-table-select"
-                        value = boundAspect?.let {
-                            "${it.name} ${it.subject?.let { "(${it.name})" } ?: "(Global)"}"
-                        } ?: ""
-                        labelKey = "aspectLabel"
-                        valueKey = "aspectLabel"
-                        onChange = ::handleSelectAspectOption
+                        value = selected
+                        labelKey = "aspectEntry"
+                        onChange = {
+                            props.onAspectSelected(it.aspectHint) // TODO: KS-143
+                        }
                         cache = false
                         clearable = false
-                        options = if (boundAspect == null) emptyArray() else arrayOf(aspectOption(boundAspect))
+                        options = selectedArray
                         filterOptions = { options, _, _ -> options }
                         loadOptions = { input, callback ->
                             if (input.isNotEmpty()) {
                                 launch {
-                                    val searchResult = getSuggestedAspects(
-                                        input,
-                                        props.parentAspectId,
-                                        props.aspectPropertyId
-                                    )
+                                    val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
+                                    println("hinted aspects: " + hints.map {it.name})
                                     callback(null, jsObject {
-                                        options = searchResult.aspects.map { aspectOption(it) }.toTypedArray()
+                                        options = hints.map { aspectOption(it) }.toTypedArray()
                                     })
                                 }
                             } else {
                                 callback(null, jsObject {
-                                    options = if (boundAspect == null) emptyArray()
-                                    else arrayOf(aspectOption(boundAspect))
+                                    options = selectedArray
                                 })
                             }
                             false // Hack to not return Unit from the function that is considered true if placed in `if (Unit)` in javascript
@@ -85,7 +100,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
 
     interface Props : RProps {
         var aspect: AspectData?
-        var onAspectSelected: (AspectData) -> Unit
+        var onAspectSelected: (AspectHint) -> Unit
         var parentAspectId: String?
         var aspectPropertyId: String?
     }

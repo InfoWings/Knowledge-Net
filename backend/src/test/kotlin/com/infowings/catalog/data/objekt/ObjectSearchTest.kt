@@ -48,8 +48,8 @@ class ObjectSearchTest {
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), referenceAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
         complexAspect = aspectService.save(complexAspectData, username)
     }

@@ -43,7 +43,7 @@ class AspectServicePropertyTest {
         val ad = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, emptyList())
         baseAspect = aspectService.save(ad, username)
 
-        val property = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             id = "",
@@ -95,7 +95,7 @@ class AspectServicePropertyTest {
 
     @Test
     fun testAddAspectPropertiesToAspect() {
-        val propertyData = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val propertyData = AspectPropertyData("", "p2", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val dataForUpdate = complexAspect.copy(properties = complexAspect.properties.plus(propertyData))
         val updatedAspect = aspectService.save(dataForUpdate, username)
 
@@ -104,8 +104,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesDifferentNames() {
-        val property = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p2", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p2", complexAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             id = "",
@@ -129,8 +129,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesSameNamesSameAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             id = "",
@@ -147,8 +147,8 @@ class AspectServicePropertyTest {
 
     @Test
     fun testCreateAspectWithTwoPropertiesSameNamesDifferentAspect() {
-        val property = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val property2 = AspectPropertyData("", "p", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", complexAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p", baseAspect.idStrict(), complexAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad2 = AspectData(
             id = "",

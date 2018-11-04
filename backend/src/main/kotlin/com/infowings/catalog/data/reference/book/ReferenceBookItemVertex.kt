@@ -81,6 +81,9 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val root: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, REFERENCE_BOOK_ROOT_EDGE).firstOrNull()?.toReferenceBookItemVertex()
 
+    val rootOrThis: ReferenceBookItemVertex
+        get() = root ?: this
+
     /**
      * Return parent ReferenceBookItemVertex or null
      */

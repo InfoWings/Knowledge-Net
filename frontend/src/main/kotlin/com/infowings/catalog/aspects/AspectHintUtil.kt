@@ -75,10 +75,10 @@ fun elemByProperty(aspectName: String, propName: String, subAspectName: String):
 }
 
 fun AspectHint.listEntry() = when (AspectHintSource.valueOf(source)) {
-    AspectHintSource.ASPECT_NAME -> elemByAspectName(name)
-    AspectHintSource.ASPECT_DESCRIPTION -> elemByAspectDesc(name, description)
-    AspectHintSource.REFBOOK_NAME -> elemByRefBookValue(name, refBookItem ?: "")
-    AspectHintSource.REFBOOK_DESCRIPTION -> elemByRefBookDesc(name, refBookItem ?: "???", refBookItemDesc)
-    AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT -> elemByProperty(name, propertyName ?: "???", subAspectName ?: "???")
-    else -> elemByAspectName(name)
+    AspectHintSource.ASPECT_NAME -> elemByAspectName(name ?: "???")
+    AspectHintSource.ASPECT_DESCRIPTION -> elemByAspectDesc(name ?: "???", description)
+    AspectHintSource.REFBOOK_NAME -> elemByRefBookValue(name ?: "???", refBookItem ?: "")
+    AspectHintSource.REFBOOK_DESCRIPTION -> elemByRefBookDesc(name ?: "???", refBookItem ?: "???", refBookItemDesc)
+    AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT -> elemByProperty(name ?: "???", propertyName ?: "???", subAspectName ?: "???")
+    else -> elemByAspectName(subjectName ?: "???")
 }

@@ -110,7 +110,7 @@ class SubjectServiceTest {
         val name = randomName()
         val subject = createTestSubject("TestAddAspectsAfterRemoveForce")
         val aspect = aspectService.save(createTestAspect(name = name, subject = subject.toSubjectData()), username)
-        val level1Property = AspectPropertyData("", "p_level1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val level1Property = AspectPropertyData("", "p_level1", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         aspectService.save(
             createTestAspect("aspectBase", subject = subject.toSubjectData(), properties = listOf(level1Property)),
             username

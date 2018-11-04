@@ -47,7 +47,7 @@ class FreeAspectUpdateTest {
 
     @Test
     fun testEditProperty() {
-        val pd = AspectPropertyData(name = "prop", aspectId = aspect.id!!, cardinality = PropertyCardinality.ONE.name, description = null, id = "")
+        val pd = AspectPropertyData(name = "prop", aspectId = aspect.idStrict(), aspectGuid = aspect.guidSoft(), cardinality = PropertyCardinality.ONE.name, description = null, id = "")
         val ad2 = AspectData("", "testEditProperty-complex", Metre.name, null, BaseType.Decimal.name, listOf(pd))
         val complex = aspectService.save(ad2, username)
 

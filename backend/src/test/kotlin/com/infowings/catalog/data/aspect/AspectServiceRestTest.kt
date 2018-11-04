@@ -52,8 +52,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "createAspectTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(
@@ -85,8 +85,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "updateAspectTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(
@@ -100,7 +100,7 @@ class AspectServiceRestTest {
 
         val saved = aspectService.save(testData, username)
 
-        val newProperty = AspectPropertyData("", "p3", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val newProperty = AspectPropertyData("", "p3", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val updatedProperty = testProperty2.copy(name = "p4", cardinality = PropertyCardinality.ZERO.name)
 
         val propertyByName = saved.properties.groupBy { it.name }
@@ -150,8 +150,8 @@ class AspectServiceRestTest {
         val baseAspectData = AspectData("", "createAspectDoubleTest", Gram.name, null, BaseType.Decimal.name)
         val baseAspect = aspectService.save(baseAspectData, username)
 
-        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), PropertyCardinality.ONE.name, null)
-        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val testProperty1 = AspectPropertyData("", "p1", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.ONE.name, null)
+        val testProperty2 = AspectPropertyData("", "p2", baseAspect.idStrict(), baseAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val testData =
             AspectData(

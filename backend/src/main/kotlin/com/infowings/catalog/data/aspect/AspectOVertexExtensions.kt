@@ -212,7 +212,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
 
     // медленный вызов, в первую очередь за счет lastChange, во вторую -  за счет ссылок на субъект и имя справочника
     // может быть приемлемым при работе с одним аспектом
-    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
+    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() }, guid = guid ?: "???")
 
     fun toAspectData(properties: Map<String, AspectPropertyData>, guids: Map<String, String>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
@@ -245,7 +245,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         links = emptyMap()
     )
 
-    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, cardinality, description, version, deleted, guid)
+    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, associatedAspect.guid ?: "???", cardinality, description, version, deleted, guid)
 
     var name: String?
         get() = vertex["name"]

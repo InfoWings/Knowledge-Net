@@ -43,7 +43,7 @@ class SearchWithRemovedTest {
         val ad = AspectData(null, randomName(), Metre.name, null, null)
         initialAspect = aspectService.save(ad, username)
 
-        val p1 = AspectPropertyData("", "", initialAspect.idStrict(), PropertyCardinality.ONE.name, null)
+        val p1 = AspectPropertyData("", "", initialAspect.idStrict(), initialAspect.guidSoft(), PropertyCardinality.ONE.name, null)
         val ad2 = AspectData(null, randomName(), Tonne.name, null, null, listOf(p1))
         parentAspect = aspectService.save(ad2, username)
 

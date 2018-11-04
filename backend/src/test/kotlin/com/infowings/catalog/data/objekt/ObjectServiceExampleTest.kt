@@ -49,11 +49,11 @@ class ObjectServiceExampleTest {
         )
 
         val propertyCurrentStage1 =
-            AspectPropertyData("", "1-й ступени", aspectCurrent.idStrict(), PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "1-й ступени", aspectCurrent.idStrict(), aspectCurrent.guidSoft(), PropertyCardinality.ONE.name, null)
         val propertyCurrentStage2 =
-            AspectPropertyData("", "2-й ступени", aspectCurrent.idStrict(), PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "2-й ступени", aspectCurrent.idStrict(), aspectCurrent.guidSoft(), PropertyCardinality.ONE.name, null)
         val propertyMaxTempr =
-            AspectPropertyData("", "Max", aspectTemperature.idStrict(), PropertyCardinality.ONE.name, null)
+            AspectPropertyData("", "Max", aspectTemperature.idStrict(), aspectTemperature.idStrict(), PropertyCardinality.ONE.name, null)
 
         val aspectChargeMode = aspectService.save(
             AspectData(
@@ -72,7 +72,7 @@ class ObjectServiceExampleTest {
 
 
         val propertyChargeMode =
-            AspectPropertyData("", null, aspectChargeMode.idStrict(), PropertyCardinality.INFINITY.name, null)
+            AspectPropertyData("", null, aspectChargeMode.idStrict(), aspectChargeMode.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val aspectChargeCharacteristic = aspectService.save(
             AspectData(
                 name = "Характеристика заряда",

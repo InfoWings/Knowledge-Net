@@ -213,8 +213,7 @@ class SearchTest {
             emptyList()
         )
         val level2: AspectData = aspectService.save(level2Data, username)
-        val level2Property = AspectPropertyData("", "p_level2", level2.idStrict(), PropertyCardinality.INFINITY.name, null)
-
+        val level2Property = AspectPropertyData("", "p_level2", level2.idStrict(), level2.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val level11Data = AspectData(
             "",
@@ -226,7 +225,7 @@ class SearchTest {
         )
         val level11: AspectData = aspectService.save(level11Data, username)
         val level11Property =
-            AspectPropertyData("", "p_level1_1", level11.idStrict(), PropertyCardinality.INFINITY.name, null)
+            AspectPropertyData("", "p_level1_1", level11.idStrict(), level11.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val level1Data = AspectData(
             "",
@@ -237,7 +236,7 @@ class SearchTest {
             listOf(level2Property)
         )
         val level1: AspectData = aspectService.save(level1Data, username)
-        val level1Property = AspectPropertyData("", "p_level1", level1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val level1Property = AspectPropertyData("", "p_level1", level1.idStrict(), level1.guidSoft(), PropertyCardinality.INFINITY.name, null)
 
         val ad = AspectData(
             "",

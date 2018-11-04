@@ -7,6 +7,7 @@ import com.infowings.catalog.aspects.editconsole.aspectproperty.aspectPropertyNa
 import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
@@ -92,10 +93,11 @@ class AspectPropertyEditConsole(props: Props) :
         )
     }
 
-    private fun handlePropertyAspectIdChanged(aspect: AspectData) {
+    private fun handlePropertyAspectIdChanged(hint: AspectHint) {
         props.propertyEditConsoleModel.updateAspectProperty(
             props.parentAspect.properties[props.aspectPropertyIndex].copy(
-                aspectId = aspect.id ?: error("Selected aspect has no ID")
+                aspectId = hint.id,
+                aspectGuid = hint.guid
             )
         )
     }

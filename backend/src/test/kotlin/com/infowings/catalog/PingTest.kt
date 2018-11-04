@@ -328,6 +328,7 @@ class PingTest {
                         name = "prop${UUID.randomUUID()}",
                         cardinality = PropertyCardinality.ONE.name,
                         aspectId = aspect1.idStrict(),
+                        aspectGuid = aspect1.guid ?: "???",
                         description = null
                     )
                 )
