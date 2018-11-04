@@ -29,7 +29,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun aspectDescOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByAspectDesc(hint.name, hint.description)
+            this.aspectName = elemByAspectDesc(hint.subjectName ?: "???", hint.description)
         }
 
         fun propertyOption(hint: AspectHint) = jsObject<AspectOption> {
@@ -39,7 +39,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun refBookValueOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByRefBookValue(hint.name, hint.refBookItem ?: "?")
+            this.aspectName = elemByRefBookValue(hint.name ?: "???", hint.refBookItem ?: "?")
         }
 
         fun refBookDescOption(hint: AspectHint) = jsObject<AspectOption> {
@@ -63,7 +63,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
                     clearable = false
                     resetValue = null
                     disabled = false// props.disabled
-                    options = (props.hints.byAspectName.map { aspectOption(it.name) } +
+                    options = (props.hints.byAspectName.map { aspectOption(it.subjectName ?: "???") } +
                             props.hints.byProperty.map { propertyOption(it) } +
                             props.hints.byRefBookValue.map { refBookValueOption(it) } +
                             props.hints.byAspectDesc.map { aspectDescOption(it) } +
