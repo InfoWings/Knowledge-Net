@@ -3,10 +3,11 @@ package com.infowings.catalog.objects.view.tree.format
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.RangeFlagConstants
+import com.infowings.catalog.wrappers.History
 import react.RBuilder
 import react.dom.span
 
-fun RBuilder.valueFormat(value: ObjectValueData) {
+fun RBuilder.valueFormat(value: ObjectValueData, history: History) {
     when (value) {
         is ObjectValueData.NullValue -> return
         is ObjectValueData.DecimalValue -> span(classes = "object-property-value-line__value") {
@@ -30,7 +31,7 @@ fun RBuilder.valueFormat(value: ObjectValueData) {
         }
         is ObjectValueData.Link -> when (value.value) {
             is LinkValueData.DomainElement -> domainElementReferenceFormat(value.value.id)
-            else -> referenceBaseTypeFormat(value.value)
+            else -> referenceBaseTypeFormat(value.value, history)
         }
     }
 }

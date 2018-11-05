@@ -117,8 +117,8 @@ data class AspectPropertyData(
     val description: String?,
     val version: Int = 0,
     val deleted: Boolean = false,
-    val guid: String? = null
-) {
+    override val guid: String? = null
+) : GuidAware {
     companion object {
         fun Initial(name: String, description: String?, aspectId: String, aspectGuid: String, cardinality: String) =
             AspectPropertyData(id = "", name = name, description = description, aspectId = aspectId, aspectGuid = aspectGuid, cardinality = cardinality, version = 0, deleted = false)

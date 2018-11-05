@@ -23,6 +23,11 @@ fun RBuilder.copyGuidButton(text: String?) {
             attrs {
                 content = GUID_NOT_PROVIDED_PLACEHOLDER.asReactElement()
             }
+            button(type = ButtonType.button, classes = "pt-dark-button pt-minimal pt-small pt-icon-clipboard copy-entity-guid-btn") {
+              //  setProp("data-clipboard-text", text)
+            }
+
+            /*
             Button {
                 attrs {
                     className = "pt-minimal"
@@ -31,6 +36,7 @@ fun RBuilder.copyGuidButton(text: String?) {
                     disabled = true
                 }
             }
+            */
         }
     }
 }

@@ -4,6 +4,7 @@ import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.objects.getAllObjects
 import com.infowings.catalog.objects.getDetailedObject
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.launch
 import react.*
 
@@ -12,13 +13,13 @@ interface ObjectsViewApiModel {
     fun fetchDetailedObject(id: String)
 }
 
-interface ObjectsViewApiConsumerProps : RProps {
+interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
     var objects: List<ObjectGetResponse>
     var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     var objectApiModel: ObjectsViewApiModel
 }
 
-class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelComponent.State>(),
+class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
     ObjectsViewApiModel {
 
     override fun State.init() {
@@ -50,10 +51,12 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
 
     override fun RBuilder.render() {
         objectsViewModel {
+            val currHistory = props.history
             attrs {
                 objects = state.objects
                 detailedObjectsView = state.detailedObjectsView
                 objectApiModel = this@ObjectsViewApiModelComponent
+                history = currHistory
             }
         }
     }
@@ -62,7 +65,8 @@ class ObjectsViewApiModelComponent : RComponent<RProps, ObjectsViewApiModelCompo
         var objects: List<ObjectGetResponse>
         var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     }
+
 }
 
-val RBuilder.objectViewApiModel
-    get() = child(ObjectsViewApiModelComponent::class) {}
+fun RBuilder.objectViewApiModel(block: RHandler<RouteSuppliedProps>) =
+    child(ObjectsViewApiModelComponent::class, block)

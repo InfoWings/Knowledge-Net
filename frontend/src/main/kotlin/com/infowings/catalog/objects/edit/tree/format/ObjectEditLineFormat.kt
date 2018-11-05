@@ -54,10 +54,14 @@ val objectEditLineFormat = rFunction<ObjectEditLineFormatProps>("ObjectEditLineF
             cancelButtonComponent(it)
         }
         props.onCreateNewProperty?.let {
-            addPropertyButton(onClick = it)
+            if (props.editMode) {
+                addPropertyButton(onClick = it)
+            }
         }
         props.onDeleteObject?.let {
-            minusButtonComponent(it, true)
+            if (props.editMode) {
+                minusButtonComponent(it, true)
+            }
         }
     }
 }
@@ -75,4 +79,5 @@ interface ObjectEditLineFormatProps : RProps {
     var onUpdateObject: (() -> Unit)?
     var onDiscardUpdate: (() -> Unit)?
     var disabled: Boolean
+    var editMode: Boolean
 }

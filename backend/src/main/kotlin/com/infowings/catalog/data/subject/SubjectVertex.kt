@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.subject
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.data.aspect.toAspectVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
@@ -24,7 +25,7 @@ enum class SubjectField(val extName: String) {
     LINK_OBJECTS("objects"),
 }
 
-class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class SubjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, OVertex by vertex {
     override val entityClass = SUBJECT_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -59,6 +60,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, OVertex by vert
     val objects: List<ObjectVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_SUBJECT)
 

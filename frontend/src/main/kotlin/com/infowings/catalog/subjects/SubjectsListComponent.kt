@@ -145,6 +145,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                         onDeleteClick = { tryDeleteSubject(subjectData) },
                         entityName = "subject"
                     )
+                    println("hhh: $props.history")
                     referenceButtonComponent(subjectData, props.history)
                 }
             }

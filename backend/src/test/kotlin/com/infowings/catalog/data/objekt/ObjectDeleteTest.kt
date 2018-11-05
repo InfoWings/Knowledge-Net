@@ -126,7 +126,7 @@ class ObjectDeleteTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(extObject.id)),
+            ObjectValueData.Link(LinkValueData.Object(extObject.id, extObject.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version

@@ -108,7 +108,7 @@ class ObjectServiceExampleTest {
 
         val topValueId = propertyCreateResponse.rootValue.id
 
-        val refValue11Data = LinkValueData.DomainElement(refBookItemIds[0], "", null)
+        val refValue11Data = LinkValueData.DomainElement(refBookItemIds[0], "", "", null)
         val value11Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue11Data),
             description = null,
@@ -119,7 +119,7 @@ class ObjectServiceExampleTest {
         )
         val valueCreateResponse11 = objectService.create(value11Request, username)
 
-        val refValue12Data = LinkValueData.DomainElement(refBookItemIds[1], "", null)
+        val refValue12Data = LinkValueData.DomainElement(refBookItemIds[1], "", "", null)
         val value12Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue12Data),
             description = null,
@@ -130,7 +130,7 @@ class ObjectServiceExampleTest {
         )
         val valueCreateResponse12 = objectService.create(value12Request, username)
 
-        val refValue13Data = LinkValueData.DomainElement(refBookItemIds[2], "", null)
+        val refValue13Data = LinkValueData.DomainElement(refBookItemIds[2], "", "", null)
         val value13Request = ValueCreateRequest(
             value = ObjectValueData.Link(refValue13Data),
             description = null,

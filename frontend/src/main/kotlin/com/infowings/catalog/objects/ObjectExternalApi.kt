@@ -1,9 +1,7 @@
 package com.infowings.catalog.objects
 
-import com.infowings.catalog.common.DetailedObjectViewResponse
-import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectsList
-import com.infowings.catalog.common.ObjectsResponse
+import com.infowings.catalog.common.*
+import com.infowings.catalog.common.guid.BriefObjectView
 import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
@@ -73,8 +71,10 @@ suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
 suspend fun getValueBrief(guid: String): BriefValueViewResponse =
     JSON.parse(get("/api/guid/brief/value/$guid"))
 
-suspend fun getObjectBriefById(id: String): BriefObjectViewResponse =
-    JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+suspend fun LinkValueData.getObjectBriefById(): BriefObjectView {
+    val response: BriefObjectViewResponse = JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+    return BriefObjectView.of(id, guid, response)
+}
 
 suspend fun getValueBriefById(id: String): BriefValueViewResponse =
     JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))

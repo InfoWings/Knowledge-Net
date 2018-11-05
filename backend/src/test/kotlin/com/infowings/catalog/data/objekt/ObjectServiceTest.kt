@@ -494,7 +494,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -522,7 +522,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.version
@@ -554,7 +554,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse1.id, objectCreateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -586,7 +586,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -977,7 +977,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id, propertyCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -1017,7 +1017,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id, propertyCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -1063,7 +1063,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse1.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id, propertyCreateResponse2.guidSoft())),
             null,
             null,
             propertyCreateResponse1.rootValue.version
@@ -1113,7 +1113,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse1.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id, propertyCreateResponse2.guidSoft())),
             null,
             null,
             propertyCreateResponse1.rootValue.version
@@ -1424,7 +1424,7 @@ class ObjectServiceTest {
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,
@@ -1469,7 +1469,7 @@ class ObjectServiceTest {
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,
@@ -1535,7 +1535,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1597,7 +1597,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1657,7 +1657,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1720,7 +1720,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1780,7 +1780,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1842,7 +1842,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1901,7 +1901,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1964,7 +1964,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2029,7 +2029,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2098,7 +2098,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2162,7 +2162,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2217,7 +2217,8 @@ class ObjectServiceTest {
 
         val valueRequestLink = ValueUpdateRequest(
             valueId = propertyCreateResponseLink.rootValue.id,
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id,
+                propertyCreateResponseDec.rootValue.guidSoft())),
             measureName = null,
             description = null,
             version = propertyCreateResponseLink.rootValue.version
@@ -2268,7 +2269,7 @@ class ObjectServiceTest {
 
         val valueRequestRef = ValueUpdateRequest(
             propertyCreateResponseRef.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponseRef.rootValue.version

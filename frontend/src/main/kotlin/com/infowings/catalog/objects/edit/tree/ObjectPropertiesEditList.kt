@@ -19,7 +19,9 @@ fun RBuilder.objectPropertiesEditList(
     properties: List<ObjectPropertyEditModel>,
     editModel: ObjectTreeEditModel,
     apiModelProperties: List<ObjectPropertyEditDetailsResponse>,
-    updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit
+    updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit,
+    newEditMode: Boolean,
+    newHighlightedGuid: String?
 ) {
     val apiModelPropertiesById = apiModelProperties.associateBy { it.id }
     properties.forEachIndexed { propertyIndex, property ->
@@ -98,7 +100,9 @@ fun RBuilder.objectPropertiesEditList(
                         }
                     } else null
                     this.editContext = editContext
-                    disabled = property.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(property.id)
+                    disabled = !newEditMode ||
+                            (property.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(property.id))
+                    editMode = newEditMode
                 }
             }
         } else {
@@ -259,6 +263,8 @@ fun RBuilder.objectPropertiesEditList(
                         this.editModel = editModel
                         this.editContext = editContext
                         this.apiModelValuesById = apiModelValuesById
+                        editMode = newEditMode
+                        highlightedGuid = newHighlightedGuid
                     }
                 }
             }
@@ -359,6 +365,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onRemove: (() -> Unit)?
     var disabled: Boolean
     var editContext: EditContext
+    var editMode: Boolean
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
@@ -490,6 +497,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         needRemoveConfirmation = props.rootValue.id != null
                         valueDisabled = props.valueDisabled
                         propertyDisabled = props.propertyDisabled
+                        editMode = props.editMode
+                        highlightedGuid = props.highlightedGuid
                     }
                 }
             }!!
@@ -541,6 +550,8 @@ interface ObjectPropertyValueEditNodeProps : RProps {
     var editContext: EditContext
     var valueDisabled: Boolean
     var propertyDisabled: Boolean
+    var editMode: Boolean
+    var highlightedGuid: String?
 }
 
 fun AspectTree.defaultValue(): ObjectValueData? {

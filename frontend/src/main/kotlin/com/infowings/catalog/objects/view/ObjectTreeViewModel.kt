@@ -128,11 +128,13 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
             }
 
         objectLazyTreeView {
+            val currProps = props
             attrs {
                 indices = relevantIndices
                 objects = state.objects //if (subjectNames.isEmpty()) state.objects else state.objects
                 //.filter { it.subjectName in subjectNames || excludedGuids.contains(it.guid) }
                 objectTreeViewModel = this@ObjectTreeViewModelComponent
+                history = currProps.history
             }
         }
     }

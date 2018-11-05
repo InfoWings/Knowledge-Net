@@ -1,10 +1,14 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.components.reference.refValueButtonComponent
 import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.wrappers.History
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.blueprint.Spinner
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.classes
@@ -35,8 +39,10 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
 
     private suspend fun loadBriefView(value: LinkValueData) {
         val briefEntityInfo = when (value) {
-            is LinkValueData.Object -> ObjectBriefInfo(getObjectBriefById(value.id))
-            is LinkValueData.ObjectValue -> ValueBriefInfo(getValueBriefById(value.id))
+            is LinkValueData.Object -> ObjectBriefInfo(value.getObjectBriefById(), props.history, false)
+            is LinkValueData.ObjectValue -> {
+                ValueBriefInfo(getValueBriefById(value.id), props.history, false)
+            }
             else -> {
                 showError(BadRequestException("Link value $value is not yet supported", null))
                 null
@@ -79,7 +85,7 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
         }
     }
 
-    interface Props : RProps {
+    interface Props : RouteSuppliedProps {
         var value: LinkValueData
     }
 
@@ -89,8 +95,9 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
     }
 }
 
-fun RBuilder.referenceBaseTypeFormat(value: LinkValueData) = child(ReferenceBaseTypeFormat::class) {
+fun RBuilder.referenceBaseTypeFormat(value: LinkValueData, history: History) = child(ReferenceBaseTypeFormat::class) {
     attrs {
         this.value = value
+        this.history= history
     }
 }

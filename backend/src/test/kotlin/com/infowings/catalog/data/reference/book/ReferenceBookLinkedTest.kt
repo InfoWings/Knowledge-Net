@@ -159,7 +159,7 @@ class ReferenceBookLinkedTest {
         )
         val rootValueUpdateResponse = objectService.update(objPropertyRootValueRequest, username)
         val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking, "", null)),
+            value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking, "", "", null)),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,

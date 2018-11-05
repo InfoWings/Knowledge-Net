@@ -1,9 +1,6 @@
 package com.infowings.catalog.common.objekt
 
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.ValueDTO
-import com.infowings.catalog.common.toDTO
-import com.infowings.catalog.common.toData
+import com.infowings.catalog.common.*
 import kotlinx.serialization.Serializable
 
 
@@ -96,16 +93,16 @@ data class ValueUpdateRequestDTO(
 }
 
 @Serializable
-data class ObjectChangeResponse(
+data class ObjectChangeResponse (
     val id: String,
     val name: String,
     val description: String?,
     val subjectId: String,
     val subjectName: String,
     val version: Int,
-    val guid: String?,
+    override val guid: String?,
     val lastUpdated: Long?
-)
+) : GuidAware
 
 @Serializable
 data class PropertyCreateResponse(
@@ -115,8 +112,8 @@ data class PropertyCreateResponse(
     val name: String?,
     val description: String?,
     val version: Int,
-    val guid: String?
-)
+    override val guid: String?
+) : GuidAware
 
 @Serializable
 data class PropertyUpdateResponse(
@@ -148,8 +145,8 @@ data class ValueChangeResponse(
     val aspectPropertyId: String?,
     val parentValue: Reference?,
     val version: Int,
-    val guid: String?
-)
+    override val guid: String?
+) : GuidAware
 
 @Serializable
 data class ValueDeleteResponse(
@@ -163,7 +160,7 @@ data class ValueDeleteResponse(
 data class Reference(val id: String, val version: Int)
 
 @Serializable
-data class GuidReference(val id: String, val guid: String?, val version: Int)
+data class GuidReference(val id: String, override val guid: String?, val version: Int) : GuidAware
 
 @Serializable
 data class ValueRecalculationResponse(val targetMeasure: String, val value: String)

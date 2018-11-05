@@ -127,6 +127,8 @@ class GuidService(
                 if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                     val valueVertex = vertex.toObjectPropertyValueVertex()
                     val propertyValue = valueVertex.toObjectPropertyValue()
+                    val objectVertex = valueVertex?.objectProperty?.objekt ?:
+                        throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
                     val aspectPropertyVertex = valueVertex.aspectProperty
                     val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
                     aspectPropertyVertex?.let {
@@ -135,7 +137,9 @@ class GuidService(
                             propertyValue.calculateObjectValueData().toDTO(),
                             it.name,
                             it.associatedAspect.name,
-                            measureSymbol
+                            measureSymbol,
+                            objectVertex.id,
+                            objectVertex.guid ?: "???"
                         )
                     } ?: run {
                         val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
@@ -144,7 +148,9 @@ class GuidService(
                             propertyValue.calculateObjectValueData().toDTO(),
                             objectPropertyVertex.name,
                             objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                            measureSymbol
+                            measureSymbol,
+                            objectVertex.id,
+                            objectVertex.guid ?: "???"
                         )
                     }
                 } else null
@@ -157,6 +163,8 @@ class GuidService(
             val vertex = dao.findById(id)
             if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                 val valueVertex = vertex.toObjectPropertyValueVertex()
+                val objectVertex = valueVertex?.objectProperty?.objekt ?:
+                throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
                 val propertyValue = valueVertex.toObjectPropertyValue()
                 val aspectPropertyVertex = valueVertex.aspectProperty
                 val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
@@ -166,7 +174,9 @@ class GuidService(
                         propertyValue.calculateObjectValueData().toDTO(),
                         it.name,
                         it.associatedAspect.name,
-                        measureSymbol
+                        measureSymbol,
+                        objectVertex.id,
+                        objectVertex.guid ?: "???"
                     )
                 } ?: run {
                     val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
@@ -175,7 +185,9 @@ class GuidService(
                         propertyValue.calculateObjectValueData().toDTO(),
                         objectPropertyVertex.name,
                         objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
-                        measureSymbol
+                        measureSymbol,
+                        objectVertex.id,
+                        objectVertex.guid ?: "???"
                     )
                 }
             } else throw EntityNotFoundException("No value is found by id: $id")

@@ -148,6 +148,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                 objectTree = state.viewModel
                 apiModel = props.serverView
                 editContext = EditContext(state.editContextModel) { setState { editContextModel = it } }
+                editMode = props.editMode
+                highlightedGuid = props.highLightedGuid
             }
         }
         state.entityDeleteInfo?.let { entityDeleteInfo ->
@@ -184,6 +186,8 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         var serverView: ObjectEditDetailsResponse
         var apiModel: ObjectEditApiModel
         var lastApiError: ApiException?
+        var editMode: Boolean
+        var highLightedGuid: String?
     }
 
     data class EntityDeleteInfo(val message: String, val continuation: () -> Unit)

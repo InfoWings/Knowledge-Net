@@ -40,7 +40,7 @@ fun OVertex.isJustCreated() = this.identity.isNew
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
  * by vertex means simple delegating OVertex calls to property [vertex]
  * */
-class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
+class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, DeletableVertex, OVertex by vertex {
     override val entityClass = ASPECT_CLASS
 
     private val logger = loggerFor<AspectVertex>()
@@ -105,7 +105,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_ASPECT)
 
@@ -231,7 +231,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
 
-class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAware, OVertex by vertex {
     override val entityClass = ASPECT_PROPERTY_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -283,6 +283,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             vertex[ATTR_DESC] = value
         }
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
 

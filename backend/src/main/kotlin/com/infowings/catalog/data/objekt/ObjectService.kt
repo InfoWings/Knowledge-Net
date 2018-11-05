@@ -16,6 +16,7 @@ import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -510,7 +511,7 @@ class ObjectService(
             context.properties.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
             historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
 
-            dao.deleteAll((context.values + context.properties + context.objVertex).toList())
+            dao.deleteAll((context.values as Set<OVertex> + context.properties + context.objVertex).toList())
         }
 
         deleteObject(id, username, ::removeOrThrow)
@@ -541,7 +542,7 @@ class ObjectService(
                 dao.delete(context.objVertex)
             }
 
-            dao.deleteAll((propertiesToDelete + valuesToDelete).toList())
+            dao.deleteAll((propertiesToDelete as Set<OVertex> + valuesToDelete).toList())
         }
 
         deleteObject(id, username, ::removeOrMark)

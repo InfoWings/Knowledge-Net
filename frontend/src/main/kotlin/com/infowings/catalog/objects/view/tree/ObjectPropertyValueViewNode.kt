@@ -4,6 +4,7 @@ import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectPropertyValueViewModel
 import com.infowings.catalog.objects.ObjectPropertyViewModel
 import com.infowings.catalog.objects.view.tree.format.objectPropertyValueLineFormat
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RProps
 import react.buildElement
 import react.rFunction
@@ -28,6 +29,7 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
                         valueGuid = props.value.guid
                         measureSymbol = props.value.measureSymbol
                         subjectName = props.property.aspect.subjectName
+                        history = props.history
                     }
                 }
             }!!
@@ -43,6 +45,7 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
                                 this.valueGroups[valueGroupIndex].values[valueIndex].block()
                             }
                         }
+                        history = props.history
                     }
                 }
             }
@@ -50,7 +53,7 @@ val objectPropertyValueViewNode = rFunction<ObjectPropertyValueViewNodeProps>("O
     }
 }
 
-interface ObjectPropertyValueViewNodeProps : RProps {
+interface ObjectPropertyValueViewNodeProps : RouteSuppliedProps {
     var property: ObjectPropertyViewModel
     var value: ObjectPropertyValueViewModel
     var onUpdate: (ObjectPropertyValueViewModel.() -> Unit) -> Unit

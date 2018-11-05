@@ -143,7 +143,7 @@ class AspectServiceDeletingTest {
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
-        objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propertyCreateResponse.id), username)
+        objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict(), aspect2.guidSoft())), null, propertyCreateResponse.id), username)
 
         assertThrows<AspectHasLinkedEntitiesException> {
             aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
@@ -305,7 +305,7 @@ class AspectServiceDeletingTest {
         val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
         objectService.create(
-            ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), null, propertyCreateResponse.id),
+            ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id, initial.properties[0].guidSoft())), null, propertyCreateResponse.id),
             username
         )
 
