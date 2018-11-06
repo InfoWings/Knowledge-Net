@@ -240,6 +240,7 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
+                                    /*
                                     editModel.updateValue(
                                         ValueUpdateRequest(
                                             value.id,
@@ -248,7 +249,8 @@ fun RBuilder.objectPropertiesEditList(
                                             value.description,
                                             value.version ?: error("Value with id (${value.id}) should have non null id")
                                         )
-                                    )
+                                    )*/
+                                    editModel.deleteValue(value.id)
                                 }
                             }
                             value.id != null && value.value == ObjectValueData.NullValue && currentEditContextModel == null -> {

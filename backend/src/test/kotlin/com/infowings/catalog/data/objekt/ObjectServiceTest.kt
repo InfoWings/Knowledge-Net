@@ -1158,7 +1158,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValueAbsence(valueUpdateResponse.id)
@@ -1194,7 +1195,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValueAbsence(valueUpdateResponse.id)
@@ -1245,7 +1247,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValuesAbsence(listOf(valueUpdateResponse.id, childValueCreateResponse.id))
@@ -1291,7 +1294,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValuesAbsence(listOf(valueUpdateResponse.id, childValueCreateResponse.id))
@@ -1438,7 +1442,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesAbsence(listOf(valueUpdateResponse.id, valueCreateResponse.id))
     }
@@ -1482,7 +1487,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesAbsence(listOf(valueUpdateResponse.id, valueCreateResponse.id))
     }
@@ -1608,7 +1614,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse1.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesSoftAbsence(listOf(valueUpdateResponse1.id))
         checkValuesAbsence(listOf(valueCreateResponse.id))
@@ -1731,7 +1738,8 @@ class ObjectServiceTest {
 
         val updatedProperty1 = objectService.findPropertyById(propertyCreateResponse1.id)
         transaction(db) {
-            assertEquals(0, updatedProperty1.values.size)
+            assertEquals(1, updatedProperty1.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty1.values[0].typeTag)
         }
 
         checkValuesSoftAbsence(listOf(valueCreateResponse.id))
