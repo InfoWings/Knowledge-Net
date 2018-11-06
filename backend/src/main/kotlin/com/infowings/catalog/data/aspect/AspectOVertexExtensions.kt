@@ -290,8 +290,8 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()
 
-    val parentAspect: AspectVertex
-        get() = vertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
+    val parentAspect: AspectVertex?
+        get() = vertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectVertex()
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
 
