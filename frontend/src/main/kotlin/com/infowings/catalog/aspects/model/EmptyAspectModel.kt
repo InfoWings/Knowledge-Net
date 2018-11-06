@@ -4,7 +4,7 @@ import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.treeview.AspectNodeExpandedStateWrapper
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectOrderBy
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.AspectPropertyData
 import com.infowings.catalog.utils.ServerException
 import kotlinx.coroutines.experimental.launch
@@ -41,7 +41,7 @@ class EmptyAspectModelComponent : RComponent<EmptyAspectModelComponent.Props, Em
         fetchAspects()
     }
 
-    private fun fetchAspects(orderBy: List<AspectOrderBy> = emptyList()) {
+    private fun fetchAspects(orderBy: List<SortOrder> = emptyList()) {
         launch {
             try {
                 val response = getAllAspects(orderBy)
