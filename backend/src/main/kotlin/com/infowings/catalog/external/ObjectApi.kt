@@ -1,9 +1,6 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.DecimalNumber
-import com.infowings.catalog.common.DetailedObjectViewResponse
-import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectsResponse
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
@@ -18,10 +15,14 @@ class ObjectApi(val objectService: ObjectService) {
     private val logger = loggerFor<ObjectApi>()
 
     @GetMapping
-    fun getAllObjects(principal: Principal): ObjectsResponse {
+    fun getAllObjects(
+        @RequestParam(required = false) orderFields: List<String>,
+        @RequestParam(required = false) direct: List<String>,
+        principal: Principal): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username")
-        return ObjectsResponse(objectService.fetch().map { it.toResponse() })
+        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct")
+        val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
+        return ObjectsResponse(objectService.fetch(orderBy).map { it.toResponse() })
     }
 
     @GetMapping("recalculateValue")

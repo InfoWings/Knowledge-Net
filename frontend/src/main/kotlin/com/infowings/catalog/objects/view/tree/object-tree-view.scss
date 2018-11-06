@@ -3,6 +3,11 @@
 .object-tree-view {
   max-width: 120rem;
   margin: 3rem auto;
+
+  &__header {
+    max-width: 120rem;
+    margin: 1rem auto;
+  }
 }
 
 .object-header {
@@ -22,8 +27,13 @@
   }
 
   &__refresh {
+    /*
     display: flex;
     align-items: start
+    */
+    position: absolute;
+    top: 0;
+    right: -5rem;
   }
 }
 

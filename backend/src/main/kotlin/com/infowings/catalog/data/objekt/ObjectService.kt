@@ -31,7 +31,33 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
+    fun fetch(orderBy: List<SortOrder>): List<ObjectTruncated>  {
+        return dao.getTruncatedObjects().sort(orderBy)
+    }
+
+    private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
+
+        fun objectNameAsc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.ASC)
+        fun objectNameDesc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.DESC)
+        fun objectSubjectNameAsc(objeckt: ObjectTruncated): Comparable<*> =
+            CompareString(objeckt.subjectName, Direction.ASC)
+
+        fun objectSubjectNameDesc(objekt: ObjectTruncated): Comparable<*> =
+            CompareString(objekt.subjectName, Direction.DESC)
+
+        val m = mapOf<SortField, Map<Direction, (ObjectTruncated) -> Comparable<*>>>(
+            SortField.NAME to mapOf(Direction.ASC to ::objectNameAsc, Direction.DESC to ::objectNameDesc),
+            SortField.SUBJECT to mapOf(
+                Direction.ASC to ::objectSubjectNameAsc,
+                Direction.DESC to ::objectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
+
 
     // TODO: KS-168 - possible bottleneck
     fun getDetailedObject(id: String) =

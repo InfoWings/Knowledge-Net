@@ -7,7 +7,7 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery: String = ""): AspectsList {
+suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     return JSON.parse(
         get("/api/aspect/all" +
                 "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +

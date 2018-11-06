@@ -206,7 +206,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
     private fun fetchObjectBoxEditDetails(): ObjectEditDetailsResponse {
         val objectsTruncatedList: List<ObjectGetResponse>
         val objectsTruncatedListRequestResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/objects")
+            MockMvcRequestBuilders.get("/api/objects?orderFields=&direct=")
                 .with(authorities)
         ).andReturn()
         objectsTruncatedList = JSON.parse<ObjectsResponse>(objectsTruncatedListRequestResult.response.contentAsString).objects

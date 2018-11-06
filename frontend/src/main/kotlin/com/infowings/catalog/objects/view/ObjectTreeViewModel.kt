@@ -1,10 +1,12 @@
 package com.infowings.catalog.objects.view
 
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.filter.objectExcludeFilterComponent
 import com.infowings.catalog.objects.filter.objectSubjectFilterComponent
+import com.infowings.catalog.objects.view.sort.objectSort
 import com.infowings.catalog.objects.view.tree.objectLazyTreeView
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -42,9 +44,11 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         val withDetails = oldByGuid.filter { it.value.objectProperties != null }.keys
 
+        println("rrr orderBy: " + props.orderBy)
+
         launch {
             try {
-                val response = getAllObjects().objects
+                val response = getAllObjects(props.orderBy).objects
 
                 val freshByGuid = response.filter { it.guid != null }.map { it.guid to it }.toMap()
 
@@ -86,21 +90,41 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     }
 
     override fun RBuilder.render() {
-        div(classes = "object-header__text-filters") {
-
-            objectSubjectFilterComponent {
-                attrs {
-                    subjectsFilter = state.filterBySubject.subjects
-                    onChange = ::setSubjectsFilter
+        div(classes = "object-tree-view__header object-header") {
+            div(classes = "object-header__sort-search") {
+                objectSort {
+                    attrs {
+                        this.onOrderByChanged = { orderBy ->
+                            println("orderBy: " + orderBy)
+                            props.onOrderByChanged(orderBy)
+                            refreshObjects()
+                        }
+                    }
                 }
+                /*
+                objectSearchComponent {
+                    attrs {
+                        onConfirmSearch = onSearchQueryChanged
+                    }
+                }
+                */
             }
 
-            objectExcludeFilterComponent {
-                attrs {
-                    selected = state.filterBySubject.excluded
-                    onChange = {
-                        setState {
-                            filterBySubject = filterBySubject.copy(excluded = it)
+            div(classes = "object-header__text-filters") {
+                objectSubjectFilterComponent {
+                    attrs {
+                        subjectsFilter = state.filterBySubject.subjects
+                        onChange = ::setSubjectsFilter
+                    }
+                }
+
+                objectExcludeFilterComponent {
+                    attrs {
+                        selected = state.filterBySubject.excluded
+                        onChange = {
+                            setState {
+                                filterBySubject = filterBySubject.copy(excluded = it)
+                            }
                         }
                     }
                 }
@@ -131,8 +155,7 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
             val currProps = props
             attrs {
                 indices = relevantIndices
-                objects = state.objects //if (subjectNames.isEmpty()) state.objects else state.objects
-                //.filter { it.subjectName in subjectNames || excludedGuids.contains(it.guid) }
+                objects = state.objects
                 objectTreeViewModel = this@ObjectTreeViewModelComponent
                 history = currProps.history
             }

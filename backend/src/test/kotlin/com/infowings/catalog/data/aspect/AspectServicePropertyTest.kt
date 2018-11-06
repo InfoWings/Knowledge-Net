@@ -81,14 +81,14 @@ class AspectServicePropertyTest {
     @Test
     fun testAspectSortByNameAsc() {
         // .toLowerCase() is important here because java sorting differs from orient
-        val all: List<AspectData> = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
+        val all: List<AspectData> = aspectService.getAspects(listOf(SortOrder(SortField.NAME, Direction.ASC)))
         assertThat("Aspects should be sorted be Name ascending", all.map { it.name.toLowerCase() }, Is(all.map { it.name.toLowerCase() }.sorted()))
     }
 
     @Test
     fun testAspectSortByNameDesc() {
         // .toLowerCase() is important here because java sorting differs from orient
-        val all = aspectService.getAspects(listOf(AspectOrderBy(AspectSortField.NAME, Direction.DESC)))
+        val all = aspectService.getAspects(listOf(SortOrder(SortField.NAME, Direction.DESC)))
         assertThat("Aspects should be sorted be Name descending", all.map { it.name.toLowerCase() }, Is(all.map { it.name.toLowerCase() }.sortedDescending()))
     }
 

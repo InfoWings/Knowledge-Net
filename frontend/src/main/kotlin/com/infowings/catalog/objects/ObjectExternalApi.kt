@@ -12,7 +12,14 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllObjects(): ObjectsResponse = JSON.parse(get("/api/objects"))
+suspend fun getAllObjects(orderBy: List<SortOrder>): ObjectsResponse {
+    println("GAO: $orderBy")
+    val fields = orderBy.map { it.name }.joinToString(",")
+    println("fields: <$fields>")
+    val directions = orderBy.map { it.direction }.joinToString(",")
+    println("directions: <$directions>")
+    return JSON.parse(get("/api/objects?orderFields=$fields&direct=$directions"))
+}
 
 suspend fun getDetailedObject(id: String): DetailedObjectViewResponse {
     val data = get("/api/objects/${encodeURIComponent(id)}/viewdetails")

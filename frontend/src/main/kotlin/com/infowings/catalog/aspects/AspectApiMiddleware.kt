@@ -1,7 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectOrderBy
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.utils.BadRequestException
@@ -27,7 +27,7 @@ interface AspectApiReceiverProps : RProps {
     var onAspectCreate: suspend (newAspect: AspectData) -> AspectData
     var onAspectDelete: suspend (aspect: AspectData, force: Boolean) -> String
     var onAspectPropertyDelete: suspend (propertyId: String, force: Boolean) -> Reference
-    var onOrderByChanged: (List<AspectOrderBy>) -> Unit
+    var onOrderByChanged: (List<SortOrder>) -> Unit
     var onSearchQueryChanged: (String) -> Unit
     var refreshAspects: () -> Unit
     var refreshOperation: Boolean
@@ -97,7 +97,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         }
     }
 
-    private fun setAspectsOrderBy(orderBy: List<AspectOrderBy>) {
+    private fun setAspectsOrderBy(orderBy: List<SortOrder>) {
         setState {
             this.orderBy = orderBy
             refreshOperation = false
@@ -305,7 +305,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         /**
          * Ordering of returned aspects
          */
-        var orderBy: List<AspectOrderBy>
+        var orderBy: List<SortOrder>
         /**
          * Aspect search query
          */

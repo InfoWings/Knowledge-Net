@@ -11,7 +11,7 @@ import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectHint
-import com.infowings.catalog.common.AspectOrderBy
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -19,7 +19,7 @@ import react.RBuilder
 import react.dom.div
 
 fun RBuilder.aspectPageHeader(
-    onOrderByChanged: (List<AspectOrderBy>) -> Unit,
+    onOrderByChanged: (List<SortOrder>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
     setFilterSubjects: (List<SubjectData?>) -> Unit,
