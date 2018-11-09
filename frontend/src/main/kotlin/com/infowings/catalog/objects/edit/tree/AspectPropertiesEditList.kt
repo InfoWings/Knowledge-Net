@@ -27,7 +27,8 @@ fun RBuilder.aspectPropertiesEditList(
     editModel: ObjectTreeEditModel,
     objectPropertyId: String,
     apiModelValuesById: Map<String, ValueTruncated>,
-    editContext: EditContext
+    editContext: EditContext,
+    editMode: Boolean
 ) {
     val groupsMap = valueGroups.associateBy { it.propertyId }
     aspect.properties.forEach { aspectProperty ->
@@ -55,6 +56,7 @@ fun RBuilder.aspectPropertiesEditList(
                                 )
                             }
                         } else null
+                        this.editMode = editMode
                     }
                 }
             }
@@ -188,6 +190,7 @@ fun RBuilder.aspectPropertiesEditList(
                         this.objectPropertyId = objectPropertyId
                         this.apiModelValuesById = apiModelValuesById
                         this.editContext = editContext
+                        this.editMode = editMode
                     }
                 }
             }
@@ -212,6 +215,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                                 { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
                             }
                         }
+                        editMode = props.editMode
                     }
                 }
             }!!
@@ -222,6 +226,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 interface AspectPropertyValueCreateNodeProps : RProps {
     var aspectProperty: AspectPropertyTree
     var onCreateValue: ((value: ObjectValueData?, measureName: String?) -> Unit)?
+    var editMode: Boolean
 }
 
 val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("AspectPropertyValueEditNode") { props ->
@@ -344,7 +349,8 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                 editModel = props.editModel,
                 objectPropertyId = props.objectPropertyId,
                 apiModelValuesById = props.apiModelValuesById,
-                editContext = props.editContext
+                editContext = props.editContext,
+                editMode = props.editMode
             )
         }
     }
@@ -364,5 +370,6 @@ interface AspectPropertyValueEditNodeProps : RProps {
     var apiModelValuesById: Map<String, ValueTruncated>
     var editContext: EditContext
     var disabled: Boolean
+    var editMode: Boolean
 }
 

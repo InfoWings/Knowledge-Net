@@ -43,7 +43,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                 referenceBookNameSoft = "",
                 value = value,
                 onChange = props.onChange,
-                disabled = props.disabled
+                disabled = !props.editMode || props.disabled
             )
             props.aspectMeasure?.let {
                 val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
@@ -63,12 +63,12 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                         onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
                             props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, 0))
                         },
-                        disabled = props.disabled
+                        disabled = props.disabled || !props.editMode
                     )
                 }
             }
         }
-        if (props.disabled) {
+        if (!props.editMode || props.disabled) {
             descriptionComponent(
                 className = "object-input-description",
                 description = props.valueDescription
@@ -89,10 +89,14 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             cancelButtonComponent(it, "pt-small")
         }
         props.onAddValue?.let {
-            plusButtonComponent(it, "pt-small")
+            if (props.editMode) {
+                plusButtonComponent(it, "pt-small")
+            }
         }
         props.onRemoveValue?.let {
-            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            if (props.editMode) {
+                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            }
         }
     }
 }
@@ -119,4 +123,5 @@ interface AspectPropertyEditLineFormatProps : RProps {
     var onRemoveValue: (() -> Unit)?
     var needRemoveConfirmation: Boolean
     var disabled: Boolean
+    var editMode: Boolean
 }

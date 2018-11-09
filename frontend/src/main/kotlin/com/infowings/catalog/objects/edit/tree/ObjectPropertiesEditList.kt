@@ -351,6 +351,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         onAddValue = props.onAddValue
                         onRemoveProperty = props.onRemove
                         disabled = props.disabled
+                        editMode = props.editMode
                     }
                 }
             }!!
@@ -530,7 +531,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                 editModel = props.editModel,
                 objectPropertyId = props.property.id ?: error("Object property should exist when editing values"),
                 apiModelValuesById = props.apiModelValuesById,
-                editContext = props.editContext
+                editContext = props.editContext,
+                editMode = props.editMode
             )
         }
     }
