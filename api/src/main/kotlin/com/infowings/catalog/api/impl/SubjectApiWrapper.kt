@@ -7,9 +7,9 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
 
 internal class SubjectApiWrapper(private val context: KNServerContext) : SubjectApi {
-    override fun createSubject(subjectData: SubjectData): SubjectData? {
+    override fun createSubject(subjectData: SubjectData): SubjectData {
         logger.debug("Create subject request: $subjectData")
-        return context.builder("/api/subject/create").body(subjectData).postOrNull()
+        return context.builder("/api/subject/create").body(subjectData).post()
     }
 
     override fun getSubject(): SubjectsList {
@@ -22,7 +22,7 @@ internal class SubjectApiWrapper(private val context: KNServerContext) : Subject
         return context.builder("/api/subject/get").path(subjectName).getOrNull()
     }
 
-    override fun getSubjectById(id: String): SubjectData {
+    override fun getSubjectById(id: String): SubjectData? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -35,7 +35,7 @@ internal class SubjectApiWrapper(private val context: KNServerContext) : Subject
     }
 
     override fun forceRemoveSubject(subjectData: SubjectData) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        context.builder("/api/subject/forceRemove").body(subjectData).postAndIgnore()
     }
 
 }

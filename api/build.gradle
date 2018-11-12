@@ -19,7 +19,7 @@ version = "1.0"
 
 dependencies {
     expectedBy project(":common")
-    
+
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
@@ -33,7 +33,7 @@ dependencies {
 
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4"
     compile group: 'org.springframework', name: 'spring-web', version: '5.1.0.RELEASE'
-    
+
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
     testCompile 'io.kotlintest:kotlintest-runner-junit5:3.1.9'
@@ -56,6 +56,11 @@ kotlin {
 test {
     useJUnitPlatform()
 }
+ 
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.kotlin
+}
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -63,6 +68,9 @@ publishing {
             artifactId 'api'
 
             from components.java
+            artifact sourceJar {
+                classifier "sources"
+            }
             // this is needed because expectedBy dependency appears as a module dependency
             pom.withXml {
                 Node pomNode = asNode()
@@ -74,5 +82,5 @@ publishing {
             }
         }
     }
-    
+
 }

@@ -212,7 +212,7 @@ class GuidService(
     }
 
     init {
-        setGuidsAll()
+//        setGuidsAll()
     }
 
     @Suppress("TooGenericExceptionCaught")
