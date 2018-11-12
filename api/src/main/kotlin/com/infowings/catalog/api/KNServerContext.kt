@@ -9,14 +9,14 @@ import org.apache.http.impl.client.HttpClients
 import org.apache.http.ssl.SSLContexts
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
+import org.springframework.http.*
+import org.springframework.http.client.ClientHttpResponse
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.web.client.DefaultResponseErrorHandler
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 import org.springframework.web.util.UriComponentsBuilder
+import java.io.IOException
 import java.net.URI
 import java.security.KeyManagementException
 import java.security.KeyStoreException
@@ -26,7 +26,7 @@ import java.time.Instant
 
 
 internal class KNServerContext(server: String, port: Int?, val user: String, val password: String) {
-    private val url = if (port != null) "$server:$port" else server
+    private val url = if (port != null && port != 0) "$server:$port" else server
 
     val restTemplate = restTemplate()
     val loginContext: LoginContext by lazy {
@@ -55,12 +55,12 @@ internal class KNServerContext(server: String, port: Int?, val user: String, val
 
         requestFactory.httpClient = httpClient
         requestFactory.setConnectionRequestTimeout(5000)
-        return RestTemplate(requestFactory)
+        return RestTemplate(requestFactory).apply { errorHandler = ErrorHandler(this@KNServerContext) }
     }
 
 }
 
-internal class LoginContext(context: KNServerContext) {
+internal class LoginContext(private val context: KNServerContext) {
     private lateinit var accessHeader: String
     private lateinit var refreshHeader: String
 
@@ -69,6 +69,10 @@ internal class LoginContext(context: KNServerContext) {
             "$accessHeader; $refreshHeader"
 
     init {
+        login()
+    }
+
+    fun login() {
         val path = context.fullUrl("/api/access/signIn")
         val userCredentials = UserCredentials(context.user, context.password)
         val token = context.restTemplate.postForEntity<String>(path, userCredentials, String::class).body ?: throw ServiceUnavailable
@@ -119,26 +123,24 @@ internal class RequestBuilder(path: String, private val context: KNServerContext
         return this
     }
 
-    inline fun <reified T> get(): T = execute(HttpMethod.GET)
-    inline fun <reified T> post(): T = execute(HttpMethod.POST)
+    inline fun <reified T> post(): T = execute(HttpMethod.POST) ?: throw ServiceUnavailable
 
-    inline fun <reified T> postOrNull(): T? =
-        try {
-            post()
-        } catch (e: Exception) {
-            logger.warn(e.message, e)
-            null
-        }
+    inline fun <reified T> get(): T = execute(HttpMethod.GET) ?: throw ServiceUnavailable
 
+    fun postAndIgnore() = execute<Any?>(HttpMethod.POST)
+
+    //todo: we must separate business logic errors from connectivity issues
     inline fun <reified T> getOrNull(): T? =
         try {
-            get()
+            execute(HttpMethod.GET)
         } catch (e: Exception) {
             logger.warn(e.message, e)
             null
         }
 
-    private inline fun <reified T> execute(httpMethod: HttpMethod): T {
+    private inline fun <reified T> execute(httpMethod: HttpMethod): T? = refreshTokenOnFail { doExecute<T>(httpMethod).body }
+
+    private inline fun <reified T> doExecute(httpMethod: HttpMethod): ResponseEntity<T> {
         val headers = HttpHeaders().apply {
             set("Cookie", context.loginContext.authHeader)
         }
@@ -154,14 +156,30 @@ internal class RequestBuilder(path: String, private val context: KNServerContext
 
         val uriString = uriBuilder.build().toUriString()
         logger.debug("$httpMethod $uriString")
-        val response = context.restTemplate.exchange(
-            uriString,
-            httpMethod,
-            httpEntity,
-            T::class.java
-        )
-        return response.body ?: throw ServiceUnavailable
+        return context.restTemplate.exchange(uriString, httpMethod, httpEntity, T::class.java)
     }
 }
 
-object ServiceUnavailable : Exception("Knowledge Net server unavalable")
+internal class ErrorHandler(private val context: KNServerContext) : DefaultResponseErrorHandler() {
+    @Throws(IOException::class)
+    override fun handleError(response: ClientHttpResponse) {
+        if (response.statusCode == HttpStatus.FORBIDDEN) {
+            context.loginContext.login()
+            throw RetryRequest
+        }
+    }
+}
+
+
+private inline fun <T> refreshTokenOnFail(block: () -> T?): T? {
+    while (true) {
+        try {
+            return block()
+        } catch (e: RetryRequest) {
+            logger.error(e.message, e)
+        }
+    }
+}
+
+object ServiceUnavailable : Exception("Knowledge Net server unavailable")
+object RetryRequest : Exception("Knowledge Net server unavailable")
