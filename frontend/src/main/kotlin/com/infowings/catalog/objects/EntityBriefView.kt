@@ -65,13 +65,16 @@ data class ValueBriefInfo(val data: BriefValueViewResponse, val history: History
         span(classes = "entity-brief-info__value-aspect-name") {
             +data.aspectName
         }
+
+        valueFormat(data.value.toData(), history)
+
         data.measure?.let {
             span(classes = "entity-brief-info__value-measure") {
                 +it
             }
         }
 
-        span(classes = "entity-brief-info__value") {
+        span(classes = "entity-brief-info__value-arrow") {
             if (!editMode) {
                 reactRouter.Link {
                     attrs {
@@ -81,7 +84,6 @@ data class ValueBriefInfo(val data: BriefValueViewResponse, val history: History
                     }
                 }
             }
-            valueFormat(data.value.toData(), history)
         }
     }
 }
