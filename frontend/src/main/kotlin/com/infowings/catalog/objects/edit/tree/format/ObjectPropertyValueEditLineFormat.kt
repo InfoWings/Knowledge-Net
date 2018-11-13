@@ -65,6 +65,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         }
         val value = props.value
         if (value != ObjectValueData.NullValue) {
+            println("OPVELF: ${props.editMode}")
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,

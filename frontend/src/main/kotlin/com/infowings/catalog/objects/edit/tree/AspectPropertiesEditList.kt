@@ -322,6 +322,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                         onRemoveValue = props.onRemoveValue
                         needRemoveConfirmation = props.value.id != null
                         disabled = props.disabled
+                        editMode = props.editMode
                     }
                 }
             }!!
