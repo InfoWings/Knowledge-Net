@@ -6,11 +6,9 @@ import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
 import com.infowings.catalog.common.objekt.*
-import com.infowings.catalog.utils.delete
-import com.infowings.catalog.utils.encodeURIComponent
-import com.infowings.catalog.utils.get
-import com.infowings.catalog.utils.post
+import com.infowings.catalog.utils.*
 import kotlinx.serialization.json.JSON
+import kotlin.js.Date
 
 suspend fun getAllObjects(orderBy: List<SortOrder>): ObjectsResponse {
     println("GAO: $orderBy")
@@ -69,8 +67,12 @@ suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: Stri
     )
 }
 
-suspend fun loadEntityMetadata(guid: String): EntityMetadata =
-    JSON.parse(get("/api/guid/meta/$guid"))
+suspend fun loadEntityMetadata(guid: String): EntityMetadata {
+    if (guid.contains("/") || guid.startsWith("http") || guid.length > 60) {
+        throw BadRequestException("strange guid: ${guid.take(60)}", Date.now())
+    }
+    return JSON.parse(get("/api/guid/meta/${encodeURIComponent(guid)}"))
+}
 
 suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
     JSON.parse(get("/api/guid/brief/object/$guid"))
