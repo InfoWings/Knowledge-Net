@@ -312,7 +312,7 @@ class SuggestionService(
             } else {
                 if (aspectId == null) {
                     val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_NAME)}, :$lq) = true"
-                    database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(commonParam?.text)))) { it }
+                    database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(commonParam?.text)))) { it }
                 } else {
                     findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
                 }
@@ -324,7 +324,7 @@ class SuggestionService(
         val res = if (ctx.aspectId == null || ctx.aspectId == "") {
             val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_DESC)}, :$lq) = true"
             val params = mapOf(
-                lq to luceneQuery(textOrAllWildcard(text))
+                lq to luceneQuery(textOrAllWildcardNoSpaces(text))
             )
             database.query(q, params) { it }
         } else {
@@ -344,7 +344,7 @@ class SuggestionService(
     private fun findRefBookItemsByValue(text: String, ctx: SearchContext): List<ReferenceBookItemVertex> = try {
         val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_VALUE)}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) {
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
         }
 
@@ -369,7 +369,7 @@ class SuggestionService(
     private fun findRefBookItemsByDesc(text: String, ctx: SearchContext): List<ReferenceBookItemVertex> = try {
         val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_DESC)}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) {
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
         }
 
@@ -394,7 +394,7 @@ class SuggestionService(
     private fun findAspectPropertyByNameWithAspect(text: String, ctx: SearchContext): List<AspectPropertyVertex> = try {
         val q = "SELECT FROM ${OrientClass.ASPECT_PROPERTY.extName} WHERE (deleted is null or deleted = false)" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.ASPECT_PROPERTY.extName, "name_with_aspect")}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) {
+        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull {
                 it.toVertexOrNull()?.toAspectPropertyVertex()
             }
@@ -461,6 +461,10 @@ class SuggestionService(
     }
 */
     private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else {
+        text
+    }
+
+    private fun textOrAllWildcardNoSpaces(text: String?): String = if (text == null || text.isBlank()) "*" else {
         // remove spaces because they have special meaning for Lucene
         // proper escaping seems non-trivial and is not strictly necessary
         text.filterNot { it.toString().isBlank() }
