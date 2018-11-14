@@ -17,6 +17,7 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import notDeletedSql
+import java.text.CharacterIterator
 
 /**
  * Сервис поиска в OrientDB
@@ -459,7 +460,11 @@ class SuggestionService(
         emptySequence()
     }
 */
-    private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text
+    private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else {
+        // remove spaces because they have special meaning for Lucene
+        // proper escaping seems non-trivial and is not strictly necessary
+        text.filterNot { it.toString().isBlank() }
+    }
 
     private fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
 
