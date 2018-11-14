@@ -16,8 +16,7 @@ import react.dom.input
 
 class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput.Props, AspectNameInput.State>(props) {
     override fun State.init(props: Props) {
-        value = "init"
-        hints = AspectsHints.empty()
+        hints = props.aspectHints
     }
 
 
@@ -25,25 +24,26 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
         e.stopPropagation()
         e.preventDefault()
         val current = e.target.unsafeCast<HTMLInputElement>().value
+        println("current:" + current)
         launch {
-            val frashHints = if (current.length > 2) getAspectHints(current) else AspectsHints.empty()
+            val freshHints = if (current.length > 2) getAspectHints(current) else AspectsHints.empty()
 
             setState {
-                value += "1"
-                hints = frashHints
+                hints = freshHints
             }
         }
         props.onChange(e.target.unsafeCast<HTMLInputElement>().value)
     }
 
     override fun RBuilder.render() {
+        println("props value: ${props.value}")
+
         val inputRef = props.inputRef
 
         div(classes = "aspect-edit-console--aspect-input-container") {
             existingAspectWindow {
                 attrs {
-                    message = "qqq" + state.value
-                    hints = state.hints
+                    hints = if (props.value?.length?:0 < 2) AspectsHints.empty() else state.hints
                 }
             }
 
@@ -66,11 +66,11 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
     }
 
     interface State : RState {
-        var value: String
         var hints: AspectsHints
     }
 
     interface Props : RProps {
+        var aspectHints: AspectsHints
         var value: String?
         var onChange: (String) -> Unit
         var inputRef: ((HTMLInputElement?) -> Unit)?

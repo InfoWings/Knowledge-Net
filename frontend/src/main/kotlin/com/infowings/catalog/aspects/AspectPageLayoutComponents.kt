@@ -9,10 +9,7 @@ import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.aspects.search.aspectSearchComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectHint
-import com.infowings.catalog.common.SortOrder
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
