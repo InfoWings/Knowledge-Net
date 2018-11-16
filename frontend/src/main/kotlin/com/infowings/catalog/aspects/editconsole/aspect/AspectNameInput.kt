@@ -16,7 +16,7 @@ import react.dom.input
 
 class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput.Props, AspectNameInput.State>(props) {
     override fun State.init(props: Props) {
-        hints = props.aspectHints
+        hints = AspectsHints.empty()
     }
 
 
@@ -24,7 +24,6 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
         e.stopPropagation()
         e.preventDefault()
         val current = e.target.unsafeCast<HTMLInputElement>().value
-        println("current:" + current)
         launch {
             val freshHints = if (current.length > 2) getAspectHints(current) else AspectsHints.empty()
 
@@ -36,7 +35,7 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
     }
 
     override fun RBuilder.render() {
-        println("props value: ${props.value}")
+        println("props value: ${props.value}, ${props.aspectHints}")
 
         val inputRef = props.inputRef
 
