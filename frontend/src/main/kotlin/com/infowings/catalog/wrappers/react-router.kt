@@ -55,6 +55,7 @@ interface LinkProps : RProps {
     var to: String
     var role: String
     var className: String
+    var icon: String
 }
 
 class RouteProps(

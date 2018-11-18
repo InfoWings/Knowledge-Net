@@ -51,6 +51,7 @@ fun RBuilder.propertyValue(
 
         baseType == BaseType.Decimal -> {
             val decValue = value as ObjectValueData.DecimalValue
+            
             rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr, decValue.rangeFlags), { lwb, upb, rangeFlags ->
                 val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
                 val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
