@@ -286,4 +286,6 @@ var INPUT.onPasteFunction : (Event) -> Unit
     get()  = throw UnsupportedOperationException("You can't read variable onChange")
     set(newValue) {consumer.onTagEvent(this, "onpaste", newValue)}
 
+
+
 fun RBuilder.entityLinkGuidInput(handler: RHandler<EntityLinkGuidInput.Props>) = child(EntityLinkGuidInput::class, handler)

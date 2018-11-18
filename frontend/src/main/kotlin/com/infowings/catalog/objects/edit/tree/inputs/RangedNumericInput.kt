@@ -23,9 +23,6 @@ class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNum
         if (newLwb == oldLwb) return
 
         if (newLwb < state.upb ?: Int.MAX_VALUE) {
-            setState {
-                lwb = newLwb
-            }
             val upb = state.upb
             props.onUpdate(newLwb, upb ?: newLwb)
         } else {
