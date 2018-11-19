@@ -39,10 +39,12 @@ fun RBuilder.objectPropertiesEditList(
     editModel: ObjectTreeEditModel,
     apiModelProperties: List<ObjectPropertyEditDetailsResponse>,
     updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit,
+    remover: (index: Int) -> Unit,
     newEditMode: Boolean,
     newHighlightedGuid: String?
 ) {
     val apiModelPropertiesById = apiModelProperties.associateBy { it.id }
+
     properties.forEachIndexed { propertyIndex, property ->
         val propertyValues = property.values
 
@@ -74,6 +76,12 @@ fun RBuilder.objectPropertiesEditList(
                                 name = apiModelPropertiesById[property.id]?.name
                             }
                             editContext.setContext(null)
+                        }
+                    } else null
+                    onCancelProperty = if (property.id == null) {
+                        {
+                            editContext.setContext(null)
+                            remover(propertyIndex)
                         }
                     } else null
                     onRemove = if (property.id != null && editContext.currentContext == null) {
@@ -393,6 +401,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         }
                         onConfirmCreate = props.onConfirm
                         onCancel = props.onCancel
+                        onCancelProperty = props.onCancelProperty
                         onAddValue = props.onAddValue
                         onRemoveProperty = props.onRemove
                         disabled = props.disabled
@@ -409,6 +418,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onConfirm: (() -> Unit)?
     var onCancel: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemove: (() -> Unit)?
     var disabled: Boolean

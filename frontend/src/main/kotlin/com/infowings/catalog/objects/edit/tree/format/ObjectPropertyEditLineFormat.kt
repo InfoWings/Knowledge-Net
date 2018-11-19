@@ -46,6 +46,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             disabled = props.disabled || props.onAddValue != null // If onAddValue exists, it means the property has id.
             // API does not allow editing aspect, so it is better to just disable the option.
         )
+
         props.onDescriptionChanged?.let {
             if (props.disabled) {
                 descriptionComponent(
@@ -75,6 +76,9 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
                 newValueButtonComponent(it)
             }
         }
+        props.onCancelProperty?.let {
+            cancelButtonComponent(it)
+        }
     }
 }
 
@@ -87,6 +91,7 @@ interface ObjectPropertyEditLineFormatProps : RProps {
     var onDescriptionChanged: ((String) -> Unit)?
     var onConfirmCreate: (() -> Unit)?
     var onCancel: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemoveProperty: (() -> Unit)?
     var disabled: Boolean
