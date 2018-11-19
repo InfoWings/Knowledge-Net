@@ -31,6 +31,7 @@ fun RBuilder.aspectPropertiesEditList(
     editMode: Boolean
 ) {
     val groupsMap = valueGroups.associateBy { it.propertyId }
+
     aspect.properties.forEach { aspectProperty ->
         val valueGroup = groupsMap[aspectProperty.id]
 
@@ -40,20 +41,128 @@ fun RBuilder.aspectPropertiesEditList(
                     attrs {
                         this.aspectProperty = aspectProperty
                         this.onCreateValue = if (editContext.currentContext == null) {
-                            { valueData, measureName ->
+                            { valueData, measureName, card ->
                                 editContext.setContext(EditNewChildContextModel)
-                                onAddValueGroup(
-                                    AspectPropertyValueGroupEditModel(
-                                        propertyId = aspectProperty.id,
-                                        values = mutableListOf(
-                                            AspectPropertyValueEditModel(
-                                                id = null,
-                                                value = valueData,
-                                                measureName = measureName
+
+                                if (card != PropertyCardinality.ZERO.label) {
+                                    onAddValueGroup(
+                                        AspectPropertyValueGroupEditModel(
+                                            propertyId = aspectProperty.id,
+                                            values = mutableListOf(
+                                                AspectPropertyValueEditModel(
+                                                    id = null,
+                                                    value = valueData,
+                                                    measureName = measureName
+                                                )
                                             )
                                         )
                                     )
-                                )
+                                } else {
+/*                                    onAddValueGroup(
+                                        AspectPropertyValueGroupEditModel(
+                                            propertyId = aspectProperty.id,
+                                            values = mutableListOf(
+
+                                                AspectPropertyValueEditModel(
+                                                    id = null,
+                                                    value = ObjectValueData.NullValue,
+                                                    measureName = null
+
+                                                )
+
+                                            )
+                                        )
+                                    )
+
+                                    editModel.createValue(
+                                        ValueCreateRequest(
+                                            ObjectValueData.NullValue,
+                                            "",
+                                            objectPropertyId,
+                                            null,
+                                            aspectProperty.id,
+                                            parentValueId
+                                        )
+                                    )
+
+                                    editContext.setContext(null)
+*/
+
+                                    editModel.createValue(
+                                        ValueCreateRequest(
+                                            ObjectValueData.NullValue,
+                                            "",
+                                            objectPropertyId,
+                                            null,
+                                            aspectProperty.id,
+                                            parentValueId
+                                        )
+                                    ) {
+                                        it?.let {
+                                            editContext.setContext(EditExistingContextModel(it.id))
+
+                                            onUpdate(0) {
+                                                values = mutableListOf(
+                                                        AspectPropertyValueEditModel(
+                                                                id = it.id,
+                                                                version = it.version,
+                                                                value = valueData,
+                                                                measureName =  measureName,
+                                                                description = "",
+                                                                guid = it.guid,
+                                                                expanded = true,
+                                                                children = mutableListOf()
+                                                            )
+                                                        )
+                                            }
+                                        }
+                                    }
+                                }
+                                    /*
+                                    editModel.createValue(
+                                        ValueCreateRequest(
+                                            ObjectValueData.NullValue,
+                                            "",
+                                            objectPropertyId,
+                                            null,
+                                            aspectProperty.id,
+                                            parentValueId
+                                        )
+                                    ) {
+                                        it?.let {
+                                            editContext.setContext(EditExistingContextModel(it.id))
+
+                                            onUpdate(0) {
+
+                                                onAddValueGroup(
+                                                    AspectPropertyValueGroupEditModel(
+                                                        propertyId = aspectProperty.id,
+                                                        values = mutableListOf(
+
+                                                            AspectPropertyValueEditModel(
+                                                                id = it.id,
+                                                                value = valueData,
+                                                                measureName =  measureName
+                                                            )
+
+                                                        )
+                                                    )
+                                                )
+/*
+                                                values.add(
+                                                    AspectPropertyValueEditModel(
+                                                        id = null,
+                                                        value = valueData,
+                                                        measureName = measureName
+                                                    )
+                                                )
+                                                */
+                                            }
+                                        }
+                                    }
+
+                                }*/
+
                             }
                         } else null
                         this.editMode = editMode
@@ -62,10 +171,12 @@ fun RBuilder.aspectPropertiesEditList(
             }
         } else {
             val valueGroupIndex = valueGroups.indexOfFirst { it.propertyId == valueGroup.propertyId }
+
             valueGroup.values.forEachIndexed { valueIndex, value ->
                 aspectPropertyValueEditNode {
                     attrs {
                         val currentEditContextModel = editContext.currentContext
+
                         this.aspectProperty = aspectProperty
                         this.value = value
                         this.valueCount = valueGroup.values.size
@@ -77,6 +188,7 @@ fun RBuilder.aspectPropertiesEditList(
                         this.onSubmit = when {
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
+                                    println("onSubmit. value: $value, ${aspectProperty.id}, parent: $parentValueId, mn: ${value.measureName}")
                                     editModel.createValue(
                                         ValueCreateRequest(
                                             value.value ?: error("No value to submit"),
@@ -209,11 +321,19 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                         subjectName = props.aspectProperty.aspect.subjectName
                         cardinality = props.aspectProperty.cardinality
                         onCreateValue = props.onCreateValue?.let { onCreateValue ->
-                            if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
-                                { onCreateValue(ObjectValueData.NullValue, null) }
+                            {
+                                    onCreateValue(props.aspectProperty.aspect.defaultValue(),
+                                        props.aspectProperty.aspect.measure,
+                                        props.aspectProperty.cardinality.label)
+                            }
+/*                            if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
+                                {
+                                    onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure)
+                                }
                             } else {
                                 { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
                             }
+                            */
                         }
                         editMode = props.editMode
                     }
@@ -225,7 +345,7 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
 
 interface AspectPropertyValueCreateNodeProps : RProps {
     var aspectProperty: AspectPropertyTree
-    var onCreateValue: ((value: ObjectValueData?, measureName: String?) -> Unit)?
+    var onCreateValue: ((value: ObjectValueData?, measureName: String?, card: String) -> Unit)?
     var editMode: Boolean
 }
 

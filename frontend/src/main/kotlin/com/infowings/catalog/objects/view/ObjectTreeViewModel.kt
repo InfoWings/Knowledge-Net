@@ -44,8 +44,6 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         val withDetails = oldByGuid.filter { it.value.objectProperties != null }.keys
 
-        println("rrr orderBy: " + props.orderBy)
-
         launch {
             try {
                 val response = getAllObjects(props.orderBy).objects

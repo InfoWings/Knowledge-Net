@@ -35,8 +35,6 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
     }
 
     override fun RBuilder.render() {
-        println("props value: ${props.value}, ${props.aspectHints}")
-
         val inputRef = props.inputRef
 
         div(classes = "aspect-edit-console--aspect-input-container") {

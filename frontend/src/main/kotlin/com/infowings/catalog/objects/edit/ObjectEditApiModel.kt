@@ -15,7 +15,7 @@ import react.*
 
 interface ObjectEditApiModel {
     suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest)
-    suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
+    suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse?
     suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
     suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest)
@@ -155,8 +155,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest) {
-        tryRequest {
+    override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse? {
+        val q = tryRequest<ValueChangeResponse> {
             val valueCreateResponse = createValue(valueCreateRequest)
             setState {
                 val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -168,7 +168,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 )
                 lastApiError = null
             }
+
+            return valueCreateResponse
         }
+
+        return q
     }
 
     override suspend fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {

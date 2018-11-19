@@ -22,7 +22,6 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        println("edit context model: " + props.editContext.currentContext)
         div(classes = "object-tree-edit") {
             controlledTreeNode {
                 attrs {
