@@ -45,8 +45,6 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
     override fun RBuilder.render() {
         val boundAspect = props.aspect
 
-        println("bound: " + boundAspect)
-
         val selected = boundAspect?.let { aspectOptionSelected(AspectHint.byAspect(it, AspectHintSource.ASPECT_NAME)) }
         val selectedArray = selected?.let { arrayOf(it) } ?: emptyArray()
 
@@ -71,7 +69,6 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                             if (input.isNotEmpty()) {
                                 launch {
                                     val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
-                                    println("hinted aspects: " + hints.map {it.name})
                                     callback(null, jsObject {
                                         options = hints.map { aspectOption(it) }.toTypedArray()
                                     })

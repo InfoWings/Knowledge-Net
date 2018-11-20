@@ -55,3 +55,10 @@ external interface LabelProps : BlueprintComponentProps {
     var helperText: ReactElement? // TODO: Or just String
     var text: ReactElement? // TODO: Or just String
 }
+
+external val Icon: RClass<IconProps>
+
+external interface IconProps : BlueprintComponentProps {
+    var title: String
+    var icon: String
+}

@@ -124,6 +124,11 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                             properties[index].block()
                         }
                     },
+                    remover = { index ->
+                        props.editModel.update {
+                            properties.removeAt(index)
+                        }
+                    },
                     newEditMode = props.editMode,
                     newHighlightedGuid = props.highlightedGuid
                 )

@@ -7,6 +7,7 @@ import com.infowings.catalog.common.toData
 import com.infowings.catalog.objects.view.tree.format.valueFormat
 import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.wrappers.History
+import com.infowings.catalog.wrappers.blueprint.Icon
 import com.infowings.catalog.wrappers.reactRouter
 import react.RBuilder
 import react.dom.span
@@ -42,9 +43,23 @@ data class ObjectBriefInfo(val data: BriefObjectView, val history: History, val 
         if (!editMode) {
             reactRouter.Link {
                 attrs {
-                    className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-forward pt-small"
+                    className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
                     role = "button"
                     to = "/objects/view/${encodeURIComponent(data.id)}"
+                }
+                Icon {
+                    attrs {
+                        icon = "fast-forward"
+                    }
+                }
+            }
+
+            reactRouter.Link {
+                attrs {
+                    className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
+                    role = "button"
+                    to = "/objects/view/${encodeURIComponent(data.id)}"
+                    icon = "clipboard"
                 }
             }
         }
@@ -78,11 +93,18 @@ data class ValueBriefInfo(val data: BriefValueViewResponse, val history: History
             if (!editMode) {
                 reactRouter.Link {
                     attrs {
-                        className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-forward pt-small"
+                        className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
                         role = "button"
                         to = "/objects/viewm/${encodeURIComponent(data.objectId)}/${encodeURIComponent(data.guid?:"???")}"
                     }
+
+                    Icon {
+                        attrs {
+                            icon = "fast-forward"
+                        }
+                    }
                 }
+
             }
         }
     }

@@ -1,9 +1,7 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.model.AspectsModel
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.emptyAspectPropertyData
+import com.infowings.catalog.common.*
 import kotlinext.js.require
 import react.*
 

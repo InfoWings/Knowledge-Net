@@ -69,7 +69,6 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
     }
 
     private fun updateSortConfig(newOrderBy: List<SortOrder>) {
-        println("update sort config: $newOrderBy")
         setState {
             orderBy = newOrderBy
         }

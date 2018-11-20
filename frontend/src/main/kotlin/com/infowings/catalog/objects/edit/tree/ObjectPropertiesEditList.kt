@@ -4,15 +4,34 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
+import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.ObjectPropertyValueEditModel
 import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
+import com.infowings.catalog.objects.edit.tree.utils.InputValidationException
+import com.infowings.catalog.objects.edit.tree.utils.isDecimal
+import com.infowings.catalog.objects.edit.tree.utils.transform
+import com.infowings.catalog.objects.edit.tree.utils.validate
+import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.utils.BadRequestException
 import react.RBuilder
 import react.RProps
 import react.buildElement
 import react.rFunction
+
+fun modelSaver(editContext: EditContext, value: ObjectPropertyValueEditModel, valueSaver: (ObjectValueData) -> Unit) {
+    try {
+        value.value?.validate()
+        val transformed = (value.value ?: error("value should not be null")).transform()
+        valueSaver(transformed)
+        editContext.setContext(null)
+    } catch (e: InputValidationException) {
+        showError(BadRequestException(e.message ?: "invalid input", 400.0))
+    }
+}
+
 
 fun RBuilder.objectPropertiesEditList(
     editContext: EditContext,
@@ -20,10 +39,12 @@ fun RBuilder.objectPropertiesEditList(
     editModel: ObjectTreeEditModel,
     apiModelProperties: List<ObjectPropertyEditDetailsResponse>,
     updater: (index: Int, ObjectPropertyEditModel.() -> Unit) -> Unit,
+    remover: (index: Int) -> Unit,
     newEditMode: Boolean,
     newHighlightedGuid: String?
 ) {
     val apiModelPropertiesById = apiModelProperties.associateBy { it.id }
+
     properties.forEachIndexed { propertyIndex, property ->
         val propertyValues = property.values
 
@@ -55,6 +76,12 @@ fun RBuilder.objectPropertiesEditList(
                                 name = apiModelPropertiesById[property.id]?.name
                             }
                             editContext.setContext(null)
+                        }
+                    } else null
+                    onCancelProperty = if (property.id == null) {
+                        {
+                            editContext.setContext(null)
+                            remover(propertyIndex)
                         }
                     } else null
                     onRemove = if (property.id != null && editContext.currentContext == null) {
@@ -138,36 +165,62 @@ fun RBuilder.objectPropertiesEditList(
                                 } ?: error("Must not be able to update value if there is no value")
                             }
                         }
+
+                        /*
+                        fun saver() {
+                            try {
+                                value.value?.validate()
+                                editModel.createValue(
+                                    ValueCreateRequest(
+                                        (value.value ?: error("value should not be null")).transform(),
+                                        value.description,
+                                        propertyId,
+                                        value.measureName
+                                    )
+                                )
+                                editContext.setContext(null)
+                            } catch (e: InputValidationException) {
+                                showError(BadRequestException(e.message ?: "invalid input", 400.0))
+                            }
+                        }
+                                                 }
+                        */
                         onSaveValue = when {
                             value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
                                 {
-                                    editModel.createValue(
-                                        ValueCreateRequest(
-                                            value.value ?: error("value should not be null"),
-                                            value.description,
-                                            propertyId,
-                                            value.measureName
+                                    modelSaver(editContext, value) { dataValue ->
+                                        editModel.createValue(
+                                            ValueCreateRequest(
+                                                dataValue,
+                                                value.description,
+                                                propertyId,
+                                                value.measureName
+                                            )
                                         )
-                                    )
-                                    editContext.setContext(null)
+
+                                    }
                                 }
+
                             }
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
-                                    editModel.updateValue(
-                                        ValueUpdateRequest(
-                                            value.id,
-                                            value.value ?: error("Value should not be null"),
-                                            value.measureName,
-                                            value.description,
-                                            value.version ?: error("Value with id (${value.id}) should have non null version")
+                                    modelSaver(editContext, value) { dataValue ->
+                                        editModel.updateValue(
+                                            ValueUpdateRequest(
+                                                value.id,
+                                                dataValue,
+                                                value.measureName,
+                                                value.description,
+                                                value.version ?: error("Value with id (${value.id}) should have non null version")
+                                            )
                                         )
-                                    )
-                                    editContext.setContext(null)
+
+                                    }
                                 }
                             }
                             else -> null
                         }
+
                         val allValues = property.values ?: error("Property should have at least one value")
                         onAddValue = when {
                             allValues.all { it.id != null } && allValues.none { apiModelValuesById[it.id]?.value?.toData() == ObjectValueData.NullValue } &&
@@ -348,6 +401,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         }
                         onConfirmCreate = props.onConfirm
                         onCancel = props.onCancel
+                        onCancelProperty = props.onCancelProperty
                         onAddValue = props.onAddValue
                         onRemoveProperty = props.onRemove
                         disabled = props.disabled
@@ -364,6 +418,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var onUpdate: (ObjectPropertyEditModel.() -> Unit) -> Unit
     var onConfirm: (() -> Unit)?
     var onCancel: (() -> Unit)?
+    var onCancelProperty: (() -> Unit)?
     var onAddValue: (() -> Unit)?
     var onRemove: (() -> Unit)?
     var disabled: Boolean
