@@ -266,7 +266,7 @@ class ObjectServiceTest {
         val upb = "234.56"
 
         val valueRequest = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue(lwb, upb),
+            value = ObjectValueData.DecimalValue(lwb, upb, 0),
             description = null,
             measureName = Millimetre.name,
             objectPropertyId = propertyCreateResponse.id

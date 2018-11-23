@@ -32,11 +32,11 @@ sealed class ObjectValueData {
         override fun link(): Link? = null
     }
 
-    data class DecimalValue(val valueRepr: String, val upbRepr: String) : ObjectValueData() {
+    data class DecimalValue(val valueRepr: String, val upbRepr: String, val rangeFlags: Int) : ObjectValueData() {
         override fun assignableTo(baseType: BaseType) = baseType.name == BaseType.Decimal.name
 
         companion object {
-            fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr)
+            fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr, 0)
         }
         override fun link(): Link? = null
     }
@@ -80,7 +80,7 @@ sealed class LinkValueData(open val id: String) {
         override fun isObjectValue() = true
     }
 
-    data class DomainElement(override val id: String) : LinkValueData(id) {
+    data class DomainElement(override val id: String, val value: String, val rootId: String?) : LinkValueData(id) {
         override fun isObjectValue() = false
     }
 

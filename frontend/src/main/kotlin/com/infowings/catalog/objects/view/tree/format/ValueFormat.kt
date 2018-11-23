@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.RangeFlagConstants
 import react.RBuilder
 import react.dom.span
 
@@ -9,9 +10,14 @@ fun RBuilder.valueFormat(value: ObjectValueData) {
     when (value) {
         is ObjectValueData.NullValue -> return
         is ObjectValueData.DecimalValue -> span(classes = "object-property-value-line__value") {
-            +value.valueRepr
             if (value.upbRepr != value.valueRepr) {
-                +(" : " + value.upbRepr)
+                val leftInf = RangeFlagConstants.LEFT_INF.bitmask.and(value.rangeFlags) != 0
+                val rightInf = RangeFlagConstants.RIGHT_INF.bitmask.and(value.rangeFlags) != 0
+                val leftText = if (leftInf) "-Inf" else value.valueRepr
+                val rightText = if (rightInf) "Inf" else value.upbRepr
+                +"[ $leftText : $rightText]"
+            } else {
+                +value.valueRepr
             }
         }
         is ObjectValueData.StringValue -> span(classes = "object-property-value-line__value") { +value.value }

@@ -40,7 +40,9 @@ sealed class LinkValueVertex {
     }
 
     class DomainElement(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.DomainElement(vertex.id)
+        override fun toData(): LinkValueData {
+            return LinkValueData.DomainElement(vertex.id, vertex.value, vertex.root?.id)
+        }
     }
 
     class RefBookItem(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
@@ -81,11 +83,11 @@ sealed class ObjectValue {
         override fun toObjectValueData() = ObjectValueData.RangeValue(range)
     }
 
-    data class DecimalValue(val value: BigDecimal, val upb: BigDecimal) : ObjectValue() {
-        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString(), upb.toString())
+    data class DecimalValue(val value: BigDecimal, val upb: BigDecimal, val rangeFlags: Int) : ObjectValue() {
+        override fun toObjectValueData() = ObjectValueData.DecimalValue(value.toString(), upb.toString(), rangeFlags)
 
         companion object {
-            fun instance(value: BigDecimal, upb: BigDecimal?) = DecimalValue(value, upb ?: value)
+            fun instance(value: BigDecimal, upb: BigDecimal?, rangeFlags: Int) = DecimalValue(value, upb ?: value, rangeFlags)
         }
     }
 
@@ -115,6 +117,7 @@ data class ObjectPropertyValue(
     val guid: String?
 ) {
     fun calculateObjectValueData(): ObjectValueData {
+
         val measure = measure?.toMeasure() ?: when (aspectProperty) {
             null -> objectProperty.aspect ?: throw IllegalStateException("Object property does not contain aspect")
             else -> aspectProperty.associatedAspect
@@ -125,7 +128,8 @@ data class ObjectPropertyValue(
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
             ObjectValueData.DecimalValue(
                 measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString(),
-                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toString()
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toString(),
+                targetValue.rangeFlags
             )
         } else {
             targetValue

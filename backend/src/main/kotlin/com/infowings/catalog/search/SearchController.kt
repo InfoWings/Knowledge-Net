@@ -1,6 +1,7 @@
 package com.infowings.catalog.search
 
 import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.common.ObjectsList
 import com.infowings.catalog.common.SuggestedMeasureData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.loggerFor
@@ -50,6 +51,16 @@ class SearchController(val suggestionService: SuggestionService) {
         commonParam: CommonSuggestionParam?,
         subjectParam: SubjectSuggestionParam
     ): SubjectsList = SubjectsList(suggestionService.findSubject(commonParam, subjectParam))
+
+    /**
+     * Fulltext search of subjects
+     */
+    @GetMapping("/object/suggestion")
+    fun objectSuggestion(
+        context: SearchContext,
+        commonParam: CommonSuggestionParam?,
+        objectParam: ObjectSuggestionParam
+    ): ObjectsList = ObjectsList(suggestionService.findObject(commonParam, objectParam))
 
 }
 

@@ -151,11 +151,11 @@ class OrientDatabase(
         OrientDatabaseInitializer(this)
             .initAspects()
             .initSubject()
+            .initObject()
             .initSearch()
             .initHistory()
             .initUsers()
             .initReferenceBooks()
-            .initObject()
             .initGuid()
             .initMeasures()
             .initSearchMeasure() // this call should be latest

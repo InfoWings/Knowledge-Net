@@ -1,7 +1,9 @@
 package com.infowings.catalog.objects
 
+import com.infowings.catalog.aspects.editconsole.aspect.measurementUnitOption
 import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.ObjectsList
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
@@ -53,8 +55,10 @@ suspend fun deleteProperty(id: String, force: Boolean): PropertyDeleteResponse =
 suspend fun deleteValue(id: String, force: Boolean): ValueDeleteResponse =
     JSON.parse(delete("/api/objects/value/${encodeURIComponent(id)}?force=$force"))
 
-suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: String): ValueRecalculationResponse =
-    JSON.parse(get("/api/objects/recalculateValue?from=${encodeURIComponent(fromMeasure)}&to=${encodeURIComponent(toMeasure)}&value=${encodeURIComponent(value)}"))
+suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: String): ValueRecalculationResponse {
+    val result: ValueRecalculationResponse = JSON.parse(get("/api/objects/recalculateValue?from=${encodeURIComponent(fromMeasure)}&to=${encodeURIComponent(toMeasure)}&value=${encodeURIComponent(value)}"))
+    return result
+}
 
 suspend fun loadEntityMetadata(guid: String): EntityMetadata =
     JSON.parse(get("/api/guid/meta/$guid"))
@@ -70,3 +74,7 @@ suspend fun getObjectBriefById(id: String): BriefObjectViewResponse =
 
 suspend fun getValueBriefById(id: String): BriefValueViewResponse =
     JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))
+
+suspend fun getSuggestedObjects(query: String): ObjectsList {
+    return JSON.parse(get("/api/search/object/suggestion?text=$query"))
+}

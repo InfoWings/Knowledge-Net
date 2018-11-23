@@ -2,6 +2,7 @@ package com.infowings.catalog.objects.edit.tree.inputs.values
 
 import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.objects.edit.tree.inputs.entityLinkGuidInput
 import com.infowings.catalog.objects.edit.tree.inputs.rangedDecimalInput
 import com.infowings.catalog.objects.edit.tree.inputs.rangedNumericInput
@@ -73,10 +74,12 @@ fun RBuilder.rangedNumericInput(value: ObjectValueData.IntegerValue, onUpdate: (
     }
 }
 
-fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String) -> Unit, disabled: Boolean) = rangedDecimalInput {
+fun RBuilder.rangedDecimalInput(value: ObjectValueData.DecimalValue, onUpdate: (String, String, Int) -> Unit, disabled: Boolean) = rangedDecimalInput {
     attrs {
-        this.lwb = value.valueRepr
-        this.upb = value.upbRepr
+        this.lwb = if (RangeFlagConstants.LEFT_INF.isSet(value.rangeFlags)) "" else value.valueRepr
+        this.upb = if (RangeFlagConstants.RIGHT_INF.isSet(value.rangeFlags)) "" else value.upbRepr
+        this.leftInfinity = RangeFlagConstants.LEFT_INF.isSet(value.rangeFlags)
+        this.rightInfinity = RangeFlagConstants.RIGHT_INF.isSet(value.rangeFlags)
         this.onUpdate = onUpdate
         this.disabled = disabled
     }

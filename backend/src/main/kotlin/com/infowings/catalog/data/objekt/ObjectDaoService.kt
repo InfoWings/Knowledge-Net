@@ -260,6 +260,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
             is ObjectValue.DecimalValue -> {
                 vertex.decimalValue = objectValue.value
                 vertex.decimalUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
+
+                val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
+                val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
+
+                vertex.leftInfinity = objectValue.rangeFlags.and(leftFlag) != 0
+                vertex.rightInfinity = objectValue.rangeFlags.and(rightFlag) != 0
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value

@@ -49,6 +49,13 @@ enum class ValueDTOTags {
     REF_BOOK_ITEM
 }
 
+public enum class RangeFlagConstants(val bitmask: Int) {
+    LEFT_INF(1),
+    RIGHT_INF(2);
+
+    fun isSet(flags: Int) = bitmask.and(flags) != 0
+}
+
 /* json-представление скалярного значения. */
 @Serializable
 data class ValueDTO(
@@ -58,9 +65,11 @@ data class ValueDTO(
     val intUpb: Int? = null,
     val decUpbRepr: String? = null,
     val range: Range? = null,
+    val rangeFlags: Int? = null,
     val precision: Int? = null,
     val vertexId: String? = null,
-    val booleanValue: Boolean? = null
+    val booleanValue: Boolean? = null,
+    val rootId: String? = null
 ) {
     companion object {
         private fun link(tag: String, id: String) = ValueDTO(tag, vertexId = id)
@@ -68,13 +77,18 @@ data class ValueDTO(
         fun string(value: String) = ValueDTO(ValueDTOTags.STRING.name, stringValue = value)
         fun nullValue() = ValueDTO(ValueDTOTags.NULL.name)
         fun boolean(value: Boolean) = ValueDTO(ValueDTOTags.BOOLEAN.name, booleanValue = value)
+        fun decimalRange(valueRepr: String, upbRepr: String, rangeFlags: Int?) = ValueDTO(
+            ValueDTOTags.DECIMAL.name, stringValue = valueRepr,
+            decUpbRepr = upbRepr, rangeFlags = rangeFlags
+        )
         fun decimalRange(valueRepr: String, upbRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, stringValue = valueRepr, decUpbRepr = upbRepr)
         fun integerRange(lwb: Int, upb: Int, precision: Int?) = ValueDTO(ValueDTOTags.INTEGER.name, intValue = lwb, intUpb = upb, precision = precision)
         fun subject(id: String) = link(ValueDTOTags.SUBJECT.name, id)
         fun objekt(id: String) = link(ValueDTOTags.OBJECT.name, id)
         fun objectProperty(id: String) = link(ValueDTOTags.OBJECT_PROPERTY.name, id)
         fun objectValue(id: String) = link(ValueDTOTags.OBJECT_VALUE.name, id)
-        fun domainElement(id: String) = link(ValueDTOTags.DOMAIN_ELEMENT.name, id)
+        fun domainElement(id: String, value: String, rootId: String?) = ValueDTO(ValueDTOTags.DOMAIN_ELEMENT.name, vertexId = id,
+            rootId = rootId, stringValue = value)
         fun refBookItem(id: String) = link(ValueDTOTags.REF_BOOK_ITEM.name, id)
         fun aspect(id: String) = link(ValueDTOTags.ASPECT.name, id)
         fun aspectProperty(id: String) = link(ValueDTOTags.ASPECT_PROPERTY.name, id)
@@ -85,7 +99,7 @@ data class ValueDTO(
 /* Конвертеры */
 fun ObjectValueData.toDTO(): ValueDTO = when (this) {
     is ObjectValueData.IntegerValue -> ValueDTO.integerRange(value, upb, precision)
-    is ObjectValueData.DecimalValue -> ValueDTO.decimalRange(valueRepr, upbRepr)
+    is ObjectValueData.DecimalValue -> ValueDTO.decimalRange(valueRepr, upbRepr, rangeFlags)
     is ObjectValueData.BooleanValue -> ValueDTO.boolean(value)
     is ObjectValueData.StringValue -> ValueDTO.string(value)
     is ObjectValueData.RangeValue -> ValueDTO.range(range)
@@ -95,7 +109,7 @@ fun ObjectValueData.toDTO(): ValueDTO = when (this) {
             is LinkValueData.Object -> ValueDTO.objekt(this.value.id)
             is LinkValueData.ObjectProperty -> ValueDTO.objectProperty(this.value.id)
             is LinkValueData.ObjectValue -> ValueDTO.objectValue(this.value.id)
-            is LinkValueData.DomainElement -> ValueDTO.domainElement(this.value.id)
+            is LinkValueData.DomainElement -> ValueDTO.domainElement(this.value.id, this.value.value, this.value.rootId)
             is LinkValueData.RefBookItem -> ValueDTO.refBookItem(this.value.id)
             is LinkValueData.Aspect -> ValueDTO.aspect(this.value.id)
             is LinkValueData.AspectProperty -> ValueDTO.aspectProperty(this.value.id)
@@ -115,12 +129,12 @@ fun ValueDTO.toData(): ObjectValueData = when (ValueDTOTags.valueOf(tag)) {
     ValueDTOTags.STRING -> ObjectValueData.StringValue(stringStrict())
     ValueDTOTags.BOOLEAN -> ObjectValueData.BooleanValue(booleanStrict())
     ValueDTOTags.RANGE -> ObjectValueData.RangeValue(rangeStrict())
-    ValueDTOTags.DECIMAL -> ObjectValueData.DecimalValue(decimalStrict(), decUpbRepr ?: decimalStrict())
+    ValueDTOTags.DECIMAL -> ObjectValueData.DecimalValue(decimalStrict(), decUpbRepr ?: decimalStrict(), rangeFlags ?: 0)
     ValueDTOTags.OBJECT -> ObjectValueData.Link(LinkValueData.Object(idStrict()))
     ValueDTOTags.OBJECT_PROPERTY -> ObjectValueData.Link(LinkValueData.ObjectProperty(idStrict()))
     ValueDTOTags.OBJECT_VALUE -> ObjectValueData.Link(LinkValueData.ObjectValue(idStrict()))
     ValueDTOTags.SUBJECT -> ObjectValueData.Link(LinkValueData.Subject(idStrict()))
-    ValueDTOTags.DOMAIN_ELEMENT -> ObjectValueData.Link(LinkValueData.DomainElement(idStrict()))
+    ValueDTOTags.DOMAIN_ELEMENT -> ObjectValueData.Link(LinkValueData.DomainElement(idStrict(), value = stringStrict(), rootId = rootId))
     ValueDTOTags.REF_BOOK_ITEM -> ObjectValueData.Link(LinkValueData.RefBookItem(idStrict()))
     ValueDTOTags.ASPECT -> ObjectValueData.Link(LinkValueData.Aspect(idStrict()))
     ValueDTOTags.ASPECT_PROPERTY -> ObjectValueData.Link(LinkValueData.AspectProperty(idStrict()))

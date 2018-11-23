@@ -274,7 +274,8 @@ class MainObjectValidator(
         if (originalValue is ObjectValueData.DecimalValue && measure != null) {
             ObjectValueData.DecimalValue(
                 measure.toBase(DecimalNumber(originalValue.valueRepr)).toString(),
-                measure.toBase(DecimalNumber(originalValue.upbRepr)).toString()
+                measure.toBase(DecimalNumber(originalValue.upbRepr)).toString(),
+                originalValue.rangeFlags
             )
         } else {
             originalValue
@@ -332,7 +333,7 @@ class MainObjectValidator(
         is ObjectValueData.RangeValue ->
             ObjectValue.RangeValue(dataValue.range)
         is ObjectValueData.DecimalValue ->
-            ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr), BigDecimal(dataValue.upbRepr))
+            ObjectValue.DecimalValue(BigDecimal(dataValue.valueRepr), BigDecimal(dataValue.upbRepr), dataValue.rangeFlags)
         is ObjectValueData.NullValue ->
             ObjectValue.NullValue
     }

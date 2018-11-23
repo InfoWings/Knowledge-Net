@@ -162,6 +162,7 @@ class AspectTreeBuilder {
                         aspectVertex.baseType,
                         aspectVertex.baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
                         aspectVertex.referenceBookRootVertex?.id,
+                        aspectVertex.referenceBookRootVertexSoft?.toReferenceBookItem()?.value,
                         aspectVertex.deleted,
                         lastVertexHolderInState.properties.map {
                             it.completedProperty ?: throw IllegalStateException("Completed flag is up while completed property is absent")

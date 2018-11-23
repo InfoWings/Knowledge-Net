@@ -546,8 +546,11 @@ class ObjectService(
     }
 
     fun recalculateValue(fromMeasureStr: String, toMeasureStr: String, value: DecimalNumber): DecimalNumber {
+        logger.debug("recalculate: from $fromMeasureStr to $toMeasureStr")
         val fromMeasure = GlobalMeasureMap[fromMeasureStr] ?: throw RecalculationException("Measure $fromMeasureStr does not exist")
         val toMeasure = GlobalMeasureMap[toMeasureStr] ?: throw RecalculationException("Measure $toMeasureStr does not exist")
+
+        logger.debug("recalculate: from measure $fromMeasure to measure $toMeasure")
 
         val fromMeasureGroup = MeasureMeasureGroupMap.getValue(fromMeasure.name)
         val toMeasureGroup = MeasureMeasureGroupMap.getValue(toMeasure.name)

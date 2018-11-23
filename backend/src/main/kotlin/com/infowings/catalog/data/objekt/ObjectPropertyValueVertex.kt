@@ -1,6 +1,7 @@
 package com.infowings.catalog.data.objekt
 
 import com.infowings.catalog.common.Range
+import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
@@ -32,6 +33,8 @@ const val STR_TYPE_PROPERTY = "str"
 const val RANGE_TYPE_PROPERTY = "range"
 const val PRECISION_PROPERTY = "precision"
 const val BOOL_TYPE_PROPERTY = "bool"
+const val RANGE_LEFT_INF_PROPERTY = "leftInf"
+const val RANGE_RIGHT_INF_PROPERTY = "rightInf"
 private const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
@@ -223,6 +226,17 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         get() = vertex[PRECISION_PROPERTY]
         set(v) = setOrRemove(PRECISION_PROPERTY, v)
 
+    var leftInfinity: Boolean
+        get() = vertex[RANGE_LEFT_INF_PROPERTY] ?: false
+        set(value) {
+            vertex[RANGE_LEFT_INF_PROPERTY] = value
+        }
+
+    var rightInfinity: Boolean
+        get() = vertex[RANGE_RIGHT_INF_PROPERTY] ?: false
+        set(value) {
+            vertex[RANGE_RIGHT_INF_PROPERTY] = value
+        }
 
     val objectProperty: ObjectPropertyVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).firstOrNull()
@@ -271,6 +285,15 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
+    fun calcRangeFlags(): Int {
+        var result = 0
+
+        if (leftInfinity) result += RangeFlagConstants.LEFT_INF.bitmask
+        if (rightInfinity) result += RangeFlagConstants.RIGHT_INF.bitmask
+
+        return result
+    }
+
     fun toObjectPropertyValue(): ObjectPropertyValue {
         val currentProperty = objectProperty ?: throw ObjectValueWithoutPropertyException(this)
         val currentAspectProperty = aspectProperty
@@ -284,11 +307,14 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             )
             ScalarTypeTag.OBJECT_VALUE -> ObjectValue.Link(LinkValueVertex.ObjectValue(refValueObjectValue ?: throw ObjectValueVertexNotDefinedException(id)))
             ScalarTypeTag.SUBJECT -> ObjectValue.Link(LinkValueVertex.Subject(refValueSubject ?: throw SubjectVertexNotDefinedException(id)))
-            ScalarTypeTag.DOMAIN_ELEMENT -> ObjectValue.Link(
-                LinkValueVertex.DomainElement(
-                    refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
+            ScalarTypeTag.DOMAIN_ELEMENT -> {
+                ObjectValue.Link(
+
+                    LinkValueVertex.DomainElement(
+                        refValueDomainElement ?: throw DomainElementVertexNotDefinedException(id)
+                    )
                 )
-            )
+            }
             ScalarTypeTag.ASPECT -> ObjectValue.Link(LinkValueVertex.Aspect(refValueAspect ?: throw AspectVertexNotDefinedException(id)))
             ScalarTypeTag.ASPECT_PROPERTY -> ObjectValue.Link(
                 LinkValueVertex.AspectProperty(
@@ -298,7 +324,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
             ScalarTypeTag.INTEGER -> ObjectValue.IntegerValue(intValueStrict, intUpb, precision)
             ScalarTypeTag.STRING -> ObjectValue.StringValue(strValueStrict)
             ScalarTypeTag.RANGE -> ObjectValue.RangeValue(rangeStrict)
-            ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue.instance(decimalValueStrict, decimalUpb)
+            ScalarTypeTag.DECIMAL -> ObjectValue.DecimalValue.instance(decimalValueStrict, decimalUpb, calcRangeFlags())
             ScalarTypeTag.BOOLEAN -> ObjectValue.BooleanValue(booleanValueStrict)
             ScalarTypeTag.NULL -> ObjectValue.NullValue
             else ->

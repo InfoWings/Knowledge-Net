@@ -69,6 +69,11 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
             .filterNot { it.deleted }
             .firstOrNull()
 
+    val referenceBookRootVertexSoft: ReferenceBookItemVertex?
+        get() = vertex.getVertices(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE)
+            .map { it.toReferenceBookItemVertex() }
+            .firstOrNull()
+
     fun dropRefBookEdge() {
         vertex.getEdges(ODirection.OUT, ASPECT_REFERENCE_BOOK_EDGE).forEach { it.delete<OEdge>() }
     }

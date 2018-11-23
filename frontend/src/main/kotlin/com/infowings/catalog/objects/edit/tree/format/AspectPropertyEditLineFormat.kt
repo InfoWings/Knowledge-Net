@@ -40,6 +40,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.aspectReferenceBookId,
+                referenceBookNameSoft = "",
                 value = value,
                 onChange = props.onChange,
                 disabled = props.disabled
@@ -60,7 +61,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
                         stringValueRepresentation = valueRepr, upbValueRepresentation = upbRepr,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
                         onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
-                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr))
+                            props.onMeasureNameChanged(measure.name, ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, 0))
                         },
                         disabled = props.disabled
                     )
