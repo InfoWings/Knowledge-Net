@@ -38,7 +38,6 @@ sealed class ObjectValueData {
         companion object {
             fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr, 0)
         }
-
         override fun link(): Link? = null
     }
 
