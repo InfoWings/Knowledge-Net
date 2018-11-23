@@ -8,6 +8,22 @@ data class AspectsList(
     val aspects: List<AspectData> = emptyList()
 )
 
+@Serializable
+data class AspectsHints(
+    val byAspectName: List<AspectHint> = emptyList(),
+    val byAspectDesc: List<AspectHint> = emptyList(),
+    val byRefBookValue: List<AspectHint> = emptyList(),
+    val byRefBookDesc: List<AspectHint> = emptyList(),
+    val byProperty: List<AspectHint> = emptyList()
+) {
+    companion object {
+        fun empty() = AspectsHints(
+            byAspectName = emptyList(), byAspectDesc = emptyList(),
+            byRefBookDesc = emptyList(), byRefBookValue = emptyList(), byProperty = emptyList()
+        )
+    }
+}
+
 enum class PropertyCardinality {
     ZERO {
         override val label = "Group"
@@ -21,6 +37,19 @@ enum class PropertyCardinality {
 
     abstract val label: String
 }
+
+@Serializable
+data class AspectHint(
+    val name: String,
+    val description: String?,
+    val refBookItem: String?,
+    val refBookItemDesc: String?,
+    val propertyName: String?,
+    val propertyDesc: String?,
+    val subAspectName: String?,
+    val aspectName: String?
+)
+
 
 @Serializable
 data class AspectData(

@@ -1,5 +1,6 @@
 package com.infowings.catalog.aspects.treeview.view
 
+import com.infowings.catalog.common.tableFormat
 import com.infowings.catalog.utils.ripIcon
 import kotlinx.html.js.onClickFunction
 import react.RBuilder
@@ -52,15 +53,11 @@ fun RBuilder.aspectLabel(
     lastChangedTimestamp?.let {
         span(classes = "text-grey") {
             val date = Date(it * 1000)
-            +"${date.getDateWithPadding()}.${date.getMonthWithPadding()} at ${date.getHoursWithPadding()}:${date.getMinutesWithPadding()}"
+            +date.tableFormat()
         }
     }
 }
 
-private fun Date.getDateWithPadding() = this.getDate().toString().padStart(2, '0')
-private fun Date.getMonthWithPadding() = this.getMonth().inc().toString().padStart(2, '0')
-private fun Date.getHoursWithPadding() = this.getHours().toString().padStart(2, '0')
-private fun Date.getMinutesWithPadding() = this.getMinutes().toString().padStart(2, '0')
 
 fun RBuilder.placeholderAspectLabel(className: String?) =
     div(classes = "aspect-tree-view--label${className?.let { " $it" } ?: ""}") {

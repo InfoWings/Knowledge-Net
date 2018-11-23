@@ -287,6 +287,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
 
         aspectPropertyVertex.name = aspectPropertyData.name
+        aspectPropertyVertex.nameWithAspect = "${aspectPropertyData.name} , ${find(aspectPropertyData.aspectId)?.name ?: ""}"
         aspectPropertyVertex.aspect = aspectPropertyData.aspectId
         aspectPropertyVertex.cardinality = cardinality.name
         aspectPropertyVertex.description = aspectPropertyData.description

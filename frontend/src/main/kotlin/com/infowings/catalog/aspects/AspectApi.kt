@@ -44,3 +44,8 @@ suspend fun getSuggestedAspects(
 
 suspend fun getSuggestedMeasureData(query: String, findInGroups: Boolean = false): SuggestedMeasureData =
     JSON.parse(get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
+
+suspend fun getHints(query: String): AspectsHints {
+    return JSON.parse(get("/api/search/aspect/hint?text=$query"))
+}
+

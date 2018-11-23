@@ -78,7 +78,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             )
             return@bean NormalizedAspectService(innerAspectService)
         }
-        bean { SuggestionService(database = ref()) }
+        bean { SuggestionService(database = ref(), aspectDao = ref()) }
         bean { HistoryDao(db = ref()) }
         bean { HistoryService(db = ref(), historyDao = ref()) }
         bean { AspectHistoryProvider(historyService = ref(), refBookDao = ref(), subjectDao = ref(), aspectService = ref()) }

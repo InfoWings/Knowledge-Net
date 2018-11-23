@@ -253,6 +253,12 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             vertex["name"] = value
         }
 
+    var nameWithAspect: String?
+        get() = vertex["name_with_aspect"]
+        set(value) {
+            vertex["name_with_aspect"] = value
+        }
+
     var aspect: String
         get() = vertex["aspectId"]
         set(value) {
@@ -282,6 +288,9 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()
+
+    val parentAspect: AspectVertex
+        get() = vertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
 

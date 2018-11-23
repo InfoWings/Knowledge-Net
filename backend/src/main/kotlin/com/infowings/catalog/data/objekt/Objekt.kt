@@ -20,7 +20,8 @@ data class Objekt(
     val description: String?,
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>,
-    val guid: String?
+    val guid: String?,
+    val lastUpdated: Long?
 )
 
 data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
@@ -34,7 +35,8 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
         subjectVertex.id,
         subjectVertex.name,
         objectVertex.version,
-        guidValue
+        guidValue,
+        objectVertex.lastUpdated
     )
 }
 
@@ -44,9 +46,10 @@ data class ObjectTruncated(
     val guid: String?,
     val description: String?,
     val subjectName: String,
-    val objectPropertiesCount: Int
+    val objectPropertiesCount: Int,
+    val lastUpdated: Long?
 ) {
-    fun toResponse() = ObjectGetResponse(id.toString(), name, guid, description, subjectName, objectPropertiesCount)
+    fun toResponse() = ObjectGetResponse(id.toString(), name, guid, description, subjectName, objectPropertiesCount, lastUpdated)
 }
 
 data class ObjectWriteInfo(val name: String, val description: String?, val subject: SubjectVertex)

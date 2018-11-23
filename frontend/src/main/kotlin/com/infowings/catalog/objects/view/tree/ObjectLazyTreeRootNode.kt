@@ -29,6 +29,7 @@ val objectLazyTreeRootNode = rFunction<ObjectLazyTreeRootNodeProps>("ObjectLazyT
                         objectName = props.objectView.name
                         objectGuid = props.objectView.guid
                         objectDescription = props.objectView.description
+                        timestamp = props.objectView.lastUpdated
                         subjectName = props.objectView.subjectName
                         expandTree = {
                             if (props.objectView.objectProperties == null) {

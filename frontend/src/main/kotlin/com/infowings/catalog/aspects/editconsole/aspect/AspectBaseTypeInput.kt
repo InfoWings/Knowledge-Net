@@ -18,10 +18,6 @@ private fun baseTypeOption(baseType: String) = jsObject<BaseTypeOption> {
 
 class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
 
-    private fun handleSelectBaseTypeOption(option: BaseTypeOption?) {
-        option?.let { props.onChange(it.aspectBaseType) } ?: props.onChange(null)
-    }
-
     override fun RBuilder.render() {
         div(classes = "aspect-edit-console--aspect-input-container") {
             label(classes = "aspect-edit-console--input-label", htmlFor = "aspect-base-type") {
@@ -30,11 +26,16 @@ class AspectBaseTypeInput : RComponent<AspectBaseTypeInput.Props, RState>() {
             div(classes = "aspect-edit-console--input-wrapper") {
                 commonSelect<BaseTypeOption> {
                     attrs {
+                        openOnFocus = true
                         className = "aspect-table-select"
                         value = props.value ?: ""
                         labelKey = "aspectBaseType"
                         valueKey = "aspectBaseType"
-                        onChange = ::handleSelectBaseTypeOption
+                        onChange = {
+                            //                            ::handleSelectBaseTypeOption
+                            val option = it
+                            option.let { props.onChange(it.aspectBaseType) }
+                        }
                         clearable = false
                         resetValue = null
                         disabled = props.disabled

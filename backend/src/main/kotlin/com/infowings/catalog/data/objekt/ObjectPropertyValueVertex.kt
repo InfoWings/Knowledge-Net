@@ -285,7 +285,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 
-    fun calcRangeFlags(): Int {
+    private fun calcRangeFlags(): Int {
         var result = 0
 
         if (leftInfinity) result += RangeFlagConstants.LEFT_INF.bitmask

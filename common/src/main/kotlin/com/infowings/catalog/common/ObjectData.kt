@@ -14,7 +14,8 @@ data class ObjectGetResponse(
     val guid: String?,
     val description: String?,
     val subjectName: String,
-    val propertiesCount: Int
+    val propertiesCount: Int,
+    val lastUpdated: Long?
 )
 
 
@@ -26,7 +27,8 @@ data class DetailedObjectViewResponse(
     val description: String?,
     val subjectName: String,
     val propertiesCount: Int,
-    val objectPropertyViews: List<DetailedObjectPropertyViewResponse>
+    val objectPropertyViews: List<DetailedObjectPropertyViewResponse>,
+    val lastUpdated: Long?
 )
 
 @Serializable

@@ -13,7 +13,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
     override fun State.init(props: Props) {
         lwb = props.lwb
         upb = props.upb
-        isRange = !(props.lwb == props.upb)
+        isRange = props.lwb != props.upb
         leftInfinity = props.leftInfinity
         rightInfinity = props.rightInfinity
         prevUpb = props.upb
@@ -39,7 +39,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
                 this.lwb = ""
             }
             if (!prevInfinity) {
-                props.onUpdate(string, if (props.upb == null) props.lwb else props.upb ?: "???", calcRangeFlags(true, props.rightInfinity))
+                props.onUpdate(string, if (props.upb == null) props.lwb else props.upb, calcRangeFlags(true, props.rightInfinity))
             }
         } else {
             if (props.leftInfinity) {
@@ -138,7 +138,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         }
     }
 
-    fun calcRangeFlags(): Int {
+    private fun calcRangeFlags(): Int {
         var result = 0
         if (state.leftInfinity) result += RangeFlagConstants.LEFT_INF.bitmask
         if (state.rightInfinity) result += RangeFlagConstants.RIGHT_INF.bitmask
@@ -146,15 +146,13 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         return result
     }
 
-    fun calcRangeFlags(left: Boolean, right: Boolean): Int {
+    private fun calcRangeFlags(left: Boolean, right: Boolean): Int {
         var result = 0
         if (left) result += RangeFlagConstants.LEFT_INF.bitmask
         if (right) result += RangeFlagConstants.RIGHT_INF.bitmask
 
         return result
     }
-
-    private fun hasInfinity() = props.leftInfinity || props.rightInfinity
 
     private fun isRangeMode() = state.isRange
 
@@ -283,14 +281,14 @@ private fun String.smallDelta(up: Boolean): String {
     val prec = decimalDigits()
     println("small delta, prec: $prec")
 
-    if (prec == 0) {
-        return (toDouble().roundToInt() + 1 * coeff).toString()
+    return if (prec == 0) {
+        (toDouble().roundToInt() + 1 * coeff).toString()
     } else {
         val v = ((toDouble() * (10.0.pow(prec))).roundToInt() + 1 * coeff).toString()
         println("small delta, v: $v")
-        return when {
-            prec > v.length -> "0." + (1..(prec-v.length)).map { '0' }.joinToString("", "", "") + v
-            prec == v.length ->  "0." + v
+        when {
+            prec > v.length -> "0." + (1..(prec - v.length)).map { '0' }.joinToString("", "", "") + v
+            prec == v.length -> "0.$v"
             else -> v.take(v.length - prec) + "." + v.drop(v.length - prec)
         }
     }

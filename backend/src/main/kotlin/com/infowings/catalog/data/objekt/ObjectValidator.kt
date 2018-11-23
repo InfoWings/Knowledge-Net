@@ -216,8 +216,13 @@ class MainObjectValidator(
             if (it.isObjectValue()) {
                 val targetValue = objectService.findPropertyValueById(it.id).toObjectPropertyValue()
 
-                if (targetValue.value.toObjectValueData().link() != null) {
-                    throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
+                val link = targetValue.value.toObjectValueData().link()
+                if (link != null) {
+                    when (link) {
+                        is ObjectValueData.Link -> {
+                        }
+                        else -> throw IllegalStateException("Attempt to create link ${targetValue.id} to value that is link itself")
+                    }
                 }
             }
         }

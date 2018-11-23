@@ -2,7 +2,6 @@ package com.infowings.catalog.objects.view.tree
 
 import com.infowings.catalog.objects.ObjectLazyViewModel
 import com.infowings.catalog.objects.view.ObjectsLazyModel
-import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.wrappers.reactRouter
 import react.*
 import react.dom.div

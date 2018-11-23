@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import kotlin.test.assertEquals
 import org.hamcrest.CoreMatchers.`is` as Is
 
 @ExtendWith(SpringExtension::class)
@@ -22,6 +23,8 @@ import org.hamcrest.CoreMatchers.`is` as Is
 class AspectServicePropertyTest {
     private val username = "admin"
 
+    @Autowired
+    lateinit var aspectDaoService: AspectDaoService
     @Autowired
     lateinit var aspectService: AspectService
     @Autowired
@@ -58,6 +61,11 @@ class AspectServicePropertyTest {
         assertTrue("Property Ids are not virtual",
             aspectService.getAspects().flatMap { it.properties }.all { !it.id.contains("-") }
         )
+    }
+
+    @Test
+    fun testWithAspectField() {
+        assertEquals("p , ${baseAspect.name}", aspectDaoService.findPropertyStrict(complexAspect.properties[0].id).nameWithAspect)
     }
 
     @Test
