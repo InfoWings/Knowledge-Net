@@ -28,9 +28,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
         }
     }
 
-    fun getTruncatedObjects() =
-        transaction(db) {
-
+    fun getTruncatedObjects() = transaction(db) {
             val queryTS =
                 "SELECT @rid, name, description, " +
                         " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
@@ -60,7 +58,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
                         "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
                         "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
-            return@transaction db.query(query) {
+
+            val response: List<ObjectTruncated> = db.query(query) {
                 it.map {
                     val id: ORID = it.getProperty<ORID>("@rid")
                     ObjectTruncated(
@@ -72,8 +71,10 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         it.getProperty("objectPropertiesCount"),
                         lastUpdated = tsById.get(id.toString())?.epochSecond
                     )
-                }
-            }.toList()
+                }.toList()
+            }
+
+        return@transaction response
         }
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))

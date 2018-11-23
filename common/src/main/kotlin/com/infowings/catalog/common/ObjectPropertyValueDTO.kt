@@ -81,7 +81,7 @@ data class ValueDTO(
             ValueDTOTags.DECIMAL.name, stringValue = valueRepr,
             decUpbRepr = upbRepr, rangeFlags = rangeFlags
         )
-
+        fun decimalRange(valueRepr: String, upbRepr: String) = ValueDTO(ValueDTOTags.DECIMAL.name, stringValue = valueRepr, decUpbRepr = upbRepr)
         fun integerRange(lwb: Int, upb: Int, precision: Int?) = ValueDTO(ValueDTOTags.INTEGER.name, intValue = lwb, intUpb = upb, precision = precision)
         fun subject(id: String) = link(ValueDTOTags.SUBJECT.name, id)
         fun objekt(id: String) = link(ValueDTOTags.OBJECT.name, id)
