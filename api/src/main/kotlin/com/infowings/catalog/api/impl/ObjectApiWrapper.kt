@@ -3,9 +3,31 @@ package com.infowings.catalog.api.impl
 import com.infowings.catalog.api.KNServerContext
 import com.infowings.catalog.api.ObjectApi
 import com.infowings.catalog.api.loggerFor
+import com.infowings.catalog.common.DetailedObjectViewResponse
+import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
+import java.net.URLEncoder
 
 internal class ObjectApiWrapper(private val context: KNServerContext) : ObjectApi {
+
+    override fun getDetailedObject(id: String): DetailedObjectViewResponse {
+        logger.debug("Get object {$id} request")
+
+        return context.builder("/api/objects").path("${URLEncoder.encode(id, "UTF-8")}/viewdetails").get()
+    }
+
+    //    @GetMapping("{id}/editdetails")
+    override fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getAllObjects(): ObjectsResponse {
+        logger.debug("Get all objects request")
+
+        return context.builder("/api/objects").get()
+    }
+
     override fun createObject(request: ObjectCreateRequest): ObjectChangeResponse {
         logger.debug("Create object request: $request")
 

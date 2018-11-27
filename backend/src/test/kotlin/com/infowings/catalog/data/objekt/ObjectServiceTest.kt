@@ -602,8 +602,7 @@ class ObjectServiceTest {
     fun `Delete object with two root values`() {
         val objectName = "object"
         val objectDescription = "object description"
-        val objectRequest =
-            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectRequest = ObjectCreateRequest(objectName, objectDescription, subject.id)
         val objectCreateResponse = objectService.create(objectRequest, "user")
         val propertyName = "prop_$objectName"
 

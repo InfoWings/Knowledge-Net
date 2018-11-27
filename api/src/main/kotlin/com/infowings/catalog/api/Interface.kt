@@ -1,9 +1,6 @@
 package com.infowings.catalog.api
 
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectsList
-import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.common.SubjectsList
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import org.springframework.web.bind.annotation.PathVariable
 
@@ -27,4 +24,8 @@ interface ObjectApi {
     fun createObjectProperty(request: PropertyCreateRequest): PropertyCreateResponse
     fun createObjectValue(request: ValueCreateRequest): ValueChangeResponse
     fun updateObjectValue(request: ValueUpdateRequest): ValueChangeResponse
+
+    fun getAllObjects(): ObjectsResponse
+    fun getDetailedObject(id: String): DetailedObjectViewResponse
+    fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse
 }

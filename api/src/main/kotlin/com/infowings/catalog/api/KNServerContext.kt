@@ -107,7 +107,7 @@ private const val REFRESH_AUTH = "x-refresh-authorization"
 private const val ACCESS_AUTH = "x-access-authorization"
 
 // https://stackoverflow.com/questions/607176/java-equivalent-to-javascripts-encodeuricomponent-that-produces-identical-outpu
-private fun encodeURIComponent(path: String): String = URI(null, null, path, null).rawPath
+fun encodeURIComponent(path: String): String = URI(null, null, path, null).rawPath
 
 internal class RequestBuilder(path: String, private val context: KNServerContext) {
     private val uriBuilder = UriComponentsBuilder.fromUriString(path)
@@ -172,13 +172,14 @@ internal class ErrorHandler(private val context: KNServerContext) : DefaultRespo
 
 
 private inline fun <T> refreshTokenOnFail(block: () -> T?): T? {
-    while (true) {
+    repeat(2) {
         try {
             return block()
         } catch (e: RetryRequest) {
             logger.error(e.message, e)
         }
     }
+    throw ServiceUnavailable
 }
 
 object ServiceUnavailable : Exception("Knowledge Net server unavailable")

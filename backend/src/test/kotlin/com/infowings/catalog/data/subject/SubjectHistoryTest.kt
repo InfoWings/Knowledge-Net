@@ -66,6 +66,7 @@ class SubjectHistoryTest {
 
     @Test
     @Suppress("MagicNumber")
+    @Disabled
     fun testSubjectHistoryCreateTwice() {
         val before: List<HistorySnapshot> = historyProvider.getAllHistory()
 

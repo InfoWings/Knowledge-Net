@@ -12,10 +12,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.web.firewall.StrictHttpFirewall
 
 
 @EnableWebSecurity
 class WebSecurity : WebSecurityConfigurerAdapter() {
+
+    @Bean
+    fun httpFirewall(): StrictHttpFirewall {
+        val firewall = StrictHttpFirewall()
+        firewall.setAllowSemicolon(true)
+        return firewall
+    }
 
     @Bean
     fun objectMapperBuilder(): Jackson2ObjectMapperBuilder =
