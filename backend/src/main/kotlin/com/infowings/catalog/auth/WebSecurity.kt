@@ -8,6 +8,7 @@ import org.springframework.core.env.Environment
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -19,9 +20,10 @@ import org.springframework.security.web.firewall.StrictHttpFirewall
 class WebSecurity : WebSecurityConfigurerAdapter() {
 
     @Bean
-    fun httpFirewall(): StrictHttpFirewall {
+    fun allowUrlEncodedSlashHttpFirewall(): StrictHttpFirewall {
         val firewall = StrictHttpFirewall()
         firewall.setAllowSemicolon(true)
+        firewall.setAllowUrlEncodedSlash(true);
         return firewall
     }
 
@@ -59,6 +61,11 @@ class WebSecurity : WebSecurityConfigurerAdapter() {
                 .and()
                 .addFilter(jWTAuthorizationFilter)
         }
+    }
+
+    override fun configure(web: WebSecurity?) {
+        super.configure(web)
+        web?.httpFirewall(allowUrlEncodedSlashHttpFirewall())
     }
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
