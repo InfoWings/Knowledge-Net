@@ -31,7 +31,8 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
         newMeasure?.let {
             launch {
                 val newValueRepresentation = recalculateValue(oldMeasureName, it.name, props.stringValueRepresentation)
-                props.onMeasureSelected(it, newValueRepresentation.value)
+                val newUpbRepresentation = recalculateValue(oldMeasureName, it.name, props.upbValueRepresentation)
+                props.onMeasureSelected(it, newValueRepresentation.value, newUpbRepresentation.value)
             }
             setState {
                 nextMeasure = null
@@ -42,7 +43,7 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
     private fun recalculationRejected() {
         val newMeasure = state.nextMeasure
         newMeasure?.let {
-            props.onMeasureSelected(it, props.stringValueRepresentation)
+            props.onMeasureSelected(it, props.stringValueRepresentation, props.upbValueRepresentation)
             setState {
                 nextMeasure = null
             }
@@ -51,7 +52,7 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
 
     private fun handleNewMeasureSelected(option: ValueMeasureOption) {
         if (props.currentMeasure.name == option.measure.name) {
-            props.onMeasureSelected(option.measure, props.stringValueRepresentation)
+            props.onMeasureSelected(option.measure, props.stringValueRepresentation, props.upbValueRepresentation)
         } else {
             setState {
                 nextMeasure = option.measure
@@ -91,8 +92,9 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
     interface Props : RProps {
         var measureGroup: MeasureGroup<*>
         var stringValueRepresentation: String
+        var upbValueRepresentation: String
         var currentMeasure: Measure<*>
-        var onMeasureSelected: (Measure<*>, String) -> Unit
+        var onMeasureSelected: (Measure<*>, String, String) -> Unit
         var disabled: Boolean
     }
 
@@ -132,13 +134,15 @@ fun RBuilder.valueMeasureSelect(
     measureGroup: MeasureGroup<*>,
     currentMeasure: Measure<*>,
     stringValueRepresentation: String,
-    onMeasureSelected: (Measure<*>, String) -> Unit,
+    upbValueRepresentation: String,
+    onMeasureSelected: (Measure<*>, String, String) -> Unit,
     disabled: Boolean
 ) = child(ValueMeasureSelectComponent::class) {
     attrs {
         this.measureGroup = measureGroup
         this.currentMeasure = currentMeasure
         this.stringValueRepresentation = stringValueRepresentation
+        this.upbValueRepresentation = upbValueRepresentation
         this.onMeasureSelected = onMeasureSelected
         this.disabled = disabled
     }

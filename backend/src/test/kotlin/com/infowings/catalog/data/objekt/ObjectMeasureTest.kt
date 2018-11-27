@@ -75,7 +75,7 @@ class ObjectMeasureTest {
         )
 
         val decimalValueResponse = objectService.create(
-            ValueCreateRequest(ObjectValueData.DecimalValue(stringRepr), null, decimalPropResponse.id, measure.name), username
+            ValueCreateRequest(ObjectValueData.DecimalValue.single(stringRepr), null, decimalPropResponse.id, measure.name), username
         )
 
         val guid = decimalValueResponse.guid ?: throw IllegalStateException()

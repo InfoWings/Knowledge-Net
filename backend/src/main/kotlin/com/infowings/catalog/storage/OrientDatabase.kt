@@ -178,6 +178,9 @@ class OrientDatabase(
      *
      * database.query(selectFromAspect) { rs, session ->
      * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
+     *
+     * IMPORTANT: lambda should convert lazy sequence returned by query to eager collection,
+     * otherwise whole operation will fail because result set is closed after leaving use{} block
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->

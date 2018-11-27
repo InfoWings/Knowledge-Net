@@ -85,6 +85,7 @@ class AspectHistoryTest {
             ), username
         )
 
+
         val aspectHistory: List<AspectHistory> = historyProvider.getAllHistory()
 
         assertEquals(1, aspectHistory.size, "History must contain 1 element")
@@ -437,7 +438,7 @@ class AspectHistoryTest {
 
         val history = historyProvider.getAllHistory().forAspect(aspect)
 
-        history.size shouldBe  1
+        history.size shouldBe 1
 
         val fact = history.first { it.fullData.aspectData.name == aspect.name }
         fact.changes.size shouldBe 5
@@ -538,5 +539,53 @@ class AspectHistoryTest {
         assertEquals(EventType.CREATE, latestFact.event.type)
         assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
         assertEquals(complexAspect.baseType, latestFact.fullData.aspectData.baseType)
+    }
+
+    @Test
+    fun testAspectWithSubAspects() {
+        val before = historyProvider.getAllHistory()
+
+        val aspect1 = aspectService.save(
+            AspectData(
+                name = randomName(),
+                baseType = BaseType.Text.name,
+                description = "some description-1"
+            ), username
+        )
+        val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
+
+        val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val complexAspectData = AspectData(
+            "",
+            randomName(),
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property)
+        )
+        val complexAspect = aspectService.save(complexAspectData, username)
+
+        val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val complexAspectData2 = AspectData(
+            "",
+            randomName(),
+            Kilometre.name,
+            null,
+            BaseType.Decimal.name,
+            listOf(property2)
+        )
+        val complexAspect2 = aspectService.save(complexAspectData2, username)
+
+        val history = historyProvider.getAllHistory().drop(before.size)
+
+        assertEquals(3, history.size)
+
+        val latestFact = history.find { it.event.entityId == complexAspect2.id } ?: throw IllegalStateException("Not found aspect")
+
+        /*
+        assertEquals(EventType.CREATE, latestFact.event.type)
+        assertEquals(complexAspect.name, latestFact.fullData.aspectData.name)
+        assertEquals(complexAspect.baseType, latestFact.fullData.aspectData.baseType)
+        */
     }
 }

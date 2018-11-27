@@ -91,7 +91,6 @@ data class ObjectPropertyValueEditModel(
     var expanded: Boolean = true,
     var valueGroups: MutableList<AspectPropertyValueGroupEditModel> = ArrayList()
 ) {
-
     constructor(value: ValueTruncated, valueMap: Map<String, ValueTruncated>) : this(
         id = value.id,
         version = value.version,

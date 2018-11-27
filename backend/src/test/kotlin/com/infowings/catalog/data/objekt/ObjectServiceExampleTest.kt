@@ -142,7 +142,7 @@ class ObjectServiceExampleTest {
         val valueCreateResponse13 = objectService.create(value13Request, username)
 
         val value111Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("3.0"),
+            value = ObjectValueData.DecimalValue.single("3.0"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Ampere.name,
@@ -152,7 +152,7 @@ class ObjectServiceExampleTest {
         objectService.create(value111Request, username)
 
         val value112Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("75"),
+            value = ObjectValueData.DecimalValue.single("75"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Celsius.name,
@@ -162,7 +162,7 @@ class ObjectServiceExampleTest {
         objectService.create(value112Request, username)
 
         val value121Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("0.8"),
+            value = ObjectValueData.DecimalValue.single("0.8"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Ampere.name,
@@ -172,7 +172,7 @@ class ObjectServiceExampleTest {
         objectService.create(value121Request, username)
 
         val value131Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("1.2"),
+            value = ObjectValueData.DecimalValue.single("1.2"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Ampere.name,
@@ -182,7 +182,7 @@ class ObjectServiceExampleTest {
         objectService.create(value131Request, username)
 
         val value132Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("0.3"),
+            value = ObjectValueData.DecimalValue.single("0.3"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Ampere.name,
@@ -192,7 +192,7 @@ class ObjectServiceExampleTest {
         objectService.create(value132Request, username)
 
         val value133Request = ValueCreateRequest(
-            value = ObjectValueData.DecimalValue("45"),
+            value = ObjectValueData.DecimalValue.single("45"),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = Celsius.name,

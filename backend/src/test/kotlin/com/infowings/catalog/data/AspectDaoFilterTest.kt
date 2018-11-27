@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.*
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
@@ -26,7 +25,7 @@ class AspectDaoFilterTest {
     @Autowired
     lateinit var aspectService: AspectService
 
-    val heightAspectName = "Height${UUID.randomUUID()}"
+    val heightAspectName = randomName("Height")
 
     @BeforeEach
     fun saveAspectTree() {

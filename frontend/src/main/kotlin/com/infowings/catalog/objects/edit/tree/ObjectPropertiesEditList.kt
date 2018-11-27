@@ -24,6 +24,7 @@ fun RBuilder.objectPropertiesEditList(
     val apiModelPropertiesById = apiModelProperties.associateBy { it.id }
     properties.forEachIndexed { propertyIndex, property ->
         val propertyValues = property.values
+
         if (propertyValues == null || propertyValues.isEmpty()) {
             objectPropertyEditNode {
                 val apiModelProperty = property.id?.let { apiModelPropertiesById[it] }

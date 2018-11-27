@@ -33,7 +33,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
                         "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
                         "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
-                        "FROM $OBJECT_CLASS"
+                        "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
             return@transaction db.query(query) {
                 it.map {
                     ObjectTruncated(
@@ -44,8 +44,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
                         it.getProperty("subjectName"),
                         it.getProperty("objectPropertiesCount")
                     )
-                }
-            }.toList()
+                }.toList()
+            }
         }
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
@@ -200,6 +200,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
         vertex: ObjectPropertyValueVertex,
         valueInfo: ValueWriteInfo
     ): ObjectPropertyValueVertex = transaction(db) {
+        logger.debug("saving object value by info $valueInfo")
+
         vertex.description = valueInfo.description
         val newTypeTag = valueInfo.value.tag()
 
@@ -207,9 +209,13 @@ class ObjectDaoService(private val db: OrientDatabase) {
             when (vertex.typeTag) {
                 ScalarTypeTag.INTEGER -> {
                     vertex.removeProperty<Int>(INT_TYPE_PROPERTY)
+                    vertex.removeProperty<Int>(INT_TYPE_UPB_PROPERTY)
                     vertex.removeProperty<Int>(PRECISION_PROPERTY)
                 }
-                ScalarTypeTag.DECIMAL -> vertex.removeProperty<BigDecimal>(DECIMAL_TYPE_PROPERTY)
+                ScalarTypeTag.DECIMAL -> {
+                    vertex.removeProperty<BigDecimal>(DECIMAL_TYPE_PROPERTY)
+                    vertex.removeProperty<Int>(DECIMAL_TYPE_UPB_PROPERTY)
+                }
                 ScalarTypeTag.STRING -> vertex.removeProperty<String>(STR_TYPE_PROPERTY)
                 ScalarTypeTag.RANGE -> vertex.removeProperty<Range>(RANGE_TYPE_PROPERTY)
                 ScalarTypeTag.BOOLEAN -> vertex.removeProperty<Boolean>(BOOL_TYPE_PROPERTY)
@@ -248,10 +254,12 @@ class ObjectDaoService(private val db: OrientDatabase) {
         when (objectValue) {
             is ObjectValue.IntegerValue -> {
                 vertex.intValue = objectValue.value
+                vertex.intUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
                 vertex.precision = objectValue.precision
             }
             is ObjectValue.DecimalValue -> {
                 vertex.decimalValue = objectValue.value
+                vertex.decimalUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value

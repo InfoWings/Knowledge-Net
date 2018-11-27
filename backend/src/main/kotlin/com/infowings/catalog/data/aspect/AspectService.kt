@@ -239,9 +239,10 @@ class DefaultAspectService(
 
     private fun getData(vertices: Set<AspectVertex>): List<AspectData> {
         val ids = vertices.map { it.identity }
-
-        val props = aspectDaoService.getProperties(ids).map {
-            it.toAspectPropertyData()
+        val props = transaction(db) {
+            aspectDaoService.getProperties(ids).map {
+                it.toAspectPropertyData()
+            }
         }
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }

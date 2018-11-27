@@ -42,6 +42,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
             vertex[ATTR_DESC] = value
         }
 
+
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT)
 

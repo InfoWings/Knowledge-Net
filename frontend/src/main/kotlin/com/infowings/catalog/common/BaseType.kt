@@ -29,7 +29,7 @@ fun BaseType.defaultValue(): ObjectValueData? =
     when (this) {
         is BaseType.Text -> null
         is BaseType.Integer -> ObjectValueData.IntegerValue(0, null)
-        is BaseType.Decimal -> ObjectValueData.DecimalValue("0")
+        is BaseType.Decimal -> ObjectValueData.DecimalValue.single("0")
         is BaseType.Boolean -> ObjectValueData.BooleanValue(false)
         is BaseType.Range -> ObjectValueData.RangeValue(Range(0, 1))
         is BaseType.Reference -> null

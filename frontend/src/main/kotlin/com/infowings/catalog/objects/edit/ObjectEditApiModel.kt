@@ -5,6 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.utils.mapOn
 import com.infowings.catalog.utils.replaceBy
 import com.infowings.catalog.wrappers.reactRouter
@@ -58,14 +59,25 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun deleteObject(force: Boolean) {
-        tryRequest {
+        val toRethrow = tryRequest {
             val editedObject = state.editedObject ?: error("Object is not yet loaded")
-            deleteObject(editedObject.id, force)
-            setState {
-                this.editedObject = null
-                this.deleted = true
-                lastApiError = null
+
+            try {
+                deleteObject(editedObject.id, force)
+                setState {
+                    this.editedObject = null
+                    this.deleted = true
+                    lastApiError = null
+                }
+
+                null
+            } catch (badRequestException: BadRequestException) {
+                badRequestException
             }
+        }
+
+        toRethrow?.let {
+            throw it
         }
     }
 
@@ -120,16 +132,26 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun deleteObjectProperty(id: String, force: Boolean) {
-        tryRequest {
-            val propertyDeleteResponse = deleteProperty(id, force)
-            setState {
-                val editedObject = this.editedObject ?: error("Object is not yet loaded")
-                this.editedObject = editedObject.copy(
-                    version = propertyDeleteResponse.obj.version,
-                    properties = editedObject.properties.filterNot { it.id == propertyDeleteResponse.id }
-                )
-                lastApiError = null
+        val toRethrow = tryRequest {
+            try {
+                val propertyDeleteResponse = deleteProperty(id, force)
+                setState {
+                    val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                    this.editedObject = editedObject.copy(
+                        version = propertyDeleteResponse.obj.version,
+                        properties = editedObject.properties.filterNot { it.id == propertyDeleteResponse.id }
+                    )
+                    lastApiError = null
+                }
+
+                null
+            } catch (badRequestException: BadRequestException) {
+                badRequestException
             }
+        }
+
+        toRethrow?.let {
+            throw it
         }
     }
 
@@ -165,25 +187,36 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override suspend fun deleteObjectValue(id: String, force: Boolean) {
-        tryRequest {
-            val valueDeleteResponse = deleteValue(id, force)
-            setState {
-                val editedObject = this.editedObject ?: error("Object is not yet loaded")
-                this.editedObject = editedObject.copy(
-                    properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
-                )
-                lastApiError = null
+        val toRethrow = tryRequest {
+            try {
+                val valueDeleteResponse = deleteValue(id, force)
+                setState {
+                    val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                    this.editedObject = editedObject.copy(
+                        properties = editedObject.properties.mapOn({ it.id == valueDeleteResponse.objectProperty.id }, { it.deleteValues(valueDeleteResponse, id) })
+                    )
+                    lastApiError = null
+                }
+
+                null
+            } catch (badRequestException: BadRequestException) {
+                badRequestException
             }
+        }
+
+        toRethrow?.let {
+            throw it
         }
     }
 
-    private inline fun tryRequest(block: () -> Unit) {
+    private inline fun <T> tryRequest(block: () -> T): T? {
         try {
-            block()
+            return block()
         } catch (apiException: ApiException) {
             setState {
                 lastApiError = apiException
             }
+            return null
         }
     }
 
