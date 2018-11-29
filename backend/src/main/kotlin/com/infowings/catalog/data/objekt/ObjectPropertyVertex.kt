@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
@@ -15,7 +16,7 @@ fun OVertex.toObjectPropertyVertex(): ObjectPropertyVertex {
     return ObjectPropertyVertex(this)
 }
 
-class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
+class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -61,9 +62,9 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, Deletabl
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
         ).map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT_PROPERTY)
-
 }
 
 sealed class ObjectPropertyException(message: String) : Exception(message)

@@ -72,7 +72,18 @@ data class ValueWriteInfo(
     val aspectProperty: AspectPropertyVertex?,
     val parentValue: ObjectPropertyValueVertex?,
     val measure: OVertex?
-)
+) {
+    companion object {
+        fun nullRoot(propertyVertex: ObjectPropertyVertex) = ValueWriteInfo(
+            value = ObjectValue.NullValue,
+            description = null,
+            objectProperty = propertyVertex,
+            aspectProperty = null,
+            parentValue = null,
+            measure = null
+        )
+    }
+}
 
 data class DeleteInfo(
         val vertex: OVertex,

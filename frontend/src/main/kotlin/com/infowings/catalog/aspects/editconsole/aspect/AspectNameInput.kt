@@ -1,6 +1,6 @@
 package com.infowings.catalog.aspects.editconsole.aspect
 
-import com.infowings.catalog.aspects.getHints
+import com.infowings.catalog.aspects.getAspectHints
 import com.infowings.catalog.common.AspectsHints
 import com.infowings.catalog.components.popup.existingAspectWindow
 import com.infowings.catalog.wrappers.react.label
@@ -26,7 +26,7 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
         e.preventDefault()
         val current = e.target.unsafeCast<HTMLInputElement>().value
         launch {
-            val frashHints = if (current.length > 2) getHints(current) else AspectsHints.empty()
+            val frashHints = if (current.length > 2) getAspectHints(current) else AspectsHints.empty()
 
             setState {
                 value += "1"

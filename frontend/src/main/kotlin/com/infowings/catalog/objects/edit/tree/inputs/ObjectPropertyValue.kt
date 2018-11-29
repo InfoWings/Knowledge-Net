@@ -28,7 +28,7 @@ fun RBuilder.propertyValue(
                 (referenceBookId == domainElement?.rootId || value == null || stringValue?.value == "") ->
             refBookInput(
                 domainElement?.id,
-                { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it, "", referenceBookId))) },
+                { onChange(ObjectValueData.Link(LinkValueData.DomainElement(it, "", "", referenceBookId))) },
                 referenceBookId,
                 disabled
             )

@@ -128,8 +128,10 @@ class NotFreeAspectUpdateTest {
     private fun initAspectWithObjectProperty() {
         val ad2 = AspectData("", randomName(), Second.name, null, BaseType.Decimal.name, emptyList())
         aspectWithValue = aspectService.save(ad2, username)
-        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = aspectWithValue.id!!, id = "", description = "")
-        val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name, aspectId = aspectWithValue.id!!, id = "", description = "")
+        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspectWithValue.idStrict(), aspectGuid = aspectWithValue.guidSoft(), id = "", description = "")
+        val ap3 = AspectPropertyData(name = "ap2", cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspectWithValue.idStrict(), aspectGuid = aspectWithValue.guidSoft(), id = "", description = "")
         val ad3 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap2, ap3))
         aspectWithObjectProperty = aspectService.save(ad3, username)
 
@@ -146,7 +148,8 @@ class NotFreeAspectUpdateTest {
     private fun initAspectLinkedOtherAspect() {
         val ad0 = AspectData("", randomName(), Metre.name, null, BaseType.Decimal.name, emptyList())
         aspectLinkedOtherAspect = aspectService.save(ad0, username)
-        val ap = AspectPropertyData(name = "ad", cardinality = PropertyCardinality.ONE.name, aspectId = aspectLinkedOtherAspect.id!!, id = "", description = "")
+        val ap = AspectPropertyData(name = "ad", cardinality = PropertyCardinality.ONE.name,
+            aspectId = aspectLinkedOtherAspect.idStrict(), aspectGuid = aspectLinkedOtherAspect.guidSoft(), id = "", description = "")
         val ad1 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap))
         aspectService.save(ad1, username)
         aspectLinkedOtherAspect = aspectService.findById(aspectLinkedOtherAspect.id!!)

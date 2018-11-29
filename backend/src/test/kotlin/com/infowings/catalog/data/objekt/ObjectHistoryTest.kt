@@ -70,7 +70,7 @@ class ObjectHistoryTest {
         intAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
         refAspect = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Reference.name), username)
 
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             id = "",
             name = randomName(),
@@ -1051,7 +1051,7 @@ class ObjectHistoryTest {
     @Test
     fun createValueSubjectHistoryTest() {
         val testName = "createValueSubjectHistoryTest"
-        val linkValue = ObjectValueData.Link(LinkValueData.Subject(subject.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.Subject(subject.id, subject.guidSoft()))
         val objectDescription = "object description"
 
         val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
@@ -1125,7 +1125,7 @@ class ObjectHistoryTest {
     @Test
     fun createValueAspectHistoryTest() {
         val testName = "createValueAspectHistoryTest"
-        val linkValue = ObjectValueData.Link(LinkValueData.Aspect(aspect.idStrict()))
+        val linkValue = ObjectValueData.Link(LinkValueData.Aspect(aspect.idStrict(), aspect.guidSoft()))
         val objectDescription = "object description"
 
         val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
@@ -1201,7 +1201,7 @@ class ObjectHistoryTest {
     fun createValueAspectPropertyHistoryTest() {
         val testName = "createValueAspectPropertyHistoryTest"
         val propertyC = propertyOfComplex()
-        val linkValue = ObjectValueData.Link(LinkValueData.AspectProperty(propertyC.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.AspectProperty(propertyC.id, propertyC.guidSoft()))
 
         val objectDescription = "object description"
 
@@ -1287,7 +1287,7 @@ class ObjectHistoryTest {
                 subjectId = subject.id
             ), "admin"
         )
-        val linkValue = ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft()))
         val objectDescription = "object description"
 
         val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
@@ -1371,7 +1371,7 @@ class ObjectHistoryTest {
         )
 
 
-        val linkValue = ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id, propertyCreateResponse.guidSoft()))
         val objectDescription = "object description"
 
         val prepared = prepareValue(testName, objectDescription, linkValue, refAspect.idStrict())
@@ -1465,7 +1465,7 @@ class ObjectHistoryTest {
             "admin"
         )
 
-        val linkValue = ObjectValueData.Link(LinkValueData.ObjectValue(objectValue.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.ObjectValue(objectValue.id, objectValue.guidSoft()))
 
         val objectDescription = "object description"
 
@@ -1558,8 +1558,11 @@ class ObjectHistoryTest {
                 version = 0, guid = null
             ), "admin"
         )
+        val rbiGuid = transaction (db) {
+            refBookService.getReferenceBookItemVertex(rbiId).guidSoft()
+        }
 
-        val linkValue = ObjectValueData.Link(LinkValueData.DomainElement(rbiId, rbiValue, refBook.id))
+        val linkValue = ObjectValueData.Link(LinkValueData.DomainElement(rbiId, rbiGuid, rbiValue, refBook.id))
 
         val prepared = prepareValue(testName, objectDescription, linkValue, aspect.idStrict())
 

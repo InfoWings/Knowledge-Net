@@ -1,12 +1,15 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
 import com.infowings.catalog.common.LinkValueData
+import com.infowings.catalog.common.guid.BriefObjectView
 import com.infowings.catalog.common.guid.EntityClass
 import com.infowings.catalog.common.guid.EntityMetadata
 import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.wrappers.History
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.blueprint.Spinner
 import kotlinx.coroutines.experimental.launch
 import kotlinx.html.INPUT
@@ -99,7 +102,8 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 
     private suspend fun loadEntityBrief(entityMetadata: EntityMetadata) {
-        val briefEntityInfo = briefInfoGetters[entityMetadata.entityClass]?.invoke(entityMetadata.guid) ?: run {
+
+        val briefEntityInfo = briefInfoGetters(props.history)[entityMetadata.entityClass]?.invoke(entityMetadata.guid) ?: run {
             showError(BadRequestException("Entity type ${entityMetadata.entityClass} is not supported", null))
             setState {
                 editState = EditState.SHOWING
@@ -114,8 +118,8 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
 
     private suspend fun loadEntityBriefById(linkValueData: LinkValueData) {
         val briefEntityInfo = when (linkValueData) {
-            is LinkValueData.Object -> ObjectBriefInfo(getObjectBriefById(linkValueData.id))
-            is LinkValueData.ObjectValue -> ValueBriefInfo(getValueBriefById(linkValueData.id))
+            is LinkValueData.Object -> ObjectBriefInfo(linkValueData.getObjectBriefById(), props.history, true)
+            is LinkValueData.ObjectValue -> ValueBriefInfo(getValueBriefById(linkValueData.id), props.history, true)
             else -> {
                 showError(BadRequestException("Entity for link value $linkValueData is not yet supported", null))
                 setState {
@@ -158,13 +162,13 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     private fun invokeOnUpdate(entityMetadata: EntityMetadata) {
         props.onUpdate(
             when (entityMetadata.entityClass) {
-                EntityClass.OBJECT -> LinkValueData.Object(entityMetadata.id)
-                EntityClass.OBJECT_VALUE -> LinkValueData.ObjectValue(entityMetadata.id)
-                EntityClass.ASPECT -> LinkValueData.Aspect(entityMetadata.id)
-                EntityClass.ASPECT_PROPERTY -> LinkValueData.AspectProperty(entityMetadata.id)
-                EntityClass.OBJECT_PROPERTY -> LinkValueData.ObjectProperty(entityMetadata.id)
-                EntityClass.REFBOOK_ITEM -> LinkValueData.RefBookItem(entityMetadata.id)
-                EntityClass.SUBJECT -> LinkValueData.Subject(entityMetadata.id)
+                EntityClass.OBJECT -> LinkValueData.Object(entityMetadata.id, entityMetadata.guid)
+                EntityClass.OBJECT_VALUE -> LinkValueData.ObjectValue(entityMetadata.id, entityMetadata.guid)
+                EntityClass.ASPECT -> LinkValueData.Aspect(entityMetadata.id, entityMetadata.guid)
+                EntityClass.ASPECT_PROPERTY -> LinkValueData.AspectProperty(entityMetadata.id, entityMetadata.guid)
+                EntityClass.OBJECT_PROPERTY -> LinkValueData.ObjectProperty(entityMetadata.id, entityMetadata.guid)
+                EntityClass.REFBOOK_ITEM -> LinkValueData.RefBookItem(entityMetadata.id, entityMetadata.guid)
+                EntityClass.SUBJECT -> LinkValueData.Subject(entityMetadata.id, entityMetadata.guid)
             }
         )
     }
@@ -249,7 +253,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
         EDITING, LOADING, SHOWING
     }
 
-    interface Props : RProps {
+    interface Props : RouteSuppliedProps {
         var value: LinkValueData?
         var onUpdate: (LinkValueData?) -> Unit
         var disabled: Boolean
@@ -262,9 +266,9 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 }
 
-private val briefInfoGetters: Map<EntityClass, BriefInfoGetter> = mapOf(
-    EntityClass.OBJECT to { guid -> ObjectBriefInfo(getObjectBrief(guid)) },
-    EntityClass.OBJECT_VALUE to { guid -> ValueBriefInfo(getValueBrief(guid)) }
+private fun briefInfoGetters(history: History): Map<EntityClass, BriefInfoGetter> = mapOf(
+    EntityClass.OBJECT to { guid -> ObjectBriefInfo(BriefObjectView.of("noid", guid, getObjectBrief(guid)), history, true) },
+    EntityClass.OBJECT_VALUE to { guid -> ValueBriefInfo(getValueBrief(guid), history, true) }
 )
 
 private typealias BriefInfoGetter = suspend (String) -> EntityBriefInfo

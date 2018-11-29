@@ -142,7 +142,8 @@ class ReferenceBookLinkedTest {
 
     private fun addLinkToRefBookItem(idForLinking: String) {
         val leafAspect = aspectService.findById(refBook.aspectId)
-        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name, aspectId = leafAspect.id!!, id = "", description = "")
+        val ap2 = AspectPropertyData(name = "ap1", cardinality = PropertyCardinality.ONE.name,
+            aspectId = leafAspect.idStrict(), aspectGuid = leafAspect.guidSoft(), id = "", description = "")
         val ad3 = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(ap2))
         val aspectWithObjectProperty = aspectService.save(ad3, username)
 
@@ -158,7 +159,7 @@ class ReferenceBookLinkedTest {
         )
         val rootValueUpdateResponse = objectService.update(objPropertyRootValueRequest, username)
         val objPropertyValueRequest = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking, "", null)),
+            value = ObjectValueData.Link(LinkValueData.DomainElement(idForLinking, "", "", null)),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,

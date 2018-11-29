@@ -25,7 +25,9 @@ val aspectPropertyCreateLineFormat = rFunction<AspectPropertyCreateLineFormatPro
             +")"
         }
         props.onCreateValue?.let {
-            newValueButtonComponent(it, "pt-small")
+            if (props.editMode) {
+                newValueButtonComponent(it, "pt-small")
+            }
         }
     }
 }
@@ -36,4 +38,5 @@ interface AspectPropertyCreateLineFormatProps : RProps {
     var subjectName: String?
     var cardinality: PropertyCardinality
     var onCreateValue: (() -> Unit)?
+    var editMode: Boolean
 }

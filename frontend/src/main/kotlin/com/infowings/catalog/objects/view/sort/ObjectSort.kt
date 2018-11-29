@@ -1,4 +1,4 @@
-package com.infowings.catalog.aspects.sort
+package com.infowings.catalog.objects.view.sort
 
 import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.SortField
@@ -9,16 +9,17 @@ import kotlinext.js.require
 import react.*
 import react.dom.div
 
-
-class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
+class ObjectSort : RComponent<ObjectSort.Props, ObjectSort.State>() {
 
     companion object {
         init {
             require("styles/aspect-sort.scss")
         }
+
+        val sortPrio = mapOf(SortField.NAME to 0, SortField.SUBJECT to 1)
     }
 
-    override fun AspectSort.State.init() {
+    override fun ObjectSort.State.init() {
         orderBy = mutableListOf()
     }
 
@@ -43,7 +44,9 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
         }
     }
 
+
     private fun onClickSort(field: SortField) {
+        println("ON CLICK: " + field)
         setState {
             val curOrder = orderBy.find { it.name == field }
             if (curOrder == null)
@@ -54,7 +57,7 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
                 }
                 orderBy.remove(curOrder)
             }
-            props.onOrderByChanged(orderBy)
+            props.onOrderByChanged(orderBy.sortedBy { sortPrio[it.name] })
         }
     }
 
@@ -77,4 +80,4 @@ class AspectSort : RComponent<AspectSort.Props, AspectSort.State>() {
 }
 
 
-fun RBuilder.aspectSort(block: RHandler<AspectSort.Props>) = child(AspectSort::class, block)
+fun RBuilder.objectSort(block: RHandler<ObjectSort.Props>) = child(ObjectSort::class, block)

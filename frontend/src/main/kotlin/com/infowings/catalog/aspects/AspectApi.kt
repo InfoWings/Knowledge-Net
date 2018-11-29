@@ -7,7 +7,7 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllAspects(orderBy: List<AspectOrderBy> = emptyList(), nameQuery: String = ""): AspectsList {
+suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     return JSON.parse(
         get("/api/aspect/all" +
                 "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
@@ -45,7 +45,12 @@ suspend fun getSuggestedAspects(
 suspend fun getSuggestedMeasureData(query: String, findInGroups: Boolean = false): SuggestedMeasureData =
     JSON.parse(get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
 
-suspend fun getHints(query: String): AspectsHints {
-    return JSON.parse(get("/api/search/aspect/hint?text=$query"))
+suspend fun getAspectHints(query: String,
+                           aspectId: String? = null,
+                           aspectPropertyId: String? = null
+): AspectsHints {
+    val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
+    val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
+    return JSON.parse(get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
 }
 

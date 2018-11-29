@@ -34,10 +34,10 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
     }
 
     override fun componentDidMount() {
-        fetchData(listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)))
+        fetchData(listOf(SortOrder(SortField.NAME, Direction.ASC)))
     }
 
-    private fun fetchData(orderBy: List<AspectOrderBy> = emptyList()) {
+    private fun fetchData(orderBy: List<SortOrder> = emptyList()) {
         launch {
             val aspectIdToBookMap = getAllReferenceBooks().books
                 .filterNot { it.deleted }

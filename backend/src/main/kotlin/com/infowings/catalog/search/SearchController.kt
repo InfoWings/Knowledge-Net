@@ -35,7 +35,7 @@ class SearchController(val suggestionService: SuggestionService) {
         commonParam: CommonSuggestionParam?,
         aspectParam: AspectSuggestionParam
     ): AspectsList {
-        logger.debug("aspectAsuggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
+        logger.debug("aspect suggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
         return AspectsList(suggestionService.findAspect(context, commonParam, aspectParam))
     }
 

@@ -1,5 +1,6 @@
 package com.infowings.catalog.components.popup
 
+import com.infowings.catalog.aspects.*
 import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.AspectsHints
 import com.infowings.catalog.components.description.descriptionComponent
@@ -21,70 +22,6 @@ interface AspectOption : SelectOption {
 class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() {
 
     override fun RBuilder.render() {
-        fun elemByAspectName(v: String): ReactElement {
-            return buildElement {
-                label {
-                    +v
-                }
-            } ?: "???".asReactElement()
-        }
-
-        fun elemByAspectDesc(v: String, description: String?): ReactElement {
-            return buildElement {
-                div {
-                    descriptionComponent(
-                        className = "aspect-tree-view--description-icon",
-                        description = description
-                    )
-
-                    span {
-                        +" "
-                    }
-
-                    label {
-                        +v
-                    }
-                }
-            } ?: "???".asReactElement()
-        }
-
-
-        fun elemByRefBookValue(aspectName: String, value: String): ReactElement {
-            return buildElement {
-                label {
-                    +"$aspectName:[$value]"
-                }
-            } ?: "???".asReactElement()
-        }
-
-        fun elemByRefBookDesc(aspectName: String, value: String, description: String?): ReactElement {
-            return buildElement {
-                div {
-                    descriptionComponent(
-                        className = "aspect-tree-view--description-icon",
-                        description = description
-                    )
-
-                    span {
-                        +" "
-                    }
-
-                    label {
-                        +"$aspectName:[$value]"
-                    }
-                }
-            } ?: "???".asReactElement()
-
-        }
-
-        fun elemByProperty(aspectName: String, propName: String, subAspectName: String): ReactElement {
-            return buildElement {
-                label {
-                    +"$aspectName.$propName-$subAspectName"
-                }
-            } ?: "???".asReactElement()
-        }
-
         fun aspectOption(name: String) = jsObject<AspectOption> {
             this.name = name
             this.aspectName = elemByAspectName(name)
@@ -92,7 +29,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun aspectDescOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByAspectDesc(hint.name, hint.description)
+            this.aspectName = elemByAspectDesc(hint.subjectName ?: "???", hint.description)
         }
 
         fun propertyOption(hint: AspectHint) = jsObject<AspectOption> {
@@ -102,7 +39,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun refBookValueOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByRefBookValue(hint.name, hint.refBookItem ?: "?")
+            this.aspectName = elemByRefBookValue(hint.name ?: "???", hint.refBookItem ?: "?")
         }
 
         fun refBookDescOption(hint: AspectHint) = jsObject<AspectOption> {
@@ -126,7 +63,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
                     clearable = false
                     resetValue = null
                     disabled = false// props.disabled
-                    options = (props.hints.byAspectName.map { aspectOption(it.name) } +
+                    options = (props.hints.byAspectName.map { aspectOption(it.subjectName ?: "???") } +
                             props.hints.byProperty.map { propertyOption(it) } +
                             props.hints.byRefBookValue.map { refBookValueOption(it) } +
                             props.hints.byAspectDesc.map { aspectDescOption(it) } +

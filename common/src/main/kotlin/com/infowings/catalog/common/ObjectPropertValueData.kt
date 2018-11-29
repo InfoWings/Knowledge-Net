@@ -61,38 +61,38 @@ sealed class ObjectValueData {
  * id - строковое предсталвение vertex id объекта/субъекта/значения домена
  * typeGroup - маркер с информацией о том, куда этот id показывает
  */
-sealed class LinkValueData(open val id: String) {
+sealed class LinkValueData(open val id: String, open val guid: String) {
     abstract fun isObjectValue(): Boolean
 
-    data class Subject(override val id: String) : LinkValueData(id) {
+    data class Subject(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class Object(override val id: String) : LinkValueData(id) {
+    data class Object(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class ObjectProperty(override val id: String) : LinkValueData(id) {
+    data class ObjectProperty(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class ObjectValue(override val id: String) : LinkValueData(id) {
+    data class ObjectValue(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = true
     }
 
-    data class DomainElement(override val id: String, val value: String, val rootId: String?) : LinkValueData(id) {
+    data class DomainElement(override val id: String, override val guid: String, val value: String, val rootId: String?) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class RefBookItem(override val id: String) : LinkValueData(id) {
+    data class RefBookItem(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class Aspect(override val id: String) : LinkValueData(id) {
+    data class Aspect(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 
-    data class AspectProperty(override val id: String) : LinkValueData(id) {
+    data class AspectProperty(override val id: String, override val guid: String) : LinkValueData(id, guid) {
         override fun isObjectValue() = false
     }
 }

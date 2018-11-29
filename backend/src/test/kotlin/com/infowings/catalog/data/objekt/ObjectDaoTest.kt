@@ -85,7 +85,7 @@ class ObjectDaoTest {
                 baseType = BaseType.Integer.name
             ), username
         )
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             randomName(),

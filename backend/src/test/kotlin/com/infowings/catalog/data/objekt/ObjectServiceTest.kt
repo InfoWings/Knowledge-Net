@@ -55,8 +55,8 @@ class ObjectServiceTest {
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), referenceAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
         complexAspect = aspectService.save(complexAspectData, username)
     }
@@ -494,7 +494,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -522,7 +522,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.version
@@ -554,7 +554,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse1.id, objectCreateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -586,7 +586,7 @@ class ObjectServiceTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.Object(objectCreateResponse.id, objectCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -977,7 +977,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id, propertyCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -1017,7 +1017,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse.id, propertyCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version
@@ -1063,7 +1063,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse1.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id, propertyCreateResponse2.guidSoft())),
             null,
             null,
             propertyCreateResponse1.rootValue.version
@@ -1113,7 +1113,7 @@ class ObjectServiceTest {
 
         val valueRequest1 = ValueUpdateRequest(
             propertyCreateResponse1.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id)),
+            ObjectValueData.Link(LinkValueData.ObjectProperty(propertyCreateResponse2.id, propertyCreateResponse2.guidSoft())),
             null,
             null,
             propertyCreateResponse1.rootValue.version
@@ -1158,7 +1158,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValueAbsence(valueUpdateResponse.id)
@@ -1194,7 +1195,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValueAbsence(valueUpdateResponse.id)
@@ -1245,7 +1247,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValuesAbsence(listOf(valueUpdateResponse.id, childValueCreateResponse.id))
@@ -1291,7 +1294,8 @@ class ObjectServiceTest {
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
 
         checkValuesAbsence(listOf(valueUpdateResponse.id, childValueCreateResponse.id))
@@ -1424,7 +1428,7 @@ class ObjectServiceTest {
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,
@@ -1438,7 +1442,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesAbsence(listOf(valueUpdateResponse.id, valueCreateResponse.id))
     }
@@ -1469,7 +1474,7 @@ class ObjectServiceTest {
         val valueUpdateResponse = objectService.update(valueRequest1, username)
 
         val valueRequest2 = ValueCreateRequest(
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             description = null,
             objectPropertyId = propertyCreateResponse.id,
             measureName = null,
@@ -1482,7 +1487,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesAbsence(listOf(valueUpdateResponse.id, valueCreateResponse.id))
     }
@@ -1535,7 +1541,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1597,7 +1603,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1608,7 +1614,8 @@ class ObjectServiceTest {
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse1.id)
         transaction(db) {
-            assertEquals(0, updatedProperty.values.size)
+            assertEquals(1, updatedProperty.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty.values[0].typeTag)
         }
         checkValuesSoftAbsence(listOf(valueUpdateResponse1.id))
         checkValuesAbsence(listOf(valueCreateResponse.id))
@@ -1657,7 +1664,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1720,7 +1727,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1731,7 +1738,8 @@ class ObjectServiceTest {
 
         val updatedProperty1 = objectService.findPropertyById(propertyCreateResponse1.id)
         transaction(db) {
-            assertEquals(0, updatedProperty1.values.size)
+            assertEquals(1, updatedProperty1.values.size)
+            assertEquals(ScalarTypeTag.NULL, updatedProperty1.values[0].typeTag)
         }
 
         checkValuesSoftAbsence(listOf(valueCreateResponse.id))
@@ -1780,7 +1788,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1842,7 +1850,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1901,7 +1909,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -1964,7 +1972,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2029,7 +2037,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2098,7 +2106,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse1.id, valueUpdateResponse1.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2162,7 +2170,7 @@ class ObjectServiceTest {
 
         val valueRequest3 = ValueUpdateRequest(
             propertyCreateResponse2.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueCreateResponse.id, valueCreateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponse2.rootValue.version
@@ -2217,7 +2225,8 @@ class ObjectServiceTest {
 
         val valueRequestLink = ValueUpdateRequest(
             valueId = propertyCreateResponseLink.rootValue.id,
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id)),
+            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id,
+                propertyCreateResponseDec.rootValue.guidSoft())),
             measureName = null,
             description = null,
             version = propertyCreateResponseLink.rootValue.version
@@ -2268,7 +2277,7 @@ class ObjectServiceTest {
 
         val valueRequestRef = ValueUpdateRequest(
             propertyCreateResponseRef.rootValue.id,
-            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id)),
+            ObjectValueData.Link(LinkValueData.ObjectValue(valueUpdateResponse.id, valueUpdateResponse.guidSoft())),
             null,
             null,
             propertyCreateResponseRef.rootValue.version

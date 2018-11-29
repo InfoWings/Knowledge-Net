@@ -178,7 +178,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         aspectsFilter = aspectsFilter.copy(subjects = subjects)
     }
 
-    private fun setExcludedAspectsToFilter(aspects: List<AspectData>) = setState {
+    private fun setExcludedAspectsToFilter(aspects: List<AspectHint>) = setState {
         aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
     }
 
@@ -235,7 +235,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 filter = state.aspectsFilter,
                 setFilterSubjects = ::setSubjectsFilter,
                 setFilterAspects = ::setExcludedAspectsToFilter,
-                refreshAspects = props.refreshAspects
+                refreshAspects = props.refreshAspects,
+                aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap()
             )
             aspectPageContent(
                 filteredAspects = state.aspectsFilter.applyToAspects(props.data),

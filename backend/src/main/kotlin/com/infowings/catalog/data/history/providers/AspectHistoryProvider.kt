@@ -56,6 +56,7 @@ private fun DataAware.toAspectPropertyData(id: String) = AspectPropertyData(
     id = id,
     name = dataOrEmpty(AspectPropertyField.NAME.name),
     aspectId = dataOrEmpty(AspectPropertyField.ASPECT.name),
+    aspectGuid = "",
     cardinality = dataOrEmpty(AspectPropertyField.CARDINALITY.name),
     description = dataItem(AspectPropertyField.DESCRIPTION.name),
     version = dataItem("_version")?.toInt() ?: -1

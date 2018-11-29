@@ -48,9 +48,12 @@ class ObjectServiceFetchTest {
                 name = "ObjectServiceFetchTest - Dimensions",
                 baseType = BaseType.Text.name,
                 properties = listOf(
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = heightAspect.idStrict()),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = widthAspect.idStrict()),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name, aspectId = depthAspect.idStrict())
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = heightAspect.idStrict(), aspectGuid = heightAspect.guidSoft()),
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = widthAspect.idStrict(), aspectGuid = heightAspect.guidSoft()),
+                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = depthAspect.idStrict(), aspectGuid = heightAspect.guidSoft())
                 )
             ), username
         )
@@ -111,7 +114,7 @@ class ObjectServiceFetchTest {
 
     @Test
     fun fetchAllObjectsTruncated() {
-        val objects = objectService.fetch()
+        val objects = objectService.fetch(emptyList())
         assertThat("Fetched objects count should be equal to 3", objects.size, Matchers.`is`(3))
     }
 

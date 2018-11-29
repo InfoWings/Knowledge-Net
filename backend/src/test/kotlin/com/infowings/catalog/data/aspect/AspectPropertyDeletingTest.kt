@@ -69,9 +69,9 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
                             measure = Millimetre.name,
                             baseType = BaseType.Decimal.name,
                             properties = listOf(
-                                AspectPropertyData("", null, aspectHeight.id!!, PropertyCardinality.ONE.name, null),
-                                AspectPropertyData("", null, aspectWidth.id!!, PropertyCardinality.ONE.name, null),
-                                AspectPropertyData("", null, aspectDepth.id!!, PropertyCardinality.ONE.name, null)
+                                AspectPropertyData("", null, aspectHeight.idStrict(), aspectHeight.guidSoft(), PropertyCardinality.ONE.name, null),
+                                AspectPropertyData("", null, aspectWidth.idStrict(), aspectWidth.idStrict(), PropertyCardinality.ONE.name, null),
+                                AspectPropertyData("", null, aspectDepth.idStrict(), aspectDepth.guidSoft(), PropertyCardinality.ONE.name, null)
                             )
                         )
                     )
@@ -206,7 +206,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
     private fun fetchObjectBoxEditDetails(): ObjectEditDetailsResponse {
         val objectsTruncatedList: List<ObjectGetResponse>
         val objectsTruncatedListRequestResult = mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/objects")
+            MockMvcRequestBuilders.get("/api/objects?orderFields=&direct=")
                 .with(authorities)
         ).andReturn()
         objectsTruncatedList = JSON.parse<ObjectsResponse>(objectsTruncatedListRequestResult.response.contentAsString).objects

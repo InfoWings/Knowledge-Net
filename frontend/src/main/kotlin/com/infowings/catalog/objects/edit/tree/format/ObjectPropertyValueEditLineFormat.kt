@@ -19,13 +19,22 @@ import react.dom.span
 import react.rFunction
 
 val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFormatProps>("ObjectPropertyValueEditLineFormat") { props ->
+
+    val toMark = props.highlightedGuid == props.valueGuid && props.valueGuid != null && !props.editMode
+
+    if(toMark) {
+        span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-forward pt-small") {
+            +""
+        }
+    }
+
     div(classes = "object-tree-edit__property-value") {
         name(
             className = "property-value__property-name",
             value = props.propertyName ?: "",
             onChange = props.onPropertyNameUpdate,
             onCancel = props.onPropertyNameUpdate,
-            disabled = props.propertyDisabled
+            disabled = !props.editMode || props.propertyDisabled
         )
         span(classes = "property-value__aspect") {
             +props.aspectName
@@ -35,7 +44,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             +(props.subjectName ?: "Global")
             +")"
         }
-        if (props.propertyDisabled) {
+        if (!props.editMode || props.propertyDisabled) {
             descriptionComponent(
                 className = "object-input-description",
                 description = props.propertyDescription
@@ -56,13 +65,14 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         }
         val value = props.value
         if (value != ObjectValueData.NullValue) {
+            println("OPVELF: ${props.editMode}")
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
                 referenceBookNameSoft = props.referenceBookNameSoft,
                 value = value,
                 onChange = props.onValueUpdate,
-                disabled = props.valueDisabled
+                disabled = !props.editMode || props.valueDisabled
             )
             props.aspectMeasure?.let {
                 val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")
@@ -85,12 +95,12 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                                 ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, decimal.rangeFlags)
                             )
                         },
-                        disabled = props.valueDisabled
+                        disabled = !props.editMode || props.valueDisabled
                     )
                 }
             }
         }
-        if (props.valueDisabled) {
+        if (!props.editMode || props.valueDisabled) {
             descriptionComponent(
                 className = "object-input-description",
                 description = props.valueDescription
@@ -104,11 +114,22 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             )
         }
         copyGuidButton(props.valueGuid)
+
+        if(toMark) {
+            span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-backward pt-small") {
+                +""
+            }
+        }
+
         props.onAddValue?.let {
-            plusButtonComponent(it, "pt-small")
+            if (props.editMode) {
+                plusButtonComponent(it, "pt-small")
+            }
         }
         props.onRemoveValue?.let {
-            minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            if (props.editMode) {
+                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+            }
         }
         props.onSaveValue?.let {
             submitButtonComponent(it, "pt-small")
@@ -116,7 +137,6 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         props.onCancelValue?.let {
             cancelButtonComponent(it, "pt-small")
         }
-
     }
 }
 
@@ -147,4 +167,6 @@ interface ObjectPropertyValueEditLineFormatProps : RProps {
     var onCancelProperty: (() -> Unit)?
     var propertyDisabled: Boolean
     var valueDisabled: Boolean
+    var editMode: Boolean
+    var highlightedGuid: String?
 }

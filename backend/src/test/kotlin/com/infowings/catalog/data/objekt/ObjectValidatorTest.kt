@@ -70,7 +70,7 @@ class ObjectValidatorTest {
         aspectInt = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Integer.name), username)
         aspectRef = aspectService.save(AspectData(name = randomName(), description = "aspectDescr", baseType = BaseType.Reference.name), username)
 
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             id = "",
             name = randomName(),
@@ -342,12 +342,18 @@ class ObjectValidatorTest {
         val scalarValue = ObjectValueData.StringValue("string-value")
         val scalarValueRequest = ValueCreateRequest(value = scalarValue, description = null, objectPropertyId = property1.id)
         val scalarValueVertex = createObjectValue(scalarValueRequest)
+        val scalarGuid = transaction (db) {
+            scalarValueVertex.guidSoft()
+        }
 
-        val refValue = ObjectValueData.Link(LinkValueData.ObjectValue(scalarValueVertex.id))
+        val refValue = ObjectValueData.Link(LinkValueData.ObjectValue(scalarValueVertex.id, scalarGuid))
         val refValueRequest = ValueCreateRequest(value = refValue, description = null, objectPropertyId = property2.id)
         val refValueVertex = createObjectValue(refValueRequest)
+        val refValueGuid = transaction (db) {
+            refValueVertex.guidSoft()
+        }
 
-        val refValue2 = ObjectValueData.Link(LinkValueData.ObjectValue(refValueVertex.id))
+        val refValue2 = ObjectValueData.Link(LinkValueData.ObjectValue(refValueVertex.id, refValueGuid))
         val refValueRequest2 = ValueCreateRequest(value = refValue2, description = null, objectPropertyId = property2.id)
 
         transaction(db) {

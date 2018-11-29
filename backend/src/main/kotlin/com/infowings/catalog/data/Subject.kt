@@ -1,6 +1,7 @@
 
 package com.infowings.catalog.data
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.common.SubjectData
 
 data class Subject(
@@ -9,8 +10,8 @@ data class Subject(
     val version: Int,
     val description: String?,
     val deleted: Boolean,
-    val guid: String?
-)
+    override val guid: String?
+) : GuidAware
 
 fun Subject.toSubjectData() = SubjectData(
     id = this.id,

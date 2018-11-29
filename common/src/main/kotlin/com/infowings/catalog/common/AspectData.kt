@@ -22,6 +22,8 @@ data class AspectsHints(
             byRefBookDesc = emptyList(), byRefBookValue = emptyList(), byProperty = emptyList()
         )
     }
+
+    fun defaultOrder() = byAspectName + byProperty + byRefBookValue + byAspectDesc + byRefBookDesc
 }
 
 enum class PropertyCardinality {
@@ -38,6 +40,10 @@ enum class PropertyCardinality {
     abstract val label: String
 }
 
+enum class AspectHintSource {
+    ASPECT_NAME, ASPECT_DESCRIPTION, REFBOOK_NAME, REFBOOK_DESCRIPTION, ASPECT_PROPERTY_WITH_ASPECT
+}
+
 @Serializable
 data class AspectHint(
     val name: String,
@@ -47,8 +53,30 @@ data class AspectHint(
     val propertyName: String?,
     val propertyDesc: String?,
     val subAspectName: String?,
-    val aspectName: String?
-)
+    val aspectName: String?,
+    val subjectName: String?,
+    val guid: String,
+    val id: String,
+    val source: String
+) {
+    companion object {
+        fun byAspect(aspect: AspectData, source: AspectHintSource) =
+            AspectHint(
+                name = aspect.name,
+                description = aspect.description,
+                source = source.toString(),
+                refBookItem = null,
+                refBookItemDesc = null,
+                propertyName = null,
+                propertyDesc = null,
+                subAspectName = null,
+                aspectName = null,
+                subjectName = aspect.nameWithSubject(),
+                id = aspect.idStrict(),
+                guid = aspect.guidSoft()
+            )
+    }
+}
 
 
 @Serializable
@@ -70,6 +98,9 @@ data class AspectData(
     operator fun get(id: String): AspectPropertyData? = properties.find { it.id == id }
 
     fun idStrict(): String = id ?: throw IllegalStateException("No id for aspect $this")
+    fun guidSoft(): String = guid ?: "???"
+
+    fun nameWithSubject(): String = "${name} ( ${subject?.name ?: "Global"} )"
 
     companion object {
         fun initial(name: String) = AspectData(name = name)
@@ -81,15 +112,16 @@ data class AspectPropertyData(
     val id: String,
     val name: String?,
     val aspectId: String,
+    val aspectGuid: String,
     val cardinality: String,
     val description: String?,
     val version: Int = 0,
     val deleted: Boolean = false,
-    val guid: String? = null
-) {
+    override val guid: String? = null
+) : GuidAware {
     companion object {
-        fun Initial(name: String, description: String?, aspectId: String, cardinality: String) =
-            AspectPropertyData(id = "", name = name, description = description, aspectId = aspectId, cardinality = cardinality, version = 0, deleted = false)
+        fun Initial(name: String, description: String?, aspectId: String, aspectGuid: String, cardinality: String) =
+            AspectPropertyData(id = "", name = name, description = description, aspectId = aspectId, aspectGuid = aspectGuid, cardinality = cardinality, version = 0, deleted = false)
     }
 }
 
@@ -141,6 +173,6 @@ val emptyAspectData: AspectData
     get() = AspectData(null, "", null, null, null)
 
 val emptyAspectPropertyData: AspectPropertyData
-    get() = AspectPropertyData("", "", "", "", null)
+    get() = AspectPropertyData("", "", "", "", "", null)
 
 fun AspectData.actualData() = copy(properties = properties.filter { !it.deleted })

@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.Snapshot
 import com.infowings.catalog.data.history.asStringOrEmpty
@@ -14,7 +15,7 @@ fun OVertex.toObjectVertex(): ObjectVertex {
     return ObjectVertex(this)
 }
 
-class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
+class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -42,7 +43,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
             vertex[ATTR_DESC] = value
         }
 
-
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT)
 

@@ -19,7 +19,7 @@ interface AspectService {
     fun remove(aspectData: AspectData, username: String, force: Boolean = false)
     fun removeProperty(aspectPropertyId: String, username: String, force: Boolean = false): AspectPropertyDeleteResponse
     fun findByName(name: String): Set<AspectData>
-    fun getAspects(orderBy: List<AspectOrderBy> = listOf(AspectOrderBy(AspectSortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
+    fun getAspects(orderBy: List<SortOrder> = listOf(SortOrder(SortField.NAME, Direction.ASC)), query: String? = null): List<AspectData>
     fun findById(id: String): AspectData
     fun findTreeById(id: String): AspectTree
     fun findPropertyById(id: String): AspectPropertyData
@@ -244,6 +244,8 @@ class DefaultAspectService(
                 it.toAspectPropertyData()
             }
         }
+        val guidById = transaction(db) { guidDao.ofAspects(ids) }
+        logger.info("guid by id: " + guidById)
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
@@ -255,7 +257,7 @@ class DefaultAspectService(
                     val id = aspectVertex.id
                     val details = detailsById[id]
                     val data = details?.let {
-                        aspectVertex.toAspectData(propsById, details)
+                        aspectVertex.toAspectData(propsById, guidById, details)
                     }
                     data ?: logger.warn("nothing found for aspect id $id")
                     data
@@ -269,7 +271,7 @@ class DefaultAspectService(
         return getData(validVertices)
     }
 
-    override fun getAspects(orderBy: List<AspectOrderBy>, query: String?): List<AspectData> {
+    override fun getAspects(orderBy: List<SortOrder>, query: String?): List<AspectData> {
         val aspects = transaction(db) {
             val vertices = logTime(logger, "getting aspect vertices") {
                 when {
@@ -304,12 +306,7 @@ class DefaultAspectService(
             ?: throw AspectPropertyDoesNotExist(id)
 
 
-    private class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
-        override fun compareTo(other: CompareString): Int =
-            direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
-    }
-
-    private fun List<AspectData>.sort(orderBy: List<AspectOrderBy>): List<AspectData> {
+    private fun List<AspectData>.sort(orderBy: List<SortOrder>): List<AspectData> {
         if (orderBy.isEmpty()) {
             return this
         }
@@ -322,9 +319,9 @@ class DefaultAspectService(
         fun aspectSubjectNameDesc(aspect: AspectData): Comparable<*> =
             CompareString(aspect.subject?.name ?: "", Direction.DESC)
 
-        val m = mapOf<AspectSortField, Map<Direction, (AspectData) -> Comparable<*>>>(
-            AspectSortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
-            AspectSortField.SUBJECT to mapOf(
+        val m = mapOf<SortField, Map<Direction, (AspectData) -> Comparable<*>>>(
+            SortField.NAME to mapOf(Direction.ASC to ::aspectNameAsc, Direction.DESC to ::aspectNameDesc),
+            SortField.SUBJECT to mapOf(
                 Direction.ASC to ::aspectSubjectNameAsc,
                 Direction.DESC to ::aspectSubjectNameDesc
             )

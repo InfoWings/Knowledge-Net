@@ -24,37 +24,37 @@ sealed class LinkValueVertex {
     abstract fun toData(): LinkValueData
 
     class Subject(override val vertex: SubjectVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.Subject(vertex.id)
+        override fun toData() = LinkValueData.Subject(vertex.id, vertex.guidSoft())
     }
 
     class Object(override val vertex: ObjectVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.Object(vertex.id)
+        override fun toData() = LinkValueData.Object(vertex.id, vertex.guidSoft())
     }
 
     class ObjectProperty(override val vertex: ObjectPropertyVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.ObjectProperty(vertex.id)
+        override fun toData() = LinkValueData.ObjectProperty(vertex.id, vertex.guidSoft())
     }
 
     class ObjectValue(override val vertex: ObjectPropertyValueVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.ObjectValue(vertex.id)
+        override fun toData() = LinkValueData.ObjectValue(vertex.id, vertex.guidSoft())
     }
 
     class DomainElement(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
         override fun toData(): LinkValueData {
-            return LinkValueData.DomainElement(vertex.id, vertex.value, vertex.root?.id)
+            return LinkValueData.DomainElement(vertex.id, vertex.guidSoft(), vertex.value, vertex.root?.id)
         }
     }
 
     class RefBookItem(override val vertex: ReferenceBookItemVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.RefBookItem(vertex.id)
+        override fun toData() = LinkValueData.RefBookItem(vertex.id, vertex.guidSoft())
     }
 
     class Aspect(override val vertex: AspectVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.Aspect(vertex.id)
+        override fun toData() = LinkValueData.Aspect(vertex.id, vertex.guidSoft())
     }
 
     class AspectProperty(override val vertex: AspectPropertyVertex) : LinkValueVertex() {
-        override fun toData() = LinkValueData.AspectProperty(vertex.id)
+        override fun toData() = LinkValueData.AspectProperty(vertex.id, vertex.guidSoft())
     }
 }
 

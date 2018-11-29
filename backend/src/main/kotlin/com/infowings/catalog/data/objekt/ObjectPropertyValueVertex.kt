@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.objekt
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.data.aspect.AspectPropertyVertex
@@ -107,7 +108,7 @@ enum class ObjectValueField(val extName: String) {
     LINK_CHILDREN("children"),
 }
 
-class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
+class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, GuidAware, DeletableVertex, OVertex by vertex {
     override val entityClass = OBJECT_PROPERTY_VALUE_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -282,6 +283,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Del
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
 

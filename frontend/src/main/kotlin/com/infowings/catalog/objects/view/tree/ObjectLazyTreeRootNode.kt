@@ -5,6 +5,7 @@ import com.infowings.catalog.objects.ObjectLazyViewModel
 import com.infowings.catalog.objects.view.ObjectsLazyModel
 import com.infowings.catalog.objects.view.tree.format.loadingStub
 import com.infowings.catalog.objects.view.tree.format.objectLineFormat
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RProps
 import react.buildElement
 import react.rFunction
@@ -53,10 +54,12 @@ val objectLazyTreeRootNode = rFunction<ObjectLazyTreeRootNodeProps>("ObjectLazyT
             objectProperties == null && props.objectView.objectPropertiesCount > 0 -> loadingStub {}
             objectProperties != null -> objectProperties.forEachIndexed { propertyIndex, property ->
                 property.values.forEachIndexed { valueIndex, value ->
+                    val currProps = props
                     objectPropertyValueViewNode {
                         attrs {
                             this.property = property
                             this.value = value
+                            history = currProps.history
                             onUpdate = { block ->
                                 props.objectTreeModel.updateObject(props.objectIndex) {
                                     val properties = this.objectProperties ?: error("Properties should be available on update")
@@ -71,7 +74,7 @@ val objectLazyTreeRootNode = rFunction<ObjectLazyTreeRootNodeProps>("ObjectLazyT
     }
 }
 
-interface ObjectLazyTreeRootNodeProps : RProps {
+interface ObjectLazyTreeRootNodeProps : RouteSuppliedProps {
     var objectIndex: Int
     var objectView: ObjectLazyViewModel
     var objectTreeModel: ObjectsLazyModel

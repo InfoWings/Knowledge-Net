@@ -18,11 +18,13 @@ class ObjectEditPage : RComponent<ObjectEditPage.Props, RState>() {
         if (objectId == null) {
             objectCreateApiModel { props.history.push("/objects/${encodeURIComponent(it)}") }
         } else {
-            objectEditApiModel(objectId)
+            objectEditApiModel(objectId, props.editMode, props.highlightedGuid)
         }
     }
 
     interface Props : RouteSuppliedProps {
         var objectId: String?
+        var editMode: Boolean
+        var highlightedGuid: String?
     }
 }

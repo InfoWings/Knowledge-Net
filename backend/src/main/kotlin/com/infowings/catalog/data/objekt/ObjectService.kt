@@ -16,6 +16,7 @@ import com.infowings.catalog.data.toMeasure
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
+import com.orientechnologies.orient.core.record.OVertex
 
 class ObjectService(
     private val db: OrientDatabase,
@@ -30,7 +31,33 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(): List<ObjectTruncated> = dao.getTruncatedObjects()
+    fun fetch(orderBy: List<SortOrder>): List<ObjectTruncated>  {
+        return dao.getTruncatedObjects().sort(orderBy)
+    }
+
+    private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
+        if (orderBy.isEmpty()) {
+            return this
+        }
+
+        fun objectNameAsc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.ASC)
+        fun objectNameDesc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.DESC)
+        fun objectSubjectNameAsc(objeckt: ObjectTruncated): Comparable<*> =
+            CompareString(objeckt.subjectName, Direction.ASC)
+
+        fun objectSubjectNameDesc(objekt: ObjectTruncated): Comparable<*> =
+            CompareString(objekt.subjectName, Direction.DESC)
+
+        val m = mapOf<SortField, Map<Direction, (ObjectTruncated) -> Comparable<*>>>(
+            SortField.NAME to mapOf(Direction.ASC to ::objectNameAsc, Direction.DESC to ::objectNameDesc),
+            SortField.SUBJECT to mapOf(
+                Direction.ASC to ::objectSubjectNameAsc,
+                Direction.DESC to ::objectSubjectNameDesc
+            )
+        )
+        return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
+    }
+
 
     // TODO: KS-168 - possible bottleneck
     fun getDetailedObject(id: String) =
@@ -188,14 +215,7 @@ class ObjectService(
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 
             val propertyBefore = propertyVertex.currentSnapshot()
-            val rootValueWriteInfo = ValueWriteInfo(
-                value = ObjectValue.NullValue,
-                description = null,
-                objectProperty = propertyVertex,
-                aspectProperty = null,
-                parentValue = null,
-                measure = null
-            )
+            val rootValueWriteInfo = ValueWriteInfo.nullRoot(propertyVertex)
             val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
 
             historyService.storeFact(propertyVertex.toUpdateFact(context, propertyBefore))
@@ -324,18 +344,28 @@ class ObjectService(
             }
 
             val objectProperty = context.root.objectProperty ?: throw IllegalStateException("Object value does not have a reference to object property")
-            val parentValue = context.root.parentValue
 
-            context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+            historyService.trackUpdate(objectProperty, context.historyContext) {
+                val parentValue = context.root.parentValue
 
-            dao.deleteAll(context.values.toList())
+                context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
 
-            ValueDeleteResult(
-                deletedValues = context.values.toList(),
-                markedValues = emptyList(),
-                property = objectProperty,
-                parentValue = parentValue
-            )
+                dao.deleteAll(context.values.toList())
+
+                if (objectProperty.values.isEmpty()) {
+                    val rootValueWriteInfo = ValueWriteInfo.nullRoot(objectProperty)
+                    val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
+                    guidDao.newGuidVertex(propertyValueVertex)
+                    historyService.storeFact(propertyValueVertex.toCreateFact(context.historyContext))
+                }
+
+                ValueDeleteResult(
+                    deletedValues = context.values.toList(),
+                    markedValues = emptyList(),
+                    property = objectProperty,
+                    parentValue = parentValue
+                )
+            }
         }
 
         return valueDeleteResult.toResponse()
@@ -347,27 +377,36 @@ class ObjectService(
             val blockerIds = context.valueBlockers.keys.toSet()
             val rootSet = setOf(context.root.identity)
             val objectProperty = context.root.objectProperty ?: throw IllegalStateException("Object value does not have a reference to object property")
-            val parentValue = context.root.parentValue
-            val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
-            val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
+            historyService.trackUpdate(objectProperty, context.historyContext) {
+                val parentValue = context.root.parentValue
+                val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
+                val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
 
-            val idsToKeep = valuesToKeep.map { it.id }.toSet()
-            val valuesToDelete = context.values.filterNot { idsToKeep.contains(it.id) }
+                val idsToKeep = valuesToKeep.map { it.id }.toSet()
+                val valuesToDelete = context.values.filterNot { idsToKeep.contains(it.id) }
 
-            valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
-            valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
+                valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+                valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
 
-            dao.deleteAll(valuesToDelete.toList())
-            valuesToKeep.forEach {
-                dao.softDelete(it)
+                dao.deleteAll(valuesToDelete.toList())
+                valuesToKeep.forEach {
+                    dao.softDelete(it)
+                }
+
+                if (objectProperty.values.isEmpty()) {
+                    val rootValueWriteInfo = ValueWriteInfo.nullRoot(objectProperty)
+                    val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
+                    guidDao.newGuidVertex(propertyValueVertex)
+                    historyService.storeFact(propertyValueVertex.toCreateFact(context.historyContext))
+                }
+
+                ValueDeleteResult(
+                    deletedValues = valuesToDelete.toList(),
+                    markedValues = valuesToKeep.toList(),
+                    property = objectProperty,
+                    parentValue = parentValue
+                )
             }
-
-            ValueDeleteResult(
-                deletedValues = valuesToDelete.toList(),
-                markedValues = valuesToKeep.toList(),
-                property = objectProperty,
-                parentValue = parentValue
-            )
         }
 
         return valueDeleteResult.toResponse()
@@ -413,12 +452,14 @@ class ObjectService(
 
             val ownerObject = context.propVertex.objekt ?: throw IllegalStateException("Object property does not have a reference to owner object")
 
-            context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
-            historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
+            historyService.trackUpdate(ownerObject, context.historyContext) {
+                context.values.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+                historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
 
-            dao.deleteAll(context.values.toList().plus(context.propVertex))
+                dao.deleteAll(context.values.toList().plus(context.propVertex))
 
-            PropertyDeleteResult(context.propVertex, ownerObject)
+                PropertyDeleteResult(context.propVertex, ownerObject)
+            }
         }
 
         return propertyDeleteResult.toResponse()
@@ -429,24 +470,26 @@ class ObjectService(
             val rootValues = context.values.filter { it.parentValue == null }
             val ownerObject = context.propVertex.objekt ?: throw IllegalStateException("Object property does not have a reference to owner object")
 
-            val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map { it.identity }.toSet())
+            historyService.trackUpdate(ownerObject, context.historyContext) {
+                val valuesToKeep = dao.valuesBetween(context.valueBlockers.values.flatten().toSet(), rootValues.map { it.identity }.toSet())
 
-            val valuesToDelete = context.values - valuesToKeep
+                val valuesToDelete = context.values - valuesToKeep
 
-            valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
-            valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
+                valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
+                valuesToKeep.forEach { historyService.storeFact(it.toSoftDeleteFact(context.historyContext)) }
 
-            if (context.propIsLinked || valuesToKeep.isNotEmpty()) {
-                historyService.storeFact(context.propVertex.toSoftDeleteFact(context.historyContext))
-                dao.softDelete(context.propVertex)
-            } else {
-                historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
-                dao.delete(context.propVertex)
+                if (context.propIsLinked || valuesToKeep.isNotEmpty()) {
+                    historyService.storeFact(context.propVertex.toSoftDeleteFact(context.historyContext))
+                    dao.softDelete(context.propVertex)
+                } else {
+                    historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
+                    dao.delete(context.propVertex)
+                }
+
+                dao.deleteAll(valuesToDelete.toList())
+
+                PropertyDeleteResult(context.propVertex, ownerObject)
             }
-
-            dao.deleteAll(valuesToDelete.toList())
-
-            PropertyDeleteResult(context.propVertex, ownerObject)
         }
 
         return propertyDeleteResult.toResponse()
@@ -510,7 +553,7 @@ class ObjectService(
             context.properties.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
             historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
 
-            dao.deleteAll((context.values + context.properties + context.objVertex).toList())
+            dao.deleteAll((context.values as Set<OVertex> + context.properties + context.objVertex).toList())
         }
 
         deleteObject(id, username, ::removeOrThrow)
@@ -541,7 +584,7 @@ class ObjectService(
                 dao.delete(context.objVertex)
             }
 
-            dao.deleteAll((propertiesToDelete + valuesToDelete).toList())
+            dao.deleteAll((propertiesToDelete as Set<OVertex> + valuesToDelete).toList())
         }
 
         deleteObject(id, username, ::removeOrMark)

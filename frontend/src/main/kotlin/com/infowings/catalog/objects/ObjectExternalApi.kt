@@ -1,9 +1,7 @@
 package com.infowings.catalog.objects
 
-import com.infowings.catalog.common.DetailedObjectViewResponse
-import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectsList
-import com.infowings.catalog.common.ObjectsResponse
+import com.infowings.catalog.common.*
+import com.infowings.catalog.common.guid.BriefObjectView
 import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
@@ -14,7 +12,14 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllObjects(): ObjectsResponse = JSON.parse(get("/api/objects"))
+suspend fun getAllObjects(orderBy: List<SortOrder>): ObjectsResponse {
+    println("GAO: $orderBy")
+    val fields = orderBy.map { it.name }.joinToString(",")
+    println("fields: <$fields>")
+    val directions = orderBy.map { it.direction }.joinToString(",")
+    println("directions: <$directions>")
+    return JSON.parse(get("/api/objects?orderFields=$fields&direct=$directions"))
+}
 
 suspend fun getDetailedObject(id: String): DetailedObjectViewResponse {
     val data = get("/api/objects/${encodeURIComponent(id)}/viewdetails")
@@ -73,8 +78,10 @@ suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
 suspend fun getValueBrief(guid: String): BriefValueViewResponse =
     JSON.parse(get("/api/guid/brief/value/$guid"))
 
-suspend fun getObjectBriefById(id: String): BriefObjectViewResponse =
-    JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+suspend fun LinkValueData.getObjectBriefById(): BriefObjectView {
+    val response: BriefObjectViewResponse = JSON.parse(get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+    return BriefObjectView.of(id, guid, response)
+}
 
 suspend fun getValueBriefById(id: String): BriefValueViewResponse =
     JSON.parse(get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))

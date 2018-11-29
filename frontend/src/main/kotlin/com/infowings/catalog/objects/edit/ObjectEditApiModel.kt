@@ -333,6 +333,8 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                         apiModel = this@ObjectEditApiModelComponent
                         lastApiError = state.lastApiError
                         serverView = it
+                        editMode = props.editMode
+                        highLightedGuid = props.highlightedGuid
                     }
                 }
             }
@@ -347,11 +349,15 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
 
     interface Props : RProps {
         var objectId: String
+        var editMode: Boolean
+        var highlightedGuid: String?
     }
 }
 
-fun RBuilder.objectEditApiModel(objectId: String) = child(ObjectEditApiModelComponent::class) {
+fun RBuilder.objectEditApiModel(objectId: String, editMode: Boolean, highlightedGuid: String?) = child(ObjectEditApiModelComponent::class) {
     attrs {
         this.objectId = objectId
+        this.editMode = editMode
+        this.highlightedGuid = highlightedGuid
     }
 }

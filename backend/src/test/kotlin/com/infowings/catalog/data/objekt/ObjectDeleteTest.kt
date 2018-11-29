@@ -55,8 +55,8 @@ class ObjectDeleteTest {
         referenceAspect = aspectService.save(
             AspectData(name = randomName(), description = "aspect with reference base type", baseType = BaseType.Reference.name), username
         )
-        val property = AspectPropertyData("", "p", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
-        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
+        val referenceProperty = AspectPropertyData("", "p", referenceAspect.idStrict(), referenceAspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData("", randomName(), Kilometre.name, null, BaseType.Decimal.name, listOf(property, referenceProperty))
         complexAspect = aspectService.save(complexAspectData, username)
     }
@@ -126,7 +126,7 @@ class ObjectDeleteTest {
 
         val valueRequest = ValueUpdateRequest(
             propertyCreateResponse.rootValue.id,
-            ObjectValueData.Link(LinkValueData.Object(extObject.id)),
+            ObjectValueData.Link(LinkValueData.Object(extObject.id, extObject.guidSoft())),
             null,
             null,
             propertyCreateResponse.rootValue.version

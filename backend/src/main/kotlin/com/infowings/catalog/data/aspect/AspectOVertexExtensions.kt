@@ -40,7 +40,7 @@ fun OVertex.isJustCreated() = this.identity.isNew
  * These OVertex extensions must be available for whole package and nowhere else without special methods calls.
  * by vertex means simple delegating OVertex calls to property [vertex]
  * */
-class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex, OVertex by vertex {
+class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, DeletableVertex, OVertex by vertex {
     override val entityClass = ASPECT_CLASS
 
     private val logger = loggerFor<AspectVertex>()
@@ -105,7 +105,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_ASPECT)
 
@@ -212,9 +212,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
 
     // медленный вызов, в первую очередь за счет lastChange, во вторую -  за счет ссылок на субъект и имя справочника
     // может быть приемлемым при работе с одним аспектом
-    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() })
+    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() }, guid = guid ?: "???")
 
-    fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
+    fun toAspectData(properties: Map<String, AspectPropertyData>, guids: Map<String, String>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
             val propertyId = it.toString()
             val data: AspectPropertyData? = properties[propertyId]
@@ -224,14 +224,14 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, DeletableVertex,
         val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
         return data.copy(
             properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
-            lastChangeTimestamp = details.lastChange.epochSecond
+            lastChangeTimestamp = details.lastChange.epochSecond, guid = guids[id]
         )
     }
 }
 
 class OnlyOneSubjectForAspectIsAllowed(name: String) : Exception("Too many subject for aspect '$name'")
 
-class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAware, OVertex by vertex {
     override val entityClass = ASPECT_PROPERTY_CLASS
 
     override fun currentSnapshot(): Snapshot = Snapshot(
@@ -245,7 +245,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
         links = emptyMap()
     )
 
-    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, cardinality, description, version, deleted, guid)
+    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, associatedAspect.guid ?: "???", cardinality, description, version, deleted, guid)
 
     var name: String?
         get() = vertex["name"]
@@ -283,14 +283,15 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, OVertex 
             vertex[ATTR_DESC] = value
         }
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()
 
-    val parentAspect: AspectVertex
-        get() = vertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).first().toAspectVertex()
+    val parentAspect: AspectVertex?
+        get() = vertex.getVertices(ODirection.IN, ASPECT_ASPECT_PROPERTY_EDGE).firstOrNull()?.toAspectVertex()
 
     fun isLinkedBy() = hasIncomingEdges(OBJECT_VALUE_ASPECT_PROPERTY_EDGE, OBJECT_VALUE_REF_ASPECT_PROPERTY_EDGE)
 

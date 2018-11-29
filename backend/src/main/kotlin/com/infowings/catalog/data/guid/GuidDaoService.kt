@@ -2,6 +2,7 @@ package com.infowings.catalog.data.guid
 
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
+import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
@@ -44,6 +45,22 @@ class GuidDaoService(private val db: OrientDatabase) {
                     val v = it.toVertexOrNull()?.toGuidVertex()
                     v
                 }.toList()
+            }
+        }
+    }
+
+    fun ofAspects(aspectIds: List<ORID>): Map<String, String> {
+        return if (aspectIds.isEmpty()) emptyMap() else transaction (db) {
+            db.query(
+                "select @rid, out('${OrientEdge.GUID_OF_ASPECT.extName}').guid as guid from ${OrientClass.ASPECT.extName}" +
+                        " where (deleted = false or deleted is null) and @rid in :ids ", mapOf("ids" to aspectIds)
+            ) { rs ->
+                rs.mapNotNull {
+                    logger.info("properties: " + it.propertyNames)
+                    val guid = it.getProperty<List<String>>("guid").single()
+                    val rid = it.getProperty<ORID>("@rid")
+                    rid.toString() to guid
+                }.toMap()
             }
         }
     }

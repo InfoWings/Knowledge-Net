@@ -1,59 +1,45 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
-import com.infowings.catalog.aspects.getSuggestedAspects
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectsList
+import com.infowings.catalog.aspects.getAspectHints
+import com.infowings.catalog.aspects.listEntry
+import com.infowings.catalog.common.AspectHint
+import com.infowings.catalog.common.AspectsHints
+import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withTimeoutOrNull
 import react.RBuilder
-
-data class ShortAspectDescriptor(
-    val id: String,
-    val name: String,
-    val subject: String?
-)
+import react.ReactElement
 
 private interface AspectOption : SelectOption {
     var aspectLabel: String
-    var aspectDescriptor: ShortAspectDescriptor
+    var aspectEntry: ReactElement
+    var aspectHint: AspectHint
 }
 
-private fun aspectOptionFromData(aspectData: AspectData) = jsObject<AspectOption> {
-    this.aspectLabel = buildString {
-        append(aspectData.name)
-        append(" (")
-        append(aspectData.subject?.name ?: "Global")
-        append(")")
-    }
-    this.aspectDescriptor = ShortAspectDescriptor(
-        aspectData.id ?: error("Aspect has no id"),
-        aspectData.name,
-        aspectData.subject?.name
-    )
+private fun aspectOption(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.listEntry()
 }
 
-private fun aspectOptionFromDescriptor(aspectDescriptor: ShortAspectDescriptor) = jsObject<AspectOption> {
-    this.aspectLabel = buildString {
-        append(aspectDescriptor.name)
-        append(" (")
-        append(aspectDescriptor.subject ?: "Global")
-        append(")")
-    }
-    this.aspectDescriptor = aspectDescriptor
+private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.name.asReactElement()
 }
 
-fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspectDescriptor) -> Unit, disabled: Boolean = false) =
+
+fun RBuilder.propertyAspect(value: AspectHint?, onSelect: (AspectHint) -> Unit, disabled: Boolean = false) =
     asyncSelect<AspectOption> {
         attrs {
             className = "object-property-input-aspect"
             placeholder = "Select Aspect"
-            this.value = value?.let { aspectOptionFromDescriptor(it) }
-            onChange = { onSelect(it.aspectDescriptor) }
-            labelKey = "aspectLabel"
-            valueKey = "aspectLabel"
+            this.value =  value?.let { aspectOptionSelected(it) }
+            onChange = { onSelect(it.aspectHint) }
+            labelKey = "aspectEntry"
             cache = false
             clearable = false
             options = emptyArray()
@@ -61,13 +47,13 @@ fun RBuilder.propertyAspect(value: ShortAspectDescriptor?, onSelect: (ShortAspec
             loadOptions = { input, callback ->
                 if (input.isNotEmpty()) {
                     launch {
-                        val aspectList: AspectsList? = withTimeoutOrNull(500) {
-                            getSuggestedAspects(input)
+                        val hints: AspectsHints? = withTimeoutOrNull(500) {
+                            getAspectHints(input)
                         }
                         callback(null, jsObject {
-                            options = aspectList?.aspects?.map {
-                                aspectOptionFromData(it)
-                            }?.toTypedArray() ?: emptyArray()
+                            options = (hints?.defaultOrder()?.map {
+                                aspectOption(it)
+                            } ?: emptyList()).toTypedArray()
                         })
                     }
                 } else {

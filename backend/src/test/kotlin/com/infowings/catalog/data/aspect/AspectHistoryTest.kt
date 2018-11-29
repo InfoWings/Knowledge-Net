@@ -249,8 +249,8 @@ class AspectHistoryTest {
             aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2.id ?: throw IllegalStateException("aspect2 id is null"),
-                        cardinality = PropertyCardinality.INFINITY.name, description = null
+                        id = "", name = "prop", aspectId = aspect2.idStrict(),
+                        cardinality = PropertyCardinality.INFINITY.name, description = null, aspectGuid = aspect2.guidSoft()
                     )
                 )
             ), username = "admin"
@@ -377,7 +377,7 @@ class AspectHistoryTest {
             aspect1.copy(
                 properties = listOf(
                     AspectPropertyData(
-                        id = "", name = "prop", aspectId = aspect2.id ?: throw IllegalStateException("aspect2 id is null"),
+                        id = "", name = "prop", aspectId = aspect2.idStrict(), aspectGuid = aspect2.guidSoft(),
                         cardinality = PropertyCardinality.INFINITY.name, description = null
                     )
                 )
@@ -519,7 +519,7 @@ class AspectHistoryTest {
         )
         val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
 
-        val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect1.idStrict(), aspect1.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             "testAspectHistoryCreateProperty-complex",
@@ -554,7 +554,7 @@ class AspectHistoryTest {
         )
         val aspectId = aspect1.id ?: throw IllegalStateException("id of aspect is not defined")
 
-        val property = AspectPropertyData("", "p", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property = AspectPropertyData("", "p", aspect1.idStrict(), aspect1.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData = AspectData(
             "",
             randomName(),
@@ -565,7 +565,7 @@ class AspectHistoryTest {
         )
         val complexAspect = aspectService.save(complexAspectData, username)
 
-        val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val property2 = AspectPropertyData("", "p", complexAspect.idStrict(), aspect1.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val complexAspectData2 = AspectData(
             "",
             randomName(),

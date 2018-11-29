@@ -12,6 +12,10 @@ class ObjectsViewPage : RComponent<RouteSuppliedProps, RState>() {
             attrs.location = props.location.pathname
             attrs.history = props.history
         }
-        objectViewApiModel
+        objectViewApiModel {
+            attrs {
+                history = props.history
+            }
+        }
     }
 }

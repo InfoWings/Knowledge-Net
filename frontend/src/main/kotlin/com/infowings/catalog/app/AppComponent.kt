@@ -33,6 +33,8 @@ class CatalogAppComponent : RComponent<RProps, RState>() {
             privateRoute("/objects", true, renderFunction<ObjectsViewPage>())
             privateRoute("/objects/new", true, RBuilder::objectEnterPage)
             privateRoute("/objects/:id", true, RBuilder::objectEditPage)
+            privateRoute("/objects/view/:id", true, RBuilder::objectEditPage)
+            privateRoute("/objects/viewm/:id/:vid", true, RBuilder::objectEditPage)
             privateRoute("/measures", true, renderFunction<MeasuresPage>())
             privateRoute("/reference", true, renderFunction<ReferenceBookPage>())
             privateRoute("/subjects", false, renderFunction<SubjectRouter>())
@@ -59,7 +61,11 @@ inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFuncti
 }
 
 fun RBuilder.objectEditPage(props: RouteSuppliedProps) {
-    val id = props.match.params.toMap()["id"]!!
+    val pathElems = props.location.pathname.split("/")
+    val viewMode = pathElems.size >= 2 && pathElems[2].startsWith("view")
+    println("PS: " + props.match.params.toMap())
+    val params = props.match.params.toMap()
+    val id = params["id"]!!
     val objectId = decodeURIComponent(id)
     child(ObjectEditPage::class) {
         attrs {
@@ -67,6 +73,8 @@ fun RBuilder.objectEditPage(props: RouteSuppliedProps) {
             history = props.history
             match = props.match
             this.objectId = objectId
+            this.editMode = !viewMode
+            this.highlightedGuid = params["vid"]
         }
     }
 }

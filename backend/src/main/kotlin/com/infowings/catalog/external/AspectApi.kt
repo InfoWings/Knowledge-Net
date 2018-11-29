@@ -50,9 +50,9 @@ class AspectApi(val aspectService: AspectService) {
     ): AspectsList {
         logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
         val beforeMS = System.currentTimeMillis()
-        val orderBy = direct.zip(orderFields).map { (direction, order) ->
-            AspectOrderBy(AspectSortField.valueOf(order), Direction.valueOf(direction))
-        }
+
+        val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
+
         val result = AspectsList(aspectService.getAspects(orderBy, query))
         val afterMS = System.currentTimeMillis()
         logger.info("all aspects took ${afterMS - beforeMS}")        

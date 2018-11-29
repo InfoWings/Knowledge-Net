@@ -1,17 +1,35 @@
 package com.infowings.catalog.objects.edit.tree.format
 
+import com.infowings.catalog.common.AspectHint
+import com.infowings.catalog.common.AspectHintSource
 import com.infowings.catalog.common.AspectTree
 import com.infowings.catalog.components.buttons.cancelButtonComponent
 import com.infowings.catalog.components.buttons.minusButtonComponent
 import com.infowings.catalog.components.buttons.newValueButtonComponent
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.submit.submitButtonComponent
-import com.infowings.catalog.objects.edit.tree.inputs.ShortAspectDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyAspect
 import react.RProps
 import react.dom.div
 import react.rFunction
+
+fun AspectTree.toHint() =
+    AspectHint(
+        name = name,
+        description = "",
+        source = AspectHintSource.ASPECT_NAME.toString(),
+        refBookItem = null,
+        refBookItemDesc = null,
+        propertyName = null,
+        propertyDesc = null,
+        subAspectName = null,
+        aspectName = null,
+        subjectName = name + " " + subjectName,
+        id = id,
+        guid = ""
+    )
+
 
 val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>("ObjectPropertyEditLineFormat") { props ->
     div(classes = "object-tree-edit__object-property") {
@@ -23,8 +41,8 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             disabled = props.disabled
         )
         propertyAspect(
-            value = props.aspect?.let { ShortAspectDescriptor(it.id, it.name, it.subjectName) },
-            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name, subjectName = it.subject)) },
+            value = props.aspect?.let { it.toHint() },
+            onSelect = { props.onAspectChanged(AspectTree(id = it.id, name = it.name, subjectName = it.subjectName?.drop(it.name.length))) },
             disabled = props.disabled || props.onAddValue != null // If onAddValue exists, it means the property has id.
             // API does not allow editing aspect, so it is better to just disable the option.
         )
@@ -53,7 +71,9 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
             minusButtonComponent(it, true)
         }
         props.onAddValue?.let {
-            newValueButtonComponent(it)
+            if (props.editMode) {
+                newValueButtonComponent(it)
+            }
         }
     }
 }
@@ -70,4 +90,5 @@ interface ObjectPropertyEditLineFormatProps : RProps {
     var onAddValue: (() -> Unit)?
     var onRemoveProperty: (() -> Unit)?
     var disabled: Boolean
+    var editMode: Boolean
 }

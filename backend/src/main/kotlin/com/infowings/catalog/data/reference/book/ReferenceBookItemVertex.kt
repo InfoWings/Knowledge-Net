@@ -1,5 +1,6 @@
 package com.infowings.catalog.data.reference.book
 
+import com.infowings.catalog.common.GuidAware
 import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectVertex
@@ -33,7 +34,7 @@ enum class RefBookField(val extName: String) {
     LINK_ROOT("root"),
 }
 
-class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVertex by vertex {
+class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, GuidAware, OVertex by vertex {
     override val entityClass = REFERENCE_BOOK_ITEM_VERTEX
     val edgeName = REFERENCE_BOOK_CHILD_EDGE
 
@@ -81,12 +82,16 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, OVert
     val root: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, REFERENCE_BOOK_ROOT_EDGE).firstOrNull()?.toReferenceBookItemVertex()
 
+    val rootOrThis: ReferenceBookItemVertex
+        get() = root ?: this
+
     /**
      * Return parent ReferenceBookItemVertex or null
      */
     val parent: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, edgeName).firstOrNull()?.toReferenceBookItemVertex()
 
+    override
     val guid: String?
         get() = guid(OrientEdge.GUID_OF_REFBOOK_ITEM)
 

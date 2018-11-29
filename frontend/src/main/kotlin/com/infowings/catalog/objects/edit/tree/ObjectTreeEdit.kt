@@ -107,7 +107,9 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                                         props.editContext.setContext(null)
                                     }
                                 } else null
-                                disabled = editContextModel != null && editContextModel != EditExistingContextModel(props.objectTree.id)
+                                disabled = !props.editMode ||
+                                        (editContextModel != null && editContextModel != EditExistingContextModel(props.objectTree.id))
+                                editMode = props.editMode
                             }
                         }
                     }!!
@@ -121,7 +123,9 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                         props.editModel.update {
                             properties[index].block()
                         }
-                    }
+                    },
+                    newEditMode = props.editMode,
+                    newHighlightedGuid = props.highlightedGuid
                 )
             }
         }
@@ -132,6 +136,8 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
         var objectTree: ObjectEditViewModel
         var apiModel: ObjectEditDetailsResponse
         var editContext: EditContext
+        var editMode: Boolean
+        var highlightedGuid: String?
     }
 }
 

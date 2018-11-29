@@ -55,7 +55,7 @@ class AspectServiceSavingTest {
     fun testAddAspectTrim() {
         val aspectBase =
             aspectService.save(AspectData("", "AspectBase${UUID.randomUUID()}", Kilometre.name, null, Decimal.name, emptyList()), username)
-        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val aspectProp = AspectPropertyData("", "  propTrim  ", aspectBase.idStrict(), aspectBase.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val ad = AspectData("", "  newAspectTrim   ", Kilometre.name, null, Decimal.name, listOf(aspectProp))
         val createAspect: AspectData = aspectService.save(ad, username)
 
@@ -180,7 +180,7 @@ class AspectServiceSavingTest {
     @Test
     fun testAspectCyclicDependency() {
         val aspect = prepareAspect("testAspectCyclicDependency")
-        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val editedPropertyData1 = AspectPropertyData("", "prop1", aspect.idStrict(), aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val aspect1 = aspectService.findById(aspect.properties.first().aspectId)
         val editedAspectData1 = AspectData(
             aspect1.id,
@@ -383,7 +383,7 @@ class AspectServiceSavingTest {
     fun testSaveWithAroundSpaces() {
         val leafAspect = aspectService.save(AspectData(name = "testSaveWithAroundSpaces-leaf", baseType = BaseType.Text.name), username)
         val aspectPropertyData =
-            AspectPropertyData(id = "", name = "   p1   ", aspectId = leafAspect.id!!, cardinality = PropertyCardinality.ONE.name, description = "  d1   ")
+            AspectPropertyData(id = "", name = "   p1   ", aspectId = leafAspect.idStrict(), aspectGuid = leafAspect.guidSoft(), cardinality = PropertyCardinality.ONE.name, description = "  d1   ")
         val complexAspect =
             AspectData(
                 name = "     testSaveWithAroundSpaces-test ",
@@ -410,11 +410,11 @@ class AspectServiceSavingTest {
         val aspectData2 = AspectData(null, "$testName-aspect2", Kilogram.name, null, Decimal.name, emptyList())
         val aspect2: AspectData = aspectService.save(aspectData2, username)
 
-        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val aspectPropertyData1 = AspectPropertyData("", "prop1", aspect2.idStrict(), aspect2.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val aspectData1 = AspectData(null, "$testName-aspect1", Metre.name, null, Decimal.name, listOf(aspectPropertyData1))
         val aspect1: AspectData = aspectService.save(aspectData1, username)
 
-        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.idStrict(), PropertyCardinality.INFINITY.name, null)
+        val aspectPropertyData = AspectPropertyData("", "prop", aspect1.idStrict(), aspect1.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val aspectData = AspectData(null, "$testName-aspect", Metre.name, null, Decimal.name, listOf(aspectPropertyData))
         return aspectService.save(aspectData, username)
     }

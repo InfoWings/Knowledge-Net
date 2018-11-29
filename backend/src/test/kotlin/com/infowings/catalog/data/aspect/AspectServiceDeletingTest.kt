@@ -80,7 +80,7 @@ class AspectServiceDeletingTest {
 
     @Test
     fun testCreatePropertyLinksToRemoved() {
-        val p1 = AspectPropertyData("", "", initialAspectId, PropertyCardinality.ONE.name, null)
+        val p1 = AspectPropertyData("", "", initialAspectId, initialAspect.guidSoft(), PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "testCreatePropertyLinksToRemoved", Metre.name, null, null, listOf(p1))
         assertThrows<AspectDoesNotExist> {
             aspectService.save(ad, username)
@@ -122,7 +122,7 @@ class AspectServiceDeletingTest {
         val aspect = aspectService.save(aspectData, username)
 
         val aspectId = aspect.idStrict()
-        val aspectProperty = AspectPropertyData("", "prop1", aspectId, PropertyCardinality.INFINITY.name, null)
+        val aspectProperty = AspectPropertyData("", "prop1", aspectId, aspect.guidSoft(), PropertyCardinality.INFINITY.name, null)
         val aspectData2 = initialAspectData("testDeleteAspectWithProperty-ANOTHER_ASPECT_DWP", listOf(aspectProperty))
         aspectService.save(aspectData2, username)
 
@@ -143,7 +143,7 @@ class AspectServiceDeletingTest {
         val subject = subjectService.createSubject(SubjectData(name = "subject", description = null), username)
         val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
-        objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict())), null, propertyCreateResponse.id), username)
+        objectService.create(ValueCreateRequest(ObjectValueData.Link(LinkValueData.Aspect(aspect2.idStrict(), aspect2.guidSoft())), null, propertyCreateResponse.id), username)
 
         assertThrows<AspectHasLinkedEntitiesException> {
             aspectService.remove(aspectService.findById(aspect2.idStrict()), username)
@@ -178,8 +178,8 @@ class AspectServiceDeletingTest {
     @Test
     fun testDeleteLinkedByAspect() {
         var aspect = aspectService.save(initialAspectData("testDeleteLinkedByAspect"), username)
-        var aspectId = aspect.id ?: throw IllegalStateException("No id for aspect testDeleteLinkedByAspect")
-        val p1 = AspectPropertyData("", "", aspectId, PropertyCardinality.ONE.name, null)
+        var aspectId = aspect.idStrict()
+        val p1 = AspectPropertyData("", "", aspectId, aspect.guidSoft(), PropertyCardinality.ONE.name, null)
         val ad = AspectData("", "testDeleteLinkedByAspect-aspectLinked", Metre.name, null, null, listOf(p1))
         aspectService.save(ad, username)
 
@@ -212,6 +212,7 @@ class AspectServiceDeletingTest {
                 name = "testDeleteHasValue1",
                 cardinality = PropertyCardinality.ONE.name,
                 aspectId = leafAspect.idStrict(),
+                aspectGuid = leafAspect.guidSoft(),
                 id = "",
                 description = ""
             )
@@ -220,6 +221,7 @@ class AspectServiceDeletingTest {
                 name = "testDeleteHasValue2",
                 cardinality = PropertyCardinality.ONE.name,
                 aspectId = leafAspect.idStrict(),
+                aspectGuid = leafAspect.guidSoft(),
                 id = "",
                 description = ""
             )
@@ -266,10 +268,10 @@ class AspectServiceDeletingTest {
     fun testDeleteAspectProperty() {
         val simpleAspect1 = aspectService.save(initialAspectData("simpleAspect1"), username)
         val simpleAspect2 = aspectService.save(initialAspectData("simpleAspect2"), username)
-        val id1 = simpleAspect1.id ?: throw IllegalArgumentException("no id for aspect 1")
-        val id2 = simpleAspect2.id ?: throw IllegalArgumentException("no id for aspect 2")
-        val property1 = AspectPropertyData("", "", id1, PropertyCardinality.ONE.name, null)
-        val property2 = AspectPropertyData("", "", id2, PropertyCardinality.ONE.name, null)
+        val id1 = simpleAspect1.idStrict()
+        val id2 = simpleAspect2.idStrict()
+        val property1 = AspectPropertyData("", "", id1, simpleAspect1.guidSoft(), PropertyCardinality.ONE.name, null)
+        val property2 = AspectPropertyData("", "", id2, simpleAspect1.guidSoft(), PropertyCardinality.ONE.name, null)
         val initial = aspectService.save(initialAspectData("aspectData", listOf(property1, property2)), username)
 
         val propertyRemoved = aspectService.save(
@@ -289,10 +291,10 @@ class AspectServiceDeletingTest {
     fun testDeleteAspectPropertyWithObjectValue() {
         val simpleAspect1 = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue1"), username)
         val simpleAspect2 = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue2"), username)
-        val id1 = simpleAspect1.id ?: throw IllegalArgumentException("no id for aspect 1")
-        val id2 = simpleAspect2.id ?: throw IllegalArgumentException("no id for aspect 2")
-        val property1 = AspectPropertyData("", "prop-0", id1, PropertyCardinality.ONE.name, null)
-        val property2 = AspectPropertyData("", "prop-1", id2, PropertyCardinality.ONE.name, null)
+        val id1 = simpleAspect1.idStrict()
+        val id2 = simpleAspect2.idStrict()
+        val property1 = AspectPropertyData("", "prop-0", id1, simpleAspect1.guidSoft(), PropertyCardinality.ONE.name, null)
+        val property2 = AspectPropertyData("", "prop-1", id2, simpleAspect2.guidSoft(), PropertyCardinality.ONE.name, null)
         val initial = aspectService.save(initialAspectData("testDeleteAspectPropertyWithObjectValue", listOf(property1, property2)), username)
 
         val aspectData = initialRefAspectData("testDeleteAspectPropertyWithObjectValue-ASPECT-1")
@@ -303,7 +305,7 @@ class AspectServiceDeletingTest {
         val objectCreateResponse = objectService.create(ObjectCreateRequest("obj", null, subject.id), username)
         val propertyCreateResponse = objectService.create(PropertyCreateRequest(objectCreateResponse.id, "prop", null, aspectId), username)
         objectService.create(
-            ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id)), null, propertyCreateResponse.id),
+            ValueCreateRequest(ObjectValueData.Link(LinkValueData.AspectProperty(initial.properties[0].id, initial.properties[0].guidSoft())), null, propertyCreateResponse.id),
             username
         )
 

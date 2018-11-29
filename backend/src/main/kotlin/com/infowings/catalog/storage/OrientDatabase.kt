@@ -199,6 +199,7 @@ class OrientDatabase(
      * rs.mapNotNull { it.toVertexOrNull()?.toAspect(session) }.toList()}
      */
     fun <T> query(query: String, args: Map<String, Any?>, block: (Sequence<OResult>) -> T): T {
+        transactionLogger.info("QUERY: <$query>, params: <$args>")
         return session(database = this) { session ->
             return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }

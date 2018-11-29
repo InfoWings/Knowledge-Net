@@ -1,7 +1,11 @@
 package com.infowings.catalog.aspects.filter
 
+import com.infowings.catalog.aspects.getAspectHints
 import com.infowings.catalog.aspects.getSuggestedAspects
-import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.aspects.listEntry
+import com.infowings.catalog.common.AspectHint
+import com.infowings.catalog.common.AspectsHints
+import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
@@ -10,13 +14,22 @@ import react.*
 
 private interface AspectOption : SelectOption {
     var aspectLabel: String
-    var aspectData: AspectData
+    var aspectEntry: ReactElement
+    var aspectHint: AspectHint
 }
 
-private fun aspectOption(aspectData: AspectData) = jsObject<AspectOption> {
-    this.aspectLabel =
-            "${aspectData.name} (${aspectData.subject?.name ?: "Global"})"
-    this.aspectData = aspectData
+
+
+private fun aspectOption(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.listEntry()
+}
+
+private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption> {
+    this.aspectLabel = aspectHint.name
+    this.aspectHint = aspectHint
+    this.aspectEntry = aspectHint.name.asReactElement()
 }
 
 class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Props, RState>() {
@@ -27,20 +40,20 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 className = "aspect-filter-exclude"
                 multi = true
                 placeholder = "Exclude aspects from filtering..."
-                value = props.selectedAspects.map { aspectOption(it) }.toTypedArray()
-                labelKey = "aspectLabel"
-                valueKey = "aspectLabel"
+                value = props.selectedAspects.map { aspectOptionSelected(it) }.toTypedArray()
+                labelKey = "aspectEntry"
                 cache = false
                 onChange = {
-                    props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectData }) // TODO: KS-143
+                    props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectHint }) // TODO: KS-143
                 }
                 filterOptions = { options, _, _ -> options }
                 loadOptions = { input, callback ->
-                    if (input.isNotEmpty()) {
+                    if (input.length > 2) {
                         launch {
-                            val suggestedAspects = getSuggestedAspects(input, null, null)
+                            //val suggestedAspects = getSuggestedAspects(input, null, null)
+                            val hints = getAspectHints(input)
                             callback(null, jsObject {
-                                options = suggestedAspects.aspects.map { aspectOption(it) }.toTypedArray()
+                                options = hints.defaultOrder().map { aspectOption(it) }.toTypedArray()
                             })
                         }
                     } else {
@@ -56,8 +69,8 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
     }
 
     interface Props : RProps {
-        var selectedAspects: List<AspectData>
-        var onChange: (List<AspectData>) -> Unit
+        var selectedAspects: List<AspectHint>
+        var onChange: (List<AspectHint>) -> Unit
     }
 }
 

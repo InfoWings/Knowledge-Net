@@ -1,8 +1,12 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.guid.copyGuidButton
+import com.infowings.catalog.components.reference.refValueButtonComponent
+import com.infowings.catalog.components.reference.referenceButtonComponent
+import com.infowings.catalog.wrappers.RouteSuppliedProps
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -31,7 +35,8 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
                 )
             }
         }
-        valueFormat(props.value)
+        valueFormat(props.value, props.history)
+
         props.measureSymbol?.let {
             if (props.value != ObjectValueData.NullValue) {
                 span(classes = "object-property-value-line__value-measure") {
@@ -51,7 +56,7 @@ val objectPropertyValueLineFormat = rFunction<ObjectPropertyValueLineFormatProps
     }
 }
 
-interface ObjectPropertyValueLineFormatProps : RProps {
+interface ObjectPropertyValueLineFormatProps : /*RProps*/ RouteSuppliedProps {
     var propertyName: String?
     var propertyDescription: String?
     var aspectName: String
@@ -77,7 +82,7 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
         span(classes = "object-property-value-line__aspect-subject-name") {
             +"(${props.subjectName ?: "Global"})"
         }
-        valueFormat(props.value)
+        valueFormat(props.value, props.history)
         props.measureSymbol?.let {
             if (props.value != ObjectValueData.NullValue) {
                 span(classes = "object-property-value-line__value-measure") {
@@ -97,7 +102,7 @@ val aspectPropertyValueLineFormat = rFunction<AspectPropertyValueLineFormatProps
     }
 }
 
-interface AspectPropertyValueLineFormatProps : RProps {
+interface AspectPropertyValueLineFormatProps : RouteSuppliedProps {
     var propertyName: String?
     var aspectName: String
     var value: ObjectValueData
