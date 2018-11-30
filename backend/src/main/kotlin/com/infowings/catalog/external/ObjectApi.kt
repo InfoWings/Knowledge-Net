@@ -1,13 +1,9 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.DecimalNumber
-import com.infowings.catalog.common.DetailedObjectViewResponse
-import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectsResponse
+import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.data.objekt.*
 import com.infowings.catalog.loggerFor
-import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -46,6 +42,15 @@ class ObjectApi(val objectService: ObjectService) {
         logger.debug("Get objects request by $username")
         val res = objectService.getDetailedObject(id)
         logger.debug("viewdetails for id $id result: $res")
+        return res
+    }
+
+    @GetMapping("/viewdetails")
+    fun getAllDetailedObject(principal: Principal): DetailedObjectViewResponseList {
+        val username = principal.name
+        logger.debug("Get all objects request by $username")
+        val res = DetailedObjectViewResponseList(objectService.fetch().map { objectService.getDetailedObject(it.id.toString()) })
+        logger.debug("viewdetails for all result size: ${res.objekts.size}")
         return res
     }
 

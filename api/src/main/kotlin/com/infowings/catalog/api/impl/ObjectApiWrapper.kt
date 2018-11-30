@@ -4,17 +4,22 @@ import com.infowings.catalog.api.KNServerContext
 import com.infowings.catalog.api.ObjectApi
 import com.infowings.catalog.api.loggerFor
 import com.infowings.catalog.common.DetailedObjectViewResponse
+import com.infowings.catalog.common.DetailedObjectViewResponseList
 import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.common.ObjectsResponse
 import com.infowings.catalog.common.objekt.*
-import java.net.URLEncoder
 
 internal class ObjectApiWrapper(private val context: KNServerContext) : ObjectApi {
 
     override fun getDetailedObject(id: String): DetailedObjectViewResponse {
         logger.debug("Get object {$id} request")
 
-        return context.builder("/api/objects").path("${URLEncoder.encode(id, "UTF-8")}/viewdetails").get()
+//        return context.builder("/api/objects").path("$id/viewdetails").get()
+        return context.builder("/api/objects").path("${id}/viewdetails").get()
+    }
+
+    override fun getAllDetailedObject(): DetailedObjectViewResponseList {
+        return context.builder("/api/objects/viewdetails").get()
     }
 
     //    @GetMapping("{id}/editdetails")

@@ -2,6 +2,7 @@ package com.infowings.catalog.auth
 
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.infowings.catalog.common.UserRole
+import com.infowings.catalog.loggerFor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
@@ -13,18 +14,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.web.firewall.StrictHttpFirewall
+import org.springframework.security.web.firewall.DefaultHttpFirewall
 
 
 @EnableWebSecurity
 class WebSecurity : WebSecurityConfigurerAdapter() {
 
     @Bean
-    fun allowUrlEncodedSlashHttpFirewall(): StrictHttpFirewall {
-        val firewall = StrictHttpFirewall()
-        firewall.setAllowSemicolon(true)
-        firewall.setAllowUrlEncodedSlash(true);
-        return firewall
+    fun allowUrlEncodedSlashHttpFirewall(): DefaultHttpFirewall {
+        logger.info("Installing StrictHttpFirewall")
+//        val firewall = StrictHttpFirewall()
+//        firewall.setAllowSemicolon(true)
+//        firewall.setAllowUrlEncodedSlash(true);
+//        return firewall
+        return DefaultHttpFirewall()
     }
 
     @Bean
@@ -69,7 +72,8 @@ class WebSecurity : WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(auth: AuthenticationManagerBuilder?) {
-
         auth?.userDetailsService(userDetailsService)
     }
 }
+
+private val logger = loggerFor<com.infowings.catalog.auth.WebSecurity>()

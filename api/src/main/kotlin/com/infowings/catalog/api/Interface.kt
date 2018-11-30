@@ -28,4 +28,6 @@ interface ObjectApi {
     fun getAllObjects(): ObjectsResponse
     fun getDetailedObject(id: String): DetailedObjectViewResponse
     fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse
+
+    fun getAllDetailedObject(): DetailedObjectViewResponseList
 }

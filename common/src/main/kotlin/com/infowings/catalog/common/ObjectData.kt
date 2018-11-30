@@ -18,6 +18,9 @@ data class ObjectGetResponse(
 )
 
 @Serializable
+data class DetailedObjectViewResponseList(val objekts: List<DetailedObjectViewResponse>)
+
+@Serializable
 data class DetailedObjectViewResponse(
     val id: String,
     val name: String,

@@ -154,7 +154,7 @@ internal class RequestBuilder(path: String, private val context: KNServerContext
             }
         }
 
-        val uriString = uriBuilder.build().toUriString()
+        val uriString = uriBuilder.build().toUri()
         logger.debug("$httpMethod $uriString")
         return context.restTemplate.exchange(uriString, httpMethod, httpEntity, T::class.java)
     }
