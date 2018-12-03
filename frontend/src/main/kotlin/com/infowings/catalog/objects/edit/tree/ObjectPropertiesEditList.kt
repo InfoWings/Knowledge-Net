@@ -11,10 +11,8 @@ import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyEditLineFormat
 import com.infowings.catalog.objects.edit.tree.format.objectPropertyValueEditLineFormat
 import com.infowings.catalog.objects.edit.tree.utils.InputValidationException
-import com.infowings.catalog.objects.edit.tree.utils.isDecimal
 import com.infowings.catalog.objects.edit.tree.utils.transform
 import com.infowings.catalog.objects.edit.tree.utils.validate
-import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
 import react.RBuilder
 import react.RProps
@@ -32,6 +30,31 @@ fun modelSaver(editContext: EditContext, value: ObjectPropertyValueEditModel, va
     }
 }
 
+data class ValueSlot(val oPropertyId: String, val oPropertyName: String?, val aPropertyId: String, val pos: Int) {
+    companion object {
+        val New = ValueSlot(oPropertyId = "", oPropertyName = null, aPropertyId = "", pos = -1)
+    }
+}
+
+fun List<ObjectPropertyEditModel>.freeSlots(): List<ValueSlot> {
+    val oPropsWithAProps = this.filter {
+        val aspect = it.aspect
+        aspect != null && aspect.properties.size > 0
+    }
+
+    return oPropsWithAProps.flatMap { oProp ->
+        oProp.id ?: throw IllegalStateException("object property id is null")
+        oProp.aspect ?: throw IllegalStateException("object property aspect is null")
+        val aProps = oProp.aspect!!.properties.map { it.id }.toSet()
+
+        oProp.values?.let { values ->
+            values.mapIndexed { index, ovalue ->
+                val usedAspectProps = ovalue.valueGroups.map { it.propertyId }
+                (aProps - usedAspectProps).map { ValueSlot(aPropertyId = it, pos = index, oPropertyId = oProp.id, oPropertyName = oProp.name) }
+            }.flatten()
+        } ?: emptyList()
+    }
+}
 
 fun RBuilder.objectPropertiesEditList(
     editContext: EditContext,
@@ -44,6 +67,8 @@ fun RBuilder.objectPropertiesEditList(
     newHighlightedGuid: String?
 ) {
     val apiModelPropertiesById = apiModelProperties.associateBy { it.id }
+
+    val freeSlots = properties.freeSlots() //.groupBy { it.aPropertyId }
 
     properties.forEachIndexed { propertyIndex, property ->
         val propertyValues = property.values
@@ -58,7 +83,33 @@ fun RBuilder.objectPropertiesEditList(
                     onConfirm = when {
                         property.id == null && property.aspect != null && currentEditContextModel == EditNewChildContextModel -> {
                             {
-                                editModel.createProperty(property)
+                                val selected = property.selectedProp
+                                if (selected != null) {
+                                    val selectedSlot = property.selectedSlot
+                                    if (property.selectedSlot == ValueSlot.New || selectedSlot == null) {
+                                        editModel.createProperty(property, selected.id)
+                                    } else {
+                                        val oProperty = properties.filter {it.id == selectedSlot.oPropertyId}.single()
+                                        val parentIds = oProperty.values?.map { it.id }
+
+                                        if (parentIds != null) {
+                                            editModel.createValue(
+                                                ValueCreateRequest(
+                                                    value = ObjectValueData.NullValue,
+                                                    description = "",
+                                                    objectPropertyId = selectedSlot.oPropertyId,
+                                                    measureName = null,
+                                                    aspectPropertyId = selectedSlot.aPropertyId,
+                                                    parentValueId = parentIds[selectedSlot.pos]
+                                                )
+                                            )
+                                        }
+
+                                    }
+                                } else {
+                                    editModel.createProperty(property, null)
+                                }
+
                                 editContext.setContext(null)
                             }
                         }
@@ -95,32 +146,10 @@ fun RBuilder.objectPropertiesEditList(
 
                                 when {
                                     currentValues == null -> {
-                                        this.values = mutableListOf(
-                                            ObjectPropertyValueEditModel(
-                                                null,
-                                                null,
-                                                ObjectValueData.NullValue,
-                                                null,
-                                                null,
-                                                null,
-                                                false,
-                                                mutableListOf()
-                                            )
-                                        )
+                                        this.values = mutableListOf(ObjectPropertyValueEditModel.nullValue())
                                     }
                                     currentValues.isEmpty() -> {
-                                        currentValues.add(
-                                            ObjectPropertyValueEditModel(
-                                                null,
-                                                null,
-                                                ObjectValueData.NullValue,
-                                                null,
-                                                null,
-                                                null,
-                                                false,
-                                                mutableListOf()
-                                            )
-                                        )
+                                        currentValues.add(ObjectPropertyValueEditModel.nullValue())
                                     }
                                 }
                             }
@@ -130,10 +159,12 @@ fun RBuilder.objectPropertiesEditList(
                     disabled = !newEditMode ||
                             (property.id != null && currentEditContextModel != null && currentEditContextModel != EditExistingContextModel(property.id))
                     editMode = newEditMode
+                    freeValueSlots = freeSlots
                 }
             }
         } else {
             val apiModelValuesById = apiModelPropertiesById[property.id]?.valueDescriptors?.associateBy { it.id } ?: emptyMap()
+
             propertyValues.forEachIndexed { valueIndex, value ->
                 objectPropertyValueEditNode {
                     attrs {
@@ -166,51 +197,19 @@ fun RBuilder.objectPropertiesEditList(
                             }
                         }
 
-                        /*
-                        fun saver() {
-                            try {
-                                value.value?.validate()
-                                editModel.createValue(
-                                    ValueCreateRequest(
-                                        (value.value ?: error("value should not be null")).transform(),
-                                        value.description,
-                                        propertyId,
-                                        value.measureName
-                                    )
-                                )
-                                editContext.setContext(null)
-                            } catch (e: InputValidationException) {
-                                showError(BadRequestException(e.message ?: "invalid input", 400.0))
-                            }
-                        }
-                                                 }
-                        */
                         onSaveValue = when {
-                            value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
+                            value.id == null && value.value != null && (currentEditContextModel == EditNewChildContextModel) -> {
                                 {
                                     modelSaver(editContext, value) { dataValue ->
-                                        editModel.createValue(
-                                            ValueCreateRequest(
-                                                dataValue,
-                                                value.description,
-                                                propertyId,
-                                                value.measureName
-                                            )
-                                        )
-
+                                        editModel.createValue(ValueCreateRequest(dataValue, value.description, propertyId, value.measureName))
                                     }
                                 }
-
                             }
                             value.id != null && value.value != null && currentEditContextModel == EditExistingContextModel(value.id) -> {
                                 {
                                     modelSaver(editContext, value) { dataValue ->
                                         editModel.updateValue(
-                                            ValueUpdateRequest(
-                                                value.id,
-                                                dataValue,
-                                                value.measureName,
-                                                value.description,
+                                            ValueUpdateRequest(value.id, dataValue, value.measureName, value.description,
                                                 value.version ?: error("Value with id (${value.id}) should have non null version")
                                             )
                                         )
@@ -293,16 +292,6 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             value.id != null && value.value != ObjectValueData.NullValue && currentEditContextModel == null -> {
                                 {
-                                    /*
-                                    editModel.updateValue(
-                                        ValueUpdateRequest(
-                                            value.id,
-                                            ObjectValueData.NullValue,
-                                            null,
-                                            value.description,
-                                            value.version ?: error("Value with id (${value.id}) should have non null id")
-                                        )
-                                    )*/
                                     editModel.deleteValue(value.id)
                                 }
                             }
@@ -336,14 +325,18 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
             expanded = props.property.id != null && props.property.expanded
             onExpanded = {
                 props.onUpdate {
+                    println("qqqq: $it")
                     expanded = it
                 }
             }
             treeNodeContent = buildElement {
                 objectPropertyEditLineFormat {
                     attrs {
-                        name = props.property.name
+                        name = props.property.name // "${props.property.name}${props.property.propId ?.let { ":" + it } ?: "" }"
                         aspect = props.property.aspect
+                        selectedProp = props.property.selectedProp
+                        selectedSlot = props.property.selectedSlot
+                        valueSlots = props.freeValueSlots
                         description = props.property.description
                         onNameChanged = if (props.editContext.currentContext == null) {
                             {
@@ -364,23 +357,32 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                             }
                         }
                         onAspectChanged = if (props.editContext.currentContext == null) {
-                            {
+                            { aspectTree, selected ->
                                 props.editContext.setContext(
                                     EditExistingContextModel(
                                         props.property.id ?: error("Property should have id != null in order to edit")
                                     )
                                 )
                                 props.onUpdate {
-                                    aspect = it
+                                    aspect = aspectTree
+                                    this.selectedProp = selectedProp
                                 }
                             }
                         } else {
-                            {
+                            { aspectTree, selected ->
                                 props.onUpdate {
-                                    aspect = it
+                                    aspect = aspectTree
+                                    this.selectedProp = selected
                                 }
                             }
                         }
+                        onSlotChanged = {
+                         //   var onSlotChanged: (valueSlot: ValueSlot?) -> Unit
+                            props.onUpdate {
+                                selectedSlot = it
+                            }
+                        }
+
                         onDescriptionChanged = if (props.editContext.currentContext == null) {
                             {
                                 props.editContext.setContext(
@@ -399,6 +401,13 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                                 }
                             }
                         }
+                        onReselectProperty = {
+                            props.onUpdate {
+                                selectedProp = null
+                                selectedSlot = null
+                                aspect = null
+                            }
+                        }
                         onConfirmCreate = props.onConfirm
                         onCancel = props.onCancel
                         onCancelProperty = props.onCancelProperty
@@ -406,6 +415,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                         onRemoveProperty = props.onRemove
                         disabled = props.disabled
                         editMode = props.editMode
+                        valueSlots = props.freeValueSlots
                     }
                 }
             }!!
@@ -424,6 +434,7 @@ interface ObjectPropertyEditNodeProps : RProps {
     var disabled: Boolean
     var editContext: EditContext
     var editMode: Boolean
+    var freeValueSlots: List<ValueSlot>
 }
 
 val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("ObjectPropertyValueEditNode") { props ->
@@ -561,6 +572,7 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                 }
             }!!
         }
+
         val rootValueId = props.rootValue.id
         if (rootValueId != null && aspect.properties.isNotEmpty()) {
             aspectPropertiesEditList(

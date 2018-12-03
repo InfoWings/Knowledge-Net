@@ -4,10 +4,7 @@ import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.edit.EditContext
-import com.infowings.catalog.objects.edit.EditExistingContextModel
-import com.infowings.catalog.objects.edit.EditNewChildContextModel
-import com.infowings.catalog.objects.edit.ObjectTreeEditModel
+import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectEditLineFormat
 import react.*
 import react.dom.div
@@ -22,7 +19,6 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
     }
 
     override fun RBuilder.render() {
-        println("edit context model: " + props.editContext.currentContext)
         div(classes = "object-tree-edit") {
             controlledTreeNode {
                 attrs {

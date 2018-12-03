@@ -17,7 +17,6 @@ fun RBuilder.propertyValue(
     disabled: Boolean = false
 ): ReactElement? {
     val stringValue = value as? ObjectValueData.StringValue
-    println("BT: ${baseType.name}, rbi: refBookId: $referenceBookId, rbi: refBookNameSoft: $referenceBookNameSoft, value: $value, disabled: $disabled")
 
     val domainElement = if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) {
         value.value as? LinkValueData.DomainElement

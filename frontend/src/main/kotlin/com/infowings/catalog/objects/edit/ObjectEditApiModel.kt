@@ -12,9 +12,8 @@ import com.infowings.catalog.wrappers.reactRouter
 import kotlinx.coroutines.experimental.launch
 import react.*
 
-
 interface ObjectEditApiModel {
-    suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest)
+    suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest, selectedPropId: String?)
     suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
     suspend fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     suspend fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
@@ -81,10 +80,14 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest) {
+
+
+    override suspend fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest, aspectPropId: String?) {
         tryRequest {
             val createPropertyResponse = createProperty(propertyCreateRequest)
             val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
+            println("AP_Id: $aspectPropId, CPR: " + createPropertyResponse)
+
             val defaultRootValue = ValueTruncated(
                 createPropertyResponse.rootValue.id,
                 ObjectValueData.NullValue.toDTO(),
@@ -95,21 +98,46 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 createPropertyResponse.rootValue.version,
                 emptyList()
             )
-            setState {
-                val editedObject = this.editedObject ?: error("Object is not yet loaded")
-                this.editedObject = editedObject.copy(
-                    version = createPropertyResponse.obj.version,
-                    properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
-                        createPropertyResponse.id,
-                        createPropertyResponse.name,
-                        createPropertyResponse.description,
-                        createPropertyResponse.version,
-                        listOf(defaultRootValue),
-                        listOf(defaultRootValue),
-                        treeAspectResponse
+
+            if (aspectPropId == null) {
+                setState {
+                    val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                    this.editedObject = editedObject.copy(
+                        version = createPropertyResponse.obj.version,
+                        properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
+                            createPropertyResponse.id,
+                            createPropertyResponse.name,
+                            createPropertyResponse.description,
+                            createPropertyResponse.version,
+                            listOf(defaultRootValue),
+                            listOf(defaultRootValue),
+                            treeAspectResponse
+                        )
                     )
-                )
-                lastApiError = null
+                    lastApiError = null
+                }
+            } else {
+                val valueCreateResponse = createValue(ValueCreateRequest(value = ObjectValueData.NullValue, description = null,
+                    objectPropertyId = createPropertyResponse.id, measureName = null, aspectPropertyId = aspectPropId,
+                    parentValueId = createPropertyResponse.rootValue.id))
+                setState {
+                    setState {
+                        val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                        this.editedObject = editedObject.copy(
+                            version = createPropertyResponse.obj.version,
+                            properties = editedObject.properties + ObjectPropertyEditDetailsResponse(
+                                createPropertyResponse.id,
+                                createPropertyResponse.name,
+                                createPropertyResponse.description,
+                                createPropertyResponse.version,
+                                listOf(defaultRootValue),
+                                listOf(defaultRootValue),
+                                treeAspectResponse
+                            ).addValue(valueCreateResponse)
+                        )
+                        lastApiError = null
+                    }
+                }
             }
         }
     }
@@ -163,7 +191,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                 this.editedObject = editedObject.copy(
                     properties = editedObject.properties.mapOn(
                         { it.id == valueCreateResponse.objectProperty.id },
-                        { it.addValue(valueCreateResponse) }
+                        {
+                            it.addValue(valueCreateResponse)
+                        }
                     )
                 )
                 lastApiError = null

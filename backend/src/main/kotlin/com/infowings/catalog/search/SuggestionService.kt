@@ -109,8 +109,9 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null,
-                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id,
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description,
+                            subAspectName = null, aspectName = null, property = null,
+                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id, parentAspect = null,
                             source = AspectHintSource.REFBOOK_NAME.toString())
                     }
                 }
@@ -121,8 +122,9 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description, null, null, null, null,
-                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id,
+                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description,
+                            subAspectName = null, aspectName = null, property = null,
+                            subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id, parentAspect = null,
                             source = AspectHintSource.REFBOOK_DESCRIPTION.toString())
                     }
                 }.toList()
@@ -138,14 +140,16 @@ class SuggestionService(
                                 parent.description,
                                 null,
                                 null,
-                                vertex.name,
-                                vertex.description,
                                 aspect.fullName(),
                                 aspect.description,
                                 subjectName = parent.subject?.name,
+                                parentAspect = AspectHintAspectInfo(id = parent.id, guid = parent.guidSoft(), name = parent.name, description = null,
+                                    subjectName = parent.subject?.name ?: "Global"),
                                 guid = parent.guid ?: "?",
                                 source = AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT.toString(),
-                                id = vertex.aspect
+                                id = vertex.aspect,
+                                property = AspectHintAspectPropInfo(guid = vertex.guidSoft(), id = vertex.id,
+                                    name = vertex.name, description = vertex.description, cardinality = vertex.cardinality)
                             )
                         }
                     } ?: {
