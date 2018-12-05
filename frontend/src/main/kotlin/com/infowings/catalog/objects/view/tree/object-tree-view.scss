@@ -86,6 +86,8 @@
 .object-value {
 
   &__boolean {
+    margin-left: 5rem;
+    margin-right: 5rem;
 
     &--true {
       color: $red4;
