@@ -6,6 +6,7 @@ import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.filter.objectExcludeFilterComponent
 import com.infowings.catalog.objects.filter.objectSubjectFilterComponent
+import com.infowings.catalog.objects.search.objectSearchComponent
 import com.infowings.catalog.objects.view.sort.objectSort
 import com.infowings.catalog.objects.view.tree.objectLazyTreeView
 import com.infowings.catalog.utils.ServerException
@@ -48,7 +49,7 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         launch {
             try {
-                val response = getAllObjects(props.orderBy).objects
+                val response = getAllObjects(props.orderBy, props.query).objects
 
                 val freshByGuid = response.filter { it.guid != null }.map { it.guid to it }.toMap()
 
@@ -95,19 +96,21 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                 objectSort {
                     attrs {
                         this.onOrderByChanged = { orderBy ->
-                            println("orderBy: " + orderBy)
                             props.onOrderByChanged(orderBy)
                             refreshObjects()
                         }
                     }
                 }
-                /*
+
                 objectSearchComponent {
                     attrs {
-                        onConfirmSearch = onSearchQueryChanged
+                        onConfirmSearch =  { query ->
+                            println("confirm: " + query)
+                            props.onSearchQueryChanged(query)
+                            refreshObjects()
+                        } //onSearchQueryChanged
                     }
                 }
-                */
             }
 
             div(classes = "object-header__text-filters") {

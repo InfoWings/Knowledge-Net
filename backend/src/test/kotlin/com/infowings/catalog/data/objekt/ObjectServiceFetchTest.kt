@@ -114,8 +114,14 @@ class ObjectServiceFetchTest {
 
     @Test
     fun fetchAllObjectsTruncated() {
-        val objects = objectService.fetch(emptyList())
+        val objects = objectService.fetch(emptyList(), "")
         assertThat("Fetched objects count should be equal to 3", objects.size, Matchers.`is`(3))
+    }
+
+    @Test
+    fun fetchAllObjectsTruncatedWithPattern() {
+        val objects = objectService.fetch(emptyList(), "Tube")
+        assertThat("Fetched objects count should be equal to 1", objects.size, Matchers.`greaterThanOrEqualTo`(1))
     }
 
     @Test

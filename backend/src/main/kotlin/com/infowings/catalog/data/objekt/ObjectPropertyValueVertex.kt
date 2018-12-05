@@ -36,7 +36,7 @@ const val PRECISION_PROPERTY = "precision"
 const val BOOL_TYPE_PROPERTY = "bool"
 const val RANGE_LEFT_INF_PROPERTY = "leftInf"
 const val RANGE_RIGHT_INF_PROPERTY = "rightInf"
-private const val TYPE_TAG_PROPERTY = "type_tag"
+const val TYPE_TAG_PROPERTY = "type_tag"
 
 /* Коды значений хранятся в базе, поэтому при любых изменениях/дополнениях надо сохранять
    коды. Или править базу соответственно.

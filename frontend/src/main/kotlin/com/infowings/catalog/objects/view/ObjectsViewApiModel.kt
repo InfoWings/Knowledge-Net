@@ -20,7 +20,9 @@ interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
     var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     var objectApiModel: ObjectsViewApiModel
     var orderBy: List<SortOrder>
+    var query: String?
     var onOrderByChanged: (List<SortOrder>) -> Unit
+    var onSearchQueryChanged: (String) -> Unit
 }
 
 class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
@@ -47,7 +49,7 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
 
     private fun fetchAll() {
         launch {
-            val objectsResponse = getAllObjects(state.orderBy)
+            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery)
             setState {
                 objects = objectsResponse.objects
             }
@@ -63,7 +65,9 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
                 objectApiModel = this@ObjectsViewApiModelComponent
                 history = currHistory
                 orderBy = state.orderBy
+                query = state.searchQuery
                 onOrderByChanged = ::updateSortConfig
+                onSearchQueryChanged = ::updateSearchQuery
             }
         }
     }
@@ -76,10 +80,18 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
         //refresh()
     }
 
+    private fun updateSearchQuery(query: String) {
+        setState {
+            searchQuery = query
+        }
+        //refresh()
+    }
+
     interface State : RState {
         var objects: List<ObjectGetResponse>
         var detailedObjectsView: Map<String, DetailedObjectViewResponse>
         var orderBy: List<SortOrder>
+        var searchQuery: String?
     }
 
 }

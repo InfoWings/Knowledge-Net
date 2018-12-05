@@ -18,11 +18,12 @@ class ObjectApi(val objectService: ObjectService) {
     fun getAllObjects(
         @RequestParam(required = false) orderFields: List<String>,
         @RequestParam(required = false) direct: List<String>,
+        @RequestParam(required = false) q: String?,
         principal: Principal): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct")
+        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, query: >$q<")
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
-        return ObjectsResponse(objectService.fetch(orderBy).map { it.toResponse() })
+        return ObjectsResponse(objectService.fetch(orderBy, q?:"").map { it.toResponse() })
     }
 
     @GetMapping("recalculateValue")
