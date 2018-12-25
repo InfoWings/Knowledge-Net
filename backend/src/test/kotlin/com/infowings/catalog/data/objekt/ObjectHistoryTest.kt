@@ -585,7 +585,7 @@ class ObjectHistoryTest {
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, valueEvent.entityClass, "class must be correct")
         assertEquals(EventType.UPDATE, valueEvent.type, "event type must be correct")
 
-        assertEquals(setOf("typeTag", "decimalValue"), valuePayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "decimalValue", "decimalUpb"), valuePayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("measure"), valuePayload.addedLinks.keys, "added links keys must be correct")
 
@@ -636,9 +636,9 @@ class ObjectHistoryTest {
         assertEquals(Kilometre.name, propertyValue.measureName)
 
         // проверяем изменения
-        assertEquals(4, state.changes.size)
+        assertEquals(5, state.changes.size)
         val byField = state.changes.groupBy { it.fieldName }
-        assertEquals(setOf("typeTag", "decimalValue", "cardinality", "measure").map { prepared.propertyRequest.name + ":" + it }.toSet(), byField.keys)
+        assertEquals(setOf("typeTag", "decimalValue", "decimalUpb", "cardinality", "measure").map { prepared.propertyRequest.name + ":" + it }.toSet(), byField.keys)
         assertEquals(ScalarTypeTag.DECIMAL.name, byField.getValue(prepared.propertyRequest.name + ":typeTag")[0].after)
         assertEquals(valueRepr, byField.getValue(prepared.propertyRequest.name + ":decimalValue")[0].after)
         assertEquals(state.changes.map { "" }, state.changes.map { it.before })
@@ -1666,7 +1666,7 @@ class ObjectHistoryTest {
         assertEquals(OBJECT_PROPERTY_VALUE_CLASS, valueEvent.entityClass, "class must be correct")
         assertEquals(EventType.CREATE, valueEvent.type, "event type must be correct")
 
-        assertEquals(setOf("typeTag", "decimalValue", "guid"), valuePayload.data.keys, "data keys must be correct")
+        assertEquals(setOf("typeTag", "decimalValue", "decimalUpb", "guid"), valuePayload.data.keys, "data keys must be correct")
         assertEquals(emptySet(), valuePayload.removedLinks.keys, "there must be no removed links")
         assertEquals(setOf("objectProperty", "measure"), valuePayload.addedLinks.keys, "added links keys must be correct")
 
@@ -1727,7 +1727,8 @@ class ObjectHistoryTest {
         // проверяем изменения
         checkValueCreateChanges(
             state.changes,
-            mapOf("typeTag" to ScalarTypeTag.DECIMAL.name, "decimalValue" to valueRepr, "measure" to measure.name, "guid" to valueGuid),
+            mapOf("typeTag" to ScalarTypeTag.DECIMAL.name, "decimalValue" to valueRepr, "decimalUpb" to valueRepr,
+                "measure" to measure.name, "guid" to valueGuid),
             prepared.propertyRequest.name
         )
     }

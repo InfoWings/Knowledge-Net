@@ -33,8 +33,9 @@ fun ObjectValueData.transform(): ObjectValueData = when (this) {
 fun ObjectValueData.DecimalValue.transform(): ObjectValueData.DecimalValue {
     val leftInfinity =  RangeFlagConstants.LEFT_INF.isSet(rangeFlags)
     val rightInfinity =  RangeFlagConstants.RIGHT_INF.isSet(rangeFlags)
+    val isRange =  RangeFlagConstants.RANGE.isSet(rangeFlags)
 
-    println("dec transform: $leftInfinity $rightInfinity")
+    println("dec transform: <$isRange> $leftInfinity $rightInfinity")
 
     return this.copy(valueRepr = if (leftInfinity) "0" else valueRepr)
         .copy(upbRepr = if (rightInfinity) "0" else upbRepr)

@@ -19,6 +19,18 @@ data class SortOrder(val name: SortField, val direction: Direction) {
     }
 }
 
+data class ViewSlice(val offset: Int?, val limit: Int?) {
+    fun next(total: Int = Int.MAX_VALUE) = when {
+        offset != null && limit != null -> ViewSlice(minOf(offset + limit, total), limit)
+        else -> this
+    }
+
+    fun prev() = when {
+        offset != null && limit != null -> ViewSlice(maxOf(offset - limit, 0), limit)
+        else -> this
+    }
+}
+
 class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
     override fun compareTo(other: CompareString): Int =
         direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())

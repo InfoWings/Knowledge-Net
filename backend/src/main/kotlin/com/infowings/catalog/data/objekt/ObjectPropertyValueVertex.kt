@@ -292,6 +292,9 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Gui
 
         if (leftInfinity) result += RangeFlagConstants.LEFT_INF.bitmask
         if (rightInfinity) result += RangeFlagConstants.RIGHT_INF.bitmask
+        if (rightInfinity || leftInfinity || (decimalUpb != null && decimalUpb != decimalValue) ) {
+            result += RangeFlagConstants.RANGE.bitmask
+        }
 
         return result
     }

@@ -49,7 +49,8 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         launch {
             try {
-                val response = getAllObjects(props.orderBy, props.query).objects
+                //val response = getAllObjects(props.orderBy, props.query).objects
+                val response = getAllObjects(props.orderBy, props.query, props.viewSlice?.offset, props.viewSlice?.limit).objects
 
                 val freshByGuid = response.filter { it.guid != null }.map { it.guid to it }.toMap()
 
@@ -105,7 +106,6 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                 objectSearchComponent {
                     attrs {
                         onConfirmSearch =  { query ->
-                            println("confirm: " + query)
                             props.onSearchQueryChanged(query)
                             refreshObjects()
                         } //onSearchQueryChanged
@@ -130,6 +130,30 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                             }
                         }
                     }
+                }
+            }
+
+            div(classes = "object-header__pages") {
+                if (props.viewSlice.offset != 0) {
+                    Button {
+                        attrs {
+                            icon = "fast-backward"
+                            onClick = {
+                                props.onPrevPage()
+                            }
+                        }
+                    }
+                }
+                Button {
+                    attrs {
+                        icon = "fast-forward"
+                        onClick = {
+                            props.onNextPage()
+                        }
+                    }
+                }
+                div(classes = "object-header__offset") {
+                    +"${props.viewSlice.offset}"
                 }
             }
 

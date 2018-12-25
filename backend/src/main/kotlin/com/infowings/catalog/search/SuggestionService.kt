@@ -318,7 +318,7 @@ class SuggestionService(
                     val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_NAME)}, :$lq) = true"
                     database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(commonParam?.text)))) { it }
                 } else {
-                    findAspectVertexNoCycle(aspectId, textOrAllWildcard(commonParam?.text))
+                    findAspectVertexNoCycle(aspectId, textOrAllWildcardNoSpaces(commonParam?.text))
                 }
             }
         return res.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }

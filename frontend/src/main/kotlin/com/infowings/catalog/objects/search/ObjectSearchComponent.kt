@@ -17,7 +17,7 @@ import react.dom.span
 class ObjectSearchComponent : RComponent<ObjectSearchComponent.Props, ObjectSearchComponent.State>() {
     companion object {
         init {
-            kotlinext.js.require("styles/aspect-search.scss")
+            kotlinext.js.require("styles/object-search.scss")
         }
     }
 
@@ -40,27 +40,26 @@ class ObjectSearchComponent : RComponent<ObjectSearchComponent.Props, ObjectSear
     }
 
     override fun RBuilder.render() {
-        div(classes = "pt-input-group aspect-search") {
-            span(classes = "pt-icon pt-icon-search") {
-                input(type = InputType.text, classes = "pt-input") {
-                    attrs {
-                        value = state.searchQuery
-                        placeholder = "Search Object..."
-                        onKeyDownFunction = this@ObjectSearchComponent::handleKeyDown
-                        onChangeFunction = this@ObjectSearchComponent::handleChange
-                    }
+        div(classes = "pt-input-group object-search") {
+            span(classes = "pt-icon pt-icon-search") { }
+            input(type = InputType.text, classes = "pt-input") {
+                attrs {
+                    value = state.searchQuery
+                    placeholder = "Search Object..."
+                    onKeyDownFunction = this@ObjectSearchComponent::handleKeyDown
+                    onChangeFunction = this@ObjectSearchComponent::handleChange
                 }
-                Button {
-                    attrs {
-                        className = "pt-minimal"
-                        intent = Intent.NONE
-                        icon = "delete"
-                        onClick = {
-                            setState {
-                                searchQuery = ""
-                            }
-                            props.onConfirmSearch("")
+            }
+            Button {
+                attrs {
+                    className = "pt-minimal"
+                    intent = Intent.NONE
+                    icon = "delete"
+                    onClick = {
+                        setState {
+                            searchQuery = ""
                         }
+                        props.onConfirmSearch("")
                     }
                 }
             }

@@ -16,6 +16,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         setState {
             lwb = string
         }
+        println("changed l: $string - ${props.upb}, ${props.isRange}")
         props.onUpdate(string, props.upb, props.isRange)
     }
 
@@ -23,6 +24,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         setState {
             upb = string
         }
+        println("changed r: ${props.lwb} - $string, ${props.isRange}")
         props.onUpdate(props.lwb, string, props.isRange)
     }
 

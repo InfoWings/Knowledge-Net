@@ -4,6 +4,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
 import com.infowings.catalog.data.history.HISTORY_EDGE
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -14,6 +15,10 @@ import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import java.math.BigDecimal
 import java.time.Instant
+
+data class ValueWithContext(val value: ObjectPropertyValueVertex,
+                            val propertyId: String,
+                            val objectId: String)
 
 class ObjectDaoService(private val db: OrientDatabase) {
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -43,109 +48,114 @@ class ObjectDaoService(private val db: OrientDatabase) {
     }
 
     fun getTruncatedObjects(pattern: String = "") =
-        transaction(db) {
-            val queryTS =
-                "SELECT @rid, name, description, " +
-                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
-                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').in('${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}').out('$HISTORY_EDGE').timestamp) as lastValueTS," +
-                        " max(out('$HISTORY_EDGE').timestamp) as lastTS " +
-                        "FROM $OBJECT_CLASS group by @rid "
-            val tsById = db.query(queryTS) {
-                it.map {
-                    val id: ORID = it.getProperty("@rid")
-                    val propTS: Instant? = it.getProperty("lastPropTS")
-                    val objectTS: Instant? = it.getProperty("lastTS")
-                    val valueTS: Instant? = it.getProperty("lastValueTS")
-
-
-                    val latest = listOfNotNull(propTS, objectTS, valueTS).sorted().lastOrNull() ?: {
-                        logger.info("no timestamps: $objectTS, $propTS $valueTS")
-                        Instant.EPOCH
-                    }.invoke()
-
-                    id.toString() to latest
-                }.toMap()
-            }
-
-            logger.info("tsById: $tsById")
-
-            if (pattern == "") {
-                val query =
+        logTime(logger, "request of all truncated objects") {
+            transaction(db) {
+                val queryTS =
                     "SELECT @rid, name, description, " +
-                            "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
-                            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
-                            "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
-                            "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
-                return@transaction db.query(query) { it.map { extractObject(it, tsById) } }.toList()
-            } else {
-                fun luceneIdx(classType: String, attr: String) = "\"$classType.lucene.$attr\""
-                fun searchLucene(classType: String, attr: String, patternBinding: String) =
-                    "( SEARCH_INDEX(${luceneIdx(classType, attr)}, :$patternBinding) = true)"
-                fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
-                fun anyOfCond(conds: List<String>) = conds.joinToString(" or ", "(", ")")
-                fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else {
-                    text.trim()
+                            " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
+                            " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').in('${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}').out('$HISTORY_EDGE').timestamp) as lastValueTS," +
+                            " max(out('$HISTORY_EDGE').timestamp) as lastTS " +
+                            "FROM $OBJECT_CLASS group by @rid "
+                val tsById = logTime(logger, "request of all timestamps") {
+                    db.query(queryTS) {
+                        it.map {
+                            val id: ORID = it.getProperty("@rid")
+                            val propTS: Instant? = it.getProperty("lastPropTS")
+                            val objectTS: Instant? = it.getProperty("lastTS")
+                            val valueTS: Instant? = it.getProperty("lastValueTS")
+
+
+                            val latest = listOfNotNull(propTS, objectTS, valueTS).sorted().lastOrNull() ?: {
+                                logger.info("no timestamps: $objectTS, $propTS $valueTS")
+                                Instant.EPOCH
+                            }.invoke()
+
+                            id.toString() to latest
+                        }.toMap()
+                    }
                 }
 
-                val queryByStr =
-                    "SELECT @rid, name, description, \n" +
-                            "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
-                            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
-                            "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
-                            "FROM $OBJECT_CLASS \n" +
-                            "      LET \$t = (SELECT OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") AS prop, \n" +
-                            "                        prop.OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").name AS obj_name, \n" +
-                            "                        out(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") \n" +
-                            "                           .out(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").@rid AS obj_id,\n" +
-                            "                         out(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\").deleted AS prop_deleted,\n" +
-                            "                    ${STR_TYPE_PROPERTY}, ${TYPE_TAG_PROPERTY}, deleted  FROM ${OrientClass.OBJECT_VALUE.extName}\n" +
-                            "          WHERE ${TYPE_TAG_PROPERTY} = ${ScalarTypeTag.STRING.code}\n" +
-                            "                 AND ${searchLucene(OrientClass.OBJECT_VALUE.extName, STR_TYPE_PROPERTY, "lq")}\n" +
-                            "                 AND (deleted is null or deleted = false) AND (prop_deleted is null OR prop_deleted = false)\n" +
-                            "          UNWIND obj_name, obj_id, prop_deleted) WHERE @rid IN \$t.obj_id  " +
-                            " and (deleted is NULL or deleted = false ) "
-                 val byStringValue = db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
-                    it.map { extractObject(it, tsById) }
-                }.toList()
+                logger.info("tsById: $tsById")
 
-                val queryByRefBook =
-                    "SELECT @rid, name, description, " +
-                            "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
-                            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
-                            "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
-                            "FROM $OBJECT_CLASS " +
-                            "      LET \$t = (\n" +
-                            "         SELECT @rid, \n" +
-                            "                        OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\").deleted AS prop_deleted,\n" +
-                            "                        OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") \n" +
-                            "                          .OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").@rid AS obj_id \n" +
-                            "                        FROM ${OrientClass.OBJECT_VALUE.extName}\n" +
-                            "          LET \$v=(SELECT  IN(\"${OrientEdge.OBJECT_VALUE_DOMAIN_ELEMENT.extName}\").@rid as rid\n" +
-                            "             FROM ${OrientClass.REFBOOK_ITEM.extName} \n" +
-                            "                       WHERE ${searchLucene(OrientClass.REFBOOK_ITEM.extName, "value", "lq")}" +
-                            "                             AND  IN(\"${OrientEdge.OBJECT_VALUE_DOMAIN_ELEMENT.extName}\").@rid.size() > 0" +
-                            "                             AND (deleted is null or deleted == false) UNWIND rid)" +
-                            "              WHERE @rid in \$v.rid and (prop_deleted is null or prop_deleted == false) " +
-                            "                                        and  (deleted is null or deleted == false)" +
-                            " unwind prop_deleted, obj_id \n" +
-                            " ) where @rid in \$t.obj_id  " +
-                            " and (deleted is NULL or deleted = false ) "
-                val byRefBookValue = db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
-                    it.map { extractObject(it, tsById) }
-                }.toList()
+                if (pattern == "") {
+                    val query =
+                        "SELECT @rid, name, description, " +
+                                "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
+                                "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
+                                "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
+                                "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
+                    return@transaction db.query(query) { it.map { extractObject(it, tsById) } }.toList()
+                } else {
+                    fun luceneIdx(classType: String, attr: String) = "\"$classType.lucene.$attr\""
+                    fun searchLucene(classType: String, attr: String, patternBinding: String) =
+                        "( SEARCH_INDEX(${luceneIdx(classType, attr)}, :$patternBinding) = true)"
 
-                val query =
-                    "SELECT @rid, name, description, \n" +
-                            "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
-                            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
-                            "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
-                            "FROM $OBJECT_CLASS  WHERE \n" +
-                            "${anyOfCond(listOf(searchLucene(OBJECT_CLASS, ATTR_NAME, "lq"), searchLucene(OBJECT_CLASS, ATTR_DESC, "lq")))}\n" +
-                            " and (deleted is NULL or deleted = false ) \n"
-                val byNameDesc = db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
-                    it.map { extractObject(it, tsById) }
-                }.toList()
-                return@transaction byNameDesc + byStringValue + byRefBookValue
+                    fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
+                    fun anyOfCond(conds: List<String>) = conds.joinToString(" or ", "(", ")")
+                    fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else {
+                        text.trim()
+                    }
+
+                    val queryByStr =
+                        "SELECT @rid, name, description, \n" +
+                                "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
+                                "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
+                                "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
+                                "FROM $OBJECT_CLASS \n" +
+                                "      LET \$t = (SELECT OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") AS prop, \n" +
+                                "                        prop.OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").name AS obj_name, \n" +
+                                "                        out(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") \n" +
+                                "                           .out(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").@rid AS obj_id,\n" +
+                                "                         out(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\").deleted AS prop_deleted,\n" +
+                                "                    ${STR_TYPE_PROPERTY}, ${TYPE_TAG_PROPERTY}, deleted  FROM ${OrientClass.OBJECT_VALUE.extName}\n" +
+                                "          WHERE ${TYPE_TAG_PROPERTY} = ${ScalarTypeTag.STRING.code}\n" +
+                                "                 AND ${searchLucene(OrientClass.OBJECT_VALUE.extName, STR_TYPE_PROPERTY, "lq")}\n" +
+                                "                 AND (deleted is null or deleted = false) AND (prop_deleted is null OR prop_deleted = false)\n" +
+                                "          UNWIND obj_name, obj_id, prop_deleted) WHERE @rid IN \$t.obj_id  " +
+                                " and (deleted is NULL or deleted = false ) "
+                    val byStringValue = db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
+                        it.map { extractObject(it, tsById) }
+                    }.toList()
+
+                    val queryByRefBook =
+                        "SELECT @rid, name, description, " +
+                                "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
+                                "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
+                                "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
+                                "FROM $OBJECT_CLASS " +
+                                "      LET \$t = (\n" +
+                                "         SELECT @rid, \n" +
+                                "                        OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\").deleted AS prop_deleted,\n" +
+                                "                        OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") \n" +
+                                "                          .OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").@rid AS obj_id \n" +
+                                "                        FROM ${OrientClass.OBJECT_VALUE.extName}\n" +
+                                "          LET \$v=(SELECT  IN(\"${OrientEdge.OBJECT_VALUE_DOMAIN_ELEMENT.extName}\").@rid as rid\n" +
+                                "             FROM ${OrientClass.REFBOOK_ITEM.extName} \n" +
+                                "                       WHERE ${searchLucene(OrientClass.REFBOOK_ITEM.extName, "value", "lq")}" +
+                                "                             AND  IN(\"${OrientEdge.OBJECT_VALUE_DOMAIN_ELEMENT.extName}\").@rid.size() > 0" +
+                                "                             AND (deleted is null or deleted == false) UNWIND rid)" +
+                                "              WHERE @rid in \$v.rid and (prop_deleted is null or prop_deleted == false) " +
+                                "                                        and  (deleted is null or deleted == false)" +
+                                " unwind prop_deleted, obj_id \n" +
+                                " ) where @rid in \$t.obj_id  " +
+                                " and (deleted is NULL or deleted = false ) "
+                    val byRefBookValue = db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
+                        it.map { extractObject(it, tsById) }
+                    }.toList()
+
+                    val query =
+                        "SELECT @rid, name, description, \n" +
+                                "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
+                                "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
+                                "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
+                                "FROM $OBJECT_CLASS  WHERE \n" +
+                                "${anyOfCond(listOf(searchLucene(OBJECT_CLASS, ATTR_NAME, "lq"), searchLucene(OBJECT_CLASS, ATTR_DESC, "lq")))}\n" +
+                                " and (deleted is NULL or deleted = false ) \n"
+                    val byNameDesc = db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) {
+                        it.map { extractObject(it, tsById) }
+                    }.toList()
+                    return@transaction byNameDesc + byStringValue + byRefBookValue
+                }
             }
         }
 
@@ -359,14 +369,24 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 vertex.precision = objectValue.precision
             }
             is ObjectValue.DecimalValue -> {
-                vertex.decimalValue = objectValue.value
-                vertex.decimalUpb = if (objectValue.upb != objectValue.value) objectValue.upb else null
+                logger.info("store decimal value: $objectValue")
+                if (RangeFlagConstants.RANGE.isSet(objectValue.rangeFlags)) {
+                    // is range
+                    vertex.decimalValue = objectValue.value
+                    vertex.decimalUpb = objectValue.upb
 
-                val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
-                val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
+                    val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
+                    val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
 
-                vertex.leftInfinity = objectValue.rangeFlags.and(leftFlag) != 0
-                vertex.rightInfinity = objectValue.rangeFlags.and(rightFlag) != 0
+                    vertex.leftInfinity = objectValue.rangeFlags.and(leftFlag) != 0
+                    vertex.rightInfinity = objectValue.rangeFlags.and(rightFlag) != 0
+                } else {
+                    // is ordinary decimal
+                    vertex.decimalValue = objectValue.value
+                    vertex.decimalUpb = objectValue.value
+                    vertex.leftInfinity = false
+                    vertex.rightInfinity = false
+                }
             }
             is ObjectValue.StringValue -> {
                 vertex.strValue = objectValue.value
