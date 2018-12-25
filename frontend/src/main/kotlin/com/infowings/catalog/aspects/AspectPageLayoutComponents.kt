@@ -68,7 +68,8 @@ fun RBuilder.aspectPageContent(
     aspectContext: Map<String, AspectData>,
     aspectsModel: AspectsModel,
     selectedAspect: AspectData,
-    selectedAspectPropertyIndex: Int?
+    selectedAspectPropertyIndex: Int?,
+    isUpdated: Boolean
 ) {
     aspectTreeView {
         attrs {
@@ -82,6 +83,7 @@ fun RBuilder.aspectPageContent(
     aspectConsole {
         attrs {
             aspect = selectedAspect
+            aspectIsUpdated = isUpdated
             propertyIndex = selectedAspectPropertyIndex
             this.aspectContext = aspectContext
             this.aspectsModel = aspectsModel
