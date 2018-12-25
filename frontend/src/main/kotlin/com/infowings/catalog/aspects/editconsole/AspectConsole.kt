@@ -140,6 +140,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
             aspectEditConsole {
                 attrs {
                     aspect = selectedAspect
+                    aspectIsUpdated = props.aspectIsUpdated
                     editConsoleModel = this@AspectConsole
                 }
             }
@@ -158,6 +159,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
 
     interface Props : RProps {
         var aspect: AspectData
+        var aspectIsUpdated: Boolean
         var propertyIndex: Int?
         var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel

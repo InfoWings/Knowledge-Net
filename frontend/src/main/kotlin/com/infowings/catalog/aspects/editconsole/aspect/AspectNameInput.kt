@@ -35,14 +35,12 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
     }
 
     override fun RBuilder.render() {
-        println("props value: ${props.value}, ${props.aspectHints}")
-
         val inputRef = props.inputRef
 
         div(classes = "aspect-edit-console--aspect-input-container") {
             existingAspectWindow {
                 attrs {
-                    hints = if (props.value?.length?:0 < 2) AspectsHints.empty() else state.hints
+                    hints = if (props.value?.length?:0 < 2 || !props.aspectIsUpdated) AspectsHints.empty() else state.hints
                 }
             }
 
@@ -69,8 +67,8 @@ class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput
     }
 
     interface Props : RProps {
-        var aspectHints: AspectsHints
         var value: String?
+        var aspectIsUpdated: Boolean
         var onChange: (String) -> Unit
         var inputRef: ((HTMLInputElement?) -> Unit)?
     }
