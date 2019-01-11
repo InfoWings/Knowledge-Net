@@ -4,9 +4,12 @@ import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.OrientDatabase
+import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.toVertexOrNull
+import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResultInternal
 
 class SqlBuilder() {
@@ -75,6 +78,10 @@ private val selectFromHistoryTS = SqlBuilder().select().from(HISTORY_EVENT_CLASS
 private val logger = loggerFor<HistoryDao>()
 
 class HistoryDao(private val db: OrientDatabase) {
+    fun getVertex(id: String): OVertex? = db.getVertexById(id)
+
+    fun findEvent(id: String) = transaction(db) { getVertex(id)?.toHistoryEventVertex() }
+
     fun newHistoryEventVertex() = db.createNewVertex(HISTORY_EVENT_CLASS).toHistoryEventVertex()
 
     fun newHistoryElementVertex() = db.createNewVertex(HISTORY_ELEMENT_CLASS).toHistoryElementVertex()
@@ -112,6 +119,12 @@ class HistoryDao(private val db: OrientDatabase) {
         mapOf("classes" to entityClasses)
     ) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList()
+    }
+
+    fun getAllWithoutTimestampDate(): List<String> = db.query(
+        "SELECT FROM $HISTORY_EVENT_CLASS where timestampDate is null"
+    ) { rs ->
+        rs.mapNotNull { it.toVertexOrNull()?.toHistoryEventVertex() }.toList().map { it.id }
     }
 
     fun getPayloadsAndUsers(ids: List<ORID>): Map<String, Pair<String, DiffPayload>> = logTime(logger, "facts extraction at dao level") {

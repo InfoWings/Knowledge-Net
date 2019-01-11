@@ -7,15 +7,14 @@ import com.infowings.catalog.data.history.providers.AspectHistoryProvider
 import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.history.HistoryDao
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.history.HistorySnapshot
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.loggerFor
+import kotlinx.serialization.Serializable
 import org.slf4j.Logger
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 fun <T> logTime(logger: Logger, comment :String, action: () -> T): T {
     val beforeMS = System.currentTimeMillis()
@@ -25,6 +24,9 @@ fun <T> logTime(logger: Logger, comment :String, action: () -> T): T {
     return result
 }
 
+@Serializable
+data class TimeStampMigrationStatus(val id: String, val code: Int)
+
 @RestController
 @RequestMapping("api/history")
 class HistoryApi(
@@ -32,7 +34,8 @@ class HistoryApi(
     val refBookHistoryProvider: RefBookHistoryProvider,
     val objectHistoryProvider: ObjectHistoryProvider,
     val subjectHistoryProvider: SubjectHistoryProvider,
-    val historyService: HistoryService
+    val historyService: HistoryService,
+    val historyDao: HistoryDao
 ) {
     @GetMapping("aspects")
     fun getAspects(): AspectHistoryList {
@@ -92,6 +95,28 @@ class HistoryApi(
 
             return@logTime EntityHistory(id)
         }
+    }
+
+    @PostMapping("/migrate-timestamp/{eventId}")
+    fun migrateTimestamp(@PathVariable eventId: String): TimeStampMigrationStatus {
+        val eventVertex = historyDao.findEvent(eventId) ?: throw IllegalArgumentException("history event $eventId is not found")
+        val tsDate = eventVertex.timestampDate
+        if (tsDate != null) return TimeStampMigrationStatus(eventId, 1)
+        else {
+            val ts = eventVertex.timestamp
+            eventVertex.timestamp = ts
+            return TimeStampMigrationStatus(eventId, 0)
+        }
+    }
+
+    @PostMapping("/migrate-timestamps/{eventIds}")
+    fun migrateTimestamp(@PathVariable eventIds: List<String>): List<TimeStampMigrationStatus> {
+        return eventIds.map { migrateTimestamp(it) }
+    }
+
+    @PostMapping("/migrate-all-timestamps")
+    fun migrateTimestampAll(): List<TimeStampMigrationStatus> {
+        return historyDao.getAllWithoutTimestampDate().map { migrateTimestamp(it) }
     }
 }
 

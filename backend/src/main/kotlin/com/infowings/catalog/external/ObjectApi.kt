@@ -189,4 +189,17 @@ class ObjectApi(val objectService: ObjectService) {
             else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("${exception.message}")
         }
     }
+
+    @PostMapping("/migrate-last-modifiled/{objectId}")
+    fun migrateLastModified(@PathVariable id: String): TimeStampMigrationStatus {
+/*        val eventVertex = historyDao.findEvent(eventId) ?: throw IllegalArgumentException("history event $eventId is not found")
+        val tsDate = eventVertex.timestampDate
+        if (tsDate != null) return TimeStampMigrationStatus(eventId, 1)
+        else {
+            val ts = eventVertex.timestamp
+            eventVertex.timestamp = ts
+            return TimeStampMigrationStatus(eventId, 0)
+        }*/
+        return TimeStampMigrationStatus(id, 0)
+    }
 }

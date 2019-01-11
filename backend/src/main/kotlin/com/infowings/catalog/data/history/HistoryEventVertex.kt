@@ -50,11 +50,21 @@ class HistoryEventVertex(private val vertex: OVertex) : OVertex by vertex {
             vertex["entityClass"] = value
         }
 
+    val timestampDate: Date?
+        get() =  vertex["timestampDate"]
+
+
     var timestamp: Instant
-        get() = vertex["timestamp"]
+        get() {
+            val tsDate: Date = vertex["timestampDate"]
+            return if (tsDate == null) vertex["timestamp"]
+            else tsDate.toInstant()
+        }
         set(value) {
+            vertex["timestampDate"] = Date(value.toEpochMilli())
             vertex["timestamp"] = value
         }
+
 
     var entityVersion: Int
         get() = vertex["entityVersion"]
