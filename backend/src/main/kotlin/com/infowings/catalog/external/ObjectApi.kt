@@ -18,11 +18,19 @@ class ObjectApi(val objectService: ObjectService) {
     fun getAllObjects(
         @RequestParam(required = false) orderFields: List<String>,
         @RequestParam(required = false) direct: List<String>,
+        @RequestParam(required = false) q: String?,
+        @RequestParam(required = false) offset: Integer?,
+        @RequestParam(required = false) limit: Integer?,
         principal: Principal): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct")
+        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, query: >$q<")
+        logger.debug("offset: $offset, limit: $limit")
+        val offsetI = offset?.let { it.toInt() }
+        val limitI = limit?.let { it.toInt() }
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
-        return ObjectsResponse(objectService.fetch(orderBy).map { it.toResponse() })
+        return logTime(logger, "request of all object briefs") {
+            ObjectsResponse(objectService.fetch(orderBy, q ?: "").map { it.toResponse() }.drop(offsetI ?: 0).take(limitI ?: Int.MAX_VALUE))
+        }
     }
 
     @GetMapping("recalculateValue")
@@ -38,6 +46,17 @@ class ObjectApi(val objectService: ObjectService) {
             targetMeasure = toMeasure,
             value = objectService.recalculateValue(fromMeasure, toMeasure, DecimalNumber(value)).toPlainString()
         )
+    }
+
+    @GetMapping("/viewdetails")
+    fun getDetailedObjects(@RequestAttribute("ids", required = true) ids: String, principal: Principal): DetailedObjectViewResponse {
+        val username = principal.name
+        logger.debug("Get objects request by $username")
+        val res = logTime(logger, "request of all object details") {
+            //objectService.getDetailedObject(id)
+        }
+        logger.debug("viewdetails for ids $ids result: $res")
+        return DetailedObjectViewResponse("", "", "", "", "", 0, emptyList(), lastUpdated = null) //res
     }
 
     @GetMapping("{id}/viewdetails")

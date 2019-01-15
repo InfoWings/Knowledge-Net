@@ -6,10 +6,7 @@ import com.infowings.catalog.common.objekt.ValueUpdateRequest
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.AspectPropertyValueEditModel
 import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
-import com.infowings.catalog.objects.edit.EditContext
-import com.infowings.catalog.objects.edit.EditExistingContextModel
-import com.infowings.catalog.objects.edit.EditNewChildContextModel
-import com.infowings.catalog.objects.edit.ObjectTreeEditModel
+import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyCreateLineFormat
 import com.infowings.catalog.objects.edit.tree.format.aspectPropertyEditLineFormat
 import react.RBuilder
@@ -75,7 +72,7 @@ fun RBuilder.aspectPropertiesEditList(
                             }
                         }
                         this.onSubmit = when {
-                            value.id == null && value.value != null && currentEditContextModel == EditNewChildContextModel -> {
+                            value.id == null && value.value != null && (currentEditContextModel == EditNewChildContextModel || value.value == ObjectValueData.NullValue) -> {
                                 {
                                     editModel.createValue(
                                         ValueCreateRequest(
@@ -107,7 +104,8 @@ fun RBuilder.aspectPropertiesEditList(
                             else -> null
                         }
                         this.onCancel = when {
-                            value.id == null && valueGroup.values.size == 1 && currentEditContextModel == EditNewChildContextModel -> {
+                            value.id == null && valueGroup.values.size == 1 &&
+                                    (currentEditContextModel == EditNewChildContextModel || value.value == ObjectValueData.NullValue) -> {
                                 {
                                     onRemoveGroup(valueGroup.propertyId)
                                     editContext.setContext(null)
@@ -209,11 +207,12 @@ val aspectPropertyValueCreateNode = rFunction<AspectPropertyValueCreateNodeProps
                         subjectName = props.aspectProperty.aspect.subjectName
                         cardinality = props.aspectProperty.cardinality
                         onCreateValue = props.onCreateValue?.let { onCreateValue ->
-                            if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
+                            //println("CV: ${props.aspectProperty}")
+                            //if (props.aspectProperty.cardinality == PropertyCardinality.ZERO) {
                                 { onCreateValue(ObjectValueData.NullValue, null) }
-                            } else {
-                                { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
-                            }
+                            //} else {
+                            //    { onCreateValue(props.aspectProperty.aspect.defaultValue(), props.aspectProperty.aspect.measure) }
+                            //}
                         }
                         editMode = props.editMode
                     }
@@ -339,6 +338,7 @@ val aspectPropertyValueEditNode = rFunction<AspectPropertyValueEditNodeProps>("A
                     }
                 },
                 onAddValueGroup = { newValueGroup ->
+                    println("2222")
                     props.onUpdate { children.add(newValueGroup) }
                 },
                 onRemoveGroup = { id ->

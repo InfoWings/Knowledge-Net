@@ -17,7 +17,6 @@ fun RBuilder.propertyValue(
     disabled: Boolean = false
 ): ReactElement? {
     val stringValue = value as? ObjectValueData.StringValue
-    println("BT: ${baseType.name}, rbi: refBookId: $referenceBookId, rbi: refBookNameSoft: $referenceBookNameSoft, value: $value, disabled: $disabled")
 
     val domainElement = if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) {
         value.value as? LinkValueData.DomainElement
@@ -51,14 +50,16 @@ fun RBuilder.propertyValue(
 
         baseType == BaseType.Decimal -> {
             val decValue = value as ObjectValueData.DecimalValue
-            rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr, decValue.rangeFlags), { lwb, upb, rangeFlags ->
-                val leftFlag = RangeFlagConstants.LEFT_INF.bitmask
-                val rightFlag = RangeFlagConstants.RIGHT_INF.bitmask
+            rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr, decValue.rangeFlags), { lwb, upb, isRange ->
+                val leftFlag =  RangeFlagConstants.LEFT_INF.flag(lwb == "")
+                val rightFlag =  RangeFlagConstants.RIGHT_INF.flag(upb == "")
+                val rangeFlag =  RangeFlagConstants.RANGE.flag(isRange)
 
-                val leftInfinity = rangeFlags.and(leftFlag) != 0
-                val rightInfinity = rangeFlags.and(rightFlag) != 0
+                val rangeFlags = leftFlag.or(rightFlag).or(rangeFlag)
 
-                onChange(ObjectValueData.DecimalValue(if (leftInfinity) "0" else lwb, if (rightInfinity) "0" else upb, rangeFlags))
+                println("isRange: " + isRange)
+
+                onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags))
             }, disabled)
         }
 

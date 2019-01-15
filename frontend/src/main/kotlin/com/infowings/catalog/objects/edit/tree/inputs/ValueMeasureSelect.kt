@@ -1,8 +1,16 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
+import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.Measure
 import com.infowings.catalog.common.MeasureGroup
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.objekt.ValueRecalculationResponse
+import com.infowings.catalog.errors.showError
+import com.infowings.catalog.objects.edit.tree.utils.InputValidationException
+import com.infowings.catalog.objects.edit.tree.utils.isDecimal
+import com.infowings.catalog.objects.edit.tree.utils.validate
 import com.infowings.catalog.objects.recalculateValue
+import com.infowings.catalog.utils.BadRequestException
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Popover
 import com.infowings.catalog.wrappers.select.SelectOption
@@ -23,6 +31,9 @@ private fun valueMeasureOption(measure: Measure<*>): ValueMeasureOption = jsObje
     this.measure = measure
 }
 
+private suspend fun recalcIfDecimal(value: String, from: String, to: String) =
+    if (value.isDecimal()) recalculateValue(from, to, value) else ValueRecalculationResponse(from, value)
+
 class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props, ValueMeasureSelectComponent.State>() {
 
     private fun recalculationConfirmed() {
@@ -30,9 +41,9 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
         val newMeasure = state.nextMeasure
         newMeasure?.let {
             launch {
-                val newValueRepresentation = recalculateValue(oldMeasureName, it.name, props.stringValueRepresentation)
-                val newUpbRepresentation = recalculateValue(oldMeasureName, it.name, props.upbValueRepresentation)
-                props.onMeasureSelected(it, newValueRepresentation.value, newUpbRepresentation.value)
+                val newValueRepr = recalcIfDecimal(props.value.valueRepr, oldMeasureName, it.name)
+                val newUpbRepr = recalcIfDecimal(props.value.upbRepr, oldMeasureName, it.name)
+                props.onMeasureSelected(it, props.value.copy(valueRepr = newValueRepr.value, upbRepr = newUpbRepr.value))
             }
             setState {
                 nextMeasure = null
@@ -43,7 +54,7 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
     private fun recalculationRejected() {
         val newMeasure = state.nextMeasure
         newMeasure?.let {
-            props.onMeasureSelected(it, props.stringValueRepresentation, props.upbValueRepresentation)
+            props.onMeasureSelected(it, props.value)
             setState {
                 nextMeasure = null
             }
@@ -51,12 +62,17 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
     }
 
     private fun handleNewMeasureSelected(option: ValueMeasureOption) {
-        if (props.currentMeasure.name == option.measure.name) {
-            props.onMeasureSelected(option.measure, props.stringValueRepresentation, props.upbValueRepresentation)
-        } else {
-            setState {
-                nextMeasure = option.measure
+        try {
+            props.value.validate()
+            if (props.currentMeasure.name == option.measure.name) {
+                props.onMeasureSelected(option.measure, props.value)
+            } else {
+                setState {
+                    nextMeasure = option.measure
+                }
             }
+        } catch (e: InputValidationException) {
+            showError(BadRequestException(e.message ?: "invalid value", 300.0))
         }
     }
 
@@ -91,10 +107,9 @@ class ValueMeasureSelectComponent : RComponent<ValueMeasureSelectComponent.Props
 
     interface Props : RProps {
         var measureGroup: MeasureGroup<*>
-        var stringValueRepresentation: String
-        var upbValueRepresentation: String
+        var value: ObjectValueData.DecimalValue
         var currentMeasure: Measure<*>
-        var onMeasureSelected: (Measure<*>, String, String) -> Unit
+        var onMeasureSelected: (Measure<*>, ObjectValueData.DecimalValue) -> Unit
         var disabled: Boolean
     }
 
@@ -133,16 +148,14 @@ fun RBuilder.suggestRecalculationPopoverWindow(
 fun RBuilder.valueMeasureSelect(
     measureGroup: MeasureGroup<*>,
     currentMeasure: Measure<*>,
-    stringValueRepresentation: String,
-    upbValueRepresentation: String,
-    onMeasureSelected: (Measure<*>, String, String) -> Unit,
+    value: ObjectValueData.DecimalValue,
+    onMeasureSelected: (Measure<*>, ObjectValueData.DecimalValue) -> Unit,
     disabled: Boolean
 ) = child(ValueMeasureSelectComponent::class) {
     attrs {
         this.measureGroup = measureGroup
         this.currentMeasure = currentMeasure
-        this.stringValueRepresentation = stringValueRepresentation
-        this.upbValueRepresentation = upbValueRepresentation
+        this.value = value
         this.onMeasureSelected = onMeasureSelected
         this.disabled = disabled
     }

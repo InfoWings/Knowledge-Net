@@ -45,16 +45,34 @@ enum class AspectHintSource {
 }
 
 @Serializable
+data class AspectHintAspectInfo(
+    val guid: String,
+    val id: String,
+    val name: String,
+    val description: String?,
+    val subjectName: String
+)
+
+@Serializable
+data class AspectHintAspectPropInfo(
+    val guid: String,
+    val id: String,
+    val name: String?,
+    val cardinality: String,
+    val description: String?
+)
+
+@Serializable
 data class AspectHint(
     val name: String,
     val description: String?,
     val refBookItem: String?,
     val refBookItemDesc: String?,
-    val propertyName: String?,
-    val propertyDesc: String?,
     val subAspectName: String?,
     val aspectName: String?,
     val subjectName: String?,
+    val parentAspect: AspectHintAspectInfo?,
+    val property: AspectHintAspectPropInfo?,
     val guid: String,
     val id: String,
     val source: String
@@ -67,9 +85,9 @@ data class AspectHint(
                 source = source.toString(),
                 refBookItem = null,
                 refBookItemDesc = null,
-                propertyName = null,
-                propertyDesc = null,
                 subAspectName = null,
+                parentAspect = null,
+                property = null,
                 aspectName = null,
                 subjectName = aspect.nameWithSubject(),
                 id = aspect.idStrict(),

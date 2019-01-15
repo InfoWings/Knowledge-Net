@@ -42,8 +42,10 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                 placeholder = "Exclude aspects from filtering..."
                 value = props.selectedAspects.map { aspectOptionSelected(it) }.toTypedArray()
                 labelKey = "aspectEntry"
+                valueKey = "aspectEntry"
                 cache = false
                 onChange = {
+                    println("A hints: ${it.unsafeCast<Array<AspectOption>>().toList().map { it.aspectHint }}")
                     props.onChange(it.unsafeCast<Array<AspectOption>>().map { it.aspectHint }) // TODO: KS-143
                 }
                 filterOptions = { options, _, _ -> options }
@@ -52,6 +54,7 @@ class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Pro
                         launch {
                             //val suggestedAspects = getSuggestedAspects(input, null, null)
                             val hints = getAspectHints(input)
+                            println("loaded hint names: ${hints.byAspectName.map { it.aspectName}}")
                             callback(null, jsObject {
                                 options = hints.defaultOrder().map { aspectOption(it) }.toTypedArray()
                             })

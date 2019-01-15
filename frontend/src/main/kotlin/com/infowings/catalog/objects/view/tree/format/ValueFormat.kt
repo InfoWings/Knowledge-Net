@@ -39,6 +39,6 @@ fun RBuilder.valueFormat(value: ObjectValueData, history: History) {
 fun RBuilder.booleanValueFormat(booleanValue: Boolean) {
     val classNameModifier = booleanValue.toString()
     span(classes = "object-property-value-line__value object-value__boolean--$classNameModifier") {
-        booleanValue.toString()
+        +(if (booleanValue) "ON" else "OFF")
     }
 }

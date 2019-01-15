@@ -4,10 +4,7 @@ import com.infowings.catalog.common.ObjectEditDetailsResponse
 import com.infowings.catalog.components.treeview.controlledTreeNode
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
-import com.infowings.catalog.objects.edit.EditContext
-import com.infowings.catalog.objects.edit.EditExistingContextModel
-import com.infowings.catalog.objects.edit.EditNewChildContextModel
-import com.infowings.catalog.objects.edit.ObjectTreeEditModel
+import com.infowings.catalog.objects.edit.*
 import com.infowings.catalog.objects.edit.tree.format.objectEditLineFormat
 import react.*
 import react.dom.div
@@ -122,6 +119,11 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>() {
                     updater = { index, block ->
                         props.editModel.update {
                             properties[index].block()
+                        }
+                    },
+                    remover = { index ->
+                        props.editModel.update {
+                            properties.removeAt(index)
                         }
                     },
                     newEditMode = props.editMode,

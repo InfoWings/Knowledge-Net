@@ -106,6 +106,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     private fun setAspectsSearchQuery(query: String) {
+        println("sasq: " + query)
         setState {
             this.searchQuery = query
             refreshOperation = false

@@ -13,6 +13,7 @@ import com.infowings.catalog.components.submit.submitButtonComponent
 import com.infowings.catalog.objects.edit.tree.inputs.name
 import com.infowings.catalog.objects.edit.tree.inputs.propertyValue
 import com.infowings.catalog.objects.edit.tree.inputs.valueMeasureSelect
+import com.infowings.catalog.wrappers.blueprint.Icon
 import react.RProps
 import react.dom.div
 import react.dom.span
@@ -23,8 +24,13 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
     val toMark = props.highlightedGuid == props.valueGuid && props.valueGuid != null && !props.editMode
 
     if(toMark) {
-        span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-forward pt-small") {
+        span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small") {
             +""
+            Icon {
+                attrs {
+                    icon = "fast-forward"
+                }
+            }
         }
     }
 
@@ -65,7 +71,6 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         }
         val value = props.value
         if (value != ObjectValueData.NullValue) {
-            println("OPVELF: ${props.editMode}")
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
@@ -81,19 +86,13 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
                         +it.symbol
                     }
                 } else {
-                    val decimal = value as? ObjectValueData.DecimalValue
-                    val valueRepr = decimal?.valueRepr ?: error("Value has non-decimal type and has non-null measure")
-                    val upbRepr = decimal.upbRepr
-
+                    val decimal = value as? ObjectValueData.DecimalValue ?: error("Value has non-decimal type and has non-null measure")
                     valueMeasureSelect(
                         measureGroup = measureGroup,
-                        stringValueRepresentation = valueRepr, upbValueRepresentation = upbRepr,
+                        value = decimal,
                         currentMeasure = props.valueMeasure ?: error("Value has no assigned measure"),
-                        onMeasureSelected = { measure, stringValueRepresentation, upbRepr ->
-                            props.onValueMeasureNameChanged(
-                                measure.name,
-                                ObjectValueData.DecimalValue(stringValueRepresentation, upbRepr, decimal.rangeFlags)
-                            )
+                        onMeasureSelected = { measure, recalculated ->
+                            props.onValueMeasureNameChanged(measure.name, recalculated)
                         },
                         disabled = !props.editMode || props.valueDisabled
                     )
@@ -116,8 +115,13 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         copyGuidButton(props.valueGuid)
 
         if(toMark) {
-            span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-step-backward pt-small") {
+            span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small") {
                 +""
+                Icon {
+                    attrs {
+                        icon = "fast-backward"
+                    }
+                }
             }
         }
 

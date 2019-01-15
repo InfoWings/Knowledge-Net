@@ -140,6 +140,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                         value = props.aspect.name
                         onChange = ::handleAspectNameChanged
                         inputRef = ::assignInputRef
+                        aspectIsUpdated = props.aspectIsUpdated
                     }
                 }
                 aspectMeasureInput {
@@ -174,7 +175,9 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
                 consoleButtonsGroup(
                     onSubmitClick = ::tryMakeSubmitAspectRequest,
                     onAddToListClick = ::trySwitchToProperties,
-                    onCancelClick = props.editConsoleModel::discardChanges,
+                    onCancelClick = {
+                        props.editConsoleModel.discardChanges()
+                    },
                     onDeleteClick = { tryDelete(false) }
                 )
                 descriptionComponent(
@@ -188,7 +191,10 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
         forceRemoveConfirmWindow {
             attrs {
                 onConfirm = { tryDelete(true) }
-                onCancel = { setState { confirmation = false } }
+                onCancel = { setState {
+                    confirmation = false
+
+                } }
                 isOpen = state.confirmation
                 message = "Aspect has linked entities."
             }
@@ -214,6 +220,7 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
 
     interface Props : RProps {
         var aspect: AspectData
+        var aspectIsUpdated: Boolean
         var editConsoleModel: AspectEditConsoleModel
     }
 

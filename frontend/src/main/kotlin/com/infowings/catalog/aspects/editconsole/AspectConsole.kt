@@ -1,9 +1,7 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.model.AspectsModel
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.emptyAspectPropertyData
+import com.infowings.catalog.common.*
 import kotlinext.js.require
 import react.*
 
@@ -142,6 +140,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
             aspectEditConsole {
                 attrs {
                     aspect = selectedAspect
+                    aspectIsUpdated = props.aspectIsUpdated
                     editConsoleModel = this@AspectConsole
                 }
             }
@@ -160,6 +159,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
 
     interface Props : RProps {
         var aspect: AspectData
+        var aspectIsUpdated: Boolean
         var propertyIndex: Int?
         var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel

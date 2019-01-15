@@ -46,7 +46,7 @@ class ObjectSort : RComponent<ObjectSort.Props, ObjectSort.State>() {
 
 
     private fun onClickSort(field: SortField) {
-        println("ON CLICK: " + field)
+        println("ON CLICK: field ${field.name} ${field.ordinal} ${field}")
         setState {
             val curOrder = orderBy.find { it.name == field }
             if (curOrder == null)
@@ -57,7 +57,7 @@ class ObjectSort : RComponent<ObjectSort.Props, ObjectSort.State>() {
                 }
                 orderBy.remove(curOrder)
             }
-            props.onOrderByChanged(orderBy.sortedBy { sortPrio[it.name] })
+            props.onOrderByChanged(orderBy)
         }
     }
 

@@ -35,6 +35,18 @@
     top: 0;
     right: -5rem;
   }
+
+  &__offset {
+    display: flex;
+    margin-top: 1rem;
+    margin-left: 3rem;
+  }
+
+  &__pages {
+    display: flex;
+    margin-right: 1rem;
+    margin-top: 2rem;
+  }
 }
 
 .object-line {
@@ -86,6 +98,8 @@
 .object-value {
 
   &__boolean {
+    margin-left: 5rem;
+    margin-right: 5rem;
 
     &--true {
       color: $red4;
