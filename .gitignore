@@ -7,3 +7,4 @@ com.infowings.catalog/out/
 logs
 .DS_Store
 .run
+/.gradletasknamecache

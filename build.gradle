@@ -1,6 +1,3 @@
-group = 'cyber'
-version = '13'
-
 buildscript {
 
     ext {
@@ -24,6 +21,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+        classpath 'com.bmuschko:gradle-docker-plugin:4.3.0'
     }
 }
 
@@ -33,6 +31,10 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: "jacoco"
+    apply plugin: 'com.bmuschko.docker-remote-api'
+
+    group = "com.infowings"
+    version = "20.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -43,6 +45,13 @@ allprojects {
     }
     test {
         useJUnitPlatform()
+    }
+    docker {
+        registryCredentials {
+            username = project.properties['dockerUser'] ?: System.getenv('dockerUser') ?: ""
+            password = project.properties['dockerPassword'] ?: System.getenv('dockerPassword') ?: ""
+            email = project.properties['dockerEmail'] ?: System.getenv('dockerEmail') ?: ""
+        }
     }
 }
 
@@ -55,7 +64,7 @@ task codeCoverageReport(type: JacocoReport) {
 
     reports {
         xml.enabled true
-        xml.destination "${buildDir}/reports/jacoco/report.xml"
+        xml.destination file("${buildDir}/reports/jacoco/report.xml")
         html.enabled false
         csv.enabled false
     }
