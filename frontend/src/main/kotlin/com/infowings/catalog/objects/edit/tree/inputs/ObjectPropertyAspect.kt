@@ -32,13 +32,20 @@ private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption
 }
 
 
-fun RBuilder.propertyAspect(value: AspectHint?, onSelect: (AspectHint) -> Unit, disabled: Boolean = false) =
+fun RBuilder.propertyAspect(value: AspectHint?,
+                            onSelect: (AspectHint) -> Unit,
+                            onActivity: () -> Unit,
+                            disabled: Boolean = false) =
     asyncSelect<AspectOption> {
         attrs {
             className = "object-property-input-aspect"
             placeholder = "Select Aspect"
-            this.value =  value?.let { aspectOptionSelected(it) }
-            onChange = { onSelect(it.aspectHint) }
+            this.value =  value?.let {
+                aspectOptionSelected(it)
+            }
+            onChange = {
+                onSelect(it.aspectHint)
+            }
             labelKey = "aspectEntry"
             cache = false
             clearable = false
@@ -56,6 +63,7 @@ fun RBuilder.propertyAspect(value: AspectHint?, onSelect: (AspectHint) -> Unit, 
                             } ?: emptyList()).toTypedArray()
                         })
                     }
+                    onActivity()
                 } else {
                     callback(null, jsObject {
                         options = emptyArray()

@@ -2,6 +2,7 @@ package com.infowings.catalog.objects
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.objects.edit.SubjectTruncated
+import com.infowings.catalog.objects.edit.tree.ValueSlot
 
 data class ObjectEditViewModel(
     val id: String,
@@ -33,12 +34,16 @@ data class ObjectEditViewModel(
     }
 }
 
+data class SelectedProperty(val id: String, val name: String, val cardinality: String)
+
 data class ObjectPropertyEditModel(
     val id: String? = null,
     var version: Int? = null,
     var name: String? = null,
     var description: String? = null,
     var aspect: AspectTree? = null,
+    var selectedProp: SelectedProperty? = null,
+    var selectedSlot: ValueSlot? = null,
     var values: MutableList<ObjectPropertyValueEditModel>? = ArrayList(),
     var expanded: Boolean = true
 ) {
@@ -48,7 +53,9 @@ data class ObjectPropertyEditModel(
         response.name,
         response.description,
         response.aspectDescriptor,
-        response.rootValues.toTreeView(response.valueDescriptors)
+        selectedProp = null,
+        selectedSlot = null,
+        values = response.rootValues.toTreeView(response.valueDescriptors)
     )
 
     fun mergeWith(response: ObjectPropertyEditDetailsResponse): ObjectPropertyEditModel {
@@ -149,6 +156,18 @@ data class ObjectPropertyValueEditModel(
                 }
             }
         return this
+    }
+
+    companion object {
+        fun nullValue(): ObjectPropertyValueEditModel = ObjectPropertyValueEditModel(
+            id = null,
+            version = null,
+            value = ObjectValueData.NullValue,
+            measureName = null,
+            description = null,
+            guid = null,
+            expanded = false,
+            valueGroups = mutableListOf())
     }
 }
 

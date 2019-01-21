@@ -72,13 +72,35 @@ data class Versioned<out T>(val entity: T, val version: Int)
  * to reproduce issue set to false and run more than ~200 tests
  * */
 class OrientDatabase(
-    url: String,
-    val database: String,
-    username: String,
-    password: String,
-    val testMode: Boolean
+    private val url: String,
+    private val database: String,
+    private val username: String,
+    private val password: String,
+    private val testMode: Boolean,
+    private val startUpRetries: Int
 ) {
-    private var orientDB = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
+
+    private val orientDB = initializeOrientDb()
+
+    /**
+     * on start up we wait at most [startUpRetries] min till OrientDB is up and running
+     */
+    private fun initializeOrientDb(): OrientDB {
+        var exception: Exception? = null
+        repeat(startUpRetries) {
+            try {
+                val db = OrientDB(url, username, password, OrientDBConfig.defaultConfig())
+                // simple way to check connection; will throw if connection failed
+                db.list()
+                return db
+            } catch (e: Exception) {
+                exception = e
+                orientLogger.info("Orient DB unavailable, retrying in 1 sec\nError: ${e.message} ")
+                Thread.sleep(1000)
+            }
+        }
+        exception?.let { throw it } ?: throw Error("cannot access Orient Db")
+    }
 
     private fun createDbPool() = ODatabasePool(orientDB, database, "admin", "admin")
 
@@ -142,12 +164,14 @@ class OrientDatabase(
 
     init {
 
-        // злой хак для тестов
-        if (url == "memory") {
-            orientDB.create(database, ODatabaseType.MEMORY)
+        when {
+            // ugly hack for testing
+            url == "memory" -> orientDB.create(database, ODatabaseType.MEMORY)
+            // let's create db on first start to simplify deployment
+            database !in orientDB.list() -> orientDB.create(database, ODatabaseType.PLOCAL)
         }
 
-        // создаем необходимые классы
+        // create necessary classes
         OrientDatabaseInitializer(this)
             .initAspects()
             .initSubject()
@@ -343,8 +367,9 @@ val sessionStore: ThreadLocal<UniqueODatabaseSessionContainer> = ThreadLocal()
 /**
  * DO NOT use directly, use [transaction] and [session] instead
  */
+private class Transaction
 
-val transactionLogger = loggerFor<OrientDatabase>()
+val transactionLogger = loggerFor<Transaction>()
 
 inline fun <U> transactionInner(
     session: ODatabaseDocument,
@@ -368,7 +393,7 @@ inline fun <U> transactionInner(
         }
     }
     lastException?.let { throw it }
-            ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
+        ?: throw Exception("Cannot commit transaction, but no exception caught. Fatal failure")
 }
 
 //todo: test for transaction/session nesting

@@ -15,6 +15,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     AspectsModel {
 
     override fun State.init() {
+        selectedIsUpdated = false
         selectedAspect = emptyAspectData
         selectedAspectPropertyIndex = null
         unsafeSelection = false
@@ -33,6 +34,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 } else {
                     selectedAspect.copy(version = selectedAspectOnServer.version, deleted = selectedAspectOnServer.deleted)
                 }
+                selectedIsUpdated = false
             }
         }
     }
@@ -48,6 +50,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 }
                 selectedAspectPropertyIndex = null
                 aspectId?.let { props.refreshAspect(it) }
+                selectedIsUpdated = false
             }
         }
     }
@@ -76,6 +79,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 null -> null
                 else -> if (prevSelectedAspect.properties[selectedIndex].id == "") null else selectedIndex
             }
+            selectedIsUpdated = false
         }
     }
 
@@ -89,6 +93,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
 
             selectedAspectPropertyIndex = if (0 <= index && index <= currentlySelectedAspect.properties.size)
                 index else null
+
+            selectedIsUpdated = true
         }
     }
 
@@ -103,6 +109,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 subject = aspect.subject,
                 refBookName = aspect.refBookName
             )
+            selectedIsUpdated = true
         }
 
     override fun updateProperty(property: AspectPropertyData) =
@@ -115,6 +122,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 currentlySelectedPropertyIndex,
                 property
             )
+            selectedIsUpdated = true
         }
 
     override suspend fun submitAspect() {
@@ -131,6 +139,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                     emptyAspectPropertyData -> aspect.copy(properties = aspect.properties + emptyAspectPropertyData)
                     else -> aspect
                 }
+                selectedIsUpdated = false
             }
         }
     }
@@ -145,6 +154,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             setState {
                 selectedAspect = emptyAspectData
                 selectedAspectPropertyIndex = null
+                selectedIsUpdated = false
             }
         }
     }
@@ -160,6 +170,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                     selectedAspect =
                             selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
                     selectedAspectPropertyIndex = null
+                    selectedIsUpdated = true
                 }
             } else {
                 val parentAspectReference = props.onAspectPropertyDelete(aspectPropertyId, force)
@@ -169,6 +180,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                         properties = selectedAspect.properties.filterNot { it.id == aspectPropertyId }
                     )
                     selectedAspectPropertyIndex = null
+                    selectedIsUpdated = true
                 }
             }
         }
@@ -179,6 +191,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     }
 
     private fun setExcludedAspectsToFilter(aspects: List<AspectHint>) = setState {
+        println("excluded: $aspects")
         aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
     }
 
@@ -243,7 +256,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 aspectContext = props.aspectContext,
                 aspectsModel = this@DefaultAspectsModelComponent,
                 selectedAspect = state.selectedAspect,
-                selectedAspectPropertyIndex = state.selectedAspectPropertyIndex
+                selectedAspectPropertyIndex = state.selectedAspectPropertyIndex,
+                isUpdated = state.selectedIsUpdated
             )
             aspectPageOverlay(
                 isUnsafeSelection = state.unsafeSelection,
@@ -255,6 +269,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     }
 
     interface State : RState {
+        var selectedIsUpdated: Boolean
         var selectedAspect: AspectData
         var selectedAspectPropertyIndex: Int?
         var unsafeSelection: Boolean

@@ -104,7 +104,8 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
                 database = env["orient.database"],
                 username = env["orient.user"],
                 password = env["orient.password"],
-                testMode = env["orient.mode.test"].toBoolean()
+                testMode = env["orient.mode.test"].toBoolean(),
+                startUpRetries = env["orient.startup.retries"].toInt()
             )
         }
 

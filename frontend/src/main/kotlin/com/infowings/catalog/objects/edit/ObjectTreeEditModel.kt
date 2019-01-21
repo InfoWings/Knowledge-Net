@@ -1,8 +1,12 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
+import com.infowings.catalog.common.ObjectValueData
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.errors.showError
+import com.infowings.catalog.objects.AspectPropertyValueEditModel
+import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
@@ -21,7 +25,7 @@ interface ObjectTreeEditModel {
     fun update(updater: ObjectEditViewModel.() -> Unit)
     fun updateObject()
     fun deleteObject()
-    fun createProperty(propertyEditModel: ObjectPropertyEditModel)
+    fun createProperty(propertyEditModel: ObjectPropertyEditModel, selectedPropId: String?)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
     fun createValue(valueCreateRequest: ValueCreateRequest)
@@ -50,8 +54,10 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun update(updater: ObjectEditViewModel.() -> Unit) = setState {
-        viewModel.updater()
+    override fun update(updater: ObjectEditViewModel.() -> Unit): Unit {
+        setState {
+            viewModel.updater()
+        }
     }
 
     override fun updateObject() {
@@ -75,7 +81,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
         }
     }
 
-    override fun createProperty(propertyEditModel: ObjectPropertyEditModel) {
+    override fun createProperty(propertyEditModel: ObjectPropertyEditModel, selectedPropId: String?) {
         launch {
             props.apiModel.submitObjectProperty(
                 PropertyCreateRequest(
@@ -83,7 +89,7 @@ class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditMode
                     propertyEditModel.name,
                     propertyEditModel.description,
                     propertyEditModel.aspect?.id ?: error("Aspect must be set when submitting object property")
-                )
+                ), selectedPropId
             )
         }
     }

@@ -34,7 +34,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun propertyOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByProperty(hint.name, hint.propertyName ?: "?", hint.subAspectName ?: "?")
+            this.aspectName = elemByProperty(hint.name, hint.property?.name ?: "?", hint.subAspectName ?: "?")
         }
 
         fun refBookValueOption(hint: AspectHint) = jsObject<AspectOption> {
@@ -57,7 +57,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
                     placeholder = "${props.hints.byAspectName.size + props.hints.byProperty.size + props.hints.byRefBookDesc.size +
                             props.hints.byRefBookValue.size + props.hints.byAspectDesc.size} similar"
                     className = "aspect-table-select similar-aspects"
-                    value = props.message
+                    value = ""
                     labelKey = "aspectName"
                     valueKey = ""
                     clearable = false
@@ -76,7 +76,6 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
     interface Props : RProps {
         var hints: AspectsHints
-        var message: String
     }
 }
 

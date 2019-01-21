@@ -13,6 +13,7 @@ import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
 import com.infowings.catalog.data.reference.book.ReferenceBookService
 import com.infowings.catalog.data.toMeasure
+import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
@@ -31,8 +32,8 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(orderBy: List<SortOrder>): List<ObjectTruncated>  {
-        return dao.getTruncatedObjects().sort(orderBy)
+    fun fetch(orderBy: List<SortOrder>, pattern: String): List<ObjectTruncated>  {
+        return dao.getTruncatedObjects(pattern).sort(orderBy)
     }
 
     private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
@@ -64,7 +65,10 @@ class ObjectService(
         transaction(db) {
             val objectVertex = dao.getObjectVertex(id) ?: throw ObjectNotFoundException(id)
             val subjectVertex = objectVertex.subject ?: throw IllegalStateException("Object ${objectVertex.id} without subject")
-            val objectPropertyVertexes = objectVertex.properties
+            val objectPropertyVertexes = logTime(logger, "get properties") { objectVertex.properties }
+            val vertices = logTime(logger, "get values") { objectPropertyVertexes.map(this::fetchPropertyValues) }
+
+            //dao.valuesOfObjects(listOf(objectVertex.identity))
 
             return@transaction DetailedObjectViewResponse(
                 objectVertex.id,
@@ -73,9 +77,8 @@ class ObjectService(
                 objectVertex.description,
                 subjectVertex.name,
                 objectPropertyVertexes.size,
-                objectPropertyVertexes.map(this::fetchPropertyValues),
-                lastUpdated = objectVertex.lastUpdated
-
+                vertices /*objectPropertyVertexes.map(this::fetchPropertyValues)*/,
+                lastUpdated = null //objectVertex.lastUpdated
             )
         }
 

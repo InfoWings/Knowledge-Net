@@ -3,12 +3,15 @@ package com.infowings.catalog.objects.view
 import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.common.SortOrder
+import com.infowings.catalog.common.ViewSlice
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.getAllObjects
 import com.infowings.catalog.objects.getDetailedObject
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.experimental.launch
 import react.*
+
+private val PageSize = 20
 
 interface ObjectsViewApiModel {
     fun refresh()
@@ -20,7 +23,12 @@ interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
     var detailedObjectsView: Map<String, DetailedObjectViewResponse>
     var objectApiModel: ObjectsViewApiModel
     var orderBy: List<SortOrder>
+    var query: String?
     var onOrderByChanged: (List<SortOrder>) -> Unit
+    var onSearchQueryChanged: (String) -> Unit
+    var onPrevPage: () -> Unit
+    var onNextPage: () -> Unit
+    var viewSlice: ViewSlice
 }
 
 class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
@@ -30,11 +38,12 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
         objects = emptyList()
         detailedObjectsView = emptyMap()
         orderBy = emptyList()
+        viewSlice = ViewSlice(offset = 0, limit = PageSize)
     }
 
-    override fun componentDidMount() = fetchAll()
+    override fun componentDidMount() = fetch()
 
-    override fun refresh() = fetchAll()
+    override fun refresh() = fetch()
 
     override fun fetchDetailedObject(id: String) {
         launch {
@@ -45,11 +54,22 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
         }
     }
 
-    private fun fetchAll() {
+    private fun fetch() {
         launch {
-            val objectsResponse = getAllObjects(state.orderBy)
+            //val objectsResponse = getAllObjects(state.orderBy, state.searchQuery)
+            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = state.viewSlice.offset, limit = state.viewSlice.limit)
             setState {
                 objects = objectsResponse.objects
+            }
+        }
+    }
+
+    private fun fetch(viewSlice: ViewSlice) {
+        launch {
+            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = viewSlice.offset, limit = viewSlice.limit)
+            setState {
+                objects = objectsResponse.objects
+                this.viewSlice = viewSlice
             }
         }
     }
@@ -63,9 +83,19 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
                 objectApiModel = this@ObjectsViewApiModelComponent
                 history = currHistory
                 orderBy = state.orderBy
+                query = state.searchQuery
                 onOrderByChanged = ::updateSortConfig
+                onPrevPage = {
+                    fetch(state.viewSlice.prev())
+                }
+                onNextPage = {
+                    fetch(state.viewSlice.next())
+                }
+                viewSlice = state.viewSlice
+                onSearchQueryChanged = ::updateSearchQuery
             }
         }
+
     }
 
     private fun updateSortConfig(newOrderBy: List<SortOrder>) {
@@ -76,10 +106,20 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
         //refresh()
     }
 
+    private fun updateSearchQuery(query: String) {
+        setState {
+            searchQuery = query
+            viewSlice = ViewSlice(0, PageSize)
+        }
+        //refresh()
+    }
+
     interface State : RState {
         var objects: List<ObjectGetResponse>
         var detailedObjectsView: Map<String, DetailedObjectViewResponse>
         var orderBy: List<SortOrder>
+        var searchQuery: String?
+        var viewSlice: ViewSlice
     }
 
 }

@@ -67,15 +67,13 @@ class SubjectHistoryTest {
     @Test
     @Suppress("MagicNumber")
     fun testSubjectHistoryCreateTwice() {
-        val before: List<HistorySnapshot> = historyProvider.getAllHistory()
+        val before: Set<HistorySnapshot> = historyProvider.getAllHistory().toSet()
 
-        val subject1 =
-            subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-1"), username)
+        val subject1 = subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-1"), username)
         Thread.sleep(10)
-        val subject2 =
-            subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-2"), username)
+        val subject2 = subjectService.createSubject(SubjectData(name = "subj" + UUID.randomUUID().toString(), description = "some description-2"), username)
 
-        val subjectHistory: List<HistorySnapshot> = historyProvider.getAllHistory().drop(before.size)
+        val subjectHistory: List<HistorySnapshot> = historyProvider.getAllHistory().filter { it !in before }
 
         assertEquals(2, subjectHistory.size, "History must contain 2 elements")
 

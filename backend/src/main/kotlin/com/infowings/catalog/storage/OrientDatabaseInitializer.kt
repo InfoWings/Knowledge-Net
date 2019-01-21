@@ -137,7 +137,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, OBJECT_OBJECT_PROPERTY_EDGE)
         initEdge(session, ASPECT_OBJECT_PROPERTY_EDGE)
 
-        initVertex(session, OBJECT_PROPERTY_VALUE_CLASS)
+        if (session.getClass(OrientClass.OBJECT_VALUE.extName) == null) {
+            val vertexClass = session.createVertexClass(OrientClass.OBJECT_VALUE.extName)
+            vertexClass.createProperty("str", OType.STRING)
+            database.createLuceneIndex(OrientClass.OBJECT_VALUE.extName, "str")
+        }
         initEdge(session, OBJECT_VALUE_OBJECT_PROPERTY_EDGE)
 
         initEdge(session, OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
@@ -151,6 +155,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, OBJECT_VALUE_DOMAIN_ELEMENT_EDGE)
         initEdge(session, OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE)
         initEdge(session, OBJECT_VALUE_MEASURE_EDGE)
+
 
         return@session this
     }
