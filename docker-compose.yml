@@ -1,0 +1,32 @@
+version: '3'
+services:
+  orientdb:
+    image: orientdb:3.0.13
+    environment:
+      ORIENTDB_ROOT_PASSWORD: "root"
+    volumes:
+      - ./run/orient/config:/orientdb/config
+      - ./run/orient/databases:/orientdb/databases
+      - ./run/orient/backup:/orientdb/backup
+    ports:
+      - 2424:2424
+      - 2480:2480
+    restart: always
+    networks:
+      - knet
+  frontend:
+    image: infowings/knet-frontend:20.0-SNAPSHOT
+    ports:
+      - 9999:80
+    restart: always
+    networks:
+      - knet
+  backend:
+    image: infowings/knet-backend:20.0-SNAPSHOT
+    ports:
+      - 8080:8080
+    restart: always
+    networks:
+      - knet
+networks:
+  knet:

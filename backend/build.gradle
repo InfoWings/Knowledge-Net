@@ -92,7 +92,7 @@ test {
 docker {
     springBootApplication {
         baseImage = 'openjdk:8-alpine'
-        ports = [9090]
+        ports = [8080]
         tag = "infowings/knet-backend:$version"
     }
 }

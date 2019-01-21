@@ -4,7 +4,6 @@ import com.infowings.catalog.auth.user.HISTORY_USER_EDGE
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.*
 import com.infowings.catalog.data.history.*
-import com.infowings.catalog.data.objekt.ObjectPropertyValueVertex
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_CHILD_EDGE
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX

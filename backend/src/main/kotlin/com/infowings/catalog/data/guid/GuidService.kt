@@ -127,8 +127,8 @@ class GuidService(
                 if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                     val valueVertex = vertex.toObjectPropertyValueVertex()
                     val propertyValue = valueVertex.toObjectPropertyValue()
-                    val objectVertex = valueVertex?.objectProperty?.objekt ?:
-                        throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
+                    val objectVertex = valueVertex.objectProperty?.objekt
+                        ?: throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
                     val aspectPropertyVertex = valueVertex.aspectProperty
                     val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
                     aspectPropertyVertex?.let {
@@ -163,8 +163,8 @@ class GuidService(
             val vertex = dao.findById(id)
             if (vertex.entityClass() == EntityClass.OBJECT_VALUE) {
                 val valueVertex = vertex.toObjectPropertyValueVertex()
-                val objectVertex = valueVertex?.objectProperty?.objekt ?:
-                throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
+                val objectVertex = valueVertex.objectProperty?.objekt
+                    ?: throw IllegalStateException("object of value ${valueVertex.toObjectPropertyValue()} is not found")
                 val propertyValue = valueVertex.toObjectPropertyValue()
                 val aspectPropertyVertex = valueVertex.aspectProperty
                 val measureSymbol = valueVertex.getOrCalculateMeasureSymbol()
@@ -242,8 +242,12 @@ class GuidService(
 }
 
 private val edgesWithGuid: List<OrientEdge> = listOf(
-    OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_VALUE,
-    OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_ASPECT, OrientEdge.GUID_OF_SUBJECT,
+    OrientEdge.GUID_OF_OBJECT_PROPERTY,
+    OrientEdge.GUID_OF_OBJECT,
+    OrientEdge.GUID_OF_OBJECT_VALUE,
+    OrientEdge.GUID_OF_ASPECT_PROPERTY,
+    OrientEdge.GUID_OF_ASPECT,
+    OrientEdge.GUID_OF_SUBJECT,
     OrientEdge.GUID_OF_REFBOOK_ITEM
 )
 
