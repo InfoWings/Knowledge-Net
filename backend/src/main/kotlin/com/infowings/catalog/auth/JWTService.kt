@@ -59,7 +59,7 @@ class JWTService {
                 .body
 
             if (obj.subject != null && Date().before(obj.expiration))
-                JSON.parse(obj.subject) else null
+                JSON.parse(JwtInfo.serializer(), obj.subject) else null
 
         } catch (e: Exception) {
             logger.error(e.message)
@@ -69,7 +69,7 @@ class JWTService {
 
     private fun createTokenString(jwtInfo: JwtInfo, expirationTime: Long) =
         Jwts.builder()
-            .setSubject(JSON.stringify(jwtInfo))
+            .setSubject(JSON.stringify(JwtInfo.serializer(), jwtInfo))
             .setExpiration(Date(System.currentTimeMillis() + expirationTime))
             .signWith(SignatureAlgorithm.HS512, SECRET)
             .compact()

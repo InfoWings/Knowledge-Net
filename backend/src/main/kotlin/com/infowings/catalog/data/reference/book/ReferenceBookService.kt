@@ -254,9 +254,7 @@ class DefaultReferenceBookService(
     }
 
     override fun getReferenceBookItemVertex(id: String): ReferenceBookItemVertex = transaction(db) {
-        logger.debug("Getting ReferenceBookItem id: $id")
-        val bookItemVertex = dao.find(id)
-        return@transaction bookItemVertex ?: throw RefBookItemNotExist(id)
+        return@transaction dao.find(id) ?: throw RefBookItemNotExist(id)
     }
 
     /**

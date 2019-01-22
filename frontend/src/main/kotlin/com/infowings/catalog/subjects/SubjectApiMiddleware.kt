@@ -2,45 +2,45 @@ package com.infowings.catalog.subjects
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
-import com.infowings.catalog.utils.NotModifiedException
-import com.infowings.catalog.utils.get
-import com.infowings.catalog.utils.post
+import com.infowings.catalog.utils.*
 import com.infowings.catalog.wrappers.RouteSuppliedProps
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
+import kotlin.collections.set
 
 private external fun encodeURIComponent(component: String): String = definedExternally
 
 suspend fun getAllSubjects(): SubjectsList =
-    JSON.parse(get("/api/subject/all"))
+    JSON.parse(SubjectsList.serializer(), get("/api/subject/all"))
 
 suspend fun getSubjectByName(name: String): SubjectData =
-    JSON.parse(get("/api/subject/get/${encodeURIComponent(name)}"))
+    JSON.parse(SubjectData.serializer(), get("/api/subject/get/${encodeURIComponent(name)}"))
 
 suspend fun getSubjectById(id: String): SubjectData {
     val encoded = encodeURIComponent(id)
-    return JSON.parse(get("/api/subject/$encoded"))
+    return JSON.parse(SubjectData.serializer(), get("/api/subject/$encoded"))
 }
 
 suspend fun createSubject(body: SubjectData): SubjectData =
-    JSON.parse(post("/api/subject/create", JSON.stringify(body)))
+    JSON.parse(SubjectData.serializer(), post("/api/subject/create", JSON.stringify(SubjectData.serializer(), body)))
 
 suspend fun updateSubject(body: SubjectData): SubjectData =
-    JSON.parse(post("/api/subject/update", JSON.stringify(body)))
+    JSON.parse(SubjectData.serializer(), post("/api/subject/update", JSON.stringify(SubjectData.serializer(), body)))
 
 suspend fun getSuggestedSubject(subjectText: String, aspectText: String): SubjectsList =
-    JSON.parse(get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
+    JSON.parse(SubjectsList.serializer(), get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
 
 suspend fun deleteSubject(body: SubjectData, force: Boolean) {
     if (force) {
-        post("/api/subject/forceRemove", JSON.stringify(body))
+        post("/api/subject/forceRemove", JSON.stringify(SubjectData.serializer(), body))
     } else {
-        post("/api/subject/remove", JSON.stringify(body))
+        post("/api/subject/remove", JSON.stringify(SubjectData.serializer(), body))
     }
 }
 
@@ -55,9 +55,11 @@ interface SubjectApiReceiverProps : RouteSuppliedProps {
     var refreshSubjects: () -> Unit
 }
 
-class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware.State>() {
+class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
-    private var job: Job? = null
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun State.init() {
         data = mutableMapOf()
@@ -65,6 +67,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
     }
 
     override fun componentDidMount() {
+        job = Job()
         loadAllData()
     }
 
@@ -72,11 +75,11 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
         setState {
             loading = true
         }
-        job?.cancel()
-        job = launch {
+        job.cancelChildren()
+        launch {
             val subjects = getAllSubjects()
             setState {
-                data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
+                data = subjects.subject.map { it.id to it }.toMap(mutableMapOf())
                 loading = false
             }
         }
@@ -117,7 +120,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
             loadAllData()
             return
         }
-        job?.cancel()
+        job.cancelChildren()
         setState {
             loading = true
         }

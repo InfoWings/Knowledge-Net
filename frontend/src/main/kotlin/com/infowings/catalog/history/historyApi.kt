@@ -18,13 +18,13 @@ suspend fun getAllEvents(): List<HistoryData<*>> {
 }
 
 suspend fun getAllAspectEvents(): List<AspectHistory> =
-    JSON.nonstrict.parse<AspectHistoryList>(get("/api/history/aspects")).history
+    JSON.nonstrict.parse(AspectHistoryList.serializer(), get("/api/history/aspects")).history
 
 suspend fun getAllRefBookEvents(): List<RefBookHistory> =
-    JSON.nonstrict.parse<RefBookHistoryList>(get("/api/history/refbook")).history
+    JSON.nonstrict.parse(RefBookHistoryList.serializer(), get("/api/history/refbook")).history
 
 suspend fun getAllObjectEvents(): List<ObjectHistory> =
-    JSON.nonstrict.parse<ObjectHistoryList>(get("/api/history/objects")).history
+    JSON.nonstrict.parse(ObjectHistoryList.serializer(), get("/api/history/objects")).history
 
 suspend fun getAllSubjectEvents(): List<SubjectHistory> =
-    JSON.nonstrict.parse<SubjectHistoryList>(get("/api/history/subjects")).history
+    JSON.nonstrict.parse(SubjectHistoryList.serializer(), get("/api/history/subjects")).history

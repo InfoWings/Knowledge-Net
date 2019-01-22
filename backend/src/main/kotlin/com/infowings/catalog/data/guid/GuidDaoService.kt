@@ -55,11 +55,10 @@ class GuidDaoService(private val db: OrientDatabase) {
                 "select @rid, out('${OrientEdge.GUID_OF_ASPECT.extName}').guid as guid from ${OrientClass.ASPECT.extName}" +
                         " where (deleted = false or deleted is null) and @rid in :ids ", mapOf("ids" to aspectIds)
             ) { rs ->
-                rs.mapNotNull {
-                    logger.info("properties: " + it.propertyNames)
-                    val guid = it.getProperty<List<String>>("guid").single()
-                    val rid = it.getProperty<ORID>("@rid")
-                    rid.toString() to guid
+                rs.mapNotNull { oResult ->
+                    val guid = oResult.getProperty<List<String>>("guid").single()
+                    val rid = oResult.getProperty<ORID>("@rid").toString()
+                    rid to guid
                 }.toMap()
             }
         }

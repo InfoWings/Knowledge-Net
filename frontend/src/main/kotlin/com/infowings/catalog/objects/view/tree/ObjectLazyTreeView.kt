@@ -3,8 +3,10 @@ package com.infowings.catalog.objects.view.tree
 import com.infowings.catalog.objects.ObjectLazyViewModel
 import com.infowings.catalog.objects.view.ObjectsLazyModel
 import com.infowings.catalog.wrappers.RouteSuppliedProps
-import com.infowings.catalog.wrappers.reactRouter
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RHandler
+import react.RState
 import react.dom.div
 
 class ObjectLazyTreeView : RComponent<ObjectLazyTreeView.Props, RState>() {
@@ -27,14 +29,6 @@ class ObjectLazyTreeView : RComponent<ObjectLazyTreeView.Props, RState>() {
                         history = currProps.history
                     }
                 }
-            }
-            reactRouter.Link {
-                attrs {
-                    className = "new-object-link pt-button pt-intent-primary pt-minimal pt-icon-plus pt-small"
-                    role = "button"
-                    to = "/objects/new"
-                }
-                +"New Object"
             }
         }
     }

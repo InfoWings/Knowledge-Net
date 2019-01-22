@@ -3,15 +3,10 @@ package com.infowings.catalog.components.popup
 import com.infowings.catalog.aspects.*
 import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.AspectsHints
-import com.infowings.catalog.components.description.descriptionComponent
-import com.infowings.catalog.wrappers.react.asReactElement
-import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.commonSelect
 import kotlinext.js.jsObject
 import react.*
-import react.dom.div
-import react.dom.span
 
 
 interface AspectOption : SelectOption {
@@ -39,7 +34,7 @@ class ExistingAspectsWindow : RComponent<ExistingAspectsWindow.Props, RState>() 
 
         fun refBookValueOption(hint: AspectHint) = jsObject<AspectOption> {
             this.name = hint.name
-            this.aspectName = elemByRefBookValue(hint.name ?: "???", hint.refBookItem ?: "?")
+            this.aspectName = elemByRefBookValue(hint.name, hint.refBookItem ?: "?")
         }
 
         fun refBookDescOption(hint: AspectHint) = jsObject<AspectOption> {

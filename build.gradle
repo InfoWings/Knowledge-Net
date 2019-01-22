@@ -1,26 +1,23 @@
 buildscript {
 
     ext {
-        kotlin_coroutine_version = '0.24.0'
-        kotlin_version = '1.2.61'
-        serialization_version = '0.6.1'
-        spring_boot_version = "2.0.0.RELEASE"
-        postgresql_version = "9.1-901.jdbc4"
+        kotlin_version = '1.3.11'
+        kotlin_coroutine_version = '1.1.0'
+        serialization_version = '0.9.0'
+        spring_boot_version = "2.1.2.RELEASE"
         jjwt_version = '0.9.0'
         junit = '5.2.0'
         junit_platform = '1.2.0'
     }
 
     repositories {
-        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
-        maven { url "https://kotlin.bintray.com/kotlinx" }
         maven { url 'https://maven.google.com' }
         jcenter()
         mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath 'com.bmuschko:gradle-docker-plugin:4.3.0'
     }
 }
@@ -39,7 +36,6 @@ allprojects {
     repositories {
         mavenCentral()
         jcenter()
-        maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
         maven { url "https://kotlin.bintray.com/kotlinx" }
         maven { url 'https://maven.google.com' }
     }

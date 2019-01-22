@@ -42,8 +42,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
 
     fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
 
-    fun find(id: String): ReferenceBookItemVertex? =
-        db.getVertexById(id)?.toReferenceBookItemVertex()
+    fun find(id: String): ReferenceBookItemVertex? = db.getVertexById(id)?.toReferenceBookItemVertex()
 
     fun findStr(ids: List<String>): List<ReferenceBookItemVertex> = find(ids.map { ORecordId(it) })
 

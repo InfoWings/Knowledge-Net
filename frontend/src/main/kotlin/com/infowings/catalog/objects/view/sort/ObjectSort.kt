@@ -1,8 +1,8 @@
 package com.infowings.catalog.objects.view.sort
 
-import com.infowings.catalog.common.SortOrder
-import com.infowings.catalog.common.SortField
 import com.infowings.catalog.common.Direction
+import com.infowings.catalog.common.SortField
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.ButtonGroup
 import kotlinext.js.require
@@ -67,7 +67,7 @@ class ObjectSort : RComponent<ObjectSort.Props, ObjectSort.State>() {
     private fun curAspectNameSortModeIcon(field: SortField): String {
         val directToIcon = mapOf(Direction.ASC to "sort-alphabetical", Direction.DESC to "sort-alphabetical-desc")
         return state.orderBy.find { it.name == field }?.let { directToIcon[it.direction] ?: "double-caret-vertical" }
-                ?: "double-caret-vertical"
+            ?: "double-caret-vertical"
     }
 
     interface Props : RProps {

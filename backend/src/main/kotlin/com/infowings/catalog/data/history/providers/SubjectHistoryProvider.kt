@@ -1,7 +1,10 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.HistoryEventData
-import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.HistorySnapshot
+import com.infowings.catalog.data.history.Snapshot
+import com.infowings.catalog.data.history.diffSnapshots
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.SUBJECT_CLASS
@@ -29,7 +32,7 @@ class SubjectHistoryProvider(
 
                     val cachedSteps = cache.get(id)
 
-                    logger.info("cached steps for id $id: $cachedSteps")
+                    logger.trace("cached steps for id $id: $cachedSteps")
                     val head = SubjectHistoryStep(Snapshot(), HistoryEventData.empty)
 
 

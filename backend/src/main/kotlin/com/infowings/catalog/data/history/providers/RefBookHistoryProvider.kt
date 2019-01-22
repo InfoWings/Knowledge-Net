@@ -6,7 +6,10 @@ import com.infowings.catalog.common.HistoryEventData
 import com.infowings.catalog.common.RefBookHistory
 import com.infowings.catalog.common.history.refbook.RefBookHistoryData
 import com.infowings.catalog.data.aspect.AspectDaoService
-import com.infowings.catalog.data.history.*
+import com.infowings.catalog.data.history.HistoryFact
+import com.infowings.catalog.data.history.HistoryService
+import com.infowings.catalog.data.history.MutableSnapshot
+import com.infowings.catalog.data.history.RefBookHistoryInfo
 import com.infowings.catalog.data.reference.book.REFERENCE_BOOK_ITEM_VERTEX
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -259,10 +262,7 @@ class RefBookHistoryProvider(
                 val ch = try {
                     sessionToChange(sessionFacts, historyState, aspectNames)
                 } catch (e: Exception) {
-                    logger.warn("Failed to aggregate history for session $sessionId. Reason: $e")
-                    e.stackTrace.forEach {
-                        logger.warn(it.toString())
-                    }
+                    logger.warn("Failed to aggregate history for session $sessionId. Reason: $e", e)
                     sessionFacts.forEach { logger.warn("fact: $it") }
                     logger.warn("history state: $historyState")
 
@@ -286,7 +286,7 @@ class RefBookHistoryProvider(
                     changes = ch.changes.flatMap { transformDelta(it, aspectNames) })
             }.reversed()
         } catch (e: Exception) {
-            logger.error("Caught exception during ref books history collection: $e, ${e.stackTrace.toList()}")
+            logger.error("Caught exception during ref books history collection: $e", e)
             return emptyList()
         }
     }

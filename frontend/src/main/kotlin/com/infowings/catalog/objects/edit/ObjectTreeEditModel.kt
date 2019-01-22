@@ -1,20 +1,19 @@
 package com.infowings.catalog.objects.edit
 
 import com.infowings.catalog.common.ObjectEditDetailsResponse
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.errors.showError
-import com.infowings.catalog.objects.AspectPropertyValueEditModel
-import com.infowings.catalog.objects.AspectPropertyValueGroupEditModel
 import com.infowings.catalog.objects.ObjectEditViewModel
 import com.infowings.catalog.objects.ObjectPropertyEditModel
 import com.infowings.catalog.objects.edit.tree.objectEditTree
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.blueprint.Alert
 import com.infowings.catalog.wrappers.blueprint.Intent
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 import react.dom.h3
@@ -33,12 +32,22 @@ interface ObjectTreeEditModel {
     fun deleteValue(valueId: String)
 }
 
-class ObjectTreeEditModelComponent(props: Props) : RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
-    ObjectTreeEditModel {
+class ObjectTreeEditModelComponent(props: Props) :
+    RComponent<ObjectTreeEditModelComponent.Props, ObjectTreeEditModelComponent.State>(props),
+    ObjectTreeEditModel,
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init(props: Props) {
         editContextModel = null
         viewModel = ObjectEditViewModel(props.serverView)
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {

@@ -142,7 +142,7 @@ class AspectValidator(
                     }
                 } else {
                     if (it.isNotEmpty()) {
-                        throw AspectAlreadyExist(name, aspectData.subject?.name)
+                        throw AspectAlreadyExist(name, aspectData.subject.name)
                     }
                 }
             }

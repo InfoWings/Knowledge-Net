@@ -1,12 +1,10 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.data.*
 import com.infowings.catalog.loggerFor
-import kotlinx.serialization.json.JSON
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -66,51 +64,27 @@ class SubjectApi(val subjectService: SubjectService) {
     fun handleSubjectException(exception: SubjectException): ResponseEntity<String> {
         logger.error(exception.toString(), exception)
         return when (exception) {
-            SubjectIdIsNull -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "Subject Id is null"
-                        )
-                    )
-                )
-            is SubjectWithNameAlreadyExist -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "Subject with name ${exception.subject.name} is already exist"
-                        )
-                    )
-                )
+            SubjectIdIsNull -> badRequest(
+                "Subject Id is null",
+                BadRequestCode.INCORRECT_INPUT
+            )
+            is SubjectWithNameAlreadyExist -> badRequest(
+                "Subject with name ${exception.subject.name} is already exist",
+                BadRequestCode.INCORRECT_INPUT
+            )
 
-            is SubjectNotFoundException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            "Supplied subject with id ${exception.id} has not been found"
-                        )
-                    )
-                )
-            is SubjectConcurrentModificationException -> ResponseEntity.badRequest()
-                .body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.INCORRECT_INPUT,
-                            exception.message
-                        )
-                    )
-                )
+            is SubjectNotFoundException -> badRequest(
+                "Supplied subject with id ${exception.id} has not been found",
+                BadRequestCode.INCORRECT_INPUT
+            )
+            is SubjectConcurrentModificationException -> badRequest(
+                exception.message ?: "",
+                BadRequestCode.INCORRECT_INPUT
+            )
             is SubjectIsLinked -> {
-                ResponseEntity.badRequest().body(
-                    JSON.stringify(
-                        BadRequest(
-                            BadRequestCode.NEED_CONFIRMATION,
-                            "Subject ${exception.subject.name} is linked by aspect"
-                        )
-                    )
+                badRequest(
+                    "Subject ${exception.subject.name} is linked by aspect",
+                    BadRequestCode.NEED_CONFIRMATION
                 )
             }
             is SubjectEmptyChangeException -> ResponseEntity(HttpStatus.NOT_MODIFIED)

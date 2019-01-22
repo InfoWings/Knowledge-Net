@@ -2,7 +2,9 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.MasterCatalog
 import com.infowings.catalog.common.*
+import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.JSON
+import kotlinx.serialization.serializer
 import org.hamcrest.core.IsNot
 import org.hamcrest.text.IsEmptyString
 import org.junit.Assert.assertThat
@@ -186,6 +188,8 @@ class AspectServiceRestTest {
 
 }
 
-private inline fun <reified T : Any> fromObject(obj: T): String = JSON.stringify(obj)
+@UseExperimental(ImplicitReflectionSerializer::class)
+private inline fun <reified T : Any> fromObject(obj: T): String = JSON.stringify(T::class.serializer(), obj)
 
-private inline fun <reified T : Any> String.toObject(): T = JSON.parse(this)
+@UseExperimental(ImplicitReflectionSerializer::class)
+private inline fun <reified T : Any> String.toObject(): T = JSON.parse(T::class.serializer(), this)

@@ -9,3 +9,4 @@ logs
 .run
 /.gradletasknamecache
 /gradle.properties
+/frontend/node_modules/

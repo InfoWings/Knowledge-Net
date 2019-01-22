@@ -240,12 +240,10 @@ class DefaultAspectService(
     private fun getData(vertices: Set<AspectVertex>): List<AspectData> {
         val ids = vertices.map { it.identity }
         val props = transaction(db) {
-            aspectDaoService.getProperties(ids).map {
-                it.toAspectPropertyData()
-            }
+            aspectDaoService.getProperties(ids).map { it.toAspectPropertyData() }
         }
         val guidById = transaction(db) { guidDao.ofAspects(ids) }
-        logger.info("guid by id: " + guidById)
+        logger.info("guid by id: $guidById")
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
@@ -253,15 +251,13 @@ class DefaultAspectService(
 
         return logTime(logger, "filling aspects using details") {
             vertices.mapNotNull { aspectVertex ->
-                logTime(logger, "convert to aspect data") {
-                    val id = aspectVertex.id
-                    val details = detailsById[id]
-                    val data = details?.let {
-                        aspectVertex.toAspectData(propsById, guidById, details)
-                    }
-                    data ?: logger.warn("nothing found for aspect id $id")
-                    data
+                val id = aspectVertex.id
+                val details = detailsById[id]
+                val data = details?.let {
+                    aspectVertex.toAspectData(propsById, guidById, details)
                 }
+                data ?: logger.warn("nothing found for aspect id $id")
+                data
             }
         }
     }
@@ -303,7 +299,7 @@ class DefaultAspectService(
     override fun findPropertyById(id: String) = transaction(db) { findPropertyVertexById(id).toAspectPropertyData() }
 
     private fun findPropertyVertexById(id: String): AspectPropertyVertex = aspectDaoService.findProperty(id)
-            ?: throw AspectPropertyDoesNotExist(id)
+        ?: throw AspectPropertyDoesNotExist(id)
 
 
     private fun List<AspectData>.sort(orderBy: List<SortOrder>): List<AspectData> {
@@ -335,7 +331,7 @@ class DefaultAspectService(
         historyService.storeFact(findPropertyVertexById(property.id).toDeleteFact(context))
 
         val vertex = aspectDaoService.findProperty(property.id)
-                ?: throw AspectPropertyDoesNotExist(property.id)
+            ?: throw AspectPropertyDoesNotExist(property.id)
 
         return@transaction if (vertex.isLinkedBy()) aspectDaoService.fakeRemove(vertex) else aspectDaoService.remove(
             vertex
@@ -357,7 +353,7 @@ class DefaultAspectService(
 
         return aspectDaoService.find(aspectId!!)
             ?.validateExistingAspect(this)
-                ?: throw IllegalArgumentException("Incorrect aspect id")
+            ?: throw IllegalArgumentException("Incorrect aspect id")
 
     }
 
@@ -375,7 +371,7 @@ class DefaultAspectService(
 
         return aspectDaoService.findProperty(propertyId)
             ?.validateExistingAspectProperty(this)
-                ?: throw IllegalArgumentException("Incorrect property id")
+            ?: throw IllegalArgumentException("Incorrect property id")
 
     }
 

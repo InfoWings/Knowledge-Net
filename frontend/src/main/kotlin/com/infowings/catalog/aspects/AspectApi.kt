@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JSON
 
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     return JSON.parse(
+        AspectsList.serializer(),
         get("/api/aspect/all" +
                 "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
                 "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
@@ -17,20 +18,22 @@ suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: Str
     )
 }
 
-suspend fun getAspectTree(id: String): AspectTree = JSON.parse(get("/api/aspect/tree/${encodeURIComponent(id)}"))
+suspend fun getAspectTree(id: String): AspectTree = JSON.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))
 
-suspend fun getAspectById(id: String): AspectData = JSON.parse(get("/api/aspect/id/${encodeURIComponent(id)}"))
+suspend fun getAspectById(id: String): AspectData = JSON.parse(AspectData.serializer(), get("/api/aspect/id/${encodeURIComponent(id)}"))
 
-suspend fun createAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/create", JSON.stringify(body)))
+suspend fun createAspect(body: AspectData): AspectData =
+    JSON.parse(AspectData.serializer(), post("/api/aspect/create", JSON.stringify(AspectData.serializer(), body)))
 
-suspend fun updateAspect(body: AspectData): AspectData = JSON.parse(post("/api/aspect/update", JSON.stringify(body)))
+suspend fun updateAspect(body: AspectData): AspectData =
+    JSON.parse(AspectData.serializer(), post("/api/aspect/update", JSON.stringify(AspectData.serializer(), body)))
 
-suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.stringify(body))
+suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.stringify(AspectData.serializer(), body))
 
 suspend fun removeAspectProperty(id: String, force: Boolean = false): AspectPropertyDeleteResponse =
-    JSON.parse(delete("/api/aspect/property/${encodeURIComponent(id)}?force=$force"))
+    JSON.parse(AspectPropertyDeleteResponse.serializer(), delete("/api/aspect/property/${encodeURIComponent(id)}?force=$force"))
 
-suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(body))
+suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(AspectData.serializer(), body))
 
 suspend fun getSuggestedAspects(
     query: String,
@@ -39,18 +42,22 @@ suspend fun getSuggestedAspects(
 ): AspectsList {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(get("/api/search/aspect/suggestion?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    return JSON.parse(
+        AspectsList.serializer(),
+        get("/api/search/aspect/suggestion?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded")
+    )
 }
 
 suspend fun getSuggestedMeasureData(query: String, findInGroups: Boolean = false): SuggestedMeasureData =
-    JSON.parse(get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
+    JSON.parse(SuggestedMeasureData.serializer(), get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
 
-suspend fun getAspectHints(query: String,
-                           aspectId: String? = null,
-                           aspectPropertyId: String? = null
+suspend fun getAspectHints(
+    query: String,
+    aspectId: String? = null,
+    aspectPropertyId: String? = null
 ): AspectsHints {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    return JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
 }
 

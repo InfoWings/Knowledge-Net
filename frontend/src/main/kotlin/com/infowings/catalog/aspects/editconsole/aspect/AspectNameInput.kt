@@ -3,8 +3,11 @@ package com.infowings.catalog.aspects.editconsole.aspect
 import com.infowings.catalog.aspects.getAspectHints
 import com.infowings.catalog.common.AspectsHints
 import com.infowings.catalog.components.popup.existingAspectWindow
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.react.label
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
@@ -14,9 +17,18 @@ import react.*
 import react.dom.div
 import react.dom.input
 
-class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput.Props, AspectNameInput.State>(props) {
+class AspectNameInput(props: AspectNameInput.Props) : RComponent<AspectNameInput.Props, AspectNameInput.State>(props),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
     override fun State.init(props: Props) {
         hints = AspectsHints.empty()
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
 

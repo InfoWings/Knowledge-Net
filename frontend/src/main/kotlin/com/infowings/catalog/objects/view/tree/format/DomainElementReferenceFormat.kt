@@ -2,11 +2,15 @@ package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.ReferenceBookItemPath
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.span
 
-class DomainElementReferenceFormat : RComponent<DomainElementReferenceFormat.Props, DomainElementReferenceFormat.State>() {
+class DomainElementReferenceFormat : RComponent<DomainElementReferenceFormat.Props, DomainElementReferenceFormat.State>(),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init() {
         isLoading = false
@@ -14,12 +18,17 @@ class DomainElementReferenceFormat : RComponent<DomainElementReferenceFormat.Pro
     }
 
     override fun componentDidMount() {
+        job = Job()
         launch {
             val referenceBookValuePath = getReferenceBookItemPath(props.id)
             setState {
                 path = referenceBookValuePath
             }
         }
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun RBuilder.render() {

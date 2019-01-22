@@ -100,12 +100,12 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
 
         bean {
             OrientDatabase(
-                url = env["orient.url"],
-                database = env["orient.database"],
-                username = env["orient.user"],
-                password = env["orient.password"],
-                testMode = env["orient.mode.test"].toBoolean(),
-                startUpRetries = env["orient.startup.retries"].toInt()
+                url = env["orient.url"]!!,
+                database = env["orient.database"]!!,
+                username = env["orient.user"]!!,
+                password = env["orient.password"]!!,
+                testMode = env["orient.mode.test"]!!.toBoolean(),
+                startUpRetries = env["orient.startup.retries"]!!.toInt()
             )
         }
 

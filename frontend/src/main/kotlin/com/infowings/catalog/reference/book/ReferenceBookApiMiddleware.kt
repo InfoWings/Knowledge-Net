@@ -4,8 +4,11 @@ import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.NotModifiedException
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.*
 import react.dom.div
@@ -27,13 +30,19 @@ interface ReferenceBookApiReceiverProps : RProps {
 /**
  * Component that manages already fetched books and makes real requests to the server API
  */
-class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, ReferenceBookApiMiddleware.State>() {
+class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, ReferenceBookApiMiddleware.State>(),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init() {
         rowDataList = emptyList()
     }
 
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun componentDidMount() {
+        job = Job()
         fetchData(listOf(SortOrder(SortField.NAME, Direction.ASC)))
     }
 
@@ -96,7 +105,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             }
             updateRowDataList(book.aspectId, null)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(e.message))
+            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         }
     }
 
@@ -124,7 +133,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(e.message))
+            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         } catch (e: NotModifiedException) {
             console.log("Reference book updating rejected because data is the same")
         }
@@ -144,7 +153,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(e.message))
+            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         }
     }
 

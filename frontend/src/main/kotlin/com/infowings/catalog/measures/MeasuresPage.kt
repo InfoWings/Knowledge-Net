@@ -7,10 +7,13 @@ import com.infowings.catalog.common.MeasureGroupMap
 import com.infowings.catalog.components.searchbar.searchBar
 import com.infowings.catalog.layout.header
 import com.infowings.catalog.measures.treeview.measureTreeView
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinext.js.require
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -18,7 +21,7 @@ import react.dom.div
 import react.setState
 import kotlin.browser.window
 
-class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
+class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     companion object {
         init {
@@ -41,9 +44,14 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
     }
 
     override fun componentDidMount() {
+        job = Job()
         setState {
             unitGroups = allGroups
         }
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     private var timer: Int = 0
@@ -56,8 +64,6 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
         timer = window.setTimeout({ updateDataState(filterText) }, 200)
     }
 
-    private var job: Job? = null
-
     private fun updateDataState(filterText: String) = when {
         filterText.isBlank() -> setState {
             unitGroups = allGroups
@@ -69,7 +75,7 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>() {
         }
         else -> {
             // if previous request not completed then cancel it
-            job?.cancel()
+            job.cancelChildren()
             job = launch {
                 val suggestedMeasureData = getSuggestedMeasureData(filterText, findInGroups = true)
                 setState {

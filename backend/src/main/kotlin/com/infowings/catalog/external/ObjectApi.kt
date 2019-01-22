@@ -19,17 +19,18 @@ class ObjectApi(val objectService: ObjectService) {
         @RequestParam(required = false) orderFields: List<String>,
         @RequestParam(required = false) direct: List<String>,
         @RequestParam(required = false) q: String?,
-        @RequestParam(required = false) offset: Integer?,
-        @RequestParam(required = false) limit: Integer?,
-        principal: Principal): ObjectsResponse {
+        @RequestParam(required = false) offset: Int?,
+        @RequestParam(required = false) limit: Int?,
+        principal: Principal
+    ): ObjectsResponse {
         val username = principal.name
         logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, query: >$q<")
         logger.debug("offset: $offset, limit: $limit")
-        val offsetI = offset?.let { it.toInt() }
-        val limitI = limit?.let { it.toInt() }
+
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
+
         return logTime(logger, "request of all object briefs") {
-            ObjectsResponse(objectService.fetch(orderBy, q ?: "").map { it.toResponse() }.drop(offsetI ?: 0).take(limitI ?: Int.MAX_VALUE))
+            ObjectsResponse(objectService.fetch(orderBy, q ?: "").map { it.toResponse() }.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE))
         }
     }
 

@@ -7,8 +7,9 @@ import com.infowings.catalog.subjects.getSuggestedSubject
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withTimeoutOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import react.RBuilder
 
 private interface SubjectOption : SelectOption {
@@ -40,7 +41,7 @@ fun RBuilder.objectSubject(value: SubjectTruncated?, onSelect: (SubjectTruncated
             options = emptyArray()
             loadOptions = { input, callback ->
                 if (input.isNotEmpty()) {
-                    launch {
+                    GlobalScope.launch {
                         val subjectsList: SubjectsList? = withTimeoutOrNull(700) {
                             getSuggestedSubject(input, "")
                         }

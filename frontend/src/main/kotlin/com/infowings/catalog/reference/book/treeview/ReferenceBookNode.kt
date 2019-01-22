@@ -9,15 +9,26 @@ import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.addToListIcon
 import com.infowings.catalog.utils.ripIcon
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 
-class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.State>() {
+class ReferenceBookNode : RComponent<ReferenceBookNode.Props, ReferenceBookNode.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun State.init() {
         creatingBookItem = false

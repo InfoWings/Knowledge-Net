@@ -4,14 +4,16 @@ import com.infowings.catalog.common.DetailedObjectViewResponse
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.ViewSlice
-import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.getAllObjects
 import com.infowings.catalog.objects.getDetailedObject
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.RouteSuppliedProps
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 
-private val PageSize = 20
+private const val PageSize = 20
 
 interface ObjectsViewApiModel {
     fun refresh()
@@ -32,7 +34,7 @@ interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
 }
 
 class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
-    ObjectsViewApiModel {
+    ObjectsViewApiModel, JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init() {
         objects = emptyList()
@@ -41,7 +43,14 @@ class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewA
         viewSlice = ViewSlice(offset = 0, limit = PageSize)
     }
 
-    override fun componentDidMount() = fetch()
+    override fun componentDidMount() {
+        job = Job()
+        fetch()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun refresh() = fetch()
 

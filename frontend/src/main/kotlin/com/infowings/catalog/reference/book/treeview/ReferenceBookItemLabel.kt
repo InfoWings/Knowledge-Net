@@ -5,16 +5,27 @@ import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.components.popup.forceUpdateConfirmWindow
 import com.infowings.catalog.reference.book.RefBookBadRequestException
 import com.infowings.catalog.reference.book.editconsole.bookItemEditConsole
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.div
 import react.dom.span
 
-class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, ReferenceBookItemLabel.State>() {
+class ReferenceBookItemLabel : RComponent<ReferenceBookItemLabel.Props, ReferenceBookItemLabel.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     private lateinit var forUpdate: ReferenceBookItem
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun State.init() {
         updatingBookItem = false

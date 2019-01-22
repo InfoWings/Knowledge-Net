@@ -52,17 +52,24 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
                 when (hint.source) {
                     AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT.name -> {
                         hint.parentAspect?.let {
-                            props.onAspectChanged(AspectTree(id = it.id, name = it.name, subjectName = "${it.name} ( ${it.subjectName} )"),
-                                SelectedProperty(id = hint.property?.id ?: "", name = hint.subAspectName?:"???", cardinality = hint.property?.cardinality?:""))
+                            props.onAspectChanged(
+                                AspectTree(id = it.id, name = it.name, subjectName = "${it.name} ( ${it.subjectName} )"),
+                                SelectedProperty(
+                                    id = hint.property?.id ?: "",
+                                    name = hint.subAspectName ?: "???",
+                                    cardinality = hint.property?.cardinality ?: ""
+                                )
+                            )
                         }
-                    } else ->
-                    props.onAspectChanged(AspectTree(id = hint.id, name = hint.name, subjectName = hint.subjectName?.drop(hint.name.length)), null)
+                    }
+                    else ->
+                        props.onAspectChanged(AspectTree(id = hint.id, name = hint.name, subjectName = hint.subjectName?.drop(hint.name.length)), null)
                 }
             },
             onActivity = {
                 println("aaa: ${props.selectedProp}")
                 if (props.aspect != null) {
-                   props.onReselectProperty()
+                    props.onReselectProperty()
                 }
             },
             disabled = props.disabled || props.onAddValue != null // If onAddValue exists, it means the property has id.

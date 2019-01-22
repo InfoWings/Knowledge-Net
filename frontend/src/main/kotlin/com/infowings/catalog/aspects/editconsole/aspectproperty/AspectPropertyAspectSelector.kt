@@ -1,18 +1,20 @@
 package com.infowings.catalog.aspects.editconsole.aspectproperty
 
 import com.infowings.catalog.aspects.getAspectHints
-import com.infowings.catalog.aspects.getSuggestedAspects
 import com.infowings.catalog.aspects.listEntry
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.AspectHintSource
 import com.infowings.catalog.components.description.descriptionComponent
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 import react.dom.span
@@ -36,12 +38,20 @@ private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption
 }
 
 
-class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Props, RState>() {
-/*
-    private fun handleSelectAspectOption(option: AspectOption) {
-        props.onAspectSelected(option.aspectData)
+class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Props, RState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+    /*
+        private fun handleSelectAspectOption(option: AspectOption) {
+            props.onAspectSelected(option.aspectData)
+        }
+    */
+    override fun componentWillMount() {
+        job = Job()
     }
-*/
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun RBuilder.render() {
         val boundAspect = props.aspect
 
@@ -71,7 +81,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                             if (input.isNotEmpty()) {
                                 launch {
                                     val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
-                                    println("hinted aspects: " + hints.map {it.name})
+                                    println("hinted aspects: " + hints.map { it.name })
                                     callback(null, jsObject {
                                         options = hints.map { aspectOption(it) }.toTypedArray()
                                     })
