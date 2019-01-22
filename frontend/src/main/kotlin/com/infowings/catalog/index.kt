@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     requireAll(context("styles", true, js("/\\.css$/").unsafeCast<RegExp>()))
     require("styles/main.scss")
     // Styles for react-select component
-    require("react-select/dist/react-select.css")
+//    require("react-select/dist/react-select.css")
     // Styles for blueprintjs components
     require("@blueprintjs/core/lib/css/blueprint.css")
     require("@blueprintjs/icons/lib/css/blueprint-icons.css")

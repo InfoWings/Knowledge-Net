@@ -1,14 +1,11 @@
 package com.infowings.catalog.external
 
-import com.infowings.catalog.common.BadRequest
 import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
 import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.loggerFor
-import kotlinx.serialization.json.JSON
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
@@ -62,10 +59,7 @@ class GuidApi(val guidService: GuidService) {
     @ExceptionHandler(Exception::class)
     fun handleGuidException(exception: GuidException): ResponseEntity<String> {
         logger.error(exception.toString(), exception)
-        return ResponseEntity.badRequest().body(
-            JSON.stringify(BadRequest(BadRequestCode.INCORRECT_INPUT, "Problem with guid. ${exception.message}")
-            )
-        )
+        return badRequest("Problem with guid. ${exception.message}", BadRequestCode.INCORRECT_INPUT)
     }
 }
 

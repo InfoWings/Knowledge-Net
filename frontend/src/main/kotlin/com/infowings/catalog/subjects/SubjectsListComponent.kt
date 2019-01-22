@@ -8,13 +8,12 @@ import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.reference.referenceButtonComponent
 import com.infowings.catalog.components.searchbar.searchBar
-import com.infowings.catalog.utils.BadRequestException
-import com.infowings.catalog.utils.ServerException
-import com.infowings.catalog.utils.replaceBy
+import com.infowings.catalog.utils.*
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinext.js.require
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.RBuilder
 import react.RComponent
@@ -23,7 +22,7 @@ import react.dom.div
 import react.setState
 import kotlin.browser.window
 
-class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListComponent.State>() {
+class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListComponent.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     companion object {
         init {
@@ -34,6 +33,14 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     override fun State.init() {
         errorMessages = emptyList()
         data = emptyList()
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun componentWillReceiveProps(nextProps: SubjectApiReceiverProps) {
@@ -65,7 +72,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             } catch (exception: BadRequestException) {
                 setState {
-                    val errorMessage = JSON.parse<BadRequest>(exception.message).message
+                    val errorMessage = JSON.parse(BadRequest.serializer(), exception.message).message
                     errorMessage?.let { errorMessages += it }
                 }
             } catch (exception: ServerException) {
@@ -77,8 +84,8 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
     }
 
     private fun forceDeleteSubject() {
-        val deletedSubject =
-            state.linkedEntitiesSubject ?: error("Subject with linked entities must exist in order to force delete")
+        val deletedSubject = state.linkedEntitiesSubject
+            ?: error("Subject with linked entities must exist in order to force delete")
         launch {
             props.onSubjectDelete(deletedSubject, true)
         }

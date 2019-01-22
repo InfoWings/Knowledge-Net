@@ -4,7 +4,6 @@ import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.edit.create.objectCreateForm
 import com.infowings.catalog.utils.ApiException
-import kotlinx.coroutines.experimental.launch
 import react.*
 
 data class SubjectTruncated(
@@ -42,9 +41,7 @@ class ObjectCreateModelComponent : RComponent<ObjectCreateModelComponent.Props, 
     private fun confirmCreateObject() {
         val trimmedName = state.name.trim()
         val subjectId = state.subject?.id ?: error("Can not create object without aspect")
-        launch {
-            props.api.submitObject(ObjectCreateRequest(trimmedName, null, subjectId))
-        }
+        props.api.submitObject(ObjectCreateRequest(trimmedName, null, subjectId))
     }
 
     override fun RBuilder.render() {

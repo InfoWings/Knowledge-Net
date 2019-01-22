@@ -8,8 +8,9 @@ import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withTimeoutOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import react.RBuilder
 import react.ReactElement
 
@@ -32,15 +33,17 @@ private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption
 }
 
 
-fun RBuilder.propertyAspect(value: AspectHint?,
-                            onSelect: (AspectHint) -> Unit,
-                            onActivity: () -> Unit,
-                            disabled: Boolean = false) =
+fun RBuilder.propertyAspect(
+    value: AspectHint?,
+    onSelect: (AspectHint) -> Unit,
+    onActivity: () -> Unit,
+    disabled: Boolean = false
+) =
     asyncSelect<AspectOption> {
         attrs {
             className = "object-property-input-aspect"
             placeholder = "Select Aspect"
-            this.value =  value?.let {
+            this.value = value?.let {
                 aspectOptionSelected(it)
             }
             onChange = {
@@ -53,7 +56,7 @@ fun RBuilder.propertyAspect(value: AspectHint?,
             filterOptions = { options, _, _ -> options }
             loadOptions = { input, callback ->
                 if (input.isNotEmpty()) {
-                    launch {
+                    GlobalScope.launch {
                         val hints: AspectsHints? = withTimeoutOrNull(500) {
                             getAspectHints(input)
                         }

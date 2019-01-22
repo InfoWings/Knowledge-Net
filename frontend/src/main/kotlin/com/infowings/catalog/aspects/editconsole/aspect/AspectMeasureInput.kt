@@ -2,13 +2,16 @@ package com.infowings.catalog.aspects.editconsole.aspect
 
 import com.infowings.catalog.aspects.MeasurementUnitSuggestingOption
 import com.infowings.catalog.aspects.getSuggestedMeasureData
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.react.label
 import com.infowings.catalog.wrappers.select.OptionComponentProps
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withTimeoutOrNull
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import react.*
 import react.dom.div
 
@@ -20,7 +23,14 @@ fun measurementUnitOption(optionName: String) = jsObject<MeasurementUnitOption> 
     measurementUnit = optionName
 }
 
-class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
+class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     private fun handleMeasurementUnitOptionSelected(option: MeasurementUnitOption?) {
         option?.let { props.onChange(it.measurementUnit) } ?: props.onChange(null)
@@ -53,8 +63,7 @@ class AspectMeasureInput : RComponent<AspectMeasureInput.Props, RState>() {
                                         getSuggestedMeasureData(input).measureNames
                                     }
                                     callback(null, jsObject {
-                                        options = measurementUnitsArray?.map { measurementUnitOption(it) }?.toTypedArray() ?:
-                                                emptyArray()
+                                        options = measurementUnitsArray?.map { measurementUnitOption(it) }?.toTypedArray() ?: emptyArray()
                                     })
                                 }
                             } else {

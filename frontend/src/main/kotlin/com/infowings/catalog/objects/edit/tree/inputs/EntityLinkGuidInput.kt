@@ -8,10 +8,13 @@ import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.blueprint.Spinner
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.INPUT
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -33,12 +36,17 @@ private const val KEY_ENTER = 13
 private const val KEY_ESCAPE = 27
 
 @Suppress("TooManyFunctions", "NotImplementedDeclaration")
-class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityLinkGuidInput.Props, EntityLinkGuidInput.State>(props) {
+class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityLinkGuidInput.Props, EntityLinkGuidInput.State>(props),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     companion object {
         init {
             kotlinext.js.require("styles/entity-link-guid-input.scss")
         }
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun State.init(props: EntityLinkGuidInput.Props) {
@@ -48,6 +56,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 
     override fun componentDidMount() {
+        job = Job()
         loadBriefViewById(props.value)
     }
 
@@ -282,10 +291,11 @@ private fun DataTransfer.withPlainText(handler: (String?) -> Unit) {
     }
 }
 
-var INPUT.onPasteFunction : (Event) -> Unit
-    get()  = throw UnsupportedOperationException("You can't read variable onChange")
-    set(newValue) {consumer.onTagEvent(this, "onpaste", newValue)}
-
+var INPUT.onPasteFunction: (Event) -> Unit
+    get() = throw UnsupportedOperationException("You can't read variable onChange")
+    set(newValue) {
+        consumer.onTagEvent(this, "onpaste", newValue)
+    }
 
 
 fun RBuilder.entityLinkGuidInput(handler: RHandler<EntityLinkGuidInput.Props>) = child(EntityLinkGuidInput::class, handler)

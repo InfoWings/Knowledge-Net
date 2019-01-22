@@ -89,12 +89,6 @@ task devBuild(dependsOn: [npmInstall, copyStatic, runDceKotlinJs])
 
 assemble.dependsOn buildBundle, copyStatic
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}
-
 // Import task types
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage

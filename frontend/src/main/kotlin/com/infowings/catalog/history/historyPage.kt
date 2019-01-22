@@ -2,16 +2,18 @@ package com.infowings.catalog.history
 
 import com.infowings.catalog.common.HistoryData
 import com.infowings.catalog.layout.header
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.RouteSuppliedProps
-import kotlinext.js.invoke
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.dom.div
 import react.setState
 
-class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>() {
+class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     companion object {
         init {
@@ -24,7 +26,12 @@ class HistoryPage : RComponent<RouteSuppliedProps, HistoryPage.State>() {
         loading = true
     }
 
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun componentDidMount() {
+        job = Job()
         launch {
             val response = getAllEvents()
             setState {

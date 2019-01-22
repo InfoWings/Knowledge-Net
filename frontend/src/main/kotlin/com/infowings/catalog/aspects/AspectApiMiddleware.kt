@@ -1,19 +1,17 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.objekt.Reference
-import com.infowings.catalog.utils.BadRequestException
-import com.infowings.catalog.utils.NotModifiedException
-import com.infowings.catalog.utils.ServerException
-import com.infowings.catalog.utils.replaceBy
+import com.infowings.catalog.utils.*
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.*
+import kotlin.collections.set
 import kotlin.reflect.KClass
 
 class AspectBadRequestException(val exceptionInfo: BadRequest) : RuntimeException(exceptionInfo.message)
@@ -36,7 +34,11 @@ interface AspectApiReceiverProps : RProps {
 /**
  * Component that manages already fetched aspects and makes real requests to the server API
  */
-class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddleware.State>() {
+class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddleware.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun State.init() {
         data = emptyList()
@@ -106,7 +108,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     private fun setAspectsSearchQuery(query: String) {
-        println("sasq: " + query)
+        println("sasq: $query")
         setState {
             this.searchQuery = query
             refreshOperation = false
@@ -119,7 +121,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             newAspect = createAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message))
+            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         }
 
         val newAspectId: String = newAspect.id ?: error("Server returned Aspect with aspectId == null")
@@ -139,7 +141,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         updatedAspect = try {
             updateAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message))
+            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         } catch (e: NotModifiedException) {
             console.log("Aspect updating rejected because data is the same")
             aspectData
@@ -190,7 +192,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 removeAspect(aspectData)
             }
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message))
+            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         }
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
@@ -198,7 +200,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         setState {
             data = data.replaceBy({ deletedAspect.id == it.id }, deletedAspect)
             if (!aspectData.id.isNullOrEmpty()) {
-                context[aspectData.id!!] = deletedAspect
+                context[aspectData.id] = deletedAspect
             }
             refreshOperation = false
         }
@@ -210,7 +212,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val aspectPropertyDeleteResponse = try {
             removeAspectProperty(propertyId, force)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(e.message))
+            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
         }
 
         setState {

@@ -2,10 +2,13 @@ package com.infowings.catalog.objects.filter
 
 import com.infowings.catalog.common.ObjectGetResponse
 import com.infowings.catalog.objects.getSuggestedObjects
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 
 
@@ -19,7 +22,14 @@ private fun objectOption(data: ObjectGetResponse) = jsObject<ObjectOption> {
     this.data = data
 }
 
-class ObjectExcludeFilterComponent : RComponent<ObjectExcludeFilterComponent.Props, RState>() {
+class ObjectExcludeFilterComponent : RComponent<ObjectExcludeFilterComponent.Props, RState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun RBuilder.render() {
         asyncSelect<ObjectOption> {

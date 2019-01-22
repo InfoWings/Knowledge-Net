@@ -4,14 +4,20 @@ import com.infowings.catalog.aspects.filter.AspectsFilter
 import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.treeview.AspectNodeExpandedStateWrapper
 import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.SortOrder
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.ServerException
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 
-class EmptyAspectModelComponent : RComponent<EmptyAspectModelComponent.Props, EmptyAspectModelComponent.State>(), AspectsModel {
+class EmptyAspectModelComponent :
+    RComponent<EmptyAspectModelComponent.Props, EmptyAspectModelComponent.State>(),
+    AspectsModel,
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun selectAspect(aspectId: String?) {}
 
@@ -38,7 +44,12 @@ class EmptyAspectModelComponent : RComponent<EmptyAspectModelComponent.Props, Em
     }
 
     override fun componentDidMount() {
+        job = Job()
         fetchAspects()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     private fun fetchAspects(orderBy: List<SortOrder> = emptyList()) {

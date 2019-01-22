@@ -3,7 +3,10 @@ package com.infowings.catalog.reference.book.editconsole
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.utils.BadRequestException
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
@@ -13,7 +16,16 @@ import react.dom.div
 import react.dom.span
 
 class ReferenceBookItemEditConsole(props: Props) :
-    RComponent<ReferenceBookItemEditConsole.Props, ReferenceBookItemEditConsole.State>(props) {
+    RComponent<ReferenceBookItemEditConsole.Props, ReferenceBookItemEditConsole.State>(props),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun State.init(props: Props) {
         value = props.bookItem.value

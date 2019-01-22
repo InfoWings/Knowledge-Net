@@ -2,7 +2,10 @@ package com.infowings.catalog.reference.book.editconsole
 
 import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.utils.BadRequestException
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onKeyDownFunction
 import org.w3c.dom.events.Event
@@ -12,11 +15,19 @@ import react.dom.div
 import react.dom.span
 
 class ReferenceBookEditConsole(props: Props) :
-    RComponent<ReferenceBookEditConsole.Props, ReferenceBookEditConsole.State>(props) {
+    RComponent<ReferenceBookEditConsole.Props, ReferenceBookEditConsole.State>(props), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init(props: Props) {
         bookName = props.book.name
         errorMessage = null
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {

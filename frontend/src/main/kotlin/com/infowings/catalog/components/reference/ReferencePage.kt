@@ -3,18 +3,23 @@ package com.infowings.catalog.components.reference
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.layout.header
 import com.infowings.catalog.subjects.getSubjectByName
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.decodeURIComponent
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.toMap
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.RBuilder
 import react.RComponent
 import react.RState
 import react.setState
 
-class ReferencePage : RComponent<RouteSuppliedProps, ReferencePage.State>() {
+class ReferencePage : RComponent<RouteSuppliedProps, ReferencePage.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun componentDidMount() {
+        job = Job()
+
         setState {
             loading = true
         }
@@ -26,6 +31,10 @@ class ReferencePage : RComponent<RouteSuppliedProps, ReferencePage.State>() {
                 loading = false
             }
         }
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun RBuilder.render() {

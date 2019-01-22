@@ -1,26 +1,14 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
-import com.infowings.catalog.common.BadRequest
-import com.infowings.catalog.common.Measure
-import com.infowings.catalog.common.MeasureGroup
-import com.infowings.catalog.common.ObjectValueData
-import com.infowings.catalog.common.objekt.ValueRecalculationResponse
-import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.edit.tree.ValueSlot
-import com.infowings.catalog.objects.edit.tree.utils.InputValidationException
-import com.infowings.catalog.objects.edit.tree.utils.isDecimal
-import com.infowings.catalog.objects.edit.tree.utils.validate
-import com.infowings.catalog.objects.recalculateValue
-import com.infowings.catalog.utils.BadRequestException
-import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Popover
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.commonSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
-import react.*
-import react.dom.div
-import react.dom.h5
+import react.RBuilder
+import react.RComponent
+import react.RProps
+import react.RState
 
 interface ValueSlotOption : SelectOption {
     var label: String

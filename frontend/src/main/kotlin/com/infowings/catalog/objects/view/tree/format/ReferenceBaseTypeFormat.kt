@@ -1,29 +1,34 @@
 package com.infowings.catalog.objects.view.tree.format
 
 import com.infowings.catalog.common.LinkValueData
-import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.components.reference.refValueButtonComponent
 import com.infowings.catalog.errors.showError
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.utils.ApiException
 import com.infowings.catalog.utils.BadRequestException
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.blueprint.Spinner
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.classes
-import react.*
+import react.RBuilder
+import react.RComponent
+import react.RState
 import react.dom.span
+import react.setState
 
 private const val ERROR_FETCH_BRIEF_VIEW_PLACEHOLDER = "Could not fetch entity by guid"
 
-class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, ReferenceBaseTypeFormat.State>() {
+class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, ReferenceBaseTypeFormat.State>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init() {
         loading = true
     }
 
     override fun componentDidMount() {
+        job = Job()
         launch {
             try {
                 loadBriefView(props.value)
@@ -35,6 +40,10 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
                 }
             }
         }
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     private suspend fun loadBriefView(value: LinkValueData) {
@@ -98,6 +107,6 @@ class ReferenceBaseTypeFormat : RComponent<ReferenceBaseTypeFormat.Props, Refere
 fun RBuilder.referenceBaseTypeFormat(value: LinkValueData, history: History) = child(ReferenceBaseTypeFormat::class) {
     attrs {
         this.value = value
-        this.history= history
+        this.history = history
     }
 }

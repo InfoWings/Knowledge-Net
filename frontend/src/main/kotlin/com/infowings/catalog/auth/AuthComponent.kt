@@ -1,13 +1,16 @@
 package com.infowings.catalog.auth
 
 import com.infowings.catalog.common.UserCredentials
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.getAuthorizationRole
 import com.infowings.catalog.utils.login
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Label
 import com.infowings.catalog.wrappers.reactRouter
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.html.InputType
 import kotlinx.html.js.onSubmitFunction
 import org.w3c.dom.HTMLInputElement
@@ -21,7 +24,7 @@ import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
 
-class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
+class AuthComponent : RComponent<RouteSuppliedProps, AuthState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     lateinit var loginInput: HTMLInputElement
     lateinit var passwordInput: HTMLInputElement
@@ -43,7 +46,12 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>() {
         }
     }
 
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun componentDidMount() {
+        job = Job()
         setState {
             authorized = getAuthorizationRole() != null
             wrongAuth = false

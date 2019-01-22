@@ -3,22 +3,32 @@ package com.infowings.catalog.objects.edit.tree.inputs
 import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.dialog.selectReferenceBookValueDialog
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 
 class RefBookValue(val refBookId: String, val refBookTreePath: List<RefBookNodeDescriptor>)
 
-class ReferenceBookInput(props: ReferenceBookInput.Props) : RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props) {
+class ReferenceBookInput(props: ReferenceBookInput.Props) :
+    RComponent<ReferenceBookInput.Props, ReferenceBookInput.State>(props),
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init(props: Props) {
         isDialogOpen = false
         value = RefBookValue(props.refBookId, listOf())
     }
 
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun componentDidMount() {
+        job = Job()
         props.itemId?.let { itemId ->
             if (itemId.isNotBlank()) {
                 launch {

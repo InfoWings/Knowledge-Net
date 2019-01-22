@@ -1,8 +1,10 @@
 package com.infowings.catalog.storage
 
 import com.infowings.catalog.loggerFor
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 private val logger = loggerFor<OrientDatabase>()
@@ -19,7 +21,7 @@ class OrientHeartBeat(database: OrientDatabase, seconds: Int) {
 
         logger.info("Initializing orient heart beat with $seconds seconds period")
 
-        launch {
+        GlobalScope.launch {
             while (isActive) {
                 delay(period)
                 database.query(QUERY) {}

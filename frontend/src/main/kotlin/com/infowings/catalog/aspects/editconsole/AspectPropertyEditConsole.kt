@@ -11,13 +11,16 @@ import com.infowings.catalog.common.AspectHint
 import com.infowings.catalog.common.BadRequestCode
 import com.infowings.catalog.components.description.descriptionComponent
 import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.div
 
 class AspectPropertyEditConsole(props: Props) :
-    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props) {
+    RComponent<AspectPropertyEditConsole.Props, AspectPropertyEditConsole.State>(props), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -30,7 +33,12 @@ class AspectPropertyEditConsole(props: Props) :
         }
     }
 
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
+
     override fun componentDidMount() {
+        job = Job()
         inputRef?.focus()
         inputRef?.select()
     }

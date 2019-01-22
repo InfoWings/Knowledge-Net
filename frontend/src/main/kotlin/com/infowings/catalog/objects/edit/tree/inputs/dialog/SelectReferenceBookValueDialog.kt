@@ -2,26 +2,36 @@ package com.infowings.catalog.objects.edit.tree.inputs.dialog
 
 import com.infowings.catalog.common.RefBookNodeDescriptor
 import com.infowings.catalog.objects.edit.tree.inputs.RefBookValue
-import com.infowings.catalog.reference.book.getReferenceBook
 import com.infowings.catalog.reference.book.getReferenceBookById
 import com.infowings.catalog.reference.book.getReferenceBookItemPath
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.Callout
 import com.infowings.catalog.wrappers.blueprint.Dialog
 import com.infowings.catalog.wrappers.blueprint.Intent
 import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinext.js.require
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 
 class SelectReferenceBookValueDialog(props: Props) :
-    RComponent<SelectReferenceBookValueDialog.Props, SelectReferenceBookValueDialog.State>(props) {
+    RComponent<SelectReferenceBookValueDialog.Props, SelectReferenceBookValueDialog.State>(props), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     companion object {
         init {
             require("styles/reference-book-dialog.scss")
         }
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun State.init(props: Props) {

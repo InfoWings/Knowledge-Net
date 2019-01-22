@@ -2,11 +2,14 @@ package com.infowings.catalog.aspects.filter
 
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.subjects.getSuggestedSubject
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinext.js.require
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 
 private interface SubjectOption : SelectOption {
@@ -19,7 +22,14 @@ private fun subjectOption(subjectData: SubjectData?) = jsObject<SubjectOption> {
     this.subjectData = subjectData
 }
 
-class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Props, RState>() {
+class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Props, RState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     companion object {
         init {

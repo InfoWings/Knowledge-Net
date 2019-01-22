@@ -1,6 +1,5 @@
 package com.infowings.catalog.objects.view
 
-import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
@@ -9,9 +8,12 @@ import com.infowings.catalog.objects.filter.objectSubjectFilterComponent
 import com.infowings.catalog.objects.search.objectSearchComponent
 import com.infowings.catalog.objects.view.sort.objectSort
 import com.infowings.catalog.objects.view.tree.objectLazyTreeView
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Button
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
 
@@ -21,11 +23,19 @@ interface ObjectsLazyModel {
 }
 
 class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RComponent<ObjectsViewApiConsumerProps, ObjectTreeViewModelComponent.State>(props),
-    ObjectsLazyModel {
+    ObjectsLazyModel, JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init(props: ObjectsViewApiConsumerProps) {
         objects = props.objects.toLazyView(props.detailedObjectsView)
         filterBySubject = ObjectsFilter(emptyList(), emptyList())
+    }
+
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun componentWillReceiveProps(nextProps: ObjectsViewApiConsumerProps) {

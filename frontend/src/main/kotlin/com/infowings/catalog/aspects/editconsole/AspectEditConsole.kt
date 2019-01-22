@@ -6,14 +6,17 @@ import com.infowings.catalog.aspects.editconsole.view.aspectConsoleBlock
 import com.infowings.catalog.aspects.editconsole.view.consoleButtonsGroup
 import com.infowings.catalog.common.*
 import com.infowings.catalog.components.description.descriptionComponent
-import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
 import com.infowings.catalog.components.popup.confirmRefBookRemovalWindow
-import kotlinx.coroutines.experimental.launch
+import com.infowings.catalog.components.popup.forceRemoveConfirmWindow
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.div
 
-class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props) {
+class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, AspectEditConsole.State>(props), JobCoroutineScope by JobSimpleCoroutineScope() {
 
     private var inputRef: HTMLInputElement? = null
 
@@ -22,8 +25,13 @@ class AspectEditConsole(props: Props) : RComponent<AspectEditConsole.Props, Aspe
     }
 
     override fun componentDidMount() {
+        job = Job()
         inputRef?.focus()
         inputRef?.select()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {

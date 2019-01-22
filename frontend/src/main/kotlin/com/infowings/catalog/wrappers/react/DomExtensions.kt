@@ -5,8 +5,9 @@ import kotlinx.html.*
 import react.*
 import react.dom.RDOMBuilder
 import react.dom.tag
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Custom SVG tag for inlining all svg icons (sets default attributes like version, xmlns, viewBox)

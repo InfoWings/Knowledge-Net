@@ -1,15 +1,16 @@
 package com.infowings.catalog.aspects.filter
 
 import com.infowings.catalog.aspects.getAspectHints
-import com.infowings.catalog.aspects.getSuggestedAspects
 import com.infowings.catalog.aspects.listEntry
 import com.infowings.catalog.common.AspectHint
-import com.infowings.catalog.common.AspectsHints
+import com.infowings.catalog.utils.JobCoroutineScope
+import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.react.asReactElement
 import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import react.*
 
 private interface AspectOption : SelectOption {
@@ -32,7 +33,14 @@ private fun aspectOptionSelected(aspectHint: AspectHint) = jsObject<AspectOption
     this.aspectEntry = aspectHint.name.asReactElement()
 }
 
-class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Props, RState>() {
+class AspectExcludeFilterComponent : RComponent<AspectExcludeFilterComponent.Props, RState>(), JobCoroutineScope by JobSimpleCoroutineScope() {
+    override fun componentWillMount() {
+        job = Job()
+    }
+
+    override fun componentWillUnmount() {
+        job.cancel()
+    }
 
     override fun RBuilder.render() {
         asyncSelect<AspectOption> {
