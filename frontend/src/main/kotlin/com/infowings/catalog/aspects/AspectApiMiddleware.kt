@@ -8,6 +8,7 @@ import com.infowings.catalog.utils.*
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -49,6 +50,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     override fun componentDidMount() {
+        job = Job()
         fetchAllAspects()
     }
 
