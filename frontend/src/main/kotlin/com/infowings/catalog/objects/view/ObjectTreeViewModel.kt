@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.view
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.components.paginationPanel
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.filter.objectExcludeFilterComponent
@@ -128,35 +129,11 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     private fun RBuilder.pagination() {
         div(classes = "object-tree-view__header object-header") {
             div(classes = "object-header__pages") {
-                Button {
-                    attrs {
-                        icon = "fast-backward"
-                        onClick = {
-                            props.onPrevPage()
-                        }
-                        disabled = (props.viewSlice.offset == 0)
-                    }
+                paginationPanel {
+                    pageSize = 10
+                    selected = 7
+                    totalItems = 100
                 }
-                Button {
-                    attrs {
-                        text = "${props.viewSlice.offset}".asReactElement()
-//                        disabled = true
-                    }
-                }
-//                div {
-//                    div(classes = "object-header__offset") {
-//                        +"${props.viewSlice.offset}"
-//                    }
-//                }
-                Button {
-                    attrs {
-                        icon = "fast-forward"
-                        onClick = {
-                            props.onNextPage()
-                        }
-                    }
-                }
-
             }
         }
     }
@@ -234,5 +211,4 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     }
 }
 
-fun RBuilder.objectsViewModel(block: RHandler<ObjectsViewApiConsumerProps>) =
-    child(ObjectTreeViewModelComponent::class, block)
+fun RBuilder.objectsViewModel(block: RHandler<ObjectsViewApiConsumerProps>) = child(ObjectTreeViewModelComponent::class, block)

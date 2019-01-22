@@ -33,8 +33,10 @@ interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
     var viewSlice: ViewSlice
 }
 
-class ObjectsViewApiModelComponent : RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
-    ObjectsViewApiModel, JobCoroutineScope by JobSimpleCoroutineScope() {
+class ObjectsViewApiModelComponent :
+    RComponent<RouteSuppliedProps, ObjectsViewApiModelComponent.State>(),
+    ObjectsViewApiModel,
+    JobCoroutineScope by JobSimpleCoroutineScope() {
 
     override fun State.init() {
         objects = emptyList()
