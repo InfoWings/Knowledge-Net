@@ -11,6 +11,7 @@ interface JobCoroutineScope : CoroutineScope {
 
 /**
  * Encapsulates simple logic from [CoroutineScope]
+ *
  * don't forget to create and cancel [job]
  *
  * ```
