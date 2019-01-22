@@ -13,7 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import react.*
 
-private val PageSize = 20
+private const val PageSize = 20
 
 interface ObjectsViewApiModel {
     fun refresh()

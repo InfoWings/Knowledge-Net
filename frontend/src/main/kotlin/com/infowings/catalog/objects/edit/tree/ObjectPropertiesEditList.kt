@@ -39,7 +39,7 @@ data class ValueSlot(val oPropertyId: String, val oPropertyName: String?, val aP
 fun List<ObjectPropertyEditModel>.freeSlots(): List<ValueSlot> {
     val oPropsWithAProps = this.filter {
         val aspect = it.aspect
-        aspect != null && aspect.properties.size > 0
+        aspect != null && aspect.properties.isNotEmpty()
     }
 
     return oPropsWithAProps.flatMap { oProp ->
@@ -47,12 +47,10 @@ fun List<ObjectPropertyEditModel>.freeSlots(): List<ValueSlot> {
         oProp.aspect ?: throw IllegalStateException("object property aspect is null")
         val aProps = oProp.aspect!!.properties.map { it.id }.toSet()
 
-        oProp.values?.let { values ->
-            values.mapIndexed { index, ovalue ->
-                val usedAspectProps = ovalue.valueGroups.map { it.propertyId }
-                (aProps - usedAspectProps).map { ValueSlot(aPropertyId = it, pos = index, oPropertyId = oProp.id, oPropertyName = oProp.name) }
-            }.flatten()
-        } ?: emptyList()
+        oProp.values?.mapIndexed { index, ovalue ->
+            val usedAspectProps = ovalue.valueGroups.map { it.propertyId }
+            (aProps - usedAspectProps).map { ValueSlot(aPropertyId = it, pos = index, oPropertyId = oProp.id, oPropertyName = oProp.name) }
+        }?.flatten() ?: emptyList()
     }
 }
 
@@ -89,7 +87,7 @@ fun RBuilder.objectPropertiesEditList(
                                     if (property.selectedSlot == ValueSlot.New || selectedSlot == null) {
                                         editModel.createProperty(property, selected.id)
                                     } else {
-                                        val oProperty = properties.filter {it.id == selectedSlot.oPropertyId}.single()
+                                        val oProperty = properties.filter { it.id == selectedSlot.oPropertyId }.single()
                                         val parentIds = oProperty.values?.map { it.id }
 
                                         if (parentIds != null) {
@@ -209,7 +207,8 @@ fun RBuilder.objectPropertiesEditList(
                                 {
                                     modelSaver(editContext, value) { dataValue ->
                                         editModel.updateValue(
-                                            ValueUpdateRequest(value.id, dataValue, value.measureName, value.description,
+                                            ValueUpdateRequest(
+                                                value.id, dataValue, value.measureName, value.description,
                                                 value.version ?: error("Value with id (${value.id}) should have non null version")
                                             )
                                         )
@@ -377,7 +376,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                             }
                         }
                         onSlotChanged = {
-                         //   var onSlotChanged: (valueSlot: ValueSlot?) -> Unit
+                            //   var onSlotChanged: (valueSlot: ValueSlot?) -> Unit
                             props.onUpdate {
                                 selectedSlot = it
                             }

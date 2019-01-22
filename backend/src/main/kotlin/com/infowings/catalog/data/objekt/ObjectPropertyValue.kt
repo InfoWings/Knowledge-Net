@@ -155,7 +155,7 @@ data class ValueResult(
         measureName,
         Reference(objectProperty.id, objectProperty.version),
         aspectProperty?.id,
-        parentValue?.id?.let { id -> parentValue.version.let { version -> Reference(id, version) } },
+        parentValue?.id?.let { id -> Reference(id, parentValue.version) },
         valueVertex.version,
         guidValue
     )
@@ -172,13 +172,6 @@ data class ValueDeleteResult(
         deletedValues.map { it.id },
         markedValues.map { it.id },
         Reference(property.id, property.version),
-        parentValue?.id?.let { parentId ->
-            parentValue.version.let { parentVersion ->
-                Reference(
-                    parentId,
-                    parentVersion
-                )
-            }
-        }
+        parentValue?.id?.let { Reference(it, parentValue.version) }
     )
 }

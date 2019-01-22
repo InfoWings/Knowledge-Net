@@ -19,7 +19,7 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
         val propertyName = props.propertyName
         if (!propertyName.isNullOrBlank()) {
             span(classes = "aspect-property__property-name text-bold text-italic") {
-                +propertyName!!
+                +propertyName
             }
         }
         span(classes = "aspect-property__aspect-name text-bold") {

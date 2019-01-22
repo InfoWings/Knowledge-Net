@@ -12,6 +12,8 @@ import com.infowings.catalog.utils.JobCoroutineScope
 import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.ServerException
 import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.Intent
+import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import react.*
@@ -53,16 +55,10 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     private fun refreshObjects() {
         val oldByGuid = state.objects.filter { it.guid != null }.map { it.guid to it }.toMap()
 
-        val withDetails = oldByGuid.filter { it.value.objectProperties != null }.keys
-
-        println("rrr orderBy: " + props.orderBy)
-
         launch {
             try {
                 //val response = getAllObjects(props.orderBy, props.query).objects
-                val response = getAllObjects(props.orderBy, props.query, props.viewSlice?.offset, props.viewSlice?.limit).objects
-
-                val freshByGuid = response.filter { it.guid != null }.map { it.guid to it }.toMap()
+                val response = getAllObjects(props.orderBy, props.query, props.viewSlice.offset, props.viewSlice.limit).objects
 
                 val detailsNeeded = response.filter {
                     if (oldByGuid.containsKey(it.guid)) {
@@ -102,8 +98,80 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     }
 
     override fun RBuilder.render() {
+        header()
+        objectTreeView()
+        pagination()
+    }
+
+    private fun RBuilder.objectTreeView() {
+        val subjectNames = state.filterBySubject.subjects.mapNotNull { it?.name }.toSet()
+        val excludedGuids = state.filterBySubject.excluded.mapNotNull { it.guid }.toSet()
+
+        val relevantIndices = when {
+            subjectNames.isEmpty() -> state.objects.indices.toList()
+            else -> state.objects.mapIndexedNotNull { index: Int, model: ObjectLazyViewModel ->
+                if (model.subjectName in subjectNames || model.guid in excludedGuids) index else null
+            }
+        }
+
+        objectLazyTreeView {
+            val currProps = props
+            attrs {
+                indices = relevantIndices
+                objects = state.objects
+                objectTreeViewModel = this@ObjectTreeViewModelComponent
+                history = currProps.history
+            }
+        }
+    }
+
+    private fun RBuilder.pagination() {
+        div(classes = "object-tree-view__header object-header") {
+            div(classes = "object-header__pages") {
+                Button {
+                    attrs {
+                        icon = "fast-backward"
+                        onClick = {
+                            props.onPrevPage()
+                        }
+                        disabled = (props.viewSlice.offset == 0)
+                    }
+                }
+                Button {
+                    attrs {
+                        text = "${props.viewSlice.offset}".asReactElement()
+//                        disabled = true
+                    }
+                }
+//                div {
+//                    div(classes = "object-header__offset") {
+//                        +"${props.viewSlice.offset}"
+//                    }
+//                }
+                Button {
+                    attrs {
+                        icon = "fast-forward"
+                        onClick = {
+                            props.onNextPage()
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    private fun RBuilder.header() {
         div(classes = "object-tree-view__header object-header") {
             div(classes = "object-header__sort-search") {
+                Button {
+                    attrs {
+                        icon = "plus"
+                        onClick = { props.history.push("/objects/new") }
+                        intent = Intent.SUCCESS
+                        text = "New object".asReactElement()
+                    }
+                }
                 objectSort {
                     attrs {
                         this.onOrderByChanged = { orderBy ->
@@ -112,10 +180,9 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                         }
                     }
                 }
-
                 objectSearchComponent {
                     attrs {
-                        onConfirmSearch =  { query ->
+                        onConfirmSearch = { query ->
                             props.onSearchQueryChanged(query)
                             refreshObjects()
                         } //onSearchQueryChanged
@@ -143,30 +210,6 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                 }
             }
 
-            div(classes = "object-header__pages") {
-                if (props.viewSlice.offset != 0) {
-                    Button {
-                        attrs {
-                            icon = "fast-backward"
-                            onClick = {
-                                props.onPrevPage()
-                            }
-                        }
-                    }
-                }
-                Button {
-                    attrs {
-                        icon = "fast-forward"
-                        onClick = {
-                            props.onNextPage()
-                        }
-                    }
-                }
-                div(classes = "object-header__offset") {
-                    +"${props.viewSlice.offset}"
-                }
-            }
-
             div("object-header__refresh") {
                 Button {
                     attrs {
@@ -176,25 +219,6 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
                         }
                     }
                 }
-            }
-        }
-
-
-        val subjectNames = state.filterBySubject.subjects.mapNotNull { it?.name }.toSet()
-        val excludedGuids = state.filterBySubject.excluded.mapNotNull { it.guid }.toSet()
-
-        val relevantIndices = if (subjectNames.isEmpty()) state.objects.indices.toList() else state.objects
-            .mapIndexedNotNull { index: Int, model: ObjectLazyViewModel ->
-                if (model.subjectName in subjectNames || excludedGuids.contains(model.guid)) index else null
-            }
-
-        objectLazyTreeView {
-            val currProps = props
-            attrs {
-                indices = relevantIndices
-                objects = state.objects
-                objectTreeViewModel = this@ObjectTreeViewModelComponent
-                history = currProps.history
             }
         }
     }
