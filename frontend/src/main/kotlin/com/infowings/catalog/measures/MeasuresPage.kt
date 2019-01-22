@@ -12,6 +12,7 @@ import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinext.js.require
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import react.RBuilder
 import react.RComponent
@@ -74,7 +75,7 @@ class MeasuresPage : RComponent<RouteSuppliedProps, MeasuresPage.State>(), JobCo
         }
         else -> {
             // if previous request not completed then cancel it
-            job.cancel()
+            job.cancelChildren()
             job = launch {
                 val suggestedMeasureData = getSuggestedMeasureData(filterText, findInGroups = true)
                 setState {

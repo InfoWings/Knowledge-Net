@@ -5,6 +5,7 @@ import com.infowings.catalog.common.SubjectsList
 import com.infowings.catalog.utils.*
 import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.RBuilder
@@ -74,11 +75,11 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
         setState {
             loading = true
         }
-        job.cancel()
-        job = launch {
+        job.cancelChildren()
+        launch {
             val subjects = getAllSubjects()
             setState {
-                data = subjects.subject.map { it.id to it }.toMap().toMutableMap()
+                data = subjects.subject.map { it.id to it }.toMap(mutableMapOf())
                 loading = false
             }
         }
@@ -119,7 +120,7 @@ class SubjectApiMiddleware : RComponent<RouteSuppliedProps, SubjectApiMiddleware
             loadAllData()
             return
         }
-        job.cancel()
+        job.cancelChildren()
         setState {
             loading = true
         }

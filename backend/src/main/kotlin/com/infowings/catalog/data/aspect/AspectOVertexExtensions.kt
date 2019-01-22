@@ -221,10 +221,12 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             data ?: logger.warn("Not found aspect property with id $propertyId. Aspect id: $id")
             data
         }
-        val data = logTime(logger, "get aspect only data") { toAspectLocalData() }
-        return data.copy(
-            properties = propertiesData, subject = details.subject, refBookName = details.refBookName,
-            lastChangeTimestamp = details.lastChange.epochSecond, guid = guids[id]
+        return toAspectLocalData().copy(
+            properties = propertiesData,
+            subject = details.subject,
+            refBookName = details.refBookName,
+            lastChangeTimestamp = details.lastChange.epochSecond,
+            guid = guids[id]
         )
     }
 }
@@ -245,7 +247,8 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
         links = emptyMap()
     )
 
-    fun toAspectPropertyData(): AspectPropertyData = AspectPropertyData(id, name, aspect, associatedAspect.guid ?: "???", cardinality, description, version, deleted, guid)
+    fun toAspectPropertyData(): AspectPropertyData =
+        AspectPropertyData(id, name, aspect, associatedAspect.guid ?: "???", cardinality, description, version, deleted, guid)
 
     var name: String?
         get() = vertex["name"]
