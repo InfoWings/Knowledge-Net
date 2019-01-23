@@ -131,7 +131,7 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
             div(classes = "object-header__pages") {
                 paginationPanel {
                     pageSize = 10
-                    selected = 7
+                    selected = 10
                     totalItems = 100
                 }
             }
