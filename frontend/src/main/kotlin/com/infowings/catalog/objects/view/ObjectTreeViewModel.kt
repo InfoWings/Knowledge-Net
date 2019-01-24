@@ -58,25 +58,12 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         launch {
             try {
-                //val response = getAllObjects(props.orderBy, props.query).objects
-                val response = getAllObjects(props.orderBy, props.query, props.viewSlice.offset, props.viewSlice.limit).objects
-
-                val detailsNeeded = response.filter {
-                    if (oldByGuid.containsKey(it.guid)) {
-                        val viewModel = oldByGuid[it.guid] ?: throw IllegalStateException("no view model")
-                        viewModel.objectProperties != null
-                    } else false
-                }
-
+                val response = getAllObjects(props.orderBy, props.query, props.paginationData.offset, props.paginationData.limit).objects
+                val detailsNeeded = response.filter { oldByGuid[it.guid]?.objectProperties != null ?: false }
                 val freshDetails = detailsNeeded.map { it.id to getDetailedObject(it.id) }.toMap()
 
-                val enriched = response.toLazyView(freshDetails).map {
-                    val viewModel = oldByGuid[it.guid]
-                    if (viewModel == null) {
-                        it
-                    } else {
-                        it.copy(expanded = viewModel.expanded, expandAllFlag = viewModel.expandAllFlag)
-                    }
+                val enriched = response.toLazyView(freshDetails).map { model ->
+                    oldByGuid[model.guid]?.let { model.copy(expanded = it.expanded, expandAllFlag = it.expandAllFlag) } ?: model
                 }
 
                 setState {
@@ -130,9 +117,8 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
         div(classes = "object-tree-view__header object-header") {
             div(classes = "object-header__pages") {
                 paginationPanel {
-                    pageSize = 10
-                    selected = 10
-                    totalItems = 100
+                    paginationData = props.paginationData
+                    onPageSelect = { props.onPage(it) }
                 }
             }
         }

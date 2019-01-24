@@ -13,8 +13,8 @@ import kotlin.js.Date
 suspend fun getAllObjects(orderBy: List<SortOrder>, query: String?, offset: Int? = null, limit: Int? = null): ObjectsResponse {
     val fields = orderBy.map { it.name }.joinToString(",")
     val directions = orderBy.map { it.direction }.joinToString(",")
-    val limitPart = limit?.let { "limit=$limit" }
-    val offsetPart = offset?.let { "offset=$offset" }
+    val limitPart = if (limit != null && limit > 0) "limit=$limit" else null
+    val offsetPart = if (offset != null && offset > 0) "offset=$offset" else null
     val params = listOfNotNull(limitPart, offsetPart, "orderFields=$fields", "direct=$directions", "q=${query ?: ""}").joinToString("&")
     println("params: $params")
     return JSON.parse(ObjectsResponse.serializer(), get("/api/objects?$params"))

@@ -1,9 +1,6 @@
 package com.infowings.catalog.objects.view
 
-import com.infowings.catalog.common.DetailedObjectViewResponse
-import com.infowings.catalog.common.ObjectGetResponse
-import com.infowings.catalog.common.SortOrder
-import com.infowings.catalog.common.ViewSlice
+import com.infowings.catalog.common.*
 import com.infowings.catalog.objects.getAllObjects
 import com.infowings.catalog.objects.getDetailedObject
 import com.infowings.catalog.utils.JobCoroutineScope
@@ -28,9 +25,9 @@ interface ObjectsViewApiConsumerProps : RouteSuppliedProps {
     var query: String?
     var onOrderByChanged: (List<SortOrder>) -> Unit
     var onSearchQueryChanged: (String) -> Unit
-    var onPrevPage: () -> Unit
-    var onNextPage: () -> Unit
-    var viewSlice: ViewSlice
+    //    var onPrevPage: () -> Unit
+    var onPage: (Int) -> Unit
+    var paginationData: PaginationData
 }
 
 class ObjectsViewApiModelComponent :
@@ -42,7 +39,7 @@ class ObjectsViewApiModelComponent :
         objects = emptyList()
         detailedObjectsView = emptyMap()
         orderBy = emptyList()
-        viewSlice = ViewSlice(offset = 0, limit = PageSize)
+        paginationData = PaginationData(pageSize = PageSize, current = 1, totalItems = 0)
     }
 
     override fun componentDidMount() {
@@ -68,19 +65,23 @@ class ObjectsViewApiModelComponent :
     private fun fetch() {
         launch {
             //val objectsResponse = getAllObjects(state.orderBy, state.searchQuery)
-            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = state.viewSlice.offset, limit = state.viewSlice.limit)
-            setState {
-                objects = objectsResponse.objects
-            }
+            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = state.paginationData.offset, limit = state.paginationData.limit)
+            objectsReceived(objectsResponse)
         }
     }
 
-    private fun fetch(viewSlice: ViewSlice) {
+    private fun objectsReceived(objectsResponse: ObjectsResponse) {
+        setState {
+            objects = objectsResponse.objects
+            this.paginationData = paginationData.copy(totalItems = objectsResponse.totalObjects)
+        }
+    }
+
+    private fun fetch(viewSlice: PaginationData) {
         launch {
             val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = viewSlice.offset, limit = viewSlice.limit)
             setState {
-                objects = objectsResponse.objects
-                this.viewSlice = viewSlice
+                objectsReceived(objectsResponse)
             }
         }
     }
@@ -96,13 +97,10 @@ class ObjectsViewApiModelComponent :
                 orderBy = state.orderBy
                 query = state.searchQuery
                 onOrderByChanged = ::updateSortConfig
-                onPrevPage = {
-                    fetch(state.viewSlice.prev())
+                onPage = {
+                    fetch(state.paginationData.copy(current = it))
                 }
-                onNextPage = {
-                    fetch(state.viewSlice.next())
-                }
-                viewSlice = state.viewSlice
+                paginationData = state.paginationData
                 onSearchQueryChanged = ::updateSearchQuery
             }
         }
@@ -120,7 +118,7 @@ class ObjectsViewApiModelComponent :
     private fun updateSearchQuery(query: String) {
         setState {
             searchQuery = query
-            viewSlice = ViewSlice(0, PageSize)
+            paginationData = paginationData.copy(current = 0)
         }
         //refresh()
     }
@@ -130,7 +128,7 @@ class ObjectsViewApiModelComponent :
         var detailedObjectsView: Map<String, DetailedObjectViewResponse>
         var orderBy: List<SortOrder>
         var searchQuery: String?
-        var viewSlice: ViewSlice
+        var paginationData: PaginationData
     }
 
 }

@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ObjectsResponse(
-    val objects: List<ObjectGetResponse>
+    val objects: List<ObjectGetResponse>,
+    val totalObjects: Int
 )
 
 @Serializable
