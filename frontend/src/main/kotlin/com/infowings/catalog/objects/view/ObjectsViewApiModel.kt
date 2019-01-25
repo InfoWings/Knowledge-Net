@@ -66,14 +66,14 @@ class ObjectsViewApiModelComponent :
         launch {
             //val objectsResponse = getAllObjects(state.orderBy, state.searchQuery)
             val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = state.paginationData.offset, limit = state.paginationData.limit)
-            objectsReceived(objectsResponse)
+            objectsReceived(objectsResponse, state.paginationData)
         }
     }
 
-    private fun objectsReceived(objectsResponse: ObjectsResponse) {
+    private fun objectsReceived(objectsResponse: ObjectsResponse, viewSlice: PaginationData) {
         setState {
             objects = objectsResponse.objects
-            this.paginationData = paginationData.copy(totalItems = objectsResponse.totalObjects)
+            this.paginationData = viewSlice.copy(totalItems = objectsResponse.totalObjects)
         }
     }
 
@@ -81,7 +81,7 @@ class ObjectsViewApiModelComponent :
         launch {
             val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = viewSlice.offset, limit = viewSlice.limit)
             setState {
-                objectsReceived(objectsResponse)
+                objectsReceived(objectsResponse, viewSlice)
             }
         }
     }
