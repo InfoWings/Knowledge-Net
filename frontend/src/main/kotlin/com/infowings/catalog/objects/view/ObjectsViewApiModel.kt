@@ -10,7 +10,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import react.*
 
-private const val PageSize = 20
 
 interface ObjectsViewApiModel {
     fun refresh()
@@ -39,7 +38,7 @@ class ObjectsViewApiModelComponent :
         objects = emptyList()
         detailedObjectsView = emptyMap()
         orderBy = emptyList()
-        paginationData = PaginationData(pageSize = PageSize, current = 1, totalItems = 0)
+        paginationData = PaginationData.emptyPage
     }
 
     override fun componentDidMount() {

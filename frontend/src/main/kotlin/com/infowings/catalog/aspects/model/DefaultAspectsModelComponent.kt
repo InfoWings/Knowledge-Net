@@ -21,6 +21,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         unsafeSelection = false
         errorMessages = emptyList()
         aspectsFilter = AspectsFilter(emptyList(), emptyList())
+        paginationData = PaginationData.emptyPage
     }
 
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
@@ -116,7 +117,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         setState {
             val currentlySelectedAspect = selectedAspect
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
-                    ?: error("Currently selected aspect property index should not be null")
+                ?: error("Currently selected aspect property index should not be null")
 
             selectedAspect = currentlySelectedAspect.updatePropertyAtIndex(
                 currentlySelectedPropertyIndex,
@@ -249,7 +250,8 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 setFilterSubjects = ::setSubjectsFilter,
                 setFilterAspects = ::setExcludedAspectsToFilter,
                 refreshAspects = props.refreshAspects,
-                aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap()
+                aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap(),
+                aspectsModel = this@DefaultAspectsModelComponent
             )
             aspectPageContent(
                 filteredAspects = state.aspectsFilter.applyToAspects(props.data),
@@ -275,6 +277,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         var unsafeSelection: Boolean
         var errorMessages: List<String>
         var aspectsFilter: AspectsFilter
+        var paginationData: PaginationData
     }
 }
 

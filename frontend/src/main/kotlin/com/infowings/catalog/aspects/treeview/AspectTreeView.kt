@@ -1,8 +1,6 @@
 package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.model.AspectsModel
-import com.infowings.catalog.aspects.treeview.view.newAspectButton
-import com.infowings.catalog.aspects.treeview.view.placeholderAspectLabel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.components.treeview.treeNode
 import com.infowings.catalog.wrappers.blueprint.Alert
@@ -40,14 +38,6 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
                         aspectsModel = props.aspectsModel
                         aspectContext = props.aspectContext
                     }
-                }
-            }
-            when (props.selectedAspectId) {
-                null -> div(classes = "aspect-tree-view--new-aspect") {
-                    placeholderAspectLabel("aspect-tree-view--label__selected")
-                }
-                else -> newAspectButton {
-                    props.aspectsModel.selectAspect(null)
                 }
             }
         }

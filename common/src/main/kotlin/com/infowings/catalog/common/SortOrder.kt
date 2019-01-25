@@ -26,6 +26,8 @@ class CompareString(val value: String, val direction: Direction) : Comparable<Co
         direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
 }
 
+private const val defaultPageSize = 20
+
 data class PaginationData(val pageSize: Int, val current: Int, val totalItems: Int) {
     val offset: Int
         get() = min(pageSize * (current - 1), totalItems)
@@ -35,5 +37,9 @@ data class PaginationData(val pageSize: Int, val current: Int, val totalItems: I
 
     val totalPages: Int
         get() = ceil(totalItems.toDouble() / pageSize).toInt()
+
+    companion object {
+        val emptyPage = PaginationData(defaultPageSize, 1, 0)
+    }
 
 }
