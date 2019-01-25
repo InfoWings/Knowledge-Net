@@ -118,7 +118,7 @@ class ObjectsViewApiModelComponent :
     private fun updateSearchQuery(query: String) {
         setState {
             searchQuery = query
-            paginationData = paginationData.copy(current = 0)
+            paginationData = paginationData.copy(current = 1)
         }
         //refresh()
     }

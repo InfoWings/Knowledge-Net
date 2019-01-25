@@ -30,7 +30,8 @@ class ObjectApi(val objectService: ObjectService) {
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
 
         return logTime(logger, "request of all object briefs") {
-            ObjectsResponse(objectService.fetch(orderBy, q ?: "").map { it.toResponse() }.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE), 1000)
+            val objects = objectService.fetch(orderBy, q).map { it.toResponse() }
+            ObjectsResponse(objects.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE), objects.size)
         }
     }
 

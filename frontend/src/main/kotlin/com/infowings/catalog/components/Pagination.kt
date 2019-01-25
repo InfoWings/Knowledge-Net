@@ -93,9 +93,14 @@ private fun IntRange.toPageList() = map { Page.Numbered(it) }.toList()
 
 
 internal fun generatePagesIndexes(totalPages: Int, pageSize: Int, selected: Int): List<Page> {
-    require(pageSize > 0)
+    require(pageSize > 0) {
+        "Page size should be positive"
+    }
     if (totalPages == 0) return emptyList()
-    require(selected in 1..totalPages)
+
+    require(selected in 1..totalPages) {
+        "Selected page should be in range 1..$totalPages"
+    }
 
     val selectedUpper = selected + 2
     val selectedLower = selected - 2
@@ -114,6 +119,5 @@ internal fun generatePagesIndexes(totalPages: Int, pageSize: Int, selected: Int)
 }
 
 private fun dotsIfNeeded(left: Int, right: Int) = if (abs(left - right) > 1) listOf(Page.Dots) else emptyList()
-
 
 fun RBuilder.paginationPanel(builder: Pagination.Props.() -> Unit) = buildWithProperties<Pagination.Props, Pagination>(builder)
