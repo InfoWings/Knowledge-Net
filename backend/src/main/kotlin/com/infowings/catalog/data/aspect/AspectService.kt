@@ -271,7 +271,7 @@ class DefaultAspectService(
         val aspects = transaction(db) {
             val vertices = logTime(logger, "getting aspect vertices") {
                 when {
-                    query == null || query.isBlank() -> aspectDaoService.getAspects()
+                    query.isNullOrBlank() -> aspectDaoService.getAspects()
                     else -> aspectDaoService.findTransitiveByNameQuery(query)
                 }
             }
@@ -351,7 +351,7 @@ class DefaultAspectService(
             return aspectDaoService.createNewAspectVertex()
 
 
-        return aspectDaoService.find(aspectId!!)
+        return aspectDaoService.find(aspectId)
             ?.validateExistingAspect(this)
             ?: throw IllegalArgumentException("Incorrect aspect id")
 

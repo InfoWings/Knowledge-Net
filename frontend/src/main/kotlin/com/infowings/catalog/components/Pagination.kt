@@ -13,10 +13,15 @@ import kotlin.math.abs
 
 
 class Pagination : RComponent<Pagination.Props, RState>() {
+    companion object {
+        init {
+            kotlinext.js.require("styles/pagination.scss")
+        }
+    }
 
     override fun RBuilder.render() {
-        div(classes = "object-tree-view__header object-header") {
-            div(classes = "object-header__pages") {
+        div(classes = "pagination-view__header") {
+            div(classes = "pagination-view__pages") {
                 fastBackwardButton()
                 backwardButton(props.paginationData.current - 1)
                 with(props) {

@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AspectsList(
-    val aspects: List<AspectData> = emptyList()
+    val aspects: List<AspectData> = emptyList(),
+    val count: Int
 )
 
 @Serializable
@@ -118,7 +119,7 @@ data class AspectData(
     fun idStrict(): String = id ?: throw IllegalStateException("No id for aspect $this")
     fun guidSoft(): String = guid ?: "???"
 
-    fun nameWithSubject(): String = "${name} ( ${subject?.name ?: "Global"} )"
+    fun nameWithSubject(): String = "$name ( ${subject?.name ?: "Global"} )"
 
     companion object {
         fun initial(name: String) = AspectData(name = name)
@@ -139,7 +140,16 @@ data class AspectPropertyData(
 ) : GuidAware {
     companion object {
         fun Initial(name: String, description: String?, aspectId: String, aspectGuid: String, cardinality: String) =
-            AspectPropertyData(id = "", name = name, description = description, aspectId = aspectId, aspectGuid = aspectGuid, cardinality = cardinality, version = 0, deleted = false)
+            AspectPropertyData(
+                id = "",
+                name = name,
+                description = description,
+                aspectId = aspectId,
+                aspectGuid = aspectGuid,
+                cardinality = cardinality,
+                version = 0,
+                deleted = false
+            )
     }
 }
 

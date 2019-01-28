@@ -32,14 +32,17 @@ data class PaginationData(val pageSize: Int, val current: Int, val totalItems: I
     val offset: Int
         get() = min(pageSize * (current - 1), totalItems)
 
-    val limit: Int
-        get() = min(pageSize * current, totalItems)
+    val limit: Int = pageSize
 
     val totalPages: Int
         get() = ceil(totalItems.toDouble() / pageSize).toInt()
 
     companion object {
-        val emptyPage = PaginationData(defaultPageSize, 1, 0)
+        // totalItems set to defaultPageSize to prevent all items loading from server
+        // if it is set to 0 we cannot set correct limit for request
+        val emptyPage = PaginationData(defaultPageSize, 1, totalItems = defaultPageSize)
+
+        val allItems = PaginationData(defaultPageSize, 1, totalItems = Int.MAX_VALUE)
     }
 
 }

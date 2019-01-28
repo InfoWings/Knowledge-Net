@@ -53,7 +53,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
                 .map { Pair(it.aspectId, it) }
                 .toMap()
 
-            val rowDataList = getAllAspects(orderBy).aspects
+            val rowDataList = getAllAspects(orderBy, paginationData = PaginationData.allItems).aspects
                 .filterNot { it.deleted }
                 .filter { it.baseType == BaseType.Text.name }
                 .map {

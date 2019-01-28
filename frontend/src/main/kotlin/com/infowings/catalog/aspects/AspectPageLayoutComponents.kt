@@ -9,10 +9,7 @@ import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.aspects.search.aspectSearchComponent
 import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
-import com.infowings.catalog.common.AspectData
-import com.infowings.catalog.common.AspectHint
-import com.infowings.catalog.common.SortOrder
-import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.common.*
 import com.infowings.catalog.wrappers.blueprint.*
 import com.infowings.catalog.wrappers.button
 import com.infowings.catalog.wrappers.react.asReactElement
@@ -81,16 +78,19 @@ fun RBuilder.aspectPageContent(
     aspectsModel: AspectsModel,
     selectedAspect: AspectData,
     selectedAspectPropertyIndex: Int?,
-    isUpdated: Boolean
+    isUpdated: Boolean,
+    paginationData: PaginationData,
+    onPageSelect: (Int) -> Unit
+
 ) {
     aspectTreeView {
-        attrs {
-            aspects = filteredAspects
-            this.aspectContext = aspectContext
-            selectedAspectId = selectedAspect.id
-            selectedPropertyIndex = selectedAspectPropertyIndex
-            this.aspectsModel = aspectsModel
-        }
+        aspects = filteredAspects
+        this.aspectContext = aspectContext
+        selectedAspectId = selectedAspect.id
+        selectedPropertyIndex = selectedAspectPropertyIndex
+        this.aspectsModel = aspectsModel
+        this.paginationData = paginationData
+        this.onPageSelect = onPageSelect
     }
     aspectConsole {
         attrs {

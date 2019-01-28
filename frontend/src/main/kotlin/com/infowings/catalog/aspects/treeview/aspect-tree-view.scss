@@ -99,6 +99,12 @@
     }
   }
 
+  &__pages {
+    display: flex;
+    margin-right: 1rem;
+    margin-top: 2rem;
+  }
+
 }
 
 .aspect-header {

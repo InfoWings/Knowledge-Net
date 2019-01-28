@@ -6,6 +6,7 @@ import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.sql.executor.OResult
+import notDeletedSql
 import java.time.Instant
 
 
@@ -46,7 +47,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 "                    $STR_TYPE_PROPERTY, $TYPE_TAG_PROPERTY, deleted  FROM ${OrientClass.OBJECT_VALUE.extName}\n" +
                 "          WHERE $TYPE_TAG_PROPERTY = ${ScalarTypeTag.STRING.code}\n" +
                 "                 AND ${searchLucene(OrientClass.OBJECT_VALUE.extName, STR_TYPE_PROPERTY, "lq")}\n" +
-                "                 AND (deleted is null or deleted = false) AND (prop_deleted is null OR prop_deleted = false)\n" +
+                "                 AND $notDeletedSql AND (prop_deleted is null OR prop_deleted = false)\n" +
                 "          UNWIND obj_name, obj_id, prop_deleted) WHERE @rid IN \$t.obj_id  " +
                 " and (deleted is NULL or deleted = false ) "
         return db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.toObjectsTruncated(tsById) }.toList()

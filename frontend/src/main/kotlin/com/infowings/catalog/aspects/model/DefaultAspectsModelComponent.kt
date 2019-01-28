@@ -14,6 +14,8 @@ import kotlin.math.min
 class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultAspectsModelComponent.State>(),
     AspectsModel {
 
+    override fun hasUnsavedChanges(): Boolean = state.unsavedDataSelection(null, null)
+
     override fun State.init() {
         selectedIsUpdated = false
         selectedAspect = emptyAspectData
@@ -74,8 +76,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             val selectedAspectId = selectedAspect.id
             val prevSelectedAspect = selectedAspect
             val selectedIndex = selectedAspectPropertyIndex
-            selectedAspect =
-                    if (selectedAspectId == null) emptyAspectData else props.aspectContext[selectedAspectId]!!
+            selectedAspect = if (selectedAspectId == null) emptyAspectData else props.aspectContext.getValue(selectedAspectId)
             selectedAspectPropertyIndex = when (selectedIndex) {
                 null -> null
                 else -> if (prevSelectedAspect.properties[selectedIndex].id == "") null else selectedIndex
@@ -169,7 +170,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             if (aspectPropertyId == "") {
                 setState {
                     selectedAspect =
-                            selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
+                        selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
                     selectedAspectPropertyIndex = null
                     selectedIsUpdated = true
                 }
@@ -259,7 +260,9 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 aspectsModel = this@DefaultAspectsModelComponent,
                 selectedAspect = state.selectedAspect,
                 selectedAspectPropertyIndex = state.selectedAspectPropertyIndex,
-                isUpdated = state.selectedIsUpdated
+                isUpdated = state.selectedIsUpdated,
+                paginationData = props.paginationData,
+                onPageSelect = props.onPageSelect
             )
             aspectPageOverlay(
                 isUnsafeSelection = state.unsafeSelection,

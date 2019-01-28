@@ -2,7 +2,10 @@ package com.infowings.catalog.aspects.treeview
 
 import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.PaginationData
+import com.infowings.catalog.components.paginationPanel
 import com.infowings.catalog.components.treeview.treeNode
+import com.infowings.catalog.utils.buildWithProperties
 import com.infowings.catalog.wrappers.blueprint.Alert
 import kotlinext.js.require
 import react.*
@@ -40,6 +43,12 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
                     }
                 }
             }
+            div(classes = "aspect-tree-view__pages") {
+                paginationPanel {
+                    paginationData = props.paginationData
+                    onPageSelect = props.onPageSelect
+                }
+            }
         }
         Alert {
             attrs {
@@ -70,6 +79,8 @@ class AspectTreeView : RComponent<AspectTreeView.Props, AspectTreeView.State>() 
         var selectedPropertyIndex: Int?
         var aspectContext: Map<String, AspectData>
         var aspectsModel: AspectsModel
+        var paginationData: PaginationData
+        var onPageSelect: (Int) -> Unit
     }
 }
 
@@ -153,4 +164,4 @@ class AspectNodeExpandedStateWrapper :
     }
 }
 
-fun RBuilder.aspectTreeView(block: RHandler<AspectTreeView.Props>) = child(AspectTreeView::class, block)
+fun RBuilder.aspectTreeView(builder: AspectTreeView.Props.() -> Unit) = buildWithProperties<AspectTreeView.Props, AspectTreeView>(builder)

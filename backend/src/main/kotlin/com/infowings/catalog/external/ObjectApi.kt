@@ -24,8 +24,7 @@ class ObjectApi(val objectService: ObjectService) {
         principal: Principal
     ): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, query: >$q<")
-        logger.debug("offset: $offset, limit: $limit")
+        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, offset: $offset, limit: $limit, query: >$q<")
 
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
 

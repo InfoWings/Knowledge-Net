@@ -86,8 +86,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) :
             val aspectProperty = props.parentAspect.properties[props.propertyIndex]
             val childAspect =
                 if (aspectProperty.aspectId.isNotEmpty())
-                    props.aspectContext[aspectProperty.aspectId]
-                            ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
+                    props.aspectContext[aspectProperty.aspectId] ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
                 else null
 
             attrs {

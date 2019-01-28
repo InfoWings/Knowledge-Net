@@ -17,7 +17,6 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.OVertex
 import com.orientechnologies.orient.core.sql.executor.OResult
 import notDeletedSql
-import java.text.CharacterIterator
 
 /**
  * Сервис поиска в OrientDB
@@ -79,7 +78,7 @@ class SuggestionService(
             aspectRecord to aspectId,
             "ids" to candidates
         )
-        return database.query("SELECT FROM :ids WHERE ($noCycle)", params) { it.toList().map { it.getProperty<ORID>("@rid")} }
+        return database.query("SELECT FROM :ids WHERE ($noCycle)", params) { it.toList().map { it.getProperty<ORID>("@rid") } }
     }
 
     fun aspectHints(
@@ -109,10 +108,12 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description,
+                        AspectHint(
+                            aspect.fullName(), aspect.description, vertex.value, vertex.description,
                             subAspectName = null, aspectName = null, property = null,
                             subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id, parentAspect = null,
-                            source = AspectHintSource.REFBOOK_NAME.toString())
+                            source = AspectHintSource.REFBOOK_NAME.toString()
+                        )
                     }
                 }
         } ?: emptyList()
@@ -122,10 +123,12 @@ class SuggestionService(
                 .mapNotNull { vertex ->
                     val root = vertex.root ?: vertex
                     root.aspect?.let { aspect ->
-                        AspectHint(aspect.fullName(), aspect.description, vertex.value, vertex.description,
+                        AspectHint(
+                            aspect.fullName(), aspect.description, vertex.value, vertex.description,
                             subAspectName = null, aspectName = null, property = null,
                             subjectName = aspect.subject?.name, guid = aspect.guid ?: "?", id = aspect.id, parentAspect = null,
-                            source = AspectHintSource.REFBOOK_DESCRIPTION.toString())
+                            source = AspectHintSource.REFBOOK_DESCRIPTION.toString()
+                        )
                     }
                 }.toList()
         } ?: emptyList()
@@ -133,7 +136,7 @@ class SuggestionService(
         val byProperty = commonParam?.text?.let { text ->
             findAspectPropertyByNameWithAspect(text, context)
                 .mapNotNull { vertex ->
-                    vertex.parentAspect ?.let { parent ->
+                    vertex.parentAspect?.let { parent ->
                         aspectDao.find(vertex.aspect)?.let { aspect ->
                             AspectHint(
                                 parent.fullName(),
@@ -143,13 +146,17 @@ class SuggestionService(
                                 aspect.fullName(),
                                 aspect.description,
                                 subjectName = parent.subject?.name,
-                                parentAspect = AspectHintAspectInfo(id = parent.id, guid = parent.guidSoft(), name = parent.name, description = null,
-                                    subjectName = parent.subject?.name ?: "Global"),
+                                parentAspect = AspectHintAspectInfo(
+                                    id = parent.id, guid = parent.guidSoft(), name = parent.name, description = null,
+                                    subjectName = parent.subject?.name ?: "Global"
+                                ),
                                 guid = parent.guid ?: "?",
                                 source = AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT.toString(),
                                 id = vertex.aspect,
-                                property = AspectHintAspectPropInfo(guid = vertex.guidSoft(), id = vertex.id,
-                                    name = vertex.name, description = vertex.description, cardinality = vertex.cardinality)
+                                property = AspectHintAspectPropInfo(
+                                    guid = vertex.guidSoft(), id = vertex.id,
+                                    name = vertex.name, description = vertex.description, cardinality = vertex.cardinality
+                                )
                             )
                         }
                     } ?: {
@@ -346,7 +353,7 @@ class SuggestionService(
     }
 
     private fun findRefBookItemsByValue(text: String, ctx: SearchContext): List<ReferenceBookItemVertex> = try {
-        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
+        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE $notDeletedSql" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_VALUE)}, :$lq) = true"
         val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
@@ -371,7 +378,7 @@ class SuggestionService(
     }
 
     private fun findRefBookItemsByDesc(text: String, ctx: SearchContext): List<ReferenceBookItemVertex> = try {
-        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
+        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE $notDeletedSql" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_DESC)}, :$lq) = true"
         val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
@@ -396,7 +403,7 @@ class SuggestionService(
     }
 
     private fun findAspectPropertyByNameWithAspect(text: String, ctx: SearchContext): List<AspectPropertyVertex> = try {
-        val q = "SELECT FROM ${OrientClass.ASPECT_PROPERTY.extName} WHERE (deleted is null or deleted = false)" +
+        val q = "SELECT FROM ${OrientClass.ASPECT_PROPERTY.extName} WHERE $notDeletedSql" +
                 " AND SEARCH_INDEX(${luceneIdx(OrientClass.ASPECT_PROPERTY.extName, "name_with_aspect")}, :$lq) = true"
         val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcardNoSpaces(text)))) {
             it.toList().mapNotNull {
@@ -405,7 +412,7 @@ class SuggestionService(
         }
 
         if (ctx.aspectId != null && ctx.aspectId != "") {
-            val aspectIds = res.mapNotNull { it.aspect }
+            val aspectIds = res.map { it.aspect }
 
             logger.info("aspectIds: $aspectIds")
 
@@ -422,51 +429,7 @@ class SuggestionService(
         emptyList()
     }
 
-/*
-    private fun findAspectsByDesc(text: String): Sequence<AspectVertex> = try {
-        val q = "$selectFromAspectWithoutDeleted AND SEARCH_INDEX(${luceneIdx(ASPECT_CLASS, ATTR_DESC)}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
-        res.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }
-    } catch (e: Exception) {
-        logger.warn("thrown $e during aspects collection by description")
-        emptySequence()
-    }
-
-    private fun findRefBookItemsByValue(text: String): Sequence<ReferenceBookItemVertex> = try {
-        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
-                " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_VALUE)}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
-        res.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
-    }  catch (e: Exception) {
-        logger.warn("thrown $e during aspects collection by ref book item values")
-        emptySequence()
-    }
-
-    private fun findRefBookItemsByDesc(text: String): Sequence<ReferenceBookItemVertex> = try {
-        val q = "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE (deleted is null or deleted = false)" +
-                " AND SEARCH_INDEX(${luceneIdx(OrientClass.REFBOOK_ITEM.extName, ATTR_DESC)}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
-        res.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }
-    }  catch (e: Exception) {
-        logger.warn("thrown $e during aspects collection by ref book item descriptions")
-        emptySequence()
-    }
-
-    private fun findAspectPropertyByNameWithAspect(text: String): Sequence<AspectPropertyVertex> = try {
-        val q = "SELECT FROM ${OrientClass.ASPECT_PROPERTY.extName} WHERE (deleted is null or deleted = false)" +
-                " AND SEARCH_INDEX(${luceneIdx(OrientClass.ASPECT_PROPERTY.extName, "name_with_aspect")}, :$lq) = true"
-        val res = database.query(q, mapOf(lq to luceneQuery(textOrAllWildcard(text)))) { it }
-        res.mapNotNull {
-            it.toVertexOrNull()?.toAspectPropertyVertex()
-        }
-    } catch (e: Exception) {
-        logger.warn("thrown $e during aspects collection by property + aspect")
-        emptySequence()
-    }
-*/
-    private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else {
-        text
-    }
+    private fun textOrAllWildcard(text: String?): String = if (text == null || text.isBlank()) "*" else text
 
     private fun textOrAllWildcardNoSpaces(text: String?): String = if (text == null || text.isBlank()) "*" else {
         // remove spaces because they have special meaning for Lucene

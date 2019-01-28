@@ -64,4 +64,10 @@ interface AspectsModel {
     suspend fun deleteAspect(force: Boolean)
 
     suspend fun deleteAspectProperty(force: Boolean)
+
+    /**
+     * this is workaround for an issue with whole Aspect Page components design. There are several components responsible for aspect fetching/updating
+     * and this became a mess. Should be refactored
+     */
+    fun hasUnsavedChanges(): Boolean
 }
