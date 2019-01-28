@@ -29,8 +29,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
         if (state.selectedAspect.id != null) {
             setState {
-                val selectedAspectOnServer =
-                    nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                val selectedAspectOnServer = nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
 
                 selectedAspect = if (nextProps.refreshOperation) {
                     selectedAspectOnServer
@@ -43,17 +42,20 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     }
 
     override fun selectAspect(aspectId: String?) {
-        setState {
-            if (unsavedDataSelection(aspectId, null)) {
-                unsafeSelection = true
-            } else {
-                selectedAspect = newAspectSelection(aspectId)
-                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
-                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
+        // we need this call to be synchronous
+        setState(state) {
+            with(state) {
+                if (unsavedDataSelection(aspectId, null)) {
+                    unsafeSelection = true
+                } else {
+                    selectedAspect = newAspectSelection(aspectId)
+                    if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                        selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
+                    }
+                    selectedAspectPropertyIndex = null
+                    aspectId?.let { props.refreshAspect(it) }
+                    selectedIsUpdated = false
                 }
-                selectedAspectPropertyIndex = null
-                aspectId?.let { props.refreshAspect(it) }
-                selectedIsUpdated = false
             }
         }
     }
