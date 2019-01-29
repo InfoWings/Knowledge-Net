@@ -44,7 +44,7 @@ external interface NumericInputProps : BlueprintComponentProps {
     /**
      * The increment between successive values when shift is held. Pass explicit null value to disable this interaction.
      */
-    var majorStepSize: Number
+    var majorStepSize: Number?
 
     var max: Number
     var min: Number
@@ -52,7 +52,7 @@ external interface NumericInputProps : BlueprintComponentProps {
     /**
      * The increment between successive values when alt is held. Pass explicit null value to disable this interaction.
      */
-    var minorStepSize: Number
+    var minorStepSize: Number?
 
     var onButtonClick: (valueAsNumber: Number, valueAsString: String) -> Unit
 
