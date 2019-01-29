@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.Range
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
+import notDeletedSql
 import java.math.BigDecimal
 
 
@@ -194,7 +195,7 @@ abstract class SqlConditionBuilder(from: String, layer: Int) {
 
     fun withoutDeleted() {
         processConditions()
-        sql += "(deleted is NULL or deleted = false)"
+        sql += notDeletedSql
     }
 
     protected fun processConditions() {

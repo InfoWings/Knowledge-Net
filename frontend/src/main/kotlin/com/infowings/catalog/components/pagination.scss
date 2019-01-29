@@ -1,0 +1,14 @@
+.pagination-view {
+
+  max-width: 120rem;
+  margin: 3rem auto;
+  position: relative;
+
+  &__header {
+    margin: 1rem auto;
+  }
+
+  &__pages {
+    display: flex;
+  }
+}

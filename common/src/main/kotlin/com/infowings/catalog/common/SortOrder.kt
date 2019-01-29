@@ -1,6 +1,8 @@
 package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
+import kotlin.math.ceil
+import kotlin.math.min
 
 enum class Direction(val dir: kotlin.Int) {
     ASC(1), DESC(-1)
@@ -19,21 +21,28 @@ data class SortOrder(val name: SortField, val direction: Direction) {
     }
 }
 
-data class ViewSlice(val offset: Int?, val limit: Int?) {
-    fun next(total: Int = Int.MAX_VALUE) = when {
-        offset != null && limit != null -> ViewSlice(minOf(offset + limit, total), limit)
-        else -> this
-    }
-
-    fun prev() = when {
-        offset != null && limit != null -> ViewSlice(maxOf(offset - limit, 0), limit)
-        else -> this
-    }
-}
-
 class CompareString(val value: String, val direction: Direction) : Comparable<CompareString> {
     override fun compareTo(other: CompareString): Int =
         direction.dir * value.toLowerCase().compareTo(other.value.toLowerCase())
 }
 
+private const val defaultPageSize = 20
 
+data class PaginationData(val pageSize: Int, val current: Int, val totalItems: Int) {
+    val offset: Int
+        get() = min(pageSize * (current - 1), totalItems)
+
+    val limit: Int = pageSize
+
+    val totalPages: Int
+        get() = ceil(totalItems.toDouble() / pageSize).toInt()
+
+    companion object {
+        // totalItems set to defaultPageSize to prevent all items loading from server
+        // if it is set to 0 we cannot set correct limit for request
+        val emptyPage = PaginationData(defaultPageSize, 1, totalItems = defaultPageSize)
+
+        val allItems = PaginationData(defaultPageSize, 1, totalItems = Int.MAX_VALUE)
+    }
+
+}

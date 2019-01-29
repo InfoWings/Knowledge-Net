@@ -1,7 +1,9 @@
 package com.infowings.catalog.aspects.editconsole
 
 import com.infowings.catalog.aspects.model.AspectsModel
-import com.infowings.catalog.common.*
+import com.infowings.catalog.common.AspectData
+import com.infowings.catalog.common.AspectPropertyData
+import com.infowings.catalog.common.emptyAspectPropertyData
 import kotlinext.js.require
 import react.*
 
@@ -105,8 +107,7 @@ class AspectConsole : RComponent<AspectConsole.Props, RState>(), AspectEditConso
 
     override suspend fun switchToNextProperty() {
         val selectedAspect = props.aspect
-        val selectedPropertyIndex = props.propertyIndex
-                ?: error("Aspect property should be selected in order to switch to next property")
+        val selectedPropertyIndex = props.propertyIndex ?: error("Aspect property should be selected in order to switch to next property")
         val property = selectedAspect.properties[selectedPropertyIndex]
         if (selectedPropertyIndex != selectedAspect.properties.lastIndex || property != emptyAspectPropertyData) {
             if (selectedAspect != props.aspectContext[selectedAspect.id]) {

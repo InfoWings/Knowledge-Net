@@ -1,6 +1,7 @@
 package com.infowings.catalog.objects.view
 
 import com.infowings.catalog.common.SubjectData
+import com.infowings.catalog.components.paginationPanel
 import com.infowings.catalog.objects.*
 import com.infowings.catalog.objects.filter.ObjectsFilter
 import com.infowings.catalog.objects.filter.objectExcludeFilterComponent
@@ -57,25 +58,12 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
 
         launch {
             try {
-                //val response = getAllObjects(props.orderBy, props.query).objects
-                val response = getAllObjects(props.orderBy, props.query, props.viewSlice.offset, props.viewSlice.limit).objects
-
-                val detailsNeeded = response.filter {
-                    if (oldByGuid.containsKey(it.guid)) {
-                        val viewModel = oldByGuid[it.guid] ?: throw IllegalStateException("no view model")
-                        viewModel.objectProperties != null
-                    } else false
-                }
-
+                val response = getAllObjects(props.orderBy, props.query, props.paginationData.offset, props.paginationData.limit).objects
+                val detailsNeeded = response.filter { oldByGuid[it.guid]?.objectProperties != null ?: false }
                 val freshDetails = detailsNeeded.map { it.id to getDetailedObject(it.id) }.toMap()
 
-                val enriched = response.toLazyView(freshDetails).map {
-                    val viewModel = oldByGuid[it.guid]
-                    if (viewModel == null) {
-                        it
-                    } else {
-                        it.copy(expanded = viewModel.expanded, expandAllFlag = viewModel.expandAllFlag)
-                    }
+                val enriched = response.toLazyView(freshDetails).map { model ->
+                    oldByGuid[model.guid]?.let { model.copy(expanded = it.expanded, expandAllFlag = it.expandAllFlag) } ?: model
                 }
 
                 setState {
@@ -128,35 +116,10 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     private fun RBuilder.pagination() {
         div(classes = "object-tree-view__header object-header") {
             div(classes = "object-header__pages") {
-                Button {
-                    attrs {
-                        icon = "fast-backward"
-                        onClick = {
-                            props.onPrevPage()
-                        }
-                        disabled = (props.viewSlice.offset == 0)
-                    }
+                paginationPanel {
+                    paginationData = props.paginationData
+                    onPageSelect = { props.onPage(it) }
                 }
-                Button {
-                    attrs {
-                        text = "${props.viewSlice.offset}".asReactElement()
-//                        disabled = true
-                    }
-                }
-//                div {
-//                    div(classes = "object-header__offset") {
-//                        +"${props.viewSlice.offset}"
-//                    }
-//                }
-                Button {
-                    attrs {
-                        icon = "fast-forward"
-                        onClick = {
-                            props.onNextPage()
-                        }
-                    }
-                }
-
             }
         }
     }
@@ -234,5 +197,4 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     }
 }
 
-fun RBuilder.objectsViewModel(block: RHandler<ObjectsViewApiConsumerProps>) =
-    child(ObjectTreeViewModelComponent::class, block)
+fun RBuilder.objectsViewModel(block: RHandler<ObjectsViewApiConsumerProps>) = child(ObjectTreeViewModelComponent::class, block)

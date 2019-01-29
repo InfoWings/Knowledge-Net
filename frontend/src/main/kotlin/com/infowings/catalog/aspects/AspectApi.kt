@@ -8,14 +8,13 @@ import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
-    return JSON.parse(
-        AspectsList.serializer(),
-        get("/api/aspect/all" +
-                "?orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}" +
-                "&direct=${orderBy.map { it.direction.toString() }.joinToString { it }}" +
-                "&q=$nameQuery"
-        )
-    )
+    val orderFields = "orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}"
+    val direction = "direct=${orderBy.map { it.direction.toString() }.joinToString { it }}"
+    val query = if (nameQuery.isBlank()) "q=$nameQuery" else null
+
+    val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
+
+    return JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
 }
 
 suspend fun getAspectTree(id: String): AspectTree = JSON.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))

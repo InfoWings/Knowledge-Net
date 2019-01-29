@@ -11,8 +11,8 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import notDeletedSql
 
-private const val notDeletedSql = "(deleted is NULL or deleted = false)"
 private const val selectAllNotDeletedRefBookRoots =
     "SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX WHERE IN(\"$ASPECT_REFERENCE_BOOK_EDGE\").size() = 1 AND $notDeletedSql"
 

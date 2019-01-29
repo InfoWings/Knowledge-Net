@@ -14,6 +14,8 @@ import kotlin.math.min
 class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultAspectsModelComponent.State>(),
     AspectsModel {
 
+    override fun hasUnsavedChanges(): Boolean = state.unsavedDataSelection(null, null)
+
     override fun State.init() {
         selectedIsUpdated = false
         selectedAspect = emptyAspectData
@@ -26,8 +28,9 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
         if (state.selectedAspect.id != null) {
             setState {
-                val selectedAspectOnServer =
-                    nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                // this double checking needed due to async setState in AspectApiMiddleware.nextPage
+                val selectedAspectId = selectedAspect.id ?: return@setState
+                val selectedAspectOnServer = nextProps.aspectContext[selectedAspectId] ?: error("Context must contain all aspects")
 
                 selectedAspect = if (nextProps.refreshOperation) {
                     selectedAspectOnServer
@@ -41,30 +44,46 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
 
     override fun selectAspect(aspectId: String?) {
         setState {
-            if (unsavedDataSelection(aspectId, null)) {
-                unsafeSelection = true
-            } else {
-                selectedAspect = newAspectSelection(aspectId)
-                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
-                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
-                }
-                selectedAspectPropertyIndex = null
-                aspectId?.let { props.refreshAspect(it) }
-                selectedIsUpdated = false
+            selectAspect(aspectId)
+        }
+    }
+
+    private fun State.selectAspect(aspectId: String?) {
+        if (unsavedDataSelection(aspectId, null)) {
+            unsafeSelection = true
+        } else {
+            selectedAspect = newAspectSelection(aspectId)
+
+            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
             }
+            selectedAspectPropertyIndex = null
+            aspectId?.let { props.refreshAspect(it) }
+            selectedIsUpdated = false
         }
     }
 
     override fun selectProperty(index: Int) {
         setState {
-            if (unsavedDataSelection(selectedAspect.id, index)) {
-                unsafeSelection = true
-            } else {
-                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
-                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
-                }
-                selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
+            selectProperty(index)
+        }
+    }
+
+    override fun selectAspectAndProperty(aspectId: String?, index: Int) {
+        setState {
+            selectAspect(aspectId)
+            selectProperty(index)
+        }
+    }
+
+    private fun State.selectProperty(index: Int) {
+        if (unsavedDataSelection(selectedAspect.id, index)) {
+            unsafeSelection = true
+        } else {
+            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
+                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
             }
+            selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
         }
     }
 
@@ -73,8 +92,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             val selectedAspectId = selectedAspect.id
             val prevSelectedAspect = selectedAspect
             val selectedIndex = selectedAspectPropertyIndex
-            selectedAspect =
-                    if (selectedAspectId == null) emptyAspectData else props.aspectContext[selectedAspectId]!!
+            selectedAspect = if (selectedAspectId == null) emptyAspectData else props.aspectContext.getValue(selectedAspectId)
             selectedAspectPropertyIndex = when (selectedIndex) {
                 null -> null
                 else -> if (prevSelectedAspect.properties[selectedIndex].id == "") null else selectedIndex
@@ -116,7 +134,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         setState {
             val currentlySelectedAspect = selectedAspect
             val currentlySelectedPropertyIndex = selectedAspectPropertyIndex
-                    ?: error("Currently selected aspect property index should not be null")
+                ?: error("Currently selected aspect property index should not be null")
 
             selectedAspect = currentlySelectedAspect.updatePropertyAtIndex(
                 currentlySelectedPropertyIndex,
@@ -168,7 +186,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
             if (aspectPropertyId == "") {
                 setState {
                     selectedAspect =
-                            selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
+                        selectedAspect.copy(properties = selectedAspect.properties.filterIndexed { index, _ -> index != selectedAspectPropertyIndex })
                     selectedAspectPropertyIndex = null
                     selectedIsUpdated = true
                 }
@@ -249,15 +267,18 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 setFilterSubjects = ::setSubjectsFilter,
                 setFilterAspects = ::setExcludedAspectsToFilter,
                 refreshAspects = props.refreshAspects,
-                aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap()
+                aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap(),
+                aspectsModel = this@DefaultAspectsModelComponent
             )
             aspectPageContent(
-                filteredAspects = state.aspectsFilter.applyToAspects(props.data),
+                filteredAspects = state.aspectsFilter.applyToAspects(props.data).applyPagination(props.paginationData),
                 aspectContext = props.aspectContext,
                 aspectsModel = this@DefaultAspectsModelComponent,
                 selectedAspect = state.selectedAspect,
                 selectedAspectPropertyIndex = state.selectedAspectPropertyIndex,
-                isUpdated = state.selectedIsUpdated
+                isUpdated = state.selectedIsUpdated,
+                paginationData = props.paginationData,
+                onPageSelect = props.onPageSelect
             )
             aspectPageOverlay(
                 isUnsafeSelection = state.unsafeSelection,
@@ -277,6 +298,12 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         var aspectsFilter: AspectsFilter
     }
 }
+
+private fun List<AspectData>.applyPagination(paginationData: PaginationData): List<AspectData> =
+    if (paginationData == PaginationData.allItems)
+        this
+    else
+        this.drop(paginationData.offset).take(paginationData.pageSize)
 
 private fun List<AspectPropertyData>.insertEmptyAtIndex(suggestedIndex: Int): List<AspectPropertyData> {
     val tempProperties = this.toMutableList()

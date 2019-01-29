@@ -11,9 +11,11 @@ import com.infowings.catalog.aspects.sort.aspectSort
 import com.infowings.catalog.aspects.treeview.aspectTreeView
 import com.infowings.catalog.common.*
 import com.infowings.catalog.wrappers.blueprint.*
+import com.infowings.catalog.wrappers.button
 import com.infowings.catalog.wrappers.react.asReactElement
 import react.RBuilder
 import react.dom.div
+
 
 fun RBuilder.aspectPageHeader(
     onOrderByChanged: (List<SortOrder>) -> Unit,
@@ -22,10 +24,17 @@ fun RBuilder.aspectPageHeader(
     setFilterSubjects: (List<SubjectData?>) -> Unit,
     setFilterAspects: (List<AspectHint>) -> Unit,
     refreshAspects: () -> Unit,
-    aspectByGuid: Map<String, AspectData>
+    aspectByGuid: Map<String, AspectData>,
+    aspectsModel: AspectsModel
 ) {
     div(classes = "aspect-tree-view__header aspect-header") {
         div(classes = "aspect-header__sort-search") {
+            button {
+                icon = "plus"
+                onClick = { aspectsModel.selectAspect(null) }
+                intent = Intent.SUCCESS
+                text = "New aspect".asReactElement()
+            }
             aspectSort {
                 attrs {
                     this.onOrderByChanged = onOrderByChanged
@@ -47,7 +56,7 @@ fun RBuilder.aspectPageHeader(
 
             aspectExcludeFilterComponent {
                 attrs {
-                    selectedAspects = filter.excludedAspects.map { it.copy(name = aspectByGuid[it.guid]?.nameWithSubject() ?: it.name ) }
+                    selectedAspects = filter.excludedAspects.map { it.copy(name = aspectByGuid[it.guid]?.nameWithSubject() ?: it.name) }
                     onChange = setFilterAspects
                 }
             }
@@ -69,16 +78,19 @@ fun RBuilder.aspectPageContent(
     aspectsModel: AspectsModel,
     selectedAspect: AspectData,
     selectedAspectPropertyIndex: Int?,
-    isUpdated: Boolean
+    isUpdated: Boolean,
+    paginationData: PaginationData,
+    onPageSelect: (Int) -> Unit
+
 ) {
     aspectTreeView {
-        attrs {
-            aspects = filteredAspects
-            this.aspectContext = aspectContext
-            selectedAspectId = selectedAspect.id
-            selectedPropertyIndex = selectedAspectPropertyIndex
-            this.aspectsModel = aspectsModel
-        }
+        aspects = filteredAspects
+        this.aspectContext = aspectContext
+        selectedAspectId = selectedAspect.id
+        selectedPropertyIndex = selectedAspectPropertyIndex
+        this.aspectsModel = aspectsModel
+        this.paginationData = paginationData
+        this.onPageSelect = onPageSelect
     }
     aspectConsole {
         attrs {

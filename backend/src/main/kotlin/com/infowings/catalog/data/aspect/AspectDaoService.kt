@@ -169,7 +169,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
 
     fun getAspects(): Set<AspectVertex> = logTime(logger, "all aspects extraction at dao level") {
-        db.query(selectFromAspectWithDeleted) { rs ->
+        db.query(selectFromAspectWithoutDeleted) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
         }
     }

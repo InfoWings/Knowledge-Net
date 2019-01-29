@@ -1,7 +1,9 @@
 package com.infowings.catalog.aspects
 
+import com.infowings.catalog.aspects.model.AspectsModel
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.BadRequest
+import com.infowings.catalog.common.PaginationData
 import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.common.objekt.Reference
 import com.infowings.catalog.utils.*
@@ -9,6 +11,7 @@ import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.NonIdealState
 import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JSON
 import react.*
@@ -30,6 +33,9 @@ interface AspectApiReceiverProps : RProps {
     var onSearchQueryChanged: (String) -> Unit
     var refreshAspects: () -> Unit
     var refreshOperation: Boolean
+    var paginationData: PaginationData
+    var onPageSelect: (Int) -> Unit
+
 }
 
 /**
@@ -47,6 +53,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         serverError = false
         orderBy = emptyList()
         searchQuery = ""
+        paginationData = PaginationData.emptyPage
     }
 
     override fun componentDidMount() {
@@ -55,6 +62,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     }
 
     private fun fetchAllAspects() {
+        job.cancelChildren()
         launch {
             try {
                 val response = getAllAspects()
@@ -63,6 +71,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     context = response.aspects.associateBy { it.id!! }.toMutableMap()
                     loading = false
                     refreshOperation = false
+                    paginationData = paginationData.copy(totalItems = response.count)
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -88,6 +97,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                         loading = false
                     }
                     this@setState.refreshOperation = refreshOperation
+                    paginationData = paginationData.copy(totalItems = response.count)
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -241,6 +251,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         return aspectPropertyDeleteResponse.parentAspect
     }
 
+    var model: AspectsModel? = null
+
     override fun RBuilder.render() {
         if (!state.serverError) {
             child(props.apiReceiverComponent) {
@@ -257,7 +269,10 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     onSearchQueryChanged = this@AspectApiMiddleware::setAspectsSearchQuery
                     refreshAspects = { fetchAspects(updateContext = true, refreshOperation = true) }
                     refreshOperation = state.refreshOperation
+                    paginationData = state.paginationData
+                    onPageSelect = { page -> this@AspectApiMiddleware.onPageChange(page) }
                 }
+                ref { model = it }
             }
         } else {
             NonIdealState {
@@ -281,6 +296,17 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     }!!
                 }
 
+            }
+        }
+    }
+
+    private fun onPageChange(page: Int) {
+        // this ugly code is the answer to this bad design. whole AspectPage should be refactored to prevent this.
+        // selectAspect removes selection and shows warning if there's some unsaved changes.
+        model?.selectAspect(null)
+        if (model?.hasUnsavedChanges() == false) {
+            setState {
+                paginationData = state.paginationData.copy(current = page)
             }
         }
     }
@@ -319,6 +345,8 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
          * Current action is refresh operation.
          */
         var refreshOperation: Boolean
+
+        var paginationData: PaginationData
     }
 }
 

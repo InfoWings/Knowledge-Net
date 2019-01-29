@@ -26,6 +26,12 @@ interface AspectsModel {
     fun selectProperty(index: Int)
 
     /**
+     * Same as `selectAspect(aspectId);selectProperty(index)`
+     * since both methods do selection inside async setState call simple consecutive call can fail.
+     */
+    fun selectAspectAndProperty(aspectId: String?, index: Int)
+
+    /**
      * Method for canceling selected state.
      *
      * By default resets state to creating new aspect.
@@ -64,4 +70,10 @@ interface AspectsModel {
     suspend fun deleteAspect(force: Boolean)
 
     suspend fun deleteAspectProperty(force: Boolean)
+
+    /**
+     * this is workaround for an issue with whole Aspect Page components design. There are several components responsible for aspect fetching/updating
+     * and this became a mess. Should be refactored
+     */
+    fun hasUnsavedChanges(): Boolean
 }

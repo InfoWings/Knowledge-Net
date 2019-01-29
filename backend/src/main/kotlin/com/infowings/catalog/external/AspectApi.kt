@@ -46,15 +46,16 @@ class AspectApi(val aspectService: AspectService) {
         @RequestParam(required = false) direct: List<String>,
         @RequestParam("q", required = false) query: String?
     ): AspectsList {
-        logger.debug("Get all aspects request, orderFields: ${orderFields.joinToString { it }}, direct: ${direct.joinToString { it }}, query: $query")
-        val beforeMS = System.currentTimeMillis()
+        logger.debug(
+            "Get all aspects request, orderFields: ${orderFields.joinToString { it }}, " +
+                    "direct: ${direct.joinToString { it }}, query: $query"
+        )
 
-        val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
-
-        val result = AspectsList(aspectService.getAspects(orderBy, query))
-        val afterMS = System.currentTimeMillis()
-        logger.info("all aspects took ${afterMS - beforeMS}")
-        return result
+        return logTime(logger, "Get all aspects took: ") {
+            val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
+            val aspects = aspectService.getAspects(orderBy, query)
+            return@logTime AspectsList(aspects, aspects.size)
+        }
     }
 
     @PostMapping("remove")

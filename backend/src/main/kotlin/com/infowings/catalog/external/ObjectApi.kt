@@ -24,13 +24,13 @@ class ObjectApi(val objectService: ObjectService) {
         principal: Principal
     ): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, query: >$q<")
-        logger.debug("offset: $offset, limit: $limit")
+        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, offset: $offset, limit: $limit, query: >$q<")
 
         val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
 
         return logTime(logger, "request of all object briefs") {
-            ObjectsResponse(objectService.fetch(orderBy, q ?: "").map { it.toResponse() }.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE))
+            val objects = objectService.fetch(orderBy, q).map { it.toResponse() }
+            ObjectsResponse(objects.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE), objects.size)
         }
     }
 

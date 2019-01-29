@@ -86,8 +86,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) :
             val aspectProperty = props.parentAspect.properties[props.propertyIndex]
             val childAspect =
                 if (aspectProperty.aspectId.isNotEmpty())
-                    props.aspectContext[aspectProperty.aspectId]
-                            ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
+                    props.aspectContext[aspectProperty.aspectId] ?: error("AspectPropertyData.aspectId should be among ids of received aspects")
                 else null
 
             attrs {
@@ -103,8 +102,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) :
                                     && props.propertyIndex == props.selectedPropertyIndex
                             correspondingAspect = childAspect
                             onClick = {
-                                props.aspectsModel.selectAspect(props.parentAspect.id)
-                                props.aspectsModel.selectProperty(props.propertyIndex)
+                                props.aspectsModel.selectAspectAndProperty(props.parentAspect.id, props.propertyIndex)
                             }
                             onAddToListIconClick = childAspect?.let { { props.onAddPropertyToAspect(childAspect) } }
                         }

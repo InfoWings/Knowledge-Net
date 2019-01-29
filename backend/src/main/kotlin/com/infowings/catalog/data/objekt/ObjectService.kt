@@ -32,9 +32,7 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(orderBy: List<SortOrder>, pattern: String): List<ObjectTruncated>  {
-        return dao.getTruncatedObjects(pattern).sort(orderBy)
-    }
+    fun fetch(orderBy: List<SortOrder>, pattern: String?): List<ObjectTruncated> = dao.getTruncatedObjects(pattern).sort(orderBy)
 
     private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
         if (orderBy.isEmpty()) {
@@ -43,18 +41,12 @@ class ObjectService(
 
         fun objectNameAsc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.ASC)
         fun objectNameDesc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.name, Direction.DESC)
-        fun objectSubjectNameAsc(objeckt: ObjectTruncated): Comparable<*> =
-            CompareString(objeckt.subjectName, Direction.ASC)
-
-        fun objectSubjectNameDesc(objekt: ObjectTruncated): Comparable<*> =
-            CompareString(objekt.subjectName, Direction.DESC)
+        fun objectSubjectNameAsc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.subjectName, Direction.ASC)
+        fun objectSubjectNameDesc(objekt: ObjectTruncated): Comparable<*> = CompareString(objekt.subjectName, Direction.DESC)
 
         val m = mapOf<SortField, Map<Direction, (ObjectTruncated) -> Comparable<*>>>(
             SortField.NAME to mapOf(Direction.ASC to ::objectNameAsc, Direction.DESC to ::objectNameDesc),
-            SortField.SUBJECT to mapOf(
-                Direction.ASC to ::objectSubjectNameAsc,
-                Direction.DESC to ::objectSubjectNameDesc
-            )
+            SortField.SUBJECT to mapOf(Direction.ASC to ::objectSubjectNameAsc, Direction.DESC to ::objectSubjectNameDesc)
         )
         return this.sortedWith(compareBy(*orderBy.map { m.getValue(it.name).getValue(it.direction) }.toTypedArray()))
     }

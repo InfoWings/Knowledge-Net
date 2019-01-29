@@ -1,6 +1,9 @@
 package com.infowings.catalog.common
 
+import kotlinx.serialization.Serializable
+
 /* Базовое представление диапазона */
+@Serializable
 data class Range(val left: Int, val right: Int)
 
 /* Представление разных вариантов значений, пригодное для использования на фронте,
@@ -38,6 +41,7 @@ sealed class ObjectValueData {
         companion object {
             fun single(valueRepr: String): DecimalValue = DecimalValue(valueRepr, valueRepr, 0)
         }
+
         override fun link(): Link? = null
     }
 

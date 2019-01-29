@@ -19,6 +19,8 @@ class EmptyAspectModelComponent :
     AspectsModel,
     JobCoroutineScope by JobSimpleCoroutineScope() {
 
+    override fun selectAspectAndProperty(aspectId: String?, index: Int) {}
+
     override fun selectAspect(aspectId: String?) {}
 
     override fun selectProperty(index: Int) {}
@@ -71,6 +73,8 @@ class EmptyAspectModelComponent :
             }
         }
     }
+
+    override fun hasUnsavedChanges(): Boolean = false
 
     override fun RBuilder.render() {
         if (!state.loading) {
