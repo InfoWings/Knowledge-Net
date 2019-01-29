@@ -7,14 +7,12 @@ import com.infowings.catalog.utils.get
 import com.infowings.catalog.utils.post
 import kotlinx.serialization.json.JSON
 
-suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = "", paginationData: PaginationData): AspectsList {
+suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     val orderFields = "orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}"
-    val limit = if (paginationData.limit > 0) "limit=${paginationData.limit}" else null
-    val offset = if (paginationData.offset > 0) "offset=${paginationData.offset}" else null
     val direction = "direct=${orderBy.map { it.direction.toString() }.joinToString { it }}"
     val query = if (nameQuery.isBlank()) "q=$nameQuery" else null
 
-    val queryString = listOfNotNull(orderFields, limit, offset, direction, query).joinToString("&")
+    val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
 
     return JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
 }

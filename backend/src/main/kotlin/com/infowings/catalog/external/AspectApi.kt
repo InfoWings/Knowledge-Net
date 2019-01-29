@@ -44,19 +44,17 @@ class AspectApi(val aspectService: AspectService) {
     fun getAspects(
         @RequestParam(required = false) orderFields: List<String>,
         @RequestParam(required = false) direct: List<String>,
-        @RequestParam(required = false) limit: Int?,
-        @RequestParam(required = false) offset: Int?,
         @RequestParam("q", required = false) query: String?
     ): AspectsList {
         logger.debug(
             "Get all aspects request, orderFields: ${orderFields.joinToString { it }}, " +
-                    "direct: ${direct.joinToString { it }}, offset: $offset, limit: $limit, query: $query"
+                    "direct: ${direct.joinToString { it }}, query: $query"
         )
 
         return logTime(logger, "Get all aspects took: ") {
             val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
             val aspects = aspectService.getAspects(orderBy, query)
-            return@logTime AspectsList(aspects.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE), aspects.size)
+            return@logTime AspectsList(aspects, aspects.size)
         }
     }
 

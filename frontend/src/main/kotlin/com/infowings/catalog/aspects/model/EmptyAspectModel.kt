@@ -5,7 +5,6 @@ import com.infowings.catalog.aspects.getAllAspects
 import com.infowings.catalog.aspects.treeview.AspectNodeExpandedStateWrapper
 import com.infowings.catalog.common.AspectData
 import com.infowings.catalog.common.AspectPropertyData
-import com.infowings.catalog.common.PaginationData
 import com.infowings.catalog.common.SortOrder
 import com.infowings.catalog.utils.JobCoroutineScope
 import com.infowings.catalog.utils.JobSimpleCoroutineScope
@@ -56,7 +55,7 @@ class EmptyAspectModelComponent :
     private fun fetchAspects(orderBy: List<SortOrder> = emptyList()) {
         launch {
             try {
-                val response = getAllAspects(orderBy, paginationData = PaginationData.allItems)
+                val response = getAllAspects(orderBy)
                 setState {
                     data = response.aspects
                     context = response.aspects.associate { Pair(it.id!!, it) }.toMutableMap()

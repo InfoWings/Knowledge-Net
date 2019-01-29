@@ -65,7 +65,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         job.cancelChildren()
         launch {
             try {
-                val response = getAllAspects(paginationData = state.paginationData)
+                val response = getAllAspects()
                 setState {
                     data = response.aspects
                     context = response.aspects.associateBy { it.id!! }.toMutableMap()
@@ -88,7 +88,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
     private fun fetchAspects(updateContext: Boolean = false, refreshOperation: Boolean = false) {
         launch {
             try {
-                val response = getAllAspects(state.orderBy, state.searchQuery, state.paginationData)
+                val response = getAllAspects(state.orderBy, state.searchQuery)
                 setState {
                     data = response.aspects
                     if (updateContext) {
@@ -302,12 +302,12 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
 
     private fun onPageChange(page: Int) {
         // this ugly code is the answer to this bad design. whole AspectPage should be refactored to prevent this.
+        // selectAspect removes selection and shows warning if there's some unsaved changes.
         model?.selectAspect(null)
         if (model?.hasUnsavedChanges() == false) {
             setState {
                 paginationData = state.paginationData.copy(current = page)
             }
-            fetchAllAspects()
         }
     }
 

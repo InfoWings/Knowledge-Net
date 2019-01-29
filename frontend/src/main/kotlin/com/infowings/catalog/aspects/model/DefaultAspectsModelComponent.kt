@@ -23,7 +23,6 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         unsafeSelection = false
         errorMessages = emptyList()
         aspectsFilter = AspectsFilter(emptyList(), emptyList())
-        paginationData = PaginationData.emptyPage
     }
 
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
@@ -257,7 +256,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 aspectsModel = this@DefaultAspectsModelComponent
             )
             aspectPageContent(
-                filteredAspects = state.aspectsFilter.applyToAspects(props.data),
+                filteredAspects = state.aspectsFilter.applyToAspects(props.data).applyPagination(props.paginationData),
                 aspectContext = props.aspectContext,
                 aspectsModel = this@DefaultAspectsModelComponent,
                 selectedAspect = state.selectedAspect,
@@ -282,9 +281,14 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         var unsafeSelection: Boolean
         var errorMessages: List<String>
         var aspectsFilter: AspectsFilter
-        var paginationData: PaginationData
     }
 }
+
+private fun List<AspectData>.applyPagination(paginationData: PaginationData): List<AspectData> =
+    if (paginationData == PaginationData.allItems)
+        this
+    else
+        this.drop(paginationData.offset).take(paginationData.pageSize)
 
 private fun List<AspectPropertyData>.insertEmptyAtIndex(suggestedIndex: Int): List<AspectPropertyData> {
     val tempProperties = this.toMutableList()
