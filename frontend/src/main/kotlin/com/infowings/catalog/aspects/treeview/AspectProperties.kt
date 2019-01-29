@@ -102,8 +102,7 @@ class AspectPropertyNodeExpandedWrapper(props: Props) :
                                     && props.propertyIndex == props.selectedPropertyIndex
                             correspondingAspect = childAspect
                             onClick = {
-                                props.aspectsModel.selectAspect(props.parentAspect.id)
-                                props.aspectsModel.selectProperty(props.propertyIndex)
+                                props.aspectsModel.selectAspectAndProperty(props.parentAspect.id, props.propertyIndex)
                             }
                             onAddToListIconClick = childAspect?.let { { props.onAddPropertyToAspect(childAspect) } }
                         }

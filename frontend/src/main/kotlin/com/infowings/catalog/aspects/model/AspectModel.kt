@@ -26,6 +26,12 @@ interface AspectsModel {
     fun selectProperty(index: Int)
 
     /**
+     * Same as `selectAspect(aspectId);selectProperty(index)`
+     * since both methods do selection inside async setState call simple consecutive call can fail.
+     */
+    fun selectAspectAndProperty(aspectId: String?, index: Int)
+
+    /**
      * Method for canceling selected state.
      *
      * By default resets state to creating new aspect.

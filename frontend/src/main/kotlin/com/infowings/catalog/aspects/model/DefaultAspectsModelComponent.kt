@@ -28,7 +28,9 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     override fun componentWillReceiveProps(nextProps: AspectApiReceiverProps) {
         if (state.selectedAspect.id != null) {
             setState {
-                val selectedAspectOnServer = nextProps.aspectContext[selectedAspect.id] ?: error("Context must contain all aspects")
+                // this double checking needed due to async setState in AspectApiMiddleware.nextPage
+                val selectedAspectId = selectedAspect.id ?: return@setState
+                val selectedAspectOnServer = nextProps.aspectContext[selectedAspectId] ?: error("Context must contain all aspects")
 
                 selectedAspect = if (nextProps.refreshOperation) {
                     selectedAspectOnServer
@@ -41,34 +43,47 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
     }
 
     override fun selectAspect(aspectId: String?) {
-        // we need this call to be synchronous
-        setState(state) {
-            with(state) {
-                if (unsavedDataSelection(aspectId, null)) {
-                    unsafeSelection = true
-                } else {
-                    selectedAspect = newAspectSelection(aspectId)
-                    if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
-                        selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
-                    }
-                    selectedAspectPropertyIndex = null
-                    aspectId?.let { props.refreshAspect(it) }
-                    selectedIsUpdated = false
-                }
+        setState {
+            selectAspect(aspectId)
+        }
+    }
+
+    private fun State.selectAspect(aspectId: String?) {
+        if (unsavedDataSelection(aspectId, null)) {
+            unsafeSelection = true
+        } else {
+            selectedAspect = newAspectSelection(aspectId)
+
+            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData) { // If there was an empty last property
+                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1)) //drop it
             }
+            selectedAspectPropertyIndex = null
+            aspectId?.let { props.refreshAspect(it) }
+            selectedIsUpdated = false
         }
     }
 
     override fun selectProperty(index: Int) {
         setState {
-            if (unsavedDataSelection(selectedAspect.id, index)) {
-                unsafeSelection = true
-            } else {
-                if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
-                    selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
-                }
-                selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
+            selectProperty(index)
+        }
+    }
+
+    override fun selectAspectAndProperty(aspectId: String?, index: Int) {
+        setState {
+            selectAspect(aspectId)
+            selectProperty(index)
+        }
+    }
+
+    private fun State.selectProperty(index: Int) {
+        if (unsavedDataSelection(selectedAspect.id, index)) {
+            unsafeSelection = true
+        } else {
+            if (selectedAspect.properties.lastOrNull() == emptyAspectPropertyData && index < selectedAspect.properties.lastIndex) {
+                selectedAspect = selectedAspect.copy(properties = selectedAspect.properties.dropLast(1))
             }
+            selectedAspectPropertyIndex = min(index, selectedAspect.properties.lastIndex)
         }
     }
 

@@ -19,6 +19,8 @@ class EmptyAspectModelComponent :
     AspectsModel,
     JobCoroutineScope by JobSimpleCoroutineScope() {
 
+    override fun selectAspectAndProperty(aspectId: String?, index: Int) {}
+
     override fun selectAspect(aspectId: String?) {}
 
     override fun selectProperty(index: Int) {}
