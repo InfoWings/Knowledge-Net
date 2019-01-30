@@ -90,7 +90,7 @@ class SubjectDao(private val db: OrientDatabase) {
     }
 
     fun softRemove(vertex: SubjectVertex) {
-        session(db) {
+        transaction(db) {
             vertex.deleted = true
             vertex.save<OVertex>()
         }
