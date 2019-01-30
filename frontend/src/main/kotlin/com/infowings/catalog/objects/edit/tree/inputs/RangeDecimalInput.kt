@@ -2,7 +2,7 @@ package com.infowings.catalog.objects.edit.tree.inputs
 
 import com.infowings.catalog.wrappers.blueprint.Button
 import com.infowings.catalog.wrappers.blueprint.ButtonGroup
-import com.infowings.catalog.wrappers.blueprint.NumericInput
+import com.infowings.catalog.wrappers.numericInput
 import react.*
 
 class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDecimalInput.Props, RangedDecimalInput.State>(props) {
@@ -59,29 +59,25 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
 
         }
 
-        NumericInput {
-            attrs {
-                this.value = props.lwb
-                this.majorStepSize = 5.0 * step
-                this.minorStepSize = 2.0 * step
-                this.stepSize = step
-                this.onValueChange = this@RangedDecimalInput::changeLowerBoundary
-                this.disabled = props.disabled ?: false
-                placeholder = if (state.isRange) "-Infinity" else ""
-            }
+        numericInput {
+            this.value = props.lwb
+            this.majorStepSize = null
+            this.minorStepSize = null
+            this.stepSize = step
+            this.onValueChange = this@RangedDecimalInput::changeLowerBoundary
+            this.disabled = props.disabled ?: false
+            placeholder = if (state.isRange) "-Infinity" else ""
         }
 
         if (state.isRange) {
-            NumericInput {
-                attrs {
-                    this.value = props.upb
-                    this.majorStepSize = 5.0 * step
-                    this.minorStepSize = 2.0 * step
-                    this.stepSize = step
-                    this.onValueChange = this@RangedDecimalInput::changeUpperBoundary
-                    this.disabled = props.disabled ?: false
-                    placeholder = "Infinity"
-                }
+            numericInput {
+                this.value = props.upb
+                this.majorStepSize = null
+                this.minorStepSize = null
+                this.stepSize = step
+                this.onValueChange = this@RangedDecimalInput::changeUpperBoundary
+                this.disabled = props.disabled ?: false
+                placeholder = "Infinity"
             }
         }
     }
