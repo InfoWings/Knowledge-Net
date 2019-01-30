@@ -26,7 +26,7 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
             div("remove-confirm-window--buttons") {
                 Button {
                     attrs {
-                        className = "pt-small pt-popover-dismiss"
+                        className = "bp3-small bp3-popover-dismiss"
                     }
                     +"Cancel"
                 }
@@ -35,7 +35,7 @@ class RemoveConfirmationWindow : RComponent<RemoveConfirmationWindow.Props, RSta
                         onClick = {
                             props.onConfirm()
                         }
-                        className = "pt-small pt-intent-danger pt-popover-dismiss"
+                        className = "bp3-small зеpt-intent-danger bp3-popover-dismiss"
                     }
                     +"Delete"
                 }

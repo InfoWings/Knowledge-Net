@@ -11,7 +11,7 @@ fun RBuilder.minusButtonComponent(onSubmit: () -> Unit, confirmation: Boolean = 
     if (!confirmation) {
         Button {
             attrs {
-                this.className = listOfNotNull("pt-minimal", className).joinToString(" ")
+                this.className = listOfNotNull("bp3-minimal", className).joinToString(" ")
                 onClick = { onSubmit() }
                 intent = Intent.DANGER
                 icon = "minus"
@@ -30,7 +30,7 @@ fun RBuilder.minusButtonComponent(onSubmit: () -> Unit, confirmation: Boolean = 
             }
             Button {
                 attrs {
-                    this.className = listOfNotNull("pt-minimal", className).joinToString(" ")
+                    this.className = listOfNotNull("bp3-minimal", className).joinToString(" ")
                     intent = Intent.DANGER
                     icon = "minus"
                 }

@@ -40,9 +40,9 @@ class ObjectSearchComponent : RComponent<ObjectSearchComponent.Props, ObjectSear
     }
 
     override fun RBuilder.render() {
-        div(classes = "pt-input-group object-search") {
-            span(classes = "pt-icon pt-icon-search") { }
-            input(type = InputType.text, classes = "pt-input") {
+        div(classes = "bp3-input-group object-search") {
+            span(classes = "bp3-icon bp3-icon-search") { }
+            input(type = InputType.text, classes = "bp3-input") {
                 attrs {
                     value = state.searchQuery
                     placeholder = "Search Object..."
@@ -52,7 +52,7 @@ class ObjectSearchComponent : RComponent<ObjectSearchComponent.Props, ObjectSear
             }
             Button {
                 attrs {
-                    className = "pt-minimal"
+                    className = "bp3-minimal"
                     intent = Intent.NONE
                     icon = "delete"
                     onClick = {

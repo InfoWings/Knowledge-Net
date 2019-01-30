@@ -219,7 +219,7 @@ class EntityLinkGuidInput(props: EntityLinkGuidInput.Props) : RComponent<EntityL
     }
 
     private fun RBuilder.renderInput() {
-        input(type = InputType.text, classes = "pt-input") {
+        input(type = InputType.text, classes = "bp3-input") {
             attrs {
                 value = ""
                 placeholder = "Paste target entity GUID"

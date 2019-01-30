@@ -43,14 +43,14 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
         }
 
         if (props.objectView.objectPropertiesCount > 0) {
-            expandTreeButtonComponent(props.expandTree, "pt-small")
+            expandTreeButtonComponent(props.expandTree, "bp3-small")
         }
 
         copyGuidButton(props.objectView.guid)
 
         reactRouter.Link {
             attrs {
-                className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-icon-edit pt-small"
+                className = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-icon-edit bp3-small"
                 role = "button"
                 to = "/objects/${encodeURIComponent(props.objectView.id)}"
             }

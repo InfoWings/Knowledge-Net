@@ -37,7 +37,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         ButtonGroup {
             Button {
                 attrs {
-                    className = "pt-minimal"
+                    className = "bp3-minimal"
                     this.disabled = props.disabled ?: false
                     onClick = {
                         if (!state.isRange) {

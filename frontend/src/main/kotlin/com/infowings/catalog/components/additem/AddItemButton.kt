@@ -7,7 +7,7 @@ import react.RBuilder
 fun RBuilder.addPropertyButton(className: String? = null, onClick: () -> Unit) =
     Button {
         attrs {
-            this.className = "pt-minimal${className?.let { " $it" } ?: ""}"
+            this.className = "bp3-minimal${className?.let { " $it" } ?: ""}"
             this.onClick = { onClick() }
             intent = Intent.SUCCESS
             icon = "new-link"

@@ -19,7 +19,7 @@ class Header : RComponent<Header.Props, RState>() {
                 NavbarDivider {}
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/objects") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/objects") " bp3-active" else ""}"
                         role = "button"
                         to = "/objects"
                     }
@@ -27,7 +27,7 @@ class Header : RComponent<Header.Props, RState>() {
                 }
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/aspects") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/aspects") " bp3-active" else ""}"
                         role = "button"
                         to = "/aspects"
                     }
@@ -35,7 +35,7 @@ class Header : RComponent<Header.Props, RState>() {
                 }
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/measures") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/measures") " bp3-active" else ""}"
                         role = "button"
                         to = "/measures"
                     }
@@ -43,7 +43,7 @@ class Header : RComponent<Header.Props, RState>() {
                 }
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/subjects") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/subjects") " bp3-active" else ""}"
                         role = "button"
                         to = "/subjects"
                     }
@@ -51,7 +51,7 @@ class Header : RComponent<Header.Props, RState>() {
                 }
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/reference") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/reference") " bp3-active" else ""}"
                         role = "button"
                         to = "/reference"
                     }
@@ -59,7 +59,7 @@ class Header : RComponent<Header.Props, RState>() {
                 }
                 reactRouter.Link {
                     attrs {
-                        className = "pt-button pt-minimal${if (props.location == "/history") " pt-active" else ""}"
+                        className = "bp3-button bp3-minimal${if (props.location == "/history") " bp3-active" else ""}"
                         role = "button"
                         to = "/history"
                     }
@@ -70,7 +70,7 @@ class Header : RComponent<Header.Props, RState>() {
                 attrs.align = Alignment.RIGHT
                 Button {
                     attrs {
-                        className = "pt-minimal"
+                        className = "bp3-minimal"
                         onClick = {
                             removeAuthRole()
                             props.history.push("/objects")

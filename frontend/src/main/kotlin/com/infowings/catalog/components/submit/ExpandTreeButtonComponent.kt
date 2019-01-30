@@ -7,7 +7,7 @@ import react.RBuilder
 fun RBuilder.expandTreeButtonComponent(onSubmit: () -> Unit, className: String? = null) =
     Button {
         attrs {
-            this.className = "pt-minimal${className?.let { " $it" } ?: ""}"
+            this.className = "bp3-minimal${className?.let { " $it" } ?: ""}"
             onClick = { onSubmit() }
             intent = Intent.NONE
             icon = "chevron-down"

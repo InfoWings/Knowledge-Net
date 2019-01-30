@@ -1,7 +1,6 @@
 package com.infowings.catalog.objects
 
 import com.infowings.catalog.common.guid.BriefObjectView
-import com.infowings.catalog.common.guid.BriefObjectViewResponse
 import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.toData
 import com.infowings.catalog.objects.view.tree.format.valueFormat
@@ -43,7 +42,7 @@ data class ObjectBriefInfo(val data: BriefObjectView, val history: History, val 
         if (!editMode) {
             reactRouter.Link {
                 attrs {
-                    className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
+                    className = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-small"
                     role = "button"
                     to = "/objects/view/${encodeURIComponent(data.id)}"
                 }
@@ -56,7 +55,7 @@ data class ObjectBriefInfo(val data: BriefObjectView, val history: History, val 
 
             reactRouter.Link {
                 attrs {
-                    className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
+                    className = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-small"
                     role = "button"
                     to = "/objects/view/${encodeURIComponent(data.id)}"
                     icon = "clipboard"
@@ -93,7 +92,7 @@ data class ValueBriefInfo(val data: BriefValueViewResponse, val history: History
             if (!editMode) {
                 reactRouter.Link {
                     attrs {
-                        className = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small"
+                        className = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-small"
                         role = "button"
                         to = "/objects/viewm/${encodeURIComponent(data.objectId)}/${encodeURIComponent(data.guid?:"???")}"
                     }

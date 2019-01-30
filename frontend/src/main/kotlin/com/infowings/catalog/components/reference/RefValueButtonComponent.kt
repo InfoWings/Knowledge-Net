@@ -2,7 +2,6 @@ package com.infowings.catalog.components.reference
 
 
 import com.infowings.catalog.common.SubjectData
-import com.infowings.catalog.utils.encodeURIComponent
 import com.infowings.catalog.utils.linkIcon
 import com.infowings.catalog.wrappers.History
 import com.infowings.catalog.wrappers.blueprint.Button
@@ -42,7 +41,7 @@ class RefValueButtonComponent : RComponent<RefValueButtonComponent.Props, RefVal
                 }
                 Button {
                     attrs {
-                        className = "pt-minimal"
+                        className = "bp3-minimal"
                         intent = Intent.PRIMARY
                         onClick = ::onClick
                     }

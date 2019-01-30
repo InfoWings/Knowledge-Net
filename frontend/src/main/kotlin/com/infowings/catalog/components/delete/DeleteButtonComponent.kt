@@ -34,7 +34,7 @@ class DeleteButtonComponent : RComponent<DeleteButtonComponent.Props, RState>() 
                 }
                 Button {
                     attrs {
-                        className = "pt-minimal${props.className?.let { " $it" } ?: ""}"
+                        className = "bp3-minimal${props.className?.let { " $it" } ?: ""}"
                         intent = Intent.DANGER
                     }
                     ripIcon("delete-button--icon") {}

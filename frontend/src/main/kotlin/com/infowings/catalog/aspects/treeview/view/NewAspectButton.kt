@@ -9,7 +9,7 @@ fun RBuilder.newAspectButton(onClick: () -> Unit) =
         attrs {
             icon = "add"
             intent = Intent.PRIMARY
-            className = "pt-minimal aspect-tree-view--button-new"
+            className = "bp3-minimal aspect-tree-view--button-new"
             this.onClick = { onClick() }
         }
         +"New Aspect"
