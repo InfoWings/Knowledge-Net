@@ -73,7 +73,7 @@ class SelectReferenceBookValueDialog(props: Props) :
                 onClose = { props.onCancel() }
                 title = "Select value from reference book${state.referenceBookViewModel?.let { " ${it.name}" }}".asReactElement()
             }
-            div(classes = "pt-dialog-body") {
+            div(classes = "bp3-dialog-body") {
                 if (state.selectedValue.refBookTreePath.isNotEmpty()) {
                     referenceBookPathView(path = state.selectedValue.refBookTreePath)
                 }
@@ -88,8 +88,8 @@ class SelectReferenceBookValueDialog(props: Props) :
                     }
                 }
             }
-            div(classes = "pt-dialog-footer") {
-                div(classes = "pt-dialog-footer-actions") {
+            div(classes = "bp3-dialog-footer") {
+                div(classes = "bp3-dialog-footer-actions") {
                     Button {
                         attrs {
                             intent = Intent.PRIMARY

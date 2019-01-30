@@ -140,14 +140,14 @@ fun RBuilder.suggestRecalculationPopoverWindow(
     div(classes = "recalculate-window__buttons") {
         Button {
             attrs {
-                className = "pt-small pt-intent-success"
+                className = "bp3-small bp3-intent-success"
                 onClick = { onConfirmRecalculation() }
             }
             +"Recalculate"
         }
         Button {
             attrs {
-                className = "pt-small"
+                className = "bp3-small"
                 onClick = { onRejectRecalculation() }
             }
             +"No, I'll do it myself"

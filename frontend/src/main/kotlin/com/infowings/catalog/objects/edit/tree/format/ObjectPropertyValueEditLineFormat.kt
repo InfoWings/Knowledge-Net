@@ -24,7 +24,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
     val toMark = props.highlightedGuid == props.valueGuid && props.valueGuid != null && !props.editMode
 
     if(toMark) {
-        span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small") {
+        span(classes = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-small") {
             +""
             Icon {
                 attrs {
@@ -64,10 +64,10 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             )
         }
         props.onSaveProperty?.let {
-            submitButtonComponent(it, "pt-small")
+            submitButtonComponent(it, "bp3-small")
         }
         props.onCancelProperty?.let {
-            cancelButtonComponent(it, "pt-small")
+            cancelButtonComponent(it, "bp3-small")
         }
         val value = props.value
         if (value != ObjectValueData.NullValue) {
@@ -115,7 +115,7 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
         copyGuidButton(props.valueGuid)
 
         if(toMark) {
-            span(classes = "object-line__edit-link pt-button pt-intent-primary pt-minimal pt-small") {
+            span(classes = "object-line__edit-link bp3-button pt-intent-primary bp3-minimal bp3-small") {
                 +""
                 Icon {
                     attrs {
@@ -127,19 +127,19 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
 
         props.onAddValue?.let {
             if (props.editMode) {
-                plusButtonComponent(it, "pt-small")
+                plusButtonComponent(it, "bp3-small")
             }
         }
         props.onRemoveValue?.let {
             if (props.editMode) {
-                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+                minusButtonComponent(it, props.needRemoveConfirmation, "bp3-small")
             }
         }
         props.onSaveValue?.let {
-            submitButtonComponent(it, "pt-small")
+            submitButtonComponent(it, "bp3-small")
         }
         props.onCancelValue?.let {
-            cancelButtonComponent(it, "pt-small")
+            cancelButtonComponent(it, "bp3-small")
         }
     }
 }

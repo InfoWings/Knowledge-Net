@@ -91,7 +91,7 @@ external interface PopoverProps : BlueprintComponentProps {
 
     /**
      * Whether to apply minimal styles to this popover, which includes removing the arrow and adding the
-     * .pt-minimal class to minimize and accelerate the transitions.
+     * .bp3-minimal class to minimize and accelerate the transitions.
      */
     var minimal: Boolean
 
@@ -135,7 +135,7 @@ external interface PopoverProps : BlueprintComponentProps {
     var popoverDidOpen: () -> Unit
 
     /**
-     * Ref supplied to the pt-popover element.
+     * Ref supplied to the bp3-popover element.
      */
     var popoverRef: (ref: HTMLDivElement?) -> Unit
 
@@ -163,7 +163,7 @@ external interface PopoverProps : BlueprintComponentProps {
     var position: Position
 
     /**
-     * The name of the HTML tag to use when rendering the popover target wrapper element (.pt-popover-target).
+     * The name of the HTML tag to use when rendering the popover target wrapper element (.bp3-popover-target).
      */
     var rootElementTag: String
 

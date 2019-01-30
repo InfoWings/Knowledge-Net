@@ -40,9 +40,9 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
     }
 
     override fun RBuilder.render() {
-        div(classes = "pt-input-group aspect-search") {
-            span(classes = "pt-icon pt-icon-search") {}
-            input(type = InputType.text, classes = "pt-input") {
+        div(classes = "bp3-input-group aspect-search") {
+            span(classes = "bp3-icon bp3-icon-search") {}
+            input(type = InputType.text, classes = "bp3-input") {
                 attrs {
                     value = state.searchQuery
                     placeholder = "Search Aspect..."
@@ -52,7 +52,7 @@ class AspectSearchComponent : RComponent<AspectSearchComponent.Props, AspectSear
             }
             Button {
                 attrs {
-                    className = "pt-minimal"
+                    className = "bp3-minimal"
                     intent = Intent.NONE
                     icon = "delete"
                     onClick = {

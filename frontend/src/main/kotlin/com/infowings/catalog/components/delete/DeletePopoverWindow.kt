@@ -30,13 +30,13 @@ class DeletePopoverWindow : RComponent<DeletePopoverWindow.Props, RState>() {
                         onClick = {
                             props.onConfirm()
                         }
-                        className = "pt-small pt-intent-danger pt-popover-dismiss"
+                        className = "bp3-small pt-intent-danger bp3-popover-dismiss"
                     }
                     +"Delete"
                 }
                 Button {
                     attrs {
-                        className = "pt-small pt-popover-dismiss"
+                        className = "bp3-small bp3-popover-dismiss"
                     }
                     +"Cancel"
                 }

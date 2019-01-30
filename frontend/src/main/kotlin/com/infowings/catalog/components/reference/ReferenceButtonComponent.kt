@@ -41,7 +41,7 @@ class ReferenceButtonComponent : RComponent<ReferenceButtonComponent.Props, Refe
                 }
                 Button {
                     attrs {
-                        className = "pt-minimal"
+                        className = "bp3-minimal"
                         intent = Intent.PRIMARY
                         onClick = ::onClick
                     }

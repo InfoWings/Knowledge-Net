@@ -7,7 +7,7 @@ import react.RBuilder
 fun RBuilder.cancelButtonComponent(onSubmit: () -> Unit, className: String? = null) =
     Button {
         attrs {
-            this.className = listOfNotNull("pt-minimal", className).joinToString(" ")
+            this.className = listOfNotNull("bp3-minimal", className).joinToString(" ")
             onClick = { onSubmit() }
             intent = Intent.DANGER
             icon = "cross"

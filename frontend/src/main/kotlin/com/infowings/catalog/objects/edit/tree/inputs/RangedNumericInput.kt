@@ -1,6 +1,8 @@
 package com.infowings.catalog.objects.edit.tree.inputs
 
-import com.infowings.catalog.wrappers.blueprint.*
+import com.infowings.catalog.wrappers.blueprint.Button
+import com.infowings.catalog.wrappers.blueprint.ButtonGroup
+import com.infowings.catalog.wrappers.blueprint.NumericInput
 import react.*
 
 class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNumericInput.Props, RangedNumericInput.State>(props) {
@@ -54,7 +56,7 @@ class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNum
         ButtonGroup {
             Button {
                 attrs {
-                    className = "pt-minimal"
+                    className = "bp3-minimal"
                     disabled = false
                     onClick = {
                         val stateUpb = state.upb

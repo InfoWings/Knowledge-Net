@@ -7,7 +7,7 @@ import react.dom.ul
 
 class MeasureTreeUnits(props: MeasureTreeUnits.Props) : RComponent<MeasureTreeUnits.Props, RState>(props) {
     override fun RBuilder.render() {
-        ul(classes = "pt-list-unstyled") {
+        ul(classes = "bp3-list-unstyled") {
             props.units.map { unit ->
                 li(classes = "unit-row") {
                     attrs {

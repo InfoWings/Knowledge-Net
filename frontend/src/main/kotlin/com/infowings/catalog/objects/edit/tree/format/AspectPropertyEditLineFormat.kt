@@ -81,19 +81,19 @@ val aspectPropertyEditLineFormat = rFunction<AspectPropertyEditLineFormatProps>(
         }
         copyGuidButton(props.valueGuid)
         props.onSubmit?.let {
-            submitButtonComponent(it, "pt-small")
+            submitButtonComponent(it, "bp3-small")
         }
         props.onCancel?.let {
-            cancelButtonComponent(it, "pt-small")
+            cancelButtonComponent(it, "bp3-small")
         }
         props.onAddValue?.let {
             if (props.editMode) {
-                plusButtonComponent(it, "pt-small")
+                plusButtonComponent(it, "bp3-small")
             }
         }
         props.onRemoveValue?.let {
             if (props.editMode) {
-                minusButtonComponent(it, props.needRemoveConfirmation, "pt-small")
+                minusButtonComponent(it, props.needRemoveConfirmation, "bp3-small")
             }
         }
     }

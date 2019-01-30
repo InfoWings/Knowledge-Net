@@ -26,7 +26,7 @@ val aspectPropertyCreateLineFormat = rFunction<AspectPropertyCreateLineFormatPro
         }
         props.onCreateValue?.let {
             if (props.editMode) {
-                newValueButtonComponent(it, "pt-small")
+                newValueButtonComponent(it, "bp3-small")
             }
         }
     }

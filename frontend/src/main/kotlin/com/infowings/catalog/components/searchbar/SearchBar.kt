@@ -20,7 +20,7 @@ class SearchBar : RComponent<SearchBar.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "search-bar${props.className?.let { " $it" } ?: ""}") {
-            input(classes = "search-bar--input pt-input") {
+            input(classes = "search-bar--input bp3-input") {
                 this.attrs {
                     type = InputType.text
                     placeholder = "Search ..."

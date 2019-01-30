@@ -69,7 +69,7 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>(), JobCoroutineS
                         attrs {
                             text = buildElement { +"Login" }
                         }
-                        input(InputType.text, classes = "pt-input") {
+                        input(InputType.text, classes = "bp3-input") {
                             attrs.placeholder = "Login"
                             ref { loginInput = it }
                         }
@@ -78,13 +78,13 @@ class AuthComponent : RComponent<RouteSuppliedProps, AuthState>(), JobCoroutineS
                         attrs {
                             text = buildElement { +"Password" }
                         }
-                        input(InputType.password, classes = "pt-input") {
+                        input(InputType.password, classes = "bp3-input") {
                             attrs.placeholder = "Password"
                             ref { passwordInput = it }
                         }
                     }
                     Button {
-                        attrs.className = "pt-fill"
+                        attrs.className = "bp3-fill"
                         attrs.type = InputType.submit.realValue
                         +"Sign In"
                     }
