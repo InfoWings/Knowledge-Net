@@ -63,7 +63,6 @@ inline fun <reified T : RComponent<RouteSuppliedProps, out RState>> renderFuncti
 fun RBuilder.objectEditPage(props: RouteSuppliedProps) {
     val pathElems = props.location.pathname.split("/")
     val viewMode = pathElems.size >= 2 && pathElems[2].startsWith("view")
-    println("PS: " + props.match.params.toMap())
     val params = props.match.params.toMap()
     val id = params["id"]!!
     val objectId = decodeURIComponent(id)

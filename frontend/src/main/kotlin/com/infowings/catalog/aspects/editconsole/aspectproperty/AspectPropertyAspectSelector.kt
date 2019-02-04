@@ -81,7 +81,6 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                             if (input.isNotEmpty()) {
                                 launch {
                                     val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
-                                    println("hinted aspects: " + hints.map { it.name })
                                     callback(null, jsObject {
                                         options = hints.map { aspectOption(it) }.toTypedArray()
                                     })

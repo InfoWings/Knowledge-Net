@@ -56,6 +56,8 @@ class ObjectTreeViewModelComponent(props: ObjectsViewApiConsumerProps) : RCompon
     private fun refreshObjects() {
         val oldByGuid = state.objects.filter { it.guid != null }.map { it.guid to it }.toMap()
 
+        val withDetails = oldByGuid.filter { it.value.objectProperties != null }.keys
+
         launch {
             try {
                 val response = getAllObjects(props.orderBy, props.query, props.paginationData.offset, props.paginationData.limit).objects

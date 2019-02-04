@@ -202,9 +202,9 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override fun submitObjectValue(valueCreateRequest: ValueCreateRequest) {
+    override fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse? {
         launch {
-            tryRequest {
+            val q = tryRequest<ValueChangeResponse> {
                 val valueCreateResponse = createValue(valueCreateRequest)
                 setState {
                     val editedObject = this.editedObject ?: error("Object is not yet loaded")
@@ -218,8 +218,11 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                     )
                     lastApiError = null
                 }
+                return valueCreateResponse
             }
         }
+
+        return q
     }
 
     override fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {

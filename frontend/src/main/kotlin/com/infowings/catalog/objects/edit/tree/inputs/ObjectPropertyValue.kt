@@ -57,8 +57,6 @@ fun RBuilder.propertyValue(
 
                 val rangeFlags = leftFlag.or(rightFlag).or(rangeFlag)
 
-                println("isRange: " + isRange)
-
                 onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags))
             }, disabled)
         }

@@ -29,7 +29,6 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
     }
 
     override fun RBuilder.render() {
-        println("range render: ${props.lwb} - ${props.upb}, ${props.isRange}")
         val buttonName = "Switch to ${if (state.isRange) "value" else "range"}"
 
         val step = 1

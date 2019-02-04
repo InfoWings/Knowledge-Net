@@ -27,7 +27,7 @@ interface ObjectTreeEditModel {
     fun createProperty(propertyEditModel: ObjectPropertyEditModel, selectedPropId: String?)
     fun updateProperty(propertyEditModel: ObjectPropertyEditModel)
     fun deleteProperty(propertyEditModel: ObjectPropertyEditModel)
-    fun createValue(valueCreateRequest: ValueCreateRequest)
+    fun createValue(valueCreateRequest: ValueCreateRequest, onResponse: (ValueChangeResponse?) -> Unit = {})
     fun updateValue(valueUpdateRequest: ValueUpdateRequest)
     fun deleteValue(valueId: String)
 }
@@ -63,11 +63,9 @@ class ObjectTreeEditModelComponent(props: Props) :
         }
     }
 
-    override fun update(updater: ObjectEditViewModel.() -> Unit): Unit {
-        setState {
+    override fun update(updater: ObjectEditViewModel.() -> Unit) = setState {
             viewModel.updater()
         }
-    }
 
     override fun updateObject() {
         launch {
@@ -121,9 +119,10 @@ class ObjectTreeEditModelComponent(props: Props) :
         deleteEntity { force -> props.apiModel.deleteObjectProperty(propertyId, force) }
     }
 
-    override fun createValue(valueCreateRequest: ValueCreateRequest) {
+    override fun createValue(valueCreateRequest: ValueCreateRequest, onResponse: (ValueChangeResponse?) -> Unit) {
         launch {
-            props.apiModel.submitObjectValue(valueCreateRequest)
+            val response = props.apiModel.submitObjectValue(valueCreateRequest)
+            onResponse(response)
         }
     }
 
