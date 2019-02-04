@@ -10,10 +10,9 @@ import kotlinx.serialization.json.JSON
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     val orderFields = "orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}"
     val direction = "direct=${orderBy.map { it.direction.toString() }.joinToString { it }}"
-    val query = if (nameQuery.isBlank()) "q=$nameQuery" else null
+    val query = if (nameQuery.isNotBlank()) "q=$nameQuery" else null
 
     val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
-
     return JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
 }
 

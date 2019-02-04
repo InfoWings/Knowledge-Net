@@ -204,13 +204,16 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         }
     }
 
-    private fun setSubjectsFilter(subjects: List<SubjectData?>) = setState {
-        aspectsFilter = aspectsFilter.copy(subjects = subjects)
+    private fun setSubjectsFilter(subjects: List<SubjectData?>) {
+        setState {
+            aspectsFilter = aspectsFilter.copy(subjects = subjects)
+        }
     }
 
-    private fun setExcludedAspectsToFilter(aspects: List<AspectHint>) = setState {
-        println("excluded: $aspects")
-        aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
+    private fun setExcludedAspectsToFilter(aspects: List<AspectHint>) {
+        setState {
+            aspectsFilter = aspectsFilter.copy(excludedAspects = aspects)
+        }
     }
 
     private inline fun tryMakeApiCall(block: () -> Unit) {
