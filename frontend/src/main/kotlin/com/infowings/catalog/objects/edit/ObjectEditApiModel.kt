@@ -12,7 +12,7 @@ import react.*
 
 interface ObjectEditApiModel {
     fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest, selectedPropId: String?)
-    fun submitObjectValue(valueCreateRequest: ValueCreateRequest)
+    suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse?
     fun editObject(objectUpdateRequest: ObjectUpdateRequest, subjectName: String)
     fun editObjectProperty(propertyUpdateRequest: PropertyUpdateRequest)
     fun editObjectValue(valueUpdateRequest: ValueUpdateRequest)
@@ -202,27 +202,25 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
         }
     }
 
-    override fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse? {
-        launch {
-            val q = tryRequest<ValueChangeResponse> {
-                val valueCreateResponse = createValue(valueCreateRequest)
-                setState {
-                    val editedObject = this.editedObject ?: error("Object is not yet loaded")
-                    this.editedObject = editedObject.copy(
-                        properties = editedObject.properties.mapOn(
-                            { it.id == valueCreateResponse.objectProperty.id },
-                            {
-                                it.addValue(valueCreateResponse)
-                            }
-                        )
+    override suspend fun submitObjectValue(valueCreateRequest: ValueCreateRequest): ValueChangeResponse? {
+        val q = tryRequest<ValueChangeResponse> {
+            val valueCreateResponse = createValue(valueCreateRequest)
+            setState {
+                val editedObject = this.editedObject ?: error("Object is not yet loaded")
+                this.editedObject = editedObject.copy(
+                    properties = editedObject.properties.mapOn(
+                        { it.id == valueCreateResponse.objectProperty.id },
+                        { it.addValue(valueCreateResponse) }
                     )
-                    lastApiError = null
-                }
-                return valueCreateResponse
+                )
+                lastApiError = null
             }
+
+            return valueCreateResponse
         }
 
         return q
+
     }
 
     override fun editObjectValue(valueUpdateRequest: ValueUpdateRequest) {
