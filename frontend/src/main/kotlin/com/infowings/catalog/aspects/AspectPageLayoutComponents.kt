@@ -21,7 +21,7 @@ fun RBuilder.aspectPageHeader(
     onOrderByChanged: (List<SortOrder>) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     filter: AspectsFilter,
-    setFilterSubjects: (List<SubjectData?>) -> Unit,
+    setFilterSubjects: (List<SubjectData>) -> Unit,
     setFilterAspects: (List<AspectHint>) -> Unit,
     refreshAspects: () -> Unit,
     aspectByGuid: Map<String, AspectData>,
