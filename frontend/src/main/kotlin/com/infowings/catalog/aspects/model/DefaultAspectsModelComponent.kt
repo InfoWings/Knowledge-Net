@@ -204,7 +204,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
         }
     }
 
-    private fun setSubjectsFilter(subjects: List<SubjectData?>) {
+    private fun setSubjectsFilter(subjects: List<SubjectData>) {
         setState {
             aspectsFilter = aspectsFilter.copy(subjects = subjects)
         }
