@@ -273,14 +273,15 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap(),
                 aspectsModel = this@DefaultAspectsModelComponent
             )
+            val filteredAspects = state.aspectsFilter.applyToAspects(props.data)
             aspectPageContent(
-                filteredAspects = state.aspectsFilter.applyToAspects(props.data).applyPagination(props.paginationData),
+                filteredAspects = filteredAspects.applyPagination(props.paginationData),
                 aspectContext = props.aspectContext,
                 aspectsModel = this@DefaultAspectsModelComponent,
                 selectedAspect = state.selectedAspect,
                 selectedAspectPropertyIndex = state.selectedAspectPropertyIndex,
                 isUpdated = state.selectedIsUpdated,
-                paginationData = props.paginationData,
+                paginationData = props.paginationData.copy(totalItems = filteredAspects.size),
                 onPageSelect = props.onPageSelect
             )
             aspectPageOverlay(
