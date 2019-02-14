@@ -64,8 +64,8 @@ class ObjectTreeEditModelComponent(props: Props) :
     }
 
     override fun update(updater: ObjectEditViewModel.() -> Unit) = setState {
-            viewModel.updater()
-        }
+        viewModel.updater()
+    }
 
     override fun updateObject() {
         launch {
