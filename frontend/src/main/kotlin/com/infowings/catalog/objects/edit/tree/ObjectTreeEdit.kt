@@ -35,92 +35,81 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>(), JobCoroutineS
         div(classes = "object-tree-edit") {
             controlledTreeNode {
                 attrs {
-                    expanded = props.objectTree.expanded
-                    onExpanded = {
-                        props.editModel.update {
-                            expanded = it
-                        }
-                    }
+                    expanded = true
+                    hideExpandButton = true
                     treeNodeContent = buildElement {
                         objectEditLineFormat {
-                            attrs {
-                                val editContextModel = props.editContext.currentContext
-                                name = props.objectTree.name
-                                onNameChanged = if (props.editContext.currentContext == null) {
-                                    {
-                                        props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
-                                        props.editModel.update {
-                                            name = it
-                                        }
-                                    }
-                                } else {
-                                    {
-                                        props.editModel.update {
-                                            name = it
-                                        }
+                            val editContextModel = props.editContext.currentContext
+                            name = props.objectTree.name
+                            onNameChanged = if (props.editContext.currentContext == null) {
+                                {
+                                    props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
+                                    props.editModel.update {
+                                        name = it
                                     }
                                 }
-                                subject = props.objectTree.subject
-                                onSubjectChanged = if (props.editContext.currentContext == null) {
-                                    {
-                                        props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
-                                        props.editModel.update {
-                                            subject = it
-                                        }
-                                    }
-                                } else {
-                                    {
-                                        props.editModel.update {
-                                            subject = it
-                                        }
+                            } else {
+                                {
+                                    props.editModel.update {
+                                        name = it
                                     }
                                 }
-                                description = props.objectTree.description
-                                onDescriptionChanged = if (props.editContext.currentContext == null) {
-                                    {
-                                        props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
-                                        props.editModel.update {
-                                            description = it
-                                        }
-                                    }
-                                } else {
-                                    {
-                                        props.editModel.update {
-                                            description = it
-                                        }
-                                    }
-                                }
-                                guid = props.objectTree.guid
-                                onCreateNewProperty = if (editContextModel == null) {
-                                    {
-                                        props.editContext.setContext(EditNewChildContextModel)
-                                        props.editModel.update {
-                                            properties.add(ObjectPropertyEditModel())
-                                        }
-                                    }
-                                } else null
-                                onDeleteObject = if (editContextModel == null) {
-                                    { props.editModel.deleteObject() }
-                                } else null
-                                onUpdateObject = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
-                                    {
-                                        props.editModel.updateObject()
-                                        props.editContext.setContext(null)
-                                    }
-                                } else null
-                                onDiscardUpdate = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
-                                    {
-                                        props.editModel.update {
-                                            name = props.apiModel.name
-                                            description = props.apiModel.description
-                                        }
-                                        props.editContext.setContext(null)
-                                    }
-                                } else null
-                                disabled = !props.editMode ||
-                                        (editContextModel != null && editContextModel != EditExistingContextModel(props.objectTree.id))
-                                editMode = props.editMode
                             }
+                            subject = props.objectTree.subject
+                            onSubjectChanged = if (props.editContext.currentContext == null) {
+                                {
+                                    props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
+                                    props.editModel.update {
+                                        subject = it
+                                    }
+                                }
+                            } else {
+                                {
+                                    props.editModel.update {
+                                        subject = it
+                                    }
+                                }
+                            }
+                            description = props.objectTree.description
+                            onDescriptionChanged = if (props.editContext.currentContext == null) {
+                                editObjectDescription()
+                            } else {
+                                {
+                                    props.editModel.update {
+                                        description = it
+                                    }
+                                }
+                            }
+                            guid = props.objectTree.guid
+                            onCreateNewProperty = if (editContextModel == null) {
+                                {
+                                    props.editContext.setContext(EditNewChildContextModel)
+                                    props.editModel.update {
+                                        properties.add(ObjectPropertyEditModel())
+                                    }
+                                }
+                            } else null
+                            onDeleteObject = if (editContextModel == null) {
+                                { props.editModel.deleteObject() }
+                            } else null
+                            onUpdateObject = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
+                                {
+                                    props.editModel.updateObject()
+                                    props.editContext.setContext(null)
+                                }
+                            } else null
+                            onDiscardUpdate = if (editContextModel == EditExistingContextModel(props.objectTree.id)) {
+                                {
+                                    props.editModel.update {
+                                        name = props.apiModel.name
+                                        description = props.apiModel.description
+                                    }
+                                    props.editContext.setContext(null)
+                                }
+                            } else null
+                            disabled = !props.editMode ||
+                                    (editContextModel != null && editContextModel != EditExistingContextModel(props.objectTree.id))
+                            editMode = props.editMode
                         }
                     }!!
                 }
@@ -143,6 +132,13 @@ class ObjectTreeEdit : RComponent<ObjectTreeEdit.Props, RState>(), JobCoroutineS
                     newHighlightedGuid = props.highlightedGuid
                 )
             }
+        }
+    }
+
+    private fun editObjectDescription(): (String) -> Unit {
+        return {
+            props.editContext.setContext(EditExistingContextModel(props.objectTree.id))
+            props.editModel.update { description = it }
         }
     }
 
