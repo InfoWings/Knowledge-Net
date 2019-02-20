@@ -301,8 +301,9 @@ fun RBuilder.objectPropertiesEditList(
                             }
                             else -> null
                         }
-                        valueDisabled = (currentEditContextModel != null && value.id != null && currentEditContextModel != EditExistingContextModel(value.id)) ||
-                                property.aspect?.deleted ?: true
+                        valueDisabled =
+                            (currentEditContextModel != null && value.id != null && currentEditContextModel != EditExistingContextModel(value.id)) ||
+                                    property.aspect?.deleted ?: true
                         this.editModel = editModel
                         this.editContext = editContext
                         this.apiModelValuesById = apiModelValuesById
@@ -364,7 +365,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
                                 )
                                 props.onUpdate {
                                     aspect = aspectTree
-                                    this.selectedProp = selectedProp
+                                    this.selectedProp = selected
                                 }
                             }
                         } else {
@@ -453,8 +454,8 @@ val objectPropertyValueEditNode = rFunction<ObjectPropertyValueEditNodeProps>("O
                         propertyName = props.property.name
                         propertyDescription = props.property.description
                         aspectName = aspect.name
-                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType } ?:
-                                throw IllegalStateException("Aspect can not infer its base type")
+                        aspectBaseType = aspect.baseType?.let { BaseType.valueOf(it) } ?: aspect.measure?.let { GlobalMeasureMap[it]?.baseType }
+                                ?: throw IllegalStateException("Aspect can not infer its base type")
                         aspectMeasure = aspect.measure?.let { GlobalMeasureMap[it] }
                         subjectName = aspect.subjectName
                         referenceBookId = aspect.refBookId

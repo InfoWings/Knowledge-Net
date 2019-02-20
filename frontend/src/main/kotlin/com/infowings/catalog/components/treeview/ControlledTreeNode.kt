@@ -14,7 +14,7 @@ import react.dom.svg
  * [RProps.children] can be hidden or expanded (any React element), node content may influence on expansion state
  * (by extending [TreeNodeContentProps]).
  */
-class ControlledTreeNode(props: Props) : RComponent<ControlledTreeNode.Props, RState>(props) {
+class ControlledTreeNode : RComponent<ControlledTreeNode.Props, RState>() {
 
     companion object {
         init {
@@ -26,21 +26,24 @@ class ControlledTreeNode(props: Props) : RComponent<ControlledTreeNode.Props, RS
         val className = props.className
         val additionalClasses = className?.let { " $it" } ?: ""
         div(classes = "tree-view--node$additionalClasses") {
-            if (Children.count(props.children) > 0) {
-                if (props.expanded) {
-                    squareMinusIcon(classes = "tree-view--expander-icon") {
-                        attrs.onClickFunction = { props.onExpanded(false) }
+            if (!props.hideExpandButton) {
+                if (Children.count(props.children) > 0) {
+                    if (props.expanded) {
+                        squareMinusIcon(classes = "tree-view--expander-icon") {
+                            attrs.onClickFunction = { props.onExpanded(false) }
+                        }
+                    } else {
+                        squarePlusIcon(classes = "tree-view--expander-icon") {
+                            attrs.onClickFunction = { props.onExpanded(true) }
+                        }
                     }
                 } else {
-                    squarePlusIcon(classes = "tree-view--expander-icon") {
-                        attrs.onClickFunction = { props.onExpanded(true) }
-                    }
+                    svg(classes = "tree-view--expander-icon")
                 }
-            } else {
-                svg(classes = "tree-view--expander-icon")
             }
             child(props.treeNodeContent)
         }
+
         if (Children.count(props.children) > 0 && props.expanded) {
             div(classes = "tree-view--children$additionalClasses") {
                 children()
@@ -48,12 +51,13 @@ class ControlledTreeNode(props: Props) : RComponent<ControlledTreeNode.Props, RS
         }
     }
 
-    interface Props : RProps {
-        var className: String?
-        var expanded: Boolean
-        var onExpanded: (Boolean) -> Unit
-        var treeNodeContent: ReactElement
-    }
+    class Props(
+        var className: String?,
+        var expanded: Boolean,
+        var onExpanded: (Boolean) -> Unit,
+        var treeNodeContent: ReactElement,
+        var hideExpandButton: Boolean
+    ) : RProps
 }
 
 fun RBuilder.controlledTreeNode(block: RHandler<ControlledTreeNode.Props>) = child(ControlledTreeNode::class, block)

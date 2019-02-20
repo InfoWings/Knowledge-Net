@@ -7,7 +7,7 @@ import react.RClass
 external val Callout: RClass<CalloutProps>
 
 external interface CalloutProps : BlueprintComponentProps {
-    var icon: String
+    var icon: String?
     var intent: Intent
     var title: String
 }

@@ -25,6 +25,10 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     ObjectEditApiModel,
     JobCoroutineScope by JobSimpleCoroutineScope() {
 
+    init {
+        job = Job()
+    }
+
     override fun State.init() {
         editedObject = null
         deleted = false
@@ -35,7 +39,6 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
     override fun componentDidMount() {
-        job = Job()
         launch {
             val detailedObjectResponse = getDetailedObjectForEdit(props.objectId)
             setState {
@@ -87,12 +90,12 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
     }
 
 
-    override fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest, aspectPropId: String?) {
+    override fun submitObjectProperty(propertyCreateRequest: PropertyCreateRequest, selectedPropId: String?) {
         launch {
             tryRequest {
                 val createPropertyResponse = createProperty(propertyCreateRequest)
                 val treeAspectResponse = getAspectTree(propertyCreateRequest.aspectId)
-                println("AP_Id: $aspectPropId, CPR: " + createPropertyResponse)
+                println("AP_Id: $selectedPropId, CPR: $createPropertyResponse")
 
                 val defaultRootValue = ValueTruncated(
                     createPropertyResponse.rootValue.id,
@@ -105,7 +108,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                     emptyList()
                 )
 
-                if (aspectPropId == null) {
+                if (selectedPropId == null) {
                     setState {
                         val editedObject = this.editedObject ?: error("Object is not yet loaded")
                         this.editedObject = editedObject.copy(
@@ -126,7 +129,7 @@ class ObjectEditApiModelComponent : RComponent<ObjectEditApiModelComponent.Props
                     val valueCreateResponse = createValue(
                         ValueCreateRequest(
                             value = ObjectValueData.NullValue, description = null,
-                            objectPropertyId = createPropertyResponse.id, measureName = null, aspectPropertyId = aspectPropId,
+                            objectPropertyId = createPropertyResponse.id, measureName = null, aspectPropertyId = selectedPropId,
                             parentValueId = createPropertyResponse.rootValue.id
                         )
                     )
