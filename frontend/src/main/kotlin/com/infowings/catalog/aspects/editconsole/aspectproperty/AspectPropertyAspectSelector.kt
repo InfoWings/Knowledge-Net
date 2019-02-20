@@ -83,6 +83,7 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                                 job.cancelChildren()
                                 launch {
                                     val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
+                                    println("For $input got ${hints.size} suggestions")
                                     callback(null, jsObject {
                                         options = hints.map { aspectOption(it) }.toTypedArray()
                                     })
