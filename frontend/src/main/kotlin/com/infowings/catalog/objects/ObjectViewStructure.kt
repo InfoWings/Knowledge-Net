@@ -150,34 +150,24 @@ fun List<ObjectGetResponse>.toLazyView(detailedObjectsView: Map<String, Detailed
 
 fun List<ObjectLazyViewModel>.mergeDetails(detailedObjectsView: Map<String, DetailedObjectViewResponse>) =
     this.map {
-        if (detailedObjectsView[it.id] == null) {
-            ObjectLazyViewModel(
-                it.id,
-                it.name,
-                it.guid,
-                it.description,
-                it.subjectName,
-                it.objectPropertiesCount,
-                expanded = it.expanded,
-                lastUpdated = it.lastUpdated
-            )
-        } else {
-            val detailedObject = detailedObjectsView[it.id] ?: error("Should never happened")
-            ObjectLazyViewModel(
-                detailedObject.id,
-                detailedObject.name,
-                detailedObject.guid,
-                detailedObject.description,
-                detailedObject.subjectName,
-                detailedObject.propertiesCount,
-                it.objectProperties ?: detailedObject.objectPropertyViews.map(::ObjectPropertyViewModel),
-                it.expanded,
-                lastUpdated = it.lastUpdated
-            ).also { newObject ->
-                if (it.expandAllFlag) {
-                    newObject.expandAll()
-                }
-            }
+        val detailedObject = detailedObjectsView[it.id] ?: return@map it.copy(objectProperties = null, expanded = false, expandAllFlag = false)
+
+        val newObject = ObjectLazyViewModel(
+            detailedObject.id,
+            detailedObject.name,
+            detailedObject.guid,
+            detailedObject.description,
+            detailedObject.subjectName,
+            detailedObject.propertiesCount,
+            /*it.objectProperties ?: */detailedObject.objectPropertyViews.map(::ObjectPropertyViewModel),
+            it.expanded,
+            lastUpdated = it.lastUpdated
+        )
+        if (it.expandAllFlag) {
+            newObject.expandAll()
         }
+        return@map newObject
     }
+
+
 
