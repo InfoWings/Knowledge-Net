@@ -1,10 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.utils.delete
-import com.infowings.catalog.utils.encodeURIComponent
-import com.infowings.catalog.utils.get
-import com.infowings.catalog.utils.post
+import com.infowings.catalog.utils.*
 import kotlinx.serialization.json.JSON
 
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
@@ -56,6 +53,10 @@ suspend fun getAspectHints(
 ): AspectsHints {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    return try {
+        JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    } catch (e: BadRequestException) {
+        AspectsHints.empty()
+    }
 }
 

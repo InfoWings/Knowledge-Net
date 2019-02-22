@@ -14,6 +14,7 @@ import com.infowings.catalog.wrappers.select.SelectOption
 import com.infowings.catalog.wrappers.select.asyncSelect
 import kotlinext.js.jsObject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import react.*
 import react.dom.div
@@ -78,9 +79,11 @@ class AspectPropertyAspectSelector : RComponent<AspectPropertyAspectSelector.Pro
                         options = selectedArray
                         filterOptions = { options, _, _ -> options }
                         loadOptions = { input, callback ->
-                            if (input.isNotEmpty()) {
+                            if (input.isNotBlank() && input.length > 1) {
+                                job.cancelChildren()
                                 launch {
                                     val hints = getAspectHints(input, props.parentAspectId, props.aspectPropertyId).defaultOrder()
+                                    println("For $input got ${hints.size} suggestions")
                                     callback(null, jsObject {
                                         options = hints.map { aspectOption(it) }.toTypedArray()
                                     })

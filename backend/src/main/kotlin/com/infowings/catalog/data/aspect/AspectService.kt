@@ -74,11 +74,7 @@ class DefaultAspectService(
     Завершает обновление на случай обновления
     Запускается изнутри транзакции на database
      */
-    private fun updateFinish(
-        aspectVertex: AspectVertex,
-        aspectData: AspectData,
-        context: HistoryContext
-    ): AspectVertex {
+    private fun updateFinish(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
         val baseSnapshot = aspectVertex.currentSnapshot()
 
         val res = savePlain(aspectVertex, aspectData, context)
@@ -93,11 +89,7 @@ class DefaultAspectService(
     Завершает обновление на случай создания
     Запускается изнутри транзакции на database
     */
-    private fun createFinish(
-        aspectVertex: AspectVertex,
-        aspectData: AspectData,
-        context: HistoryContext
-    ): AspectVertex {
+    private fun createFinish(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, context)
         guidDao.newGuidVertex(res)
         historyService.storeFact(aspectVertex.toCreateFact(context))
