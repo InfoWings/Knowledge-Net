@@ -20,6 +20,14 @@
     }
   }
 
+  &__header-copy-guid-button {
+    float: right;
+  }
+
+  &__header-delete-object-button {
+    margin-left: auto;
+  }
+
   &__object-property {
     display: flex;
     align-items: center;
