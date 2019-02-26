@@ -32,7 +32,7 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(orderBy: List<SortOrder>, pattern: String?): List<ObjectTruncated> = dao.getTruncatedObjects(pattern).sort(orderBy)
+    fun fetch(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> = dao.getTruncatedObjects(objectsRequestData).sort(objectsRequestData.sortOrder)
 
     private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
         if (orderBy.isEmpty()) {

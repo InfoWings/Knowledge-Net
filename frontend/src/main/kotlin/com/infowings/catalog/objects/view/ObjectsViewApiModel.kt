@@ -47,6 +47,15 @@ class ObjectsViewApiModelComponent :
         objectsFilter = ObjectsFilter(emptyList(), emptyList())
     }
 
+    private fun State.toObjectRequestData() =
+        ObjectsRequestData(
+            sortOrder = orderBy,
+            query = searchQuery,
+            excludedFromSubjectFilter = objectsFilter.excluded.mapNotNull { it.guid },
+            pagination = paginationData,
+            subjectsGuids = objectsFilter.subjects.mapNotNull { it?.guid }
+        )
+
     override fun componentDidMount() {
         job = Job()
         fetch()
@@ -59,14 +68,14 @@ class ObjectsViewApiModelComponent :
     override fun refresh() {
         launch {
             try {
-                val response = getAllObjects(state.orderBy, state.searchQuery, offset = state.paginationData.offset, limit = state.paginationData.limit).objects
+                val response = getAllObjects(state.toObjectRequestData())
                 val detailsNeeded = state.objects.filter { it.id in state.detailedObjectsView.keys }
                 val freshDetails = detailsNeeded.map { it.id to getDetailedObject(it.id) }.toMap()
 
                 setState {
-                    objects = response
+                    objects = response.objects
                     detailedObjectsView += freshDetails
-                    paginationData = paginationData.copy(totalItems = response.size)
+                    paginationData = paginationData.copy(totalItems = response.totalObjects)
                 }
             } catch (exception: ServerException) {
                 println("something wrong: $exception")
@@ -90,7 +99,7 @@ class ObjectsViewApiModelComponent :
         job.cancelChildren()
         launch {
             //val objectsResponse = getAllObjects(state.orderBy, state.searchQuery)
-            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = state.paginationData.offset, limit = state.paginationData.limit)
+            val objectsResponse = getAllObjects(state.toObjectRequestData())
             objectsReceived(objectsResponse, state.paginationData)
         }
     }
@@ -105,10 +114,8 @@ class ObjectsViewApiModelComponent :
     private fun fetch(viewSlice: PaginationData) {
         job.cancelChildren()
         launch {
-            val objectsResponse = getAllObjects(state.orderBy, state.searchQuery, offset = viewSlice.offset, limit = viewSlice.limit)
-            setState {
-                objectsReceived(objectsResponse, viewSlice)
-            }
+            val objectsResponse = getAllObjects(state.toObjectRequestData())
+            objectsReceived(objectsResponse, viewSlice)
         }
     }
 
@@ -139,6 +146,7 @@ class ObjectsViewApiModelComponent :
             this.objectsFilter = objectsFilter
             paginationData = paginationData.copy(current = 1)
         }
+        refresh()
     }
 
     private fun updateSortConfig(newOrderBy: List<SortOrder>) {
