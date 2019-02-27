@@ -11,11 +11,11 @@ fun RBuilder.valueFormat(value: ObjectValueData, history: History) {
     when (value) {
         is ObjectValueData.NullValue -> return
         is ObjectValueData.DecimalValue -> span(classes = "object-property-value-line__value") {
-            if (value.upbRepr != value.valueRepr) {
+            if (RangeFlagConstants.RANGE.isSet(value.rangeFlags)) {
                 val leftInf = RangeFlagConstants.LEFT_INF.bitmask.and(value.rangeFlags) != 0
                 val rightInf = RangeFlagConstants.RIGHT_INF.bitmask.and(value.rangeFlags) != 0
-                val leftText = if (leftInf) "-Inf" else value.valueRepr
-                val rightText = if (rightInf) "Inf" else value.upbRepr
+                val leftText = if (leftInf) "−∞" else value.valueRepr
+                val rightText = if (rightInf) "∞" else value.upbRepr
                 +"[ $leftText : $rightText]"
             } else {
                 +value.valueRepr
