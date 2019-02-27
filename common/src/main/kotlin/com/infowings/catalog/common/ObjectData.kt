@@ -9,7 +9,11 @@ data class ObjectsRequestData(
     val pagination: PaginationData,
     val subjectsGuids: List<String>?, // null means include all
     val excludedFromSubjectFilter: List<String>
-)
+) {
+    companion object {
+        val requestAllObjects = ObjectsRequestData(emptyList(), null, PaginationData.allItems, null, emptyList())
+    }
+}
 
 @Serializable
 data class ObjectsResponse(
