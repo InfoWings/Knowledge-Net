@@ -12,32 +12,57 @@ import java.time.Instant
 
 class ObjectSearchDao(private val db: OrientDatabase) {
 
-    fun searchObjectsTruncated(pattern: String): List<ObjectTruncated> = transaction(db) {
-        val tsById = getObjectsLastUpdateTimestamps()
-        return@transaction searchInNameAndDescription(pattern, tsById) + searchInStringValues(pattern, tsById) + searchInReferenceBook(pattern, tsById)
+    @Suppress("UNUSED_PARAMETER")
+    private fun acceptAll(result: OResult) = true
+
+    private fun filter(subjectsGuids: List<String>, excludeFromSubjectFilter: List<String>): (OResult) -> Boolean =
+        { result -> result.getProperty<String>("subjectGuid") in subjectsGuids || result.getProperty<String>("guid") in excludeFromSubjectFilter }
+
+    fun searchObjectsTruncated(pattern: String, subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> {
+        // bug in Orient Db prevent using graph traversing and lucene query in one WHERE clause so filtering applied to result instead of querying required guids
+        val filter: (OResult) -> Boolean =
+            if (subjectsGuids.isNullOrEmpty())
+                ::acceptAll
+            else
+                filter(subjectsGuids, excludeFromSubjectFilter)
+
+        return transaction(db) {
+            val tsById = getObjectsLastUpdateTimestamps()
+            val searchResult = searchInNameAndDescription(pattern, tsById, filter) +
+                    searchInStringValues(pattern, tsById, filter) +
+                    searchInReferenceBook(pattern, tsById, filter)
+            return@transaction searchResult.distinctBy { it.id }
+        }
     }
 
-    fun getAllObjectsTruncated(): List<ObjectTruncated> =
+    private val allObjectsTruncated = """SELECT @rid, name, description, """ +
+            """FIRST(OUT("${OrientEdge.GUID_OF_OBJECT.extName}")).guid as guid, """ +
+            """FIRST(OUT("$OBJECT_SUBJECT_EDGE")).name as subjectName, """ +
+            """IN("$OBJECT_OBJECT_PROPERTY_EDGE").size() as objectPropertiesCount """ +
+            """FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) """
+
+    fun getAllObjectsFilteredBySubjectTruncated(subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> =
         transaction(db) {
             val tsById = getObjectsLastUpdateTimestamps()
-            val query =
-                "SELECT @rid, name, description, " +
-                        "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, " +
-                        "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, " +
-                        "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount " +
-                        "FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) "
-            return@transaction db.query(query) { it.toObjectsTruncated(tsById) }
+            var query = allObjectsTruncated
+
+            if (!subjectsGuids.isNullOrEmpty())
+                query += """ AND FIRST(OUT("$OBJECT_SUBJECT_EDGE").OUT("${OrientEdge.GUID_OF_SUBJECT.extName}")).guid in :guids """
+            if (excludeFromSubjectFilter.isNotEmpty())
+                query += """ OR FIRST(OUT("${OrientEdge.GUID_OF_OBJECT.extName}")).guid in :excludeGuids """
+
+            return@transaction db.query(query, mapOf("guids" to subjectsGuids, "excludeGuids" to excludeFromSubjectFilter)) { it.toObjectsTruncated(tsById) }
         }
 
 
-    private fun searchInNameAndDescription(pattern: String, tsById: Map<String, Instant>): List<ObjectTruncated> {
+    private fun searchInNameAndDescription(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val query = baseSelectForTruncatedObjects +
                 "WHERE ${anyOfCond(listOf(searchLucene(OBJECT_CLASS, ATTR_NAME, "lq"), searchLucene(OBJECT_CLASS, ATTR_DESC, "lq")))}\n" +
-                " and (deleted is NULL or deleted = false ) \n"
-        return db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.toObjectsTruncated(tsById) }.toList()
+                " and $notDeletedSql \n"
+        return db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
     }
 
-    private fun searchInStringValues(pattern: String, tsById: Map<String, Instant>): List<ObjectTruncated> {
+    private fun searchInStringValues(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val queryByStr = baseSelectForTruncatedObjects +
                 "      LET \$t = (SELECT OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") AS prop, \n" +
                 "                        prop.OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").name AS obj_name, \n" +
@@ -49,11 +74,11 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 "                 AND ${searchLucene(OrientClass.OBJECT_VALUE.extName, STR_TYPE_PROPERTY, "lq")}\n" +
                 "                 AND $notDeletedSql AND (prop_deleted is null OR prop_deleted = false)\n" +
                 "          UNWIND obj_name, obj_id, prop_deleted) WHERE @rid IN \$t.obj_id  " +
-                " and (deleted is NULL or deleted = false ) "
-        return db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.toObjectsTruncated(tsById) }.toList()
+                " and $notDeletedSql "
+        return db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
     }
 
-    private fun searchInReferenceBook(pattern: String, tsById: Map<String, Instant>): List<ObjectTruncated> {
+    private fun searchInReferenceBook(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val queryByRefBook = baseSelectForTruncatedObjects +
                 "      LET \$t = (\n" +
                 "         SELECT @rid, \n" +
@@ -70,8 +95,8 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 "                                        and  (deleted is null or deleted == false)" +
                 " unwind prop_deleted, obj_id \n" +
                 " ) where @rid in \$t.obj_id  " +
-                " and (deleted is NULL or deleted = false ) "
-        return db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.toObjectsTruncated(tsById) }
+                " and $notDeletedSql "
+        return db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
     }
 
 
@@ -134,5 +159,6 @@ private val baseSelectForTruncatedObjects =
     "SELECT @rid, name, description, \n" +
             "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
+            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\").OUT(\"${OrientEdge.GUID_OF_SUBJECT.extName}\")).guid as subjectGuid, \n" +
             "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
             "FROM $OBJECT_CLASS \n"

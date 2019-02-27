@@ -74,10 +74,11 @@ val objectPropertyValueEditLineFormat = rFunction<ObjectPropertyValueEditLineFor
             propertyValue(
                 baseType = props.aspectBaseType,
                 referenceBookId = props.referenceBookId,
-                referenceBookNameSoft = props.referenceBookNameSoft,
                 value = value,
                 onChange = props.onValueUpdate,
-                disabled = !props.editMode || props.valueDisabled
+                disabled = !props.editMode || props.valueDisabled,
+                onSubmit = props.onSaveValue,
+                onCancel = props.onCancelValue
             )
             props.aspectMeasure?.let {
                 val measureGroup = MeasureMeasureGroupMap[it.name] ?: error("No measure group for measure ${it.name}")

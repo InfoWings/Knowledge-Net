@@ -19,12 +19,12 @@ class ObjectLazyTreeView : RComponent<ObjectLazyTreeView.Props, RState>() {
 
     override fun RBuilder.render() {
         div(classes = "object-tree-view") {
-            props.indices.forEach { index ->
+            props.objects.withIndex().forEach { (index, objekt) ->
                 objectLazyTreeRootNode {
                     val currProps = props
                     attrs {
                         objectIndex = index
-                        objectView = props.objects[index]
+                        objectView = objekt
                         objectTreeModel = props.objectTreeViewModel
                         history = currProps.history
                     }
@@ -35,7 +35,6 @@ class ObjectLazyTreeView : RComponent<ObjectLazyTreeView.Props, RState>() {
 
     interface Props : RouteSuppliedProps {
         var objects: List<ObjectLazyViewModel>
-        var indices: List<Int>
         var objectTreeViewModel: ObjectsLazyModel
     }
 }

@@ -6,6 +6,7 @@ import com.infowings.catalog.common.objekt.PropertyCreateRequest
 import com.infowings.catalog.common.objekt.ValueCreateRequest
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectService
+import io.kotlintest.shouldBe
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
@@ -32,10 +33,14 @@ class ObjectServiceFetchTest {
     private val username = "admin"
     private var detailedObjectId: String? = null
 
+    private val knetSubjectName = "ObjectServiceFetchTest - Knowledge Net"
+    private val reflexiaSubjectName = "ObjectServiceFetchTest - Reflexia"
+    private var tubeObjectGuid: String? = null
+
     @BeforeEach
     fun initTestData() {
-        val knetSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Knowledge Net", description = null), username)
-        val reflexiaSubject = subjectService.createSubject(SubjectData(name = "ObjectServiceFetchTest - Reflexia", description = null), username)
+        val knetSubject = subjectService.createSubject(SubjectData(name = knetSubjectName, description = null), username)
+        val reflexiaSubject = subjectService.createSubject(SubjectData(name = reflexiaSubjectName, description = null), username)
 
         val heightAspect =
             aspectService.save(AspectData(name = "ObjectServiceFetchTest - Height", measure = Metre.name, baseType = BaseType.Decimal.name), username)
@@ -48,12 +53,18 @@ class ObjectServiceFetchTest {
                 name = "ObjectServiceFetchTest - Dimensions",
                 baseType = BaseType.Text.name,
                 properties = listOf(
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
-                        aspectId = heightAspect.idStrict(), aspectGuid = heightAspect.guidSoft()),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
-                        aspectId = widthAspect.idStrict(), aspectGuid = heightAspect.guidSoft()),
-                    AspectPropertyData(id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
-                        aspectId = depthAspect.idStrict(), aspectGuid = heightAspect.guidSoft())
+                    AspectPropertyData(
+                        id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = heightAspect.idStrict(), aspectGuid = heightAspect.guidSoft()
+                    ),
+                    AspectPropertyData(
+                        id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = widthAspect.idStrict(), aspectGuid = heightAspect.guidSoft()
+                    ),
+                    AspectPropertyData(
+                        id = "", name = "", description = "", cardinality = PropertyCardinality.ONE.name,
+                        aspectId = depthAspect.idStrict(), aspectGuid = heightAspect.guidSoft()
+                    )
                 )
             ), username
         )
@@ -105,23 +116,67 @@ class ObjectServiceFetchTest {
             username
         )
 
-        objectService.create(
+        tubeObjectGuid = objectService.create(
             ObjectCreateRequest(name = "ObjectServiceFetchTest - Tube V1", description = null, subjectId = reflexiaSubject.id),
             username
-        )
+        ).guid
     }
 
 
+    private val paginationData = PaginationData(20, 1, 1000)
+
     @Test
-    fun fetchAllObjectsTruncated() {
-        val objects = objectService.fetch(emptyList(), "")
-        assertThat("Fetched objects count should be equal to 3", objects.size, Matchers.`is`(3))
+    fun `fetched objects count should be equal to 3`() {
+        val request = ObjectsRequestData(emptyList(), "", paginationData, null, emptyList())
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 3
     }
 
     @Test
     fun fetchAllObjectsTruncatedWithPattern() {
-        val objects = objectService.fetch(emptyList(), "Tube")
-        assertThat("Fetched objects count should be equal to 1", objects.size, Matchers.`greaterThanOrEqualTo`(1))
+        val request = ObjectsRequestData(emptyList(), "Tube", paginationData, null, emptyList())
+        val objects = objectService.fetch(request)
+        assertThat("Fetched objects count should be equal to 1", objects.size, Matchers.greaterThanOrEqualTo(1))
+    }
+
+    @Test
+    fun `query objects by name and subject should return correct object`() {
+        val subject = subjectService.findByName(reflexiaSubjectName)
+        val request = ObjectsRequestData(emptyList(), "Tube", paginationData, listOf(subject!!.guid!!), emptyList())
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 1
+    }
+
+    @Test
+    fun `query objects by name and wrong subject should return no objects`() {
+        val subject = subjectService.findByName(knetSubjectName)
+        val request = ObjectsRequestData(emptyList(), "Tube", paginationData, listOf(subject!!.guid!!), emptyList())
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 0
+    }
+
+    @Test
+    fun `query objects by name and filter by another subject and exclude guid should return correct object`() {
+        val subject = subjectService.findByName(knetSubjectName)
+        val request = ObjectsRequestData(emptyList(), "Tube", paginationData, listOf(subject!!.guid!!), listOf(tubeObjectGuid!!))
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 1
+    }
+
+    @Test
+    fun `fetch objects filter by another subject should return correct count of objects`() {
+        val subject = subjectService.findByName(knetSubjectName)
+        val request = ObjectsRequestData(emptyList(), "", paginationData, listOf(subject!!.guid!!), emptyList())
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 2
+    }
+
+    @Test
+    fun `fetch objects filter by another subject and exclude guid should return correct count of objects`() {
+        val subject = subjectService.findByName(knetSubjectName)
+        val request = ObjectsRequestData(emptyList(), "", paginationData, listOf(subject!!.guid!!), listOf(tubeObjectGuid!!))
+        val objects = objectService.fetch(request)
+        objects.size shouldBe 3
     }
 
     @Test

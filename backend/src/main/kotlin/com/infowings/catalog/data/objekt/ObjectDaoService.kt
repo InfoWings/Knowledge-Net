@@ -13,12 +13,6 @@ import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
 
-data class ValueWithContext(
-    val value: ObjectPropertyValueVertex,
-    val propertyId: String,
-    val objectId: String
-)
-
 class ObjectDaoService(private val db: OrientDatabase) {
     private val objectSearchDao = ObjectSearchDao(db)
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
@@ -38,14 +32,16 @@ class ObjectDaoService(private val db: OrientDatabase) {
      * query Object by pattern (or all objects on null or empty pattern)
      * returns only data needed to show objects in UI thus all properties do not queried by this method
      */
-    fun getTruncatedObjects(pattern: String?): List<ObjectTruncated> =
-        logTime(logger, "request of all truncated objects") {
-            if (pattern.isNullOrBlank()) {
-                return@logTime objectSearchDao.getAllObjectsTruncated()
-            } else {
-                return@logTime objectSearchDao.searchObjectsTruncated(pattern)
-            }
+    fun getTruncatedObjects(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> {
+        val (_, pattern, _, subjectsGuids, excludedFromSubjectFilter) = objectsRequestData
+
+        return logTime(logger, "request of all truncated objects") {
+            if (pattern.isNullOrBlank())
+                objectSearchDao.getAllObjectsFilteredBySubjectTruncated(subjectsGuids, excludedFromSubjectFilter)
+            else
+                objectSearchDao.searchObjectsTruncated(pattern, subjectsGuids, excludedFromSubjectFilter)
         }
+    }
 
     fun getSubValues(id: String): Set<ObjectPropertyValueVertex> = getSubValues(ORecordId(id))
 
@@ -165,11 +161,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
-    fun saveObjectProperty(
-        vertex: ObjectPropertyVertex,
-        info: PropertyWriteInfo,
-        values: List<ObjectPropertyValueVertex>
-    ): ObjectPropertyVertex =
+    fun saveObjectProperty(vertex: ObjectPropertyVertex, info: PropertyWriteInfo, values: List<ObjectPropertyValueVertex>): ObjectPropertyVertex =
         transaction(db) {
             vertex.name = info.name
             vertex.description = info.description
@@ -177,8 +169,8 @@ class ObjectDaoService(private val db: OrientDatabase) {
             replaceEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE, vertex.objekt, info.objekt)
             replaceEdge(vertex, ASPECT_OBJECT_PROPERTY_EDGE, vertex.aspect, info.aspect)
 
-            var valuesMap = values.associateBy { it.id }
-            var toDelete = emptyMap<String, ObjectPropertyValueVertex>()
+            val valuesMap = values.associateBy { it.id }.toMutableMap()
+            val toDelete = emptyMap<String, ObjectPropertyValueVertex>().toMutableMap()
             vertex.values.forEach {
                 if (valuesMap.containsKey(it.id)) {
                     valuesMap -= it.id
@@ -195,10 +187,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             return@transaction vertex.save<OVertex>().toObjectPropertyVertex()
         }
 
-    fun saveObjectValue(
-        vertex: ObjectPropertyValueVertex,
-        valueInfo: ValueWriteInfo
-    ): ObjectPropertyValueVertex = transaction(db) {
+    fun saveObjectValue(vertex: ObjectPropertyValueVertex, valueInfo: ValueWriteInfo): ObjectPropertyValueVertex = transaction(db) {
         logger.debug("saving object value by info $valueInfo")
 
         vertex.description = valueInfo.description
