@@ -5,6 +5,7 @@ import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.objects.edit.tree.inputs.values.*
+import com.infowings.catalog.objects.edit.tree.utils.transform
 import react.RBuilder
 import react.ReactElement
 
@@ -57,7 +58,7 @@ fun RBuilder.propertyValue(
 
                 val rangeFlags = leftFlag.or(rightFlag).or(rangeFlag)
 
-                onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags))
+                onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags).transform())
             }, disabled)
         }
 

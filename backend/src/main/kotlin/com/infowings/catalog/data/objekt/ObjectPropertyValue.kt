@@ -127,8 +127,8 @@ data class ObjectPropertyValue(
 
         return if (targetValue is ObjectValueData.DecimalValue && measure != null) {
             ObjectValueData.DecimalValue(
-                measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toString(),
-                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toString(),
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.valueRepr))).toPlainString(),
+                measure.fromBase(DecimalNumber(BigDecimal(targetValue.upbRepr))).toPlainString(),
                 targetValue.rangeFlags
             )
         } else {
