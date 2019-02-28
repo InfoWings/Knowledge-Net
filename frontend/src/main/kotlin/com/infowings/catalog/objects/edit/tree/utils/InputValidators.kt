@@ -36,6 +36,9 @@ fun ObjectValueData.DecimalValue.transform(): ObjectValueData.DecimalValue {
 
 fun ObjectValueData.DecimalValue.validate() {
     if (RangeFlagConstants.RANGE.isSet(rangeFlags)) {
+        val leftInfinity = RangeFlagConstants.LEFT_INF.isSet(rangeFlags)
+        val rightInfinity = RangeFlagConstants.RIGHT_INF.isSet(rangeFlags)
+
         if (valueRepr.isEmpty() && upbRepr.isEmpty()) {
             throw InputValidationException("Both ends can't be empty")
         }
@@ -46,7 +49,7 @@ fun ObjectValueData.DecimalValue.validate() {
             throw InputValidationException("This is not a decimal value: $upbRepr")
         }
 
-        if (upbRepr.isDecimal() && valueRepr.isDecimal()) {
+        if (upbRepr.isDecimal() && valueRepr.isDecimal() && !leftInfinity && !rightInfinity) {
             val upb = upbRepr.toDouble()
             val lwb = valueRepr.toDouble()
             if (lwb >= upb) {
