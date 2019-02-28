@@ -36,23 +36,24 @@ fun RBuilder.propertyLabel(
         +aspectName
     }
     +":"
-    span(classes = "text-grey") {
-        +"["
-        span(classes = "aspect-tree-view--label-property-cardinality") {
-            val cardinality = try {
-                PropertyCardinality.valueOf(aspectPropertyCardinality)
-            } catch (exception: IllegalStateException) {
-                null
+    val cardinality = try {
+        PropertyCardinality.valueOf(aspectPropertyCardinality)
+    } catch (exception: IllegalStateException) {
+        null
+    }
+    if (cardinality != null && cardinality == PropertyCardinality.ZERO) {
+        span(classes = "text-grey") {
+            span(classes = "aspect-tree-view--label-property-cardinality") {
+                +"[${cardinality.label}]:"
             }
-            +(cardinality?.label ?: aspectPropertyCardinality)
         }
-        +"]"
     }
-    +":"
-    span(classes = "text-grey") {
-        +aspectMeasure
+    if (aspectMeasure.isNotBlank()) {
+        span(classes = "text-grey") {
+            +aspectMeasure
+        }
+        +":"
     }
-    +":"
     span(classes = "text-grey") {
         +if (aspectRefBookName.isEmpty()) aspectDomain else aspectRefBookName
     }
@@ -60,7 +61,7 @@ fun RBuilder.propertyLabel(
     span(classes = "text-grey") {
         +aspectBaseType
     }
-    +"( Subject: "
+    +"( "
     span(classes = "text-grey") {
         +aspectSubjectName
     }

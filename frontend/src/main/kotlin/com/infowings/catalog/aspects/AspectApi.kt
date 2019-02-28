@@ -10,7 +10,12 @@ suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: Str
     val query = if (nameQuery.isNotBlank()) "q=$nameQuery" else null
 
     val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
-    return JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
+    return try {
+        JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
+    } catch (e: BadRequestException) {
+        println(e.message)
+        AspectsList(emptyList())
+    }
 }
 
 suspend fun getAspectTree(id: String): AspectTree = JSON.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))

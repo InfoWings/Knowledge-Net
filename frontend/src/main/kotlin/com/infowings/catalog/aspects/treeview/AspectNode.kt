@@ -34,7 +34,7 @@ class AspectNode : RComponent<AspectNode.CombinedProps, RState>() {
                 onClick = props.onClick
             }
         }
-        if (props.aspect.name != "") {
+        if (props.aspect.name != "" && !props.aspect.description.isNullOrBlank()) {
             descriptionComponent(
                 className = "aspect-tree-view--description-icon",
                 description = props.aspect.description

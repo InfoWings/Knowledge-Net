@@ -37,7 +37,7 @@ class SearchController(val suggestionService: SuggestionService) {
     ): AspectsList {
         logger.debug("aspect suggestion request: context=$context commonParam=$commonParam aspectParam=$aspectParam")
         val aspects = suggestionService.findAspect(context, commonParam, aspectParam)
-        return AspectsList(aspects, aspects.size)
+        return AspectsList(aspects)
     }
 
     @GetMapping("/aspect/hint")

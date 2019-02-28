@@ -223,9 +223,9 @@ val SpeedGroup = MeasureGroup(
 )
 
 /** Area group */
-val SquareMetre = createDecimalMeasure("Square meter", "m^2", "1.0")
+val SquareMetre = createDecimalMeasure("Square meter", "m²", "1.0")
 val Hectare = createDecimalMeasure("Hectare", "ha", "10000.0")
-val SquareInch = createDecimalMeasure("Square Inch", "inch^2", "0.00064516")
+val SquareInch = createDecimalMeasure("Square Inch", "inch²", "0.00064516")
 
 val AreaGroup = MeasureGroup("Area", listOf(SquareMetre, Hectare, SquareInch), SquareMetre)
 
@@ -235,7 +235,7 @@ val CubicMillimetre = createDecimalMeasure("Cubic Millimetre", "millimetre^3", "
 val Litre = createDecimalMeasure("Litre", "litre", "0.001")
 val CubicDecimetre = createDecimalMeasure("Cubic Decimeter", "dm^3", "0.001")
 val CubicCentimetre = createDecimalMeasure("Cubic Centimeter", "cm^3", "0.000001")
-val CubicInch = createDecimalMeasure("Cubic Inch", "inch^2", "0.000016387")
+val CubicInch = createDecimalMeasure("Cubic Inch", "inch³", "0.000016387")
 val Pint = createDecimalMeasure("Pint", "pint", "0.0004731765")
 val Gallon = createDecimalMeasure("Gallon", "gallon", "0.00378541178")
 
@@ -301,10 +301,10 @@ val MilliOm = createDecimalMeasure("Milliom", "mOm", "0.001")
 val ElectricalResistanceGroup = MeasureGroup("Electrical Resistance", listOf(Om, MilliOm), Om)
 
 /** Temperature group */
-val Celsius = createDecimalMeasure("Celsius", "C", "1.0")
+val Celsius = createDecimalMeasure("Celsius", "℃", "1.0")
 val Fahrenheit = Measure<DecimalNumber>(
     "Fahrenheit",
-    "F",
+    "℉",
     { (it - DecimalNumber(32)) * (DecimalNumber(5.0 / 9.0)) },
     { it * DecimalNumber(1.8) + DecimalNumber(32.0) },
     BaseType.Decimal
@@ -333,12 +333,12 @@ val SoundPressureLevel = Measure<DecimalNumber>(
     MeasureDesc["Sound Pressure Level"]
 )
 val Atmosphere = createDecimalMeasure("Atmosphere", "atm", "101325.0")
-val KilogramPerSquareMetre = createDecimalMeasure("Kilogram per Square Metre", "kg/m^2", "9.80665")
+val KilogramPerSquareMetre = createDecimalMeasure("Kilogram per Square Metre", "kg/m²", "9.80665")
 
 val PressureGroup = MeasureGroup("Pressure", listOf(Pascal, Bar, SoundPressureLevel, Atmosphere, KilogramPerSquareMetre), Pascal)
 
 /** Density group */
-val KilogramPerCubicMetre = createDecimalMeasure("Kilogram per Cubic Metre", "kg/m^3", "1.0")
+val KilogramPerCubicMetre = createDecimalMeasure("Kilogram per Cubic Metre", "kg/m³", "1.0")
 val DensityGroup = MeasureGroup("Density", listOf(KilogramPerCubicMetre), KilogramPerCubicMetre)
 
 /** RotationFrequency group */
@@ -352,7 +352,7 @@ val NewtonMetre = createDecimalMeasure("Newton-Metre", "Nm", "1.0")
 val TorqueGroup = MeasureGroup("Torque", listOf(NewtonMetre), NewtonMetre)
 
 /** Acceleration group */
-val MetrePerSquareSecond = createDecimalMeasure("Metre per Square Second", "m/s^2", "1.0")
+val MetrePerSquareSecond = createDecimalMeasure("Metre per Square Second", "m/s²", "1.0")
 val AccelerationGroup = MeasureGroup("Acceleration", listOf(MetrePerSquareSecond), MetrePerSquareSecond)
 
 /** Induction group */
@@ -364,9 +364,9 @@ val Tesla = createDecimalMeasure("Tesla", "T", "1.0")
 val MagneticFluxDensityGroup = MeasureGroup("Magnetic Flux Density", listOf(Tesla), Tesla)
 
 /** Volume Flow Rate group */
-val CubicMetrePerSecond = createDecimalMeasure("Cubic Metre Per Second", "(m^3)/s", "1.0")
-val CubicMetrePerHour = createDecimalMeasure("Cubic Metre Per Hour", "(m^3)/h", "0.000277778")
-val CubicCentimetrePerSecond = createDecimalMeasure("Cubic Centimetre Per Second", "(cm^3)/s", "0.000001")
+val CubicMetrePerSecond = createDecimalMeasure("Cubic Metre Per Second", "(m³)/s", "1.0")
+val CubicMetrePerHour = createDecimalMeasure("Cubic Metre Per Hour", "(m³)/h", "0.000277778")
+val CubicCentimetrePerSecond = createDecimalMeasure("Cubic Centimetre Per Second", "(cm³)/s", "0.000001")
 val MillilitrePerSecond = createDecimalMeasure("Millilitre Per Second", "ml/s", "0.000001")
 val MillilitrePerMinute = createDecimalMeasure("Millilitre Per Minute", "ml/min", "0.0000000166667")
 val LitrePerMinute = createDecimalMeasure("Litre Per Minute", "l/min", "0.0000166667")
@@ -411,12 +411,12 @@ val PoundMoney = createDecimalMeasure("Pound(money)", "£", "1.0")
 val UKMoneyGroup = MeasureGroup("UK Money Group", listOf(Penny, PoundMoney), PoundMoney)
 
 /** USA money group */
-val CentAmerican = createDecimalMeasure("Cent(USA)", "c", "0.01")
+val CentAmerican = createDecimalMeasure("Cent(USA)", "¢", "0.01")
 val Dollar = createDecimalMeasure("Dollar", "$", "1.0")
 val USAMoneyGroup = MeasureGroup("USA Money Group", listOf(CentAmerican, Dollar), Dollar)
 
 /** Euro money group */
-val CentEuropean = createDecimalMeasure("Cent(Europa)", "c", "0.01")
+val CentEuropean = createDecimalMeasure("Cent(Europa)", "¢", "0.01")
 val Euro = createDecimalMeasure("Euro", "€", "1.0")
 val EuroMoneyGroup = MeasureGroup("Euro Money Group", listOf(CentEuropean, Euro), Euro)
 

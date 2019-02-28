@@ -31,10 +31,12 @@ fun RBuilder.aspectLabel(
         +aspectName
     }
     +":"
-    span(classes = "text-grey") {
-        +aspectMeasure
+    if (aspectMeasure.isNotBlank()) {
+        span(classes = "text-grey") {
+            +aspectMeasure
+        }
+        +":"
     }
-    +":"
     span(classes = "text-grey") {
         +if (aspectRefBookName.isNotEmpty()) aspectRefBookName else aspectDomain
     }
@@ -42,7 +44,7 @@ fun RBuilder.aspectLabel(
     span(classes = "text-grey") {
         +aspectBaseType
     }
-    +"( Subject: "
+    +"( "
     span(classes = "text-grey") {
         +aspectSubjectName
     }

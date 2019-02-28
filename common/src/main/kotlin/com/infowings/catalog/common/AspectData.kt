@@ -4,10 +4,7 @@ import com.infowings.catalog.common.objekt.Reference
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AspectsList(
-    val aspects: List<AspectData> = emptyList(),
-    val count: Int
-)
+data class AspectsList(val aspects: List<AspectData> = emptyList())
 
 @Serializable
 data class AspectsHints(
