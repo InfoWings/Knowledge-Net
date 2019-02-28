@@ -281,7 +281,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         logger.debug("Saving aspect property ${aspectPropertyData.name} linked with aspect ${aspectPropertyData.aspectId}")
 
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
-                ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
+            ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
         val cardinality = try {
             PropertyCardinality.valueOf(aspectPropertyData.cardinality)

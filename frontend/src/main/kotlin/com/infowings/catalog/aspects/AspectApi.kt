@@ -58,6 +58,10 @@ suspend fun getAspectHints(
 ): AspectsHints {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    return try {
+        JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    } catch (e: BadRequestException) {
+        AspectsHints.empty()
+    }
 }
 

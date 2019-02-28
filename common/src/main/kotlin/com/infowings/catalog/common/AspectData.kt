@@ -16,8 +16,11 @@ data class AspectsHints(
 ) {
     companion object {
         fun empty() = AspectsHints(
-            byAspectName = emptyList(), byAspectDesc = emptyList(),
-            byRefBookDesc = emptyList(), byRefBookValue = emptyList(), byProperty = emptyList()
+            byAspectName = emptyList(),
+            byAspectDesc = emptyList(),
+            byRefBookDesc = emptyList(),
+            byRefBookValue = emptyList(),
+            byProperty = emptyList()
         )
     }
 

@@ -19,26 +19,18 @@ fun ObjectValueData.validate() {
 }
 
 fun ObjectValueData.transform(): ObjectValueData = when (this) {
-        is ObjectValueData.DecimalValue -> {
-            val dec: ObjectValueData.DecimalValue = this
-            val result = dec.transform()
-            print("transform result: $result")
-            result
-        }
-        else -> {
-            this
-        }
-    }
+    is ObjectValueData.DecimalValue -> this.transform()
+    else -> this
+}
 
 fun ObjectValueData.DecimalValue.transform(): ObjectValueData.DecimalValue {
-    val leftInfinity =  RangeFlagConstants.LEFT_INF.isSet(rangeFlags)
-    val rightInfinity =  RangeFlagConstants.RIGHT_INF.isSet(rangeFlags)
-    val isRange =  RangeFlagConstants.RANGE.isSet(rangeFlags)
+    val leftInfinity = RangeFlagConstants.LEFT_INF.isSet(rangeFlags)
+    val rightInfinity = RangeFlagConstants.RIGHT_INF.isSet(rangeFlags)
 
-    println("dec transform: <$isRange> $leftInfinity $rightInfinity")
+    if (!leftInfinity && !rightInfinity)
+        return this
 
-    return this.copy(valueRepr = if (leftInfinity) "0" else valueRepr)
-        .copy(upbRepr = if (rightInfinity) "0" else upbRepr)
+    return this.copy(valueRepr = if (leftInfinity) "0" else valueRepr, upbRepr = if (rightInfinity) "0" else upbRepr)
 }
 
 

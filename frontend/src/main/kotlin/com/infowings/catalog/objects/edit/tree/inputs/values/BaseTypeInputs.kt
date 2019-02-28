@@ -12,12 +12,18 @@ import com.infowings.catalog.wrappers.blueprint.Switch
 import org.w3c.dom.HTMLInputElement
 import react.RBuilder
 
-fun RBuilder.textInput(value: String?, disabled: Boolean, onUpdate: (String) -> Unit) = EditableText {
+fun RBuilder.textInput(
+    value: String?, disabled: Boolean,
+    onUpdate: (String) -> Unit,
+    onSubmitAction: (() -> Unit)? = null,
+    onCancelAction: (() -> Unit)? = null
+) = EditableText {
     attrs {
         this.value = value ?: ""
         placeholder = "Enter property value"
-        onCancel = onUpdate
+        onCancel = { onCancelAction?.invoke() }
         onChange = onUpdate
+        onConfirm = { onSubmitAction?.invoke() }
         this.disabled = disabled
     }
 }
