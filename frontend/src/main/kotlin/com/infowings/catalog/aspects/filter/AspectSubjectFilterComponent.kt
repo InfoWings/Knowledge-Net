@@ -48,7 +48,7 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
                 valueKey = "subjectName"
                 cache = false
                 onChange = {
-                    props.onChange(it.unsafeCast<Array<SubjectOption>>().mapNotNull { it.subjectData }) // TODO: KS-143
+                    props.onChange(it.unsafeCast<Array<SubjectOption>>().map { it.subjectData }) // TODO: KS-143
                 }
                 filterOptions = { options, _, _ -> options }
                 loadOptions = { input, callback ->
@@ -75,7 +75,7 @@ class AspectSubjectFilterComponent : RComponent<AspectSubjectFilterComponent.Pro
 
     interface Props : RProps {
         var subjectsFilter: Collection<SubjectData?>
-        var onChange: (List<SubjectData>) -> Unit
+        var onChange: (List<SubjectData?>) -> Unit
     }
 }
 
