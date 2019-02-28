@@ -2,6 +2,7 @@ package com.infowings.catalog.common
 
 import kotlinx.serialization.Serializable
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.min
 
 enum class Direction(val dir: kotlin.Int) {
@@ -35,7 +36,16 @@ data class PaginationData(val pageSize: Int, val current: Int, val totalItems: I
     val limit: Int = pageSize
 
     val totalPages: Int
-        get() = ceil(totalItems.toDouble() / pageSize).toInt()
+        get() = totalPages(totalItems)
+
+    // total pages is always > 0 even for empty items list we have 1 page
+    private fun totalPages(items: Int) = max(1, ceil(items.toDouble() / pageSize).toInt())
+
+    fun updateTotal(newTotal: Int): PaginationData {
+        require(newTotal >= 0) { "$newTotal is less than 0 but total elements count should be greater than or equal 0" }
+        val newCurrent = min(totalPages(newTotal), current)
+        return copy(totalItems = newTotal, current = newCurrent)
+    }
 
     companion object {
         // totalItems set to defaultPageSize to prevent all items loading from server

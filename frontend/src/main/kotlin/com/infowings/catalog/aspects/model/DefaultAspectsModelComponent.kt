@@ -273,7 +273,7 @@ class DefaultAspectsModelComponent : RComponent<AspectApiReceiverProps, DefaultA
                 aspectByGuid = props.data.mapNotNull { aspect -> aspect.guid?.let { it to aspect } }.toMap(),
                 aspectsModel = this@DefaultAspectsModelComponent
             )
-            val filteredAspects = state.aspectsFilter.applyToAspects(props.data)
+            val filteredAspects = state.aspectsFilter.applyToAspects(props.data.filter { !it.deleted })
             aspectPageContent(
                 filteredAspects = filteredAspects.applyPagination(props.paginationData),
                 aspectContext = props.aspectContext,

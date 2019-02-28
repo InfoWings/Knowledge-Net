@@ -54,7 +54,7 @@ class AspectApi(val aspectService: AspectService) {
         return logTime(logger, "Get all aspects took: ") {
             val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
             val aspects = aspectService.getAspects(orderBy, query)
-            return@logTime AspectsList(aspects, aspects.size)
+            return@logTime AspectsList(aspects)
         }
     }
 
