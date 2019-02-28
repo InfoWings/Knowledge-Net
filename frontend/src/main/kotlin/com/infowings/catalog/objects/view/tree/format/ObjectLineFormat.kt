@@ -18,13 +18,9 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
         span(classes = "text-bold object-line__name") {
             +props.objectView.name
         }
-        +"("
-        +"Subject"
-        +":"
         span(classes = "object-line__subject") {
-            +props.objectView.subjectName
+            +"(${props.objectView.subjectName})"
         }
-        +")"
 
         props.objectView.lastUpdated?.let {
             span(classes = "object-line__timestamp") {

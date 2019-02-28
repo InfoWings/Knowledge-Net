@@ -1,10 +1,7 @@
 package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.*
-import com.infowings.catalog.utils.delete
-import com.infowings.catalog.utils.encodeURIComponent
-import com.infowings.catalog.utils.get
-import com.infowings.catalog.utils.post
+import com.infowings.catalog.utils.*
 import kotlinx.serialization.json.JSON
 
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
@@ -13,7 +10,12 @@ suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: Str
     val query = if (nameQuery.isNotBlank()) "q=$nameQuery" else null
 
     val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
-    return JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
+    return try {
+        JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
+    } catch (e: BadRequestException) {
+        println(e.message)
+        AspectsList(emptyList())
+    }
 }
 
 suspend fun getAspectTree(id: String): AspectTree = JSON.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))
@@ -56,6 +58,10 @@ suspend fun getAspectHints(
 ): AspectsHints {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    return try {
+        JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+    } catch (e: BadRequestException) {
+        AspectsHints.empty()
+    }
 }
 

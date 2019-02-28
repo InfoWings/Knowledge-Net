@@ -18,7 +18,11 @@ private interface ObjectOption : SelectOption {
 }
 
 private fun objectOption(data: ObjectGetResponse) = jsObject<ObjectOption> {
-    this.label = "${data.name} (${data.subjectName})"
+    this.label = when {
+        data.name.length > 70 -> data.name.take(70)
+        data.name.length + data.subjectName.length > 70 -> data.name
+        else -> "${data.name} (${data.subjectName})"
+    }
     this.data = data
 }
 

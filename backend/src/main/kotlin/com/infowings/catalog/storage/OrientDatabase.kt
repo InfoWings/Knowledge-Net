@@ -206,6 +206,8 @@ class OrientDatabase(
      *
      * IMPORTANT: lambda should convert lazy sequence returned by query to eager collection,
      * otherwise whole operation will fail because result set is closed after leaving use{} block
+     *
+     * todo: probably Sequence should be changed to List to preserve safety over relatively small performance improvement
      */
     fun <T> query(query: String, vararg args: Any, block: (Sequence<OResult>) -> T): T {
         return session(database = this) { session ->
@@ -227,6 +229,17 @@ class OrientDatabase(
         return session(database = this) { session ->
             return@session session.query(query, args)
                 .use { rs: OResultSet -> block(rs.asSequence()) }
+        }
+    }
+
+    /**
+     * run specified query with named param and returns List<OResult>
+     */
+    fun query(query: String, args: Map<String, Any?>): List<OResult> {
+        transactionLogger.info("QUERY: <$query>, params: <$args>")
+        return session(database = this) { session ->
+            return@session session.query(query, args)
+                .use { rs: OResultSet -> rs.asSequence().toList() }
         }
     }
 

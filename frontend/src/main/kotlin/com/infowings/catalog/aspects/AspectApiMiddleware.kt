@@ -71,7 +71,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                     context = response.aspects.associateBy { it.id!! }.toMutableMap()
                     loading = false
                     refreshOperation = false
-                    paginationData = paginationData.copy(totalItems = response.count)
+                    paginationData = paginationData.updateTotal(response.aspects.filterNot { it.deleted }.size)
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -97,7 +97,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                         loading = false
                     }
                     this@setState.refreshOperation = refreshOperation
-                    paginationData = paginationData.copy(totalItems = response.count)
+                    paginationData = paginationData.updateTotal(response.aspects.filterNot { it.deleted }.size)
                 }
             } catch (exception: ServerException) {
                 setState {
@@ -142,6 +142,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
             data += newAspect
             context[newAspectId] = newAspect
             refreshOperation = false
+            paginationData = paginationData.copy(totalItems = paginationData.totalItems + 1)
         }
 
         return newAspect

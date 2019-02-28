@@ -324,10 +324,7 @@ val objectPropertyEditNode = rFunction<ObjectPropertyEditNodeProps>("ObjectPrope
         attrs {
             expanded = props.property.id != null && props.property.expanded
             onExpanded = {
-                props.onUpdate {
-                    println("qqqq: $it")
-                    expanded = it
-                }
+                props.onUpdate { expanded = it }
             }
             treeNodeContent = buildElement {
                 objectPropertyEditLineFormat {

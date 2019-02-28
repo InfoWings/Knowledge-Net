@@ -168,8 +168,11 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     }
 
 
+    /**
+     * all aspects including deleted required on front end to show aspect tree correctly
+     */
     fun getAspects(): Set<AspectVertex> = logTime(logger, "all aspects extraction at dao level") {
-        db.query(selectFromAspectWithoutDeleted) { rs ->
+        db.query(selectFromAspectWithDeleted) { rs ->
             rs.mapNotNull { it.toVertexOrNull()?.toAspectVertex() }.toSet()
         }
     }
@@ -278,7 +281,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         logger.debug("Saving aspect property ${aspectPropertyData.name} linked with aspect ${aspectPropertyData.aspectId}")
 
         val aspectVertex: OVertex = db.getVertexById(aspectPropertyData.aspectId)
-                ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
+            ?: throw AspectDoesNotExist(aspectPropertyData.aspectId)
 
         val cardinality = try {
             PropertyCardinality.valueOf(aspectPropertyData.cardinality)

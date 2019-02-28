@@ -3,6 +3,19 @@ package com.infowings.catalog.common
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class ObjectsRequestData(
+    val sortOrder: List<SortOrder>,
+    val query: String?,
+    val pagination: PaginationData,
+    val subjectsGuids: List<String>?, // null means include all
+    val excludedFromSubjectFilter: List<String>
+) {
+    companion object {
+        val requestAllObjects = ObjectsRequestData(emptyList(), null, PaginationData.allItems, null, emptyList())
+    }
+}
+
+@Serializable
 data class ObjectsResponse(
     val objects: List<ObjectGetResponse>,
     val totalObjects: Int

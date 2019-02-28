@@ -5,21 +5,23 @@ import com.infowings.catalog.common.LinkValueData
 import com.infowings.catalog.common.ObjectValueData
 import com.infowings.catalog.common.RangeFlagConstants
 import com.infowings.catalog.objects.edit.tree.inputs.values.*
+import com.infowings.catalog.objects.edit.tree.utils.transform
 import react.RBuilder
 import react.ReactElement
 
 fun RBuilder.propertyValue(
     baseType: BaseType,
     referenceBookId: String?,
-    referenceBookNameSoft: String?,
     value: ObjectValueData?,
     onChange: (ObjectValueData) -> Unit,
-    disabled: Boolean = false
+    disabled: Boolean = false,
+    onSubmit: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null
 ): ReactElement? {
     val stringValue = value as? ObjectValueData.StringValue
 
     val domainElement = if (value is ObjectValueData.Link && value.value is LinkValueData.DomainElement) {
-        value.value as? LinkValueData.DomainElement
+        value.value
     } else null
 
     return when {
@@ -34,9 +36,7 @@ fun RBuilder.propertyValue(
 
         baseType == BaseType.Text -> {
             val textValue = domainElement?.value ?: stringValue?.asStringValue
-            textInput(textValue, disabled) {
-                onChange(ObjectValueData.StringValue(it))
-            }
+            textInput(textValue, disabled, { onChange(ObjectValueData.StringValue(it)) }, onSubmit, onCancel)
         }
 
         baseType == BaseType.Reference -> {
@@ -51,13 +51,13 @@ fun RBuilder.propertyValue(
         baseType == BaseType.Decimal -> {
             val decValue = value as ObjectValueData.DecimalValue
             rangedDecimalInput(ObjectValueData.DecimalValue(decValue.valueRepr, decValue.upbRepr, decValue.rangeFlags), { lwb, upb, isRange ->
-                val leftFlag =  RangeFlagConstants.LEFT_INF.flag(lwb == "")
-                val rightFlag =  RangeFlagConstants.RIGHT_INF.flag(upb == "")
-                val rangeFlag =  RangeFlagConstants.RANGE.flag(isRange)
+                val leftFlag = RangeFlagConstants.LEFT_INF.flag(lwb == "")
+                val rightFlag = RangeFlagConstants.RIGHT_INF.flag(upb == "")
+                val rangeFlag = RangeFlagConstants.RANGE.flag(isRange)
 
                 val rangeFlags = leftFlag.or(rightFlag).or(rangeFlag)
 
-                onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags))
+                onChange(ObjectValueData.DecimalValue(lwb, if (isRange) upb else lwb, rangeFlags).transform())
             }, disabled)
         }
 

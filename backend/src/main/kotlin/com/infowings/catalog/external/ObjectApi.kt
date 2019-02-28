@@ -14,23 +14,15 @@ import java.security.Principal
 class ObjectApi(val objectService: ObjectService) {
     private val logger = loggerFor<ObjectApi>()
 
-    @GetMapping
-    fun getAllObjects(
-        @RequestParam(required = false) orderFields: List<String>,
-        @RequestParam(required = false) direct: List<String>,
-        @RequestParam(required = false) q: String?,
-        @RequestParam(required = false) offset: Int?,
-        @RequestParam(required = false) limit: Int?,
-        principal: Principal
-    ): ObjectsResponse {
+    @PostMapping
+    fun getAllObjects(@RequestBody(required = true) objectsRequestData: ObjectsRequestData, principal: Principal): ObjectsResponse {
         val username = principal.name
-        logger.debug("Get objects request by $username, order fields: $orderFields, directions: $direct, offset: $offset, limit: $limit, query: >$q<")
-
-        val orderBy = SortOrder.listOf(orders = orderFields, directions = direct)
+        logger.debug("Get objects request by $username, $objectsRequestData")
 
         return logTime(logger, "request of all object briefs") {
-            val objects = objectService.fetch(orderBy, q).map { it.toResponse() }
-            ObjectsResponse(objects.drop(offset ?: 0).take(limit ?: Int.MAX_VALUE), objects.size)
+            val objects = objectService.fetch(objectsRequestData)
+            val list = objects.drop(objectsRequestData.pagination.offset).take(objectsRequestData.pagination.limit).map { it.toResponse() }
+            ObjectsResponse(list, objects.size)
         }
     }
 
