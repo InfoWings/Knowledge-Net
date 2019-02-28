@@ -35,7 +35,7 @@ class AspectPropertyNode : RComponent<AspectPropertyNode.CombinedProps, RState>(
         }
 
         val correspondingAspect = props.correspondingAspect
-        if (correspondingAspect != null) {
+        if (correspondingAspect != null && !props.aspectProperty.description.isNullOrBlank()) {
             descriptionComponent(
                 className = "aspect-tree-view--description-icon",
                 description = props.aspectProperty.description
