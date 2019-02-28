@@ -16,7 +16,7 @@ fun RBuilder.valueFormat(value: ObjectValueData, history: History) {
                 val rightInf = RangeFlagConstants.RIGHT_INF.bitmask.and(value.rangeFlags) != 0
                 val leftText = if (leftInf) "-Inf" else value.valueRepr
                 val rightText = if (rightInf) "Inf" else value.upbRepr
-                +"[ $leftText : $rightText]"
+                +"[$leftText‥$rightText]"
             } else {
                 +value.valueRepr
             }
