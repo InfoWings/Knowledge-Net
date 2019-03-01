@@ -123,7 +123,7 @@ class DefaultSubjectService(
                     dao.softRemove(vertex)
                 }
                 isLinked -> {
-                    throw SubjectIsLinked(subjectData, linkedByAspects.map { it.guid ?: it.id }, linkedByObjects.map { it.guid ?: it.id })
+                    throw SubjectIsLinked(subjectData, linkedByAspects.map { it.guid }, linkedByObjects.map { it.guid ?: it.id })
                 }
 
                 else -> {

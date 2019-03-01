@@ -2,6 +2,7 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.external.logTime
@@ -18,10 +19,8 @@ import notDeletedSql
 import java.time.Instant
 
 /** Should be used externally for query building. */
-const val selectWithNameDifferentId =
-    "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
-const val selectWithName =
-    "SELECT from $ASPECT_CLASS WHERE name = :name and $notDeletedSql"
+const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
+const val selectWithName = "SELECT from $ASPECT_CLASS WHERE name = :name and $notDeletedSql"
 const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
@@ -29,7 +28,25 @@ data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?,
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
+    init {
+        //todo: migration code for #395
+        transaction(db) {
+            val aspectIds = db.query("select @rid from  Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in aspectIds) {
+                val vertex = getVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.toGuidVertex()?.guid
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+    }
+
+    fun createNewAspectVertex() =
+        db.createNewVertex(ASPECT_CLASS)
+            .also { it.assignGuid() }
+            .toAspectVertex()
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 

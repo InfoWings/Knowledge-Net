@@ -13,6 +13,7 @@ import com.infowings.catalog.data.subject.toSubjectVertex
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import java.util.*
 
 
 private val orient2Entity = mapOf(
@@ -44,6 +45,10 @@ fun OVertex.orientClass(): OrientClass {
     return if (this.schemaType.isPresent) {
         OrientClass.fromExtName(this.schemaType.get().name)
     } else throw IllegalStateException("No schema type")
+}
+
+fun OVertex.assignGuid() {
+    setProperty(ATTR_GUID, UUID.randomUUID().toString())
 }
 
 fun OVertex.entityClass(): EntityClass = orient2Entity.getValue(orientClass())

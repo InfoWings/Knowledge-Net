@@ -91,7 +91,6 @@ class DefaultAspectService(
     */
     private fun createFinish(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, context)
-        guidDao.newGuidVertex(res)
         historyService.storeFact(aspectVertex.toCreateFact(context))
         return res
     }
@@ -234,8 +233,6 @@ class DefaultAspectService(
         val props = transaction(db) {
             aspectDaoService.getProperties(ids).map { it.toAspectPropertyData() }
         }
-        val guidById = transaction(db) { guidDao.ofAspects(ids) }
-        logger.info("guid by id: $guidById")
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
@@ -246,7 +243,7 @@ class DefaultAspectService(
                 val id = aspectVertex.id
                 val details = detailsById[id]
                 val data = details?.let {
-                    aspectVertex.toAspectData(propsById, guidById, details)
+                    aspectVertex.toAspectData(propsById, details)
                 }
                 data ?: logger.warn("nothing found for aspect id $id")
                 data

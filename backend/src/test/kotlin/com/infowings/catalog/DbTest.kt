@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.util.*
 import kotlin.test.assertEquals
 
 
@@ -32,9 +33,14 @@ class DbTest {
             assertEquals(2, indexes.size, "class $className")
         }
 
-        listOf(OBJECT_CLASS, ASPECT_CLASS).forEach { className ->
+        listOf(OBJECT_CLASS).forEach { className ->
             val indexes = database.sbTreeIndexesOf(className)
             assertEquals(1, indexes.size, "class $className")
+        }
+
+        listOf(ASPECT_CLASS).forEach { className ->
+            val indexes = database.sbTreeIndexesOf(className)
+            assertEquals(2, indexes.size, "class $className")
         }
     }
 
@@ -66,7 +72,7 @@ class DbTest {
     fun indexResetTest() {
         listOf(ASPECT_CLASS, SUBJECT_CLASS, MEASURE_VERTEX, MEASURE_GROUP_VERTEX).forEach { className ->
             val indexes = database.luceneIndexesOf(className)
-            indexes.forEachIndexed { i, index ->
+            indexes.forEachIndexed { _, index ->
                 val indexName = index.name
                 database.resetLuceneIndex(className, indexName)
                 val indexesAfter = database.luceneIndexesOf(className)
@@ -78,7 +84,7 @@ class DbTest {
 
         listOf(ASPECT_CLASS, SUBJECT_CLASS, OBJECT_CLASS, MEASURE_VERTEX, MEASURE_GROUP_VERTEX).forEach { className ->
             val indexes = database.sbTreeIndexesOf(className)
-            indexes.forEachIndexed { i, index ->
+            indexes.forEachIndexed { _, index ->
                 val indexName = index.name
 
                 val indexNameComponents = indexName.split(".")
@@ -86,6 +92,12 @@ class DbTest {
                 val fieldName = if (indexNameComponents.size == 4) indexNameComponents[2] else indexNameComponents[1]
 
                 val vertex = database.createNewVertex(className)
+
+                // todo: #395
+                if (className == ASPECT_CLASS) {
+                    vertex.assignGuid()
+                    vertex.setProperty(ATTR_NAME, UUID.randomUUID().toString())
+                }
 
                 transaction(database) {
                     vertex.setProperty(fieldName, testKey)

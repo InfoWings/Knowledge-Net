@@ -52,7 +52,6 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
-    GUID_OF_ASPECT("GuidOfAspectEdge"),
     GUID_OF_ASPECT_PROPERTY("GuidOfAspectPropertyEdge"),
     GUID_OF_SUBJECT("GuidOfSubjectEdge"),
     GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
@@ -65,6 +64,7 @@ enum class OrientEdge(val extName: String) {
 const val ATTR_VALUE = "value"
 const val ATTR_NAME = "name"
 const val ATTR_DESC = "description"
+const val ATTR_GUID = "guid"
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
@@ -112,7 +112,9 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     /** Executes only if there is no Class Aspect in db */
     fun initAspects(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init aspects")
-        session.getClass(ASPECT_CLASS) ?: createAspectVertex(session)
+
+        createAspectVertex(session)
+
         if (session.getClass(ASPECT_PROPERTY_CLASS) == null) {
             val vertexClass = session.createVertexClass(ASPECT_PROPERTY_CLASS)
             vertexClass.createProperty("name_with_aspect", OType.STRING)
@@ -180,7 +182,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OrientClass.GUID.extName)
 
         listOf(
-            OrientEdge.GUID_OF_ASPECT, OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
+            OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
             OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
         ).forEach {
             initEdge(session, it.extName)
@@ -190,10 +192,21 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     }
 
     private fun createAspectVertex(session: ODatabaseDocument): OClass {
-        val aspectClass = session.createVertexClass(ASPECT_CLASS)
-        aspectClass.getProperty(ATTR_DESC) ?: aspectClass.createProperty(ATTR_DESC, OType.STRING)
-        aspectClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        val aspectClass = session.getClass(ASPECT_CLASS) ?: session.createVertexClass(ASPECT_CLASS)
+
+        if (aspectClass.getProperty(ATTR_DESC) == null) {
+            aspectClass.createProperty(ATTR_DESC, OType.STRING)
+        }
+        if (aspectClass.getProperty(ATTR_NAME) == null) {
+            aspectClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        }
+        if (aspectClass.getProperty(ATTR_GUID) == null) {
+            val guidProperty = aspectClass.createProperty(ATTR_GUID, OType.STRING)
+            guidProperty.isMandatory = true
+            initBasicIndex(guidProperty)
+        }
         initIgnoreCaseIndex(ASPECT_CLASS)
+
         return aspectClass
     }
 
@@ -291,7 +304,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         database.createLuceneIndex(classType, ATTR_DESC)
     }
 
-    private fun initIgnoreCaseIndex(className: String) = database.createICIndex(className)
+    private fun initIgnoreCaseIndex(className: String) = database.getICIndex(className) ?: database.createICIndex(className)
 
     private fun initBasicIndex(property: OProperty) = database.createBasicIndex(property)
 }

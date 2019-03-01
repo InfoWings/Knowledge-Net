@@ -332,6 +332,8 @@ class OrientDatabase(
         }
     }
 
+    fun getICIndex(className: String): OIndex<*>? = session(this) { it.getClass(className).getClassIndex("$className.index.name.ic") }
+
     fun createBasicIndex(property: OProperty): OIndex<*> = property.createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
 
     fun sbTreeIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
