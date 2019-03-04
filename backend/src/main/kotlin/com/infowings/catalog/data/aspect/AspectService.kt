@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -41,7 +40,6 @@ class DefaultAspectService(
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
     private val referenceBookService: ReferenceBookService,
-    private val guidDao: GuidDaoService,
     private val userService: UserService
 ) : AspectService {
 
@@ -382,7 +380,6 @@ class DefaultAspectService(
     ): HistoryFactWrite {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            guidDao.newGuidVertex(vertex)
             vertex.toCreateFact(context)
         } else {
             val previous = vertex.currentSnapshot()

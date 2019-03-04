@@ -30,8 +30,9 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     init {
         //todo: migration code for #395
+        // aspects guid
         transaction(db) {
-            val aspectIds = db.query("select @rid from  Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in aspectIds) {
                 val vertex = getVertex(id.toString())!!
                 val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.toGuidVertex()?.guid
@@ -41,12 +42,22 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 }
             }
         }
+        // aspect properties guid
+        transaction(db) {
+            val aspectProperties = db.query("select @rid from $ASPECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in aspectProperties) {
+                val vertex = getVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectPropertyEdge").singleOrNull()?.toGuidVertex()?.guid
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+
     }
 
-    fun createNewAspectVertex() =
-        db.createNewVertex(ASPECT_CLASS)
-            .also { it.assignGuid() }
-            .toAspectVertex()
+    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).assignGuid().toAspectVertex()
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
@@ -57,7 +68,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun findStrict(id: String) = find(id) ?: throw AspectDoesNotExist(id)
 
-    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
+    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).assignGuid().toAspectPropertyVertex()
 
     fun findProperty(id: String) = transaction(db) { getVertex(id)?.toAspectPropertyVertex() }
 
@@ -88,8 +99,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }.toList()
         }
     }
-
-    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map { ORecordId(it) })
 
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"

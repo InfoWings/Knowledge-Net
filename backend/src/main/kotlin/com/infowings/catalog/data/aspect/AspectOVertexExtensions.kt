@@ -105,8 +105,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-    override val guid: String
-        get() = vertex[ATTR_GUID]
+    override val guid: String = vertex[ATTR_GUID]
 
     private val lastChange: Instant?
         get() {
@@ -285,9 +284,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
             vertex[ATTR_DESC] = value
         }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
+    override val guid: String = vertex[ATTR_GUID]
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()

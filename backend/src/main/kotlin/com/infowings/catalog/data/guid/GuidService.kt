@@ -31,24 +31,22 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                 val aspectVertex = it.toAspectVertex()
                 EntityMetadata(guid = aspectVertex.guid, entityClass = EntityClass.ASPECT, id = aspectVertex.id)
             }
+            val aspectPropertyEntities = dao.findByGuidInClass(OrientClass.ASPECT_PROPERTY, guids) {
+                val aspectPropertyVertex = it.toAspectPropertyVertex()
+                EntityMetadata(guid = aspectPropertyVertex.guid, entityClass = EntityClass.ASPECT_PROPERTY, id = aspectPropertyVertex.id)
+            }
             val allOtherEntities = dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
             }
-            allOtherEntities + aspectEntities
+            allOtherEntities + aspectEntities + aspectPropertyEntities
         }
     }
 
     fun findAspects(guids: List<String>): List<AspectData> = dao.findByGuidInClass(OrientClass.ASPECT, guids) { it.toAspectVertex().toAspectData() }
 
-    fun findAspectProperties(guids: List<String>): List<AspectPropertyData> {
-        return transaction(db) {
-            dao.find(guids).mapNotNull { guidVertex ->
-                val vertex = dao.vertex(guidVertex)
-                if (vertex.entityClass() == EntityClass.ASPECT_PROPERTY) vertex.toAspectPropertyVertex().toAspectPropertyData() else null
-            }
-        }
-    }
+    fun findAspectProperties(guids: List<String>): List<AspectPropertyData> =
+        dao.findByGuidInClass(OrientClass.ASPECT_PROPERTY, guids) { it.toAspectPropertyVertex().toAspectPropertyData() }
 
     fun findSubject(guids: List<String>): List<Subject> {
         return transaction(db) {

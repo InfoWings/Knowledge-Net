@@ -47,8 +47,9 @@ fun OVertex.orientClass(): OrientClass {
     } else throw IllegalStateException("No schema type")
 }
 
-fun OVertex.assignGuid() {
+fun OVertex.assignGuid(): OVertex {
     setProperty(ATTR_GUID, UUID.randomUUID().toString())
+    return this
 }
 
 fun OVertex.entityClass(): EntityClass = orient2Entity.getValue(orientClass())

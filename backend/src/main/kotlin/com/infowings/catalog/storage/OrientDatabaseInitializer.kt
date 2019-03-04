@@ -52,7 +52,6 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
-    GUID_OF_ASPECT_PROPERTY("GuidOfAspectPropertyEdge"),
     GUID_OF_SUBJECT("GuidOfSubjectEdge"),
     GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
     GUID_OF_OBJECT("GuidOfObjectEdge"),
@@ -114,11 +113,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         logger.info("Init aspects")
 
         createAspectVertex(session)
+        createAspectPropertyVertex(session)
 
-        if (session.getClass(ASPECT_PROPERTY_CLASS) == null) {
-            val vertexClass = session.createVertexClass(ASPECT_PROPERTY_CLASS)
-            vertexClass.createProperty("name_with_aspect", OType.STRING)
-        }
         session.getClass(ASPECT_MEASURE_CLASS) ?: session.createEdgeClass(ASPECT_MEASURE_CLASS)
         session.getClass(ASPECT_ASPECT_PROPERTY_EDGE) ?: session.createEdgeClass(ASPECT_ASPECT_PROPERTY_EDGE)
 
@@ -182,7 +178,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OrientClass.GUID.extName)
 
         listOf(
-            OrientEdge.GUID_OF_ASPECT_PROPERTY, OrientEdge.GUID_OF_SUBJECT,
+            OrientEdge.GUID_OF_SUBJECT,
             OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
         ).forEach {
             initEdge(session, it.extName)
@@ -208,6 +204,22 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initIgnoreCaseIndex(ASPECT_CLASS)
 
         return aspectClass
+    }
+
+    private fun createAspectPropertyVertex(session: ODatabaseDocument): OClass {
+        val aspectPropertyClass = session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
+
+        if (aspectPropertyClass.getProperty(ATTR_GUID) == null) {
+            val guidProperty = aspectPropertyClass.createProperty(ATTR_GUID, OType.STRING)
+            guidProperty.isMandatory = true
+            initBasicIndex(guidProperty)
+        }
+
+        if (aspectPropertyClass.getProperty("name_with_aspect") == null) {
+            aspectPropertyClass.createProperty("name_with_aspect", OType.STRING)
+        }
+
+        return aspectPropertyClass
     }
 
     private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String) {

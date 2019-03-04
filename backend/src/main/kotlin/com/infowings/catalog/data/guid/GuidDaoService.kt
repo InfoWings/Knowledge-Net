@@ -9,7 +9,6 @@ import java.util.*
 
 class GuidDaoService(private val db: OrientDatabase) {
     private val classEdgePairs = listOf(
-        OrientClass.ASPECT_PROPERTY to OrientEdge.GUID_OF_ASPECT_PROPERTY,
         OrientClass.SUBJECT to OrientEdge.GUID_OF_SUBJECT,
         OrientClass.REFBOOK_ITEM to OrientEdge.GUID_OF_REFBOOK_ITEM,
         OrientClass.OBJECT to OrientEdge.GUID_OF_OBJECT,
@@ -18,7 +17,6 @@ class GuidDaoService(private val db: OrientDatabase) {
     )
 
     private val class2EdgeNames = classEdgePairs.map { it.first.extName to it.second.extName }.toMap()
-    val edge2Class: Map<OrientEdge, OrientClass> = classEdgePairs.map { it.second to it.first }.toMap()
 
 
     fun newGuidVertex(source: OVertex): GuidVertex {

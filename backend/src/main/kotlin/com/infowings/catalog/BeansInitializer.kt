@@ -71,9 +71,8 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             val innerAspectService = DefaultAspectService(
                 db = ref(),
                 aspectDaoService = ref(),
-                referenceBookService = ref(),
                 historyService = ref(),
-                guidDao = ref(),
+                referenceBookService = ref(),
                 userService = ref()
             )
             return@bean NormalizedAspectService(innerAspectService)
