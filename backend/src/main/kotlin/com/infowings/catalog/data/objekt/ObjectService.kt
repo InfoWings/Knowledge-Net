@@ -204,7 +204,6 @@ class ObjectService(
             val objectBefore = propertyInfo.objekt.currentSnapshot()
             val propertyVertex: ObjectPropertyVertex = dao.saveObjectProperty(dao.newObjectPropertyVertex(), propertyInfo, emptyList())
 
-            guidDao.newGuidVertex(propertyVertex)
             historyService.storeFact(propertyVertex.toCreateFact(context))
             historyService.storeFact(propertyInfo.objekt.toUpdateFact(context, objectBefore))
 

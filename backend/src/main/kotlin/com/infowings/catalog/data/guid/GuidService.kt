@@ -47,11 +47,15 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                 val objectVertex = it.toObjectVertex()
                 EntityMetadata(guid = objectVertex.guid, entityClass = EntityClass.OBJECT, id = objectVertex.id)
             }
+            val objectPropertyEntities = dao.findByGuidInClass(OrientClass.OBJECT_PROPERTY, guids) {
+                val objectVertex = it.toObjectPropertyVertex()
+                EntityMetadata(guid = objectVertex.guid, entityClass = EntityClass.OBJECT_PROPERTY, id = objectVertex.id)
+            }
             val allOtherEntities = dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
             }
-            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities + refBookItemEntities + objectEntities
+            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities + refBookItemEntities + objectEntities + objectPropertyEntities
         }
     }
 
@@ -84,23 +88,17 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
         subject?.name
     )
 
-    fun findObjectProperties(guids: List<String>): List<PropertyUpdateResponse> {
-        return transaction(db) {
-            dao.find(guids).mapNotNull { guidVertex ->
-                val vertex = dao.vertex(guidVertex)
-                if (vertex.entityClass() == EntityClass.OBJECT_PROPERTY) {
-                    val propertyVertex = vertex.toObjectPropertyVertex()
-                    val objectVertex = propertyVertex.objekt ?: throw IllegalStateException()
-                    PropertyUpdateResponse(
-                        propertyVertex.id, Reference(objectVertex.id, objectVertex.version),
-                        propertyVertex.name,
-                        propertyVertex.description,
-                        propertyVertex.version, propertyVertex.guid
-                    )
-                } else null
-            }
+    fun findObjectProperties(guids: List<String>): List<PropertyUpdateResponse> =
+        dao.findByGuidInClass(OrientClass.OBJECT_PROPERTY, guids) { vertex ->
+            val propertyVertex = vertex.toObjectPropertyVertex()
+            val objectVertex = propertyVertex.objekt ?: throw IllegalStateException()
+            PropertyUpdateResponse(
+                propertyVertex.id, Reference(objectVertex.id, objectVertex.version),
+                propertyVertex.name,
+                propertyVertex.description,
+                propertyVertex.version, propertyVertex.guid
+            )
         }
-    }
 
     fun findObjectValue(guid: String): BriefValueViewResponse {
         return transaction(db) {

@@ -17,7 +17,7 @@ import java.math.BigDecimal
 class ObjectDaoService(private val db: OrientDatabase) {
     private val objectSearchDao = ObjectSearchDao(db)
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).assignGuid().toObjectVertex()
-    fun newObjectPropertyVertex() = db.createNewVertex(OBJECT_PROPERTY_CLASS).toObjectPropertyVertex()
+    fun newObjectPropertyVertex() = db.createNewVertex(OBJECT_PROPERTY_CLASS).assignGuid().toObjectPropertyVertex()
     fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).toObjectPropertyValueVertex()
 
     init {
@@ -28,6 +28,18 @@ class ObjectDaoService(private val db: OrientDatabase) {
             for (id in objectsIds) {
                 val vertex = getObjectVertex(id.toString())!!
                 val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.toGuidVertex()?.guid!!
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+        // object properties  guid
+        transaction(db) {
+            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectPropertyVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.toGuidVertex()?.guid!!
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
