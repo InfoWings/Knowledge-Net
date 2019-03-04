@@ -3,7 +3,6 @@ package com.infowings.catalog.storage
 import com.infowings.catalog.common.guid.EntityClass
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.objekt.toObjectPropertyValueVertex
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex
@@ -13,6 +12,7 @@ import com.infowings.catalog.data.subject.toSubjectVertex
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
+import java.util.*
 
 
 private val orient2Entity = mapOf(
@@ -46,6 +46,11 @@ fun OVertex.orientClass(): OrientClass {
     } else throw IllegalStateException("No schema type")
 }
 
+fun OVertex.assignGuid(): OVertex {
+    setProperty(ATTR_GUID, UUID.randomUUID().toString())
+    return this
+}
+
 fun OVertex.entityClass(): EntityClass = orient2Entity.getValue(orientClass())
 
 fun OVertex.ofClass(orientClass: OrientClass): Boolean {
@@ -61,5 +66,3 @@ fun OVertex.checkClass(orientClass: OrientClass) {
 fun OVertex.checkClassAny(orientClasses: List<OrientClass>) {
     if (!orientClasses.any { this.ofClass(it) }) throw IllegalStateException("vertex with id ${this.id} is of class ${this.schemaType}")
 }
-
-fun OVertex.guid(edge: OrientEdge): String? = getVertices(ODirection.OUT, edge.extName).singleOrNull()?.toGuidVertex()?.guid

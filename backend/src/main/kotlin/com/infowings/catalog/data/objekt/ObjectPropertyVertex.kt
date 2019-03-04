@@ -62,9 +62,7 @@ class ObjectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
             OBJECT_VALUE_OBJECT_PROPERTY_EDGE
         ).map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_OBJECT_PROPERTY)
+    override val guid: String = vertex[ATTR_GUID]
 }
 
 sealed class ObjectPropertyException(message: String) : Exception(message)

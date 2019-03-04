@@ -400,6 +400,7 @@ class ObjectValidatorTest {
         val vertex = transaction(db) {
             val newVertex = db.createNewVertex(type)
             newVertex.setProperty("name", "non-existent")
+            newVertex.assignGuid()
             return@transaction newVertex.save<OVertexDocument>()
         }
 

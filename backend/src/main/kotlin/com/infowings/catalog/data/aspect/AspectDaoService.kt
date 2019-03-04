@@ -18,10 +18,8 @@ import notDeletedSql
 import java.time.Instant
 
 /** Should be used externally for query building. */
-const val selectWithNameDifferentId =
-    "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
-const val selectWithName =
-    "SELECT from $ASPECT_CLASS WHERE name = :name and $notDeletedSql"
+const val selectWithNameDifferentId = "SELECT from $ASPECT_CLASS WHERE name = :name and (@rid <> :aspectId) and $notDeletedSql"
+const val selectWithName = "SELECT from $ASPECT_CLASS WHERE name = :name and $notDeletedSql"
 const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
@@ -29,7 +27,36 @@ data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?,
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
-    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).toAspectVertex()
+    init {
+        //todo: migration code for #395
+        // aspects guid
+        transaction(db) {
+            val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in aspectIds) {
+                val vertex = getVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+        // aspect properties guid
+        transaction(db) {
+            val aspectProperties = db.query("select @rid from $ASPECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in aspectProperties) {
+                val vertex = getVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+
+    }
+
+    fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).assignGuid().toAspectVertex()
 
     fun getVertex(id: String): OVertex? = db.getVertexById(id)
 
@@ -40,7 +67,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
     fun findStrict(id: String) = find(id) ?: throw AspectDoesNotExist(id)
 
-    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).toAspectPropertyVertex()
+    fun createNewAspectPropertyVertex() = db.createNewVertex(ASPECT_PROPERTY_CLASS).assignGuid().toAspectPropertyVertex()
 
     fun findProperty(id: String) = transaction(db) { getVertex(id)?.toAspectPropertyVertex() }
 
@@ -71,8 +98,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             }.toList()
         }
     }
-
-    fun findPropertiesByIdsStr(ids: List<String>): List<AspectPropertyVertex> = findPropertiesByIds(ids.map { ORecordId(it) })
 
     fun findTransitiveByNameQuery(nameFragment: String): Set<AspectVertex> {
         val selectQuery = "$selectFromAspectWithoutDeleted AND name LUCENE :nameQuery"

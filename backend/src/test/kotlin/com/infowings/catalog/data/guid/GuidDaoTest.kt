@@ -60,8 +60,4 @@ class GuidDaoTest {
         assertTrue(subject.guid != null)
     }
 
-    @Test
-    fun testGuidDaoFind() {
-        guidDao.find(listOfNotNull(baseAspect.guid))
-    }
 }

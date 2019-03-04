@@ -43,9 +43,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             vertex[ATTR_DESC] = value
         }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_OBJECT)
+    override val guid: String = vertex[ATTR_GUID]
 
     val subject: SubjectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()

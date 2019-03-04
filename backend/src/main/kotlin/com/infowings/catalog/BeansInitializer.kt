@@ -58,7 +58,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean {
-            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref(), guidDao = ref())
+            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref())
             return@bean NormalizedReferenceBookService(innerRefBookService)
         }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
@@ -71,9 +71,8 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
             val innerAspectService = DefaultAspectService(
                 db = ref(),
                 aspectDaoService = ref(),
-                referenceBookService = ref(),
                 historyService = ref(),
-                guidDao = ref(),
+                referenceBookService = ref(),
                 userService = ref()
             )
             return@bean NormalizedAspectService(innerAspectService)
@@ -92,7 +91,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { SubjectHistoryProvider(historyService = ref()) }
         bean { ObjectDaoService(db = ref()) }
         bean { GuidDaoService(db = ref()) }
-        bean { GuidService(db = ref(), dao = ref(), userService = ref(), historyService = ref()) }
+        bean { GuidService(db = ref(), dao = ref()) }
         bean {
             ObjectService(db = ref(), dao = ref(), subjectService = ref(), userService = ref(), aspectDao = ref(), measureService = ref(), guidDao = ref(),
                 refBookService = ref(), historyService = ref())

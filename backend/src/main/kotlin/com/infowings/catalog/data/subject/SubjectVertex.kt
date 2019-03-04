@@ -60,9 +60,7 @@ class SubjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, OVer
     val objects: List<ObjectVertex>
         get() = vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_SUBJECT)
+    override val guid: String = vertex[ATTR_GUID]
 
     private fun linkedBy(edge: OrientEdge, sourceClass: OrientClass) = incomingEdges(edge.extName).map {
         val source = it.from.asVertex()

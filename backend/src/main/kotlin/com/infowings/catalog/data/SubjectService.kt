@@ -9,7 +9,6 @@ import com.infowings.catalog.data.subject.SubjectDao
 import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 
 interface SubjectService {
@@ -66,7 +65,6 @@ class DefaultSubjectService(
 
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
-            guidDao.newGuidVertex(vertex)
             history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }
@@ -123,7 +121,7 @@ class DefaultSubjectService(
                     dao.softRemove(vertex)
                 }
                 isLinked -> {
-                    throw SubjectIsLinked(subjectData, linkedByAspects.map { it.guid ?: it.id }, linkedByObjects.map { it.guid ?: it.id })
+                    throw SubjectIsLinked(subjectData, linkedByAspects.map { it.guid }, linkedByObjects.map { it.guid })
                 }
 
                 else -> {

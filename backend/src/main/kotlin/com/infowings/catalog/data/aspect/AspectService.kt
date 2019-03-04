@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.auth.user.UserService
 import com.infowings.catalog.common.*
-import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -41,7 +40,6 @@ class DefaultAspectService(
     private val aspectDaoService: AspectDaoService,
     private val historyService: HistoryService,
     private val referenceBookService: ReferenceBookService,
-    private val guidDao: GuidDaoService,
     private val userService: UserService
 ) : AspectService {
 
@@ -91,7 +89,6 @@ class DefaultAspectService(
     */
     private fun createFinish(aspectVertex: AspectVertex, aspectData: AspectData, context: HistoryContext): AspectVertex {
         val res = savePlain(aspectVertex, aspectData, context)
-        guidDao.newGuidVertex(res)
         historyService.storeFact(aspectVertex.toCreateFact(context))
         return res
     }
@@ -234,8 +231,6 @@ class DefaultAspectService(
         val props = transaction(db) {
             aspectDaoService.getProperties(ids).map { it.toAspectPropertyData() }
         }
-        val guidById = transaction(db) { guidDao.ofAspects(ids) }
-        logger.info("guid by id: $guidById")
 
         val propsById = props.groupBy { it.id }.mapValues { it.value.first() }
 
@@ -246,7 +241,7 @@ class DefaultAspectService(
                 val id = aspectVertex.id
                 val details = detailsById[id]
                 val data = details?.let {
-                    aspectVertex.toAspectData(propsById, guidById, details)
+                    aspectVertex.toAspectData(propsById, details)
                 }
                 data ?: logger.warn("nothing found for aspect id $id")
                 data
@@ -385,7 +380,6 @@ class DefaultAspectService(
     ): HistoryFactWrite {
         return if (vertex.isJustCreated()) {
             aspectDaoService.saveAspectProperty(this, vertex, data)
-            guidDao.newGuidVertex(vertex)
             vertex.toCreateFact(context)
         } else {
             val previous = vertex.currentSnapshot()

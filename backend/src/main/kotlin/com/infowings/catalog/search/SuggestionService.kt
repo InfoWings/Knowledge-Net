@@ -135,7 +135,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), ASPECT_CLASS)
-                    .mapNotNull { it.toAspectVertex().toAspectData() })
+                    .map { it.toAspectVertex().toAspectData() })
         }
         return this
     }
@@ -143,7 +143,7 @@ class SuggestionService(
     fun findSubject(commonParam: CommonSuggestionParam?, subjectParam: SubjectSuggestionParam): List<SubjectData> =
         session(database) {
             findSubjectInDb(commonParam, subjectParam)
-                .mapNotNull { it.toSubjectVertex().toSubject().toSubjectData() }
+                .map { it.toSubjectVertex().toSubject().toSubjectData() }
                 .toMutableList()
                 .addSubjectDescSuggestion(commonParam)
         }
@@ -152,7 +152,7 @@ class SuggestionService(
         if (this.size < maxResultSize) {
             this.addAll(
                 descSuggestion(textOrAllWildcard(commonParam?.text), SUBJECT_CLASS)
-                    .mapNotNull { it.toSubjectVertex().toSubject().toSubjectData() })
+                    .map { it.toSubjectVertex().toSubject().toSubjectData() })
         }
         return this
     }
@@ -433,7 +433,7 @@ class SuggestionService(
                 aspectName = null,
                 property = null,
                 subjectName = aspect.subject?.name,
-                guid = aspect.guid ?: "?",
+                guid = aspect.guid,
                 id = aspect.id,
                 parentAspect = null,
                 source = AspectHintSource.REFBOOK_DESCRIPTION.toString()
@@ -459,7 +459,7 @@ class SuggestionService(
                         description = null,
                         subjectName = parent.subject?.name ?: "Global"
                     ),
-                    guid = parent.guid ?: "?",
+                    guid = parent.guid,
                     source = AspectHintSource.ASPECT_PROPERTY_WITH_ASPECT.toString(),
                     id = this.aspect,
                     property = AspectHintAspectPropInfo(

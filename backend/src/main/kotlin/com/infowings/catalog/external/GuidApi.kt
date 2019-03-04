@@ -8,7 +8,6 @@ import com.infowings.catalog.data.guid.GuidService
 import com.infowings.catalog.loggerFor
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
 
 class GuidException(message: String) : Exception(message)
 
@@ -48,12 +47,6 @@ class GuidApi(val guidService: GuidService) {
     fun getBriefValueById(@PathVariable id: String): BriefValueViewResponse {
         logger.debug("Get brief value view by id: $id")
         return guidService.findObjectValueById(id)
-    }
-
-    @PostMapping("/set/{id}")
-    fun setGuid(@PathVariable id: String, principal: Principal): EntityMetadata {
-        logger.debug("Set guid for $id")
-        return guidService.setGuid(id, principal.name)
     }
 
     @ExceptionHandler(Exception::class)

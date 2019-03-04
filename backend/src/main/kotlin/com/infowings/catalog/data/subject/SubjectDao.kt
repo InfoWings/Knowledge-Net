@@ -7,6 +7,7 @@ import com.infowings.catalog.data.SubjectWithNameAlreadyExist
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
+import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
 import notDeletedSql
 
@@ -24,6 +25,26 @@ fun SubjectVertex.toSubject(): Subject =
     )
 
 class SubjectDao(private val db: OrientDatabase) {
+
+    init {
+        //todo: migration code for #395
+        // subjects guid
+        transaction(db) {
+
+            db.query("SELECT FROM $SUBJECT_CLASS") { rs ->
+                val subjects = rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex() }.toList()
+                for (subjectVertex in subjects) {
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfSubjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                    if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
+                        subjectVertex.setProperty(ATTR_GUID, guid)
+                        subjectVertex.save<OVertex>()
+                    }
+                }
+            }
+        }
+
+    }
+
     fun getSubjects(): List<Subject> = db.query(SelectSubjectsQuery) { rs ->
         rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex()?.toSubject() }.toList()
     }
@@ -60,7 +81,7 @@ class SubjectDao(private val db: OrientDatabase) {
         }
     }
 
-    private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).toSubjectVertex()
+    private fun newSubjectVertex(): SubjectVertex = db.createNewVertex(SUBJECT_CLASS).assignGuid().toSubjectVertex()
 
     private fun save(sd: SubjectData): SubjectVertex = transaction(db) {
         val vertex: SubjectVertex = newSubjectVertex()

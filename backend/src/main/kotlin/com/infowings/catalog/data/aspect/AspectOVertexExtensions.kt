@@ -105,9 +105,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_ASPECT)
+    override val guid: String = vertex[ATTR_GUID]
 
     private val lastChange: Instant?
         get() {
@@ -212,9 +210,9 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
 
     // медленный вызов, в первую очередь за счет lastChange, во вторую -  за счет ссылок на субъект и имя справочника
     // может быть приемлемым при работе с одним аспектом
-    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() }, guid = guid ?: "???")
+    fun toAspectData(): AspectData = toAspectOnlyData().copy(properties = properties.map { it.toAspectPropertyData() }, guid = guid)
 
-    fun toAspectData(properties: Map<String, AspectPropertyData>, guids: Map<String, String>, details: AspectDaoDetails): AspectData {
+    fun toAspectData(properties: Map<String, AspectPropertyData>, details: AspectDaoDetails): AspectData {
         val propertiesData = details.propertyIds.mapNotNull {
             val propertyId = it.toString()
             val data: AspectPropertyData? = properties[propertyId]
@@ -226,7 +224,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             subject = details.subject,
             refBookName = details.refBookName,
             lastChangeTimestamp = details.lastChange.epochSecond,
-            guid = guids[id]
+            guid = guid
         )
     }
 }
@@ -248,7 +246,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
     )
 
     fun toAspectPropertyData(): AspectPropertyData =
-        AspectPropertyData(id, name, aspect, associatedAspect.guid ?: "???", cardinality, description, version, deleted, guid)
+        AspectPropertyData(id, name, aspect, associatedAspect.guid, cardinality, description, version, deleted, guid)
 
     var name: String?
         get() = vertex["name"]
@@ -286,9 +284,7 @@ class AspectPropertyVertex(private val vertex: OVertex) : HistoryAware, GuidAwar
             vertex[ATTR_DESC] = value
         }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_ASPECT_PROPERTY)
+    override val guid: String = vertex[ATTR_GUID]
 
     val associatedAspect: AspectVertex
         get() = vertex.getVertices(ODirection.OUT, ASPECT_ASPECT_PROPERTY_EDGE).single().toAspectVertex()

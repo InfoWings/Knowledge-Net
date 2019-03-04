@@ -8,7 +8,6 @@ import com.infowings.catalog.common.ReferenceBook
 import com.infowings.catalog.common.ReferenceBookItem
 import com.infowings.catalog.data.aspect.AspectDoesNotExist
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryFactWrite
 import com.infowings.catalog.data.history.HistoryService
@@ -71,7 +70,6 @@ class NormalizedReferenceBookService(private val innerService: ReferenceBookServ
 class DefaultReferenceBookService(
     val db: OrientDatabase,
     private val dao: ReferenceBookDao,
-    private val guidDao: GuidDaoService,
     val historyService: HistoryService,
     private val userService: UserService
 ) : ReferenceBookService {
@@ -148,7 +146,6 @@ class DefaultReferenceBookService(
             aspectVertex.save<OVertex>()
 
             val savedRootVertex = rootVertex.save<OVertex>().toReferenceBookItemVertex()
-            guidDao.newGuidVertex(savedRootVertex)
             historyService.storeFact(savedRootVertex.toCreateFact(context))
             historyService.storeFact(aspectVertex.toUpdateFact(context, aspectBefore))
 
@@ -313,7 +310,6 @@ class DefaultReferenceBookService(
 
             savedItemVertex = dao.saveBookItemVertex(parentVertex, itemVertex)
             updateFact = parentVertex.toUpdateFact(context, parentBefore)
-            guidDao.newGuidVertex(savedItemVertex)
             historyService.storeFact(savedItemVertex.toCreateFact(context))
             historyService.storeFact(updateFact)
 

@@ -181,7 +181,6 @@ class OrientDatabase(
             .initHistory()
             .initUsers()
 //            .initReferenceBooks()
-            .initGuid()
             .initMeasures()
             .initSearchMeasure() // this call should be latest
 
@@ -332,7 +331,9 @@ class OrientDatabase(
         }
     }
 
-    fun createBasicIndex(property: OProperty): OIndex<*> = property.createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
+    fun getICIndex(className: String): OIndex<*>? = session(this) { it.getClass(className).getClassIndex("$className.index.name.ic") }
+
+    private fun createBasicIndex(property: OProperty): OIndex<*> = property.createIndex(OClass.INDEX_TYPE.NOTUNIQUE)
 
     fun sbTreeIndexesOf(classType: String): List<OIndex<*>> = session(this) { session ->
         session.getClass(classType).classIndexes.filter { it.algorithm == "SBTREE" }
