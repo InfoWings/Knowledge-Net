@@ -52,8 +52,7 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
-    //    GUID_OF_SUBJECT("GuidOfSubjectEdge"),
-    GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
+    //    GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
     GUID_OF_OBJECT("GuidOfObjectEdge"),
     GUID_OF_OBJECT_PROPERTY("GuidOfObjectPropertyEdge"),
     GUID_OF_OBJECT_VALUE("GuidOfObjectValueEdge"),
@@ -178,7 +177,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OrientClass.GUID.extName)
 
         listOf(
-            OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
+            OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
         ).forEach {
             initEdge(session, it.extName)
         }
@@ -195,11 +194,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         if (aspectClass.getProperty(ATTR_NAME) == null) {
             aspectClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
         }
-        if (aspectClass.getProperty(ATTR_GUID) == null) {
-            val guidProperty = aspectClass.createProperty(ATTR_GUID, OType.STRING)
-            guidProperty.isMandatory = true
-            initBasicIndex(guidProperty)
-        }
+        addGuidProperty(aspectClass)
         initIgnoreCaseIndex(ASPECT_CLASS)
 
         return aspectClass
@@ -208,11 +203,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun createAspectPropertyVertex(session: ODatabaseDocument): OClass {
         val aspectPropertyClass = session.getClass(ASPECT_PROPERTY_CLASS) ?: session.createVertexClass(ASPECT_PROPERTY_CLASS)
 
-        if (aspectPropertyClass.getProperty(ATTR_GUID) == null) {
-            val guidProperty = aspectPropertyClass.createProperty(ATTR_GUID, OType.STRING)
-            guidProperty.isMandatory = true
-            initBasicIndex(guidProperty)
-        }
+        addGuidProperty(aspectPropertyClass)
 
         if (aspectPropertyClass.getProperty("name_with_aspect") == null) {
             aspectPropertyClass.createProperty("name_with_aspect", OType.STRING)
@@ -291,12 +282,16 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initReferenceBooks(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init reference books")
 
-        if (session.getClass(REFERENCE_BOOK_ITEM_VERTEX) == null) {
-            val vertexClass = session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
+        val vertexClass = session.getClass(REFERENCE_BOOK_ITEM_VERTEX) ?: session.createVertexClass(REFERENCE_BOOK_ITEM_VERTEX)
+
+        if (vertexClass.getProperty("value") == null)
             vertexClass.createProperty("value", OType.STRING)
+        if (vertexClass.getProperty("description") == null)
             vertexClass.createProperty("description", OType.STRING)
+        if (vertexClass.getProperty("deleted") == null)
             vertexClass.createProperty("deleted", OType.BOOLEAN)
-        }
+
+        addGuidProperty(vertexClass)
 
         session.getClass(REFERENCE_BOOK_CHILD_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_CHILD_EDGE)
         session.getClass(REFERENCE_BOOK_ROOT_EDGE) ?: session.createEdgeClass(REFERENCE_BOOK_ROOT_EDGE)
@@ -307,14 +302,18 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     fun initSubject(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init subject")
         val subjectVertex = createVertexWithNameAndDesc(session, SUBJECT_CLASS)
-        if (subjectVertex.getProperty(ATTR_GUID) == null) {
-            val guidProperty = subjectVertex.createProperty(ATTR_GUID, OType.STRING)
-            guidProperty.isMandatory = true
-            initBasicIndex(guidProperty)
-        }
+        addGuidProperty(subjectVertex)
 
         session.getClass(ASPECT_SUBJECT_EDGE) ?: session.createEdgeClass(ASPECT_SUBJECT_EDGE)
         return@session this
+    }
+
+    private fun addGuidProperty(aspectClass: OClass) {
+        if (aspectClass.getProperty(ATTR_GUID) == null) {
+            val guidProperty = aspectClass.createProperty(ATTR_GUID, OType.STRING)
+            guidProperty.isMandatory = true
+            initBasicIndex(guidProperty)
+        }
     }
 
     private fun initLuceneIndex(classType: String) {

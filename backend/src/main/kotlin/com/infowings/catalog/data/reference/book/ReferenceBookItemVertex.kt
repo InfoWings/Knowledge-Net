@@ -91,9 +91,7 @@ class ReferenceBookItemVertex(private val vertex: OVertex) : HistoryAware, GuidA
     val parent: ReferenceBookItemVertex?
         get() = getVertices(ODirection.IN, edgeName).firstOrNull()?.toReferenceBookItemVertex()
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_REFBOOK_ITEM)
+    override val guid: String = vertex[ATTR_GUID]
 
     fun toReferenceBookItem(): ReferenceBookItem {
         val children = children.map { it.toReferenceBookItem() }

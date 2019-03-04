@@ -39,11 +39,15 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                 val subjectVertex = it.toSubjectVertex()
                 EntityMetadata(guid = subjectVertex.guid, entityClass = EntityClass.SUBJECT, id = subjectVertex.id)
             }
+            val refBookItemEntities = dao.findByGuidInClass(OrientClass.REFBOOK_ITEM, guids) {
+                val referenceBookItemVertex = it.toReferenceBookItemVertex()
+                EntityMetadata(guid = referenceBookItemVertex.guid, entityClass = EntityClass.REFBOOK_ITEM, id = referenceBookItemVertex.id)
+            }
             val allOtherEntities = dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
             }
-            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities
+            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities + refBookItemEntities
         }
     }
 
@@ -55,14 +59,8 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
     fun findSubject(guids: List<String>): List<Subject> =
         dao.findByGuidInClass(OrientClass.SUBJECT, guids) { it.toSubjectVertex().toSubject() }
 
-    fun findRefBookItems(guids: List<String>): List<ReferenceBookItem> {
-        return transaction(db) {
-            dao.find(guids).mapNotNull { guidVertex ->
-                val vertex = dao.vertex(guidVertex)
-                if (vertex.entityClass() == EntityClass.REFBOOK_ITEM) vertex.toReferenceBookItemVertex().toReferenceBookItem() else null
-            }
-        }
-    }
+    fun findRefBookItems(guids: List<String>): List<ReferenceBookItem> =
+        dao.findByGuidInClass(OrientClass.REFBOOK_ITEM, guids) { it.toReferenceBookItemVertex().toReferenceBookItem() }
 
     fun findObject(guid: String): BriefObjectViewResponse {
         return transaction(db) {

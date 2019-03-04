@@ -2,10 +2,8 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.storage.OrientDatabase
-import com.infowings.catalog.storage.session
-import com.infowings.catalog.storage.toVertexOrNull
-import com.infowings.catalog.storage.transaction
+import com.infowings.catalog.data.guid.toGuidVertex
+import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.record.ODirection
@@ -18,6 +16,26 @@ private const val selectAllNotDeletedRefBookRoots =
 
 
 class ReferenceBookDao(private val db: OrientDatabase) {
+    init {
+        //todo: migration code for #395
+        // subjects guid
+        transaction(db) {
+
+            db.query("SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX") { rs ->
+                val subjects = rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
+                for (subjectVertex in subjects) {
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfRefBookItemEdge").singleOrNull()?.toGuidVertex()?.guid
+                    if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
+                        subjectVertex.setProperty(ATTR_GUID, guid)
+                        subjectVertex.save<OVertex>()
+                    }
+                }
+            }
+        }
+
+
+    }
+
 
     fun getAspectVertex(aspectId: String): AspectVertex? = db.getVertexById(aspectId)?.toAspectVertex()
 
@@ -40,7 +58,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             .firstOrNull()
     }
 
-    fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).toReferenceBookItemVertex()
+    fun createReferenceBookItemVertex() = db.createNewVertex(REFERENCE_BOOK_ITEM_VERTEX).assignGuid().toReferenceBookItemVertex()
 
     fun find(id: String): ReferenceBookItemVertex? = db.getVertexById(id)?.toReferenceBookItemVertex()
 

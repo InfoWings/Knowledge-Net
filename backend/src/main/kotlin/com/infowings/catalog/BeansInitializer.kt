@@ -58,7 +58,7 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { MeasureService(database = ref()) }
         bean { ReferenceBookDao(db = ref()) }
         bean {
-            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref(), guidDao = ref())
+            val innerRefBookService = DefaultReferenceBookService(db = ref(), dao = ref(), historyService = ref(), userService = ref())
             return@bean NormalizedReferenceBookService(innerRefBookService)
         }
         bean { AspectDaoService(db = ref(), measureService = ref()) }
