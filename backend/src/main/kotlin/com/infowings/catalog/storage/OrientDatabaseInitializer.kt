@@ -52,8 +52,6 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
-    //    GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
-    GUID_OF_OBJECT("GuidOfObjectEdge"),
     GUID_OF_OBJECT_PROPERTY("GuidOfObjectPropertyEdge"),
     GUID_OF_OBJECT_VALUE("GuidOfObjectValueEdge"),
 }
@@ -122,12 +120,18 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initObject(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init objects")
-        if (session.getClass(OBJECT_CLASS) == null) {
-            val vertexClass = session.createVertexClass(OBJECT_CLASS)
-            vertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
-            vertexClass.createProperty(ATTR_DESC, OType.STRING)
-            initIgnoreCaseIndex(OBJECT_CLASS)
-        }
+
+        val objectVertexClass = session.getClass(OBJECT_CLASS) ?: session.createVertexClass(OBJECT_CLASS)
+
+        if (objectVertexClass.getProperty(ATTR_NAME) == null)
+            objectVertexClass.createProperty(ATTR_NAME, OType.STRING).isMandatory = true
+        if (objectVertexClass.getProperty(ATTR_DESC) == null)
+            objectVertexClass.createProperty(ATTR_DESC, OType.STRING)
+
+        addGuidProperty(objectVertexClass)
+
+        initIgnoreCaseIndex(OBJECT_CLASS)
+
         initEdge(session, OBJECT_SUBJECT_EDGE)
 
         initVertex(session, OBJECT_PROPERTY_CLASS)
@@ -135,10 +139,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initEdge(session, ASPECT_OBJECT_PROPERTY_EDGE)
 
         if (session.getClass(OrientClass.OBJECT_VALUE.extName) == null) {
-            val vertexClass = session.createVertexClass(OrientClass.OBJECT_VALUE.extName)
-            vertexClass.createProperty("str", OType.STRING)
+            val objectValueVertexClass = session.createVertexClass(OrientClass.OBJECT_VALUE.extName)
+            objectValueVertexClass.createProperty("str", OType.STRING)
             database.createLuceneIndex(OrientClass.OBJECT_VALUE.extName, "str")
         }
+
         initEdge(session, OBJECT_VALUE_OBJECT_PROPERTY_EDGE)
 
         initEdge(session, OBJECT_VALUE_ASPECT_PROPERTY_EDGE)
@@ -177,7 +182,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OrientClass.GUID.extName)
 
         listOf(
-            OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
+            OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
         ).forEach {
             initEdge(session, it.extName)
         }

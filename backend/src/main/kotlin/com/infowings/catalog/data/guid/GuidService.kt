@@ -43,11 +43,15 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                 val referenceBookItemVertex = it.toReferenceBookItemVertex()
                 EntityMetadata(guid = referenceBookItemVertex.guid, entityClass = EntityClass.REFBOOK_ITEM, id = referenceBookItemVertex.id)
             }
+            val objectEntities = dao.findByGuidInClass(OrientClass.OBJECT, guids) {
+                val objectVertex = it.toObjectVertex()
+                EntityMetadata(guid = objectVertex.guid, entityClass = EntityClass.OBJECT, id = objectVertex.id)
+            }
             val allOtherEntities = dao.find(guids).map { guidVertex ->
                 val vertex = dao.vertex(guidVertex)
                 EntityMetadata(guid = guidVertex.guid, entityClass = vertex.entityClass(), id = vertex.id)
             }
-            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities + refBookItemEntities
+            allOtherEntities + aspectEntities + aspectPropertyEntities + subjectEntities + refBookItemEntities + objectEntities
         }
     }
 
@@ -62,14 +66,10 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
     fun findRefBookItems(guids: List<String>): List<ReferenceBookItem> =
         dao.findByGuidInClass(OrientClass.REFBOOK_ITEM, guids) { it.toReferenceBookItemVertex().toReferenceBookItem() }
 
-    fun findObject(guid: String): BriefObjectViewResponse {
-        return transaction(db) {
-            dao.find(listOf(guid)).mapNotNull { guidVertex ->
-                val vertex = dao.vertex(guidVertex)
-                if (vertex.entityClass() == EntityClass.OBJECT) vertex.toObjectVertex().toBriefViewResponse() else null
-            }.singleOrNull() ?: throw EntityNotFoundException("No object is found by guid: $guid")
-        }
-    }
+    fun findObject(guid: String): BriefObjectViewResponse =
+        dao.findByGuidInClass(OrientClass.OBJECT, listOf(guid)) { it.toObjectVertex().toBriefViewResponse() }.singleOrNull()
+            ?: throw EntityNotFoundException("No object is found by guid: $guid")
+
 
     fun findObjectById(id: String): BriefObjectViewResponse {
         return transaction(db) {
@@ -121,7 +121,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                             it.associatedAspect.name,
                             measureSymbol,
                             objectVertex.id,
-                            objectVertex.guid ?: "???"
+                            objectVertex.guid
                         )
                     } ?: run {
                         val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
@@ -132,7 +132,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                             objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
                             measureSymbol,
                             objectVertex.id,
-                            objectVertex.guid ?: "???"
+                            objectVertex.guid
                         )
                     }
                 } else null
@@ -158,7 +158,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                         it.associatedAspect.name,
                         measureSymbol,
                         objectVertex.id,
-                        objectVertex.guid ?: "???"
+                        objectVertex.guid
                     )
                 } ?: run {
                     val objectPropertyVertex = valueVertex.objectProperty ?: throw IllegalStateException()
@@ -169,7 +169,7 @@ class GuidService(private val db: OrientDatabase, private val dao: GuidDaoServic
                         objectPropertyVertex.aspect?.name ?: throw IllegalStateException("aspect is not defined"),
                         measureSymbol,
                         objectVertex.id,
-                        objectVertex.guid ?: "???"
+                        objectVertex.guid
                     )
                 }
             } else throw EntityNotFoundException("No value is found by id: $id")

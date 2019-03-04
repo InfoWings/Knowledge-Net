@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
+import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -15,9 +16,26 @@ import java.math.BigDecimal
 
 class ObjectDaoService(private val db: OrientDatabase) {
     private val objectSearchDao = ObjectSearchDao(db)
-    fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).toObjectVertex()
+    fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).assignGuid().toObjectVertex()
     fun newObjectPropertyVertex() = db.createNewVertex(OBJECT_PROPERTY_CLASS).toObjectPropertyVertex()
     fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).toObjectPropertyValueVertex()
+
+    init {
+        //todo: migration code for #395
+        // objects guid
+        transaction(db) {
+            val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.toGuidVertex()?.guid!!
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+
+    }
 
     private fun <T : OVertex> replaceEdge(vertex: OVertex, edgeClass: String, oldTarget: T?, newTarget: T?) {
         if (oldTarget?.identity != newTarget?.identity) {

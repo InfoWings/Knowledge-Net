@@ -35,7 +35,7 @@ class DbTest {
 
         listOf(OBJECT_CLASS).forEach { className ->
             val indexes = database.sbTreeIndexesOf(className)
-            assertEquals(1, indexes.size, "class $className")
+            assertEquals(2, indexes.size, "class $className")
         }
 
         listOf(SUBJECT_CLASS).forEach { className ->
@@ -94,7 +94,7 @@ class DbTest {
                 val vertex = database.createNewVertex(className).assignGuid()
 
                 // some classes has mandatory fields fill these here
-                if (className == ASPECT_CLASS || className == SUBJECT_CLASS) {
+                if (className == ASPECT_CLASS || className == SUBJECT_CLASS || className == OBJECT_CLASS) {
                     vertex.setProperty(ATTR_NAME, UUID.randomUUID().toString())
                 }
 

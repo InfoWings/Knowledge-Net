@@ -16,7 +16,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
     private fun acceptAll(result: OResult) = true
 
     private fun filter(subjectsGuids: List<String>, excludeFromSubjectFilter: List<String>): (OResult) -> Boolean =
-        { result -> result.getProperty<String>("subjectGuid") in subjectsGuids || result.getProperty<String>("guid") in excludeFromSubjectFilter }
+        { result -> result.getProperty<String>("subjectGuid") in subjectsGuids || result.getProperty<String>(ATTR_GUID) in excludeFromSubjectFilter }
 
     fun searchObjectsTruncated(pattern: String, subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> {
         // bug in Orient Db prevent using graph traversing and lucene query in one WHERE clause so filtering applied to result instead of querying required guids
@@ -35,8 +35,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
         }
     }
 
-    private val allObjectsTruncated = """SELECT @rid, name, description, """ +
-            """FIRST(OUT("${OrientEdge.GUID_OF_OBJECT.extName}")).guid as guid, """ +
+    private val allObjectsTruncated = """SELECT @rid, name, description, guid, """ +
             """FIRST(OUT("$OBJECT_SUBJECT_EDGE")).name as subjectName, """ +
             """IN("$OBJECT_OBJECT_PROPERTY_EDGE").size() as objectPropertiesCount """ +
             """FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) """
@@ -49,7 +48,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
             if (!subjectsGuids.isNullOrEmpty())
                 query += """ AND FIRST(OUT("$OBJECT_SUBJECT_EDGE")).guid in :guids """
             if (excludeFromSubjectFilter.isNotEmpty())
-                query += """ OR FIRST(OUT("${OrientEdge.GUID_OF_OBJECT.extName}")).guid in :excludeGuids """
+                query += """ OR guid in :excludeGuids """
 
             return@transaction db.query(query, mapOf("guids" to subjectsGuids, "excludeGuids" to excludeFromSubjectFilter)) { it.toObjectsTruncated(tsById) }
         }
@@ -156,8 +155,7 @@ private fun anyOfCond(conditions: List<String>) = conditions.joinToString(" or "
 private fun textOrAllWildcard(text: String?): String = if (text.isNullOrBlank()) "*" else text.trim()
 
 private val baseSelectForTruncatedObjects =
-    "SELECT @rid, name, description, \n" +
-            "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
+    "SELECT @rid, name, description, guid, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).guid as subjectGuid, \n" +
             "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +

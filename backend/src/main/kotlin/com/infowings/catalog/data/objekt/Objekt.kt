@@ -20,7 +20,7 @@ data class Objekt(
     val description: String?,
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>,
-    val guid: String?,
+    val guid: String,
     val lastUpdated: Long?
 )
 
@@ -43,7 +43,7 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
 data class ObjectTruncated(
     val id: ORID,
     val name: String,
-    val guid: String?,
+    val guid: String,
     val description: String?,
     val subjectName: String,
     val objectPropertiesCount: Int,

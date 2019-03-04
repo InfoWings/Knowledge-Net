@@ -166,7 +166,6 @@ class ObjectService(
             val createdObject = objectVertex.toObjekt()
 
             historyService.storeFact(createdObject.subject.toUpdateFact(context, subjectBefore))
-            guidDao.newGuidVertex(objectVertex)
             historyService.storeFact(objectVertex.toCreateFact(context))
 
             ObjectResult(objectVertex, objectVertex.subject ?: throw IllegalStateException("Object was created without subject"))
