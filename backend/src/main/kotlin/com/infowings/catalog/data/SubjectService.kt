@@ -66,7 +66,6 @@ class DefaultSubjectService(
 
         val vertex = transaction(db) {
             val vertex = dao.createSubject(sd)
-            guidDao.newGuidVertex(vertex)
             history.storeFact(vertex.toCreateFact(HistoryContext(userVertex)))
             return@transaction vertex
         }

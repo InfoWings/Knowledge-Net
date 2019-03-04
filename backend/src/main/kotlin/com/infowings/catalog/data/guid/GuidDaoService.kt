@@ -9,7 +9,6 @@ import java.util.*
 
 class GuidDaoService(private val db: OrientDatabase) {
     private val classEdgePairs = listOf(
-        OrientClass.SUBJECT to OrientEdge.GUID_OF_SUBJECT,
         OrientClass.REFBOOK_ITEM to OrientEdge.GUID_OF_REFBOOK_ITEM,
         OrientClass.OBJECT to OrientEdge.GUID_OF_OBJECT,
         OrientClass.OBJECT_PROPERTY to OrientEdge.GUID_OF_OBJECT_PROPERTY,

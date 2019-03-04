@@ -28,7 +28,7 @@ class DbTest {
             assertEquals(2, indexes.size, "class $className")
         }
 
-        listOf(SUBJECT_CLASS, MEASURE_VERTEX, MEASURE_GROUP_VERTEX).forEach { className ->
+        listOf(ASPECT_CLASS, MEASURE_VERTEX, MEASURE_GROUP_VERTEX).forEach { className ->
             val indexes = database.sbTreeIndexesOf(className)
             assertEquals(2, indexes.size, "class $className")
         }
@@ -38,9 +38,9 @@ class DbTest {
             assertEquals(1, indexes.size, "class $className")
         }
 
-        listOf(ASPECT_CLASS).forEach { className ->
+        listOf(SUBJECT_CLASS).forEach { className ->
             val indexes = database.sbTreeIndexesOf(className)
-            assertEquals(2, indexes.size, "class $className")
+            assertEquals(3, indexes.size, "class $className")
         }
     }
 
@@ -91,11 +91,10 @@ class DbTest {
 
                 val fieldName = if (indexNameComponents.size == 4) indexNameComponents[2] else indexNameComponents[1]
 
-                val vertex = database.createNewVertex(className)
+                val vertex = database.createNewVertex(className).assignGuid()
 
-                // todo: #395
-                if (className == ASPECT_CLASS) {
-                    vertex.assignGuid()
+                // some classes has mandatory fields fill these here
+                if (className == ASPECT_CLASS || className == SUBJECT_CLASS) {
                     vertex.setProperty(ATTR_NAME, UUID.randomUUID().toString())
                 }
 

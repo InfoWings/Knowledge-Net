@@ -52,7 +52,7 @@ enum class OrientEdge(val extName: String) {
     OBJECT_VALUE_REF_SUBJECT(OBJECT_VALUE_SUBJECT_EDGE),
     OBJECT_VALUE_REF_REFBOOK_ITEM(OBJECT_VALUE_REF_REFBOOK_ITEM_EDGE),
     OBJECT_VALUE_DOMAIN_ELEMENT(OBJECT_VALUE_DOMAIN_ELEMENT_EDGE),
-    GUID_OF_SUBJECT("GuidOfSubjectEdge"),
+    //    GUID_OF_SUBJECT("GuidOfSubjectEdge"),
     GUID_OF_REFBOOK_ITEM("GuidOfRefBookItemEdge"),
     GUID_OF_OBJECT("GuidOfObjectEdge"),
     GUID_OF_OBJECT_PROPERTY("GuidOfObjectPropertyEdge"),
@@ -178,7 +178,6 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         initVertex(session, OrientClass.GUID.extName)
 
         listOf(
-            OrientEdge.GUID_OF_SUBJECT,
             OrientEdge.GUID_OF_REFBOOK_ITEM, OrientEdge.GUID_OF_OBJECT, OrientEdge.GUID_OF_OBJECT_PROPERTY, OrientEdge.GUID_OF_OBJECT_VALUE
         ).forEach {
             initEdge(session, it.extName)
@@ -222,9 +221,10 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         return aspectPropertyClass
     }
 
-    private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String) {
+    private fun createVertexWithNameAndDesc(session: ODatabaseDocument, className: String): OClass {
         val vertex = session.getClass(className) ?: createVertexWithName(className, session)
         vertex.getProperty(ATTR_DESC) ?: vertex.createProperty(ATTR_DESC, OType.STRING)
+        return vertex
     }
 
     private fun createVertexWithName(className: String, session: ODatabaseDocument): OClass {
@@ -306,7 +306,13 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
     fun initSubject(): OrientDatabaseInitializer = session(database) { session ->
         logger.info("Init subject")
-        createVertexWithNameAndDesc(session, SUBJECT_CLASS)
+        val subjectVertex = createVertexWithNameAndDesc(session, SUBJECT_CLASS)
+        if (subjectVertex.getProperty(ATTR_GUID) == null) {
+            val guidProperty = subjectVertex.createProperty(ATTR_GUID, OType.STRING)
+            guidProperty.isMandatory = true
+            initBasicIndex(guidProperty)
+        }
+
         session.getClass(ASPECT_SUBJECT_EDGE) ?: session.createEdgeClass(ASPECT_SUBJECT_EDGE)
         return@session this
     }

@@ -47,7 +47,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
             var query = allObjectsTruncated
 
             if (!subjectsGuids.isNullOrEmpty())
-                query += """ AND FIRST(OUT("$OBJECT_SUBJECT_EDGE").OUT("${OrientEdge.GUID_OF_SUBJECT.extName}")).guid in :guids """
+                query += """ AND FIRST(OUT("$OBJECT_SUBJECT_EDGE")).guid in :guids """
             if (excludeFromSubjectFilter.isNotEmpty())
                 query += """ OR FIRST(OUT("${OrientEdge.GUID_OF_OBJECT.extName}")).guid in :excludeGuids """
 
@@ -159,6 +159,6 @@ private val baseSelectForTruncatedObjects =
     "SELECT @rid, name, description, \n" +
             "FIRST(OUT(\"${OrientEdge.GUID_OF_OBJECT.extName}\")).guid as guid, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
-            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\").OUT(\"${OrientEdge.GUID_OF_SUBJECT.extName}\")).guid as subjectGuid, \n" +
+            "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).guid as subjectGuid, \n" +
             "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
             "FROM $OBJECT_CLASS \n"
