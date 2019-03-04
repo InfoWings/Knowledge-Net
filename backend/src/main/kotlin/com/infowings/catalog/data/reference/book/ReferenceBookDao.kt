@@ -2,7 +2,6 @@ package com.infowings.catalog.data.reference.book
 
 import com.infowings.catalog.data.aspect.AspectVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
@@ -24,7 +23,7 @@ class ReferenceBookDao(private val db: OrientDatabase) {
             db.query("SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX") { rs ->
                 val subjects = rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
                 for (subjectVertex in subjects) {
-                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfRefBookItemEdge").singleOrNull()?.toGuidVertex()?.guid
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfRefBookItemEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
                     if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
                         subjectVertex.setProperty(ATTR_GUID, guid)
                         subjectVertex.save<OVertex>()

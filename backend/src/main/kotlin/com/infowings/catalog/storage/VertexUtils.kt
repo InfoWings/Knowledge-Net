@@ -3,7 +3,6 @@ package com.infowings.catalog.storage
 import com.infowings.catalog.common.guid.EntityClass
 import com.infowings.catalog.data.aspect.toAspectPropertyVertex
 import com.infowings.catalog.data.aspect.toAspectVertex
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.objekt.toObjectPropertyValueVertex
 import com.infowings.catalog.data.objekt.toObjectPropertyVertex
@@ -67,5 +66,3 @@ fun OVertex.checkClass(orientClass: OrientClass) {
 fun OVertex.checkClassAny(orientClasses: List<OrientClass>) {
     if (!orientClasses.any { this.ofClass(it) }) throw IllegalStateException("vertex with id ${this.id} is of class ${this.schemaType}")
 }
-
-fun OVertex.guid(edge: OrientEdge): String? = getVertices(ODirection.OUT, edge.extName).singleOrNull()?.toGuidVertex()?.guid

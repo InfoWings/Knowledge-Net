@@ -212,7 +212,6 @@ class ObjectService(
             val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
 
             historyService.storeFact(propertyVertex.toUpdateFact(context, propertyBefore))
-            guidDao.newGuidVertex(propertyValueVertex)
             historyService.storeFact(propertyValueVertex.toCreateFact(context))
 
             PropertyCreateResult(
@@ -257,7 +256,6 @@ class ObjectService(
                 val newVertex = dao.newObjectValueVertex()
                 dao.saveObjectValue(newVertex, valueInfo)
             }
-            guidDao.newGuidVertex(valueVertex)
             historyService.storeFact(valueVertex.toCreateFact(context))
 
             valueVertex.toValueResult()
@@ -348,7 +346,6 @@ class ObjectService(
                 if (objectProperty.values.isEmpty()) {
                     val rootValueWriteInfo = ValueWriteInfo.nullRoot(objectProperty)
                     val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
-                    guidDao.newGuidVertex(propertyValueVertex)
                     historyService.storeFact(propertyValueVertex.toCreateFact(context.historyContext))
                 }
 
@@ -373,9 +370,9 @@ class ObjectService(
             historyService.trackUpdate(objectProperty, context.historyContext) {
                 val parentValue = context.root.parentValue
                 val rootBlockerSet = if (blockerIds.contains(context.root.identity)) setOf(context.root) else emptySet()
-                val valuesToKeep = dao.valuesBetween(blockerIds, rootSet).plus(rootBlockerSet)
+                val valuesToKeep = dao.valuesBetween(blockerIds, rootSet) + rootBlockerSet
 
-                val idsToKeep = valuesToKeep.map { it.id }.toSet()
+                val idsToKeep = valuesToKeep.map { it.id }
                 val valuesToDelete = context.values.filterNot { idsToKeep.contains(it.id) }
 
                 valuesToDelete.forEach { historyService.storeFact(it.toDeleteFact(context.historyContext)) }
@@ -389,7 +386,6 @@ class ObjectService(
                 if (objectProperty.values.isEmpty()) {
                     val rootValueWriteInfo = ValueWriteInfo.nullRoot(objectProperty)
                     val propertyValueVertex: ObjectPropertyValueVertex = dao.saveObjectValue(dao.newObjectValueVertex(), rootValueWriteInfo)
-                    guidDao.newGuidVertex(propertyValueVertex)
                     historyService.storeFact(propertyValueVertex.toCreateFact(context.historyContext))
                 }
 

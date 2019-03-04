@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.external.logTime
@@ -35,7 +34,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in aspectIds) {
                 val vertex = getVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.toGuidVertex()?.guid
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
@@ -47,7 +46,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
             val aspectProperties = db.query("select @rid from $ASPECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in aspectProperties) {
                 val vertex = getVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectPropertyEdge").singleOrNull()?.toGuidVertex()?.guid
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()

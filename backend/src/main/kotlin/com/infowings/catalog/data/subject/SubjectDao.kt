@@ -4,7 +4,6 @@ import com.infowings.catalog.common.SubjectData
 import com.infowings.catalog.data.Subject
 import com.infowings.catalog.data.SubjectNotFoundException
 import com.infowings.catalog.data.SubjectWithNameAlreadyExist
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.id.ORecordId
@@ -35,7 +34,7 @@ class SubjectDao(private val db: OrientDatabase) {
             db.query("SELECT FROM $SUBJECT_CLASS") { rs ->
                 val subjects = rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex() }.toList()
                 for (subjectVertex in subjects) {
-                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfSubjectEdge").singleOrNull()?.toGuidVertex()?.guid
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfSubjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
                     if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
                         subjectVertex.setProperty(ATTR_GUID, guid)
                         subjectVertex.save<OVertex>()

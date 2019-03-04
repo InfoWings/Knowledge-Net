@@ -283,9 +283,7 @@ class ObjectPropertyValueVertex(private val vertex: OVertex) : HistoryAware, Gui
         get() = vertex.getVertices(ODirection.IN, OBJECT_VALUE_OBJECT_VALUE_EDGE)
             .map { it.toObjectPropertyValueVertex() }.filterNot { it.deleted }
 
-    override
-    val guid: String?
-        get() = guid(OrientEdge.GUID_OF_OBJECT_VALUE)
+    override val guid: String = vertex[ATTR_GUID]
 
     private fun calcRangeFlags(): Int {
         var result = 0

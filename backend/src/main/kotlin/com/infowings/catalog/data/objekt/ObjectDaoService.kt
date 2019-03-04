@@ -3,7 +3,6 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
-import com.infowings.catalog.data.guid.toGuidVertex
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -18,7 +17,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
     private val objectSearchDao = ObjectSearchDao(db)
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).assignGuid().toObjectVertex()
     fun newObjectPropertyVertex() = db.createNewVertex(OBJECT_PROPERTY_CLASS).assignGuid().toObjectPropertyVertex()
-    fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).toObjectPropertyValueVertex()
+    fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).assignGuid().toObjectPropertyValueVertex()
 
     init {
         //todo: migration code for #395
@@ -27,7 +26,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.toGuidVertex()?.guid!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
@@ -39,7 +38,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectPropertyVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.toGuidVertex()?.guid!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+
+        // object properties values  guid
+        transaction(db) {
+            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_VALUE_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectPropertyValueVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectValueEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
