@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -100,6 +101,7 @@ class DbTest {
 
                 transaction(database) {
                     vertex.setProperty(fieldName, testKey)
+                    vertex.setProperty(ATTR_LAST_UPDATE, Instant.now().epochSecond)
                     vertex.save<OVertex>()
                 }
 

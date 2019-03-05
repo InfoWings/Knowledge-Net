@@ -1,13 +1,9 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.data.history.HISTORY_EDGE
-import com.infowings.catalog.external.logTime
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.sql.executor.OResult
 import notDeletedSql
-import java.time.Instant
 
 
 class ObjectSearchDao(private val db: OrientDatabase) {
@@ -27,22 +23,20 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 filter(subjectsGuids, excludeFromSubjectFilter)
 
         return transaction(db) {
-            val tsById = getObjectsLastUpdateTimestamps()
-            val searchResult = searchInNameAndDescription(pattern, tsById, filter) +
-                    searchInStringValues(pattern, tsById, filter) +
-                    searchInReferenceBook(pattern, tsById, filter)
+            val searchResult = searchInNameAndDescription(pattern, filter) +
+                    searchInStringValues(pattern, filter) +
+                    searchInReferenceBook(pattern, filter)
             return@transaction searchResult.distinctBy { it.id }
         }
     }
 
-    private val allObjectsTruncated = """SELECT @rid, name, description, guid, """ +
+    private val allObjectsTruncated = """SELECT @rid, $ATTR_NAME, $ATTR_DESC, $ATTR_GUID, $ATTR_LAST_UPDATE, """ +
             """FIRST(OUT("$OBJECT_SUBJECT_EDGE")).name as subjectName, """ +
             """IN("$OBJECT_OBJECT_PROPERTY_EDGE").size() as objectPropertiesCount """ +
             """FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) """
 
     fun getAllObjectsFilteredBySubjectTruncated(subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> =
         transaction(db) {
-            val tsById = getObjectsLastUpdateTimestamps()
             var query = allObjectsTruncated
 
             if (!subjectsGuids.isNullOrEmpty())
@@ -50,18 +44,18 @@ class ObjectSearchDao(private val db: OrientDatabase) {
             if (excludeFromSubjectFilter.isNotEmpty())
                 query += """ OR guid in :excludeGuids """
 
-            return@transaction db.query(query, mapOf("guids" to subjectsGuids, "excludeGuids" to excludeFromSubjectFilter)) { it.toObjectsTruncated(tsById) }
+            return@transaction db.query(query, mapOf("guids" to subjectsGuids, "excludeGuids" to excludeFromSubjectFilter)) { it.toObjectsTruncated() }
         }
 
 
-    private fun searchInNameAndDescription(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
+    private fun searchInNameAndDescription(pattern: String, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val query = baseSelectForTruncatedObjects +
                 "WHERE ${anyOfCond(listOf(searchLucene(OBJECT_CLASS, ATTR_NAME, "lq"), searchLucene(OBJECT_CLASS, ATTR_DESC, "lq")))}\n" +
                 " and $notDeletedSql \n"
-        return db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
+        return db.query(query, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated() }
     }
 
-    private fun searchInStringValues(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
+    private fun searchInStringValues(pattern: String, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val queryByStr = baseSelectForTruncatedObjects +
                 "      LET \$t = (SELECT OUT(\"${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}\") AS prop, \n" +
                 "                        prop.OUT(\"${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}\").name AS obj_name, \n" +
@@ -74,10 +68,10 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 "                 AND $notDeletedSql AND (prop_deleted is null OR prop_deleted = false)\n" +
                 "          UNWIND obj_name, obj_id, prop_deleted) WHERE @rid IN \$t.obj_id  " +
                 " and $notDeletedSql "
-        return db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
+        return db.query(queryByStr, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated() }
     }
 
-    private fun searchInReferenceBook(pattern: String, tsById: Map<String, Instant>, filter: (OResult) -> Boolean): List<ObjectTruncated> {
+    private fun searchInReferenceBook(pattern: String, filter: (OResult) -> Boolean): List<ObjectTruncated> {
         val queryByRefBook = baseSelectForTruncatedObjects +
                 "      LET \$t = (\n" +
                 "         SELECT @rid, \n" +
@@ -95,41 +89,11 @@ class ObjectSearchDao(private val db: OrientDatabase) {
                 " unwind prop_deleted, obj_id \n" +
                 " ) where @rid in \$t.obj_id  " +
                 " and $notDeletedSql "
-        return db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated(tsById) }
+        return db.query(queryByRefBook, mapOf("lq" to luceneQuery(textOrAllWildcard(pattern)))) { it.filter(filter).toObjectsTruncated() }
     }
 
 
-    private fun getObjectsLastUpdateTimestamps(): Map<String, Instant> {
-        val queryTS =
-            "SELECT @rid, name, description, " +
-                    " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
-                    " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').in('${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}').out('$HISTORY_EDGE').timestamp) as lastValueTS," +
-                    " max(out('$HISTORY_EDGE').timestamp) as lastTS " +
-                    "FROM $OBJECT_CLASS group by @rid "
-        val tsById = logTime(logger, "request of all timestamps") {
-            db.query(queryTS) {
-                it.map { result ->
-                    val id: ORID = result.getProperty("@rid")
-                    val propTS: Instant? = result.getProperty("lastPropTS")
-                    val objectTS: Instant? = result.getProperty("lastTS")
-                    val valueTS: Instant? = result.getProperty("lastValueTS")
-
-
-                    val latest = listOfNotNull(propTS, objectTS, valueTS).sorted().lastOrNull() ?: {
-                        logger.error("no timestamps: $objectTS, $propTS $valueTS")
-                        Instant.EPOCH
-                    }.invoke()
-
-                    id.toString() to latest
-                }.toMap()
-            }
-        }
-
-        logger.trace("tsById: $tsById")
-        return tsById
-    }
-
-    private fun Sequence<OResult>.toObjectsTruncated(tsById: Map<String, Instant>) = map {
+    private fun Sequence<OResult>.toObjectsTruncated() = map {
         val id: ORID = it.getProperty("@rid")
         ObjectTruncated(
             id,
@@ -138,13 +102,11 @@ class ObjectSearchDao(private val db: OrientDatabase) {
             it.getProperty("description"),
             it.getProperty("subjectName") ?: "UNKNOWN",
             it.getProperty("objectPropertiesCount"),
-            lastUpdated = tsById[id.toString()]?.epochSecond
+            lastUpdated = it.getProperty(ATTR_LAST_UPDATE)
         )
     }.toList()
 
 }
-
-private val logger = loggerFor<ObjectSearchDao>()
 
 private fun luceneIdx(classType: String, attr: String) = "\"$classType.lucene.$attr\""
 private fun searchLucene(classType: String, attr: String, patternBinding: String) =
@@ -154,8 +116,8 @@ private fun luceneQuery(text: String) = "($text~) ($text*) (*$text*)"
 private fun anyOfCond(conditions: List<String>) = conditions.joinToString(" or ", "(", ")")
 private fun textOrAllWildcard(text: String?): String = if (text.isNullOrBlank()) "*" else text.trim()
 
-private val baseSelectForTruncatedObjects =
-    "SELECT @rid, name, description, guid, \n" +
+private const val baseSelectForTruncatedObjects =
+    "SELECT @rid, $ATTR_NAME, $ATTR_DESC, $ATTR_GUID, $ATTR_LAST_UPDATE, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).name as subjectName, \n" +
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).guid as subjectGuid, \n" +
             "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +

@@ -34,7 +34,7 @@ class SubjectDao(private val db: OrientDatabase) {
             db.query("SELECT FROM $SUBJECT_CLASS") { rs ->
                 val subjects = rs.mapNotNull { it.toVertexOrNull()?.toSubjectVertex() }.toList()
                 for (subjectVertex in subjects) {
-                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfSubjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfSubjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
                     if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
                         subjectVertex.setProperty(ATTR_GUID, guid)
                         subjectVertex.save<OVertex>()

@@ -12,16 +12,11 @@ import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
 import com.orientechnologies.orient.core.id.ORID
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
-
-private val logger = loggerFor<HistoryService>()
 
 class HistoryService(
     private val db: OrientDatabase,
     private val historyDao: HistoryDao
 ) {
-    // пока такой наивный кеш. Словим OOME - переделаем
-    private val cache = ConcurrentHashMap<String, HistoryFact>()
 
     fun entityTimeline(id: String): List<HistoryFact> = logTime(logger, "history timeline for entity collection") {
         transaction(db) {
@@ -152,3 +147,5 @@ class HistoryService(
 }
 
 data class HistoryContext(val userVertex: UserVertex)
+
+private val logger = loggerFor<HistoryService>()

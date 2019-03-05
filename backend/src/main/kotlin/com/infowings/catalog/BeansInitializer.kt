@@ -93,8 +93,10 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { GuidDaoService(db = ref()) }
         bean { GuidService(db = ref(), dao = ref()) }
         bean {
-            ObjectService(db = ref(), dao = ref(), subjectService = ref(), userService = ref(), aspectDao = ref(), measureService = ref(), guidDao = ref(),
-                refBookService = ref(), historyService = ref())
+            ObjectService(
+                db = ref(), dao = ref(), subjectService = ref(), aspectDao = ref(), measureService = ref(), refBookService = ref(), userService = ref(),
+                historyService = ref()
+            )
         }
 
         bean {

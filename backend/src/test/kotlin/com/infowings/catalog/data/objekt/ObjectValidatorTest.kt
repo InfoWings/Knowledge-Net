@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
@@ -400,6 +401,7 @@ class ObjectValidatorTest {
         val vertex = transaction(db) {
             val newVertex = db.createNewVertex(type)
             newVertex.setProperty("name", "non-existent")
+            newVertex.setProperty("timestamp", Instant.now().epochSecond)
             newVertex.assignGuid()
             return@transaction newVertex.save<OVertexDocument>()
         }

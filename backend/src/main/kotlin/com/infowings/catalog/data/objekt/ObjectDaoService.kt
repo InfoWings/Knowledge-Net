@@ -3,6 +3,7 @@ package com.infowings.catalog.data.objekt
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.ObjectCreateRequest
 import com.infowings.catalog.common.objekt.ObjectUpdateRequest
+import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
@@ -12,6 +13,7 @@ import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OEdge
 import com.orientechnologies.orient.core.record.OVertex
 import java.math.BigDecimal
+import java.time.Instant
 
 class ObjectDaoService(private val db: OrientDatabase) {
     private val objectSearchDao = ObjectSearchDao(db)
@@ -26,7 +28,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
@@ -38,7 +40,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectPropertyVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
@@ -51,14 +53,56 @@ class ObjectDaoService(private val db: OrientDatabase) {
             val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_VALUE_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectPropertyValueVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectValueEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectValueEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
                 }
             }
         }
+        //todo: migration for 394
+        fun getObjectsLastUpdateTimestamps(): Map<String, Instant> {
+            val queryTS =
+                "SELECT @rid, name, description, " +
+                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').out('$HISTORY_EDGE').timestamp) as lastPropTS," +
+                        " max(in('${OrientEdge.OBJECT_OF_OBJECT_PROPERTY.extName}').in('${OrientEdge.OBJECT_PROPERTY_OF_OBJECT_VALUE.extName}').out('$HISTORY_EDGE').timestamp) as lastValueTS," +
+                        " max(out('$HISTORY_EDGE').timestamp) as lastTS " +
+                        "FROM $OBJECT_CLASS group by @rid "
+            val tsById = logTime(logger, "request of all timestamps") {
+                db.query(queryTS) {
+                    it.map { result ->
+                        val id: ORID = result.getProperty("@rid")
+                        val propTS: Instant? = result.getProperty("lastPropTS")
+                        val objectTS: Instant? = result.getProperty("lastTS")
+                        val valueTS: Instant? = result.getProperty("lastValueTS")
 
+
+                        val latest = listOfNotNull(propTS, objectTS, valueTS).sorted().lastOrNull() ?: {
+                            logger.error("no timestamps: $objectTS, $propTS $valueTS")
+                            Instant.EPOCH
+                        }.invoke()
+
+                        id.toString() to latest
+                    }.toMap()
+                }
+            }
+
+            logger.trace("tsById: $tsById")
+            return tsById
+        }
+
+        transaction(db) {
+            val id2ts: Map<String, Instant> = getObjectsLastUpdateTimestamps()
+            val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectVertex(id.toString())!!
+                val timestamp = id2ts[id.toString()]
+                if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null && timestamp != null) {
+                    vertex.setProperty(ATTR_LAST_UPDATE, timestamp.epochSecond)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
     }
 
     private fun <T : OVertex> replaceEdge(vertex: OVertex, edgeClass: String, oldTarget: T?, newTarget: T?) {
@@ -130,8 +174,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             "SELECT FROM (traverse out(\"$OBJECT_VALUE_OBJECT_VALUE_EDGE\") from :sources while not  @rid in :targets)",
             mapOf("sources" to sources, "targets" to targets)
         ) {
-            val res = it.toList()
-            res.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
+            it.map { it.toVertex().toObjectPropertyValueVertex() }.toSet()
         }
     }
 
@@ -189,6 +232,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
 
+            vertex.timestamp = Instant.now()
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
@@ -200,6 +244,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 vertex.getEdges(ODirection.OUT, OBJECT_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
                 vertex.addEdge(info.subject, OBJECT_SUBJECT_EDGE).save<OEdge>()
             }
+            vertex.timestamp = Instant.now()
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
@@ -226,6 +271,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 value.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
 
+            info.objekt.timestamp = Instant.now()
             return@transaction vertex.save<OVertex>().toObjectPropertyVertex()
         }
 

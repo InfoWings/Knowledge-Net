@@ -19,11 +19,10 @@ class ReferenceBookDao(private val db: OrientDatabase) {
         //todo: migration code for #395
         // subjects guid
         transaction(db) {
-
             db.query("SELECT FROM $REFERENCE_BOOK_ITEM_VERTEX") { rs ->
                 val subjects = rs.mapNotNull { it.toVertexOrNull()?.toReferenceBookItemVertex() }.toList()
                 for (subjectVertex in subjects) {
-                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfRefBookItemEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)!!
+                    val guid = subjectVertex.getVertices(ODirection.OUT, "GuidOfRefBookItemEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
                     if (subjectVertex.getProperty<String>(ATTR_GUID) == null) {
                         subjectVertex.setProperty(ATTR_GUID, guid)
                         subjectVertex.save<OVertex>()
@@ -31,8 +30,6 @@ class ReferenceBookDao(private val db: OrientDatabase) {
                 }
             }
         }
-
-
     }
 
 

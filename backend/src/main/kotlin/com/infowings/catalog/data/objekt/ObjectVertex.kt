@@ -9,6 +9,7 @@ import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
+import java.time.Instant
 
 fun OVertex.toObjectVertex(): ObjectVertex {
     checkClass(OrientClass.OBJECT)
@@ -41,6 +42,12 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
         get() = vertex[ATTR_DESC]
         set(value) {
             vertex[ATTR_DESC] = value
+        }
+
+    var timestamp: Instant
+        get() = Instant.ofEpochMilli(vertex[ATTR_LAST_UPDATE])
+        set(value) {
+            vertex[ATTR_LAST_UPDATE] = value.epochSecond
         }
 
     override val guid: String = vertex[ATTR_GUID]

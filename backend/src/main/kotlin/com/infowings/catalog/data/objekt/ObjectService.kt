@@ -7,7 +7,6 @@ import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
@@ -26,7 +25,6 @@ class ObjectService(
     private val aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
-    private val guidDao: GuidDaoService,
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
