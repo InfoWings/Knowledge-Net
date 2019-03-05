@@ -16,6 +16,7 @@ import java.math.BigDecimal
 import java.time.Instant
 
 class ObjectDaoService(private val db: OrientDatabase) {
+    private val objectSearchDao = ObjectSearchDao(db)
     fun newObjectVertex() = db.createNewVertex(OBJECT_CLASS).assignGuid().toObjectVertex()
     fun newObjectPropertyVertex() = db.createNewVertex(OBJECT_PROPERTY_CLASS).assignGuid().toObjectPropertyVertex()
     fun newObjectValueVertex() = db.createNewVertex(OBJECT_PROPERTY_VALUE_CLASS).assignGuid().toObjectPropertyValueVertex()
@@ -110,6 +111,21 @@ class ObjectDaoService(private val db: OrientDatabase) {
             newTarget?.let {
                 vertex.addEdge(it, edgeClass).save<OEdge>()
             }
+        }
+    }
+
+    /**
+     * query Object by pattern (or all objects on null or empty pattern)
+     * returns only data needed to show objects in UI thus all properties do not queried by this method
+     */
+    fun getTruncatedObjects(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> {
+        val (_, pattern, _, subjectsGuids, excludedFromSubjectFilter) = objectsRequestData
+
+        return logTime(logger, "request of all truncated objects") {
+            if (pattern.isNullOrBlank())
+                objectSearchDao.getAllObjectsFilteredBySubjectTruncated(subjectsGuids, excludedFromSubjectFilter)
+            else
+                objectSearchDao.searchObjectsTruncated(pattern, subjectsGuids, excludedFromSubjectFilter)
         }
     }
 

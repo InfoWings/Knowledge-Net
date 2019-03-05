@@ -1,8 +1,5 @@
 package com.infowings.catalog.data.objekt
 
-import com.infowings.catalog.common.ObjectsRequestData
-import com.infowings.catalog.external.logTime
-import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.id.ORID
 import com.orientechnologies.orient.core.sql.executor.OResult
@@ -11,23 +8,13 @@ import notDeletedSql
 
 class ObjectSearchDao(private val db: OrientDatabase) {
 
+    @Suppress("UNUSED_PARAMETER")
+    private fun acceptAll(result: OResult) = true
 
-    /**
-     * query Object by pattern (or all objects on null or empty pattern)
-     * returns only data needed to show objects in UI thus all properties do not queried by this method
-     */
-    fun getTruncatedObjects(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> {
-        val (_, pattern, _, subjectsGuids, excludedFromSubjectFilter) = objectsRequestData
+    private fun filter(subjectsGuids: List<String>, excludeFromSubjectFilter: List<String>): (OResult) -> Boolean =
+        { result -> result.getProperty<String>("subjectGuid") in subjectsGuids || result.getProperty<String>(ATTR_GUID) in excludeFromSubjectFilter }
 
-        return logTime(logger, "request of all truncated objects") {
-            if (pattern.isNullOrBlank())
-                getAllObjectsFilteredBySubjectTruncated(subjectsGuids, excludedFromSubjectFilter)
-            else
-                searchObjectsTruncated(pattern, subjectsGuids, excludedFromSubjectFilter)
-        }
-    }
-
-    private fun searchObjectsTruncated(pattern: String, subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> {
+    fun searchObjectsTruncated(pattern: String, subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> {
         // bug in Orient Db prevent using graph traversing and lucene query in one WHERE clause so filtering applied to result instead of querying required guids
         val filter: (OResult) -> Boolean =
             if (subjectsGuids.isNullOrEmpty())
@@ -48,7 +35,7 @@ class ObjectSearchDao(private val db: OrientDatabase) {
             """IN("$OBJECT_OBJECT_PROPERTY_EDGE").size() as objectPropertiesCount """ +
             """FROM $OBJECT_CLASS WHERE (deleted is NULL or deleted = false ) """
 
-    private fun getAllObjectsFilteredBySubjectTruncated(subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> =
+    fun getAllObjectsFilteredBySubjectTruncated(subjectsGuids: List<String>?, excludeFromSubjectFilter: List<String>): List<ObjectTruncated> =
         transaction(db) {
             var query = allObjectsTruncated
 
@@ -121,8 +108,6 @@ class ObjectSearchDao(private val db: OrientDatabase) {
 
 }
 
-private val logger = loggerFor<ObjectSearchDao>()
-
 private fun luceneIdx(classType: String, attr: String) = "\"$classType.lucene.$attr\""
 private fun searchLucene(classType: String, attr: String, patternBinding: String) =
     "( SEARCH_INDEX(${luceneIdx(classType, attr)}, :$patternBinding) = true)"
@@ -137,10 +122,3 @@ private const val baseSelectForTruncatedObjects =
             "FIRST(OUT(\"$OBJECT_SUBJECT_EDGE\")).guid as subjectGuid, \n" +
             "IN(\"$OBJECT_OBJECT_PROPERTY_EDGE\").size() as objectPropertiesCount \n" +
             "FROM $OBJECT_CLASS \n"
-
-@Suppress("UNUSED_PARAMETER")
-private fun acceptAll(result: OResult) = true
-
-private fun filter(subjectsGuids: List<String>, excludeFromSubjectFilter: List<String>): (OResult) -> Boolean =
-    { result -> result.getProperty<String>("subjectGuid") in subjectsGuids || result.getProperty<String>(ATTR_GUID) in excludeFromSubjectFilter }
-
