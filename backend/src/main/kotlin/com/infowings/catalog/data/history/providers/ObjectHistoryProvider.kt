@@ -398,8 +398,6 @@ class ObjectHistoryProvider(
 
             val aspectNames = aspectDao.findAspectsByIds(aspectLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
 
-            val aspectPropertyNames = aspectDao.findPropertiesByIds(aspectPropertyLinks.toList()).groupBy { it.id }.mapValues { it.value.first().name }
-
             val factsBySession = objectFacts.groupBy { it.event.sessionId }
 
             val historyState = ObjectState()

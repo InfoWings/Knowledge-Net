@@ -21,6 +21,7 @@ import com.orientechnologies.orient.core.record.OVertex
 class ObjectService(
     private val db: OrientDatabase,
     private val dao: ObjectDaoService,
+    private val objectsSearchDao: ObjectSearchDao,
     subjectService: SubjectService,
     private val aspectDao: AspectDaoService,
     measureService: MeasureService,
@@ -30,7 +31,8 @@ class ObjectService(
 ) {
     private val validator: ObjectValidator = TrimmingObjectValidator(MainObjectValidator(this, subjectService, measureService, refBookService, dao, aspectDao))
 
-    fun fetch(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> = dao.getTruncatedObjects(objectsRequestData).sort(objectsRequestData.sortOrder)
+    fun fetch(objectsRequestData: ObjectsRequestData): List<ObjectTruncated> =
+        objectsSearchDao.getTruncatedObjects(objectsRequestData).sort(objectsRequestData.sortOrder)
 
     private fun List<ObjectTruncated>.sort(orderBy: List<SortOrder>): List<ObjectTruncated> {
         if (orderBy.isEmpty()) {

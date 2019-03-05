@@ -7,7 +7,7 @@ import com.infowings.catalog.wrappers.RouteSuppliedProps
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -17,30 +17,30 @@ import kotlin.collections.set
 private external fun encodeURIComponent(component: String): String = definedExternally
 
 suspend fun getAllSubjects(): SubjectsList =
-    JSON.parse(SubjectsList.serializer(), get("/api/subject/all"))
+    Json.parse(SubjectsList.serializer(), get("/api/subject/all"))
 
 suspend fun getSubjectByName(name: String): SubjectData =
-    JSON.parse(SubjectData.serializer(), get("/api/subject/get/${encodeURIComponent(name)}"))
+    Json.parse(SubjectData.serializer(), get("/api/subject/get/${encodeURIComponent(name)}"))
 
 suspend fun getSubjectById(id: String): SubjectData {
     val encoded = encodeURIComponent(id)
-    return JSON.parse(SubjectData.serializer(), get("/api/subject/$encoded"))
+    return Json.parse(SubjectData.serializer(), get("/api/subject/$encoded"))
 }
 
 suspend fun createSubject(body: SubjectData): SubjectData =
-    JSON.parse(SubjectData.serializer(), post("/api/subject/create", JSON.stringify(SubjectData.serializer(), body)))
+    Json.parse(SubjectData.serializer(), post("/api/subject/create", Json.stringify(SubjectData.serializer(), body)))
 
 suspend fun updateSubject(body: SubjectData): SubjectData =
-    JSON.parse(SubjectData.serializer(), post("/api/subject/update", JSON.stringify(SubjectData.serializer(), body)))
+    Json.parse(SubjectData.serializer(), post("/api/subject/update", Json.stringify(SubjectData.serializer(), body)))
 
 suspend fun getSuggestedSubject(subjectText: String, aspectText: String): SubjectsList =
-    JSON.parse(SubjectsList.serializer(), get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
+    Json.parse(SubjectsList.serializer(), get("/api/search/subject/suggestion?text=$subjectText&aspectText=$aspectText"))
 
 suspend fun deleteSubject(body: SubjectData, force: Boolean) {
     if (force) {
-        post("/api/subject/forceRemove", JSON.stringify(SubjectData.serializer(), body))
+        post("/api/subject/forceRemove", Json.stringify(SubjectData.serializer(), body))
     } else {
-        post("/api/subject/remove", JSON.stringify(SubjectData.serializer(), body))
+        post("/api/subject/remove", Json.stringify(SubjectData.serializer(), body))
     }
 }
 

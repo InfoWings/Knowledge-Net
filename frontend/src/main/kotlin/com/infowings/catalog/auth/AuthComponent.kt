@@ -20,7 +20,6 @@ import react.dom.div
 import react.dom.form
 import react.dom.input
 import react.dom.p
-import kotlinx.serialization.json.JSON as KJSON
 
 class AuthState(var authorized: Boolean = false, var wrongAuth: Boolean = false) : RState
 

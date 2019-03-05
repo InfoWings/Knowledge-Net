@@ -4,7 +4,7 @@ import com.infowings.catalog.AbstractMvcTest
 import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import io.kotlintest.shouldBe
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -22,40 +22,40 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.post("/api/subject/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(SubjectData.serializer(), SubjectData(null, "Knowledge Net Demo", 0, null, false)))
+                .content(Json.stringify(SubjectData.serializer(), SubjectData(null, "Knowledge Net Demo", 0, null, false)))
         ).andReturn()
-        val knetSubject = JSON.parse(SubjectData.serializer(), subjectDataRequestResult.response.contentAsString)
+        val knetSubject = Json.parse(SubjectData.serializer(), subjectDataRequestResult.response.contentAsString)
 
         val aspectHeightRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(AspectData.serializer(), AspectData(name = "Height", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
+                .content(Json.stringify(AspectData.serializer(), AspectData(name = "Height", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
         ).andReturn()
-        val aspectHeight = JSON.parse(AspectData.serializer(), aspectHeightRequestResult.response.contentAsString)
+        val aspectHeight = Json.parse(AspectData.serializer(), aspectHeightRequestResult.response.contentAsString)
 
         val aspectWidthRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(AspectData.serializer(), AspectData(name = "Width", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
+                .content(Json.stringify(AspectData.serializer(), AspectData(name = "Width", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
         ).andReturn()
-        val aspectWidth = JSON.parse(AspectData.serializer(), aspectWidthRequestResult.response.contentAsString)
+        val aspectWidth = Json.parse(AspectData.serializer(), aspectWidthRequestResult.response.contentAsString)
 
         val aspectDepthRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(AspectData.serializer(), AspectData(name = "Depth", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
+                .content(Json.stringify(AspectData.serializer(), AspectData(name = "Depth", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
         ).andReturn()
-        val aspectDepth = JSON.parse(AspectData.serializer(), aspectDepthRequestResult.response.contentAsString)
+        val aspectDepth = Json.parse(AspectData.serializer(), aspectDepthRequestResult.response.contentAsString)
 
         val aspectDimensionsRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    JSON.stringify(
+                    Json.stringify(
                         AspectData.serializer(),
                         AspectData(
                             name = "Dimensions",
@@ -70,22 +70,22 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
                     )
                 )
         ).andReturn()
-        val aspectDimensions = JSON.parse(AspectData.serializer(), aspectDimensionsRequestResult.response.contentAsString)
+        val aspectDimensions = Json.parse(AspectData.serializer(), aspectDimensionsRequestResult.response.contentAsString)
 
         val objectBoxRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/objects/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(ObjectCreateRequest.serializer(), ObjectCreateRequest("Box", null, knetSubject.id!!)))
+                .content(Json.stringify(ObjectCreateRequest.serializer(), ObjectCreateRequest("Box", null, knetSubject.id!!)))
         ).andReturn()
-        val objectBoxCreateResponse = JSON.parse(ObjectChangeResponse.serializer(), objectBoxRequestResult.response.contentAsString)
+        val objectBoxCreateResponse = Json.parse(ObjectChangeResponse.serializer(), objectBoxRequestResult.response.contentAsString)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/objects/createProperty")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    JSON.stringify(
+                    Json.stringify(
                         PropertyCreateRequest.serializer(),
                         PropertyCreateRequest(objectBoxCreateResponse.id, null, null, aspectDimensions.id!!)
                     )
@@ -105,7 +105,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.delete("/api/aspect/property/{id}?force={force}", aspectPropertyHeight.id, false)
                 .with(authorities)
         ).andReturn()
-        propertyHeightDeleteResponse = JSON.parse(AspectPropertyDeleteResponse.serializer(), deleteAspectPropertyResult.response.contentAsString)
+        propertyHeightDeleteResponse = Json.parse(AspectPropertyDeleteResponse.serializer(), deleteAspectPropertyResult.response.contentAsString)
 
         assertAll(
             "Delete response contains correct structure",
@@ -161,7 +161,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
         assertAll(
             "Delete linked aspect response should be of status 400 and contain BadRequest information in body",
             { deleteHeightPropertyRequestResult.response.status shouldBe 400 },
-            { JSON.parse(BadRequest.serializer(), deleteHeightPropertyRequestResult.response.contentAsString).code shouldBe BadRequestCode.NEED_CONFIRMATION }
+            { Json.parse(BadRequest.serializer(), deleteHeightPropertyRequestResult.response.contentAsString).code shouldBe BadRequestCode.NEED_CONFIRMATION }
         )
     }
 
@@ -179,7 +179,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.delete("/api/aspect/property/{id}?force={force}", aspectPropertyHeight.id, true)
                 .with(authorities)
         ).andReturn()
-        val deleteHeightPropertyResponse = JSON.parse(AspectPropertyDeleteResponse.serializer(), deleteHeightPropertyRequestResult.response.contentAsString)
+        val deleteHeightPropertyResponse = Json.parse(AspectPropertyDeleteResponse.serializer(), deleteHeightPropertyRequestResult.response.contentAsString)
 
         assertAll(
             "Delete response contains correct structure",
@@ -196,7 +196,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
             MockMvcRequestBuilders.get("/api/aspect/all?orderFields=&direct=&q=")
                 .with(authorities)
         ).andReturn()
-        return JSON.parse(AspectsList.serializer(), getAspectListResult.response.contentAsString).aspects
+        return Json.parse(AspectsList.serializer(), getAspectListResult.response.contentAsString).aspects
     }
 
     private fun fetchObjectBoxEditDetails(): ObjectEditDetailsResponse {
@@ -204,17 +204,17 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
         val objectsTruncatedListRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/objects?orderFields=&direct=")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(JSON.stringify(ObjectsRequestData.serializer(), ObjectsRequestData.requestAllObjects))
+                .content(Json.stringify(ObjectsRequestData.serializer(), ObjectsRequestData.requestAllObjects))
                 .with(authorities)
         ).andReturn()
-        objectsTruncatedList = JSON.parse(ObjectsResponse.serializer(), objectsTruncatedListRequestResult.response.contentAsString).objects
+        objectsTruncatedList = Json.parse(ObjectsResponse.serializer(), objectsTruncatedListRequestResult.response.contentAsString).objects
         val boxObjectTruncated = objectsTruncatedList.find { it.name == "Box" }!!
 
         val objectBoxEditDetailsRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.get("/api/objects/{id}/editdetails", boxObjectTruncated.id)
                 .with(authorities)
         ).andReturn()
-        return JSON.parse(ObjectEditDetailsResponse.serializer(), objectBoxEditDetailsRequestResult.response.contentAsString)
+        return Json.parse(ObjectEditDetailsResponse.serializer(), objectBoxEditDetailsRequestResult.response.contentAsString)
     }
 
     private fun linkAspectHeightWithValue(objectPropertyId: String, aspectPropertyId: String, parentValueId: String) {
@@ -223,7 +223,7 @@ class AspectPropertyDeletingTest : AbstractMvcTest() {
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    JSON.stringify(
+                    Json.stringify(
                         ValueCreateRequestDTO.serializer(),
                         ValueCreateRequest(
                             ObjectValueData.DecimalValue.single("42.5"),

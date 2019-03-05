@@ -7,40 +7,40 @@ import com.infowings.catalog.common.guid.BriefValueViewResponse
 import com.infowings.catalog.common.guid.EntityMetadata
 import com.infowings.catalog.common.objekt.*
 import com.infowings.catalog.utils.*
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import kotlin.js.Date
 
 suspend fun getAllObjects(objectsRequestData: ObjectsRequestData): ObjectsResponse {
     println("params: $objectsRequestData")
-    return JSON.parse(ObjectsResponse.serializer(), post("/api/objects", JSON.stringify(ObjectsRequestData.serializer(), objectsRequestData)))
+    return Json.parse(ObjectsResponse.serializer(), post("/api/objects", Json.stringify(ObjectsRequestData.serializer(), objectsRequestData)))
 }
 
 suspend fun getDetailedObject(id: String): DetailedObjectViewResponse {
     val data = get("/api/objects/${encodeURIComponent(id)}/viewdetails")
-    return JSON.parse(DetailedObjectViewResponse.serializer(), data)
+    return Json.parse(DetailedObjectViewResponse.serializer(), data)
 }
 
 suspend fun getDetailedObjectForEdit(id: String): ObjectEditDetailsResponse {
-    return JSON.parse(ObjectEditDetailsResponse.serializer(), get("/api/objects/${encodeURIComponent(id)}/editdetails"))
+    return Json.parse(ObjectEditDetailsResponse.serializer(), get("/api/objects/${encodeURIComponent(id)}/editdetails"))
 }
 
 suspend fun createObject(request: ObjectCreateRequest): ObjectChangeResponse =
-    JSON.parse(ObjectChangeResponse.serializer(), post("/api/objects/create", JSON.stringify(ObjectCreateRequest.serializer(), request)))
+    Json.parse(ObjectChangeResponse.serializer(), post("/api/objects/create", Json.stringify(ObjectCreateRequest.serializer(), request)))
 
 suspend fun createProperty(request: PropertyCreateRequest): PropertyCreateResponse =
-    JSON.parse(PropertyCreateResponse.serializer(), post("/api/objects/createProperty", JSON.stringify(PropertyCreateRequest.serializer(), request)))
+    Json.parse(PropertyCreateResponse.serializer(), post("/api/objects/createProperty", Json.stringify(PropertyCreateRequest.serializer(), request)))
 
 suspend fun createValue(request: ValueCreateRequest): ValueChangeResponse =
-    JSON.parse(ValueChangeResponse.serializer(), post("/api/objects/createValue", JSON.stringify(ValueCreateRequestDTO.serializer(), request.toDTO())))
+    Json.parse(ValueChangeResponse.serializer(), post("/api/objects/createValue", Json.stringify(ValueCreateRequestDTO.serializer(), request.toDTO())))
 
 suspend fun updateObject(request: ObjectUpdateRequest): ObjectChangeResponse =
-    JSON.parse(ObjectChangeResponse.serializer(), post("/api/objects/update", JSON.stringify(ObjectUpdateRequest.serializer(), request)))
+    Json.parse(ObjectChangeResponse.serializer(), post("/api/objects/update", Json.stringify(ObjectUpdateRequest.serializer(), request)))
 
 suspend fun updateProperty(request: PropertyUpdateRequest): PropertyUpdateResponse =
-    JSON.parse(PropertyUpdateResponse.serializer(), post("/api/objects/updateProperty", JSON.stringify(PropertyUpdateRequest.serializer(), request)))
+    Json.parse(PropertyUpdateResponse.serializer(), post("/api/objects/updateProperty", Json.stringify(PropertyUpdateRequest.serializer(), request)))
 
 suspend fun updateValue(request: ValueUpdateRequest): ValueChangeResponse {
-    return JSON.parse(ValueChangeResponse.serializer(), post("/api/objects/updateValue", JSON.stringify(ValueUpdateRequestDTO.serializer(), request.toDTO())))
+    return Json.parse(ValueChangeResponse.serializer(), post("/api/objects/updateValue", Json.stringify(ValueUpdateRequestDTO.serializer(), request.toDTO())))
 }
 
 suspend fun deleteObject(id: String, force: Boolean) {
@@ -48,13 +48,13 @@ suspend fun deleteObject(id: String, force: Boolean) {
 }
 
 suspend fun deleteProperty(id: String, force: Boolean): PropertyDeleteResponse =
-    JSON.parse(PropertyDeleteResponse.serializer(), delete("/api/objects/property/${encodeURIComponent(id)}?force=$force"))
+    Json.parse(PropertyDeleteResponse.serializer(), delete("/api/objects/property/${encodeURIComponent(id)}?force=$force"))
 
 suspend fun deleteValue(id: String, force: Boolean): ValueDeleteResponse =
-    JSON.parse(ValueDeleteResponse.serializer(), delete("/api/objects/value/${encodeURIComponent(id)}?force=$force"))
+    Json.parse(ValueDeleteResponse.serializer(), delete("/api/objects/value/${encodeURIComponent(id)}?force=$force"))
 
 suspend fun recalculateValue(fromMeasure: String, toMeasure: String, value: String): ValueRecalculationResponse {
-    return JSON.parse(
+    return Json.parse(
         ValueRecalculationResponse.serializer(),
         get(
             "/api/objects/recalculateValue?from=${encodeURIComponent(fromMeasure)}&to=${encodeURIComponent(toMeasure)}&value=${encodeURIComponent(
@@ -68,23 +68,23 @@ suspend fun loadEntityMetadata(guid: String): EntityMetadata {
     if (guid.contains("/") || guid.startsWith("http") || guid.length > 60) {
         throw BadRequestException("strange guid: ${guid.take(60)}", Date.now())
     }
-    return JSON.parse(EntityMetadata.serializer(), get("/api/guid/meta/${encodeURIComponent(guid)}"))
+    return Json.parse(EntityMetadata.serializer(), get("/api/guid/meta/${encodeURIComponent(guid)}"))
 }
 
 suspend fun getObjectBrief(guid: String): BriefObjectViewResponse =
-    JSON.parse(BriefObjectViewResponse.serializer(), get("/api/guid/brief/object/$guid"))
+    Json.parse(BriefObjectViewResponse.serializer(), get("/api/guid/brief/object/$guid"))
 
 suspend fun getValueBrief(guid: String): BriefValueViewResponse =
-    JSON.parse(BriefValueViewResponse.serializer(), get("/api/guid/brief/value/$guid"))
+    Json.parse(BriefValueViewResponse.serializer(), get("/api/guid/brief/value/$guid"))
 
 suspend fun LinkValueData.getObjectBriefById(): BriefObjectView {
-    val response = JSON.parse(BriefObjectViewResponse.serializer(), get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
+    val response = Json.parse(BriefObjectViewResponse.serializer(), get("/api/guid/brief/object/id/${encodeURIComponent(id)}"))
     return BriefObjectView.of(id, guid, response)
 }
 
 suspend fun getValueBriefById(id: String): BriefValueViewResponse =
-    JSON.parse(BriefValueViewResponse.serializer(), get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))
+    Json.parse(BriefValueViewResponse.serializer(), get("/api/guid/brief/value/id/${encodeURIComponent(id)}"))
 
 suspend fun getSuggestedObjects(query: String): ObjectsList {
-    return JSON.parse(ObjectsList.serializer(), get("/api/search/object/suggestion?text=$query"))
+    return Json.parse(ObjectsList.serializer(), get("/api/search/object/suggestion?text=$query"))
 }

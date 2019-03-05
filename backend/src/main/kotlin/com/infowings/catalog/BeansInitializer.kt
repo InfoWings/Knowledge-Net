@@ -19,6 +19,7 @@ import com.infowings.catalog.data.history.providers.ObjectHistoryProvider
 import com.infowings.catalog.data.history.providers.RefBookHistoryProvider
 import com.infowings.catalog.data.history.providers.SubjectHistoryProvider
 import com.infowings.catalog.data.objekt.ObjectDaoService
+import com.infowings.catalog.data.objekt.ObjectSearchDao
 import com.infowings.catalog.data.objekt.ObjectService
 import com.infowings.catalog.data.reference.book.DefaultReferenceBookService
 import com.infowings.catalog.data.reference.book.NormalizedReferenceBookService
@@ -92,9 +93,17 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
         bean { ObjectDaoService(db = ref()) }
         bean { GuidDaoService(db = ref()) }
         bean { GuidService(db = ref(), dao = ref()) }
+        bean { ObjectSearchDao(db = ref()) }
         bean {
             ObjectService(
-                db = ref(), dao = ref(), subjectService = ref(), aspectDao = ref(), measureService = ref(), refBookService = ref(), userService = ref(),
+                db = ref(),
+                dao = ref(),
+                objectsSearchDao = ref(),
+                subjectService = ref(),
+                aspectDao = ref(),
+                measureService = ref(),
+                refBookService = ref(),
+                userService = ref(),
                 historyService = ref()
             )
         }

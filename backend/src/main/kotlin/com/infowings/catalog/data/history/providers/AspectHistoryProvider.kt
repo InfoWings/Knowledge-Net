@@ -151,7 +151,7 @@ private object DeltaProducers {
         }
     }
 
-    fun removeLink(key: String, aspectFact: HistoryFact, context: AggregationContext): FieldDelta? = when (key) {
+    fun removeLink(key: String, context: AggregationContext): FieldDelta? = when (key) {
         AspectField.PROPERTY -> null
         else -> {
             val beforeId = context.before.snapshot.links[key]?.first()?.toString()
@@ -273,7 +273,7 @@ class AspectHistoryProvider(
 
                                 val replacedLinksDeltas = linksSplit.changed.mapNotNull { DeltaProducers.changeLink(it, aspectFact, context) }
                                 val addedLinksDeltas = linksSplit.added.mapNotNull { DeltaProducers.addLink(it, aspectFact, context) }
-                                val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, aspectFact, context) }
+                                val removedLinksDeltas = linksSplit.removed.mapNotNull { DeltaProducers.removeLink(it, context) }
                                 val dataDeltas = aspectFact.payload.data.mapNotNull { DeltaProducers.data(it.key, aspectFact, context) }
 
                                 val deltas = dataDeltas + replacedLinksDeltas + addedLinksDeltas + removedLinksDeltas + propertyDeltas

@@ -5,7 +5,7 @@ import com.infowings.catalog.common.*
 import com.infowings.catalog.common.objekt.*
 import io.kotlintest.matchers.types.shouldBeTypeOf
 import io.kotlintest.shouldThrow
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
@@ -26,33 +26,33 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
             MockMvcRequestBuilders.post("/api/subject/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(SubjectData.serializer(), SubjectData(null, "Knowledge Net Demo", 0, null, false)))
+                .content(Json.stringify(SubjectData.serializer(), SubjectData(null, "Knowledge Net Demo", 0, null, false)))
         ).andReturn()
-        knetSubject = JSON.parse(SubjectData.serializer(), subjectDataRequestResult.response.contentAsString)
+        knetSubject = Json.parse(SubjectData.serializer(), subjectDataRequestResult.response.contentAsString)
 
         val aspectHeightRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/aspect/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(AspectData.serializer(), AspectData(name = "Height", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
+                .content(Json.stringify(AspectData.serializer(), AspectData(name = "Height", measure = Millimetre.name, baseType = BaseType.Decimal.name)))
         ).andReturn()
-        aspectHeight = JSON.parse(AspectData.serializer(), aspectHeightRequestResult.response.contentAsString)
+        aspectHeight = Json.parse(AspectData.serializer(), aspectHeightRequestResult.response.contentAsString)
 
         val tubeObjectRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/objects/create")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(ObjectCreateRequest.serializer(), ObjectCreateRequest("Tube", null, knetSubject.id!!)))
+                .content(Json.stringify(ObjectCreateRequest.serializer(), ObjectCreateRequest("Tube", null, knetSubject.id!!)))
         ).andReturn()
-        tubeObject = JSON.parse(ObjectChangeResponse.serializer(), tubeObjectRequestResult.response.contentAsString)
+        tubeObject = Json.parse(ObjectChangeResponse.serializer(), tubeObjectRequestResult.response.contentAsString)
 
         val tubeObjectPropertyRequestResult = mockMvc.perform(
             MockMvcRequestBuilders.post("/api/objects/createProperty")
                 .with(authorities)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(JSON.stringify(PropertyCreateRequest.serializer(), PropertyCreateRequest(tubeObject.id, null, null, aspectHeight.id!!)))
+                .content(Json.stringify(PropertyCreateRequest.serializer(), PropertyCreateRequest(tubeObject.id, null, null, aspectHeight.id!!)))
         ).andReturn()
-        tubeObjectHeightProperty = JSON.parse(PropertyCreateResponse.serializer(), tubeObjectPropertyRequestResult.response.contentAsString)
+        tubeObjectHeightProperty = Json.parse(PropertyCreateResponse.serializer(), tubeObjectPropertyRequestResult.response.contentAsString)
         tubeObject = tubeObject.copy(version = tubeObjectHeightProperty.obj.version)
     }
 
@@ -64,7 +64,7 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
                     .with(authorities)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
-                        JSON.stringify(
+                        Json.stringify(
                             ValueUpdateRequestDTO.serializer(),
                             ValueUpdateRequest(
                                 tubeObjectHeightProperty.rootValue.id,
@@ -88,7 +88,7 @@ class ValueEditingMeasureValidationTest : AbstractMvcTest() {
                     .with(authorities)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
-                        JSON.stringify(
+                        Json.stringify(
                             ValueUpdateRequestDTO.serializer(),
                             ValueUpdateRequest(
                                 tubeObjectHeightProperty.rootValue.id,

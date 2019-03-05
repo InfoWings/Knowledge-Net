@@ -18,6 +18,7 @@ class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNum
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun changeLowerBoundary(v: Number, v2: String) {
         val newLwb = v.toInt()
         val oldLwb = state.lwb
@@ -34,6 +35,7 @@ class RangedNumericInput(props: RangedNumericInput.Props) : RComponent<RangedNum
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun changeUpperBoundary(v: Number, v2: String) {
         val newUpb = v.toInt()
         val oldUpb = state.upb

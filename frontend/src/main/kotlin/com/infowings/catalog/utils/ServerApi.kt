@@ -10,8 +10,7 @@ import org.w3c.fetch.Response
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.js.*
-import kotlin.js.JSON
-import kotlinx.serialization.json.JSON as KJSON
+import kotlinx.serialization.json.Json as KJSON
 
 private const val DELETE = "DELETE"
 private const val POST = "POST"

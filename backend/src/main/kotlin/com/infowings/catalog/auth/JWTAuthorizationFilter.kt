@@ -32,7 +32,7 @@ class JWTAuthorizationFilter(authManager: AuthenticationManager, var env: Enviro
             return
         }
         val cookieAccess = URLDecoder.decode(forDecoding, "UTF-8")
-        if (cookieAccess == null || !cookieAccess.startsWith(env.getProperty("spring.security.prefix"))) {
+        if (cookieAccess == null || !cookieAccess.startsWith(env.getProperty("spring.security.prefix")!!)) {
             chain?.doFilter(request, response)
             return
         }
