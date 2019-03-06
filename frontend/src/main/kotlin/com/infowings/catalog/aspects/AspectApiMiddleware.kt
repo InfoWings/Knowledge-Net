@@ -13,7 +13,7 @@ import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import react.*
 import kotlin.collections.set
 import kotlin.reflect.KClass
@@ -133,7 +133,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         try {
             newAspect = createAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw AspectBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         }
 
         val newAspectId: String = newAspect.id ?: error("Server returned Aspect with aspectId == null")
@@ -154,7 +154,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         updatedAspect = try {
             updateAspect(aspectData)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw AspectBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         } catch (e: NotModifiedException) {
             console.log("Aspect updating rejected because data is the same")
             aspectData
@@ -205,7 +205,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
                 removeAspect(aspectData)
             }
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw AspectBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         }
 
         val deletedAspect: AspectData = aspectData.copy(deleted = true)
@@ -225,7 +225,7 @@ class AspectApiMiddleware : RComponent<AspectApiMiddleware.Props, AspectApiMiddl
         val aspectPropertyDeleteResponse = try {
             removeAspectProperty(propertyId, force)
         } catch (e: BadRequestException) {
-            throw AspectBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw AspectBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         }
 
         setState {

@@ -11,6 +11,7 @@ import com.infowings.catalog.randomName
 import com.infowings.catalog.storage.OrientDatabase
 import com.infowings.catalog.storage.id
 import com.infowings.catalog.storage.transaction
+import io.kotlintest.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -80,7 +81,6 @@ class ObjectServiceTest {
         }
     }
 
-
     @Test
     fun `Create object with property and default root value`() {
         val objectRequest =
@@ -92,7 +92,9 @@ class ObjectServiceTest {
             description = null, objectId = objectCreateResponse.id, aspectId = aspect.idStrict()
         )
 
-        val propertyCreateResponse = objectService.create(propertyRequest, username)
+        val propertyCreateResponse = checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.create(propertyRequest, username)
+        }
 
         val foundObject = objectService.findById(objectCreateResponse.id)
         val foundProperty = objectService.findPropertyById(propertyCreateResponse.id)
@@ -155,7 +157,9 @@ class ObjectServiceTest {
             null,
             childValueCreateResponse.objectProperty.version
         )
-        val propertyUpdateResponse = objectService.update(propertyUpdateRequest, username)
+        val propertyUpdateResponse = checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.update(propertyUpdateRequest, username)
+        }
 
         transaction(db) { _ ->
             assertEquals(propertyCreateResponse.id, propertyUpdateResponse.id, "Created and updated property ids are not equal")
@@ -171,11 +175,9 @@ class ObjectServiceTest {
         }
     }
 
-
     @Test
     fun `Create object with property and update root value`() {
-        val objectRequest =
-            ObjectCreateRequest("createObjectWithValueTestName", "object descr", subject.id)
+        val objectRequest = ObjectCreateRequest("createObjectWithValueTestName", "object descr", subject.id)
         val objectCreateResponse = objectService.create(objectRequest, "user")
 
         val propertyRequest = PropertyCreateRequest(
@@ -193,7 +195,7 @@ class ObjectServiceTest {
             description = null,
             version = propertyCreateResponse.rootValue.version
         )
-        val rootValueUpdateResponse = objectService.update(valueRequest, username)
+        val rootValueUpdateResponse = checkTimestampUpdate(objectCreateResponse.id) { objectService.update(valueRequest, username) }
 
         val objectValue = rootValueUpdateResponse.value.toData()
 
@@ -204,18 +206,15 @@ class ObjectServiceTest {
                     propertyCreateResponse.id, rootValueUpdateResponse.objectProperty.id,
                     "object property must point to parent property"
                 )
-                assertTrue(rootValueUpdateResponse.parentValue == null)
+                rootValueUpdateResponse.parentValue shouldBe null
             }
-            else ->
-                fail("value must be string")
+            else -> fail("value must be string")
         }
-
     }
 
     @Test
     fun `Create ranged integer value`() {
-        val objectRequest =
-            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectRequest = ObjectCreateRequest(randomName(), "object descr", subject.id)
         val objectCreateResponse = objectService.create(objectRequest, "user")
 
         val propertyRequest = PropertyCreateRequest(
@@ -234,7 +233,7 @@ class ObjectServiceTest {
             measureName = null,
             objectPropertyId = propertyCreateResponse.id
         )
-        val response = objectService.create(valueRequest, username)
+        val response = checkTimestampUpdate(objectCreateResponse.id) { objectService.create(valueRequest, username) }
 
         val objectValue = response.value.toData()
 
@@ -251,8 +250,7 @@ class ObjectServiceTest {
 
     @Test
     fun `Create ranged decimal value`() {
-        val objectRequest =
-            ObjectCreateRequest(randomName(), "object descr", subject.id)
+        val objectRequest = ObjectCreateRequest(randomName(), "object descr", subject.id)
         val objectCreateResponse = objectService.create(objectRequest, "user")
 
         val propertyRequest = PropertyCreateRequest(
@@ -592,9 +590,9 @@ class ObjectServiceTest {
             propertyCreateResponse.rootValue.version
         )
         val valueUpdateResponse = objectService.update(valueRequest, username)
-
-        objectService.softDeleteObject(objectCreateResponse.id, username)
-
+        checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.softDeleteObject(objectCreateResponse.id, username)
+        }
         checkObjectSoftAbsense(objectCreateResponse.id)
     }
 
@@ -750,8 +748,9 @@ class ObjectServiceTest {
             assertEquals(1, createdObject.properties.size)
         }
 
-        objectService.deleteProperty(propertyCreateResponse.id, username)
-
+        checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.deleteProperty(propertyCreateResponse.id, username)
+        }
         val updatedObject = objectService.findById(objectCreateResponse.id)
         transaction(db) {
             assertEquals(0, updatedObject.properties.size)
@@ -1132,8 +1131,7 @@ class ObjectServiceTest {
     fun `Delete value`() {
         val objectName = "deleteValueTest-object"
         val objectDescription = "object description"
-        val objectRequest =
-            ObjectCreateRequest(objectName, objectDescription, subject.id)
+        val objectRequest = ObjectCreateRequest(objectName, objectDescription, subject.id)
         val objectCreateResponse = objectService.create(objectRequest, "user")
 
         val propertyName = "prop_$objectName"
@@ -1153,7 +1151,9 @@ class ObjectServiceTest {
             assertEquals(1, createdProperty.values.size)
         }
 
-        objectService.deleteValue(valueUpdateResponse.id, username)
+        checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.deleteValue(valueUpdateResponse.id, username)
+        }
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
@@ -1163,6 +1163,15 @@ class ObjectServiceTest {
         }
 
         checkValueAbsence(valueUpdateResponse.id)
+    }
+
+    private fun <T> checkTimestampUpdate(id: String, block: () -> T): T {
+        val timestampBefore = objectService.findById(id).timestamp.toEpochMilli()
+        Thread.sleep(1)
+        val result = block()
+        val timestampAfter = objectService.findById(id).timestamp.toEpochMilli()
+        assertTrue(timestampAfter > timestampBefore, "Object timestamp should be updated after operation")
+        return result
     }
 
     @Test
@@ -1190,7 +1199,9 @@ class ObjectServiceTest {
             assertEquals(1, createdProperty.values.size)
         }
 
-        objectService.softDeleteValue(valueUpdateResponse.id, username)
+        checkTimestampUpdate(objectCreateResponse.id) {
+            objectService.softDeleteValue(valueUpdateResponse.id, username)
+        }
 
         val updatedProperty = objectService.findPropertyById(propertyCreateResponse.id)
 
@@ -2225,8 +2236,12 @@ class ObjectServiceTest {
 
         val valueRequestLink = ValueUpdateRequest(
             valueId = propertyCreateResponseLink.rootValue.id,
-            value = ObjectValueData.Link(LinkValueData.ObjectValue(propertyCreateResponseDec.rootValue.id,
-                propertyCreateResponseDec.rootValue.guidSoft())),
+            value = ObjectValueData.Link(
+                LinkValueData.ObjectValue(
+                    propertyCreateResponseDec.rootValue.id,
+                    propertyCreateResponseDec.rootValue.guidSoft()
+                )
+            ),
             measureName = null,
             description = null,
             version = propertyCreateResponseLink.rootValue.version

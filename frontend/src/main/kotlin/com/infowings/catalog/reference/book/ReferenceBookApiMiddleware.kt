@@ -9,7 +9,7 @@ import com.infowings.catalog.utils.JobSimpleCoroutineScope
 import com.infowings.catalog.utils.NotModifiedException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import react.*
 import react.dom.div
 import kotlin.reflect.KClass
@@ -79,7 +79,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private suspend fun handleUpdateBook(book: ReferenceBook) {
         /*
-        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large Json
         Actually we need only to know is updating was successful.
         */
 
@@ -94,7 +94,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private suspend fun handleDeleteBook(book: ReferenceBook, force: Boolean) {
         /*
-        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large Json
         Actually we need only to know is updating was successful.
         */
         try {
@@ -105,13 +105,13 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             }
             updateRowDataList(book.aspectId, null)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw RefBookBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         }
     }
 
     private suspend fun handleCreateBookItem(aspectId: String, data: ReferenceBookItemData) {
         /*
-        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large Json
         Actually we need only created ReferenceBookItem id.
         */
         createReferenceBookItem(data)
@@ -121,7 +121,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private suspend fun handleUpdateBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
-        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large Json
         Actually we need only to know is updating was successful.
         */
         try {
@@ -133,7 +133,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw RefBookBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         } catch (e: NotModifiedException) {
             console.log("Reference book updating rejected because data is the same")
         }
@@ -141,7 +141,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
 
     private suspend fun handleDeleteBookItem(aspectId: String, bookItem: ReferenceBookItem, force: Boolean) {
         /*
-        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large json
+        Maybe get ReferenceBook with all his children is not optimal way, because it can be very large Json
         Actually we need only to know is updating was successful.
         */
         try {
@@ -153,7 +153,7 @@ class ReferenceBookApiMiddleware : RComponent<ReferenceBookApiMiddleware.Props, 
             val updatedBook = getReferenceBook(aspectId)
             updateRowDataList(updatedBook.aspectId, updatedBook)
         } catch (e: BadRequestException) {
-            throw RefBookBadRequestException(JSON.parse(BadRequest.serializer(), e.message))
+            throw RefBookBadRequestException(Json.parse(BadRequest.serializer(), e.message))
         }
     }
 

@@ -12,6 +12,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         isRange = props.isRange
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun changeLowerBoundary(number: Number, string: String) {
         setState {
             lwb = string
@@ -20,6 +21,7 @@ class RangedDecimalInput(props: RangedDecimalInput.Props) : RComponent<RangedDec
         props.onUpdate(string, props.upb, props.isRange)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun changeUpperBoundary(number: Number, string: String) {
         setState {
             upb = string

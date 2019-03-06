@@ -9,6 +9,7 @@ import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
 import com.orientechnologies.orient.core.record.OVertex
+import java.time.Instant
 
 fun OVertex.toObjectVertex(): ObjectVertex {
     checkClass(OrientClass.OBJECT)
@@ -43,21 +44,23 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             vertex[ATTR_DESC] = value
         }
 
+    var timestamp: Instant
+        get() = Instant.ofEpochMilli(vertex[ATTR_LAST_UPDATE])
+        set(value) {
+            vertex[ATTR_LAST_UPDATE] = value.toEpochMilli()
+        }
+
     override val guid: String = vertex[ATTR_GUID]
 
     val subject: SubjectVertex?
         get() = vertex.getVertices(ODirection.OUT, OBJECT_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()
 
     val properties: List<ObjectPropertyVertex>
-        get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE)
-            .map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
-
-    val lastUpdated: Long?
-        get() = 1111 // vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
+        get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE).map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
 
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
 
-        return Objekt(identity, name, description, currentSubject, properties, guid, lastUpdated)
+        return Objekt(identity, name, description, currentSubject, properties, guid, timestamp.toEpochMilli())
     }
 }

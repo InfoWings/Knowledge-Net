@@ -46,7 +46,7 @@ val objectPropertyEditLineFormat = rFunction<ObjectPropertyEditLineFormatProps>(
         propertyAspect(
             value = props.aspect?.let {
                 val v = it.toHint()
-                if (props.selectedProp == null) v else v.copy(name = v.name + ":" + props.selectedProp?.name ?: "")
+                if (props.selectedProp == null) v else v.copy(name = v.name + ":" + props.selectedProp?.name)
             },
             onSelect = { hint ->
                 when (hint.source) {

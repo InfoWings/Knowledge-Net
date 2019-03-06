@@ -14,7 +14,7 @@ import com.infowings.catalog.wrappers.react.asReactElement
 import kotlinext.js.require
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import react.RBuilder
 import react.RComponent
 import react.RState
@@ -72,7 +72,7 @@ class SubjectsListComponent : RComponent<SubjectApiReceiverProps, SubjectsListCo
                 }
             } catch (exception: BadRequestException) {
                 setState {
-                    val errorMessage = JSON.parse(BadRequest.serializer(), exception.message).message
+                    val errorMessage = Json.parse(BadRequest.serializer(), exception.message).message
                     errorMessage?.let { errorMessages += it }
                 }
             } catch (exception: ServerException) {

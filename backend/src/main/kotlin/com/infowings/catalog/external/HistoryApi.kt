@@ -64,7 +64,6 @@ class HistoryApi(
 
         val result = SubjectHistoryList(history.map {
             val snapshot = it.toData()
-            val deletedAt = deleteVersions[snapshot.event.entityId]
             val isDeleted = it.event.type.isDelete() //if (deletedAt != null) deletedAt < snapshot.event.version else false
 
             SubjectHistory(
@@ -83,11 +82,7 @@ class HistoryApi(
 
     @GetMapping("/entity/{id}")
     fun getEntityHistory(@PathVariable id: String): EntityHistory {
-        return logTime(logger, "entity history") {
-            val timeline = historyService.entityTimeline(id)
-
-            return@logTime EntityHistory(id)
-        }
+        return logTime(logger, "entity history") { EntityHistory(id) }
     }
 }
 

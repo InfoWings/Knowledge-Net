@@ -7,7 +7,6 @@ import com.infowings.catalog.data.MeasureService
 import com.infowings.catalog.data.SubjectService
 import com.infowings.catalog.data.aspect.AspectDaoService
 import com.infowings.catalog.data.aspect.AspectVertex
-import com.infowings.catalog.data.guid.GuidDaoService
 import com.infowings.catalog.data.history.HistoryAware
 import com.infowings.catalog.data.history.HistoryContext
 import com.infowings.catalog.data.history.HistoryService
@@ -26,7 +25,6 @@ class ObjectService(
     private val aspectDao: AspectDaoService,
     measureService: MeasureService,
     refBookService: ReferenceBookService,
-    private val guidDao: GuidDaoService,
     private val userService: UserService,
     private val historyService: HistoryService
 ) {
@@ -446,7 +444,7 @@ class ObjectService(
                 historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
 
                 dao.deleteAll(context.values.toList().plus(context.propVertex))
-
+                dao.updateAndSaveObjectTimestamp(ownerObject)
                 PropertyDeleteResult(context.propVertex, ownerObject)
             }
         }
@@ -476,6 +474,7 @@ class ObjectService(
                 }
 
                 dao.deleteAll(valuesToDelete.toList())
+                dao.updateAndSaveObjectTimestamp(ownerObject)
 
                 PropertyDeleteResult(context.propVertex, ownerObject)
             }
@@ -572,7 +571,7 @@ class ObjectService(
                 historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
                 dao.delete(context.objVertex)
             }
-
+            dao.updateAndSaveObjectTimestamp(context.objVertex)
             dao.deleteAll((propertiesToDelete as Set<OVertex> + valuesToDelete).toList())
         }
 

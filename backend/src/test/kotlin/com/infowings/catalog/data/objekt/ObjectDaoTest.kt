@@ -402,10 +402,12 @@ class ObjectDaoTest {
     @Test
     fun objectUpdateTest() {
         val objVertex = newObject()
+        Thread.sleep(1) // to test timestamp update
         objectService.update(ObjectUpdateRequest(objVertex.id, "new name", "new description", subject.id, subject.version), username)
         val updatedObject = objectService.findById(objVertex.id)
         Assert.assertEquals("Object must have new name", "new name", updatedObject.name)
         Assert.assertEquals("Object must have new description", "new description", updatedObject.description)
+        Assert.assertNotEquals("Object must have new timestamp", objVertex.timestamp, updatedObject.timestamp)
     }
 
     @Test
@@ -751,7 +753,13 @@ class ObjectDaoTest {
         val valueRequest1 = ValueCreateRequest(ObjectValueData.DecimalValue.single("123.4"), null, objPropertyVertex1.id, Kilometre.name)
         val objPropValueResponse1 = objectService.create(valueRequest1, username)
 
-        val objPropertyVertex2 = createObjectProperty(PropertyWriteInfo("propName2", null, objVertex, aspectVertex))
+        // objVertex should be reloaded or update object timestamp will fail with OConcurrentModificationException, because objVertex already updated
+        val reloaded = dao.getObjectVertex(objVertex.id)!!
+        // pretty strange issue here, seems like a bug in orient
+        // next line fails with com.orientechnologies.orient.core.exception.ORecordNotFoundException: The record with id '#73:0' was not found
+        // but The record with id '#73:0' has been loaded into reloaded
+        // val willFail = objVertex.reload<OVertex>()
+        val objPropertyVertex2 = createObjectProperty(PropertyWriteInfo("propName2", null, reloaded, aspectVertex))
 
         val valueRequest2 = ValueCreateRequest(ObjectValueData.DecimalValue.single("234.5"), null, objPropertyVertex2.id, Kilometre.name)
         objectService.create(valueRequest2, username)

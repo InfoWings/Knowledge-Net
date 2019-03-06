@@ -3,7 +3,7 @@ package com.infowings.catalog.external
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.aspect.*
 import com.infowings.catalog.loggerFor
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -133,6 +133,6 @@ class AspectApi(val aspectService: AspectService) {
 }
 
 fun badRequest(message: String, badRequestCode: BadRequestCode): ResponseEntity<String> =
-    ResponseEntity.badRequest().body(JSON.stringify(BadRequest.serializer(), BadRequest(badRequestCode, message)))
+    ResponseEntity.badRequest().body(Json.stringify(BadRequest.serializer(), BadRequest(badRequestCode, message)))
 
 private val logger = loggerFor<AspectApi>()

@@ -2,7 +2,7 @@ package com.infowings.catalog.aspects
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.*
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 
 suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: String = ""): AspectsList {
     val orderFields = "orderFields=${orderBy.map { it.name.toString() }.joinToString { it }}"
@@ -11,29 +11,29 @@ suspend fun getAllAspects(orderBy: List<SortOrder> = emptyList(), nameQuery: Str
 
     val queryString = listOfNotNull(orderFields, direction, query).joinToString("&")
     return try {
-        JSON.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
+        Json.parse(AspectsList.serializer(), get("/api/aspect/all?$queryString"))
     } catch (e: BadRequestException) {
         println(e.message)
         AspectsList(emptyList())
     }
 }
 
-suspend fun getAspectTree(id: String): AspectTree = JSON.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))
+suspend fun getAspectTree(id: String): AspectTree = Json.parse(AspectTree.serializer(), get("/api/aspect/tree/${encodeURIComponent(id)}"))
 
-suspend fun getAspectById(id: String): AspectData = JSON.parse(AspectData.serializer(), get("/api/aspect/id/${encodeURIComponent(id)}"))
+suspend fun getAspectById(id: String): AspectData = Json.parse(AspectData.serializer(), get("/api/aspect/id/${encodeURIComponent(id)}"))
 
 suspend fun createAspect(body: AspectData): AspectData =
-    JSON.parse(AspectData.serializer(), post("/api/aspect/create", JSON.stringify(AspectData.serializer(), body)))
+    Json.parse(AspectData.serializer(), post("/api/aspect/create", Json.stringify(AspectData.serializer(), body)))
 
 suspend fun updateAspect(body: AspectData): AspectData =
-    JSON.parse(AspectData.serializer(), post("/api/aspect/update", JSON.stringify(AspectData.serializer(), body)))
+    Json.parse(AspectData.serializer(), post("/api/aspect/update", Json.stringify(AspectData.serializer(), body)))
 
-suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", JSON.stringify(AspectData.serializer(), body))
+suspend fun removeAspect(body: AspectData) = post("/api/aspect/remove", Json.stringify(AspectData.serializer(), body))
 
 suspend fun removeAspectProperty(id: String, force: Boolean = false): AspectPropertyDeleteResponse =
-    JSON.parse(AspectPropertyDeleteResponse.serializer(), delete("/api/aspect/property/${encodeURIComponent(id)}?force=$force"))
+    Json.parse(AspectPropertyDeleteResponse.serializer(), delete("/api/aspect/property/${encodeURIComponent(id)}?force=$force"))
 
-suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", JSON.stringify(AspectData.serializer(), body))
+suspend fun forceRemoveAspect(body: AspectData) = post("/api/aspect/forceRemove", Json.stringify(AspectData.serializer(), body))
 
 suspend fun getSuggestedAspects(
     query: String,
@@ -42,14 +42,14 @@ suspend fun getSuggestedAspects(
 ): AspectsList {
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
-    return JSON.parse(
+    return Json.parse(
         AspectsList.serializer(),
         get("/api/search/aspect/suggestion?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded")
     )
 }
 
 suspend fun getSuggestedMeasureData(query: String, findInGroups: Boolean = false): SuggestedMeasureData =
-    JSON.parse(SuggestedMeasureData.serializer(), get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
+    Json.parse(SuggestedMeasureData.serializer(), get("/api/search/measure/suggestion?text=$query&findInGroups=$findInGroups"))
 
 suspend fun getAspectHints(
     query: String,
@@ -59,7 +59,7 @@ suspend fun getAspectHints(
     val aspectIdEncoded = aspectId?.let { encodeURIComponent(it) } ?: ""
     val propertyAspectIdEncoded = aspectPropertyId?.let { encodeURIComponent(it) } ?: ""
     return try {
-        JSON.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
+        Json.parse(AspectsHints.serializer(), get("/api/search/aspect/hint?text=$query&aspectId=$aspectIdEncoded&aspectPropertyId=$propertyAspectIdEncoded"))
     } catch (e: BadRequestException) {
         AspectsHints.empty()
     }

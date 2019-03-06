@@ -39,5 +39,3 @@ class OpenDomain(baseType: BaseType) : AspectDomain(baseType) {
     }
 }
 
-//todo: пока для простоты
-fun restoreAspectDomain(name: String, baseType: BaseType): AspectDomain = OpenDomain(baseType)

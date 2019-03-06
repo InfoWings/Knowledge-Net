@@ -58,6 +58,7 @@ const val ATTR_VALUE = "value"
 const val ATTR_NAME = "name"
 const val ATTR_DESC = "description"
 const val ATTR_GUID = "guid"
+const val ATTR_LAST_UPDATE = "timestamp"
 
 const val USER_CLASS = "User"
 const val ASPECT_CLASS = "Aspect"
@@ -128,8 +129,13 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         objectVertexClass.initProperty(ATTR_NAME, OType.STRING) {
             isMandatory = true
+            isNotNull = true
         }
         objectVertexClass.initProperty(ATTR_DESC, OType.STRING)
+        objectVertexClass.initProperty(ATTR_LAST_UPDATE, OType.LONG) {
+            isMandatory = true
+            isNotNull = true
+        }
 
         addGuidProperty(objectVertexClass)
 
@@ -211,6 +217,7 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
 
         vertex.initProperty(ATTR_NAME, OType.STRING) {
             isMandatory = true
+            isNotNull = true
             initBasicIndex()
         }
         vertex.initProperty(ATTR_DESC, OType.STRING)
@@ -298,6 +305,8 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
     private fun addGuidProperty(oClass: OClass) {
         oClass.initProperty(ATTR_GUID, OType.STRING) {
             isMandatory = true
+            isNotNull = true
+            isReadonly = true
             initBasicIndex()
         }
     }

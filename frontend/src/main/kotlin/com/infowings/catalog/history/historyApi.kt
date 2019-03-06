@@ -2,7 +2,7 @@ package com.infowings.catalog.history
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.utils.get
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 
 suspend fun getAllEvents(): List<HistoryData<*>> {
     val aspectEvents = getAllAspectEvents()
@@ -18,13 +18,13 @@ suspend fun getAllEvents(): List<HistoryData<*>> {
 }
 
 suspend fun getAllAspectEvents(): List<AspectHistory> =
-    JSON.nonstrict.parse(AspectHistoryList.serializer(), get("/api/history/aspects")).history
+    Json.nonstrict.parse(AspectHistoryList.serializer(), get("/api/history/aspects")).history
 
 suspend fun getAllRefBookEvents(): List<RefBookHistory> =
-    JSON.nonstrict.parse(RefBookHistoryList.serializer(), get("/api/history/refbook")).history
+    Json.nonstrict.parse(RefBookHistoryList.serializer(), get("/api/history/refbook")).history
 
 suspend fun getAllObjectEvents(): List<ObjectHistory> =
-    JSON.nonstrict.parse(ObjectHistoryList.serializer(), get("/api/history/objects")).history
+    Json.nonstrict.parse(ObjectHistoryList.serializer(), get("/api/history/objects")).history
 
 suspend fun getAllSubjectEvents(): List<SubjectHistory> =
-    JSON.nonstrict.parse(SubjectHistoryList.serializer(), get("/api/history/subjects")).history
+    Json.nonstrict.parse(SubjectHistoryList.serializer(), get("/api/history/subjects")).history
