@@ -47,7 +47,7 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
     var timestamp: Instant
         get() = Instant.ofEpochMilli(vertex[ATTR_LAST_UPDATE])
         set(value) {
-            vertex[ATTR_LAST_UPDATE] = value.epochSecond
+            vertex[ATTR_LAST_UPDATE] = value.toEpochMilli()
         }
 
     override val guid: String = vertex[ATTR_GUID]
@@ -56,15 +56,11 @@ class ObjectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
         get() = vertex.getVertices(ODirection.OUT, OBJECT_SUBJECT_EDGE).firstOrNull()?.toSubjectVertex()
 
     val properties: List<ObjectPropertyVertex>
-        get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE)
-            .map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
-
-    val lastUpdated: Long?
-        get() = 1111 // vertex.getVertices(ODirection.IN, OBJECT_SUBJECT_EDGE).map { it.toObjectVertex() }
+        get() = vertex.getVertices(ODirection.IN, OBJECT_OBJECT_PROPERTY_EDGE).map { it.toObjectPropertyVertex() }.filterNot { it.deleted }
 
     fun toObjekt(): Objekt {
         val currentSubject = subject ?: throw IllegalStateException("Object $id has no subject")
 
-        return Objekt(identity, name, description, currentSubject, properties, guid, lastUpdated)
+        return Objekt(identity, name, description, currentSubject, properties, guid, timestamp.toEpochMilli())
     }
 }

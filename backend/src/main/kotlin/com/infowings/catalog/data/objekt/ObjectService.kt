@@ -444,7 +444,7 @@ class ObjectService(
                 historyService.storeFact(context.propVertex.toDeleteFact(context.historyContext))
 
                 dao.deleteAll(context.values.toList().plus(context.propVertex))
-
+                dao.updateAndSaveObjectTimestamp(ownerObject)
                 PropertyDeleteResult(context.propVertex, ownerObject)
             }
         }
@@ -474,6 +474,7 @@ class ObjectService(
                 }
 
                 dao.deleteAll(valuesToDelete.toList())
+                dao.updateAndSaveObjectTimestamp(ownerObject)
 
                 PropertyDeleteResult(context.propVertex, ownerObject)
             }
@@ -570,7 +571,7 @@ class ObjectService(
                 historyService.storeFact(context.objVertex.toDeleteFact(context.historyContext))
                 dao.delete(context.objVertex)
             }
-
+            dao.updateAndSaveObjectTimestamp(context.objVertex)
             dao.deleteAll((propertiesToDelete as Set<OVertex> + valuesToDelete).toList())
         }
 

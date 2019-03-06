@@ -394,7 +394,7 @@ class SuggestionService(
             val objVertex = it.toObjectVertex()
             ObjectTruncated(
                 id = objVertex.identity, name = objVertex.name, description = objVertex.description, guid = objVertex.guid,
-                subjectName = objVertex.subject?.name ?: "", objectPropertiesCount = 0, lastUpdated = null
+                subjectName = objVertex.subject?.name ?: "", objectPropertiesCount = 0, lastUpdated = objVertex.timestamp.toEpochMilli()
             ).toResponse()
         }.toMutableList()
         //.addSubjectDescSuggestion(commonParam)

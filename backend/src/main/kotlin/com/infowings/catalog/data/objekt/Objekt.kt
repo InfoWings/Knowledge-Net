@@ -21,7 +21,7 @@ data class Objekt(
     val subject: SubjectVertex,
     val properties: List<ObjectPropertyVertex>,
     val guid: String,
-    val lastUpdated: Long?
+    val lastUpdated: Long
 )
 
 data class ObjectResult(private val objectVertex: ObjectVertex, private val subjectVertex: SubjectVertex) {
@@ -36,7 +36,7 @@ data class ObjectResult(private val objectVertex: ObjectVertex, private val subj
         subjectVertex.name,
         objectVertex.version,
         guidValue,
-        objectVertex.lastUpdated
+        objectVertex.timestamp.toEpochMilli()
     )
 }
 
@@ -47,7 +47,7 @@ data class ObjectTruncated(
     val description: String?,
     val subjectName: String,
     val objectPropertiesCount: Int,
-    val lastUpdated: Long?
+    val lastUpdated: Long
 ) {
     fun toResponse() = ObjectGetResponse(id.toString(), name, guid, description, subjectName, objectPropertiesCount, lastUpdated)
 }

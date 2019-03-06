@@ -232,9 +232,20 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 it.addEdge(vertex, OBJECT_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
 
-            vertex.timestamp = Instant.now()
+            updateObjectTimestamp(vertex)
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
+
+    private fun updateObjectTimestamp(vertex: ObjectVertex) {
+        vertex.timestamp = Instant.now()
+    }
+
+    fun updateAndSaveObjectTimestamp(vertex: ObjectVertex) {
+        transaction(db) {
+            vertex.timestamp = Instant.now()
+            vertex.save<OVertex>()
+        }
+    }
 
     fun updateObject(vertex: ObjectVertex, info: ObjectWriteInfo): ObjectVertex =
         transaction(db) {
@@ -244,7 +255,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 vertex.getEdges(ODirection.OUT, OBJECT_SUBJECT_EDGE).forEach { it.delete<OEdge>() }
                 vertex.addEdge(info.subject, OBJECT_SUBJECT_EDGE).save<OEdge>()
             }
-            vertex.timestamp = Instant.now()
+            updateObjectTimestamp(vertex)
             return@transaction vertex.save<OVertex>().toObjectVertex()
         }
 
@@ -270,8 +281,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
             valuesMap.forEach { _, value ->
                 value.addEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE).save<OEdge>()
             }
-
-            info.objekt.timestamp = Instant.now()
+            updateAndSaveObjectTimestamp(info.objekt)
             return@transaction vertex.save<OVertex>().toObjectPropertyVertex()
         }
 
@@ -391,6 +401,9 @@ class ObjectDaoService(private val db: OrientDatabase) {
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_PROPERTY_EDGE, vertex.objectProperty, valueInfo.objectProperty)
         replaceEdge(vertex, OBJECT_VALUE_ASPECT_PROPERTY_EDGE, vertex.aspectProperty, valueInfo.aspectProperty)
         replaceEdge(vertex, OBJECT_VALUE_OBJECT_VALUE_EDGE, vertex.parentValue, valueInfo.parentValue)
+
+        val objectVertex = valueInfo.objectProperty.objekt ?: throw IllegalStateException("Objekt property should not be null for $valueInfo")
+        updateAndSaveObjectTimestamp(objectVertex)
 
         return@transaction vertex.save<OVertex>().toObjectPropertyValueVertex()
     }
