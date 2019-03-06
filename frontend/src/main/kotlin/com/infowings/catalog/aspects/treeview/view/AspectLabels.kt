@@ -54,7 +54,7 @@ fun RBuilder.aspectLabel(
     +" )"
     lastChangedTimestamp?.let {
         span(classes = "text-grey") {
-            val date = Date(it * 1000)
+            val date = Date(it)
             +date.tableFormat()
         }
     }

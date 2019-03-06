@@ -24,7 +24,7 @@ val objectLineFormat = rFunction<ObjectLineFormatProps>("ObjectLineFormat") { pr
 
         props.objectView.lastUpdated?.let {
             span(classes = "object-line__timestamp") {
-                val date = Date(it * 1000)
+                val date = Date(it)
                 +date.tableFormat()
             }
         }
