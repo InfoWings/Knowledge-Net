@@ -1,9 +1,8 @@
 package com.infowings.catalog.data.aspect
 
-import com.infowings.catalog.common.BaseType
-import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.common.AspectPropertyTree
 import com.infowings.catalog.common.AspectTree
+import com.infowings.catalog.common.PropertyCardinality
 import com.infowings.catalog.storage.ASPECT_ASPECT_PROPERTY_EDGE
 import com.infowings.catalog.storage.id
 import com.orientechnologies.orient.core.record.ODirection
@@ -165,7 +164,7 @@ class AspectTreeBuilder {
                         subject?.name,
                         aspectVertex.measureName,
                         aspectVertex.baseType,
-                        aspectVertex.baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
+                        AspectDomain.restore(aspectVertex.baseType),
                         aspectVertex.referenceBookRootVertex?.id,
                         aspectVertex.referenceBookRootVertexSoft?.toReferenceBookItem()?.value,
                         aspectVertex.deleted,

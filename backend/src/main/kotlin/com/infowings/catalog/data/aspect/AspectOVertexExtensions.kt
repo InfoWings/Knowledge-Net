@@ -13,7 +13,6 @@ import com.infowings.catalog.data.subject.SubjectVertex
 import com.infowings.catalog.data.subject.toSubject
 import com.infowings.catalog.data.subject.toSubjectVertex
 import com.infowings.catalog.data.toSubjectData
-import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
 import com.infowings.catalog.storage.*
 import com.orientechnologies.orient.core.record.ODirection
@@ -102,12 +101,19 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             vertex["measure"] = value
         }
 
+    var timestamp: Instant
+        get() = Instant.ofEpochMilli(vertex[ATTR_LAST_UPDATE])
+        set(value) {
+            vertex[ATTR_LAST_UPDATE] = value.toEpochMilli()
+        }
+
     val subject: Subject?
         get() = subjectVertex?.toSubject()
 
     override val guid: String = vertex[ATTR_GUID]
 
-    private val lastChange: Instant?
+    //todo:migration for #432
+    val lastChange: Instant?
         get() {
             // это все работает медленно. Чем больше история, тем медленнее
             val maybeLastAspectUpdate: Instant? = vertex.getVertices(ODirection.OUT, HISTORY_EDGE).map { it.toHistoryEventVertex().timestamp }.max()
@@ -167,36 +173,31 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
         "AspectVertex[id=${this.id}, name=${this.name}]"
 
     private fun toAspectOnlyData(): AspectData {
-        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
-        val subjectData = subject?.toSubjectData()
-        val refBookValue = referenceBookRootVertex?.value
-        val lastChange = logTime(logger, "extracting last change") { lastChange }
 
         return AspectData(
             id = id,
             name = name,
             measure = measureName,
-            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            domain = AspectDomain.restore(baseType),
             baseType = baseType,
             properties = emptyList(),
             version = version,
-            subject = subjectData,
+            subject = subject?.toSubjectData(),
             deleted = deleted,
             description = description,
-            lastChangeTimestamp = lastChange?.epochSecond,
-            refBookName = refBookValue,
+            lastChangeTimestamp = timestamp.epochSecond,
+            refBookName = referenceBookRootVertex?.value,
             guid = guid
         )
     }
 
     private fun toAspectLocalData(): AspectData {
-        val baseTypeObj = baseType?.let { BaseType.restoreBaseType(it) }
 
         return AspectData(
             id = id,
             name = name,
             measure = measureName,
-            domain = baseTypeObj?.let { OpenDomain(it).toString() },
+            domain = AspectDomain.restore(baseType),
             baseType = baseType,
             properties = emptyList(),
             version = version,
@@ -223,7 +224,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             properties = propertiesData,
             subject = details.subject,
             refBookName = details.refBookName,
-            lastChangeTimestamp = details.lastChange.epochSecond,
+            lastChangeTimestamp = timestamp.epochSecond,
             guid = guid
         )
     }
