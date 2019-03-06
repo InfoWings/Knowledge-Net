@@ -118,11 +118,10 @@ class DefaultAspectService(
                 throw AspectEmptyChangeException()
             }*/
 
-            val finishMethod = if (aspectVertex.identity.isNew) this::createFinish else {
-                if (aspectVertex.toAspectData().copy(guid = "") == aspectData.copy(guid = "")) {
-                    throw AspectEmptyChangeException()
-                }
-                this::updateFinish
+            val finishMethod = when {
+                aspectVertex.identity.isNew -> this::createFinish
+                aspectVertex.toAspectData().copy(guid = "") == aspectData.copy(guid = "") -> throw AspectEmptyChangeException()
+                else -> this::updateFinish
             }
 
             return@transaction finishMethod(aspectVertex, aspectData, HistoryContext(userVertex))
@@ -139,7 +138,7 @@ class DefaultAspectService(
             logger.warn("Cluster position is negative: ${save.id}. Aspect: $save. Recovered: $res")
 
             res
-        } else transaction(db) { save.toAspectData() }
+        } else session(db) { save.toAspectData() }
     }
 
     override fun remove(aspectData: AspectData, username: String, force: Boolean) {

@@ -185,7 +185,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             subject = subject?.toSubjectData(),
             deleted = deleted,
             description = description,
-            lastChangeTimestamp = timestamp.epochSecond,
+            lastChangeTimestamp = timestamp.toEpochMilli(),
             refBookName = referenceBookRootVertex?.value,
             guid = guid
         )
@@ -224,7 +224,7 @@ class AspectVertex(private val vertex: OVertex) : HistoryAware, GuidAware, Delet
             properties = propertiesData,
             subject = details.subject,
             refBookName = details.refBookName,
-            lastChangeTimestamp = timestamp.epochSecond,
+            lastChangeTimestamp = timestamp.toEpochMilli(),
             guid = guid
         )
     }
