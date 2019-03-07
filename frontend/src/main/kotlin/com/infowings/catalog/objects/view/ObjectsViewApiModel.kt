@@ -107,13 +107,14 @@ class ObjectsViewApiModelComponent :
     private fun objectsReceived(objectsResponse: ObjectsResponse, viewSlice: PaginationData) {
         setState {
             objects = objectsResponse.objects
-            this.paginationData = viewSlice.copy(totalItems = objectsResponse.totalObjects)
+            this.paginationData = this.paginationData.updateTotal(objectsResponse.totalObjects)
         }
     }
 
     private fun fetch(viewSlice: PaginationData) {
         job.cancelChildren()
         launch {
+            setState { paginationData = viewSlice }
             val objectsResponse = getAllObjects(state.toObjectRequestData())
             objectsReceived(objectsResponse, viewSlice)
         }
