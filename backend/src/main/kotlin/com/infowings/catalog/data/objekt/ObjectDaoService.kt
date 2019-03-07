@@ -23,43 +23,6 @@ class ObjectDaoService(private val db: OrientDatabase) {
 
     init {
         //todo: migration code for #395
-        // objects guid
-        transaction(db) {
-            val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
-            for (id in objectsIds) {
-                val vertex = getObjectVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
-                if (vertex.getProperty<String>(ATTR_GUID) == null) {
-                    vertex.setProperty(ATTR_GUID, guid)
-                    vertex.save<OVertex>()
-                }
-            }
-        }
-        // object properties  guid
-        transaction(db) {
-            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
-            for (id in objectsIds) {
-                val vertex = getObjectPropertyVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
-                if (vertex.getProperty<String>(ATTR_GUID) == null) {
-                    vertex.setProperty(ATTR_GUID, guid)
-                    vertex.save<OVertex>()
-                }
-            }
-        }
-
-        // object properties values  guid
-        transaction(db) {
-            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_VALUE_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
-            for (id in objectsIds) {
-                val vertex = getObjectPropertyValueVertex(id.toString())!!
-                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectValueEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
-                if (vertex.getProperty<String>(ATTR_GUID) == null) {
-                    vertex.setProperty(ATTR_GUID, guid)
-                    vertex.save<OVertex>()
-                }
-            }
-        }
         //todo: migration for 394
         fun getObjectsLastUpdateTimestamps(): Map<String, Instant> {
             val queryTS =
@@ -87,22 +50,55 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 }
             }
 
-            logger.trace("tsById: $tsById")
             return tsById
         }
 
+        // objects guid
         transaction(db) {
             val id2ts: Map<String, Instant> = getObjectsLastUpdateTimestamps()
             val objectsIds = db.query("select @rid from $OBJECT_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in objectsIds) {
                 val vertex = getObjectVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                }
                 val timestamp = id2ts[id.toString()]
                 if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null && timestamp != null) {
                     vertex.setProperty(ATTR_LAST_UPDATE, timestamp.toEpochMilli())
+                }
+                vertex.save<OVertex>()
+
+            }
+
+        }
+        // object properties  guid
+        transaction(db) {
+            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectPropertyVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectPropertyEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
                     vertex.save<OVertex>()
                 }
             }
         }
+
+        // object properties values  guid
+        transaction(db) {
+            val objectsIds = db.query("select @rid from $OBJECT_PROPERTY_VALUE_CLASS") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in objectsIds) {
+                val vertex = getObjectPropertyValueVertex(id.toString())!!
+                val guid = vertex.getVertices(ODirection.OUT, "GuidOfObjectValueEdge").singleOrNull()?.getProperty<String>(ATTR_GUID) ?: continue
+                if (vertex.getProperty<String>(ATTR_GUID) == null) {
+                    vertex.setProperty(ATTR_GUID, guid)
+                    vertex.save<OVertex>()
+                }
+            }
+        }
+
+        logger.info("Object migration complete")
     }
 
     private fun <T : OVertex> replaceEdge(vertex: OVertex, edgeClass: String, oldTarget: T?, newTarget: T?) {

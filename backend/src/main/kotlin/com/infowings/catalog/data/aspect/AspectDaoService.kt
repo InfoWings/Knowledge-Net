@@ -27,17 +27,21 @@ data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?,
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
     init {
-        //todo: migration code for #395
+        //todo: migration code for #395 & #432
         // aspects guid
         transaction(db) {
             val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
             for (id in aspectIds) {
-                val vertex = getVertex(id.toString())!!
+                val vertex = find(id.toString())!!
                 val guid = vertex.getVertices(ODirection.OUT, "GuidOfAspectEdge").singleOrNull()?.getProperty<String>(ATTR_GUID)
                 if (vertex.getProperty<String>(ATTR_GUID) == null) {
                     vertex.setProperty(ATTR_GUID, guid)
-                    vertex.save<OVertex>()
                 }
+                val lastUpdate = vertex.lastChange
+                if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null) {
+                    vertex.setProperty(ATTR_LAST_UPDATE, lastUpdate!!.toEpochMilli())
+                }
+                vertex.save<OVertex>()
             }
         }
         // aspect properties guid
@@ -52,18 +56,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 }
             }
         }
-        //todo: migration for #432
-        transaction(db) {
-            val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
-            for (id in aspectIds) {
-                val vertex = find(id.toString())!!
-                val lastUpdate = vertex.lastChange
-                if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null) {
-                    vertex.setProperty(ATTR_LAST_UPDATE, lastUpdate!!.toEpochMilli())
-                    vertex.save<OVertex>()
-                }
-            }
-        }
+        logger.info("Aspect migration complete")
     }
 
     fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).assignGuid().toAspectVertex()
