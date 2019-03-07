@@ -31,7 +31,7 @@ allprojects {
     apply plugin: 'com.bmuschko.docker-remote-api'
 
     group = "com.infowings"
-    version = "20.3"
+    version = "20.4"
 
     repositories {
         mavenCentral()
