@@ -401,7 +401,7 @@ class ObjectValidatorTest {
         val vertex = transaction(db) {
             val newVertex = db.createNewVertex(type)
             newVertex.setProperty("name", "non-existent")
-            newVertex.setProperty("timestamp", Instant.now().epochSecond)
+            newVertex.setProperty("timestamp", Instant.now().toEpochMilli())
             newVertex.assignGuid()
             return@transaction newVertex.save<OVertexDocument>()
         }

@@ -2,7 +2,6 @@ package com.infowings.catalog.data.aspect
 
 import com.infowings.catalog.common.*
 import com.infowings.catalog.data.MeasureService
-import com.infowings.catalog.data.history.HISTORY_EDGE
 import com.infowings.catalog.data.reference.book.ASPECT_REFERENCE_BOOK_EDGE
 import com.infowings.catalog.external.logTime
 import com.infowings.catalog.loggerFor
@@ -23,7 +22,7 @@ const val selectWithName = "SELECT from $ASPECT_CLASS WHERE name = :name and $no
 const val selectFromAspectWithoutDeleted = "SELECT FROM $ASPECT_CLASS WHERE $notDeletedSql"
 const val selectFromAspectWithDeleted = "SELECT FROM $ASPECT_CLASS"
 
-data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?, val propertyIds: List<ORID>, val lastChange: Instant)
+data class AspectDaoDetails(val subject: SubjectData?, val refBookName: String?, val propertyIds: List<ORID>)
 
 class AspectDaoService(private val db: OrientDatabase, private val measureService: MeasureService) {
 
@@ -53,7 +52,18 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 }
             }
         }
-
+        //todo: migration for #432
+        transaction(db) {
+            val aspectIds = db.query("select @rid from Aspect") { it.map { it.getProperty<ORecordId>("@rid") }.toList() }
+            for (id in aspectIds) {
+                val vertex = find(id.toString())!!
+                val lastUpdate = vertex.lastChange
+                if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null) {
+                    vertex.setProperty(ATTR_LAST_UPDATE, lastUpdate!!.toEpochMilli())
+                    vertex.save<OVertex>()
+                }
+            }
+        }
     }
 
     fun createNewAspectVertex() = db.createNewVertex(ASPECT_CLASS).assignGuid().toAspectVertex()
@@ -188,6 +198,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 it.save<OVertex>()
             }
             vertex.deleted = true
+            updateAspectTimestamp(vertex)
             vertex.save<OVertex>()
         }
     }
@@ -217,10 +228,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         }
     }
 
-    private fun Instant.latest(other: Instant) = if (this.isAfter(other)) this else other
-
-    fun getDetailsStr(ids: List<String>): Map<String, AspectDaoDetails> = getDetails(ids.map { ORecordId(it) })
-
     fun getDetails(ids: List<ORID>): Map<String, AspectDaoDetails> = logTime(logger, "aspects details extraction at dao level") {
         val aliasPropIds = "propertyIds"
         val aliasSubjects = "subjectIds"
@@ -228,8 +235,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         val aliasId = "id"
         val aliasName = "name"
         val aliasDescription = "description"
-        val aliasAspectTime = "aspectTime"
-        val aliasPropertiesTime = "propTime"
         val aliasVersion = "version"
 
         db.query(
@@ -237,9 +242,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                     " @rid as $aliasId," +
                     " out('$ASPECT_ASPECT_PROPERTY_EDGE').@rid as $aliasPropIds," +
                     " out('$ASPECT_SUBJECT_EDGE'):{@rid as $aliasId, $aliasName, $aliasDescription, @version as $aliasVersion} as $aliasSubjects," +
-                    " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames," +
-                    " max(out('$HISTORY_EDGE').timestamp) as $aliasAspectTime," +
-                    " max(out('$ASPECT_ASPECT_PROPERTY_EDGE').out('$HISTORY_EDGE').timestamp) as $aliasPropertiesTime" +
+                    " out('$ASPECT_REFERENCE_BOOK_EDGE').value as $aliasRefBookNames" +
                     "  from  :ids GROUP BY $aliasId ;", mapOf("ids" to ids)
         ) { rs ->
             rs.mapNotNull {
@@ -249,8 +252,6 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
                 val propertyIds: List<ORID> = it.getProperty(aliasPropIds)
                 val subjects: List<OResult> = it.getProperty(aliasSubjects)
                 val refBookNames: List<String> = it.getProperty(aliasRefBookNames)
-                val aspectTS: Instant = it.getProperty(aliasAspectTime)
-                val propertiesTS: Instant = it.getProperty(aliasPropertiesTime) ?: Instant.MIN
 
                 val subject = subjects.firstOrNull()?.let { subjectResult ->
                     SubjectData(
@@ -262,7 +263,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
 
                 aspectId.toString() to AspectDaoDetails(
                     propertyIds = propertyIds, subject = subject,
-                    refBookName = refBookNames.firstOrNull(), lastChange = aspectTS.latest(propertiesTS)
+                    refBookName = refBookNames.firstOrNull()
                 )
             }.toMap()
         }
@@ -293,7 +294,7 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
         aspectData.subject?.id?.let {
             aspectVertex.addEdge(db[it], ASPECT_SUBJECT_EDGE).save<OEdge>()
         }
-
+        updateAspectTimestamp(aspectVertex)
         return@transaction aspectVertex.save<OVertex>().toAspectVertex()
     }
 
@@ -372,6 +373,18 @@ class AspectDaoService(private val db: OrientDatabase, private val measureServic
     fun baseType(propertyVertex: AspectPropertyVertex): String? = transaction(db) {
         propertyVertex.associatedAspect.baseType
     }
+
+    private fun updateAspectTimestamp(vertex: AspectVertex) {
+        vertex.timestamp = Instant.now()
+    }
+
+    fun updateAndSaveAspectTimestamp(vertex: AspectVertex) {
+        transaction(db) {
+            vertex.timestamp = Instant.now()
+            vertex.save<OVertex>()
+        }
+    }
+
 }
 
 private val logger = loggerFor<AspectDaoService>()

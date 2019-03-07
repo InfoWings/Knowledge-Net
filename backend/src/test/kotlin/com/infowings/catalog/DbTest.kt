@@ -101,7 +101,7 @@ class DbTest {
 
                 transaction(database) {
                     vertex.setProperty(fieldName, testKey)
-                    vertex.setProperty(ATTR_LAST_UPDATE, Instant.now().epochSecond)
+                    vertex.setProperty(ATTR_LAST_UPDATE, Instant.now().toEpochMilli())
                     vertex.save<OVertex>()
                 }
 

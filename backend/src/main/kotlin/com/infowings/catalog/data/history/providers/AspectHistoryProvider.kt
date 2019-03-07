@@ -1,8 +1,8 @@
 package com.infowings.catalog.data.history.providers
 
 import com.infowings.catalog.common.*
+import com.infowings.catalog.data.aspect.AspectDomain
 import com.infowings.catalog.data.aspect.AspectService
-import com.infowings.catalog.data.aspect.OpenDomain
 import com.infowings.catalog.data.history.*
 import com.infowings.catalog.data.reference.book.ReferenceBookDao
 import com.infowings.catalog.data.subject.SubjectDao
@@ -69,7 +69,7 @@ private fun DataAware.toAspectData(properties: List<AspectPropertyData>, event: 
         name = dataOrEmpty(AspectField.NAME.name),
         description = dataItem(AspectField.DESCRIPTION.name),
         baseType = baseType,
-        domain = baseType?.let { OpenDomain(BaseType.restoreBaseType(it)).toString() },
+        domain = AspectDomain.restore(baseType),
         measure = dataItem(AspectField.MEASURE.name),
         properties = properties,
         version = event.version,

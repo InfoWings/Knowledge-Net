@@ -98,7 +98,7 @@ class ObjectDaoService(private val db: OrientDatabase) {
                 val vertex = getObjectVertex(id.toString())!!
                 val timestamp = id2ts[id.toString()]
                 if (vertex.getProperty<String>(ATTR_LAST_UPDATE) == null && timestamp != null) {
-                    vertex.setProperty(ATTR_LAST_UPDATE, timestamp.epochSecond)
+                    vertex.setProperty(ATTR_LAST_UPDATE, timestamp.toEpochMilli())
                     vertex.save<OVertex>()
                 }
             }

@@ -7,6 +7,10 @@ import com.infowings.catalog.common.BaseType
  */
 sealed class AspectDomain(val baseType: BaseType) {
     abstract fun contains(value: Any?): Boolean
+
+    companion object {
+        fun restore(baseType: String?) = baseType?.let { BaseType.restoreBaseType(it) }?.let { OpenDomain(it).toString() }
+    }
 }
 
 /**

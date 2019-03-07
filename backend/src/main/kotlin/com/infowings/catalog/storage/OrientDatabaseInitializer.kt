@@ -196,6 +196,11 @@ class OrientDatabaseInitializer(private val database: OrientDatabase) {
         aspectClass.initProperty(ATTR_NAME, OType.STRING) {
             isMandatory = true
         }
+        aspectClass.initProperty(ATTR_LAST_UPDATE, OType.LONG) {
+            isMandatory = true
+            isNotNull = true
+        }
+
         addGuidProperty(aspectClass)
         initIgnoreCaseIndex(ASPECT_CLASS)
 
